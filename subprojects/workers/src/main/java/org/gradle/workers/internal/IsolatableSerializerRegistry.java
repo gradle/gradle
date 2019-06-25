@@ -50,6 +50,7 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,10 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte ISOLATED_ARRAY = (byte) 13;
     private static final byte ISOLATED_LIST = (byte) 14;
     private static final byte ISOLATED_SET = (byte) 15;
+
+    private static final byte ISOLATABLE_TYPE = (byte) 0;
+    private static final byte ARRAY_TYPE = (byte) 1;
+    private static final byte OTHER_TYPE = (byte) 2;
 
     private final Map<Byte, IsolatableSerializer<?>> isolatableSerializers = Maps.newHashMap();
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -128,6 +133,50 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         encoder.writeInt(elements.size());
         for (Isolatable<?> isolatable : elements) {
             writeIsolatable(encoder, isolatable);
+        }
+    }
+
+    private Object readState(Decoder decoder) throws Exception {
+        byte stateType = decoder.readByte();
+        Object state;
+        if (stateType == ISOLATABLE_TYPE) {
+            state = readIsolatable(decoder);
+        } else if (stateType == ARRAY_TYPE) {
+            String stateClassName = decoder.readString();
+            Class<?> stateClass = fromClassName(stateClassName);
+            int size = decoder.readInt();
+            state = Array.newInstance(stateClass, size);
+            for (int i = 0; i < size; i++) {
+                Array.set(state, i, readState(decoder));
+            }
+        } else {
+            String stateClassName = decoder.readString();
+            Class<?> stateClass = fromClassName(stateClassName);
+            useJavaSerialization(stateClass);
+            state = build(stateClass).read(decoder);
+        }
+
+        return state;
+    }
+
+    private void writeState(Encoder encoder, Object state) throws Exception {
+        if (state instanceof Isolatable) {
+            encoder.writeByte(ISOLATABLE_TYPE);
+            writeIsolatable(encoder, (Isolatable<?>) state);
+        } else if (state.getClass().isArray()) {
+            encoder.writeByte(ARRAY_TYPE);
+            encoder.writeString(state.getClass().getComponentType().getName());
+            Object[] array = (Object[]) state;
+            int size = array.length;
+            encoder.writeInt(size);
+            for (int i = 0; i < size; i++) {
+                writeState(encoder, array[i]);
+            }
+        } else {
+            encoder.writeByte(OTHER_TYPE);
+            encoder.writeString(state.getClass().getName());
+            useJavaSerialization(state.getClass());
+            build(state.getClass()).write(encoder, Cast.uncheckedCast(state));
         }
     }
 
@@ -257,16 +306,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
             encoder.writeByte(IMMUTABLE_MANAGED_VALUE);
             encoder.writeInt(value.getValue().getFactoryId());
             encoder.writeString(value.getValue().publicType().getName());
-            Object state = value.getValue().unpackState();
-            if (state instanceof Isolatable) {
-                encoder.writeBoolean(true);
-                writeIsolatable(encoder, (Isolatable<?>) state);
-            } else {
-                encoder.writeBoolean(false);
-                encoder.writeString(state.getClass().getName());
-                useJavaSerialization(state.getClass());
-                build(state.getClass()).write(encoder, Cast.uncheckedCast(state));
-            }
+            writeState(encoder, value.getValue().unpackState());
         }
 
         @Override
@@ -274,19 +314,9 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
             int factoryId = decoder.readInt();
             String publicClassName = decoder.readString();
             Class<?> publicClass = fromClassName(publicClassName);
-            boolean isIsolatableState = decoder.readBoolean();
-            Object state;
-            if (isIsolatableState) {
-                state = readIsolatable(decoder);
-            } else {
-                String stateClassName = decoder.readString();
-                Class<?> stateClass = fromClassName(stateClassName);
-                useJavaSerialization(stateClass);
-                state = build(stateClass).read(decoder);
-            }
 
             ManagedFactory factory = managedFactoryRegistry.lookup(factoryId);
-            Managed managed = Cast.uncheckedCast(factory.fromState(publicClass, state));
+            Managed managed = Cast.uncheckedCast(factory.fromState(publicClass, readState(decoder)));
             return new IsolatedImmutableManagedValue(managed, managedFactoryRegistry);
         }
 
