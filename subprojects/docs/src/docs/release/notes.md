@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Dan Sănduleac](https://github.com/dansanduleac),
 [Andrew K.](https://github.com/miokowpak),
 [Noa Resare](https://github.com/nresare),
 [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod),
