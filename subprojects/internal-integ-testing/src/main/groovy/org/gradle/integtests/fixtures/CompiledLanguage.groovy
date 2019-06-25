@@ -34,22 +34,10 @@ enum CompiledLanguage {
         return "compile${name.capitalize()}"
     }
 
-    String allProjectGroovyDependencies() {
+    String projectGroovyDependencies(String allprojectsOrSubproject= 'allprojects') {
         this == GROOVY ?
             """
-            allprojects {
-                dependencies {
-                    compile localGroovy()
-                }
-            }
-"""
-            : ''
-    }
-
-    String subProjectGroovyDependencies() {
-        this == GROOVY ?
-            """
-            subprojects {
+            ${allprojectsOrSubproject} {
                 dependencies {
                     compile localGroovy()
                 }

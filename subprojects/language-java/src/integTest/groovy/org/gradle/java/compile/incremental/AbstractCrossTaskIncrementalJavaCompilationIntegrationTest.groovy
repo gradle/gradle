@@ -25,15 +25,6 @@ import spock.lang.Unroll
 abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Override
-    protected String getProjectDependencyBlock() {
-        '''
-            project(':impl') {
-                dependencies { api project(':api') }
-            }
-        '''
-    }
-
     @Unroll
     def "change in an upstream class with non-private constant causes rebuild if same constant is used (#constantType)"() {
         source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A { $constantType foo() { return $constantValue; }}", "class ImplB {int foo() { return 2; }}"]

@@ -39,7 +39,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
             sourceCompatibility = 1.7
             ${language.compileTaskName}.options.debug = true
             ${language.compileTaskName}.options.incremental = true
-            ${language.allProjectGroovyDependencies()}
+            ${language.projectGroovyDependencies()}
         """.stripIndent()
 
         when:
@@ -76,7 +76,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         buildFile << """
             apply plugin: '${language.name}'
             ${language.compileTaskName}.options.incremental = true
-            ${language.allProjectGroovyDependencies()}
+            ${language.projectGroovyDependencies()}
 """
 
         expect:
@@ -105,7 +105,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
                     implementation project(':lib')
                 }
             }
-            ${language.subProjectGroovyDependencies()}
+            ${language.projectGroovyDependencies("subprojects")}
         """.stripIndent()
 
         expect:
@@ -183,7 +183,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         buildFile << """
             apply plugin: '${language.name}'
             ${language.compileTaskName}.options.incremental = true
-            ${language.allProjectGroovyDependencies()}
+            ${language.projectGroovyDependencies()}
 """
 
         when:

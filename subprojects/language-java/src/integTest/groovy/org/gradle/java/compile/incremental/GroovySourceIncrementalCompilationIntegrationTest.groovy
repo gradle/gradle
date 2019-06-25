@@ -54,4 +54,42 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         then:
         outputContains('no source class mapping file found')
     }
+
+    def 'only recompile affected classes when multiple class in one groovy file'() {
+        given:
+        def a = file('src/main/groovy/org/gradle/A.groovy')
+        a << """
+package org.gradle
+
+class A1{}
+
+class A2{}
+"""
+        file('src/main/groovy/org/gradle/B.groovy') << 'package org.gradle; class B{}'
+        outputs.snapshot { run "compileGroovy" }
+
+        when:
+        a.text = 'package org.gradle; class A1 {}'
+        run "compileGroovy"
+
+        then:
+        outputs.recompiledClasses('A1')
+        outputs.deletedClasses('A2')
+    }
+
+    def 'only recompile removed packages'() {
+        given:
+        file('src/main/groovy/org/gradle/Org.groovy') << 'package org.gradle; class Org {}'
+        file('src/main/groovy/com/gradle/Com.groovy') << 'package com.gradle; class Com {}'
+
+        outputs.snapshot { run 'compileGroovy' }
+
+        when:
+        file('src/main/groovy/com').forceDeleteDir()
+        run 'compileGroovy'
+
+        then:
+        outputs.recompiledClasses()
+        outputs.deletedClasses('Com')
+    }
 }

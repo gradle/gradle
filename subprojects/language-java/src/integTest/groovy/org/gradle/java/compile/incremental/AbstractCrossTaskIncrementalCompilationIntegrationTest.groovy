@@ -24,7 +24,6 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
-
     CompilationOutputsFixture impl
 
     def setup() {
@@ -32,17 +31,87 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
         buildFile << """
             subprojects {
-                apply plugin: 'java-library'
+                apply plugin: '${language.name}'
                 ${mavenCentralRepository()}
             }
             $projectDependencyBlock
         """
         settingsFile << "include 'api', 'impl'"
+
+        if (language == CompiledLanguage.GROOVY) {
+            configureGroovyIncrementalCompilation('subprojects')
+        }
     }
 
-    protected abstract String getProjectDependencyBlock()
+    protected String getProjectDependencyBlock() {
+        if (useJar) {
+            '''
+            project(':impl') {
+                dependencies { compile project(':api') }
+            }
+        '''
+        } else if (language == CompiledLanguage.JAVA) {
+            '''
+            subprojects {
+                configurations {
+                    classesDir {
+                        extendsFrom(compile)
+                    }
+                }
+                artifacts {
+                    classesDir file: compileJava.destinationDir, builtBy:compileJava
+                }
+            }
+            project(':impl') {
+                dependencies { compile project(path:':api', configuration: 'classesDir') }
+            }
+        '''
+        } else {
+            '''
+            subprojects {
+                configurations {
+                    classesDir {
+                        extendsFrom(compile)
+                    }
+                }
+                artifacts {
+                    classesDir file: compileJava.destinationDir, builtBy:compileJava
+                    classesDir file: compileGroovy.destinationDir, builtBy:compileGroovy
+                }
+            }
+            project(':impl') {
+                dependencies { compile project(path:':api', configuration: 'classesDir') }
+            }
+        '''
+        }
+    }
 
-    protected abstract void addDependency(String from, String to)
+    protected void addDependency(String from, String to) {
+        if (useJar) {
+            buildFile << """
+            project(':$from') {
+                dependencies { compile project(':$to') }
+            }
+        """
+        } else {
+            buildFile << """
+            project(':$from') {
+                dependencies { compile project(path:':$to', configuration: 'classesDir') }
+            }
+        """
+        }
+    }
+
+    protected abstract boolean isUseJar()
+
+    private void clearImplProjectDependencies() {
+        buildFile << """
+            project(':impl') {
+                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+            }
+        """
+        configureGroovyIncrementalCompilation('subprojects')
+    }
 
     File source(Map projectToClassBodies) {
         File out
@@ -138,11 +207,8 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run language.compileTaskName }
 
         when:
-        buildFile << """
-            project(':impl') {
-                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
-            }
-        """
+        clearImplProjectDependencies()
+
         run "impl:${language.compileTaskName}"
 
         then:
@@ -154,11 +220,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run language.compileTaskName }
 
         when:
-        buildFile << """
-            project(':impl') {
-                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
-            }
-        """
+        clearImplProjectDependencies()
         fails "impl:${language.compileTaskName}"
 
         then:
@@ -218,17 +280,11 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run language.compileTaskName }
 
         when:
-        buildFile << """
-            project(':impl') {
-                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
-            }
-        """
         run "impl:${language.compileTaskName}"
 
         then:
         impl.recompiledClasses("X")
     }
-
 
 
     @Unroll
@@ -356,7 +412,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         buildFile << """
             project(':impl') {
                 ${jcenterRepository()}     
-                dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
+                dependencies { compile 'org.apache.commons:commons-lang3:3.3' }
             }
         """
         source api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
@@ -428,7 +484,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         //new separate compile task (compileIntegTest${language.captalizedName}) depends on class from the extra project
         file("impl/build.gradle") << """
             sourceSets { integTest.${language.name}.srcDir "src/integTest/${language.name}" }
-            dependencies { integTestImplementation project(":other") }
+            dependencies { integTestCompile project(":other") }
         """
         file("impl/src/integTest/${language.name}/SomeIntegTest.${language.name}") << "class SomeIntegTest extends Other {}"
 
@@ -452,21 +508,30 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
     String wrapClassDirs(String classpath) {
         if (language == CompiledLanguage.GROOVY) {
-            // api/build/classes/java/main and api/build/classes/groovy/main
-            // impl/build/classes/java/main
-            return "main, main, ${classpath}, main"
+            if (useJar) {
+                return "api.jar, ${classpath}, main"
+            } else {
+                // api/build/classes/java/main and api/build/classes/groovy/main
+                // impl/build/classes/java/main
+                return "main, main, ${classpath}, main"
+            }
         } else {
-            // api/build/classes/java/main
-            return "main, ${classpath}"
+            if (useJar) {
+                return "api.jar, $classpath"
+            } else {
+                // api/build/classes/java/main
+                return "main, ${classpath}"
+            }
         }
     }
 
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
-            dependencies { implementation "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
+            dependencies { compile "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
             ${language.compileTaskName}.doFirst {
-                file("classpath.txt").createNewFile(); file("classpath.txt").text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
+                file("classpath.txt").createNewFile(); 
+                file("classpath.txt").text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
             }
         """
 
@@ -483,21 +548,21 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.12.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
 
         when: //transitive dependency is excluded
-        file("impl/build.gradle") << "configurations.implementation.exclude module: 'hamcrest-core' \n"
+        file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
         run("impl:${language.compileTaskName}")
 
         then:
         file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar")
 
         when: //direct dependency is excluded
-        file("impl/build.gradle") << "configurations.implementation.exclude module: 'junit' \n"
+        file("impl/build.gradle") << "configurations.compile.exclude module: 'junit' \n"
         run("impl:${language.compileTaskName}")
 
         then:
         file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, objenesis-1.0.jar")
 
         when: //new dependency is added
-        file("impl/build.gradle") << "dependencies { implementation 'org.testng:testng:6.8.7' } \n"
+        file("impl/build.gradle") << "dependencies { compile 'org.testng:testng:6.8.7' } \n"
         run("impl:${language.compileTaskName}")
 
         then:
@@ -529,9 +594,13 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
     def "new jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         source impl: ["class A extends org.junit.Assert {}"]
+
         file("impl/build.gradle") << """
-            configurations.api.dependencies.clear()
-            dependencies { implementation 'junit:junit:4.12' }
+            configurations.compile.dependencies.clear()
+            dependencies { 
+                compile 'junit:junit:4.12' 
+                compile localGroovy()
+            }
         """
 
         impl.snapshot { run("impl:${language.compileTaskName}") }
@@ -539,7 +608,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         when:
         //add new jar with duplicate class that will be earlier on the classpath (project dependencies are earlier on classpath)
         file("api/src/main/${language.name}/org/junit/Assert.${language.name}") << "package org.junit; public class Assert {}"
-        file("impl/build.gradle") << "dependencies { implementation project(':api') }"
+        file("impl/build.gradle") << "dependencies { compile project(':api') }"
         run("impl:${language.compileTaskName}")
 
         then:
@@ -551,7 +620,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run("impl:${language.compileTaskName}") }
 
         when:
-        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.12' }"
+        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
         run("impl:${language.compileTaskName}")
 
         then:
@@ -561,7 +630,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         source impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
-            dependencies { implementation 'junit:junit:4.12' }
+            dependencies { compile 'junit:junit:4.12' }
         """
 
         impl.snapshot { run("impl:${language.compileTaskName}") }
@@ -579,14 +648,17 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         file("api/src/main/${language.name}/org/junit/Assert.${language.name}") << "package org.junit; public class Assert {}"
         source impl: ["class A extends org.junit.Assert {}"]
 
-        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.12' }"
+        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
 
         impl.snapshot { run("impl:${language.compileTaskName}") }
 
         when:
         file("impl/build.gradle").text = """
-            configurations.api.dependencies.clear()  //kill project dependency
-            dependencies { implementation 'junit:junit:4.11' }  //leave only junit
+            configurations.compile.dependencies.clear()  //kill project dependency
+            dependencies { 
+                compile 'junit:junit:4.11' 
+                compile localGroovy()
+            }  //leave only junit
         """
         run("impl:${language.compileTaskName}")
 

@@ -32,18 +32,16 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
             import org.apache.commons.math3.util.BigReal;
             public class ToolImpl { public void execute() { BigReal read = BigReal.ONE; } }
 '''
-        file('a/build.gradle') << """
+        buildFile << """
+            project(':a') {
                 apply plugin: '${language.name}'
 
                 dependencies {
                     implementation 'org.apache.commons:commons-math3:3.4'
-                    implementation localGroovy()
                 }
-                tasks.withType(GroovyCompile) {
-                     options.incremental = true
-                }
+            }
             """
-        enableCompilationAvoidance()
+        configureGroovyIncrementalCompilation("subprojects")
 
         when:
         succeeds "a:${language.compileTaskName}"
@@ -52,7 +50,7 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
         executedAndNotSkipped ":a:${language.compileTaskName}"
 
         when:
-        file('a/build.gradle').text = file('a/build.gradle').text.replace("3.4", "3.4.1")
+        buildFile.text = buildFile.text.replace("3.4", "3.4.1")
 
         then:
         succeeds "a:${language.compileTaskName}"

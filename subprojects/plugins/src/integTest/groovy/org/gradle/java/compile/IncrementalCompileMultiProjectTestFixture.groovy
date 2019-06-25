@@ -30,7 +30,7 @@ trait IncrementalCompileMultiProjectTestFixture {
                     apply plugin: '${language.name}'
                     ${language.compileTaskName}.options.incremental = true
                 }
-                ${language.subProjectGroovyDependencies()}
+                ${language.projectGroovyDependencies('subprojects')}
                 
                 project(':app') {
                     dependencies {

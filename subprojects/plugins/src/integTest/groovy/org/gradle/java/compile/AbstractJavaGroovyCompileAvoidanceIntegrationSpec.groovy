@@ -46,11 +46,11 @@ include 'a', 'b'
                 }
             }
             
-            ${language.allProjectGroovyDependencies()}
+            ${language.projectGroovyDependencies()}
         """
 
         if (language == CompiledLanguage.GROOVY) {
-            buildFile << language.allProjectGroovyDependencies()
+            buildFile << language.projectGroovyDependencies()
             executer.beforeExecute {
                 executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=${enableGroovyCompilationAvoidance}")
             }

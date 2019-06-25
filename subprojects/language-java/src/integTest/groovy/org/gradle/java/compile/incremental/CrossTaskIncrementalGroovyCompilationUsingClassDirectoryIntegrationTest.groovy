@@ -21,31 +21,5 @@ import org.gradle.integtests.fixtures.CompiledLanguage
 
 class CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
-
-    def setup() {
-        buildFile << """
-            allprojects {
-                apply plugin: 'groovy'
-            }
-        """
-        configureGroovyIncrementalCompilation()
-    }
-
-    @Override
-    protected String getProjectDependencyBlock() {
-        '''
-            project(':impl') {
-                dependencies { api project(':api') }
-            }
-        '''
-    }
-
-    @Override
-    protected void addDependency(String from, String to) {
-        buildFile << """
-            project(':$from') {
-                dependencies { implementation project(':$to') }
-            }
-        """
-    }
+    boolean useJar = false
 }
