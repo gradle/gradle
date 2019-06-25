@@ -105,7 +105,7 @@ class Codecs(
         bind(LoggerCodec)
 
         bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
-        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
+        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory, directoryFileTreeFactory))
         bind(ArtifactCollectionCodec)
 
         bind(DefaultCopySpecCodec(fileResolver, instantiator))
