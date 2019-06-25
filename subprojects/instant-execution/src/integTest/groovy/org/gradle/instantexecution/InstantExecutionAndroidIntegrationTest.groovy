@@ -28,6 +28,7 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
 
     def setup() {
         AndroidHome.assumeIsSet()
+        executer.noDeprecationChecks()
     }
 
     def "android 3.5 minimal build assembleDebug"() {
