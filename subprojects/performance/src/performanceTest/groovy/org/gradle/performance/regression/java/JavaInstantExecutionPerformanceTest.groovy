@@ -24,7 +24,6 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.nio.file.Files
@@ -34,7 +33,6 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC
 
 
-@Ignore("temporarily")
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -48,7 +46,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanc
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["5.6-20190619122526+0000"]
+        runner.targetVersions = ["5.6-20190625073933+0000"]
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = ["-Dorg.gradle.unsafe.instant-execution"]
