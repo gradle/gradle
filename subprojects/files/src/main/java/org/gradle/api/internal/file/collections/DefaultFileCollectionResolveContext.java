@@ -97,13 +97,6 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         return doResolve(fileCollectionConverter);
     }
 
-    /**
-     * Resolves the contents of this context as a list of atomic {@link MinimalFileCollection} instances.
-     */
-    public List<MinimalFileCollection> resolveAsMinimalFileCollections() {
-        return doResolve(new MinimalFileCollectionConverter());
-    }
-
     private <T> List<T> doResolve(Converter<? extends T> converter) {
         List<T> result = new ArrayList<T>();
         for (Object element : queue) {
@@ -135,7 +128,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 MinimalFileSet fileSet = (MinimalFileSet) element;
                 result.add(new FileCollectionAdapter(fileSet));
             } else if (element instanceof MinimalFileCollection) {
-                throw new UnsupportedOperationException(String.format("Cannot convert instance of %s to FileTree", element.getClass().getSimpleName()));
+                throw new IllegalArgumentException(String.format("Cannot convert instance of %s to FileCollection", element.getClass().getSimpleName()));
             } else if (element instanceof TaskDependency) {
                 // Ignore
                 return;
@@ -173,7 +166,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                     convertFileToFileTree(file, result);
                 }
             } else if (element instanceof MinimalFileCollection) {
-                throw new UnsupportedOperationException(String.format("Cannot convert instance of %s to FileTree", element.getClass().getSimpleName()));
+                throw new IllegalArgumentException(String.format("Cannot convert instance of %s to FileTree", element.getClass().getSimpleName()));
             } else if (element instanceof TaskDependency) {
                 // Ignore
                 return;
@@ -189,25 +182,6 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 result.add(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create(), FileSystems.getDefault()), patternSetFactory));
             } else if (file.isFile()) {
                 result.add(new FileTreeAdapter(new DefaultSingletonFileTree(file), patternSetFactory));
-            }
-        }
-    }
-
-    public static class MinimalFileCollectionConverter implements Converter<MinimalFileCollection> {
-        @Override
-        public void convertInto(Object element, Collection<? super MinimalFileCollection> result) {
-            if (element instanceof MinimalFileCollection) {
-                MinimalFileCollection collection = (MinimalFileCollection) element;
-                result.add(collection);
-            } else if (element instanceof FileCollection) {
-                throw new UnsupportedOperationException(String.format("Cannot convert instance of %s to MinimalFileCollection", element.getClass().getSimpleName()));
-            } else if (element instanceof TaskDependency) {
-                // Ignore
-                return;
-            } else if (element instanceof File) {
-                result.add(new ListBackedFileSet((File) element));
-            } else {
-                throw new IllegalArgumentException("Dont know how to convert element into a FileCollection: " + element);
             }
         }
     }
