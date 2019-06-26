@@ -77,6 +77,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     /**
+     * Set this property to use JARs build from subprojects, instead of the classes folder from these project, on the compile classpath.
+     * The main use case for this is to mitigate performance issues on very large multi-projects building on Windows.
+     * Setting this property will cause the 'jar' task of all subprojects in the dependency tree to always run during compilation.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public static final String COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY = "org.gradle.java.compile-classpath-packaging";
+
+    /**
      * A list of known artifact types which are known to prevent from
      * publication.
      *
@@ -90,10 +100,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     );
 
     private final ObjectFactory objectFactory;
+    private final boolean javaClasspathPackaging;
 
     @Inject
     public JavaBasePlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
+        this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
     }
 
     @Override
@@ -279,7 +291,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
         compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
-        compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
+        compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
         compileClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
         ((ConfigurationInternal)compileClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
 
