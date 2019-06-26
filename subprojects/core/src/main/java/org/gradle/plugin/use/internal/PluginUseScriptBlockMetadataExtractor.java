@@ -25,12 +25,9 @@ import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 import org.gradle.plugin.internal.InvalidPluginIdException;
-import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.use.PluginDependencySpec;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
 import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
@@ -45,10 +42,8 @@ public class PluginUseScriptBlockMetadataExtractor {
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
     private final DocumentationRegistry documentationRegistry;
-    private final PluginRequestCollector pluginRequestCollector;
 
-    public PluginUseScriptBlockMetadataExtractor(ScriptSource scriptSource, DocumentationRegistry documentationRegistry) {
-        this.pluginRequestCollector = new PluginRequestCollector(scriptSource);
+    public PluginUseScriptBlockMetadataExtractor(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -97,7 +92,6 @@ public class PluginUseScriptBlockMetadataExtractor {
                                 if (call.isImplicitThis()) {
                                     try {
                                         DefaultPluginId.validate(argStringValue);
-                                        call.setNodeMetaData(PluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).id(argStringValue));
                                     } catch (InvalidPluginIdException e) {
                                         restrict(argumentExpression, formatErrorMessage(e.getReason()));
                                     }
@@ -107,24 +101,17 @@ public class PluginUseScriptBlockMetadataExtractor {
                             }
 
                             if (methodName.getText().equals("version")) {
-                                PluginDependencySpec spec = getSpecFor(call);
-                                if (spec == null) {
-                                    return;
+                                if (call.isImplicitThis()) {
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 }
-                                spec.version(argStringValue);
-                                call.setNodeMetaData(PluginDependencySpec.class, spec);
                             }
                         } else if (methodNameText.equals("apply")) {
                             ConstantExpression arguments = hasSingleConstantArgOfType(call, boolean.class);
                             if (arguments == null) {
                                 restrict(call, formatErrorMessage(NEED_SINGLE_BOOLEAN));
-                                return;
+                            } else if (call.isImplicitThis()) {
+                                restrict(call, formatErrorMessage(BASE_MESSAGE));
                             }
-                            PluginDependencySpec spec = getSpecFor(call);
-                            if (spec == null) {
-                                return;
-                            }
-                            spec.apply((Boolean) arguments.getValue());
                         } else {
                             if (!call.isImplicitThis()) {
                                 restrict(methodName, formatErrorMessage(EXTENDED_MESSAGE));
@@ -140,25 +127,11 @@ public class PluginUseScriptBlockMetadataExtractor {
                 }
             }
 
-            private PluginDependencySpec getSpecFor(MethodCallExpression call) {
-                Expression objectExpression = call.getObjectExpression();
-                if (objectExpression instanceof MethodCallExpression) {
-                    return objectExpression.getNodeMetaData(PluginDependencySpec.class);
-                } else {
-                    restrict(call, formatErrorMessage(BASE_MESSAGE));
-                    return null;
-                }
-            }
-
             @Override
             public void visitExpressionStatement(ExpressionStatement statement) {
                 statement.getExpression().visit(this);
             }
         });
-    }
-
-    public PluginRequests getPluginRequests() {
-        return pluginRequestCollector.getPluginRequests();
     }
 
     public String formatErrorMessage(String message) {

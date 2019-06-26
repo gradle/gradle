@@ -21,15 +21,13 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class InitialPassStatementTransformer implements StatementTransformer, Factory<PluginRequests> {
+public class InitialPassStatementTransformer implements StatementTransformer, Factory<BuildScriptMetadata> {
 
     public static final String PLUGINS = "plugins";
     public static final String PLUGIN_MANAGEMENT = "pluginManagement";
@@ -41,14 +39,15 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
 
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
+    private int pluginsBlockLineNumber = 0;
     private boolean seenPluginManagementBlock;
     private boolean seenClasspathBlock;
 
-    public InitialPassStatementTransformer(ScriptSource scriptSource, ScriptTarget scriptTarget, DocumentationRegistry documentationRegistry) {
+    public InitialPassStatementTransformer(ScriptTarget scriptTarget, DocumentationRegistry documentationRegistry) {
         this.scriptTarget = scriptTarget;
         this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_MANAGEMENT);
         this.documentationRegistry = documentationRegistry;
-        this.pluginBlockMetadataExtractor = new PluginUseScriptBlockMetadataExtractor(scriptSource, documentationRegistry);
+        this.pluginBlockMetadataExtractor = new PluginUseScriptBlockMetadataExtractor(documentationRegistry);
     }
 
     @Override
@@ -65,6 +64,8 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
                     failMessage = pluginBlockMetadataExtractor.formatErrorMessage("Only Project build scripts can contain plugins {} blocks");
                 } else {
                     seenPluginsBlock = true;
+                    pluginsBlockLineNumber = scriptBlock.getClosureExpression().getLineNumber();
+
                     if (seenNonClasspathStatement) {
                         failMessage = String.format(
                             pluginBlockMetadataExtractor.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
@@ -82,7 +83,7 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
                     );
                 }
 
-                return null;
+                return statement;
             } else if (scriptBlock.getName().equals(PLUGIN_MANAGEMENT)) {
                 String failureMessage = null;
                 if (!scriptTarget.getSupportsPluginManagementBlock()) {
@@ -123,8 +124,8 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
     }
 
     @Override
-    public PluginRequests create() {
-        return pluginBlockMetadataExtractor.getPluginRequests();
+    public BuildScriptMetadata create() {
+        return new BuildScriptMetadata(pluginsBlockLineNumber);
     }
 
 }

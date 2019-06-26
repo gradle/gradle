@@ -29,6 +29,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.groovy.scripts.BasicScript;
@@ -38,6 +39,8 @@ import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
+import org.gradle.groovy.scripts.internal.BuildScriptMetadata;
+import org.gradle.groovy.scripts.internal.BuildScriptMetadataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
@@ -55,10 +58,11 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.plugin.use.internal.PluginRequestCollector;
 import org.gradle.process.internal.ExecFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -76,7 +80,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
-    private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
+    private final BuildScriptMetadataSerializer buildScriptMetadataSerializer = new BuildScriptMetadataSerializer();
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
     private final ExecFactory execFactory;
@@ -189,15 +193,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
 
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
-            InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(scriptSource, initialPassScriptTarget, documentationRegistry);
+            InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
             String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
-            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(id, CLASSPATH_COMPILE_STAGE, initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
+            CompileOperation<BuildScriptMetadata> initialOperation = new FactoryBackedCompileOperation<BuildScriptMetadata>(id, CLASSPATH_COMPILE_STAGE, initialTransformer, initialPassStatementTransformer, buildScriptMetadataSerializer);
 
-            ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
+            ScriptRunner<? extends BasicScript, BuildScriptMetadata> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
 
-            PluginRequests initialPluginRequests = initialRunner.getData();
+            PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
             PluginRequests mergedPluginRequests = autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
 
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
@@ -258,5 +262,20 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 return new DefaultScriptTarget(target);
             }
         }
+    }
+
+    // TODO:DAZ This is not nice: work out a better way to collect the plugin requests from invoking the plugins block.
+    // It would also be good to provide the `pluginsBlockLineNumber` prior to invocation.
+    private PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
+        if (initialRunner.getRunDoesSomething()) {
+            BasicScript script = initialRunner.getScript();
+            if (script instanceof ProjectScript) {
+                PluginRequestCollector pluginRequestCollector = ((ProjectScript) script).pluginRequestCollector;
+                if (pluginRequestCollector != null) {
+                    return pluginRequestCollector.getPluginRequests();
+                }
+            }
+        }
+        return DefaultPluginRequests.EMPTY;
     }
 }
