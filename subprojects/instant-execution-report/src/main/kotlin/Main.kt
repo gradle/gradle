@@ -54,21 +54,59 @@ private
 fun homePageModelFromJsModel(failures: JsModel) = HomePage.Model(
     totalFailures = instantExecutionFailures.size,
     messageTree = treeModelFor(
-        "Failures grouped by message",
-        failures.asSequence().map { listOf(it.message) + it.trace.asList() }
+        FailureNode.Label("Failures grouped by message"),
+        failureNodesByMessage(failures)
     ),
     taskTree = treeModelFor(
-        "Failures grouped by task",
-        failures.asSequence().map { it.trace.asList().asReversed() }
+        FailureNode.Label("Failures grouped by task"),
+        failureNodesByTask(failures)
     )
 )
 
 
 private
-fun treeModelFor(
-    label: String,
-    sequence: Sequence<List<String>>
-): TreeView.Model<String> = TreeView.Model(
+fun failureNodesByTask(failures: JsModel): Sequence<List<FailureNode>> =
+    failures.asSequence().map { failure ->
+        failure.trace.asList().asReversed().map(FailureNode::Label) + failureNodeFor(failure)
+    }
+
+
+private
+fun failureNodesByMessage(failures: JsModel): Sequence<MutableList<FailureNode>> =
+    failures.asSequence().map { failure ->
+        mutableListOf<FailureNode>().apply {
+            add(FailureNode.Label(failure.message))
+            failure.trace.forEach { part ->
+                add(FailureNode.Label(part))
+            }
+            errorNodeFor(failure)?.let {
+                add(it)
+            }
+        }
+    }
+
+
+private
+fun failureNodeFor(it: JsFailure) =
+    errorNodeFor(it) ?: FailureNode.Label(it.message)
+
+
+private
+fun errorNodeFor(it: JsFailure): FailureNode? =
+    it.error?.let {
+        val stackTraceLines = it.lineSequence()
+        FailureNode.Error(
+            stackTraceLines.first(),
+            stackTraceLines.drop(1).map(String::trim).joinToString("\n")
+        )
+    }
+
+
+private
+fun <T> treeModelFor(
+    label: T,
+    sequence: Sequence<List<T>>
+): TreeView.Model<T> = TreeView.Model(
     treeFromTrie(
         label,
         trieFrom(sequence)
@@ -77,16 +115,16 @@ fun treeModelFor(
 
 
 private
-fun treeFromTrie(label: String, trie: Trie<String>): Tree<String> =
+fun <T> treeFromTrie(label: T, trie: Trie<T>): Tree<T> =
     Tree(label, subTreesFromTrie(trie))
 
 
 private
-fun subTreesFromTrie(trie: Trie<String>): List<Tree<String>> =
-    trie.asSequence().sortedBy { it.key }.map {
+fun <T> subTreesFromTrie(trie: Trie<T>): List<Tree<T>> =
+    trie.asSequence().sortedBy { it.key.toString() /* TODO: */ }.map {
         @Suppress("unchecked_cast")
         treeFromTrie(
             it.key,
-            it.value as Trie<String>
+            it.value as Trie<T>
         )
     }.toList()

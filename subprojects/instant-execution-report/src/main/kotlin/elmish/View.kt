@@ -35,6 +35,9 @@ val h2 = ViewFactory("h2")
 val div = ViewFactory("div")
 
 
+val pre = ViewFactory("pre")
+
+
 val span = ViewFactory("span")
 
 
@@ -45,6 +48,9 @@ val ul = ViewFactory("ul")
 
 
 val li = ViewFactory("li")
+
+
+val a = ViewFactory("a")
 
 
 fun <I> render(view: View<I>, into: Element, send: (I) -> Unit) {
@@ -80,6 +86,15 @@ data class ViewFactory(val elementName: String) {
         elementName,
         attributes = attributes,
         innerText = innerText
+    )
+
+    operator fun <I> invoke(
+        innerText: String,
+        vararg children: View<I>
+    ): View<I> = View(
+        elementName,
+        innerText = innerText,
+        children = children.asList()
     )
 }
 
@@ -121,6 +136,10 @@ class Attributes<I>(private val add: (Attribute<I>) -> Unit) {
     fun onClick(handler: EventHandler<I>) = add(Attribute.OnEvent("click", handler))
 
     fun className(value: String) = add(Attribute.ClassName(value))
+
+    fun title(value: String) = add(Attribute.Named("title", value))
+
+    fun href(value: String) = add(Attribute.Named("href", value))
 }
 
 
@@ -135,6 +154,11 @@ sealed class Attribute<I> {
     ) : Attribute<I>()
 
     class ClassName<I>(
+        val value: String
+    ) : Attribute<I>()
+
+    class Named<I>(
+        val name: String,
         val value: String
     ) : Attribute<I>()
 }
@@ -163,6 +187,10 @@ fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
                         { send(a.handler(it)) }
                     )
                     is Attribute.ClassName -> addClass(
+                        a.value
+                    )
+                    is Attribute.Named -> setAttribute(
+                        a.name,
                         a.value
                     )
                 }

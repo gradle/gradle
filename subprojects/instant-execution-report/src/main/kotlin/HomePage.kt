@@ -16,28 +16,46 @@
 
 import elmish.Component
 import elmish.View
+import elmish.a
 import elmish.attributes
 import elmish.div
 import elmish.h1
 import elmish.h2
 import elmish.ol
+import elmish.pre
+import elmish.span
+import elmish.tree.Tree
 import elmish.tree.TreeView
 import elmish.tree.viewChildrenOf
+
+
+sealed class FailureNode {
+
+    data class Label(val text: String) : FailureNode()
+
+    data class Error(val message: String, val stackTrace: String) : FailureNode()
+}
+
+
+typealias FailureTreeModel = TreeView.Model<FailureNode>
+
+
+typealias FailureTreeIntent = TreeView.Intent<FailureNode>
 
 
 object HomePage : Component<HomePage.Model, HomePage.Intent> {
 
     data class Model(
         val totalFailures: Int,
-        val messageTree: TreeView.Model<String>,
-        val taskTree: TreeView.Model<String>
+        val messageTree: FailureTreeModel,
+        val taskTree: FailureTreeModel
     )
 
     sealed class Intent {
 
-        data class TaskTreeIntent(val delegate: TreeView.Intent<String>) : Intent()
+        data class TaskTreeIntent(val delegate: FailureTreeIntent) : Intent()
 
-        data class MessageTreeIntent(val delegate: TreeView.Intent<String>) : Intent()
+        data class MessageTreeIntent(val delegate: FailureTreeIntent) : Intent()
     }
 
     override fun step(intent: Intent, model: Model): Model = when (intent) {
@@ -52,30 +70,56 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
     override fun view(model: Model): View<Intent> = div(
         h1("${model.totalFailures} instant execution failures"),
         div(
-            attributes {
-                className("container")
-            },
+            attributes { className("container") },
+            span("Learn more about "),
+            a(
+                attributes { href("https://gradle.github.io/instant-execution/") },
+                "Gradle Instant Execution"
+            ),
+            span(".")
+        ),
+        div(
+            attributes { className("container") },
             viewTree(model.messageTree).map(Intent::MessageTreeIntent),
             viewTree(model.taskTree).map(Intent::TaskTreeIntent)
         )
     )
 
     private
-    fun viewTree(model: TreeView.Model<String>): View<TreeView.Intent<String>> = div(
-        h2(model.tree.label),
+    fun viewTree(model: FailureTreeModel): View<FailureTreeIntent> = div(
+        h2(model.tree.label.unsafeCast<FailureNode.Label>().text),
         ol(
-            viewChildrenOf(model.tree.focus()) {
-                val child = this
-                div(
-                    attributes {
-                        if (child.tree.isNotEmpty()) {
-                            className("accordion-header")
-                            onClick { TreeView.Intent.Toggle(child) }
-                        }
-                    },
-                    tree.label
-                )
+            viewChildrenOf(model.tree.focus()) { child ->
+                when (val node = child.tree.label) {
+                    is FailureNode.Error -> {
+                        div(
+                            span(node.message),
+                            pre(
+                                attributes { className("screen") },
+                                node.stackTrace
+                            )
+                        )
+                    }
+                    is FailureNode.Label -> {
+                        div(
+                            attributes {
+                                if (child.tree.isNotEmpty()) {
+                                    className("accordion-header")
+                                    title("Click to ${toggleVerb(child.tree.state)}")
+                                    onClick { TreeView.Intent.Toggle(child) }
+                                }
+                            },
+                            node.text
+                        )
+                    }
+                }
             }
         )
     )
+
+    private
+    fun toggleVerb(state: Tree.ViewState): String = when (state) {
+        Tree.ViewState.Collapsed -> "expand"
+        Tree.ViewState.Expanded -> "collapse"
+    }
 }

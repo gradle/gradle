@@ -127,15 +127,15 @@ data class Tree<T>(
 
 fun <T, I> viewTree(
     focus: Tree.Focus<T>,
-    viewHeader: (Tree.Focus<T>) -> View<I>
+    viewLabel: (Tree.Focus<T>) -> View<I>
 ): View<I> = ul(
-    viewSubTree(focus, viewHeader)
+    viewSubTree(focus, viewLabel)
 )
 
 
 fun <T, I> viewSubTree(
     focus: Tree.Focus<T>,
-    viewLabel: Tree.Focus<T>.() -> View<I>
+    viewLabel: (Tree.Focus<T>) -> View<I>
 ): View<I> = focus.tree.run {
     li(
         viewLabel(focus),
@@ -152,7 +152,7 @@ fun <T, I> viewExpanded(focus: Tree.Focus<T>, viewLabel: Tree.Focus<T>.() -> Vie
 
 fun <I, T> viewChildrenOf(
     focus: Tree.Focus<T>,
-    viewLabel: Tree.Focus<T>.() -> View<I>
+    viewLabel: (Tree.Focus<T>) -> View<I>
 ): List<View<I>> = focus
     .children
     .map { child -> viewSubTree(child, viewLabel) }

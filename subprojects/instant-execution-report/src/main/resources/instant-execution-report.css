@@ -184,3 +184,68 @@ blockquote p:last-child {
         padding-left: 1.25rem;
     }
 }
+
+/* code */
+code, pre {
+    background-color: #f7f7f8;
+    border-radius: 4px;
+    font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+    font-size: 1em;
+    font-style: normal;
+}
+
+.example-contents > p > code {
+    line-height: 1.0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+*:not(pre) > code {
+    font-size: 0.9375em;
+    letter-spacing: 0;
+    padding: 0.1em 0.5ex;
+    text-rendering: optimizeSpeed;
+    word-spacing: -0.15em;
+    word-wrap: break-word;
+}
+
+pre {
+    line-height: 1.45;
+    margin-top: 0;
+    margin-bottom: 1.5em;
+    padding: 1rem;
+}
+
+pre code {
+    background-color: transparent;
+    color: inherit;
+    line-height: 1.45;
+    font-size: 100%;
+    padding: 0;
+}
+
+a code {
+    color: #1BA8CB;
+}
+
+pre.code, pre.programlisting, pre.screen, pre.tt {
+    background-color: #f7f7f8;
+    border-radius: 4px;
+    font-size: 1em;
+    line-height: 1.45;
+    margin-bottom: 1.25em;
+    overflow-x: auto;
+    padding: 1rem;
+}
+
+tbody tr:nth-child(even) td, tbody tr.even td {
+    background: #F7F7F7;
+}
+
+li em, p em {
+    padding: 0 1px;
+}
+
+code em, tt em {
+    text-decoration: none;
+}
