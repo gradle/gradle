@@ -23,7 +23,10 @@ import org.gradle.api.file.ReproducibleFileVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
+import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -116,6 +119,30 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         visitedDirectories.every {
             it.isDirectory()
         }
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    @Unroll
+    def "missing symbolic link causes an exception - walker: #walkerInstance.class.simpleName"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def dir = rootDir.createDir("a/b")
+        def link = rootDir.file("a/d")
+        link.createLink(dir)
+
+        when:
+        dir.deleteDir()
+        walkDirForPaths(walkerInstance, rootDir, new PatternSet())
+
+        then:
+        def e = thrown Exception
+        e.message.contains("Could not list contents of '${link.absolutePath}'.")
+
+        cleanup:
+        link.delete()
+
+        where:
+        walkerInstance << walkers
     }
 
     @Override
