@@ -22,9 +22,11 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenPom
+import spock.lang.Unroll
 
 abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginName()
+    abstract List getSkippedJars(boolean compileClasspathPackaging)
 
     def setup() {
         settingsFile << """
@@ -42,7 +44,17 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    def "can compile test fixtures"() {
+    private toggleCompileClasspathPackaging(boolean activate) {
+        if (activate) {
+            propertiesFile << """
+                systemProp.org.gradle.java.compile-classpath-packaging=true
+            """.trim()
+        }
+    }
+
+    @Unroll
+    def "can compile test fixtures [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """
             apply plugin: 'java-test-fixtures'
         """
@@ -54,8 +66,8 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         succeeds 'compileTestJava'
 
         then:
-        def skippedJars = pluginName == 'java' ? [':testFixturesJar'] : [':jar', ':testFixturesJar']
-        def producedJars = pluginName == 'java' ? [':jar'] : []
+        def skippedJars = getSkippedJars(compileClasspathPackaging)
+        def producedJars = [':jar', ':testFixturesJar'] - skippedJars
         executedAndNotSkipped(
             ":compileJava",
             ":compileTestFixturesJava",
@@ -70,9 +82,16 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         then:
         def expectedJars = [':jar', ':testFixturesJar'] - producedJars
         executedAndNotSkipped(*expectedJars)
+
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
-    def "test fixtures can use their own dependencies"() {
+    @Unroll
+    def "test fixtures can use their own dependencies [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """
             apply plugin: 'java-test-fixtures'
         
@@ -88,8 +107,8 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         succeeds 'compileTestJava'
 
         then:
-        def skippedJars = pluginName == 'java' ? [':testFixturesJar'] : [':jar', ':testFixturesJar']
-        def producedJars = pluginName == 'java' ? [':jar'] : []
+        def skippedJars = getSkippedJars(compileClasspathPackaging)
+        def producedJars = [':jar', ':testFixturesJar'] - skippedJars
         executedAndNotSkipped(
             ":compileJava",
             ":compileTestFixturesJava",
@@ -104,6 +123,11 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         then:
         def expectedJars = [':jar', ':testFixturesJar'] - producedJars
         executedAndNotSkipped(*expectedJars)
+
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
     def "test fixtures implementation dependencies do not leak into the test compile classpath"() {
