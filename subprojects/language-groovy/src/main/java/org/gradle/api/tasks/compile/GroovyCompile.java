@@ -84,7 +84,7 @@ import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAcce
 @CacheableTask
 public class GroovyCompile extends AbstractCompile {
     private FileCollection groovyClasspath;
-    private ConfigurableFileCollection compilerPluginClasspath;
+    private ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
     private final FileCollection stableSources = getProject().files(new Callable<FileTree>() {
@@ -100,9 +100,9 @@ public class GroovyCompile extends AbstractCompile {
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         compileOptions.setIncremental(false);
         this.compileOptions = compileOptions;
-        this.compilerPluginClasspath = objectFactory.fileCollection();
+        this.astTransformationClasspath = objectFactory.fileCollection();
         if (!experimentalCompilationAvoidanceEnabled()) {
-            this.compilerPluginClasspath.from(new Callable<FileCollection>() {
+            this.astTransformationClasspath.from(new Callable<FileCollection>() {
                 @Override
                 public FileCollection call() {
                     return getClasspath();
@@ -116,20 +116,20 @@ public class GroovyCompile extends AbstractCompile {
     @CompileClasspath
     @Incremental
     public FileCollection getClasspath() {
-        // Note that this is an approximation and must be fixed before de-incubating getCompilerPluginClasspath()
+        // Note that this is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
         // See https://github.com/gradle/gradle/pull/9513
         return super.getClasspath();
     }
 
     /**
-     * The classpath containing compiler plugins (for example, AST transformations) and their dependencies.
+     * The classpath containing AST transformations and their dependencies.
      *
      * @since 5.6
      */
     @Classpath
     @Incubating
-    public ConfigurableFileCollection getCompilerPluginClasspath() {
-        return compilerPluginClasspath;
+    public ConfigurableFileCollection getAstTransformationClasspath() {
+        return astTransformationClasspath;
     }
 
     private boolean experimentalCompilationAvoidanceEnabled() {
@@ -259,7 +259,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private FileCollection determineGroovyCompileClasspath() {
         if (experimentalCompilationAvoidanceEnabled()) {
-            return compilerPluginClasspath.plus(getClasspath());
+            return astTransformationClasspath.plus(getClasspath());
         } else {
             return getClasspath();
         }

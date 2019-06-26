@@ -78,7 +78,7 @@ public class MyASTTransformation extends AbstractASTTransformation {
                 }
                 
                 tasks.withType(GroovyCompile) {
-                    compilerPluginClasspath.from(configurations.astTransformation)
+                    astTransformationClasspath.from(configurations.astTransformation)
                 }
             }
         """
