@@ -71,6 +71,12 @@ One benefit of managing plugin versions in this way is that the `pluginManagemen
 
 See [plugin version management](userguide/plugins.html#sec:plugin_version_management) for more details.
 
+## Performance fix for using the Java library plugin in very large projects on Windows
+
+Very large multi-projects can suffer from a significant performance decrease in Java compilation when switching from the `java` to the `java-library` plugin.
+This is caused by the large amount of class files on the classpath, which is only an issue on Windows systems.
+You can now tell the `java-library` plugin to [prefer jars over class folders on the compile classpath](userguide/java_library_plugin.html#sec:java_library_known_issues_windows_performance) by setting the `org.gradle.java.compile-classpath-packaging` system property to `true`.
+
 ## Improvements for plugin authors
 
 ### Task dependencies are honored for `@Input` properties of type `Provider`
