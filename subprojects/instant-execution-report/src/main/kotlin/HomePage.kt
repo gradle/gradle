@@ -91,31 +91,39 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         ol(
             viewChildrenOf(model.tree.focus()) { child ->
                 when (val node = child.tree.label) {
-                    is FailureNode.Error -> {
-                        div(
-                            span(node.message),
-                            pre(
-                                attributes { className("screen") },
-                                node.stackTrace
-                            )
-                        )
-                    }
                     is FailureNode.Label -> {
-                        div(
-                            attributes {
-                                if (child.tree.isNotEmpty()) {
-                                    className("accordion-header")
-                                    title("Click to ${toggleVerb(child.tree.state)}")
-                                    onClick { TreeView.Intent.Toggle(child) }
-                                }
-                            },
-                            node.text
-                        )
+                        viewLabel(node, child)
+                    }
+                    is FailureNode.Error -> {
+                        viewError(node)
                     }
                 }
             }
         )
     )
+
+    private
+    fun viewLabel(node: FailureNode.Label, child: Tree.Focus<FailureNode>): View<FailureTreeIntent> =
+        div(
+            attributes {
+                if (child.tree.isNotEmpty()) {
+                    className("accordion-header")
+                    title("Click to ${toggleVerb(child.tree.state)}")
+                    onClick { TreeView.Intent.Toggle(child) }
+                }
+            },
+            node.text
+        )
+
+    private
+    fun viewError(node: FailureNode.Error): View<FailureTreeIntent> =
+        div(
+            span(node.message),
+            pre(
+                attributes { className("screen") },
+                node.stackTrace
+            )
+        )
 
     private
     fun toggleVerb(state: Tree.ViewState): String = when (state) {
