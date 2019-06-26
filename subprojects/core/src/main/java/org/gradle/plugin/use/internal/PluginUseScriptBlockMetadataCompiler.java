@@ -27,15 +27,14 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
-import org.gradle.plugin.internal.InvalidPluginIdException;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
 import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
 
-public class PluginUseScriptBlockMetadataExtractor {
+public class PluginUseScriptBlockMetadataCompiler {
 
     public static final String NEED_SINGLE_BOOLEAN = "argument list must be exactly 1 literal boolean";
-    public static final String NEED_SINGLE_STRING = "argument list must be exactly 1 literal non empty string";
+    public static final String NEED_SINGLE_STRING = "argument list must be exactly 1 literal string";
     public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
     public static final String EXTENDED_MESSAGE = "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
@@ -43,11 +42,11 @@ public class PluginUseScriptBlockMetadataExtractor {
 
     private final DocumentationRegistry documentationRegistry;
 
-    public PluginUseScriptBlockMetadataExtractor(DocumentationRegistry documentationRegistry) {
+    public PluginUseScriptBlockMetadataCompiler(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public void extract(SourceUnit sourceUnit, ScriptBlock scriptBlock) {
+    public void compile(SourceUnit sourceUnit, ScriptBlock scriptBlock) {
         ClosureExpression closureArg = scriptBlock.getClosureExpression();
 
         closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit, formatErrorMessage(BASE_MESSAGE)) {
@@ -82,20 +81,8 @@ public class PluginUseScriptBlockMetadataExtractor {
                                 return;
                             }
 
-                            String argStringValue = argumentExpression.getValue().toString();
-                            if (argStringValue.length() == 0) {
-                                restrict(argumentExpression, formatErrorMessage(NEED_SINGLE_STRING));
-                                return;
-                            }
-
                             if (methodName.getText().equals("id")) {
-                                if (call.isImplicitThis()) {
-                                    try {
-                                        DefaultPluginId.validate(argStringValue);
-                                    } catch (InvalidPluginIdException e) {
-                                        restrict(argumentExpression, formatErrorMessage(e.getReason()));
-                                    }
-                                } else {
+                                if (!call.isImplicitThis()) {
                                     restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 }
                             }

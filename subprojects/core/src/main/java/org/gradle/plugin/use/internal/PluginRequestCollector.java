@@ -17,9 +17,12 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.internal.InvalidPluginIdException;
+import org.gradle.plugin.internal.InvalidPluginVersionException;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
@@ -41,9 +44,10 @@ import static org.gradle.util.CollectionUtils.collect;
 /**
  * The real delegate of the plugins {} block.
  *
- * The {@link PluginUseScriptBlockMetadataExtractor} interacts with this type.
+ * The {@link PluginUseScriptBlockMetadataCompiler} interacts with this type.
  */
 public class PluginRequestCollector {
+    public static final String EMPTY_VALUE = "cannot be null or empty";
 
     private final ScriptSource scriptSource;
 
@@ -58,6 +62,9 @@ public class PluginRequestCollector {
         private final int lineNumber;
 
         private DependencySpecImpl(String id, int lineNumber) {
+            if (Strings.isNullOrEmpty(id)) {
+                throw new InvalidPluginIdException(id, EMPTY_VALUE);
+            }
             this.id = DefaultPluginId.of(id);
             this.apply = true;
             this.lineNumber = lineNumber;
@@ -65,6 +72,9 @@ public class PluginRequestCollector {
 
         @Override
         public PluginDependencySpec version(String version) {
+            if (Strings.isNullOrEmpty(version)) {
+                throw new InvalidPluginVersionException(version, EMPTY_VALUE);
+            }
             this.version = version;
             return this;
         }
