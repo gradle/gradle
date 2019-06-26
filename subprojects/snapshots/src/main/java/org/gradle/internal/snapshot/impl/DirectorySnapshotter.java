@@ -62,7 +62,8 @@ public class DirectorySnapshotter {
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
         try {
-            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new PathVisitor(builder, predicate, hasBeenFiltered));
+            PathVisitor visitor = new PathVisitor(builder, predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
+            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, visitor);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
@@ -142,15 +143,28 @@ public class DirectorySnapshotter {
         }
     }
 
-    private class PathVisitor implements java.nio.file.FileVisitor<Path> {
+    private static class PathVisitor implements java.nio.file.FileVisitor<Path> {
         private final MerkleDirectorySnapshotBuilder builder;
         private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
+        private final FileHasher hasher;
+        private final Interner<String> stringInterner;
+        private final DefaultExcludes defaultExcludes;
 
-        public PathVisitor(MerkleDirectorySnapshotBuilder builder, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, AtomicBoolean hasBeenFiltered) {
+        public PathVisitor(
+            MerkleDirectorySnapshotBuilder builder,
+            @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
+            AtomicBoolean hasBeenFiltered,
+            FileHasher hasher,
+            Interner<String> stringInterner,
+            DefaultExcludes defaultExcludes
+        ) {
             this.builder = builder;
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
+            this.hasher = hasher;
+            this.stringInterner = stringInterner;
+            this.defaultExcludes = defaultExcludes;
         }
 
         @Override
