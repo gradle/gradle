@@ -21,4 +21,10 @@ class JavaTestFixturesIntegrationTest extends AbstractJavaTestFixturesIntegratio
     String getPluginName() {
         'java'
     }
+
+    @Override
+    List getSkippedJars(boolean compileClasspathPackaging) {
+        compileClasspathPackaging ? [] : [':testFixturesJar']
+    }
+
 }
