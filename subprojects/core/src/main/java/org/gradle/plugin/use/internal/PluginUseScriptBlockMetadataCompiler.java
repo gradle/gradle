@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.Expression;
@@ -84,6 +85,9 @@ public class PluginUseScriptBlockMetadataCompiler {
                             if (methodName.getText().equals("id")) {
                                 if (!call.isImplicitThis()) {
                                     restrict(call, formatErrorMessage(BASE_MESSAGE));
+                                } else {
+                                    ConstantExpression lineNumberExpression = new ConstantExpression(call.getLineNumber(), true);
+                                    call.setArguments(new ArgumentListExpression(argumentExpression, lineNumberExpression));
                                 }
                             }
 
