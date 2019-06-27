@@ -15,13 +15,12 @@
  */
 package org.gradle.internal.hash;
 
-import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.IoActions;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 
 public class DefaultFileHasher implements FileHasher {
     private final StreamHasher streamHasher;
@@ -32,15 +31,20 @@ public class DefaultFileHasher implements FileHasher {
 
     @Override
     public HashCode hash(File file) {
+        InputStream inputStream;
         try {
-            InputStream inputStream = new FileInputStream(file);
-            try {
-                return streamHasher.hash(inputStream);
-            } finally {
-                IoActions.closeQuietly(inputStream);
-            }
+            inputStream = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
+        }
+        try {
+            return streamHasher.hash(inputStream);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (IOException ignored) {
+                // Ignored
+            }
         }
     }
 
