@@ -25,7 +25,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesApi(project(":core"))
-    testFixturesApi(project(":files"))
+    testFixturesApi(project(":fileCollections"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesImplementation(library("guava"))
     testFixturesApi(testFixtures(project(":modelCore")))

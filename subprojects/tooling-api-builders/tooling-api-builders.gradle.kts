@@ -28,7 +28,7 @@ dependencies {
     implementation(library("guava"))
     implementation(library("commons_io"))
 
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
 }
 
 gradlebuildJava {

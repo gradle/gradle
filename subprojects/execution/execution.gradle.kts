@@ -47,7 +47,7 @@ dependencies {
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":files")))
+    testImplementation(testFixtures(project(":fileCollections")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core")))

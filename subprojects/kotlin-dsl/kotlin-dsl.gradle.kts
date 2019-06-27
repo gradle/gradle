@@ -44,7 +44,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":baseServicesGroovy")) // for 'Specs'
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":buildCache"))
     implementation(project(":toolingApi"))

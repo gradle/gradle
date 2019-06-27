@@ -19,7 +19,7 @@ dependencies {
 
     testImplementation(project(":processServices"))
     testImplementation(project(":coreApi"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":snapshots"))
 
     testImplementation(testFixtures(project(":core")))

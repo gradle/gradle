@@ -45,7 +45,7 @@ dependencies {
     implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
     implementation(project(":coreApi"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":processServices"))
     implementation(project(":jvmServices"))
     implementation(project(":modelGroovy"))
@@ -101,7 +101,7 @@ dependencies {
     testFixturesApi(project(":execution")) {
         because("test fixtures expose OutputChangeListener")
     }
-    testFixturesImplementation(project(":files"))
+    testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":processServices"))

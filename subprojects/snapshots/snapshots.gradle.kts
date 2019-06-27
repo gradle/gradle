@@ -34,7 +34,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":files")))
+    testImplementation(testFixtures(project(":fileCollections")))
     testImplementation(testFixtures(project(":messaging")))
     
     testRuntimeOnly(project(":runtimeApiInfo"))
@@ -43,7 +43,7 @@ dependencies {
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":files"))
+    testFixturesImplementation(project(":fileCollections"))
 }
 
 gradlebuildJava {

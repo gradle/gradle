@@ -37,7 +37,7 @@ dependencies {
     implementation(library("commons_io"))
 
     testImplementation(project(":processServices"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
     
     testImplementation(testFixtures(project(":baseServices")))
