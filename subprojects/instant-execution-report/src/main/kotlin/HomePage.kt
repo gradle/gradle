@@ -33,7 +33,11 @@ sealed class FailureNode {
 
     data class Label(val text: String) : FailureNode()
 
-    data class Error(val message: String, val stackTrace: String) : FailureNode()
+    data class Error(val message: String) : FailureNode()
+
+    data class Warning(val message: String) : FailureNode()
+
+    data class Exception(val message: String, val stackTrace: String) : FailureNode()
 }
 
 
@@ -91,11 +95,17 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         ol(
             viewChildrenOf(model.tree.focus()) { child ->
                 when (val node = child.tree.label) {
-                    is FailureNode.Label -> {
-                        viewLabel(node, child)
-                    }
                     is FailureNode.Error -> {
-                        viewError(node)
+                        viewLabel(child, node.message + " ❌")
+                    }
+                    is FailureNode.Warning -> {
+                        viewLabel(child, node.message + " ⚠️")
+                    }
+                    is FailureNode.Label -> {
+                        viewLabel(child, node.text)
+                    }
+                    is FailureNode.Exception -> {
+                        viewException(node)
                     }
                 }
             }
@@ -103,7 +113,7 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
     )
 
     private
-    fun viewLabel(node: FailureNode.Label, child: Tree.Focus<FailureNode>): View<FailureTreeIntent> =
+    fun viewLabel(child: Tree.Focus<FailureNode>, text: String): View<FailureTreeIntent> =
         div(
             attributes {
                 if (child.tree.isNotEmpty()) {
@@ -112,11 +122,11 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
                     onClick { TreeView.Intent.Toggle(child) }
                 }
             },
-            node.text
+            span(text)
         )
 
     private
-    fun viewError(node: FailureNode.Error): View<FailureTreeIntent> =
+    fun viewException(node: FailureNode.Exception): View<FailureTreeIntent> =
         div(
             span(node.message),
             pre(

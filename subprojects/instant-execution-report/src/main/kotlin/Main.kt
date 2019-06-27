@@ -67,7 +67,12 @@ fun homePageModelFromJsModel(failures: JsModel) = HomePage.Model(
 private
 fun failureNodesByTask(failures: JsModel): Sequence<List<FailureNode>> =
     failures.asSequence().map { failure ->
-        failure.trace.asList().asReversed().map(FailureNode::Label) + failureNodeFor(failure)
+        failure.trace.asList().asReversed().mapIndexed { index, it ->
+            when (index) {
+                0 -> errorOrWarningNodeFor(failure, it)
+                else -> FailureNode.Label(it)
+            }
+        } + failureNodeFor(failure)
     }
 
 
@@ -75,11 +80,11 @@ private
 fun failureNodesByMessage(failures: JsModel): Sequence<MutableList<FailureNode>> =
     failures.asSequence().map { failure ->
         mutableListOf<FailureNode>().apply {
-            add(FailureNode.Label(failure.message))
+            add(errorOrWarningNodeFor(failure, failure.message))
             failure.trace.forEach { part ->
                 add(FailureNode.Label(part))
             }
-            errorNodeFor(failure)?.let {
+            exceptionNodeFor(failure)?.let {
                 add(it)
             }
         }
@@ -87,15 +92,22 @@ fun failureNodesByMessage(failures: JsModel): Sequence<MutableList<FailureNode>>
 
 
 private
-fun failureNodeFor(it: JsFailure) =
-    errorNodeFor(it) ?: FailureNode.Label(it.message)
+fun errorOrWarningNodeFor(failure: JsFailure, message: String): FailureNode =
+    failure.error?.let {
+        FailureNode.Error(message)
+    } ?: FailureNode.Warning(message)
 
 
 private
-fun errorNodeFor(it: JsFailure): FailureNode? =
+fun failureNodeFor(it: JsFailure) =
+    exceptionNodeFor(it) ?: FailureNode.Label(it.message)
+
+
+private
+fun exceptionNodeFor(it: JsFailure): FailureNode? =
     it.error?.let {
         val stackTraceLines = it.lineSequence()
-        FailureNode.Error(
+        FailureNode.Exception(
             stackTraceLines.first(),
             stackTraceLines.drop(1).map(String::trim).joinToString("\n")
         )
