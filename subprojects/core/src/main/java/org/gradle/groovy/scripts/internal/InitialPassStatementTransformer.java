@@ -24,9 +24,14 @@ import org.gradle.configuration.ScriptTarget;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataCompiler;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Removes all statements from the given script except the top-level script blocks such as
+ * {@code buildscript}, {@code plugins} and {@code pluginManagement}.
+ */
 public class InitialPassStatementTransformer implements StatementTransformer, Factory<BuildScriptMetadata> {
 
     public static final String PLUGINS = "plugins";
@@ -56,64 +61,81 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
         if (scriptBlock == null) {
             seenNonClasspathStatement = true;
             return null;
+        }
+
+        if (scriptBlock.getName().equals(PLUGINS)) {
+            return transformPluginsBlock(scriptBlock, sourceUnit, statement);
+        }
+
+        if (scriptBlock.getName().equals(PLUGIN_MANAGEMENT)) {
+            return transformPluginManagementBlock(sourceUnit, statement);
+        }
+
+        if (seenPluginsBlock) {
+            String message = String.format(
+                pluginBlockMetadataCompiler.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
+                scriptTarget.getClasspathBlockName(), PLUGINS
+            );
+            addSyntaxError(message, sourceUnit, statement);
+        }
+        seenClasspathBlock = true;
+        return statement;
+    }
+
+    private Statement transformPluginsBlock(ScriptBlock scriptBlock, SourceUnit sourceUnit, Statement statement) {
+        String failMessage = null;
+
+        if (!scriptTarget.getSupportsPluginsBlock()) {
+            failMessage = pluginBlockMetadataCompiler.formatErrorMessage("Only Project build scripts can contain plugins {} blocks");
         } else {
-            if (scriptBlock.getName().equals(PLUGINS)) {
-                String failMessage = null;
+            seenPluginsBlock = true;
+            pluginsBlockLineNumber = scriptBlock.getClosureExpression().getLineNumber();
 
-                if (!scriptTarget.getSupportsPluginsBlock()) {
-                    failMessage = pluginBlockMetadataCompiler.formatErrorMessage("Only Project build scripts can contain plugins {} blocks");
-                } else {
-                    seenPluginsBlock = true;
-                    pluginsBlockLineNumber = scriptBlock.getClosureExpression().getLineNumber();
-
-                    if (seenNonClasspathStatement) {
-                        failMessage = String.format(
-                            pluginBlockMetadataCompiler.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
-                            scriptTarget.getClasspathBlockName(), PLUGINS, PLUGINS
-                        );
-                    } else {
-                        pluginBlockMetadataCompiler.compile(sourceUnit, scriptBlock);
-                    }
-                }
-
-                if (failMessage != null) {
-                    sourceUnit.getErrorCollector().addError(
-                        new SyntaxException(failMessage, statement.getLineNumber(), statement.getColumnNumber()),
-                        sourceUnit
-                    );
-                }
-
-                return statement;
-            } else if (scriptBlock.getName().equals(PLUGIN_MANAGEMENT)) {
-                String failureMessage = null;
-                if (!scriptTarget.getSupportsPluginManagementBlock()) {
-                    failureMessage = "Only Settings scripts can contain a pluginManagement {} block.";
-                } else if (seenClasspathBlock || seenNonClasspathStatement || seenPluginsBlock) {
-                    failureMessage = String.format("The %s {} block must appear before any other statements in the script.", PLUGIN_MANAGEMENT);
-                } else if (seenPluginManagementBlock) {
-                    failureMessage = String.format("At most, one %s {} block may appear in the script.", PLUGIN_MANAGEMENT);
-                }
-                if (failureMessage != null) {
-                    sourceUnit.getErrorCollector().addError(
-                        new SyntaxException(makePluginManagementError(failureMessage), statement.getLineNumber(), statement.getColumnNumber()), sourceUnit);
-                }
-                seenPluginManagementBlock = true;
-                return statement;
+            if (seenNonClasspathStatement) {
+                failMessage = String.format(
+                    pluginBlockMetadataCompiler.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
+                    scriptTarget.getClasspathBlockName(), PLUGINS, PLUGINS
+                );
             } else {
-                if (seenPluginsBlock) {
-                    String message = String.format(
-                            pluginBlockMetadataCompiler.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
-                            scriptTarget.getClasspathBlockName(), PLUGINS
-                    );
-                    sourceUnit.getErrorCollector().addError(
-                            new SyntaxException(message, statement.getLineNumber(), statement.getColumnNumber()),
-                            sourceUnit
-                    );
-                }
-                seenClasspathBlock = true;
-                return statement;
+                pluginBlockMetadataCompiler.compile(sourceUnit, scriptBlock);
             }
         }
+
+        if (failMessage != null) {
+            addSyntaxError(failMessage, sourceUnit, statement);
+        }
+
+        return statement;
+    }
+
+    private Statement transformPluginManagementBlock(SourceUnit sourceUnit, Statement statement) {
+        String failureMessage = failureMessageForPluginManagementBlock();
+        if (failureMessage != null) {
+            addSyntaxError(makePluginManagementError(failureMessage), sourceUnit, statement);
+        }
+        seenPluginManagementBlock = true;
+        return statement;
+    }
+
+    private void addSyntaxError(String errorMessage, SourceUnit sourceUnit, Statement statement) {
+        sourceUnit.getErrorCollector().addError(
+            new SyntaxException(errorMessage, statement.getLineNumber(), statement.getColumnNumber()),
+            sourceUnit
+        );
+    }
+
+    @Nullable
+    private String failureMessageForPluginManagementBlock() {
+        if (!scriptTarget.getSupportsPluginManagementBlock()) {
+            return "Only Settings scripts can contain a pluginManagement {} block.";
+        }
+        if (seenClasspathBlock || seenNonClasspathStatement || seenPluginsBlock) {
+            return String.format("The %s {} block must appear before any other statements in the script.", PLUGIN_MANAGEMENT);
+        }
+        if (seenPluginManagementBlock) {
+            return String.format("At most, one %s {} block may appear in the script.", PLUGIN_MANAGEMENT);
+        }
+        return null;
     }
 
     private String makePluginManagementError(String failureMessage) {
