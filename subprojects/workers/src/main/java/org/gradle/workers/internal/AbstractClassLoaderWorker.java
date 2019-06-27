@@ -20,17 +20,23 @@ import org.gradle.internal.service.ServiceRegistry;
 
 public abstract class AbstractClassLoaderWorker implements Worker {
     private final WorkerProtocol worker;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
     public AbstractClassLoaderWorker(ServiceRegistry serviceRegistry) {
         this.worker = new DefaultWorkerServer(serviceRegistry);
+        this.actionExecutionSpecFactory = serviceRegistry.get(ActionExecutionSpecFactory.class);
     }
 
     public DefaultWorkResult executeInClassLoader(ActionExecutionSpec spec, ClassLoader workerClassLoader) {
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(workerClassLoader);
-            TransportableActionExecutionSpec transportableSpec = TransportableActionExecutionSpec.from(spec);
-            ActionExecutionSpec effectiveSpec = transportableSpec.deserialize(workerClassLoader);
+            // Serialize the incoming class and parameters (if necessary)
+            TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
+
+            // Deserialize the class and parameters in the workerClassLoader (the context classloader)
+            ActionExecutionSpec effectiveSpec = actionExecutionSpecFactory.newSimpleSpec(transportableSpec);
+
             return worker.execute(effectiveSpec);
         } finally {
             Thread.currentThread().setContextClassLoader(previousContextLoader);

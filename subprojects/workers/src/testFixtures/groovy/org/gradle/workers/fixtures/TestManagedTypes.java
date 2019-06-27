@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.impl;
+package org.gradle.workers.fixtures;
 
-import org.gradle.internal.hash.Hasher;
+import org.gradle.api.Named;
 
-public class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean> {
-    public static final BooleanValueSnapshot TRUE = new BooleanValueSnapshot(true);
-    public static final BooleanValueSnapshot FALSE = new BooleanValueSnapshot(false);
-
-    public BooleanValueSnapshot(Boolean value) {
-        super(value);
+public class TestManagedTypes {
+    public interface ManagedThing {
+        String getFoo();
+        void setFoo(String foo);
     }
 
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putBoolean(getValue());
+    public interface ImmutableManagedThing extends Named {
     }
 }

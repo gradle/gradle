@@ -16,11 +16,17 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public class WorkerDaemonServer implements WorkerProtocol {
@@ -37,15 +43,15 @@ public class WorkerDaemonServer implements WorkerProtocol {
         return ServiceRegistryBuilder.builder()
                 .parent(parent)
                 .provider(new WorkerSharedGlobalScopeServices())
+                .provider(new WorkerDaemonServices())
                 .build();
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            SerializedActionExecutionSpec classloaderActionExecutionSpec = (SerializedActionExecutionSpec) spec;
-            Worker worker = getIsolatedClassloaderWorker(classloaderActionExecutionSpec.getClassLoaderStructure());
-            return worker.execute(classloaderActionExecutionSpec);
+            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure());
+            return worker.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
@@ -65,5 +71,31 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public String toString() {
         return "WorkerDaemonServer{}";
+    }
+
+    private static class WorkerDaemonServices {
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
+        }
+
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        }
+
+        DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+            return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
+        }
+
+        ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
+            // Return a dummy implementation of this as creating a real hasher drags ~20 more services
+            // along with it, and a hasher isn't actually needed on the worker process side at the moment.
+            return new ClassLoaderHierarchyHasher() {
+                @Nullable
+                @Override
+                public HashCode getClassLoaderHash(ClassLoader classLoader) {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 }

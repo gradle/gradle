@@ -56,11 +56,14 @@ class WorkerDaemonClientTest extends Specification {
 
     WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
+        def actionExecutionSpecFactory = Stub(ActionExecutionSpecFactory) {
+            newTransportableSpec(_) >> { Mock(TransportableActionExecutionSpec) }
+        }
         def workerProcess = workerDaemonProcess.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO)
+        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO, actionExecutionSpecFactory)
     }
 
     def spec() {
-        return new SerializedParametersActionExecutionSpec(Runnable.class, "test", [] as Object[], null)
+        return new SimpleActionExecutionSpec(Runnable.class, "test", [] as Object[], null)
     }
 }

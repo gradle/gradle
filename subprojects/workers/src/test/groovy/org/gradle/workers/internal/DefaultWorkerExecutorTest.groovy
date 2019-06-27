@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.VisitableURLClassLoader
-import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
@@ -53,14 +52,15 @@ class DefaultWorkerExecutorTest extends Specification {
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
-    def isolatableFactory = Mock(IsolatableFactory)
     def worker = Mock(BuildOperationAwareWorker)
+    def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, isolatableFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory)
+        _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
     def "worker configuration fork property defaults to AUTO"() {

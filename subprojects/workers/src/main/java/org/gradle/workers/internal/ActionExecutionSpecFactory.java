@@ -16,7 +16,9 @@
 
 package org.gradle.workers.internal;
 
-public interface SerializedActionExecutionSpec extends ActionExecutionSpec {
-    ActionExecutionSpec deserialize(ClassLoader classLoader);
-    ClassLoaderStructure getClassLoaderStructure();
+public interface ActionExecutionSpecFactory {
+    TransportableActionExecutionSpec newTransportableSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure);
+    TransportableActionExecutionSpec newTransportableSpec(ActionExecutionSpec spec);
+    IsolatedParametersActionExecutionSpec newIsolatedSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure);
+    SimpleActionExecutionSpec newSimpleSpec(ActionExecutionSpec spec);
 }

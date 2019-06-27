@@ -26,9 +26,10 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def serializer = new TransportableActionExecutionSpecSerializer()
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
+    def bytes = [ (byte) 1, (byte) 2, (byte) 3 ] as byte[]
 
     def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
-        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class, [ "foo", "bar" ] as Object[], classLoaderStructure())
+        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class.name, bytes, classLoaderStructure())
 
         when:
         serializer.write(encoder, spec)
@@ -46,7 +47,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     }
 
     def "can serialize and deserialize a spec with a flat classloader structure"() {
-        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class, [ "foo", "bar" ] as Object[], flatClassLoaderStructure())
+        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class.name, bytes, flatClassLoaderStructure())
 
         when:
         serializer.write(encoder, spec)

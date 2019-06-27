@@ -24,10 +24,10 @@ import javax.annotation.Nullable;
 /**
  * Isolates an Enum value and is a snapshot for that value.
  */
-public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
+public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
     private final Enum<?> value;
 
-    public IsolatableEnumValueSnapshot(Enum<?> value) {
+    public IsolatedEnumValueSnapshot(Enum<?> value) {
         super(value);
         this.value = value;
     }
