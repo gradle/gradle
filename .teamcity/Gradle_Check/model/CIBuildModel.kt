@@ -114,6 +114,7 @@ data class CIBuildModel (
             GradleSubproject("ear"),
             GradleSubproject("execution"),
             GradleSubproject("fileCollections"),
+            GradleSubproject("files", functionalTests = false),
             GradleSubproject("ide", crossVersionTests = true),
             GradleSubproject("ideNative"),
             GradleSubproject("idePlay"),
