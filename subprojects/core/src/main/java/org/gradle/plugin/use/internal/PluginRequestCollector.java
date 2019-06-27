@@ -108,9 +108,7 @@ public class PluginRequestCollector {
 
         @Override
         public PluginDependencySpec id(String id) {
-            PluginDependencySpecImpl spec = new PluginDependencySpecImpl(id, blockLineNumber);
-            specs.add(spec);
-            return spec;
+            return id(id, blockLineNumber);
         }
 
         public PluginDependencySpec id(String id, int requestLineNumber) {
