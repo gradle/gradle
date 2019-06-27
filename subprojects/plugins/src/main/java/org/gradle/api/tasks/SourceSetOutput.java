@@ -66,6 +66,7 @@ import java.util.Map;
  *
  * //a task that generates the resources:
  * task generateMyResources {
+ *   outputs.dir generatedResources
  *   doLast {
  *     def generated = new File(generatedResources, "myGeneratedResource.properties")
  *     generated.text = "message=Stay happy!"
