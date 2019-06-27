@@ -110,11 +110,26 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
+    def "displays info about loading and storing in cache"() {
+        buildFile << defineCacheableTask()
+        when:
+        withBuildCache().run "cacheable", "--info"
+        then:
+        outputContains "Stored cache entry for task ':cacheable' with cache key"
+
+        file("build").deleteDir()
+
+        when:
+        withBuildCache().run "cacheable", "--info"
+        then:
+        outputContains "Loaded cache entry for task ':cacheable' with cache key"
+    }
+
     def defineCacheableTask() {
         """
             @CacheableTask
             class CustomTask extends DefaultTask {
-                @OutputDirectory File outputDir = new File(temporaryDir, 'output')
+                @OutputDirectory File outputDir = new File(project.buildDir, 'output')
                 @TaskAction
                 void generate() {
                     new File(outputDir, "output").text = "OK"
