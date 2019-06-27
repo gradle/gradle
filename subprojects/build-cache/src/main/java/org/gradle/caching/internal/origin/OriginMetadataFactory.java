@@ -49,6 +49,8 @@ public class OriginMetadataFactory {
     private final Consumer<Properties> additionalProperties;
     private final File rootDir;
 
+    private volatile String localHostName;
+
     public OriginMetadataFactory(File rootDir, String userName, String operatingSystem, String currentBuildInvocationId, Consumer<Properties> additionalProperties) {
         this.rootDir = rootDir;
         this.userName = userName;
@@ -77,12 +79,15 @@ public class OriginMetadataFactory {
         };
     }
 
-    private static String determineHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return "<unknown>";
+    private String determineHostName() {
+        if (localHostName == null) {
+            try {
+                localHostName = InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException e) {
+                localHostName = "<unknown>";
+            }
         }
+        return localHostName;
     }
 
     public OriginReader createReader(CacheableEntity entry) {
