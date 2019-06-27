@@ -116,7 +116,7 @@ public class GroovyCompile extends AbstractCompile {
     @CompileClasspath
     @Incremental
     public FileCollection getClasspath() {
-        // Note that this is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
+        // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
         // See https://github.com/gradle/gradle/pull/9513
         return super.getClasspath();
     }
