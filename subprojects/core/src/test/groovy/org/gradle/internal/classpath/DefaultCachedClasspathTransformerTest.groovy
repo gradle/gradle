@@ -21,8 +21,8 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.Factory
+import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.JarCache
-import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

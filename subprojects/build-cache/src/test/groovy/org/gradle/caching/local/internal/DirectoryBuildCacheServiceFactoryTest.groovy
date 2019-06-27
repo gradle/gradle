@@ -25,7 +25,7 @@ import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.internal.resource.local.FileAccessTimeJournal
+import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

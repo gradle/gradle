@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

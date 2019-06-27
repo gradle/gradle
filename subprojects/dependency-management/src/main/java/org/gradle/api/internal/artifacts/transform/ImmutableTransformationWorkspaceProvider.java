@@ -27,7 +27,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import javax.annotation.concurrent.NotThreadSafe;
