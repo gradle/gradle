@@ -16,6 +16,8 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import org.codehaus.groovy.ast.expr.ArgumentListExpression;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -88,7 +90,8 @@ public class InitialPassStatementTransformer implements StatementTransformer {
             failMessage = pluginBlockMetadataCompiler.formatErrorMessage("Only Project build scripts can contain plugins {} blocks");
         } else {
             seenPluginsBlock = true;
-            pluginsBlockLineNumber = scriptBlock.getClosureExpression().getLineNumber();
+
+            addLineNumberToMethodCall(scriptBlock);
 
             if (seenNonClasspathStatement) {
                 failMessage = String.format(
@@ -105,6 +108,12 @@ public class InitialPassStatementTransformer implements StatementTransformer {
         }
 
         return statement;
+    }
+
+    // Add the block line-number as an argument to call `plugins(int lineNumber, Closure pluginsBlock)`
+    private void addLineNumberToMethodCall(ScriptBlock scriptBlock) {
+        ConstantExpression lineNumberExpression = new ConstantExpression(scriptBlock.getClosureExpression().getLineNumber(), true);
+        scriptBlock.getMethodCall().setArguments(new ArgumentListExpression(lineNumberExpression, scriptBlock.getClosureExpression()));
     }
 
     private Statement transformPluginManagementBlock(SourceUnit sourceUnit, Statement statement) {

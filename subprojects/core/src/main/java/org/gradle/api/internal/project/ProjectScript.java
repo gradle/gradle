@@ -51,12 +51,11 @@ public abstract class ProjectScript extends DefaultScript {
         getScriptTarget().buildscript(configureClosure);
     }
 
-    public void plugins(Closure configureClosure) {
+    public void plugins(int lineNumber, Closure configureClosure) {
         if (pluginRequestCollector == null) {
             pluginRequestCollector = new PluginRequestCollector(getScriptSource());
         }
-        // TODO:DAZ This should be provided the line number of the plugins block
-        PluginDependenciesSpec spec = pluginRequestCollector.createSpec(0);
+        PluginDependenciesSpec spec = pluginRequestCollector.createSpec(lineNumber);
         ConfigureUtil.configure(configureClosure, spec);
     }
 
