@@ -21,7 +21,6 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
-import org.gradle.internal.Factory;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataCompiler;
 
 import javax.annotation.Nullable;
@@ -32,7 +31,7 @@ import java.util.List;
  * Removes all statements from the given script except the top-level script blocks such as
  * {@code buildscript}, {@code plugins} and {@code pluginManagement}.
  */
-public class InitialPassStatementTransformer implements StatementTransformer, Factory<BuildScriptMetadata> {
+public class InitialPassStatementTransformer implements StatementTransformer {
 
     public static final String PLUGINS = "plugins";
     public static final String PLUGIN_MANAGEMENT = "pluginManagement";
@@ -143,11 +142,6 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
             "%s%n%nSee %s for information on the pluginManagement {} block%n%n",
             failureMessage,
             documentationRegistry.getDocumentationFor("plugins", "sec:plugin_management"));
-    }
-
-    @Override
-    public BuildScriptMetadata create() {
-        return new BuildScriptMetadata(pluginsBlockLineNumber);
     }
 
 }

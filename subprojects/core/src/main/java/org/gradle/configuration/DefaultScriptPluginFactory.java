@@ -37,10 +37,9 @@ import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
-import org.gradle.groovy.scripts.internal.BuildScriptMetadata;
-import org.gradle.groovy.scripts.internal.BuildScriptMetadataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
@@ -80,7 +79,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
-    private final BuildScriptMetadataSerializer buildScriptMetadataSerializer = new BuildScriptMetadataSerializer();
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
     private final ExecFactory execFactory;
@@ -196,9 +194,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
             String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
-            CompileOperation<BuildScriptMetadata> initialOperation = new FactoryBackedCompileOperation<BuildScriptMetadata>(id, CLASSPATH_COMPILE_STAGE, initialTransformer, initialPassStatementTransformer, buildScriptMetadataSerializer);
+            CompileOperation<?> initialOperation = new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
 
-            ScriptRunner<? extends BasicScript, BuildScriptMetadata> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
