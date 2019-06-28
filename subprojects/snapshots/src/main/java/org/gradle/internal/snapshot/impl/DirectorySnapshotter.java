@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.gradle.internal.snapshot.UnavailableFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -195,10 +196,6 @@ public class DirectorySnapshotter {
                 if (attrs == null) {
                     throw new FileSnapshottingException(String.format("Cannot read file '%s': not authorized.", file));
                 }
-                if (attrs.isSymbolicLink()) {
-                    // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                    throw new FileSnapshottingException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
-                }
                 builder.visit(snapshot(file, name, attrs));
             }
             return FileVisitResult.CONTINUE;
@@ -206,9 +203,16 @@ public class DirectorySnapshotter {
 
         private FileSystemLocationSnapshot snapshot(Path absoluteFilePath, String name, BasicFileAttributes attrs) {
             String internedAbsoluteFilePath = intern(absoluteFilePath.toString());
-            HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
-            FileMetadata metadata = FileMetadata.from(attrs);
-            return new RegularFileSnapshot(internedAbsoluteFilePath, name, hash, metadata);
+            if (attrs.isRegularFile()) {
+                try {
+                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
+                    FileMetadata metadata = FileMetadata.from(attrs);
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, name, hash, metadata);
+                } catch (UncheckedIOException e) {
+                    LOGGER.debug("Could not read file path '{}'.", absoluteFilePath, e);
+                }
+            }
+            return new UnavailableFileSnapshot(internedAbsoluteFilePath, name);
         }
 
         @Override
@@ -217,8 +221,11 @@ public class DirectorySnapshotter {
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
-                if (shouldVisit(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
-                    throw new UncheckedIOException(String.format("Could not read path '%s'.", file), exc);
+                String name = intern(file.getFileName().toString());
+                if (shouldVisit(file, name, Files.isDirectory(file), null, builder.getRelativePath())) {
+                    LOGGER.debug("Could not read file path '{}'.", file);
+                    String absolutePath = intern(file.toString());
+                    builder.visit(new UnavailableFileSnapshot(absolutePath, name));
                 }
             }
             return FileVisitResult.CONTINUE;
