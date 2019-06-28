@@ -31,7 +31,7 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.logProperty
+import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -162,7 +162,7 @@ fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> U
             val value =
                 try {
                     read().also {
-                        logProperty("deserialize", it)
+                        logPropertyInfo("deserialize", it)
                     }
                 } catch (e: Throwable) {
                     throw GradleException("Could not load the value of $trace.", e)

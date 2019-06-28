@@ -36,6 +36,18 @@ inline fun <reified T> ownerService() =
 
 
 internal
+inline fun <reified T : Any> unsupported(): Codec<T> = codec(
+    encode = { value ->
+        logUnsupported(T::class, value.javaClass)
+    },
+    decode = {
+        logUnsupported(T::class)
+        null
+    }
+)
+
+
+internal
 fun <T> codec(
     encode: WriteContext.(T) -> Unit,
     decode: ReadContext.() -> T?

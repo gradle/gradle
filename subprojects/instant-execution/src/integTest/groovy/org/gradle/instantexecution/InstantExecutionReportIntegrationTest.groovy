@@ -65,9 +65,9 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         jsFile.isFile()
         outputContains """
             3 instant execution issues found:
-              - field 'gradle' from type 'SomeBean': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
-              - field 'gradle' from type 'NestedBean': there's no serializer for type 'org.gradle.invocation.DefaultGradle'
-              - field 'project' from type 'NestedBean': there's no serializer for type 'org.gradle.api.internal.project.DefaultProject'
+              - field 'gradle' from type 'SomeBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
+              - field 'gradle' from type 'NestedBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
+              - field 'project' from type 'NestedBean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.
             See the complete report at ${clickableUrlFor(reportFile)}
         """.stripIndent()
     }
