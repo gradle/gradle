@@ -1,5 +1,5 @@
 ---
-name: 'Community: Regression'
+name: 'Regression'
 about: 'Report a problem about something that used to work'
 labels: 'a:regression, from:contributor'
 ---
