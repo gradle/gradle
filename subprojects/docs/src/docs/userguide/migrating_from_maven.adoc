@@ -157,7 +157,7 @@ You'll find that the new Gradle build includes the following:
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
  * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins)
- 
+
 See the <<build_init_plugin#sec:pom_maven_conversion_,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
 
 One thing to bear in mind is that assemblies are not automatically converted.
@@ -333,7 +333,7 @@ If you're more interested in controlling which version of a dependency is actual
 [[migmvn:optional_deps]]
 === Handling optional dependencies
 
-You are likely to encounter two situations regarding optional dependencies: 
+You are likely to encounter two situations regarding optional dependencies:
 
  * Some of your transitive dependencies are declared as optional
  * You want to declare some of your direct dependencies as optional in your project's published POM
@@ -483,7 +483,7 @@ The Java plugin for Gradle provides a `processResources` task to do the same thi
 This is a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task that copies files from the configured resources directory -- `src/main/resources` by default -- to an output directory.
 And as with any `Copy` task, you can configure it to perform <<working_with_files#filtering_files,file filtering>>, <<working_with_files#sec:renaming_files,renaming>>, and <<working_with_files#sec:filtering_files,content filtering>>.
 
-As an example, here's a configuration that treats the source files as http://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_simpletemplateengine[Groovy `SimpleTemplateEngine`] templates, providing `version` and `buildNumber` properties to those templates:
+As an example, here's a configuration that treats the source files as https://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_simpletemplateengine[Groovy `SimpleTemplateEngine`] templates, providing `version` and `buildNumber` properties to those templates:
 
 .Filtering the content of resources via the `processResources` task
 ====

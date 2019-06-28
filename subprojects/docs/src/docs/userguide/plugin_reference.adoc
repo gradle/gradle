@@ -29,7 +29,7 @@ Provides support for building a Java library.
 Provides support for building a Java platform.
 
 <<groovy_plugin.adoc#,Groovy>>::
-Provides support for building any type of http://groovy-lang.org/[Groovy] project.
+Provides support for building any type of https://groovy-lang.org/[Groovy] project.
 
 <<scala_plugin.adoc#,Scala>>::
 Provides support for building any type of https://www.scala-lang.org/[Scala] project.

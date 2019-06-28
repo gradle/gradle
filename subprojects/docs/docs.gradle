@@ -295,7 +295,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciido
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
-def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
+def groovyApiUrl = "https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "https://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
 def javadocAll = tasks.register("javadocAll", Javadoc) {
