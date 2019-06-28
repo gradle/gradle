@@ -895,7 +895,7 @@ public class NodeState implements DependencyGraphNode {
         return resolveState.desugar(attributes);
     }
 
-    ResolvedVariantResult getResolvedVariant() {
+    public ResolvedVariantResult getResolvedVariant() {
         if (cachedVariantResult != null) {
             return cachedVariantResult;
         }

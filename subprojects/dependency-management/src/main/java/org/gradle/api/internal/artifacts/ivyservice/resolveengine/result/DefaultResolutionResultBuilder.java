@@ -66,6 +66,7 @@ public class DefaultResolutionResultBuilder {
         DefaultResolvedComponentResult from = modules.get(fromComponent);
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
+            ResolvedVariantResult fromVariant = d.getFromVariant();
             if (d.getFailure() != null) {
                 dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
@@ -74,6 +75,9 @@ public class DefaultResolutionResultBuilder {
                 selected.addDependent((ResolvedDependencyResult) dependencyResult);
             }
             from.addDependency(dependencyResult);
+            if (fromVariant != null) {
+                from.associateDependencyToVariant(dependencyResult, fromVariant);
+            }
         }
     }
 

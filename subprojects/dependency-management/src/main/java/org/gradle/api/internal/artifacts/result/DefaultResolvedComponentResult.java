@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -42,6 +45,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> variants;
     private final String repositoryName;
+    private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = HashMultimap.create();
 
     public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> variants, String repositoryName) {
         assert moduleVersion != null;
@@ -104,8 +108,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         }
         // Returns an approximation of a composite variant
         List<String> parts = variants.stream()
-                .map(ResolvedVariantResult::getDisplayName)
-                .collect(Collectors.toList());
+            .map(ResolvedVariantResult::getDisplayName)
+            .collect(Collectors.toList());
         DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
         ResolvedVariantResult firstVariant = variants.get(0);
         return new DefaultResolvedVariantResult(variantName, firstVariant.getAttributes(), firstVariant.getCapabilities());
@@ -119,5 +123,14 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @Override
     public List<ResolvedVariantResult> getVariants() {
         return variants;
+    }
+
+    @Override
+    public List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant) {
+        return ImmutableList.copyOf(variantDependencies.get(variant));
+    }
+
+    public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
+        variantDependencies.put(fromVariant, dependencyResult);
     }
 }

@@ -275,6 +275,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     class DummyInternalDependencyResult implements ResolvedGraphDependency {
         ComponentSelector requested
         Long selected
+        ResolvedVariantResult fromVariant
         ResolvedVariantResult selectedVariant
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
