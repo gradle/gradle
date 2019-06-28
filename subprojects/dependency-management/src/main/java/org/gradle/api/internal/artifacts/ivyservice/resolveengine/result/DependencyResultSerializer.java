@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -41,16 +42,16 @@ public class DependencyResultSerializer {
         Long selectorId = decoder.readSmallLong();
         ComponentSelector requested = selectors.get(selectorId);
         boolean constraint = decoder.readBoolean();
-
+        ResolvedVariantResult fromVariant = resolvedVariantResultSerializer.read(decoder);
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             Long selectedId = decoder.readSmallLong();
 
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, resolvedVariantResultSerializer.read(decoder));
+            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, fromVariant, resolvedVariantResultSerializer.read(decoder));
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, null);
+            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, fromVariant, null);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
@@ -59,6 +60,7 @@ public class DependencyResultSerializer {
     public void write(Encoder encoder, DependencyGraphEdge value) throws IOException {
         encoder.writeSmallLong(value.getSelector().getResultId());
         encoder.writeBoolean(value.isConstraint());
+        resolvedVariantResultSerializer.write(encoder, value.getFromVariant());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
             encoder.writeSmallLong(value.getSelected());

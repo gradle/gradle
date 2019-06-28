@@ -48,5 +48,7 @@ public interface ResolvedGraphDependency {
 
     boolean isConstraint();
 
+    ResolvedVariantResult getFromVariant();
+
     ResolvedVariantResult getSelectedVariant();
 }
