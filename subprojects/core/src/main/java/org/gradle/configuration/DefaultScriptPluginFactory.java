@@ -29,21 +29,21 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.groovy.scripts.BasicScript;
+import org.gradle.groovy.scripts.PluginScript;
 import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
+import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
@@ -266,8 +266,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
         if (initialRunner.getRunDoesSomething()) {
             BasicScript script = initialRunner.getScript();
-            if (script instanceof ProjectScript) {
-                PluginRequestCollector pluginRequestCollector = ((ProjectScript) script).pluginRequestCollector;
+            if (script instanceof PluginScript) {
+                PluginRequestCollector pluginRequestCollector = ((PluginScript) script).pluginRequestCollector;
                 if (pluginRequestCollector != null) {
                     return pluginRequestCollector.getPluginRequests();
                 }
