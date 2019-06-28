@@ -54,6 +54,7 @@ import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -81,6 +82,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     "-XXLanguage:+SamConversionForKotlinFunctions"
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
+@GradleDsl
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
 ) : SettingsScriptApi(host.target) {
@@ -99,6 +101,16 @@ abstract class KotlinSettingsScript(
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
+
+    /**
+     * Configures the plugin dependencies for the project's settings.
+     *
+     * @see [PluginDependenciesSpec]
+     */
+    @Suppress("unused")
+    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
+        throw Exception("The plugins {} block must not be used here. "
+            + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.")
 }
 
 

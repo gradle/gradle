@@ -32,10 +32,12 @@ enum class ProgramKind {
 }
 
 
-enum class ProgramTarget {
-    Project,
-    Settings,
-    Gradle
+enum class ProgramTarget(
+    val supportsPluginsBlock: Boolean
+) {
+    Project(supportsPluginsBlock = true),
+    Settings(supportsPluginsBlock = true),
+    Gradle(supportsPluginsBlock = false)
 }
 
 
@@ -172,10 +174,15 @@ class PartialEvaluator(
 
     private
     fun stage1WithPlugins(stage1: Program.Stage1): Static =
-
-        Static(
-            SetupEmbeddedKotlin,
-            ApplyPluginRequestsOf(stage1),
-            ApplyBasePlugins
-        )
+        when (programTarget) {
+            ProgramTarget.Project -> Static(
+                SetupEmbeddedKotlin,
+                ApplyPluginRequestsOf(stage1),
+                ApplyBasePlugins
+            )
+            else -> Static(
+                SetupEmbeddedKotlin,
+                ApplyPluginRequestsOf(stage1)
+            )
+        }
 }

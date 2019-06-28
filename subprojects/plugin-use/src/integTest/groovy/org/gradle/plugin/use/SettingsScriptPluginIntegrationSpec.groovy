@@ -17,7 +17,6 @@
 package org.gradle.plugin.use
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Unroll
 
 @LeaksFileHandles
@@ -28,20 +27,29 @@ class SettingsScriptPluginIntegrationSpec extends AbstractPluginSpec {
     }
 
     @Unroll
-    def "settings script with plugin block"() {
+    def "settings script with a plugins block - #settingScriptExtension"() {
         given:
-        publishSettingPlugin("System.out.println(\"Executing a 'Settings' plugin\")")
-        file("settings$settingSscriptExtension") << use
+        publishSettingPlugin("""
+settings.gradle.beforeProject { org.gradle.api.Project project ->
+    project.tasks.register("customTask") {
+        doLast {
+            System.out.println("Executing task added by a 'Settings' plugin")
+        }
+    }
+}
+"""
+        )
+        file("settings$settingScriptExtension") << use
 
         when:
-        succeeds 'help'
+        succeeds 'customTask'
 
         then:
-        outputContains("Executing a 'Settings' plugin")
+        outputContains("Executing task added by a 'Settings' plugin")
 
         where:
-        settingSscriptExtension | use
-        '.gradle'               | USE
+        settingScriptExtension | use
         '.gradle.kts'           | USE_KOTLIN
+        '.gradle'               | USE
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -40,14 +41,18 @@ abstract class AbstractPluginSpec extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir()
     }
 
-    MavenHttpModule publishPlugin(@Language("groovy") String impl) {
+    MavenHttpModule publishPlugin(
+        @Language(value = "groovy", prefix = "void apply(org.gradle.api.Project project) {\n", suffix = "\n}") String impl
+    ) {
         pluginBuilder.with {
             addPlugin(impl, PLUGIN_ID)
             publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll().pluginModule as MavenHttpModule
         }
     }
 
-    MavenHttpModule publishSettingPlugin(@Language("groovy") String impl) {
+    MavenHttpModule publishSettingPlugin(
+        @Language(value = "groovy", prefix = "void apply(org.gradle.api.initialization.Settings settings) {\n", suffix = "\n}") String impl
+    ) {
         pluginBuilder.with {
             addSettingPlugin(impl, PLUGIN_ID)
             publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll().pluginModule as MavenHttpModule

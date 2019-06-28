@@ -126,6 +126,26 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `a top-level Settings plugins block`() {
+
+        val program =
+            Program.Plugins(fragment("plugins", "..."))
+
+        assertThat(
+            "reduces to static program that applies plugin requests without the base plugin",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    ApplyPluginRequestsOf(program)
+                )))
+    }
+
+    @Test
     fun `a top-level Project buildscript block followed by plugins block`() {
 
         val program =
@@ -145,6 +165,28 @@ class PartialEvaluatorTest {
                     SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program),
                     ApplyBasePlugins
+                )))
+    }
+
+    @Test
+    fun `a top-level Settings buildscript block followed by plugins block`() {
+
+        val program =
+            Program.Stage1Sequence(
+                Program.Buildscript(fragment("buildscript", "...")),
+                Program.Plugins(fragment("plugins", "...")))
+
+        assertThat(
+            "reduces to static program that applies plugin requests without base plugins",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    ApplyPluginRequestsOf(program)
                 )))
     }
 

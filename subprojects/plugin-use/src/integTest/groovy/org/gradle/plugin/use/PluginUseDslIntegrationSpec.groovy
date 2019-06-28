@@ -106,17 +106,16 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
-    def "settings scripts cannot plugin blocks"() {
+    def "settings scripts can have plugin blocks"() {
         when:
-        settingsFile << "plugins {}"
+        settingsFile << """
+            plugins {
+                id "noop" version "1.0"
+            }
+        """
 
         then:
-        fails "help"
-
-        failure.assertHasLineNumber 1
-        failure.assertHasFileName("Settings file '$settingsFile.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
-        includesLinkToUserguide()
+        succeeds "help"
     }
 
     def "init scripts cannot have plugin blocks"() {
