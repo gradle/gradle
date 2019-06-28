@@ -26,7 +26,7 @@ public class PatternMatcherFactory {
 
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
     private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/"));
-    private static final Predicate<RelativePath> MATCH_ALL = (path) -> true;
+    private static final Predicate<RelativePath> MATCH_ALL = path -> true;
 
     public static Predicate<RelativePath> getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
         Predicate<RelativePath> predicate = MATCH_ALL;
