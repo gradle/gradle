@@ -29,6 +29,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -47,6 +49,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DirectorySnapshotter.class);
+
     private final FileHasher hasher;
     private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
