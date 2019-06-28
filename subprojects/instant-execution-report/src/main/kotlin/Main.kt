@@ -26,8 +26,8 @@ import kotlin.js.JSON.stringify
 fun main() {
     mountComponentAt(
         elementById("app"),
-        HomePage,
-        homePageModelFromJsModel(instantExecutionFailures)
+        InstantExecutionReportPage,
+        reportPageModelFromJsModel(instantExecutionFailures)
     )
 }
 
@@ -100,7 +100,7 @@ data class ImportedFailure(
 
 
 private
-fun homePageModelFromJsModel(jsFailures: JsModel): HomePage.Model {
+fun reportPageModelFromJsModel(jsFailures: JsModel): InstantExecutionReportPage.Model {
     val failures = jsFailures.map { jsFailure ->
         ImportedFailure(
             jsFailure,
@@ -108,7 +108,7 @@ fun homePageModelFromJsModel(jsFailures: JsModel): HomePage.Model {
             jsFailure.trace.map(::toFailureNode)
         )
     }
-    return HomePage.Model(
+    return InstantExecutionReportPage.Model(
         totalFailures = instantExecutionFailures.size,
         messageTree = treeModelFor(
             FailureNode.Label("Failures grouped by message"),

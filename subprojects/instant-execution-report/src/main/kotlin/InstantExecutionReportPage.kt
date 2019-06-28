@@ -71,7 +71,7 @@ typealias FailureTreeModel = TreeView.Model<FailureNode>
 typealias FailureTreeIntent = TreeView.Intent<FailureNode>
 
 
-object HomePage : Component<HomePage.Model, HomePage.Intent> {
+object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
 
     data class Model(
         val totalFailures: Int,
