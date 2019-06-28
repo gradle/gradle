@@ -262,8 +262,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         }
     }
 
-    // TODO:DAZ This is not nice: work out a better way to collect the plugin requests from invoking the plugins block.
-    // It would also be good to provide the `pluginsBlockLineNumber` prior to invocation.
+    // TODO This is not nice: work out a better way to collect the plugin requests from invoking the plugins block.
     private PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
         if (initialRunner.getRunDoesSomething()) {
             BasicScript script = initialRunner.getScript();
