@@ -96,7 +96,6 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
             messageTree = TreeView.step(intent.delegate, model.messageTree)
         )
         is Intent.Copy -> {
-            println(intent)
             window.navigator.clipboard.writeText(intent.text)
             model
         }
