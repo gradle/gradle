@@ -112,22 +112,48 @@ class InstantExecutionReport(
         StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
 
     private
-    fun traceListOf(failure: PropertyFailure): List<String> = mutableListOf<String>().also { result ->
+    fun traceListOf(failure: PropertyFailure): List<Map<String, Any>> = mutableListOf<Map<String, Any>>().also { result ->
         fun collectTrace(current: PropertyTrace): Unit = current.run {
             when (this) {
                 is PropertyTrace.Property -> {
-                    result.add(simpleDescription())
+                    result.add(
+                        when (kind) {
+                            PropertyKind.Field -> mapOf(
+                                "kind" to kind.name,
+                                "name" to name,
+                                "declaringType" to firstTypeFrom(trace).name
+                            )
+                            else -> mapOf(
+                                "kind" to kind.name,
+                                "name" to name,
+                                "task" to taskPathFrom(trace)
+                            )
+                        }
+                    )
                     collectTrace(trace)
                 }
                 is PropertyTrace.Task -> {
-                    result.add("task '$path' of type '${type.name}'")
+                    result.add(
+                        mapOf(
+                            "kind" to "Task",
+                            "path" to path,
+                            "type" to type.name
+                        )
+                    )
                 }
                 is PropertyTrace.Bean -> {
-                    result.add("bean of type '${type.name}'")
+                    result.add(
+                        mapOf(
+                            "kind" to "Bean",
+                            "type" to type.name
+                        )
+                    )
                     collectTrace(trace)
                 }
                 PropertyTrace.Gradle -> {
-                    result.add("Gradle state")
+                    result.add(
+                        mapOf("kind" to "Gradle")
+                    )
                 }
                 else -> {
                     throw IllegalStateException()
@@ -140,7 +166,7 @@ class InstantExecutionReport(
     private
     fun propertyDescriptionFor(failure: PropertyFailure): String = failure.trace.run {
         when (this) {
-            is PropertyTrace.Property -> simpleDescription()
+            is PropertyTrace.Property -> simplePropertyDescription()
             else -> toString()
         }
     }
@@ -151,7 +177,7 @@ class InstantExecutionReport(
     }
 
     private
-    fun PropertyTrace.Property.simpleDescription(): String = when (kind) {
+    fun PropertyTrace.Property.simplePropertyDescription(): String = when (kind) {
         PropertyKind.Field -> "field '$name' from type '${firstTypeFrom(trace).name}'"
         else -> "$kind '$name' of '${taskPathFrom(trace)}'"
     }

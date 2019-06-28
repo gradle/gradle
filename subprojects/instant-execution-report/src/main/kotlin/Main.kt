@@ -44,47 +44,92 @@ typealias JsModel = Array<JsFailure>
 
 private
 external interface JsFailure {
-    val trace: Array<String>
+    val trace: Array<JsTrace>
     val message: String
     val error: String?
 }
 
 
 private
-fun homePageModelFromJsModel(failures: JsModel) = HomePage.Model(
-    totalFailures = instantExecutionFailures.size,
-    messageTree = treeModelFor(
-        FailureNode.Label("Failures grouped by message"),
-        failureNodesByMessage(failures)
-    ),
-    taskTree = treeModelFor(
-        FailureNode.Label("Failures grouped by task"),
-        failureNodesByTask(failures)
-    )
+external interface JsTrace {
+    val kind: String
+}
+
+
+private
+external interface JsTraceTask : JsTrace {
+    val path: String
+    val type: String
+}
+
+
+private
+external interface JsTraceBean : JsTrace {
+    val type: String
+}
+
+
+private
+external interface JsTraceField : JsTrace {
+    val name: String
+    val declaringType: String
+}
+
+
+private
+external interface JsTraceProperty : JsTrace {
+    val name: String
+    val task: String
+}
+
+
+private
+data class ImportedFailure(
+    val failure: JsFailure,
+    val trace: List<FailureNode>
 )
 
 
 private
-fun failureNodesByTask(failures: JsModel): Sequence<List<FailureNode>> =
+fun homePageModelFromJsModel(jsFailures: JsModel): HomePage.Model {
+    val failures = jsFailures.map {
+        ImportedFailure(it, it.trace.map(::toFailureNode))
+    }
+    return HomePage.Model(
+        totalFailures = instantExecutionFailures.size,
+        messageTree = treeModelFor(
+            FailureNode.Label("Failures grouped by message"),
+            failureNodesByMessage(failures)
+        ),
+        taskTree = treeModelFor(
+            FailureNode.Label("Failures grouped by task"),
+            failureNodesByTask(failures)
+        )
+    )
+}
+
+
+private
+fun failureNodesByTask(failures: List<ImportedFailure>): Sequence<List<FailureNode>> =
     failures.asSequence().map { failure ->
-        failure.trace.asList().asReversed().mapIndexed { index, it ->
+        failure.trace.asReversed().mapIndexed { index, node ->
             when (index) {
-                0 -> errorOrWarningNodeFor(failure, it)
-                else -> FailureNode.Label(it)
+                0 -> errorOrWarningNodeFor(failure.failure, node)
+                else -> node
             }
-        } + failureNodeFor(failure)
+        } + failureNodeFor(failure.failure)
     }
 
 
 private
-fun failureNodesByMessage(failures: JsModel): Sequence<MutableList<FailureNode>> =
-    failures.asSequence().map { failure ->
+fun failureNodesByMessage(failures: List<ImportedFailure>): Sequence<MutableList<FailureNode>> =
+    failures.asSequence().map {
         mutableListOf<FailureNode>().apply {
-            add(errorOrWarningNodeFor(failure, failure.message))
-            failure.trace.forEach { part ->
-                add(FailureNode.Label(part))
+            add(errorOrWarningNodeFor(it.failure, FailureNode.Label(it.failure.message)))
+            it.trace.forEach { part ->
+                add(part)
             }
-            exceptionNodeFor(failure)?.let {
+            exceptionNodeFor(it.failure)?.let {
                 add(it)
             }
         }
@@ -92,10 +137,31 @@ fun failureNodesByMessage(failures: JsModel): Sequence<MutableList<FailureNode>>
 
 
 private
-fun errorOrWarningNodeFor(failure: JsFailure, message: String): FailureNode =
+fun toFailureNode(trace: JsTrace): FailureNode = when (val kind = trace.kind) {
+    "Task" -> trace.unsafeCast<JsTraceTask>().run {
+        FailureNode.Task(path, type)
+    }
+    "Bean" -> trace.unsafeCast<JsTraceBean>().run {
+        FailureNode.Bean(type)
+    }
+    "Field" -> trace.unsafeCast<JsTraceField>().run {
+        FailureNode.Property("field", name, declaringType)
+    }
+    "InputProperty" -> trace.unsafeCast<JsTraceProperty>().run {
+        FailureNode.Property("input property", name, task)
+    }
+    "OutputProperty" -> trace.unsafeCast<JsTraceProperty>().run {
+        FailureNode.Property("output property", name, task)
+    }
+    else -> FailureNode.Label(kind)
+}
+
+
+private
+fun errorOrWarningNodeFor(failure: JsFailure, label: FailureNode): FailureNode =
     failure.error?.let {
-        FailureNode.Error(message)
-    } ?: FailureNode.Warning(message)
+        FailureNode.Error(label)
+    } ?: FailureNode.Warning(label)
 
 
 private

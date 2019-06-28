@@ -38,7 +38,16 @@ val div = ViewFactory("div")
 val pre = ViewFactory("pre")
 
 
+val code = ViewFactory("code")
+
+
 val span = ViewFactory("span")
+
+
+val sup = ViewFactory("sup")
+
+
+val small = ViewFactory("small")
 
 
 val ol = ViewFactory("ol")
@@ -197,7 +206,10 @@ fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
                 when (a) {
                     is Attribute.OnEvent -> addEventListener(
                         a.eventName,
-                        { send(a.handler(it)) }
+                        { event ->
+                            event.stopPropagation()
+                            send(a.handler(event))
+                        }
                     )
                     is Attribute.ClassName -> addClass(
                         a.value

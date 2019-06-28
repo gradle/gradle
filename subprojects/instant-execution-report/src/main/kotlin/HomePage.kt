@@ -18,24 +18,35 @@ import elmish.Component
 import elmish.View
 import elmish.a
 import elmish.attributes
+import elmish.code
 import elmish.div
+import elmish.empty
 import elmish.h1
 import elmish.h2
 import elmish.ol
 import elmish.pre
+import elmish.small
 import elmish.span
 import elmish.tree.Tree
 import elmish.tree.TreeView
 import elmish.tree.viewChildrenOf
 
+import kotlin.browser.window
+
 
 sealed class FailureNode {
 
+    data class Error(val label: FailureNode) : FailureNode()
+
+    data class Warning(val label: FailureNode) : FailureNode()
+
+    data class Task(val path: String, val type: String) : FailureNode()
+
+    data class Bean(val type: String) : FailureNode()
+
+    data class Property(val kind: String, val name: String, val owner: String) : FailureNode()
+
     data class Label(val text: String) : FailureNode()
-
-    data class Error(val message: String) : FailureNode()
-
-    data class Warning(val message: String) : FailureNode()
 
     data class Exception(val message: String, val stackTrace: String) : FailureNode()
 }
@@ -60,6 +71,8 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         data class TaskTreeIntent(val delegate: FailureTreeIntent) : Intent()
 
         data class MessageTreeIntent(val delegate: FailureTreeIntent) : Intent()
+
+        data class Copy(val text: String) : Intent()
     }
 
     override fun step(intent: Intent, model: Model): Model = when (intent) {
@@ -69,6 +82,11 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         is Intent.MessageTreeIntent -> model.copy(
             messageTree = TreeView.step(intent.delegate, model.messageTree)
         )
+        is Intent.Copy -> {
+            println(intent)
+            window.navigator.clipboard.writeText(intent.text)
+            model
+        }
     }
 
     override fun view(model: Model): View<Intent> = div(
@@ -84,28 +102,28 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         ),
         div(
             attributes { className("container") },
-            viewTree(model.messageTree).map(Intent::MessageTreeIntent),
-            viewTree(model.taskTree).map(Intent::TaskTreeIntent)
+            viewTree(model.messageTree, Intent::MessageTreeIntent),
+            viewTree(model.taskTree, Intent::TaskTreeIntent)
         )
     )
 
     private
-    fun viewTree(model: FailureTreeModel): View<FailureTreeIntent> = div(
+    fun viewTree(model: FailureTreeModel, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> = div(
         h2(model.tree.label.unsafeCast<FailureNode.Label>().text),
         ol(
             viewChildrenOf(model.tree.focus()) { child ->
                 when (val node = child.tree.label) {
                     is FailureNode.Error -> {
-                        viewLabel(child, node.message + " ❌")
+                        viewLabel(treeIntent, child, node.label, errorDecoration)
                     }
                     is FailureNode.Warning -> {
-                        viewLabel(child, node.message + " ⚠️")
-                    }
-                    is FailureNode.Label -> {
-                        viewLabel(child, node.text)
+                        viewLabel(treeIntent, child, node.label, warningDecoration)
                     }
                     is FailureNode.Exception -> {
                         viewException(node)
+                    }
+                    else -> {
+                        viewLabel(treeIntent, child, node)
                     }
                 }
             }
@@ -113,20 +131,69 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
     )
 
     private
-    fun viewLabel(child: Tree.Focus<FailureNode>, text: String): View<FailureTreeIntent> =
-        div(
-            attributes {
-                if (child.tree.isNotEmpty()) {
-                    className("accordion-header")
-                    title("Click to ${toggleVerb(child.tree.state)}")
-                    onClick { TreeView.Intent.Toggle(child) }
-                }
-            },
-            span(text)
-        )
+    val errorDecoration = span(" ❌")
 
     private
-    fun viewException(node: FailureNode.Exception): View<FailureTreeIntent> =
+    val warningDecoration = span(" ⚠️")
+
+    private
+    fun viewNode(node: FailureNode): View<Intent> = when (node) {
+        is FailureNode.Property -> span(
+            span(node.kind),
+            reference(node.name),
+            span(" of "),
+            reference(node.owner)
+        )
+        is FailureNode.Task -> span(
+            span("task"),
+            reference(node.path),
+            span(" of type "),
+            reference(node.type)
+        )
+        is FailureNode.Bean -> span(
+            span("bean of type "),
+            reference(node.type)
+        )
+        is FailureNode.Label -> span(
+            node.text
+        )
+        else -> span(
+            node.toString()
+        )
+    }
+
+    private
+    fun viewLabel(
+        treeIntent: (FailureTreeIntent) -> Intent,
+        child: Tree.Focus<FailureNode>,
+        label: FailureNode,
+        decoration: View<Intent> = empty
+    ): View<Intent> = div(
+        attributes {
+            if (child.tree.isNotEmpty()) {
+                className("accordion-header")
+                title("Click to ${toggleVerb(child.tree.state)}")
+                onClick { treeIntent(TreeView.Intent.Toggle(child)) }
+            }
+        },
+        viewNode(label),
+        decoration
+    )
+
+    private
+    fun reference(name: String): View<Intent> = span(
+        code(name),
+        small(
+            attributes {
+                title("Copy reference to clipboard")
+                onClick { Intent.Copy(name) }
+            },
+            "\uD83D\uDCCB"
+        )
+    )
+
+    private
+    fun viewException(node: FailureNode.Exception): View<Intent> =
         div(
             span(node.message),
             pre(
