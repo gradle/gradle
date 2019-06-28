@@ -34,6 +34,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newVariant
 
 class DefaultResolutionResultTest extends Specification {
 
@@ -90,7 +91,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('a', 'a', '1')
         def dep1 = newDependency('b', 'b', '1')
         root.addDependency(dep1)
-        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, dep1.selected))
+        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, newVariant(), dep1.selected))
 
         when:
         def deps = new DefaultResolutionResult({root} as Factory).allDependencies

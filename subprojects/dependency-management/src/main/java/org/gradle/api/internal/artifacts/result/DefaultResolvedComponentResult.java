@@ -107,7 +107,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
                 .map(ResolvedVariantResult::getDisplayName)
                 .collect(Collectors.toList());
         DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
-        return new DefaultResolvedVariantResult(variantName, variants.get(0).getAttributes(), variants.get(0).getCapabilities());
+        ResolvedVariantResult firstVariant = variants.get(0);
+        return new DefaultResolvedVariantResult(variantName, firstVariant.getAttributes(), firstVariant.getCapabilities());
     }
 
     @Override

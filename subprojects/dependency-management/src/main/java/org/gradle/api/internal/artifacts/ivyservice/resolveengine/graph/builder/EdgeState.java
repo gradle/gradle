@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -64,6 +65,8 @@ class EdgeState implements DependencyGraphEdge {
     private ImmutableAttributes cachedAttributes;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
+
+    private ResolvedVariantResult resolvedVariant;
 
     EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -329,6 +332,20 @@ class EdgeState implements DependencyGraphEdge {
     public boolean isTargetVirtualPlatform() {
         ComponentState selectedComponent = getSelectedComponent();
         return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
+    }
+
+    @Override
+    public ResolvedVariantResult getSelectedVariant() {
+        if (resolvedVariant != null) {
+            return resolvedVariant;
+        }
+        for (NodeState targetNode : targetNodes) {
+            if (targetNode.isSelected()) {
+                resolvedVariant = targetNode.getResolvedVariant();
+                return resolvedVariant;
+            }
+        }
+        return null;
     }
 
     @Override
