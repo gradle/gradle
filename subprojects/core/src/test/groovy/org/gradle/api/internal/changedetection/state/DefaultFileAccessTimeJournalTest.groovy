@@ -20,7 +20,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
-import org.gradle.internal.resource.local.FileAccessTimeJournal
+import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -30,8 +30,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.CACHE_KEY
-import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.INCEPTION_TIMESTAMP_KEY
 import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.FILE_ACCESS_PROPERTIES_FILE_NAME
+import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.INCEPTION_TIMESTAMP_KEY
 import static org.gradle.cache.internal.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME
 import static org.gradle.util.GUtil.loadProperties
 

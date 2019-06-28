@@ -19,7 +19,7 @@ package org.gradle.api.internal.filestore.ivy;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;

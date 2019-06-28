@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.local;
 
 import com.google.common.base.Preconditions;
+import org.gradle.internal.file.FileAccessTimeJournal;
 
 import java.io.File;
 import java.nio.file.Path;
