@@ -178,6 +178,11 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
 
+        if (targetPattern.indexOf('(') != -1) {
+            findMatches(fromComponent, targetComponent, fromConfiguration, patternConfiguration, targetPattern, targetConfigurations);
+            return;
+        }
+
         if (targetPattern.equals("*")) {
             for (String targetName : targetComponent.getConfigurationNames()) {
                 ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
