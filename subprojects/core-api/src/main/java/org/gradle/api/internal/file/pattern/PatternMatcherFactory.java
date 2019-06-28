@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.file.pattern;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import org.gradle.api.file.RelativePath;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 public class PatternMatcherFactory {
 
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
-    private static final String PATH_SEPARATORS = "\\/";
+    private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/"));
     private static final Predicate<RelativePath> MATCH_ALL = (path) -> true;
 
     public static Predicate<RelativePath> getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
@@ -51,25 +53,25 @@ public class PatternMatcherFactory {
         if (pattern.endsWith("/") || pattern.endsWith("\\")) {
             pattern = pattern + "**";
         }
-        String[] parts = StringUtils.split(pattern, PATH_SEPARATORS);
+        List<String> parts = PATH_SPLITTER.splitToList(pattern);
         return compile(parts, 0, caseSensitive);
     }
 
-    private static PathMatcher compile(String[] parts, int startIndex, boolean caseSensitive) {
-        if (startIndex >= parts.length) {
+    private static PathMatcher compile(List<String> parts, int startIndex, boolean caseSensitive) {
+        if (startIndex >= parts.size()) {
             return END_OF_PATH_MATCHER;
         }
         int pos = startIndex;
-        while (pos < parts.length && parts[pos].equals("**")) {
+        while (pos < parts.size() && parts.get(pos).equals("**")) {
             pos++;
         }
         if (pos > startIndex) {
-            if (pos == parts.length) {
+            if (pos == parts.size()) {
                 return new AnythingMatcher();
             }
             return new GreedyPathMatcher(compile(parts, pos, caseSensitive));
         }
-        return new FixedStepPathMatcher(PatternStepFactory.getStep(parts[pos], caseSensitive), compile(parts, pos + 1, caseSensitive));
+        return new FixedStepPathMatcher(PatternStepFactory.getStep(parts.get(pos), caseSensitive), compile(parts, pos + 1, caseSensitive));
     }
 
     static class PathMatcherBackedPredicate implements Predicate<RelativePath> {
