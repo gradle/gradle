@@ -235,6 +235,7 @@ internal
 fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
     val componentType = readClass()
     val size = readSmallInt()
+    @Suppress("unchecked_cast")
     val array = java.lang.reflect.Array.newInstance(componentType, size) as Array<T>
     for (i in 0 until size) {
         array[i] = readElement()
