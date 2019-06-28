@@ -245,7 +245,7 @@ See <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> for a
 
 However, similar to Java's annotation processing, there are various ways to https://melix.github.io/blog/2011/05/12/customizing_groovy_compilation_process.html[customize the Groovy compilation process], for which implementation details matter.
 Some well-known examples are http://groovy-lang.org/metaprogramming.html#_code_generation_transformations[Groovy AST transformations].
-In these cases, these dependencies must be declared separately in a classpath called `compilerPluginClasspath`:
+In these cases, these dependencies must be declared separately in a classpath called `astTransformationClasspath`:
 
 .Declaring AST transformations
 ====
