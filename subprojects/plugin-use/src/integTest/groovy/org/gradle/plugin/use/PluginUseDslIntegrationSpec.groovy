@@ -21,7 +21,8 @@ import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.plugin.use.internal.DefaultPluginId.*
-import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor.*
+import static org.gradle.plugin.use.internal.PluginRequestCollector.EMPTY_VALUE
+import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataCompiler.*
 import static org.hamcrest.CoreMatchers.containsString
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
@@ -201,16 +202,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "apply false"                          | BASE_MESSAGE
         2          | "id 'foo' apply"                       | BASE_MESSAGE
         2          | "id 'foo' apply('foo')"                | NEED_SINGLE_BOOLEAN
-        2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
-        2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
-        2          | "id ''"                                | NEED_SINGLE_STRING
-        2          | "id 'foo' version ''"                  | NEED_SINGLE_STRING
         2          | "id null"                              | NEED_SINGLE_STRING
         2          | "id 'foo' version null"                | NEED_SINGLE_STRING
-        2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
         2          | "file('foo')" /* script api */         | BASE_MESSAGE
         2          | "getVersion()" /* script target api */ | BASE_MESSAGE
     }
@@ -241,5 +234,28 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id 'noop' version 'bar' apply false",
                 "id('noop').version('bar').apply(false)",
         ]
+    }
+
+    @Unroll
+    def "illegal value in plugins block - #code"() {
+        when:
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        fails "help"
+        failure.assertHasLineNumber lineNumber
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(msg))
+
+        where:
+        lineNumber | code                                   | msg
+        2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
+        2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
+        2          | "id ''"                                | EMPTY_VALUE
+        2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
+        2          | "id 'foo' version ''"                  | EMPTY_VALUE
     }
 }
