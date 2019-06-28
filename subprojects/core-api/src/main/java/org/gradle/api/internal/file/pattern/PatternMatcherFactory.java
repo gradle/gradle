@@ -17,31 +17,28 @@ package org.gradle.api.internal.file.pattern;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-import org.gradle.api.file.RelativePath;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public class PatternMatcherFactory {
 
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
     private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/"));
-    private static final Predicate<RelativePath> MATCH_ALL = path -> true;
 
-    public static Predicate<RelativePath> getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
-        Predicate<RelativePath> predicate = MATCH_ALL;
+    public static PatternMatcher getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
+        PatternMatcher matcher = PatternMatcher.MATCH_ALL;
         for (String pattern : patterns) {
-            Predicate<RelativePath> patternMatcher = getPatternMatcher(partialMatchDirs, caseSensitive, pattern);
-            predicate = predicate == MATCH_ALL
+            PatternMatcher patternMatcher = getPatternMatcher(partialMatchDirs, caseSensitive, pattern);
+            matcher = matcher == PatternMatcher.MATCH_ALL
                 ? patternMatcher
-                : predicate.or(patternMatcher);
+                : matcher.or(patternMatcher);
         }
-        return predicate;
+        return matcher;
     }
 
-    public static Predicate<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
+    public static PatternMatcher getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         PathMatcher pathMatcher = compile(caseSensitive, pattern);
-        return new PathMatcherBackedPredicate(partialMatchDirs, pathMatcher);
+        return new DefaultPatternMatcher(partialMatchDirs, pathMatcher);
     }
 
     public static PathMatcher compile(boolean caseSensitive, String pattern) {
@@ -74,11 +71,11 @@ public class PatternMatcherFactory {
         return new FixedStepPathMatcher(PatternStepFactory.getStep(parts.get(pos), caseSensitive), compile(parts, pos + 1, caseSensitive));
     }
 
-    static class PathMatcherBackedPredicate implements Predicate<RelativePath> {
+    static class DefaultPatternMatcher implements PatternMatcher {
         private final boolean partialMatchDirs;
         private final PathMatcher pathMatcher;
 
-        PathMatcherBackedPredicate(boolean partialMatchDirs, PathMatcher pathMatcher) {
+        DefaultPatternMatcher(boolean partialMatchDirs, PathMatcher pathMatcher) {
             this.partialMatchDirs = partialMatchDirs;
             this.pathMatcher = pathMatcher;
         }
@@ -88,11 +85,11 @@ public class PatternMatcherFactory {
         }
 
         @Override
-        public boolean test(RelativePath element) {
-            if (element.isFile() || !partialMatchDirs) {
-                return pathMatcher.matches(element.getSegments(), 0);
+        public boolean test(String[] segments, boolean file) {
+            if (file || !partialMatchDirs) {
+                return pathMatcher.matches(segments, 0);
             } else {
-                return pathMatcher.isPrefix(element.getSegments(), 0);
+                return pathMatcher.isPrefix(segments, 0);
             }
         }
     }

@@ -19,8 +19,8 @@ package org.gradle.api.tasks.util.internal;
 import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.RelativePathSpec;
+import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 /**
  * The basic implementation for converting {@link PatternSet}s to {@link Spec}s.
@@ -105,7 +104,7 @@ public class PatternSpecFactory {
             return include ? Specs.satisfyAll() : Specs.satisfyNone();
         }
 
-        Predicate<RelativePath> matcher = PatternMatcherFactory.getPatternsMatcher(include, caseSensitive, patterns);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(include, caseSensitive, patterns);
 
         return new RelativePathSpec(matcher);
     }

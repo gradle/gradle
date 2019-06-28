@@ -22,14 +22,12 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
-import java.util.function.Predicate;
-
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class PatternMatcherFactoryTest {
-    private Predicate<RelativePath> matcher;
+    private PatternMatcher matcher;
 
     @Test public void testEmpty() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "");
@@ -336,28 +334,27 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesDir("b", "a")));
     }
 
-    private static PathMatcher pathMatcher(Predicate<RelativePath> matcher) {
-        return ((PatternMatcherFactory.PathMatcherBackedPredicate) matcher).getPathMatcher();
+    private static PathMatcher pathMatcher(PatternMatcher matcher) {
+        return ((PatternMatcherFactory.DefaultPatternMatcher) matcher).getPathMatcher();
     }
 
-    private static Matcher<Predicate<RelativePath>> matchesFile(String... paths) {
+    private static Matcher<PatternMatcher> matchesFile(String... paths) {
         return matches(new RelativePath(true, paths));
     }
 
-    private static Matcher<Predicate<RelativePath>> matchesDir(String... paths) {
+    private static Matcher<PatternMatcher> matchesDir(String... paths) {
         return matches(new RelativePath(false, paths));
     }
 
-    private static Matcher<Predicate<RelativePath>> matches(final RelativePath path) {
-        return new BaseMatcher<Predicate<RelativePath>>() {
+    private static Matcher<PatternMatcher> matches(final RelativePath path) {
+        return new BaseMatcher<PatternMatcher>() {
             public void describeTo(Description description) {
                 description.appendText("matches ").appendValue(path);
             }
 
             public boolean matches(Object o) {
-                @SuppressWarnings("unchecked")
-                Predicate<RelativePath> matcher = (Predicate<RelativePath>) o;
-                return matcher.test(path);
+                PatternMatcher matcher = (PatternMatcher) o;
+                return matcher.test(path.getSegments(), path.isFile());
             }
         };
     }
