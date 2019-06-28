@@ -88,9 +88,9 @@ public class ResourceVersionLister implements VersionLister {
             String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
             ExternalResourceName parent = versionListPattern.getRoot().resolve(revisionParentFolder);
             LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
-            if (!visitedDirectories.add(parent)) {
-                return Collections.emptyList();
-            }
+//            if (!visitedDirectories.add(parent)) {
+//                return Collections.emptyList();
+//            }
             result.attempted(parent);
             List<String> all = repository.resource(parent).list();
             if (all == null) {
@@ -145,9 +145,9 @@ public class ResourceVersionLister implements VersionLister {
     }
 
     private List<String> listAll(ExternalResourceName parent, BuildableModuleVersionListingResolveResult result)  {
-        if (!visitedDirectories.add(parent)) {
-            return Collections.emptyList();
-        }
+//        if (!visitedDirectories.add(parent)) {
+//            return Collections.emptyList();
+//        }
         LOGGER.debug("using {} to list all in {}", repository, parent);
         result.attempted(parent.toString());
         List<String> paths = repository.resource(parent).list();
