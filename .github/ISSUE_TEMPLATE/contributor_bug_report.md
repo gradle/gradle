@@ -1,5 +1,5 @@
 ---
-name: 'Bug report'
+name: 'Community: Bug report'
 about: 'Create a report to help us improve'
 labels: 'a:bug, from:contributor'
 ---
