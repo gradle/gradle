@@ -1,5 +1,5 @@
 ---
-name: 'Feature request'
+name: 'Community: Feature request'
 about: 'Suggest an idea for this project'
 labels: 'a:feature, from:contributor'
 ---
