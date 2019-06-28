@@ -31,6 +31,11 @@ public class DependencyResultSerializer {
     private final static byte SUCCESSFUL = 0;
     private final static byte FAILED = 1;
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
+    private final ResolvedVariantResultSerializer resolvedVariantResultSerializer;
+
+    public DependencyResultSerializer(ResolvedVariantResultSerializer resolvedVariantResultSerializer) {
+        this.resolvedVariantResultSerializer = resolvedVariantResultSerializer;
+    }
 
     public ResolvedGraphDependency read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
         Long selectorId = decoder.readSmallLong();
@@ -40,11 +45,12 @@ public class DependencyResultSerializer {
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             Long selectedId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint);
+
+            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, resolvedVariantResultSerializer.read(decoder));
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint);
+            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, null);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
@@ -56,6 +62,7 @@ public class DependencyResultSerializer {
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
             encoder.writeSmallLong(value.getSelected());
+            resolvedVariantResultSerializer.write(encoder, value.getSelectedVariant());
         } else {
             encoder.writeByte(FAILED);
             componentSelectionReasonSerializer.write(encoder, value.getReason());

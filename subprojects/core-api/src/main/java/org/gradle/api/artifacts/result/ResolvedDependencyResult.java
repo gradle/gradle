@@ -28,4 +28,6 @@ public interface ResolvedDependencyResult extends DependencyResult {
      * may have been requested, or the version may have been substituted due to conflict resolution, or by being forced, or for some other reason.
      */
     ResolvedComponentResult getSelected();
+
+    ResolvedVariantResult getResolvedVariant();
 }

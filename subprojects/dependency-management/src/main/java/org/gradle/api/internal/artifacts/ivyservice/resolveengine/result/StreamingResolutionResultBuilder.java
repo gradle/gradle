@@ -64,11 +64,13 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
     private final ComponentSelectorSerializer componentSelectorSerializer;
-    private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
+    private final DependencyResultSerializer dependencyResultSerializer;
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, attributeContainerSerializer);
+        ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(attributeContainerSerializer);
+        this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer);
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);

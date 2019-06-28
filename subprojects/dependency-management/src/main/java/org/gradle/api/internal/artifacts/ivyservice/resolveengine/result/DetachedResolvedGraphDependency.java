@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -30,14 +31,17 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     private final ComponentSelector requested;
     private final Long selected;
     private final ComponentSelectionReason reason;
-    private ModuleVersionResolveException failure;
-    private boolean constraint;
+    private final ModuleVersionResolveException failure;
+    private final boolean constraint;
+    private final ResolvedVariantResult variant;
 
     public DetachedResolvedGraphDependency(ComponentSelector requested,
                                            Long selected,
                                            ComponentSelectionReason reason,
                                            ModuleVersionResolveException failure,
-                                           boolean constraint) {
+                                           boolean constraint,
+                                           ResolvedVariantResult variant
+    ) {
         assert requested != null;
         assert failure != null || selected != null;
 
@@ -46,6 +50,7 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
         this.selected = selected;
         this.failure = failure;
         this.constraint = constraint;
+        this.variant = variant;
     }
 
     @Override
@@ -71,5 +76,10 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     @Override
     public boolean isConstraint() {
         return constraint;
+    }
+
+    @Override
+    public ResolvedVariantResult getSelectedVariant() {
+        return variant;
     }
 }
