@@ -48,7 +48,20 @@ sealed class FailureNode {
 
     data class Label(val text: String) : FailureNode()
 
+    data class Message(val prettyText: PrettyText) : FailureNode()
+
     data class Exception(val message: String, val stackTrace: String) : FailureNode()
+}
+
+
+data class PrettyText(val fragments: List<Fragment>) {
+
+    sealed class Fragment {
+
+        data class Text(val text: String) : Fragment()
+
+        data class Reference(val name: String) : Fragment()
+    }
 }
 
 
@@ -157,6 +170,9 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         is FailureNode.Label -> span(
             node.text
         )
+        is FailureNode.Message -> viewPrettyText(
+            node.prettyText
+        )
         else -> span(
             node.toString()
         )
@@ -178,6 +194,16 @@ object HomePage : Component<HomePage.Model, HomePage.Intent> {
         },
         viewNode(label),
         decoration
+    )
+
+    private
+    fun viewPrettyText(text: PrettyText): View<Intent> = span(
+        text.fragments.map {
+            when (it) {
+                is PrettyText.Fragment.Text -> span(it.text)
+                is PrettyText.Fragment.Reference -> reference(it.name)
+            }
+        }
     )
 
     private

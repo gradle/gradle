@@ -26,8 +26,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyError
+import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import java.util.concurrent.Callable
 import java.util.function.Supplier
@@ -81,20 +81,30 @@ fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind
     withPropertyTrace(kind, name) {
         val writeValue = writeActionFor(value)
         if (writeValue == null) {
-            logPropertyWarning("serialize", "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")
+            logPropertyWarning("serialize") {
+                text("there's no serializer for type")
+                reference(unpackedTypeNameOf(value!!))
+            }
             return false
         }
         writeString(name)
         try {
             writeValue(value)
         } catch (e: Throwable) {
-            logPropertyError("write", "error writing value of type '${value?.javaClass?.name}'", e)
+            logPropertyError("write", e) {
+                text("error writing value of type ")
+                reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
+            }
             return false
         }
         logPropertyInfo("serialize", value)
         return true
     }
 }
+
+
+private
+fun unpackedTypeNameOf(value: Any) = GeneratedSubclasses.unpackType(value).name
 
 
 /**

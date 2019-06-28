@@ -25,6 +25,7 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import kotlin.reflect.KClass
 
 
 /**
@@ -85,14 +86,14 @@ sealed class PropertyFailure {
 
     abstract val trace: PropertyTrace
 
-    abstract val message: String
+    abstract val message: StructuredMessage
 
     /**
      * A failure that does not necessarily compromise the execution of the build.
      */
     data class Warning(
         override val trace: PropertyTrace,
-        override val message: String
+        override val message: StructuredMessage
     ) : PropertyFailure()
 
     /**
@@ -101,9 +102,56 @@ sealed class PropertyFailure {
      */
     data class Error(
         override val trace: PropertyTrace,
-        override val message: String,
+        override val message: StructuredMessage,
         val error: Throwable
     ) : PropertyFailure()
+}
+
+
+data class StructuredMessage(val fragments: List<Fragment>) {
+
+    override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
+        when (fragment) {
+            is Fragment.Text -> fragment.text
+            is Fragment.Reference -> "'${fragment.name}'"
+        }
+    }
+
+    sealed class Fragment {
+
+        data class Text(val text: String) : Fragment()
+
+        data class Reference(val name: String) : Fragment()
+    }
+
+    companion object {
+
+        fun build(builder: Builder.() -> Unit) = StructuredMessage(
+            Builder().apply(builder).fragments
+        )
+    }
+
+    class Builder {
+
+        internal
+        val fragments = mutableListOf<Fragment>()
+
+        fun text(string: String) {
+            fragments.add(Fragment.Text(string))
+        }
+
+        fun reference(name: String) {
+            fragments.add(Fragment.Reference(name))
+        }
+
+        fun reference(type: Class<*>) {
+            reference(type.name)
+        }
+
+        fun reference(type: KClass<*>) {
+            reference(type.qualifiedName!!)
+        }
+    }
 }
 
 

@@ -89,7 +89,7 @@ class InstantExecutionReport(
                         JsonOutput.toJson(
                             mapOf(
                                 "trace" to traceListOf(it),
-                                "message" to it.message,
+                                "message" to it.message.fragments,
                                 "error" to stackTraceStringOf(it)
                             )
                         )

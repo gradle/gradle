@@ -130,7 +130,12 @@ class BeanPropertyReader(
                 if (isAssignableTo(type, value)) {
                     field.set(bean, value)
                 } else if (value != null) {
-                    logPropertyWarning("deserialize", "value $value is not assignable to $type")
+                    logPropertyWarning("deserialize") {
+                        text("value ")
+                        reference(value.toString())
+                        text(" is not assignable to ")
+                        reference(type)
+                    }
                 } // else null value -> ignore
             }
         }

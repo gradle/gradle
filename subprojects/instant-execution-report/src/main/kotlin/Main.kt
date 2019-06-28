@@ -20,6 +20,7 @@ import elmish.elementById
 import elmish.mountComponentAt
 import elmish.tree.Tree
 import elmish.tree.TreeView
+import kotlin.js.JSON.stringify
 
 
 fun main() {
@@ -45,7 +46,7 @@ typealias JsModel = Array<JsFailure>
 private
 external interface JsFailure {
     val trace: Array<JsTrace>
-    val message: String
+    val message: Array<JsMessageFragment>
     val error: String?
 }
 
@@ -84,16 +85,28 @@ external interface JsTraceProperty : JsTrace {
 
 
 private
+external interface JsMessageFragment {
+    val text: String?
+    val name: String?
+}
+
+
+private
 data class ImportedFailure(
     val failure: JsFailure,
+    val message: PrettyText,
     val trace: List<FailureNode>
 )
 
 
 private
 fun homePageModelFromJsModel(jsFailures: JsModel): HomePage.Model {
-    val failures = jsFailures.map {
-        ImportedFailure(it, it.trace.map(::toFailureNode))
+    val failures = jsFailures.map { jsFailure ->
+        ImportedFailure(
+            jsFailure,
+            jsFailure.message.let(::toPrettyText),
+            jsFailure.trace.map(::toFailureNode)
+        )
     }
     return HomePage.Model(
         totalFailures = instantExecutionFailures.size,
@@ -110,31 +123,45 @@ fun homePageModelFromJsModel(jsFailures: JsModel): HomePage.Model {
 
 
 private
-fun failureNodesByTask(failures: List<ImportedFailure>): Sequence<List<FailureNode>> =
-    failures.asSequence().map { failure ->
-        failure.trace.asReversed().mapIndexed { index, node ->
-            when (index) {
-                0 -> errorOrWarningNodeFor(failure.failure, node)
-                else -> node
-            }
-        } + failureNodeFor(failure.failure)
-    }
-
-
-private
 fun failureNodesByMessage(failures: List<ImportedFailure>): Sequence<MutableList<FailureNode>> =
-    failures.asSequence().map {
+    failures.asSequence().map { imported ->
         mutableListOf<FailureNode>().apply {
-            add(errorOrWarningNodeFor(it.failure, FailureNode.Label(it.failure.message)))
-            it.trace.forEach { part ->
+            add(
+                errorOrWarningNodeFor(
+                    imported.failure,
+                    messageNodeFor(imported)
+                )
+            )
+            imported.trace.forEach { part ->
                 add(part)
             }
-            exceptionNodeFor(it.failure)?.let {
+            exceptionNodeFor(imported.failure)?.let {
                 add(it)
             }
         }
     }
 
+
+private
+fun failureNodesByTask(failures: List<ImportedFailure>): Sequence<List<FailureNode>> =
+    failures.asSequence().map { imported ->
+        imported.trace.asReversed().mapIndexed { index, node ->
+            when (index) {
+                0 -> errorOrWarningNodeFor(imported.failure, node)
+                else -> node
+            }
+        } + exceptionOrMessageNodeFor(imported)
+    }
+
+
+private
+fun toPrettyText(message: Array<JsMessageFragment>) = PrettyText(
+    message.map {
+        it.text?.let(PrettyText.Fragment::Text)
+            ?: it.name?.let(PrettyText.Fragment::Reference)
+            ?: PrettyText.Fragment.Text("Unrecognised message fragment: ${stringify(it)}")
+    }
+)
 
 private
 fun toFailureNode(trace: JsTrace): FailureNode = when (val kind = trace.kind) {
@@ -165,8 +192,14 @@ fun errorOrWarningNodeFor(failure: JsFailure, label: FailureNode): FailureNode =
 
 
 private
-fun failureNodeFor(it: JsFailure) =
-    exceptionNodeFor(it) ?: FailureNode.Label(it.message)
+fun exceptionOrMessageNodeFor(importedFailure: ImportedFailure) =
+    exceptionNodeFor(importedFailure.failure)
+        ?: messageNodeFor(importedFailure)
+
+
+private
+fun messageNodeFor(importedFailure: ImportedFailure) =
+    FailureNode.Message(importedFailure.message)
 
 
 private
