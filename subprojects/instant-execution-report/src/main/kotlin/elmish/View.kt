@@ -23,7 +23,7 @@ import kotlin.dom.appendElement
 import kotlin.dom.appendText
 
 
-val empty = View<Nothing>("")
+val empty = View.Empty
 
 
 val h1 = ViewFactory("h1")
@@ -102,26 +102,39 @@ data class ViewFactory(val elementName: String) {
 /**
  * A minimalist HTML data structure for type-safe composition of fragments.
  */
-open class View<out I>(
-    val elementName: String,
-    val attributes: List<Attribute<out I>> = emptyList(),
-    val innerText: String? = null,
-    val children: List<View<I>> = emptyList()
-) {
+sealed class View<out I> {
 
     fun <O> map(f: (I) -> O): View<O> =
         MappedView(this, f)
 
-    @Suppress("unchecked_cast")
-    class MappedView<I, out O>(
+    companion object {
+
+        operator fun <I> invoke(
+            elementName: String,
+            attributes: List<Attribute<out I>> = emptyList(),
+            innerText: String? = null,
+            children: List<View<I>> = emptyList()
+        ): View<I> = Element(
+            elementName,
+            attributes,
+            innerText,
+            children
+        )
+    }
+
+    object Empty : View<Nothing>()
+
+    data class Element<out I>(
+        val elementName: String,
+        val attributes: List<Attribute<out I>> = emptyList(),
+        val innerText: String? = null,
+        val children: List<View<I>> = emptyList()
+    ) : View<I>()
+
+    data class MappedView<I, out O>(
         val view: View<I>,
         val mapping: (I) -> O
-    ) : View<O>(
-        view.elementName,
-        view.attributes as List<Attribute<O>>,
-        view.innerText,
-        view.children as List<View<O>>
-    )
+    ) : View<O>()
 }
 
 
@@ -175,7 +188,7 @@ fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
                 send(mappedView.mapping(it))
             }
         }
-        else -> appendElement(view.elementName) {
+        view is View.Element -> appendElement(view.elementName) {
             view.innerText?.let(::appendText)
             view.children.forEach { child ->
                 appendElementFor(child, send)
