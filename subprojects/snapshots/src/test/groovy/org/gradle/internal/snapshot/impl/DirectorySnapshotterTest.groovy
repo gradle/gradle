@@ -25,12 +25,17 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.internal.snapshot.UnavailableFileSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -148,6 +153,27 @@ class DirectorySnapshotterTest extends Specification {
             'root/a/c', 'root/a/c/c.txt',
             'root/a.txt'
         ] as Set
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "unreadable files and directories are snapshotted as unavailable"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        rootDir.file('readableFile').createFile()
+        rootDir.file('readableDirectory').createDir()
+        rootDir.file('unreadableFile').createFile().with { readable = false }
+        rootDir.file('unreadableDirectory').createDir().with { readable = false }
+
+        assert rootDir.listFiles().toSorted().collect { Files.isReadable(Paths.get(it.absolutePath)) } == [true, true, false, false]
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(new PatternSet()), new AtomicBoolean(false))
+
+        then:
+        snapshot.children*.class.sort { it.name } == [DirectorySnapshot, RegularFileSnapshot, UnavailableFileSnapshot, UnavailableFileSnapshot]
+
+        cleanup:
+        rootDir.listFiles()*.readable = true
     }
 
     def "default excludes are correctly parsed"() {
