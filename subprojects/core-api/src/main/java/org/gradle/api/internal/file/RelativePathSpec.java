@@ -19,15 +19,17 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
-public class RelativePathSpec implements Spec<FileTreeElement> {
-    private final Spec<? super RelativePath> pathSpec;
+import java.util.function.Predicate;
 
-    public RelativePathSpec(Spec<? super RelativePath> pathSpec) {
-        this.pathSpec = pathSpec;
+public class RelativePathSpec implements Spec<FileTreeElement> {
+    private final Predicate<? super RelativePath> matcher;
+
+    public RelativePathSpec(Predicate<? super RelativePath> matcher) {
+        this.matcher = matcher;
     }
 
     @Override
     public boolean isSatisfiedBy(FileTreeElement element) {
-        return pathSpec.isSatisfiedBy(element.getRelativePath());
+        return matcher.test(element.getRelativePath());
     }
 }

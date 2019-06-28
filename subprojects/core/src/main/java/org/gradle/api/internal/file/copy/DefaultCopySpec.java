@@ -34,7 +34,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -53,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 @NonExtensible
@@ -271,7 +271,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
-        Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        Predicate<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(new MatchingCopyAction(matcher, action));
     }
 
@@ -280,17 +280,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to match");
         }
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
-        for (String pattern : patterns) {
-            matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
-        }
-        return eachFile(new MatchingCopyAction(Specs.union(matchers), action));
+        Predicate<RelativePath> matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
+        return eachFile(new MatchingCopyAction(matcher, action));
     }
 
     @Override
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
-        Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
-        return eachFile(new MatchingCopyAction(Specs.negate(matcher), action));
+        Predicate<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
     @Override
@@ -298,11 +295,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to not match");
         }
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
-        for (String pattern : patterns) {
-            matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
-        }
-        return eachFile(new MatchingCopyAction(Specs.negate(Specs.union(matchers)), action));
+        Predicate<RelativePath> matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
+        return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
     @Override

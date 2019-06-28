@@ -17,18 +17,19 @@
 package org.gradle.api.internal.file.pattern;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
+import java.util.function.Predicate;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class PatternMatcherFactoryTest {
-    private Spec<RelativePath> matcher;
+    private Predicate<RelativePath> matcher;
 
     @Test public void testEmpty() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "");
@@ -335,27 +336,28 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesDir("b", "a")));
     }
 
-    private PathMatcher pathMatcher(Spec<RelativePath> matcher) {
-        return ((PatternMatcherFactory.PathMatcherBackedSpec) matcher).getPathMatcher();
+    private static PathMatcher pathMatcher(Predicate<RelativePath> matcher) {
+        return ((PatternMatcherFactory.PathMatcherBackedPredicate) matcher).getPathMatcher();
     }
 
-    private Matcher<Spec<RelativePath>> matchesFile(String... paths) {
+    private static Matcher<Predicate<RelativePath>> matchesFile(String... paths) {
         return matches(new RelativePath(true, paths));
     }
 
-    private Matcher<Spec<RelativePath>> matchesDir(String... paths) {
+    private static Matcher<Predicate<RelativePath>> matchesDir(String... paths) {
         return matches(new RelativePath(false, paths));
     }
 
-    private Matcher<Spec<RelativePath>> matches(final RelativePath path) {
-        return new BaseMatcher<Spec<RelativePath>>() {
+    private static Matcher<Predicate<RelativePath>> matches(final RelativePath path) {
+        return new BaseMatcher<Predicate<RelativePath>>() {
             public void describeTo(Description description) {
                 description.appendText("matches ").appendValue(path);
             }
 
             public boolean matches(Object o) {
-                Spec<RelativePath> matcher = (Spec<RelativePath>) o;
-                return matcher.isSatisfiedBy(path);
+                @SuppressWarnings("unchecked")
+                Predicate<RelativePath> matcher = (Predicate<RelativePath>) o;
+                return matcher.test(path);
             }
         };
     }

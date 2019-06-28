@@ -22,8 +22,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 
-import org.gradle.api.specs.Specs
-
 import org.gradle.internal.hash.HashUtil
 
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
@@ -45,6 +43,7 @@ import java.io.File
 
 import java.util.Properties
 import java.util.function.Consumer
+import java.util.function.Predicate
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
@@ -319,7 +318,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             "SourceBaseName",
             apiJars,
             emptyList(),
-            Specs.satisfyAll(),
+            Predicate { true },
             fixtureParameterNamesSupplier
         )
 

@@ -17,16 +17,29 @@ package org.gradle.api.internal.file.pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
+
+import java.util.function.Predicate;
 
 public class PatternMatcherFactory {
 
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
     private static final String PATH_SEPARATORS = "\\/";
+    private static final Predicate<RelativePath> MATCH_ALL = (path) -> true;
 
-    public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
+    public static Predicate<RelativePath> getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
+        Predicate<RelativePath> predicate = MATCH_ALL;
+        for (String pattern : patterns) {
+            Predicate<RelativePath> patternMatcher = getPatternMatcher(partialMatchDirs, caseSensitive, pattern);
+            predicate = predicate == MATCH_ALL
+                ? patternMatcher
+                : predicate.or(patternMatcher);
+        }
+        return predicate;
+    }
+
+    public static Predicate<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         PathMatcher pathMatcher = compile(caseSensitive, pattern);
-        return new PathMatcherBackedSpec(partialMatchDirs, pathMatcher);
+        return new PathMatcherBackedPredicate(partialMatchDirs, pathMatcher);
     }
 
     public static PathMatcher compile(boolean caseSensitive, String pattern) {
@@ -59,11 +72,11 @@ public class PatternMatcherFactory {
         return new FixedStepPathMatcher(PatternStepFactory.getStep(parts[pos], caseSensitive), compile(parts, pos + 1, caseSensitive));
     }
 
-    static class PathMatcherBackedSpec implements Spec<RelativePath> {
+    static class PathMatcherBackedPredicate implements Predicate<RelativePath> {
         private final boolean partialMatchDirs;
         private final PathMatcher pathMatcher;
 
-        PathMatcherBackedSpec(boolean partialMatchDirs, PathMatcher pathMatcher) {
+        PathMatcherBackedPredicate(boolean partialMatchDirs, PathMatcher pathMatcher) {
             this.partialMatchDirs = partialMatchDirs;
             this.pathMatcher = pathMatcher;
         }
@@ -73,7 +86,7 @@ public class PatternMatcherFactory {
         }
 
         @Override
-        public boolean isSatisfiedBy(RelativePath element) {
+        public boolean test(RelativePath element) {
             if (element.isFile() || !partialMatchDirs) {
                 return pathMatcher.matches(element.getSegments(), 0);
             } else {

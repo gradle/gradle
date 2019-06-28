@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * The basic implementation for converting {@link PatternSet}s to {@link Spec}s.
@@ -101,15 +102,11 @@ public class PatternSpecFactory {
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
         if (patterns.isEmpty()) {
-            return include ? Specs.<FileTreeElement>satisfyAll() : Specs.<FileTreeElement>satisfyNone();
+            return include ? Specs.satisfyAll() : Specs.satisfyNone();
         }
 
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>(patterns.size());
-        for (String pattern : patterns) {
-            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(include, caseSensitive, pattern);
-            matchers.add(patternMatcher);
-        }
+        Predicate<RelativePath> matcher = PatternMatcherFactory.getPatternsMatcher(include, caseSensitive, patterns);
 
-        return new RelativePathSpec(Specs.union(matchers));
+        return new RelativePathSpec(matcher);
     }
 }

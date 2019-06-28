@@ -18,22 +18,23 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
+
+import java.util.function.Predicate;
 
 public class MatchingCopyAction implements Action<FileCopyDetails> {
 
-    private final Spec<RelativePath> matchSpec;
+    private final Predicate<RelativePath> matcher;
 
     private final Action<? super FileCopyDetails> toApply;
 
-    public MatchingCopyAction(Spec<RelativePath> matchSpec, Action<? super FileCopyDetails> toApply) {
-        this.matchSpec = matchSpec;
+    public MatchingCopyAction(Predicate<RelativePath> matcher, Action<? super FileCopyDetails> toApply) {
+        this.matcher = matcher;
         this.toApply = toApply;
     }
 
     @Override
     public void execute(FileCopyDetails details) {
-        if (matchSpec.isSatisfiedBy(details.getRelativeSourcePath())) {
+        if (matcher.test(details.getRelativeSourcePath())) {
             toApply.execute(details);
         }
     }
