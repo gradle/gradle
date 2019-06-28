@@ -1,14 +1,12 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: a:feature
-assignees: ''
-
+name: 'Feature request'
+about: 'Suggest an idea for this project'
+labels: 'a:feature, from:contributor'
 ---
 
 <!--- 
-Please follow the instructions below. We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information. 
+Please follow the instructions below. 
+We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information. 
 
 Please open Android-related issues on the Android Issue Tracker at https://source.android.com/source/report-bugs
 Please open Gradle Native-related issues at https://github.com/gradle/gradle-native/issues
