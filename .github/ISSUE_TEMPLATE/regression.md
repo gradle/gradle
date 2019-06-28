@@ -1,14 +1,12 @@
 ---
-name: Regression
-about: Report a problem about something that used to work
-title: ''
-labels: a:regression
-assignees: ''
-
+name: 'Regression'
+about: 'Report a problem about something that used to work'
+labels: 'a:regression, from:contributor'
 ---
 
 <!--- 
-Please use our bug report template to report problems with something that has never worked.  Regressions reports are greatly appreciated during our RC phase and before a final release.
+Please use our bug report template to report problems with something that has never worked.  
+Regressions reports are greatly appreciated during our RC phase and before a final release.
 -->
 
 <!--- Provide a brief summary of the issue in the title above -->

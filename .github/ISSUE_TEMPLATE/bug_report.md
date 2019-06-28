@@ -1,14 +1,12 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
-
+name: 'Bug report'
+about: 'Create a report to help us improve'
+labels: 'a:bug, from:contributor'
 ---
 
 <!--- 
-Please follow the instructions below. We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information. 
+Please follow the instructions below. 
+We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information. 
 
 Please open Android-related issues on the Android Issue Tracker at https://source.android.com/source/report-bugs
 Please open Gradle Native-related issues at https://github.com/gradle/gradle-native/issues
