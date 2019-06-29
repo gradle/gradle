@@ -213,7 +213,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
                 title("Copy reference to clipboard")
                 onClick { Intent.Copy(name) }
             },
-            "\uD83D\uDCCB"
+            "📋"
         )
     )
 
