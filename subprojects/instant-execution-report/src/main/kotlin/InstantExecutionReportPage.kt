@@ -34,6 +34,7 @@ import elmish.tree.viewChildrenOf
 import kotlin.browser.window
 
 
+internal
 sealed class FailureNode {
 
     data class Error(val label: FailureNode) : FailureNode()
@@ -54,6 +55,7 @@ sealed class FailureNode {
 }
 
 
+internal
 data class PrettyText(val fragments: List<Fragment>) {
 
     sealed class Fragment {
@@ -65,12 +67,15 @@ data class PrettyText(val fragments: List<Fragment>) {
 }
 
 
+internal
 typealias FailureTreeModel = TreeView.Model<FailureNode>
 
 
+internal
 typealias FailureTreeIntent = TreeView.Intent<FailureNode>
 
 
+internal
 object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
 
     data class Model(
