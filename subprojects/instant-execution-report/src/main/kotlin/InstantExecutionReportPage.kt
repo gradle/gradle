@@ -50,7 +50,7 @@ sealed class FailureNode {
 
     data class Message(val prettyText: PrettyText) : FailureNode()
 
-    data class Exception(val message: String, val stackTrace: String) : FailureNode()
+    data class Exception(val stackTrace: String) : FailureNode()
 }
 
 
@@ -208,21 +208,32 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     private
     fun reference(name: String): View<Intent> = span(
         code(name),
-        small(
-            attributes {
-                title("Copy reference to clipboard")
-                onClick { Intent.Copy(name) }
-            },
-            "📋"
+        copyButton(
+            text = name,
+            tooltip = "Copy reference to the clipboard"
         )
+    )
+
+    private
+    fun copyButton(text: String, tooltip: String): View<Intent> = small(
+        attributes {
+            title(tooltip)
+            className("copy-button")
+            onClick { Intent.Copy(text) }
+        },
+        "📋"
     )
 
     private
     fun viewException(node: FailureNode.Exception): View<Intent> =
         div(
-            span(node.message),
+            span("exception stack trace "),
+            copyButton(
+                text = node.stackTrace,
+                tooltip = "Copy original stacktrace to the clipboard"
+            ),
             pre(
-                attributes { className("screen") },
+                attributes { className("stacktrace") },
                 node.stackTrace
             )
         )

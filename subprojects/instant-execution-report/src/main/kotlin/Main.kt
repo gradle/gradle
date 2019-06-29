@@ -204,13 +204,7 @@ fun messageNodeFor(importedFailure: ImportedFailure) =
 
 private
 fun exceptionNodeFor(it: JsFailure): FailureNode? =
-    it.error?.let {
-        val stackTraceLines = it.lineSequence()
-        FailureNode.Exception(
-            stackTraceLines.first(),
-            stackTraceLines.drop(1).map(String::trim).joinToString("\n")
-        )
-    }
+    it.error?.let(FailureNode::Exception)
 
 
 private
