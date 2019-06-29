@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":baseServicesGroovy"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":modelCore"))
     implementation(project(":logging"))
     implementation(project(":native"))

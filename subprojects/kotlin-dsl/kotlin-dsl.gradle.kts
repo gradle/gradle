@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":fileCollections"))
+    implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":buildCache"))
     implementation(project(":toolingApi"))
@@ -67,6 +68,7 @@ dependencies {
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
+    testImplementation(project(":files"))
     testImplementation(project(":jacoco"))
     testImplementation(project(":platformNative"))
     testImplementation(project(":plugins"))
