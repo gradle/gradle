@@ -216,6 +216,12 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun <S : Task> withType(type: Class<S>, configureClosure: Closure<Any>): DomainObjectCollection<S> =
         delegate.withType(type, configureClosure)
 
+    override fun <S : Task> typed(type: Class<S>, configureAction: Action<in S>) =
+        delegate.typed(type, configureAction)
+
+    override fun <S : Task> typed(type: Class<S>, configureClosure: Closure<Any>) =
+        delegate.typed(type, configureClosure)
+
     override fun findByName(name: String): Task? =
         delegate.findByName(name)
 

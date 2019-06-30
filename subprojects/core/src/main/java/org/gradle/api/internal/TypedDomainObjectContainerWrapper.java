@@ -140,6 +140,16 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
+    public <S extends U> void typed(Class<S> type, Action<? super S> configureAction) {
+        delegate.typed(type, configureAction);
+    }
+
+    @Override
+    public <S extends U> void typed(Class<S> type, Closure configureClosure) {
+        delegate.typed(type, configureClosure);
+    }
+
+    @Override
     public boolean add(U e) {
         return delegate.add(e);
     }

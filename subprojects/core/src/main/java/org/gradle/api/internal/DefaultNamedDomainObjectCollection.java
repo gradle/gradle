@@ -35,6 +35,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.DefaultTaskCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
@@ -66,6 +67,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
@@ -389,6 +391,38 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         NamedDomainObjectProvider<S> provider = named(name, type);
         provider.configure(configurationAction);
         return provider;
+    }
+
+    @Override
+    public <S extends T> void typed(Class<S> type, Closure configureClosure) {
+        typed(type, ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public <S extends T> void typed(Class<S> type, Action<? super S> configureAction) {
+        DefaultNamedDomainObjectCollection me = DefaultNamedDomainObjectCollection.this;
+        String prjName = (me instanceof DefaultTaskCollection) ? ((DefaultTaskCollection)me).project.getPath() : "-";
+        Action<T> baseTypeAction = Cast.uncheckedNonnullCast(configureAction);
+        // TODO remove this line: System.err.println(String.format("typed(%s, %s) register %s", type, configureAction, prjName));
+
+        // The Action passed to 'whenElementKnown' can be called multiple times for the same objects.
+        // It seems like it's called for both a ProviderBackedElementInfo and ObjectBackedElementInfo.
+        ConcurrentHashMap<String, String> appliedToName = new ConcurrentHashMap<>();
+
+        whenElementKnown(elementInfo -> {
+            String elementName = elementInfo.getName();
+            if (appliedToName.putIfAbsent(elementName, elementName) == null) {
+                if (type.isAssignableFrom(elementInfo.getType())) {
+                    // TODO remove this line: System.err.println(String.format("typed(%s, %s) apply to %s / %s / %s / %s", type, baseTypeAction, prjName, elementName, elementInfo.getType(), elementInfo.getClass().getSimpleName()));
+                    named(elementName, baseTypeAction);
+                }
+            }
+            else { // TODO remove this block
+                if (type.isAssignableFrom(elementInfo.getType())) {
+                    System.err.println(String.format("typed(%s, %s) repeated %s / %s / %s / %s", type, baseTypeAction, prjName, elementName, elementInfo.getType(), elementInfo.getClass().getSimpleName()));
+                }
+            }
+        });
     }
 
     @Override

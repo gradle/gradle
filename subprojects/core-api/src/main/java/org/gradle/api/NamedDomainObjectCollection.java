@@ -269,6 +269,28 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;
 
     /**
+     * Configures all objects in this collection that match or will match the given type.
+     *
+     * Applies to already known, realized task, pending tasks and tasks that are added later.
+     *
+     * @param type The type of objects to find.
+     * @param configureAction The action to execute for each object that matches the type, if the object is or will be realized.
+     * @since 5.6
+     */
+    <S extends T> void typed(Class<S> type, Action<? super S> configureAction);
+
+    /**
+     * Configures all objects in this collection that match or will match the given type.
+     *
+     * Applies to already known, realized task, pending tasks and tasks that are added later.
+     *
+     * @param type The type of objects to find.
+     * @param configureClosure The closure to execute for each object that matches the type, if the object is or will be realized.
+     * @since 5.6
+     */
+    <S extends T> void typed(Class<S> type, Closure configureClosure);
+
+    /**
      * Provides access to the schema of all created or registered named domain objects in this collection.
      *
      * @since 4.10

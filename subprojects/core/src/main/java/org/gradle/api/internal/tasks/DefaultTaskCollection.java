@@ -45,7 +45,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
     private static final Task.Namer NAMER = new Task.Namer();
 
-    protected final ProjectInternal project;
+    public final ProjectInternal project;
 
     private final MutationGuard parentMutationGuard;
 
@@ -124,6 +124,16 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     @Override
     public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
         return (TaskProvider<S>) super.named(name, type, configurationAction);
+    }
+
+    @Override
+    public <S extends T> void typed(Class<S> type, Closure configureClosure) {
+        super.typed(type, configureClosure);
+    }
+
+    @Override
+    public <S extends T> void typed(Class<S> type, Action<? super S> configureAction) {
+        super.typed(type, configureAction);
     }
 
     @Override

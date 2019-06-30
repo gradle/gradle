@@ -110,6 +110,16 @@ public class DefaultRealizableTaskCollection<T extends Task> implements TaskColl
     }
 
     @Override
+    public <S extends T> void typed(Class<S> type, Closure configureClosure) {
+        delegate.typed(type, configureClosure);
+    }
+
+    @Override
+    public <S extends T> void typed(Class<S> type, Action<? super S> configureAction) {
+        delegate.typed(type, configureAction);
+    }
+
+    @Override
     public Action<? super T> whenTaskAdded(Action<? super T> action) {
         return delegate.whenTaskAdded(action);
     }

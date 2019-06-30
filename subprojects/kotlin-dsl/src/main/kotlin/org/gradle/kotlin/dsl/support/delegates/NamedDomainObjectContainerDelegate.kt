@@ -172,6 +172,12 @@ abstract class NamedDomainObjectContainerDelegate<T> : NamedDomainObjectContaine
     override fun <S : T> withType(type: Class<S>, configureAction: Action<in S>): DomainObjectCollection<S> =
         delegate.withType(type, configureAction)
 
+    override fun <S : T> typed(type: Class<S>, configureClosure: Closure<Any>) =
+        delegate.typed(type, configureClosure)
+
+    override fun <S : T> typed(type: Class<S>, configureAction: Action<in S>) =
+        delegate.typed(type, configureAction)
+
     override fun findByName(name: String): T? =
         delegate.findByName(name)
 

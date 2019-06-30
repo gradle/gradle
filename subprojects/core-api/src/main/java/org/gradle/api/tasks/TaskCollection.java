@@ -60,6 +60,10 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
     @Override
     <S extends T> TaskCollection<S> withType(Class<S> type);
 
+    <S extends T> void typed(Class<S> type, Action<? super S> configureAction);
+
+    <S extends T> void typed(Class<S> type, Closure configureClosure);
+
     /**
      * Adds an {@code Action} to be executed when a task is added to this collection.
      * <p>
