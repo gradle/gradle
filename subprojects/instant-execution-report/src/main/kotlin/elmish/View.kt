@@ -44,9 +44,6 @@ val code = ViewFactory("code")
 val span = ViewFactory("span")
 
 
-val sup = ViewFactory("sup")
-
-
 val small = ViewFactory("small")
 
 
@@ -188,16 +185,8 @@ sealed class Attribute<I> {
 
 private
 fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
-    when {
-        view === empty -> return
-        view is View.MappedView<*, *> -> {
-            @Suppress("unchecked_cast")
-            val mappedView = view as View.MappedView<Any?, I>
-            appendElementFor(mappedView.view) {
-                send(mappedView.mapping(it))
-            }
-        }
-        view is View.Element -> appendElement(view.elementName) {
+    when (view) {
+        is View.Element -> appendElement(view.elementName) {
             view.innerText?.let(::appendText)
             view.children.forEach { child ->
                 appendElementFor(child, send)
@@ -221,5 +210,13 @@ fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
                 }
             }
         }
+        is View.MappedView<*, *> -> {
+            @Suppress("unchecked_cast")
+            val mappedView = view as View.MappedView<Any?, I>
+            appendElementFor(mappedView.view) {
+                send(mappedView.mapping(it))
+            }
+        }
+        View.Empty -> return
     }
 }
