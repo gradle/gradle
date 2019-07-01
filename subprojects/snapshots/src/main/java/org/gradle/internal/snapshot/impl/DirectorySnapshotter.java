@@ -174,7 +174,7 @@ public class DirectorySnapshotter {
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getFilename(dir);
             String name = intern(fileName);
-            if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
+            if (builder.isRoot() || shouldVisit(dir, name, true, attrs, builder.getRelativePath())) {
                 builder.preVisitDirectory(intern(dir.toString()), name);
                 return FileVisitResult.CONTINUE;
             } else {
@@ -191,7 +191,7 @@ public class DirectorySnapshotter {
         @Override
         public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
             String name = intern(file.getFileName().toString());
-            if (isAllowed(file, name, false, attrs, builder.getRelativePath())) {
+            if (shouldVisit(file, name, false, attrs, builder.getRelativePath())) {
                 if (attrs == null) {
                     throw new FileSnapshottingException(String.format("Cannot read file '%s': not authorized.", file));
                 }
@@ -217,7 +217,7 @@ public class DirectorySnapshotter {
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
-                if (isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
+                if (shouldVisit(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
                     throw new UncheckedIOException(String.format("Could not read path '%s'.", file), exc);
                 }
             }
@@ -244,7 +244,12 @@ public class DirectorySnapshotter {
             return stringInterner.intern(string);
         }
 
-        private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+        /**
+         * Returns whether we want to visit the given path during our walk, or ignore it completely,
+         * based on the directory/file excludes or the provided filtering predicate.
+         * Excludes won't mark this walk as `filtered`, only if the `predicate` rejects any entry.
+         **/
+        private boolean shouldVisit(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
             if (isDirectory) {
                 if (defaultExcludes.excludeDir(name)) {
                     return false;
