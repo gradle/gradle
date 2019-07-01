@@ -35,6 +35,7 @@ import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.unknownPropertyError
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClassPath
@@ -108,34 +109,29 @@ class DefaultInstantExecution(
         }
 
         buildOperationExecutor.withStoreOperation {
-            report(
-                try {
-                    KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                        writeContextFor(encoder).run {
 
-                            val build = host.currentBuild
-                            writeString(build.rootProject.name)
+            val instantExecutionFailures = mutableListOf<PropertyFailure>()
 
-                            writeClassPath(collectClassPath())
-
-                            writeGradleState(build.rootProject.gradle)
-
-                            val scheduledTasks = build.scheduledTasks
-                            writeRelevantProjectsFor(scheduledTasks)
-
-                            TaskGraphCodec(service()).run {
-                                writeTaskGraphOf(build, scheduledTasks)
-                            }
-
-                            failures
-                        }
+            try {
+                KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
+                    writeContextFor(encoder, instantExecutionFailures).run {
+                        encodeTaskGraph()
                     }
-                } catch (e: Throwable) {
-                    // Discard the state file on failure
-                    instantExecutionStateFile.delete()
-                    throw e
                 }
-            )
+            } catch (e: Throwable) {
+                instantExecutionFailures.add(
+                    unknownPropertyError("Failed to store task graph", e)
+                )
+            }
+
+            report(instantExecutionFailures)
+
+            // Discard the state file on errors
+            val exception = instantExecutionExceptionFor(instantExecutionFailures)
+            if (exception != null) {
+                discardInstantExecutionState()
+                throw exception
+            }
         }
     }
 
@@ -146,30 +142,51 @@ class DefaultInstantExecution(
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
                 readContextFor(decoder).run {
-
-                    val rootProjectName = readString()
-                    val build = host.createBuild(rootProjectName)
-
-                    val classPath = readClassPath()
-                    val classLoader = classLoaderFor(classPath)
-                    initClassLoader(classLoader)
-
-                    readGradleState(build.gradle)
-
-                    readRelevantProjects(build)
-
-                    build.autoApplyPlugins()
-                    build.registerProjects()
-
-                    initProjectProvider(build::getProject)
-
-                    val scheduledTasks = TaskGraphCodec(service()).run {
-                        readTaskGraph()
-                    }
-                    build.scheduleTasks(scheduledTasks)
+                    decodeTaskGraph()
                 }
             }
         }
+    }
+
+    private
+    fun DefaultWriteContext.encodeTaskGraph() {
+        val build = host.currentBuild
+        writeString(build.rootProject.name)
+
+        writeClassPath(collectClassPath())
+
+        writeGradleState(build.rootProject.gradle)
+
+        val scheduledTasks = build.scheduledTasks
+        writeRelevantProjectsFor(scheduledTasks)
+
+        TaskGraphCodec(service()).run {
+            writeTaskGraphOf(build, scheduledTasks)
+        }
+    }
+
+    private
+    fun DefaultReadContext.decodeTaskGraph() {
+        val rootProjectName = readString()
+        val build = host.createBuild(rootProjectName)
+
+        val classPath = readClassPath()
+        val classLoader = classLoaderFor(classPath)
+        initClassLoader(classLoader)
+
+        readGradleState(build.gradle)
+
+        readRelevantProjects(build)
+
+        build.autoApplyPlugins()
+        build.registerProjects()
+
+        initProjectProvider(build::getProject)
+
+        val scheduledTasks = TaskGraphCodec(service()).run {
+            readTaskGraph()
+        }
+        build.scheduleTasks(scheduledTasks)
     }
 
     private
@@ -185,10 +202,29 @@ class DefaultInstantExecution(
     }
 
     private
-    fun writeContextFor(encoder: KryoBackedEncoder) = DefaultWriteContext(
+    fun instantExecutionExceptionFor(instantExecutionFailures: List<PropertyFailure>): Throwable? =
+        instantExecutionFailures
+            .filterIsInstance<PropertyFailure.Error>()
+            .takeIf { it.isNotEmpty() }
+            ?.let { errors ->
+                InstantExecutionException().apply {
+                    errors.forEach {
+                        addSuppressed(it.exception)
+                    }
+                }
+            }
+
+    private
+    fun discardInstantExecutionState() {
+        instantExecutionStateFile.delete()
+    }
+
+    private
+    fun writeContextFor(encoder: KryoBackedEncoder, instantExecutionFailures: MutableList<PropertyFailure>) = DefaultWriteContext(
         codecs(),
         encoder,
-        logger
+        logger,
+        instantExecutionFailures
     )
 
     private

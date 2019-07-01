@@ -30,8 +30,20 @@ fun IsolateContext.logPropertyWarning(action: String, message: StructuredMessage
 
 
 fun IsolateContext.logPropertyError(action: String, error: Throwable, message: StructuredMessageBuilder) {
-    logPropertyFailure(action, PropertyFailure.Error(trace, build(message), error))
+    logPropertyFailure(action, propertyError(error, trace, message))
 }
+
+
+internal
+fun unknownPropertyError(message: String, e: Throwable): PropertyFailure =
+    propertyError(e, PropertyTrace.Unknown) {
+        text(message)
+    }
+
+
+internal
+fun propertyError(error: Throwable, trace: PropertyTrace, message: StructuredMessageBuilder) =
+    PropertyFailure.Error(trace, build(message), error)
 
 
 fun IsolateContext.logPropertyInfo(action: String, value: Any?) {

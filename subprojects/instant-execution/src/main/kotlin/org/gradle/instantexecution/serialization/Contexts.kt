@@ -33,9 +33,11 @@ class DefaultWriteContext(
     private
     val encoder: Encoder,
 
-    override val logger: Logger
+    override val logger: Logger,
 
-) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
+    failures: MutableList<PropertyFailure>
+
+) : AbstractIsolateContext<WriteIsolate>(failures), MutableWriteContext, Encoder by encoder {
 
     private
     val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
@@ -79,7 +81,7 @@ class DefaultReadContext(
     private
     val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
 
-) : AbstractIsolateContext<ReadIsolate>(), MutableReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(mutableListOf()), MutableReadContext, Decoder by decoder {
 
     private
     val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
@@ -128,14 +130,16 @@ typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
-abstract class AbstractIsolateContext<T> : MutableIsolateContext {
+abstract class AbstractIsolateContext<T>(
+
+    val failures: MutableCollection<PropertyFailure>
+
+) : MutableIsolateContext {
 
     private
     var currentIsolate: T? = null
 
     var trace: PropertyTrace = PropertyTrace.Unknown
-
-    val failures = mutableListOf<PropertyFailure>()
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T

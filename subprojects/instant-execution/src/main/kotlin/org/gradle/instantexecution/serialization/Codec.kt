@@ -103,7 +103,7 @@ sealed class PropertyFailure {
     data class Error(
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
-        val error: Throwable
+        val exception: Throwable
     ) : PropertyFailure()
 }
 

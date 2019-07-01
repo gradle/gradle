@@ -103,7 +103,7 @@ class InstantExecutionReport(
 
     private
     fun stackTraceStringOf(failure: PropertyFailure): String? =
-        (failure as? PropertyFailure.Error)?.error?.let {
+        (failure as? PropertyFailure.Error)?.exception?.let {
             stackTraceStringFor(it)
         }
 
@@ -155,8 +155,10 @@ class InstantExecutionReport(
                         mapOf("kind" to "Gradle")
                     )
                 }
-                else -> {
-                    throw IllegalStateException()
+                PropertyTrace.Unknown -> {
+                    result.add(
+                        mapOf("kind" to "Unknown")
+                    )
                 }
             }
         }
