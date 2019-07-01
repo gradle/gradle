@@ -28,6 +28,17 @@ dependencies {
     compileOnly(kotlin("stdlib-js"))
 }
 
+val reportResources by configurations.creating {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named("report-resources"))
+    }
+    outgoing.artifact(
+        tasks.processResources.map { it.destinationDir }
+    )
+}
+
 tasks {
 
     compileKotlin2Js {
