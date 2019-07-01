@@ -26,8 +26,8 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.util.function.Consumer;
 
@@ -48,7 +48,7 @@ public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         ImmutableSortedSet<OutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = taskFingerprinter.fingerprintTaskFiles(task, outputFilePropertySpecs);
+        ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution = taskFingerprinter.snapshotTaskFiles(task, outputFilePropertySpecs);
         context.setOutputFilesBeforeExecution(outputsBeforeExecution);
 
         AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();

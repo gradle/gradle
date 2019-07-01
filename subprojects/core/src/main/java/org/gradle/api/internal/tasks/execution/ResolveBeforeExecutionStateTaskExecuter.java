@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
@@ -30,7 +31,11 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -75,7 +80,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         return delegate.execute(task, state, context);
     }
 
-    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles) {
+    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFiles) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -91,13 +96,21 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, properties, previousInputProperties, valueSnapshotter);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = taskFingerprinter.fingerprintTaskFiles(task, properties.getInputFileProperties());
+        ImmutableSortedMap<String, FileCollectionFingerprint> previousOutputs = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
 
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilePropertyFingerprints = ImmutableSortedMap.copyOfSorted(
+            Maps.transformEntries(outputFiles, (key, value) -> {
+                    FileCollectionFingerprint previousOutputFingerprint = previousOutputs.get(key);
+                    return previousOutputFingerprint == null ? AbsolutePathFingerprintingStrategy.IGNORE_MISSING.getEmptyFingerprint() : OutputFilterUtil.filterOutputSnapshot(previousOutputFingerprint, value);
+                }
+            )
+        );
         return new DefaultBeforeExecutionState(
             taskImplementation,
             taskActionImplementations,
             inputProperties,
             inputFiles,
-            outputFiles
+            outputFilePropertyFingerprints
         );
     }
 

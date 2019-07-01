@@ -89,7 +89,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        withBuildCache().run "jar"
+        withBuildCache().run "jar", "--info"
         result.assertTaskSkipped ":compileJava"
     }
 
