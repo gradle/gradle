@@ -21,12 +21,14 @@ import spock.lang.Unroll
 
 @LeaksFileHandles
 class SettingsScriptPluginIntegrationSpec extends AbstractPluginSpec {
+    private static final String USE_APPLY_FALSE = "plugins { id '$PLUGIN_ID' version '$VERSION' apply false }"
+    private static final String USE_APPLY_FALSE_KOTLIN = "plugins { id(\"$PLUGIN_ID\").version(\"$VERSION\").apply(false) }"
 
     def setup() {
         executer.requireGradleDistribution() // need accurate classloading
     }
 
-    private void doConfigurePlugin() {
+    private void doConfigureSettingsPlugin() {
         publishSettingPlugin("""
 settings.gradle.beforeProject { org.gradle.api.Project project ->
     project.tasks.register("customTask") {
@@ -42,7 +44,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     @Unroll
     def "settings script with a plugins block - #settingScriptExtension"() {
         given:
-        doConfigurePlugin()
+        doConfigureSettingsPlugin()
         file("settings$settingScriptExtension") << use
 
         when:
@@ -60,7 +62,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     @Unroll
     def "settings script with a plugins block with apply false - #settingScriptExtension"() {
         given:
-        doConfigurePlugin()
+        doConfigureSettingsPlugin()
         file("settings$settingScriptExtension") << use
 
         when:
@@ -71,8 +73,8 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
 
         where:
         settingScriptExtension | use
-        '.gradle.kts'          | "plugins { id(\"$PLUGIN_ID\").version(\"$VERSION\").apply(false) }"
-        '.gradle'              | "plugins { id '$PLUGIN_ID' version '$VERSION' apply false }"
+        '.gradle.kts'          | USE_APPLY_FALSE_KOTLIN
+        '.gradle'              | USE_APPLY_FALSE
     }
 
     @Unroll
@@ -107,5 +109,22 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         settingScriptExtension | use
         '.gradle.kts'          | "plugins { } \n pluginManagement { }"
         '.gradle'              | "plugins { } \n pluginManagement { }"
+    }
+
+    @Unroll
+    def "plugin with an unknown identifier in a plugins management block - #settingScriptExtension"() {
+        given:
+        file("settings$settingScriptExtension") << use
+
+        when:
+        fails 'help'
+
+        then:
+        errorOutput.contains("Plugin [id: 'unknown', version: '1.0'] was not found in any of the following sources:")
+
+        where:
+        settingScriptExtension | use
+        '.gradle.kts'          | "plugins { id(\"unknown\") version \"1.0\" }"
+        '.gradle'              | "plugins { id 'unknown' version '1.0' }"
     }
 }
