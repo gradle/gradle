@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
+package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -30,11 +27,11 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import java.util.Map;
 import java.util.Set;
 
-class AttributeDesugaring {
+public class AttributeDesugaring {
     private final Map<ImmutableAttributes, ImmutableAttributes> desugared = Maps.newIdentityHashMap();
     private final ImmutableAttributesFactory attributesFactory;
 
-    AttributeDesugaring(ImmutableAttributesFactory attributesFactory) {
+    public AttributeDesugaring(ImmutableAttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
     }
 
@@ -43,7 +40,7 @@ class AttributeDesugaring {
      * and not their original types.
      * @return desugared attributes
      */
-    ImmutableAttributes desugar(ImmutableAttributes attributes) {
+    public ImmutableAttributes desugar(ImmutableAttributes attributes) {
         if (attributes.isEmpty()) {
             return attributes;
         }
@@ -64,7 +61,7 @@ class AttributeDesugaring {
         });
     }
 
-    ComponentSelector desugarSelector(ComponentSelector selector) {
+    public ComponentSelector desugarSelector(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) selector;
             AttributeContainer moduleAttributes = module.getAttributes();

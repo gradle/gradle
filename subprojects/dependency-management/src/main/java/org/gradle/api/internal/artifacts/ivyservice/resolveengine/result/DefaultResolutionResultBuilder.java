@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
@@ -47,15 +48,21 @@ import java.util.Set;
 public class DefaultResolutionResultBuilder {
     private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
+    private AttributeContainer requestedAttributes;
 
-    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+        builder.setRequestedAttributes(attributes);
         builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, Collections.emptyList(), null));
         return builder.complete(0L);
     }
 
+    public void setRequestedAttributes(AttributeContainer attributes) {
+        requestedAttributes = attributes;
+    }
+
     public ResolutionResult complete(Long rootId) {
-        return new DefaultResolutionResult(new RootFactory(modules.get(rootId)));
+        return new DefaultResolutionResult(new RootFactory(modules.get(rootId)), requestedAttributes);
     }
 
     public void visitComponent(ResolvedGraphComponent component) {
