@@ -220,12 +220,14 @@ class DefaultInstantExecution(
     }
 
     private
-    fun writeContextFor(encoder: KryoBackedEncoder, instantExecutionFailures: MutableList<PropertyFailure>) = DefaultWriteContext(
+    fun writeContextFor(
+        encoder: KryoBackedEncoder,
+        instantExecutionFailures: MutableList<PropertyFailure>
+    ) = DefaultWriteContext(
         codecs(),
         encoder,
-        logger,
-        instantExecutionFailures
-    )
+        logger
+    ) { instantExecutionFailures.add(it) }
 
     private
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(

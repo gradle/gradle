@@ -78,7 +78,7 @@ interface IsolateContext {
 
     var trace: PropertyTrace
 
-    val failures: MutableCollection<PropertyFailure>
+    fun onFailure(failure: PropertyFailure)
 }
 
 

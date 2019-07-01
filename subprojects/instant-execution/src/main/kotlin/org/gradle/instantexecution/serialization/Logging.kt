@@ -82,5 +82,5 @@ fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
 private
 fun IsolateContext.logPropertyFailure(action: String, failure: PropertyFailure) {
     logger.debug("instant-execution > failed to {} {} because {}", action, failure.trace, failure.message)
-    failures.add(failure)
+    onFailure(failure)
 }
