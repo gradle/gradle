@@ -83,7 +83,6 @@ class BeanPropertyReader(
         }
     }
 
-    @Suppress("unchecked_cast")
     private
     fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit =
 

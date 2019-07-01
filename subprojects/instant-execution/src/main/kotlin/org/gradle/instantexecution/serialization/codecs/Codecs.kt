@@ -28,6 +28,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DecodingProvider
 import org.gradle.instantexecution.serialization.Encoding
@@ -195,9 +196,8 @@ class BindingsBuilder {
         require(bindings.none { it.type === type })
         val tag = bindings.size
         require(tag < Byte.MAX_VALUE)
-        @Suppress("unchecked_cast")
         bindings.add(
-            Binding(tag.toByte(), type, codec as Codec<Any>)
+            Binding(tag.toByte(), type, codec.uncheckedCast())
         )
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization
 
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -235,8 +236,7 @@ internal
 fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
     val componentType = readClass()
     val size = readSmallInt()
-    @Suppress("unchecked_cast")
-    val array = java.lang.reflect.Array.newInstance(componentType, size) as Array<T>
+    val array: Array<T> = java.lang.reflect.Array.newInstance(componentType, size).uncheckedCast()
     for (i in 0 until size) {
         array[i] = readElement()
     }
