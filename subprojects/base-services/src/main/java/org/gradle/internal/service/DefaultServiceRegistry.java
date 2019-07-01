@@ -1158,7 +1158,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             Class<?> aClass = (Class) type;
             Class<?> enclosingClass = aClass.getEnclosingClass();
             if (enclosingClass != null) {
-                return format(enclosingClass) + "." + aClass.getSimpleName();
+                return format(enclosingClass) + "$" + aClass.getSimpleName();
             } else {
                 return aClass.getSimpleName();
             }
