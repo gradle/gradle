@@ -45,6 +45,10 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         this.componentIdSerializer = new ComponentIdentifierSerializer();
     }
 
+    void reset() {
+        resolvedVariantResultSerializer.reset();
+    }
+
     @Override
     public ResolvedGraphComponent read(Decoder decoder) throws IOException {
         long resultId = decoder.readSmallLong();
