@@ -48,7 +48,7 @@ class LinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('java.util.List'), listener)
 
         then:
-        format(link) == '<ulink url="http://download.oracle.com/javase/javaVersion/docs/api/java/util/List.html"><classname>List</classname></ulink>'
+        format(link) == '<ulink url="https://docs.oracle.com/javase/javaVersion/docs/api/java/util/List.html"><classname>List</classname></ulink>'
     }
 
     def rendersLinkToJavaClassArray() {
@@ -56,7 +56,7 @@ class LinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('java.util.List', true), listener)
 
         then:
-        format(link) == '<classname><ulink url="http://download.oracle.com/javase/javaVersion/docs/api/java/util/List.html"><classname>List</classname></ulink>[]</classname>'
+        format(link) == '<classname><ulink url="https://docs.oracle.com/javase/javaVersion/docs/api/java/util/List.html"><classname>List</classname></ulink>[]</classname>'
     }
 
     def rendersLinkToPrimitiveType() {
