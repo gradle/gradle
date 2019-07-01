@@ -25,7 +25,7 @@ import kotlin.js.JSON.stringify
 
 fun main() {
     mountComponentAt(
-        elementById("app"),
+        elementById("report"),
         InstantExecutionReportPage,
         reportPageModelFromJsModel(instantExecutionFailures)
     )
