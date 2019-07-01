@@ -73,8 +73,7 @@ tasks {
     }
 
     processResources {
-        dependsOn(compileKotlin2Js)
-        from(compileKotlin2Js.get().outputFile)
+        from(compileKotlin2Js.map { it.outputFile })
         from(unpackKotlinJsStdlib)
     }
 }
