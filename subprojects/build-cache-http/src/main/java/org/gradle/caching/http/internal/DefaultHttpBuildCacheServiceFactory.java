@@ -70,7 +70,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
-        boolean allowInsecureProtocol = configuration.isAllowUntrustedProtocol();
+        boolean allowInsecureProtocol = configuration.isAllowInsecureProtocol();
         DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
             .withAuthenticationSettings(authentications)
             .followRedirects(false)

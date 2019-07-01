@@ -75,7 +75,17 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    @Override
+    /**
+     * Not yet exposed in the {@link ObjectConfigurationAction} interface.
+     * Leaving this in place to determine if it's actually necessary.
+     * If users demand the ability to pull scripts resources over HTTP we can expose this method at that time.
+     *
+     * See:
+     * <a href="https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946">
+     *     https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946
+     * </a>
+     */
+    @SuppressWarnings("unused")
     public ObjectConfigurationAction allowInsecureProtocol(final boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
         return this;

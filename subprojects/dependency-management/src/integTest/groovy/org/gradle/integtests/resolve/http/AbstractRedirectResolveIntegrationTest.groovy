@@ -52,7 +52,8 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
     void optionallyExpectDeprecation() {
         if (shouldWarnAboutDeprecation()) {
-            outputContains("Uploading or resolving content over insecure protocol ")
+            outputContains("Insecure HTTP requests has been deprecated. This is scheduled to be removed in Gradle 6.0. The URL was '")
+            outputContains("Switch the protocol to HTTPS or allow insecure protocols.")
         }
     }
 
@@ -68,7 +69,8 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
         then:
         if (shouldWarnAboutDeprecation()) {
-            executer.expectDeprecationWarning()
+            int warningCount = insecureServerCount() * 2
+            executer.expectDeprecationWarnings(warningCount)
         }
         succeeds('listJars')
 
@@ -86,7 +88,7 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
         then:
         if (shouldWarnAboutDeprecation()) {
-            executer.expectDeprecationWarning()
+            executer.expectDeprecationWarnings(insecureServerCount())
         }
         fails('listJars')
 
@@ -107,7 +109,7 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         then:
         executer.beforeExecute { withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000") }
         if (shouldWarnAboutDeprecation()) {
-            executer.expectDeprecationWarning()
+            executer.expectDeprecationWarnings(insecureServerCount())
         }
         fails('listJars')
 
@@ -131,6 +133,13 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+    }
+
+    /**
+     * The number of servers involved in the redirect chain using an insecure protocol.
+     */
+    private int insecureServerCount() {
+        [backingServer.uri.scheme == "http", server.uri.scheme == "http"].count { it }.intValue()
     }
 
 }

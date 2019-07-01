@@ -273,9 +273,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public void allowInsecureProtocol(boolean allowInsecureProtocol) {
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         invalidateDescriptor();
-        urlArtifactRepository.allowInsecureProtocol(allowInsecureProtocol);
+        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
     }
 
     @Override

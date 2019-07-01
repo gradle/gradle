@@ -65,8 +65,22 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
         return fromUri(uri, false);
     }
 
-    @Override
-    public TextResource fromUri(Object uri, boolean allowInsecureProtocol) {
+    /**
+     * Not yet exposed in the {@link TextResourceFactory} interface.
+     * Leaving this in place to determine if it's actually necessary.
+     * If users demand the ability to pull text resources over HTTP we can expose this method at that time.
+     *
+     * See:
+     * <a href="https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946">
+     *     https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946
+     * </a>
+     */
+    @SuppressWarnings("unused")
+    public TextResource fromInsecureUri(Object uri) {
+        return fromUri(uri, true);
+    }
+
+    private TextResource fromUri(Object uri, boolean allowInsecureProtocol) {
         return new ApiTextResourceAdapter(textResourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol), tempFileProvider, fileOperations.uri(uri));
     }
 }

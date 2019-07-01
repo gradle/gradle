@@ -47,7 +47,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     @Override
-    public void allowInsecureProtocol(boolean allowInsecureProtocol) {
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
     }
 

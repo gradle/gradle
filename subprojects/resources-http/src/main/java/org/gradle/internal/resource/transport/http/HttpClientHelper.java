@@ -190,7 +190,7 @@ public class HttpClientHelper implements Closeable {
             DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
                 "Insecure HTTP requests",
                 "Switch the protocol to HTTPS or allow insecure protocols.",
-                "The URL was " + stripUserCredentials(url)
+                "The URL was '" + stripUserCredentials(url) + "'."
             );
         }
     }
