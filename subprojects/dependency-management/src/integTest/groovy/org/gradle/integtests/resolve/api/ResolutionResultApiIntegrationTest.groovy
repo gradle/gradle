@@ -473,7 +473,10 @@ testCompileClasspath
       project :tool (apiElements)
          com:baz:1.0 (compile)
       com:foo:1.0 (compile)
-testRuntimeClasspath
+"""
+
+        and:
+        outputContains """testRuntimeClasspath
    project :lib (runtimeElements)
       org:dep:1.0 (runtime)
    project :tool (testFixturesRuntimeElements)
@@ -482,7 +485,6 @@ testRuntimeClasspath
       com:foo:1.0 (runtime)
       com:bar:1.0 (runtime)
 """
-
     }
 
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
@@ -515,8 +517,19 @@ testRuntimeClasspath
 
     private void withResolutionResultDumper(String... configurations) {
         def confList = configurations.collect { configuration ->
-            """def result_$configuration = configurations.${configuration}.incoming.resolutionResult
-                    dump("$configuration", result_${configuration}.root, null, 0)
+            """
+                // dump variant dependencies
+                def result_$configuration = configurations.${configuration}.incoming.resolutionResult
+                dump("$configuration", result_${configuration}.root, null, 0)
+                
+                // check that configuration attributes are visible and desugared
+                def consumerAttributes_$configuration = configurations.${configuration}.attributes
+                assert result_${configuration}.requestedAttributes.keySet().size() == consumerAttributes_${configuration}.keySet().size()
+                consumerAttributes_${configuration}.keySet().each {
+                    println "Checking \$it of type \$it.type"
+                    def desugared = Attribute.of(it.name, String)
+                    assert result_${configuration}.requestedAttributes.getAttribute(desugared) == consumerAttributes_${configuration}.getAttribute(it).toString()
+                }
             """
         }
         buildFile << """
