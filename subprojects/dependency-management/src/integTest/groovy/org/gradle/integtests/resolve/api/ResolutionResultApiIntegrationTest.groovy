@@ -418,4 +418,113 @@ baz:1.0 requested
         noExceptionThrown()
 
     }
+
+    def "each dependency is associated to its resolved variant"() {
+        mavenRepo.module("org", "dep", "1.0").publish()
+        mavenRepo.module("com", "foo", "1.0").publish()
+        mavenRepo.module("com", "bar", "1.0").publish()
+        mavenRepo.module("com", "baz", "1.0").publish()
+        settingsFile << """
+            include 'lib', 'tool'
+        """
+        buildFile << """
+            allprojects {
+               repositories {
+                  maven { url "${mavenRepo.uri}" }
+               }
+
+                apply plugin: 'java-library'
+            }
+            
+            project(":lib") {
+                dependencies {
+                   api "org:dep:1.0"
+                }
+            }
+            
+            project(":tool") {
+                apply plugin: 'java-test-fixtures'
+                dependencies {
+                    api "com:baz:1.0"
+                    testFixturesApi "com:foo:1.0"
+                    testFixturesImplementation "com:bar:1.0"
+                }
+            }
+            
+            dependencies {
+                implementation(project(":lib"))
+                testImplementation(testFixtures(project(":tool")))
+                testImplementation(testFixtures(project(":tool"))) // intentional duplication
+            }
+            
+
+        """
+        withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        outputContains """
+testCompileClasspath
+   project :lib (apiElements)
+      org:dep:1.0 (compile)
+   project :tool (testFixturesApiElements)
+      project :tool (apiElements)
+         com:baz:1.0 (compile)
+      com:foo:1.0 (compile)
+testRuntimeClasspath
+   project :lib (runtimeElements)
+      org:dep:1.0 (runtime)
+   project :tool (testFixturesRuntimeElements)
+      project :tool (runtimeElements)
+         com:baz:1.0 (runtime)
+      com:foo:1.0 (runtime)
+      com:bar:1.0 (runtime)
+"""
+
+    }
+
+    private void withResolutionResultDumper(String... configurations) {
+        def confList = configurations.collect { configuration ->
+            """def result_$configuration = configurations.${configuration}.incoming.resolutionResult
+                    dump("$configuration", result_${configuration}.root, null, 0)
+            """
+        }
+        buildFile << """
+
+            task resolve {
+                doLast {
+                    { -> ${confList.join('\n')} }()
+                    println()
+                    println 'Waiting for the cache to expire'
+                    // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
+                    Thread.sleep(800) // must be > cache expiry
+                    println 'Read result again to make sure serialization state is ok'
+                    println();
+                    { -> ${confList.join('\n')} }()
+                }
+            }
+
+            void dump(String root, ResolvedComponentResult result, ResolvedVariantResult variant, int depth, Set visited = []) {
+                if (visited.add([result, variant])) {
+                    if (variant == null) {
+                        println(root)
+                    }
+                    def dependencies = variant == null ? result.dependencies : result.getDependenciesForVariant(variant)
+                    depth++
+                    dependencies.each {
+                        if (it instanceof ResolvedDependencyResult) {
+                            def resolvedVariant = it.resolvedVariant
+                            def selected = it.selected
+                            println("   " * depth + "\$selected (\$resolvedVariant)")
+                            dump(root, selected, resolvedVariant, depth, visited)
+                        } else {
+                            println("   " * depth + "\$it (unresolved)")
+                        }
+                    }
+                }
+            }
+"""
+    }
 }

@@ -101,4 +101,9 @@ class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResul
             encoder.writeNullableString(capability.getVersion());
         }
     }
+
+    void reset() {
+        written.clear();
+        read.clear();
+    }
 }
