@@ -41,8 +41,6 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
                 return DIR_SIGNATURE;
             case Missing:
                 return MISSING_FILE_SIGNATURE;
-            case Unavailable:
-                return UNAVAILABLE_FILE_SIGNATURE;
             case RegularFile:
                 return hash;
             default:

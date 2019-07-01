@@ -35,7 +35,6 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -161,17 +160,20 @@ class DirectorySnapshotterTest extends Specification {
         def rootDir = tmpDir.createDir("root")
         rootDir.file('readableFile').createFile()
         rootDir.file('readableDirectory').createDir()
-        rootDir.file('unreadableFile').createFile().with { readable = false }
-        rootDir.file('unreadableDirectory').createDir().with { readable = false }
-
-        assert rootDir.listFiles().toSorted().collect { Files.isReadable(Paths.get(it.absolutePath)) } == [true, true, false, false]
+        rootDir.file('unreadableFile').createFile().makeUnreadable()
+        rootDir.file('unreadableDirectory').createDir().makeUnreadable()
 
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(new PatternSet()), new AtomicBoolean(false))
 
         then:
-        snapshot.children*.class.sort { it.name } == [DirectorySnapshot, RegularFileSnapshot, UnavailableFileSnapshot, UnavailableFileSnapshot]
-
+        assert snapshot instanceof DirectorySnapshot
+        snapshot.children.collectEntries { [it.name, it.class] } == [
+            readableFile: RegularFileSnapshot,
+            readableDirectory: DirectorySnapshot,
+            unreadableFile: UnavailableFileSnapshot,
+            unreadableDirectory: UnavailableFileSnapshot
+        ]
         cleanup:
         rootDir.listFiles()*.readable = true
     }

@@ -196,12 +196,12 @@ public class DirectorySnapshotter {
                 if (attrs == null) {
                     throw new FileSnapshottingException(String.format("Cannot read file '%s': not authorized.", file));
                 }
-                builder.visit(snapshot(file, name, attrs));
+                builder.visit(snapshotFile(file, name, attrs));
             }
             return FileVisitResult.CONTINUE;
         }
 
-        private FileSystemLocationSnapshot snapshot(Path absoluteFilePath, String name, BasicFileAttributes attrs) {
+        private FileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String name, BasicFileAttributes attrs) {
             String internedAbsoluteFilePath = intern(absoluteFilePath.toString());
             if (attrs.isRegularFile()) {
                 try {
@@ -209,12 +209,13 @@ public class DirectorySnapshotter {
                     FileMetadata metadata = FileMetadata.from(attrs);
                     return new RegularFileSnapshot(internedAbsoluteFilePath, name, hash, metadata);
                 } catch (UncheckedIOException e) {
-                    LOGGER.debug("Could not read file path '{}'.", absoluteFilePath, e);
+                    LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
             }
             return new UnavailableFileSnapshot(internedAbsoluteFilePath, name);
         }
 
+        /** unlistable directories (and maybe some locked files) will stop here */
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) {
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
@@ -222,8 +223,9 @@ public class DirectorySnapshotter {
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
                 String name = intern(file.getFileName().toString());
-                if (shouldVisit(file, name, Files.isDirectory(file), null, builder.getRelativePath())) {
-                    LOGGER.debug("Could not read file path '{}'.", file);
+                boolean isDirectory = Files.isDirectory(file);
+                if (shouldVisit(file, name, isDirectory, null, builder.getRelativePath())) {
+                    LOGGER.info("Could not read file path '{}'.", file);
                     String absolutePath = intern(file.toString());
                     builder.visit(new UnavailableFileSnapshot(absolutePath, name));
                 }
