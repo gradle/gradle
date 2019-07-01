@@ -17,19 +17,40 @@
 package data
 
 
-typealias Trie<T> = Map<T, Map<T, Any>>
+@Suppress("experimental_feature_warning")
+inline class Trie<T>(
+
+    private
+    val nestedMaps: Map<T, Any>
+
+) {
+    companion object {
+
+        fun <T> from(paths: Sequence<List<T>>) =
+            Trie(nestedMapsFrom(paths))
+    }
+
+    val entries: Sequence<Pair<T, Trie<T>>>
+        get() = nestedMaps.asSequence().map { (label, subTrie) ->
+            label to Trie(subTrie.uncheckedCast())
+        }
+}
 
 
-fun <T> trieFrom(paths: Sequence<List<T>>): Trie<T> {
-    val trie = hashMapOf<T, HashMap<T, Any>>()
+private
+fun <T> nestedMapsFrom(paths: Sequence<List<T>>): Map<T, Any> {
+    val root = hashMapOf<T, HashMap<T, Any>>()
     for (path in paths) {
-        var node = trie
+        var node = root
         for (segment in path) {
-            @Suppress("unchecked_cast")
             node = node.getOrPut(segment) {
                 hashMapOf()
-            } as HashMap<T, HashMap<T, Any>>
+            }.uncheckedCast()
         }
     }
-    return trie
+    return root
 }
+
+
+private
+inline fun <reified T> Any.uncheckedCast(): T = this as T

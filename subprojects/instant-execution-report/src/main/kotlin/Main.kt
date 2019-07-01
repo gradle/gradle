@@ -15,7 +15,6 @@
  */
 
 import data.Trie
-import data.trieFrom
 import elmish.elementById
 import elmish.mountComponentAt
 import elmish.tree.Tree
@@ -214,7 +213,7 @@ fun <T> treeModelFor(
 ): TreeView.Model<T> = TreeView.Model(
     treeFromTrie(
         label,
-        trieFrom(sequence)
+        Trie.from(sequence)
     )
 )
 
@@ -226,10 +225,9 @@ fun <T> treeFromTrie(label: T, trie: Trie<T>): Tree<T> =
 
 private
 fun <T> subTreesFromTrie(trie: Trie<T>): List<Tree<T>> =
-    trie.asSequence().sortedBy { it.key.toString() /* TODO: */ }.map {
-        @Suppress("unchecked_cast")
+    trie.entries.sortedBy { (label, _) -> label.toString() }.map { (label, subTrie) ->
         treeFromTrie(
-            it.key,
-            it.value as Trie<T>
+            label,
+            subTrie
         )
     }.toList()
