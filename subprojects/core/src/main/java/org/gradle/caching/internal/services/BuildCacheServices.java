@@ -37,7 +37,6 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemMirror;
@@ -61,13 +60,11 @@ public class BuildCacheServices {
     }
 
     OriginMetadataFactory createOriginMetadataFactory(
-        InetAddressFactory inetAddressFactory,
         GradleInternal gradleInternal,
         BuildInvocationScopeId buildInvocationScopeId
     ) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
         return new OriginMetadataFactory(
-            inetAddressFactory,
             rootDir,
             SystemProperties.getInstance().getUserName(),
             OperatingSystem.current().getName(),

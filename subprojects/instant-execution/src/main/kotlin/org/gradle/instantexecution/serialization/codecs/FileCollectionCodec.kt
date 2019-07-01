@@ -16,11 +16,14 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.tasks.TaskDependencyInternal
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionLeafVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -31,11 +34,16 @@ import java.io.File
 internal
 class FileCollectionCodec(
     private val fileSetSerializer: SetSerializer<File>,
-    private val fileCollectionFactory: FileCollectionFactory
-) : Codec<FileCollection> {
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+) : Codec<FileCollectionInternal> {
 
-    override fun WriteContext.encode(value: FileCollection) {
-        runCatching { value.files }.apply {
+    override fun WriteContext.encode(value: FileCollectionInternal) {
+        runCatching {
+            val visitor = CollectingVisitor(directoryFileTreeFactory)
+            value.visitLeafCollections(visitor)
+            visitor.files
+        }.apply {
             onSuccess { files ->
                 writeBoolean(true)
                 fileSetSerializer.write(this@encode, files)
@@ -47,21 +55,40 @@ class FileCollectionCodec(
         }
     }
 
-    override fun ReadContext.decode(): FileCollection? =
+    override fun ReadContext.decode(): FileCollectionInternal =
         if (readBoolean()) fileCollectionFactory.fixed(fileSetSerializer.read(this))
-        else ErrorFileCollection(readString())
+        else fileCollectionFactory.create(ErrorFileSet(readString()))
 }
 
 
 private
-class ErrorFileCollection(private val error: String) : AbstractFileCollection() {
+class CollectingVisitor(
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+) : FileCollectionLeafVisitor {
+    val files: MutableSet<File> = mutableSetOf()
+
+    override fun visitCollection(fileCollection: FileCollectionInternal) {
+        files.addAll(fileCollection.files)
+    }
+
+    override fun visitGenericFileTree(fileTree: FileTreeInternal) {
+        visitCollection(fileTree)
+    }
+
+    override fun visitFileTree(root: File, patterns: PatternSet) {
+        // TODO - should serialize a spec for the tree instead of its current elements
+        val fileTree = directoryFileTreeFactory.create(root, patterns)
+        visitCollection(FileTreeAdapter(fileTree))
+    }
+}
+
+
+private
+class ErrorFileSet(private val error: String) : MinimalFileSet {
 
     override fun getDisplayName() =
         "error-file-collection"
 
     override fun getFiles() =
         throw Exception(error)
-
-    override fun getBuildDependencies(): TaskDependency =
-        TaskDependencyInternal.EMPTY
 }

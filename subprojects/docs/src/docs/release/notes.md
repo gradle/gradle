@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Dan Sănduleac](https://github.com/dansanduleac),
 [Andrew K.](https://github.com/miokowpak),
 [Noa Resare](https://github.com/nresare),
 [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod),
@@ -18,10 +19,13 @@ Include only their name, impactful features should be called out separately belo
 [Bjørn Mølgård Vester](https://github.com/bjornvester),
 [Simon Legner](https://github.com/simon04),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Ian Kerins](https://github.com/isker),
 [Ivo Anjo](https://github.com/ivoanjo),
 [Stefan M.](https://github.com/StefMa),
+[Nickolay Chameev](https://github.com/lukaville),
 [Dominik Giger](https://github.com/gigerdo),
 [Stephan Windmüller](https://github.com/stovocor),
+[Zemian Deng](https://github.com/zemian),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
@@ -34,19 +38,71 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+<a name="test-fixtures"/>
+
+## Test fixtures for Java projects
+
+Gradle 5.6 introduces a new [Java test fixtures plugin](userguide/java_testing.html#sec:java_test_fixtures), which, when applied in combination with the `java` or `java-library` plugin, will create a conventional `testFixtures` source set.
+Gradle will automatically perform the wiring so that the `test` compilation depends on test fixtures, but more importantly, it allows other projects to depend on the test fixtures of a library.
+For example:
+
+```groovy
+dependencies {
+   // this will add the test fixtures of "my-lib" on the compile classpath of the tests of _this_ project
+   testImplementation(testFixtures(project(":my-lib")))
+}
+```
+
+## Central management of plugin versions with settings script
+
+Gradle 5.6 makes it easier to manage the versions of plugins used by your build. By configuring all plugin versions in a settings script within the new `pluginManagement.plugins {}` block, build scripts can apply plugins via the `plugins {}` block without specifying a version.
+
+```groovy
+pluginManagement {
+    plugins {
+        id 'org.my.plugin' version '1.1'
+    }
+}
+```
+
+One benefit of managing plugin versions in this way is that the `pluginManagement.plugins {}` block does not have the same constrained syntax as a build script `plugins {}` block. Plugin versions may be loaded from `gradle.properties`, or defined programmatically.
+
+See [plugin version management](userguide/plugins.html#sec:plugin_version_management) for more details.
+
 ## Improvements for plugin authors
 
-### Task dependencies are honored for `@Input` properties of type `Property`
+### Task dependencies are honored for `@Input` properties of type `Provider`
 
-TBD - honors dependencies on `@Input` properties.
+Gradle can automatically calculate task dependencies based on the value of certain task input properties. 
+For example, for a property that is annotated with `@InputFiles` and that has type `FileCollection` or `Provider<Set<RegularFile>>`, 
+Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
 
+In this release, Gradle also performs this analysis on task properties that are annotated with `@Input` and that have type `Provider<T>` (which also includes types such as `Property<T>`).
+This allow you to connect an output of a task to a non-file input parameter of another task.
+For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle.
+With this change you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
+
+See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
+
+### Convert a `FileCollection` to a `Provider`
+
+A new method `FileCollection.getElements()` has been added to allow the contents of the file collection to be viewed as a `Provider`. This `Provider` tracks the elements of the file collection and tasks that
+produce these files and can be connected to a `Property` instance.
+ 
 ### Finalize the value of a `ConfigurableFileCollection`
 
-TBD - added `ConfigurableFileCollection.finalizeValue()`
+A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as `Provider` instances or Groovy closures or Kotlin functions, that may be present in the collection 
+to their final file locations and prevents further changes to the collection.
 
-### Property methods
+This method works similarly to other `finalizeValue()` methods, such as `Property.finalizeValue()`.
 
-TBD - added `getLocationOnly()`. 
+### Prevent changes to a `Property` or `ConfigurableFileCollection`
+
+New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow further changes to the property or collection.
+
+### `Provider` methods
+
+New methods `Provider.orElse(T)` and `Provider.orElse(Provider<T>)` has been added. These allow you to perform an 'or' operation on a provider and some other value.
 
 ### Worker API improvements
 

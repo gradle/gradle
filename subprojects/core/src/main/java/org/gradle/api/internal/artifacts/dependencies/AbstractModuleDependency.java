@@ -135,8 +135,15 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
-        target.setAttributes(attributes);
-        target.moduleDependencyCapabilities = moduleDependencyCapabilities;
+        if (attributes != null) {
+            // We can only have attributes if we have the factory, then need to copy
+            target.setAttributes(attributesFactory.mutable(attributes.asImmutable()));
+        }
+        target.setAttributesFactory(attributesFactory);
+        target.setCapabilityNotationParser(capabilityNotationParser);
+        if (moduleDependencyCapabilities != null) {
+            target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
+        }
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
@@ -236,7 +243,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return attributesFactory;
     }
 
-    void setAttributes(AttributeContainerInternal attributes) {
+    private void setAttributes(AttributeContainerInternal attributes) {
         this.attributes = attributes;
     }
 

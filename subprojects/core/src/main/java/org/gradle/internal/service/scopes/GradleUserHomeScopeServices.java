@@ -67,6 +67,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
@@ -83,7 +84,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -93,6 +93,7 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -150,8 +151,8 @@ public class GradleUserHomeScopeServices {
         return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
-    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultValueSnapshotter(classLoaderHierarchyHasher);
+    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {

@@ -27,7 +27,7 @@ import spock.lang.Unroll
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["5.6-20190626000031+0000"]
         runner.minimumVersion = "4.0"
     }
 

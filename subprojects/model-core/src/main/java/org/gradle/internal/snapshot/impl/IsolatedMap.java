@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-class IsolatedMap extends AbstractMapSnapshot<Isolatable<?>> implements Isolatable<Map<Object, Object>> {
+public class IsolatedMap extends AbstractMapSnapshot<Isolatable<?>> implements Isolatable<Map<Object, Object>> {
     public IsolatedMap(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
         super(entries);
     }

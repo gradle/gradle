@@ -36,6 +36,7 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
@@ -47,6 +48,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
+    private static ManagedFactoryRegistry managedFactoryRegistry
     private static ServiceRegistry services
 
     private final File rootDir
@@ -60,9 +62,18 @@ class TestUtil {
         if (instantiatorFactory == null) {
             NativeServicesTestFixture.initialize()
             def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
-            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers)
+            def managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
+            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, managedFactoryRegistry)
         }
         return instantiatorFactory
+    }
+
+    static ManagedFactoryRegistry managedFactoryRegistry() {
+        if (managedFactoryRegistry == null) {
+            NativeServicesTestFixture.initialize()
+            managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
+        }
+        return managedFactoryRegistry
     }
 
     static DomainObjectCollectionFactory domainObjectCollectionFactory() {

@@ -44,6 +44,12 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
             options.forkOptions.memoryInitialSize = compilerMemory
             options.forkOptions.memoryMaximumSize = compilerMemory
         }
+        tasks.withType<GroovyCompile> {
+            options.isFork = true
+            options.isIncremental = true
+            options.forkOptions.memoryInitialSize = compilerMemory
+            options.forkOptions.memoryMaximumSize = compilerMemory
+        }
         
         tasks.withType<Test> {
             ${config.useTestNG ? 'useTestNG()' : ''}
@@ -102,7 +108,7 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
 
     @Override
     protected String directDependencyDeclaration(String configuration, String notation) {
-        "\"$configuration\"(\"$notation\")"
+        notation.endsWith('()') ? "\"$configuration\"($notation)" : "\"$configuration\"(\"$notation\")"
     }
 
     @Override

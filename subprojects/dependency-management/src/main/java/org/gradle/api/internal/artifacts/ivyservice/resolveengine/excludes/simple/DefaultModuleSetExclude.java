@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -72,12 +71,7 @@ final class DefaultModuleSetExclude implements ModuleSetExclude {
     }
 
     @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec other) {
-        return equals(other);
-    }
-
-    @Override
     public String toString() {
-        return "{ module names = " + modules + '}';
+        return "{ \"module names\" : [" + ExcludeJsonHelper.toJson(modules) + "]}";
     }
 }

@@ -16,7 +16,9 @@
 
 package org.gradle.performance.generator
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.language.Language
+
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 abstract class FileContentGenerator {
@@ -25,7 +27,7 @@ abstract class FileContentGenerator {
         switch (config.dsl) {
             case KOTLIN:
                 return new KotlinDslFileContentGenerator(config)
-            case GROOVY:
+            case GradleDsl.GROOVY:
                 return new GroovyDslFileContentGenerator(config)
         }
     }
@@ -36,7 +38,7 @@ abstract class FileContentGenerator {
         this.config = config
     }
 
-    def generateBuildGradle(Integer subProjectNumber, DependencyTree dependencyTree) {
+    def generateBuildGradle(Language language, Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
             if (config.compositeBuild) {
@@ -59,6 +61,15 @@ abstract class FileContentGenerator {
             ${config.repositories.join("\n            ")}
         }
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}             
+
+        allprojects {
+            dependencies{
+        ${
+            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.7') : ""
+        }
+            }
+        }
+
 
         ${tasksConfiguration()}
 
@@ -109,6 +120,9 @@ abstract class FileContentGenerator {
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
+        ${->
+            config.systemProperties.entrySet().collect { "systemProp.${it.key}=${it.value}" }.join("\n")
+        }
         """
     }
 

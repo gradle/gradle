@@ -35,8 +35,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 
 public class BuildCacheCommandFactory {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheCommandFactory.class);
 
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
@@ -93,7 +89,6 @@ public class BuildCacheCommandFactory {
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) throws IOException {
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-            LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
             return new Result<LoadMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -175,7 +170,6 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            LOGGER.info("Packing {}", entity.getDisplayName());
             final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override

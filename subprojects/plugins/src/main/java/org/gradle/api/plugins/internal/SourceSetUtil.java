@@ -18,6 +18,7 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
@@ -32,7 +33,8 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 public class SourceSetUtil {
-    private SourceSetUtil() {}
+    private SourceSetUtil() {
+    }
 
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
         configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
@@ -42,10 +44,19 @@ public class SourceSetUtil {
     private static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
-        compile.getConventionMapping().map("classpath", new Callable<Object>() {
+
+        ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
+        classpath.from(new Callable<Object>() {
             @Override
             public Object call() {
                 return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
+            }
+        });
+
+        compile.getConventionMapping().map("classpath", new Callable<Object>() {
+            @Override
+            public Object call() {
+                return classpath;
             }
         });
         compile.setDestinationDir(target.provider(new Callable<File>() {

@@ -45,7 +45,7 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
 
     @Override
     public String toString() {
-        return "{exclude-rule " + moduleId + ":" + ivyArtifactName + " with matcher " + matcher.getName() + "}";
+        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + ivyArtifactName + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
     }
 
     @Override
@@ -75,20 +75,6 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
 
     private boolean matches(String expression, String input) {
         return matcher.getMatcher(expression).matches(input);
-    }
-
-    @Override
-    public boolean equalsIgnoreArtifact(ExcludeSpec o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultIvyPatternMatcherExcludeRuleSpec that = (DefaultIvyPatternMatcherExcludeRuleSpec) o;
-        return isArtifactExclude == that.isArtifactExclude &&
-            Objects.equal(moduleId, that.moduleId) &&
-            Objects.equal(matcher, that.matcher);
     }
 
     @Override

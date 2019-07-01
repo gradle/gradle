@@ -70,13 +70,6 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-tasks.named<Copy>("processSmokeTestResources").configure {
-    from("$rootDir/gradle/init-scripts") {
-        into("org/gradle/smoketests/cache-init-scripts")
-        include("overlapping-task-outputs-stats-init.gradle")
-    }
-}
-
 tasks.register<SmokeTest>("smokeTest") {
     group = "Verification"
     description = "Runs Smoke tests"

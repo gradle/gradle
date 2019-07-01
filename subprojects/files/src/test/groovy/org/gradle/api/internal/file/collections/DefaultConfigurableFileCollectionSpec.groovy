@@ -17,24 +17,26 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
-import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-class DefaultConfigurableFileCollectionSpec extends Specification {
+class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def fileResolver = Mock(FileResolver)
     def taskResolver = Mock(TaskResolver)
     def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskResolver)
 
-    def canCreateEmptyCollection() {
-        expect:
-        collection.from.empty
-        collection.files.empty
+    @Override
+    AbstractFileCollection containing(File... files) {
+        def resolver = Stub(FileResolver)
+        _ * resolver.resolve(_) >> { File f -> f }
+        return new DefaultConfigurableFileCollection("<display>", resolver, taskResolver, files as List)
     }
 
     def resolvesSpecifiedFilesUsingFileResolver() {
@@ -257,6 +259,39 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
         1 * callable.call() >> null
         0 * fileResolver._
         files.empty
+    }
+
+    def elementsProviderTracksChangesToContent() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def callable = Mock(Callable)
+
+        collection.from(callable)
+        def elements = collection.elements
+
+        when:
+        def f1 = elements.get()
+
+        then:
+        f1*.asFile == [file1, file2]
+
+        and:
+        1 * callable.call() >> ["src1", "src2"]
+        _ * fileResolver.resolve("src1") >> file1
+        _ * fileResolver.resolve("src2") >> file2
+        0 * _
+
+        when:
+        def f2 = elements.get()
+
+        then:
+        f2*.asFile == [file2]
+
+        and:
+        1 * callable.call() >> ["2"]
+        _ * fileResolver.resolve("2") >> file2
+        0 * _
     }
 
     def resolveAddsEachSourceObjectAndBuildDependencies() {
@@ -686,6 +721,126 @@ class DefaultConfigurableFileCollectionSpec extends Specification {
 
         then:
         collection.files as List == [file1, file2]
+    }
+
+    def cannotSpecifyPathsWhenChangesDisallowed() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+
+        when:
+        collection.setFrom('some', 'more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> cannot be changed.'
+    }
+
+    def cannotMutateFromSetWhenChangesDisallowed() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+
+        when:
+        collection.from.clear()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.from.add('b')
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.from.remove('a')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.from.iterator().remove()
+
+        then:
+        def e4 = thrown(IllegalStateException)
+        e4.message == 'The value for <display> cannot be changed.'
+    }
+
+    def cannotAddPathsWhenChangesDisallowed() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+
+        when:
+        collection.from('more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+    }
+
+    def cannotSpecifyPathsWhenChangesDisallowedAndImplicitlyFinalized() {
+        given:
+        collection.from('a')
+
+        collection.disallowChanges()
+        collection.implicitFinalizeValue()
+
+        when:
+        collection.setFrom('some', 'more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> cannot be changed.'
+    }
+
+    def resolvesClosureToFilesWhenChangesDisallowed() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        def closure = Mock(Closure)
+        collection.from(closure)
+
+        when:
+        collection.disallowChanges()
+
+        then:
+        0 * closure._
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+
+        and:
+        1 * closure.call() >> ['a', 'b']
+        0 * closure._
+        1 * fileResolver.resolve('a') >> file1
+        1 * fileResolver.resolve('b') >> file2
+        0 * fileResolver._
     }
 
     def canFinalizeWhenAlreadyFinalized() {

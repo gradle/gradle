@@ -16,16 +16,19 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
+import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -85,6 +88,36 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(this, collection);
+    }
+
+    @Override
+    public Provider<Set<FileSystemLocation>> getElements() {
+        return new AbstractProviderWithValue<Set<FileSystemLocation>>() {
+            @Nullable
+            @Override
+            public Class<Set<FileSystemLocation>> getType() {
+                return null;
+            }
+
+            @Override
+            public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+                // TODO - visit dependencies of this collection instead
+                context.add(AbstractFileCollection.this.getBuildDependencies());
+                return true;
+            }
+
+            @Override
+            public Set<FileSystemLocation> get() {
+                // TODO - visit the contents of this collection instead.
+                // This is just a super simple implementation for now
+                Set<File> files = getFiles();
+                ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+                for (File file : files) {
+                    builder.add(new DefaultFileSystemLocation(file));
+                }
+                return builder.build();
+            }
+        };
     }
 
     @Override
@@ -222,10 +255,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 return Iterators.filter(AbstractFileCollection.this.iterator(), predicate);
             }
         };
-    }
-
-    protected String getCapDisplayName() {
-        return StringUtils.capitalize(getDisplayName());
     }
 
     @Override

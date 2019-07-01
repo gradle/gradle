@@ -28,15 +28,17 @@ class WorkerDaemonClient implements BuildOperationAwareWorker, Stoppable {
     private final WorkerDaemonProcess workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private int uses;
     private boolean failed;
     private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
         this.logLevel = logLevel;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     @Override
@@ -47,7 +49,7 @@ class WorkerDaemonClient implements BuildOperationAwareWorker, Stoppable {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         uses++;
-        return workerDaemonProcess.execute(TransportableActionExecutionSpec.from(spec));
+        return workerDaemonProcess.execute(actionExecutionSpecFactory.newTransportableSpec(spec));
     }
 
     public boolean isCompatibleWith(DaemonForkOptions required) {

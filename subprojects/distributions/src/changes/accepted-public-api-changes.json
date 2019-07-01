@@ -65,6 +65,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getCompiler()",
+            "acceptation": "Removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.setCompiler(org.gradle.language.base.internal.compile.Compiler)",
+            "acceptation": "Removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "acceptation": "Common methods extracted to UrlArtifactRepository",

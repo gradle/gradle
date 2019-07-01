@@ -17,6 +17,7 @@
 package org.gradle.internal.instantiation
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.state.ManagedFactoryRegistry
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -26,7 +27,7 @@ import java.lang.annotation.RetentionPolicy
 
 
 class DefaultInstantiatorFactoryTest extends Specification {
-    def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), [handler(Annotation1), handler(Annotation2)])
+    def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), [handler(Annotation1), handler(Annotation2)], Mock(ManagedFactoryRegistry))
 
     def "creates scheme with requested annotations"() {
         expect:

@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude
@@ -56,20 +55,8 @@ class DefaultCompositeExcludeTest extends Specification {
 
             if (a == b) {
                 assert b == a
-                assert a.equalsIgnoreArtifact(b)
-                assert b.equalsIgnoreArtifact(a)
             } else {
-                if (a.equalsIgnoreArtifact(b)) {
-                    if (a instanceof CompositeExclude || b instanceof CompositeExclude) {
-                        println("$a\n   equalsIgnoreArtifact\n$b\n")
-                    }
-                }
-                assert !(b == a)
-            }
-            if (a.equalsIgnoreArtifact(b)) {
-                assert b.equalsIgnoreArtifact(a)
-            } else {
-                assert !b.equalsIgnoreArtifact(a)
+                assert b != a
             }
         }
         true

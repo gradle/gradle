@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.origin;
 
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.function.Consumer;
 
@@ -42,15 +43,15 @@ public class OriginMetadataFactory {
     private static final String HOST_NAME_KEY = "hostName";
     private static final String USER_NAME_KEY = "userName";
 
-    private final InetAddressFactory inetAddressFactory;
     private final String userName;
     private final String operatingSystem;
     private final String currentBuildInvocationId;
     private final Consumer<Properties> additionalProperties;
     private final File rootDir;
 
-    public OriginMetadataFactory(InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, String currentBuildInvocationId, Consumer<Properties> additionalProperties) {
-        this.inetAddressFactory = inetAddressFactory;
+    private volatile String localHostName;
+
+    public OriginMetadataFactory(File rootDir, String userName, String operatingSystem, String currentBuildInvocationId, Consumer<Properties> additionalProperties) {
         this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
@@ -70,12 +71,23 @@ public class OriginMetadataFactory {
                 properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime));
                 properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
                 properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
-                properties.setProperty(HOST_NAME_KEY, inetAddressFactory.getHostname());
+                properties.setProperty(HOST_NAME_KEY, determineHostName());
                 properties.setProperty(USER_NAME_KEY, userName);
                 additionalProperties.accept(properties);
                 properties.store(outputStream, "Generated origin information");
             }
         };
+    }
+
+    private String determineHostName() {
+        if (localHostName == null) {
+            try {
+                localHostName = InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException e) {
+                localHostName = "<unknown>";
+            }
+        }
+        return localHostName;
     }
 
     public OriginReader createReader(CacheableEntity entry) {

@@ -34,7 +34,7 @@ public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJava
     }
 
     @Override
-    protected Compiler<ScalaJavaJointCompileSpec> getCompiler() {
+    public Compiler<ScalaJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 

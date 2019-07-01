@@ -183,6 +183,84 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksExecuted(":a", ":b")
     }
 
+    def "dependency declared using orElse provider whose original value is task output file property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+            }
+            tasks.register("c") {
+                dependsOn taskA.output.orElse(taskB.output)
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":c")
+    }
+
+    def "dependency declared using orElse provider whose original value is task output file property and alternative value is constant implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+            }
+            tasks.register("c") {
+                dependsOn taskA.output.orElse([])
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":c")
+    }
+
+    def "dependency declared using orElse provider whose original value is missing and alternative value is task output file property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                // no output value
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+            }
+            tasks.register("c") {
+                dependsOn taskA.output.orElse(taskB.output)
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":b", ":c")
+    }
+
+    def "dependency declared using orElse provider whose original value is missing and  alternative value is constant does not imply task dependency"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                // no output value
+            }
+            tasks.register("b") {
+                dependsOn taskA.output.orElse([])
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":b")
+    }
+
     def "dependency declared using provider that returns task name implies dependency on task"() {
         buildFile << """
             def a = tasks.create("a")
@@ -476,6 +554,101 @@ The following types/formats are supported:
         then:
         result.assertTasksExecuted(":a", ":b")
         file("out.txt").text == "1"
+    }
+
+    def "input file property with value of orElse provider whose original value is task output file property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "a" 
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = taskA.output.orElse(taskB.output)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":c")
+        file("out.txt").text == "a"
+    }
+
+    def "input file property with value of orElse provider whose original value is task output file property and alternative value is constant implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "a" 
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = taskA.output.orElse(file("b.txt"))
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":c")
+        file("out.txt").text == "a"
+    }
+
+    def "input file property with value of orElse provider whose original value is missing and alternative value is task output file property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                // No output defined
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = taskA.output.orElse(taskB.output)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":b", ":c")
+        file("out.txt").text == "b"
+    }
+
+    def "input file property with value of orElse provider whose original value is missing and alternative value is constant does not imply dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile << """
+            def taskA = tasks.create("a", FileProducer) {
+                // No output defined
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = taskA.output.orElse(layout.projectDir.file("b.txt"))
+                outFile = file("out.txt")
+            }
+        """
+        file("b.txt").text = "b"
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":c")
+        file("out.txt").text == "b"
     }
 
     def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {

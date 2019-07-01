@@ -33,6 +33,7 @@ package org.gradle.plugin.use;
  * <p>
  * When used in a build script, the <code>plugins {}</code> block only allows a strict subset of the full build script programming language.
  * Only the API of this type can be used, and values must be literal (e.g. constant strings, not variables).
+ * Interpolated strings are permitted for {@link PluginDependencySpec#version(String)}, however replacement values must be sourced from Gradle properties.
  * Moreover, the <code>plugins {}</code> block must be the first code of a build script.
  * There is one exception to this, in that the {@code buildscript {}} block (used for declaring script dependencies) must precede it.
  * </p>

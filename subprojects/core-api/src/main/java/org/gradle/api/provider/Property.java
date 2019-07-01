@@ -39,7 +39,8 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property the given value, replacing whatever value the property already had.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param value The value, can be null.
      */
@@ -52,7 +53,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * When the given provider represents a task output, this property will also carry the task dependency information from the provider.
      * </p>
      *
-     * @param provider Provider
+     * @param provider The provider whose value to use.
      */
     void set(Provider<? extends T> provider);
 
@@ -66,6 +67,17 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @since 5.0
      */
     Property<T> value(@Nullable T value);
+
+    /**
+     * Sets the property to have the same value of the given provider, replacing whatever value the property already had. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider The provider whose value to use.
+     * @return this
+     * @since 5.6
+     */
+    Property<T> value(Provider<? extends T> provider);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.

@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.util.GUtil;
@@ -49,23 +49,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectoryFileTree.class);
-    private static final Factory<DirectoryWalker> DEFAULT_DIRECTORY_WALKER_FACTORY = new DefaultDirectoryWalkerFactory();
+    private static final DirectoryWalker DEFAULT_DIRECTORY_WALKER = new DefaultDirectoryWalker(FileSystems.getDefault());
     private static final DirectoryWalker REPRODUCIBLE_DIRECTORY_WALKER = new ReproducibleDirectoryWalker(FileSystems.getDefault());
 
     private final File dir;
     private final PatternSet patternSet;
     private final boolean postfix;
     private final FileSystem fileSystem;
-    private final Factory<DirectoryWalker> directoryWalkerFactory;
 
     public DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem) {
-        this(dir, patternSet, DEFAULT_DIRECTORY_WALKER_FACTORY, fileSystem, false);
+        this(dir, patternSet, fileSystem, false);
     }
 
-    DirectoryFileTree(File dir, PatternSet patternSet, Factory<DirectoryWalker> directoryWalkerFactory, FileSystem fileSystem, boolean postfix) {
+    @VisibleForTesting
+    public DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem, boolean postfix) {
         this.patternSet = patternSet;
         this.dir = dir;
-        this.directoryWalkerFactory = directoryWalkerFactory;
         this.fileSystem = fileSystem;
         this.postfix = postfix;
     }
@@ -101,7 +100,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     public DirectoryFileTree filter(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
         patternSet.copyFrom(patterns);
-        return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory, fileSystem, postfix);
+        return new DirectoryFileTree(dir, patternSet, fileSystem, postfix);
     }
 
     @Override
@@ -156,7 +155,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         if (visitor instanceof ReproducibleFileVisitor && ((ReproducibleFileVisitor) visitor).isReproducibleFileOrder()) {
             directoryWalker = REPRODUCIBLE_DIRECTORY_WALKER;
         } else {
-            directoryWalker = directoryWalkerFactory.create();
+            directoryWalker = DEFAULT_DIRECTORY_WALKER;
         }
         directoryWalker.walkDir(file, path, visitor, spec, stopFlag, postfix);
     }
@@ -174,7 +173,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         if (postfix) {
             return this;
         }
-        return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory, fileSystem, true);
+        return new DirectoryFileTree(dir, patternSet, fileSystem, true);
     }
 
     public PatternSet getPatternSet() {

@@ -103,7 +103,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle() >> true
     }
-    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher)
+    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")

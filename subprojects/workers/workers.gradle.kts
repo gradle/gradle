@@ -34,6 +34,7 @@ dependencies {
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":internalIntegTesting"))
 
+    testFixturesImplementation(library("inject"))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
 }

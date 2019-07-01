@@ -68,7 +68,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * Sets the value of this property to the entries of the given Map, and replaces any existing value.
      * This property will query the entries of the map each time the value of this property is queried.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param entries the entries, can be {@code null}
      */
@@ -83,6 +84,31 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * @param provider Provider of the entries.
      */
     void set(Provider<? extends Map<? extends K, ? extends V>> provider);
+
+    /**
+     * Sets the value of this property to the entries of the given Map, and replaces any existing value.
+     * This property will query the entries of the map each time the value of this property is queried.
+     *
+     * <p>This is the same as {@link #set(Map)} but returns this property to allow method chaining.</p>
+     *
+     * @param entries the entries, can be {@code null}
+     * @return this
+     * @since 5.6
+     */
+    MapProperty<K, V> value(@Nullable Map<? extends K, ? extends V> entries);
+
+    /**
+     * Sets the property to have the same value of the given provider, and replaces any existing value.
+     *
+     * This property will track the value of the provider and query its value each time the value of this property is queried.
+     * When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider Provider of the entries.
+     * @since 5.6
+     */
+    MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
      * Adds a map entry to the property value.

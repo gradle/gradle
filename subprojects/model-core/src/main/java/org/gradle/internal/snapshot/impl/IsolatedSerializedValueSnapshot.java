@@ -54,4 +54,8 @@ public class IsolatedSerializedValueSnapshot extends SerializedValueSnapshot imp
         }
         return null;
     }
+
+    public Class<?> getOriginalClass() {
+        return originalClass;
+    }
 }

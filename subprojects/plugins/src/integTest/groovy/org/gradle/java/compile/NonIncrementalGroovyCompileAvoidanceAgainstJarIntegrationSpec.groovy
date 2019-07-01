@@ -16,8 +16,10 @@
 
 package org.gradle.java.compile
 
+import org.gradle.integtests.fixtures.CompiledLanguage
+
 class NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec extends AbstractGroovyCompileAvoidanceIntegrationSpec implements AbstractJavaGroovyCompileAvoidanceAgainstJarIntegrationSpec {
-    Language language = Language.GROOVY
+    CompiledLanguage language = CompiledLanguage.GROOVY
     boolean incremental = true
     boolean useJar = true
 }

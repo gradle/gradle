@@ -24,22 +24,10 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
+/**
+ * A partial {@link Provider} implementation.
+ */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
-    private static final Factory FACTORY = new Factory() {
-        @Nullable
-        @Override
-        public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(Provider.class)) {
-                return null;
-            }
-            if (state == null) {
-                return type.cast(Providers.notDefined());
-            } else {
-                return type.cast(Providers.of(state));
-            }
-        }
-    };
-
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
         return new TransformBackedProvider<S, T>(transformer, this);
@@ -62,6 +50,16 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             return defaultValue;
         }
         return value;
+    }
+
+    @Override
+    public Provider<T> orElse(T value) {
+        return new OrElseFixedValueProvider<T>(this, value);
+    }
+
+    @Override
+    public Provider<T> orElse(Provider<? extends T> provider) {
+        return new OrElseProvider<T>(this, Providers.internal(provider));
     }
 
     @Override
@@ -101,13 +99,13 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public Factory managedFactory() {
-        return FACTORY;
+    public Object unpackState() {
+        return getOrNull();
     }
 
     @Override
-    public Object unpackState() {
-        return getOrNull();
+    public int getFactoryId() {
+        return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
     }
 
     private static class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
@@ -166,6 +164,77 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         @Override
         public String toString() {
             return "flatmap(" + provider + ")";
+        }
+    }
+
+    private static class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
+        private final ProviderInternal<T> provider;
+        private final T value;
+
+        public OrElseFixedValueProvider(ProviderInternal<T> provider, T value) {
+            this.provider = provider;
+            this.value = value;
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return provider.getType();
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (provider.isPresent()) {
+                return provider.maybeVisitBuildDependencies(context);
+            } else {
+                return super.maybeVisitBuildDependencies(context);
+            }
+        }
+
+        @Override
+        public T get() {
+            T value = provider.getOrNull();
+            return value != null ? value : this.value;
+        }
+    }
+
+    private static class OrElseProvider<T> extends AbstractReadOnlyProvider<T> {
+        private final ProviderInternal<T> left;
+        private final ProviderInternal<? extends T> right;
+
+        public OrElseProvider(ProviderInternal<T> left, ProviderInternal<? extends T> right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return left.getType();
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (left.isPresent()) {
+                return left.maybeVisitBuildDependencies(context);
+            } else {
+                return right.maybeVisitBuildDependencies(context);
+            }
+        }
+
+        @Override
+        public boolean isPresent() {
+            return left.isPresent() || right.isPresent();
+        }
+
+        @Nullable
+        @Override
+        public T getOrNull() {
+            T value = left.getOrNull();
+            if (value == null) {
+                value = right.getOrNull();
+            }
+            return value;
         }
     }
 }

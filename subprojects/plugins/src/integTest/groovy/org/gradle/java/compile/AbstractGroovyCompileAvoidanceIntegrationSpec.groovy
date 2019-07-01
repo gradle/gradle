@@ -16,9 +16,11 @@
 
 package org.gradle.java.compile
 
+import org.gradle.integtests.fixtures.CompiledLanguage
+
 
 abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
-    Language language = Language.GROOVY
+    CompiledLanguage language = CompiledLanguage.GROOVY
 
     private String goodAstTransformation() {
         """
@@ -76,7 +78,7 @@ public class MyASTTransformation extends AbstractASTTransformation {
                 }
                 
                 tasks.withType(GroovyCompile) {
-                    compilerPluginClasspath.from(configurations.astTransformation)
+                    astTransformationClasspath.from(configurations.astTransformation)
                 }
             }
         """

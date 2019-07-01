@@ -16,8 +16,10 @@
 
 package org.gradle.java.compile
 
+import org.gradle.integtests.fixtures.CompiledLanguage
+
 class IncrementalJavaAvoidanceAgainstClassDirIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
-    Language language = Language.JAVA
+    CompiledLanguage language = CompiledLanguage.JAVA
     boolean useJar = false
     boolean incremental = true
 }

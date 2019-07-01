@@ -104,7 +104,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
             tasks.withType<JavaCompile>().configureEach {
-                options.isIncremental = true
                 configureCompileTask(this, options, availableJavaInstallations)
             }
             tasks.withType<GroovyCompile>().configureEach {
@@ -119,6 +118,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
         options.isFork = true
         options.encoding = "utf-8"
+        options.isIncremental = true
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
         val jdkForCompilation = availableJavaInstallations.javaInstallationForCompilation
         if (!jdkForCompilation.current) {

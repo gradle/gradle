@@ -206,8 +206,8 @@ public class IdeDependencySet {
 
         private void visitArtifacts(IdeDependencyVisitor visitor) {
             for (ResolvedArtifactResult artifact : resolvedArtifacts.values()) {
+                ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
                 ComponentArtifactIdentifier artifactIdentifier = artifact.getId();
-                ComponentIdentifier componentIdentifier = artifactIdentifier.getComponentIdentifier();
                 if (componentIdentifier instanceof ProjectComponentIdentifier) {
                     visitor.visitProjectDependency(artifact);
                 } else if (componentIdentifier instanceof ModuleComponentIdentifier) {

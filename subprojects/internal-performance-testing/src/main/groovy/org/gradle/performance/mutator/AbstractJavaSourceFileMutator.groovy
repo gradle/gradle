@@ -20,8 +20,8 @@ abstract class AbstractJavaSourceFileMutator extends AbstractFileChangeMutator {
 
     AbstractJavaSourceFileMutator(String sourceFilePath) {
         super(sourceFilePath)
-        if (!sourceFilePath.endsWith(".java")) {
-            throw new IllegalArgumentException("Can only modify Java source files")
+        if (!sourceFilePath.endsWith(".java") && !sourceFilePath.endsWith('.groovy')) {
+            throw new IllegalArgumentException("Can only modify Java/Groovy source files")
         }
     }
 

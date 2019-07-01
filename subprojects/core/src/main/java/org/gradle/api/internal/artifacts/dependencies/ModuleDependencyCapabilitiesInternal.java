@@ -22,4 +22,6 @@ import java.util.List;
 
 public interface ModuleDependencyCapabilitiesInternal extends ModuleDependencyCapabilitiesHandler {
     List<Capability> getRequestedCapabilities();
+
+    ModuleDependencyCapabilitiesInternal copy();
 }

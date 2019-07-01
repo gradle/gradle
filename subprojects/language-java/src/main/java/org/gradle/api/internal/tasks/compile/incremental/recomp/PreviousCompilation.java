@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 public class PreviousCompilation {
-
     private final PreviousCompilationData data;
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;

@@ -1,3 +1,4 @@
  - PMD incremental analysis support
  - JavaExec supports executable jar
- - TBD
+ - Test fixtures for Java projects
+ - Manage plugin versions via settings script

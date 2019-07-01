@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization
 
-import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
@@ -55,7 +54,7 @@ class DefaultWriteContext(
     override fun writeString(string: CharSequence) =
         encoder.writeString(string)
 
-    override fun newIsolate(owner: Task): WriteIsolate =
+    override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
 }
 
@@ -91,9 +90,13 @@ class DefaultReadContext(
     override lateinit var classLoader: ClassLoader
 
     internal
-    fun initialize(projectProvider: ProjectProvider, classLoader: ClassLoader) {
-        this.projectProvider = projectProvider
+    fun initClassLoader(classLoader: ClassLoader) {
         this.classLoader = classLoader
+    }
+
+    internal
+    fun initProjectProvider(projectProvider: ProjectProvider) {
+        this.projectProvider = projectProvider
     }
 
     override fun read(): Any? = decoding.run {
@@ -109,7 +112,7 @@ class DefaultReadContext(
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)
 
-    override fun newIsolate(owner: Task): ReadIsolate =
+    override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
 }
 
@@ -133,7 +136,7 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
     var trace: PropertyTrace = PropertyTrace.Unknown
 
     protected
-    abstract fun newIsolate(owner: Task): T
+    abstract fun newIsolate(owner: IsolateOwner): T
 
     protected
     fun getIsolate(): T = currentIsolate.let { isolate ->
@@ -143,7 +146,7 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
         isolate
     }
 
-    override fun enterIsolate(owner: Task) {
+    override fun enterIsolate(owner: IsolateOwner) {
         require(currentIsolate === null)
         currentIsolate = newIsolate(owner)
     }
@@ -156,14 +159,14 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
 
 
 internal
-class DefaultWriteIsolate(override val owner: Task) : WriteIsolate {
+class DefaultWriteIsolate(override val owner: IsolateOwner) : WriteIsolate {
 
     override val identities: WriteIdentities = WriteIdentities()
 }
 
 
 internal
-class DefaultReadIsolate(override val owner: Task) : ReadIsolate {
+class DefaultReadIsolate(override val owner: IsolateOwner) : ReadIsolate {
 
     override val identities: ReadIdentities = ReadIdentities()
 }

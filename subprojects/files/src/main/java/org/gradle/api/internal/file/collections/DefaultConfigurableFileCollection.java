@@ -28,8 +28,8 @@ import org.gradle.internal.state.Managed;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.AbstractSet;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +42,7 @@ import java.util.Set;
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal {
     private enum State {
-        Mutable, FinalizeNextQuery, FinalLenient, FinalStrict
+        Mutable, FinalizeNextQuery, Final
     }
 
     private final Set<Object> files;
@@ -51,24 +51,25 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
     private State state = State.Mutable;
+    private boolean disallowChanges;
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
-        this("file collection", fileResolver, taskResolver, null);
+        this(null, fileResolver, taskResolver, null);
     }
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Collection<?> files) {
-        this("file collection", fileResolver, taskResolver, files);
+        this(null, fileResolver, taskResolver, files);
     }
 
     public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Object[] files) {
         this("file collection", fileResolver, taskResolver, Arrays.asList(files));
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
+    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this(displayName, fileResolver, taskResolver, null);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
+    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new LinkedHashSet<Object>();
@@ -95,25 +96,17 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
-            @Nullable
-            @Override
-            public <T> T fromState(Class<T> type, Object state) {
-                if (!type.isAssignableFrom(ConfigurableFileCollection.class)) {
-                    return null;
-                }
-                return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
-            }
-        };
+    public void finalizeValue() {
+        if (state != State.Final) {
+            calculateFinalizedValue();
+        }
+        state = State.Final;
+        disallowChanges = true;
     }
 
     @Override
-    public void finalizeValue() {
-        if (state != State.FinalStrict) {
-            calculateFinalizedValue();
-            state = State.FinalStrict;
-        }
+    public void disallowChanges() {
+        disallowChanges = true;
     }
 
     @Override
@@ -123,9 +116,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
+    public int getFactoryId() {
+        return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
+    }
+
     @Override
     public String getDisplayName() {
-        return displayName;
+        return displayName == null ? "file collection" : displayName;
     }
 
     @Override
@@ -158,14 +155,20 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private boolean assertMutable() {
-        if (state == State.FinalStrict) {
-            throw new IllegalStateException("The value for " + displayName + " is final and cannot be changed.");
-        } else if (state == State.FinalLenient) {
+        if (state == State.Final && disallowChanges) {
+            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
+        } else if (disallowChanges) {
+            throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
+        } else if (state == State.Final) {
             DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a FileCollection with a final value");
             return false;
         } else {
             return true;
         }
+    }
+
+    private String displayNameForThisCollection() {
+        return displayName == null ? "this file collection" : displayName;
     }
 
     @Override
@@ -197,9 +200,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void visitContents(FileCollectionResolveContext context) {
         if (state == State.FinalizeNextQuery) {
             calculateFinalizedValue();
-            state = State.FinalLenient;
+            state = State.Final;
         }
-        if (state == State.FinalStrict || state == State.FinalLenient) {
+        if (state == State.Final) {
             context.addAll(files);
         } else {
             UnpackingVisitor nested = new UnpackingVisitor(context, resolver);

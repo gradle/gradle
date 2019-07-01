@@ -17,8 +17,6 @@ package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -203,7 +201,6 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         succeeds("test", "--tests", 'FooTest.missingMethod')
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "task is out of date when --tests argument changes"() {
         file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {

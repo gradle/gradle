@@ -18,15 +18,15 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
 
-class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> implements Isolatable<Object> {
-    private final Managed.Factory factory;
+public class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> implements Isolatable<Object> {
+    private final ManagedFactory factory;
     private final Class<?> targetType;
 
-    public IsolatedManagedValue(Class<?> targetType, Managed.Factory factory, Isolatable<?> state) {
+    public IsolatedManagedValue(Class<?> targetType, ManagedFactory factory, Isolatable<?> state) {
         super(state);
         this.targetType = targetType;
         this.factory = factory;
@@ -49,5 +49,13 @@ class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> i
             return type.cast(isolate());
         }
         return type.cast(factory.fromState(type, state.isolate()));
+    }
+
+    public int getFactoryId() {
+        return factory.getId();
+    }
+
+    public Class<?> getTargetType() {
+        return targetType;
     }
 }

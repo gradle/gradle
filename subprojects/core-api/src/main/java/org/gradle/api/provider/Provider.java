@@ -28,22 +28,22 @@ import java.util.concurrent.Callable;
  * A container object that provides a value of a specific type. The value can be retrieved using one of the query methods such as {@link #get()} or {@link #getOrNull()}.
  *
  * <p>
- *  A provider may not always have a value available, for example when the value may not yet be known but will be known at some point in the future.
- *  When a value is not available, {@link #isPresent()} returns {@code false} and retrieving the value will fail with an exception.
+ * A provider may not always have a value available, for example when the value may not yet be known but will be known at some point in the future.
+ * When a value is not available, {@link #isPresent()} returns {@code false} and retrieving the value will fail with an exception.
  * </p>
  *
  * <p>
- *  A provider may not always provide the same value. Although there are no methods on this interface to change the value,
- *  the provider implementation may be mutable or use values from some changing source. A provider may also provide a value that is mutable and that changes over time.
+ * A provider may not always provide the same value. Although there are no methods on this interface to change the value,
+ * the provider implementation may be mutable or use values from some changing source. A provider may also provide a value that is mutable and that changes over time.
  * </p>
  *
  * <p>
- *  A provider may be used to represent a task output. Such a provider carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
+ * A provider may be used to represent a task output. Such a provider carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
  * </p>
  *
  * <p>
- *  A typical use of a provider is to pass values from one Gradle model element to another, e.g. from a project extension to a task, or between tasks.
- *  Providers also allow expensive computations to be deferred until their value is actually needed, usually at task execution time.
+ * A typical use of a provider is to pass values from one Gradle model element to another, e.g. from a project extension to a task, or between tasks.
+ * Providers also allow expensive computations to be deferred until their value is actually needed, usually at task execution time.
  * </p>
  *
  * <p>There are a number of ways to create a {@link Provider} instance. Some common methods:</p>
@@ -128,4 +128,22 @@ public interface Provider<T> {
      * @return {@code true} if there is a value present, otherwise {@code false}
      */
     boolean isPresent();
+
+    /**
+     * Returns a {@link Provider} whose value is the value of this provider, if present, otherwise the given default value.
+     *
+     * @param value The default value to use when this provider has no value.
+     * @since 5.6
+     */
+    @Incubating
+    Provider<T> orElse(T value);
+
+    /**
+     * Returns a {@link Provider} whose value is the value of this provider, if present, otherwise uses the value from the given provider, if present.
+     *
+     * @param provider The provider whose value should be used when this provider has no value.
+     * @since 5.6
+     */
+    @Incubating
+    Provider<T> orElse(Provider<? extends T> provider);
 }

@@ -22,7 +22,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
-import org.gradle.api.internal.provider.DefaultPropertyState
+import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -104,7 +104,7 @@ class BeanPropertyReader(
                 })
             }
             Property::class.java -> { bean, value ->
-                field.set(bean, DefaultPropertyState(Any::class.java).apply {
+                field.set(bean, DefaultProperty(Any::class.java).apply {
                     set(value)
                 })
             }

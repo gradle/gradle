@@ -64,7 +64,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def state = n1.unpackState()
         state == "a"
 
-        def n2 = n1.managedFactory().fromState(Named, state)
+        def n2 = factory.fromState(Named, state)
         n2.is(n1)
     }
 
@@ -107,7 +107,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def state = n1.unpackState()
         state == "a"
 
-        def n2 = n1.managedFactory().fromState(CustomNamed, state)
+        def n2 = factory.fromState(CustomNamed, state)
         n2.is(n1)
     }
 
@@ -191,7 +191,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def state = n1.unpackState()
         state == "a"
 
-        def n2 = n1.managedFactory().fromState(AbstractNamed, state)
+        def n2 = factory.fromState(AbstractNamed, state)
         n2.is(n1)
     }
 

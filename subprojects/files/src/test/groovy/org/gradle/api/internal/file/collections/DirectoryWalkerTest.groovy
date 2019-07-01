@@ -16,48 +16,25 @@
 
 package org.gradle.api.internal.file.collections
 
-import com.google.common.base.Charsets
-import org.gradle.api.JavaVersion
+
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.ReproducibleFileVisitor
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.gradle.util.UsesNativeServices
-import spock.lang.Issue
 
-import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
 @UsesNativeServices
 class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     @Override
     protected List<DirectoryWalker> getWalkers() {
-        return [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
-    }
-
-    // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
-    // bug seems to show up only on JDK7 when file.encoding != sun.jnu.encoding
-    @Issue("GRADLE-2181")
-    @Requires(adhoc = { JavaVersion.current().isJava7() && (System.getProperty("sun.jnu.encoding") == null || Charset.forName(System.getProperty("sun.jnu.encoding")).contains(Charsets.UTF_8)) })
-    def "check that JDK7 walker gets picked with Unicode encoding as default"() {
-        setup:
-        System.setProperty("file.encoding", fileEncoding)
-        Charset.defaultCharset = null
-        def directoryWalkerFactory = TestFiles.directoryFileTreeFactory().create(tmpDir.createDir("root")).directoryWalkerFactory
-        directoryWalkerFactory.reset()
-        expect:
-        directoryWalkerFactory.create().class.simpleName == expectedClassName
-        where:
-        fileEncoding | expectedClassName
-        "UTF-8"      | "Jdk7DirectoryWalker"
-        "UTF-16be" | "Jdk7DirectoryWalker"
-        "UTF-16le" | "Jdk7DirectoryWalker"
-        "UTF-16"   | "Jdk7DirectoryWalker"
-        "ISO-8859-1" | "DefaultDirectoryWalker"
+        return [
+            new DefaultDirectoryWalker(TestFiles.fileSystem()),
+            new ReproducibleDirectoryWalker(TestFiles.fileSystem())
+        ]
     }
 
     def "both DirectoryWalker implementations return same set of files and attributes"() {
@@ -66,13 +43,22 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
 
         when:
-        def visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker())
-        def visitedWithDefaultWalker = walkFiles(rootDir, new DefaultDirectoryWalker())
+        def visitedWithReproducibleWalker = walkFiles(rootDir, true)
+        def visitedWithDefaultWalker = walkFiles(rootDir, false)
 
         then:
         visitedWithDefaultWalker.size() == 340
-        visitedWithDefaultWalker.size() == visitedWithJdk7Walker.size()
-        checkFileVisitDetailsEqual(visitedWithDefaultWalker, visitedWithJdk7Walker)
+        visitedWithDefaultWalker.size() == visitedWithReproducibleWalker.size()
+        checkFileVisitDetailsEqual(visitedWithDefaultWalker, visitedWithReproducibleWalker)
+    }
+
+    private static List<FileVisitDetails> walkFiles(rootDir, isReproducible) {
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), TestFiles.fileSystem(), false)
+        def visited = []
+        def visitClosure = { visited << it }
+        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure, isReproducibleFileOrder: { isReproducible }] as ReproducibleFileVisitor
+        fileTree.visit(fileVisitor)
+        visited
     }
 
     private static void checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
@@ -102,27 +88,17 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         }
     }
 
-    private static List<FileVisitDetails> walkFiles(rootDir, walkerInstance) {
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
-        def visited = []
-        def visitClosure = { visited << it }
-        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-        fileTree.visit(fileVisitor)
-        visited
-    }
-
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        long minimumTimestamp = (System.currentTimeMillis()/1000 * 1000) - 2000
+        long minimumTimestamp = (System.currentTimeMillis() / 1000 * 1000) - 2000
         def file1 = rootDir.createFile("a/b/1.txt")
         file1 << '12345'
         def file2 = rootDir.createFile("a/b/2.txt")
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def walkerInstance = new Jdk7DirectoryWalker()
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), TestFiles.fileSystem(), false)
         def visitedFiles = []
         def visitedDirectories = []
         def fileVisitor = [visitFile: { visitedFiles << it }, visitDir: { visitedDirectories << it }] as FileVisitor
@@ -147,7 +123,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, TestFiles.fileSystem(), false)
         fileTree.visit(fileVisitor)
         return visited
     }

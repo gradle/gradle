@@ -25,7 +25,7 @@ class ApplyAbiChangeToJavaSourceFileMutator extends AbstractJavaSourceFileMutato
     @Override
     protected void applyChangeAt(StringBuilder text, int lastMethodEndPos) {
         String method = "_m" + uniqueText + "()"
-        text.insert(lastMethodEndPos + 1, "public void " + method + " { }")
+        text.insert(lastMethodEndPos + 1, "\npublic void " + method + " { }")
         text.insert(lastMethodEndPos, method + ";")
     }
 }

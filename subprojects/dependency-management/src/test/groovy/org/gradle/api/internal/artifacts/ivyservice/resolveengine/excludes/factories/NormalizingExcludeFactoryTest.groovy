@@ -16,24 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
-import com.google.common.collect.ImmutableSet
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
-class NormalizingExcludeFactoryTest extends Specification {
+class NormalizingExcludeFactoryTest extends Specification implements ExcludeTestSupport {
 
-    @Shared
-    private ExcludeFactory delegate = new DefaultExcludeFactory()
-
-    @Subject
-    private NormalizingExcludeFactory factory = new NormalizingExcludeFactory(delegate)
+    def setup() {
+        factory = new NormalizingExcludeFactory(factory)
+    }
 
     @Shared
     private DefaultIvyArtifactName artifactName = new DefaultIvyArtifactName("a", "b", "c")
@@ -47,16 +39,24 @@ class NormalizingExcludeFactoryTest extends Specification {
         factory.anyOf(right, left) == expected
 
         where:
-        left                               | right         | expected
-        everything()                       | nothing()     | everything()
-        everything()                       | everything()  | everything()
-        nothing()                          | nothing()     | nothing()
-        everything()                       | group("foo")  | everything()
-        nothing()                          | group("foo")  | group("foo")
-        //group("foo")                       | group("bar")         | anyOf(group("foo"), group("bar"))
-        group("foo")                       | module("bar") | anyOf(group("foo"), module("bar"))
-        //anyOf(group("foo"), group("bar"))  | group("foo")         | anyOf(group("foo"), group("bar"))
-        anyOf(group("foo"), module("bar")) | module("bar") | anyOf(module("bar"), group("foo"))
+        left                                        | right                                       | expected
+        everything()                                | nothing()                                   | everything()
+        everything()                                | everything()                                | everything()
+        nothing()                                   | nothing()                                   | nothing()
+        everything()                                | group("foo")                                | everything()
+        nothing()                                   | group("foo")                                | group("foo")
+        group("foo")                                | group("bar")                                | groupSet("foo", "bar")
+        group("foo")                                | module("bar")                               | anyOf(group("foo"), module("bar"))
+        anyOf(group("foo"), group("bar"))           | group("foo")                                | groupSet("foo", "bar")
+        anyOf(group("foo"), module("bar"))          | module("bar")                               | anyOf(module("bar"), group("foo"))
+        moduleId("org", "a")                        | moduleId("org", "b")                        | moduleIdSet(["org", "a"], ["org", "b"])
+        module("org")                               | module("org2")                              | moduleSet("org", "org2")
+        groupSet("org", "org2")                     | groupSet("org3", "org4")                    | groupSet("org", "org2", "org3", "org4")
+        moduleSet("mod", "mod2")                    | moduleSet("mod3", "mod4")                   | moduleSet("mod", "mod2", "mod3", "mod4")
+        moduleIdSet(["org", "foo"], ["org", "bar"]) | moduleIdSet(["org", "baz"], ["org", "quz"]) | moduleIdSet(["org", "foo"], ["org", "bar"], ["org", "baz"], ["org", "quz"])
+        module("mod")                               | moduleSet("m1", "m2")                       | moduleSet("m1", "m2", "mod")
+        group("g1")                                 | groupSet("g2", "g3")                        | groupSet("g1", "g2", "g3")
+        moduleId("g1", "m1")                        | moduleIdSet(["g2", "m2"], ["g3", "m3"])     | moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])
     }
 
     @Unroll("#one ∪ #two ∪ #three = #expected")
@@ -72,7 +72,7 @@ class NormalizingExcludeFactoryTest extends Specification {
         everything() | everything() | everything() | everything()
         nothing()    | nothing()    | nothing()    | nothing()
         everything() | group("foo") | everything() | everything()
-        //group("foo") | group("bar") | group("baz") | anyOf(group("foo"), group("bar"), group("baz"))
+        group("foo") | group("bar") | group("baz") | groupSet("foo", "bar", "baz")
     }
 
     @Unroll("#left ∩ #right = #expected")
@@ -92,46 +92,27 @@ class NormalizingExcludeFactoryTest extends Specification {
         nothing()                          | group("foo")  | nothing()
         group("foo")                       | group("foo")  | group("foo")
         allOf(group("foo"), group("foo2")) | module("bar") | nothing()
-        allOf(group("foo"), module("bar")) | module("bar") | module("foo", "bar")
+        allOf(group("foo"), module("bar")) | module("bar") | moduleId("foo", "bar")
     }
 
-    private ExcludeSpec nothing() {
-        delegate.nothing()
-    }
+    @Unroll("#one ∩ #two ∩ #three = #expected")
+    def "intersection of three elements"() {
+        expect:
+        [one, two, three].combinations().each { list ->
+            assert factory.allOf(list as Set) == expected
+        }
 
-    private ExcludeSpec everything() {
-        delegate.everything()
-    }
-
-    private ExcludeSpec group(String group) {
-        delegate.group(group)
-    }
-
-    private ExcludeSpec module(String module) {
-        delegate.module(module)
-    }
-
-    private ExcludeSpec module(String group, String name) {
-        delegate.moduleId(DefaultModuleIdentifier.newId(group, name))
-    }
-
-    private ExcludeSpec anyOf(ExcludeSpec... specs) {
-        delegate.anyOf(ImmutableSet.copyOf(specs))
-    }
-
-    private ExcludeSpec allOf(ExcludeSpec... specs) {
-        delegate.allOf(ImmutableSet.copyOf(specs))
-    }
-
-    private ExcludeSpec ivy(String group, String module, IvyArtifactName artifact, String matcher) {
-        delegate.ivyPatternExclude(
-            DefaultModuleIdentifier.newId(group, module),
-            artifact,
-            matcher
-        )
-    }
-
-    private static IvyArtifactName artifact(String name) {
-        new DefaultIvyArtifactName(name, "jar", "jar")
+        where:
+        one                                                   | two                                         | three                                                                      | expected
+        everything()                                          | nothing()                                   | nothing()                                                                  | nothing()
+        everything()                                          | everything()                                | everything()                                                               | everything()
+        nothing()                                             | nothing()                                   | nothing()                                                                  | nothing()
+        everything()                                          | group("foo")                                | everything()                                                               | group("foo")
+        group("foo")                                          | group("bar")                                | group("baz")                                                               | nothing()
+        group("foo")                                          | module("bar")                               | groupSet("foo", "bar")                                                     | moduleId("foo", "bar")
+        moduleId("org", "foo")                                | ivy("org", "mod", artifact("mod"), "exact") | group("org")                                                               | allOf(moduleId("org", "foo"), ivy("org", "mod", artifact("mod"), "exact"))
+        anyOf(moduleId("org", "foo"), moduleId("org", "bar")) | ivy("org", "mod", artifact("mod"), "exact") | anyOf(group("org"), module("bar"))                                         | allOf(moduleIdSet(["org", "foo"], ["org", "bar"]), ivy("org", "mod", artifact("mod"), "exact"))
+        anyOf(moduleId("org", "foo"), moduleId("org", "bar")) | ivy("org", "mod", artifact("mod"), "exact") | anyOf(moduleId("org", "foo"), module("bar"))                               | allOf(moduleIdSet(["org", "foo"], ["org", "bar"]), ivy("org", "mod", artifact("mod"), "exact"))
+        anyOf(moduleId("org", "foo"), moduleId("org", "bar")) | ivy("org", "mod", artifact("mod"), "exact") | anyOf(moduleId("org", "foo"), ivy("org", "mod", artifact("mod"), "exact")) | allOf(anyOf(moduleId("org", "foo"), moduleId("org", "bar")), ivy("org", "mod", artifact("mod"), "exact"))
     }
 }

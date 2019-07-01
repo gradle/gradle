@@ -16,8 +16,6 @@
 package org.gradle.api.plugins.quality.jdepend
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -56,7 +54,6 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/jdepend/test.xml").assertContents(containsString("org.gradle.Class1Test"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
         goodCode()
@@ -76,7 +73,6 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         executedAndNotSkipped(":jdependMain")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "out-of-date when mixed with Java and Groovy code"() {
         given:
         goodCode()
