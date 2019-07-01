@@ -44,6 +44,8 @@ object ProgramParser {
 
         checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
 
+        checkForTopLevelBlockOrder(topLevelBlocks)
+
         val sourceWithoutComments =
             source.map { it.erase(comments) }
 
@@ -111,6 +113,17 @@ object ProgramParser {
 }
 
 
+internal
+fun checkForTopLevelBlockOrder(
+    topLevelBlocks: List<TopLevelBlock>
+) {
+    val pluginManagementBlock = topLevelBlocks.find { it.identifier == "pluginManagement" } ?: return
+    val firstTopLevelBlock = topLevelBlocks.first()
+    if (firstTopLevelBlock.identifier != "pluginManagement") {
+        throw UnexpectedBlockOrder(firstTopLevelBlock.identifier, firstTopLevelBlock.range, pluginManagementBlock.identifier)
+    }
+}
+
 private
 fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: String) =
     singleOrNull { it.identifier == topLevelBlockId }?.section
@@ -119,11 +132,7 @@ fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: String) =
 private
 fun handleUnexpectedBlock(unexpectedBlock: UnexpectedBlock, script: String, scriptPath: String): Nothing {
     val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
-    val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
+    val message = compilerMessageFor(scriptPath, line, column, unexpectedBlock.message!!)
     throw IllegalStateException(message, unexpectedBlock)
 }
 
-
-private
-fun unexpectedBlockMessage(block: UnexpectedBlock) =
-    "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."

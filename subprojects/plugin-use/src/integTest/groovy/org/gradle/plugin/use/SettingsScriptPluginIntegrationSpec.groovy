@@ -26,9 +26,7 @@ class SettingsScriptPluginIntegrationSpec extends AbstractPluginSpec {
         executer.requireGradleDistribution() // need accurate classloading
     }
 
-    @Unroll
-    def "settings script with a plugins block - #settingScriptExtension"() {
-        given:
+    private void doConfigurePlugin() {
         publishSettingPlugin("""
 settings.gradle.beforeProject { org.gradle.api.Project project ->
     project.tasks.register("customTask") {
@@ -39,6 +37,12 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
 }
 """
         )
+    }
+
+    @Unroll
+    def "settings script with a plugins block - #settingScriptExtension"() {
+        given:
+        doConfigurePlugin()
         file("settings$settingScriptExtension") << use
 
         when:
@@ -49,7 +53,59 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
 
         where:
         settingScriptExtension | use
-        '.gradle.kts'           | USE_KOTLIN
-        '.gradle'               | USE
+        '.gradle.kts'          | USE_KOTLIN
+        '.gradle'              | USE
+    }
+
+    @Unroll
+    def "settings script with a plugins block with apply false - #settingScriptExtension"() {
+        given:
+        doConfigurePlugin()
+        file("settings$settingScriptExtension") << use
+
+        when:
+        fails 'customTask'
+
+        then:
+        errorOutput.contains("Task 'customTask' not found in root project")
+
+        where:
+        settingScriptExtension | use
+        '.gradle.kts'          | "plugins { id(\"$PLUGIN_ID\").version(\"$VERSION\").apply(false) }"
+        '.gradle'              | "plugins { id '$PLUGIN_ID' version '$VERSION' apply false }"
+    }
+
+    @Unroll
+    def "multiple plugins blocks in settings fail the build - #settingScriptExtension"() {
+        given:
+        file("settings$settingScriptExtension") << use
+
+        when:
+        fails 'help'
+
+        then:
+        errorOutput.contains("plugins")
+
+        where:
+        settingScriptExtension | use
+        '.gradle.kts'          | "plugins { } \n plugins { }"
+        '.gradle'              | "plugins { } \n plugins { }"
+    }
+
+    @Unroll
+    def "plugins block before a plugins management block - #settingScriptExtension"() {
+        given:
+        file("settings$settingScriptExtension") << use
+
+        when:
+        fails 'help'
+
+        then:
+        errorOutput.contains("plugins")
+
+        where:
+        settingScriptExtension | use
+        '.gradle.kts'          | "plugins { } \n pluginManagement { }"
+        '.gradle'              | "plugins { } \n pluginManagement { }"
     }
 }

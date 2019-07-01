@@ -25,7 +25,17 @@ import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE
 
 
 internal
-class UnexpectedBlock(val identifier: String, val location: IntRange) : RuntimeException("Unexpected block found.")
+abstract class UnexpectedBlock(message: String) : RuntimeException(message) {
+    abstract val location: IntRange
+}
+
+internal
+class UnexpectedDuplicateBlock(val identifier: String, override val location: IntRange) :
+    UnexpectedBlock("Unexpected `$identifier` block found. Only one `$identifier` block is allowed per script.")
+
+internal
+class UnexpectedBlockOrder(val identifier: String, override val location: IntRange, expectedFirstIdentifier: String):
+    UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` can not appear before `$expectedFirstIdentifier`.")
 
 
 private
@@ -165,6 +175,6 @@ fun List<TopLevelBlock>.singleBlockSectionOrNull(): ScriptSection? =
         1 -> get(0).section
         else -> {
             val unexpectedBlock = get(1)
-            throw UnexpectedBlock(unexpectedBlock.identifier, unexpectedBlock.range)
+            throw UnexpectedDuplicateBlock(unexpectedBlock.identifier, unexpectedBlock.range)
         }
     }

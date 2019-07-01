@@ -24,7 +24,7 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 
-class BuildscriptBlockExtractionTest {
+class TopLevelBlockExtractionTest {
 
     @Test
     fun `given top-level buildscript it returns exact range`() {
@@ -94,14 +94,27 @@ class BuildscriptBlockExtractionTest {
     }
 
     @Test
-    fun `given more than one top level buildscript block it throws IllegalStateException`() {
+    fun `given more than one top level buildscript block it throws UnexpectedDuplicateBlock`() {
         try {
             extractBuildscriptBlockFrom("buildscript {} buildscript {}")
-            fail("Expecting ${UnexpectedBlock::class.simpleName}!")
-        } catch (unexpectedBlock: UnexpectedBlock) {
+            fail("Expecting ${UnexpectedDuplicateBlock::class.simpleName}!")
+        } catch (unexpectedBlock: UnexpectedDuplicateBlock) {
             assertThat(unexpectedBlock.identifier, equalTo("buildscript"))
             assertThat(unexpectedBlock.location, equalTo(15..28))
-            assertThat(unexpectedBlock.message, equalTo("Unexpected block found."))
+            assertThat(unexpectedBlock.message, equalTo("Unexpected `buildscript` block found. Only one `buildscript` block is allowed per script."))
+        }
+    }
+
+    @Test
+    fun `given a plugins block before a pluginManagement block it throws UnexpectedBlockOrder`() {
+        val topLevelBlocks = extractPluginAndPluginManagementBlockFrom("plugins {} pluginManagement {}")
+        try {
+            checkForTopLevelBlockOrder(topLevelBlocks)
+            fail("Expecting ${UnexpectedBlockOrder::class.simpleName}!")
+        } catch (unexpectedBlock: UnexpectedBlockOrder) {
+            assertThat(unexpectedBlock.identifier, equalTo("plugins"))
+            assertThat(unexpectedBlock.location, equalTo(0..9))
+            assertThat(unexpectedBlock.message, equalTo("Unexpected `plugins` block found. `plugins` can not appear before `pluginManagement`."))
         }
     }
 
@@ -113,4 +126,9 @@ class BuildscriptBlockExtractionTest {
     private
     fun extractBuildscriptBlockFrom(script: String) =
         lex(script, "buildscript").second.singleBlockSectionOrNull()?.wholeRange
+
+    private
+    fun extractPluginAndPluginManagementBlockFrom(script: String) =
+        lex(script,  "pluginManagement", "plugins").second
+
 }
