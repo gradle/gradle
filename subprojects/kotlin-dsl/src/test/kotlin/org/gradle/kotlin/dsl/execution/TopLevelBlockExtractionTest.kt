@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.*
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -99,7 +100,7 @@ class TopLevelBlockExtractionTest {
             extractBuildscriptBlockFrom("buildscript {} buildscript {}")
             fail("Expecting ${UnexpectedDuplicateBlock::class.simpleName}!")
         } catch (unexpectedBlock: UnexpectedDuplicateBlock) {
-            assertThat(unexpectedBlock.identifier, equalTo("buildscript"))
+            assertThat(unexpectedBlock.identifier, equalTo(buildscript))
             assertThat(unexpectedBlock.location, equalTo(15..28))
             assertThat(unexpectedBlock.message, equalTo("Unexpected `buildscript` block found. Only one `buildscript` block is allowed per script."))
         }
@@ -112,7 +113,7 @@ class TopLevelBlockExtractionTest {
             checkForTopLevelBlockOrder(topLevelBlocks)
             fail("Expecting ${UnexpectedBlockOrder::class.simpleName}!")
         } catch (unexpectedBlock: UnexpectedBlockOrder) {
-            assertThat(unexpectedBlock.identifier, equalTo("plugins"))
+            assertThat(unexpectedBlock.identifier, equalTo(plugins))
             assertThat(unexpectedBlock.location, equalTo(0..9))
             assertThat(unexpectedBlock.message, equalTo("Unexpected `plugins` block found. `plugins` can not appear before `pluginManagement`."))
         }
@@ -125,10 +126,10 @@ class TopLevelBlockExtractionTest {
 
     private
     fun extractBuildscriptBlockFrom(script: String) =
-        lex(script, "buildscript").second.singleBlockSectionOrNull()?.wholeRange
+        lex(script, buildscript).second.singleBlockSectionOrNull()?.wholeRange
 
     private
     fun extractPluginAndPluginManagementBlockFrom(script: String) =
-        lex(script,  "pluginManagement", "plugins").second
+        lex(script,  pluginManagement, plugins).second
 
 }

@@ -33,12 +33,7 @@ object ProgramParser {
     private
     fun programFor(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program {
 
-        val topLevelBlockIds =
-            when (target) {
-                ProgramTarget.Project -> arrayOf("buildscript", "plugins")
-                ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement", "plugins")
-                ProgramTarget.Gradle -> arrayOf("initscript")
-            }
+        val topLevelBlockIds = TopLevelBlockId.topLevelBlockIdFor(target)
 
         val (comments, topLevelBlocks) = lex(source.text, *topLevelBlockIds)
 
@@ -51,13 +46,13 @@ object ProgramParser {
 
         val buildscriptFragment =
             topLevelBlocks
-                .singleSectionOf(topLevelBlockIds[0])
+                .singleSectionOf(TopLevelBlockId.buildscriptIdFor(target))
                 ?.let { sourceWithoutComments.fragment(it) }
 
         val pluginsFragment =
             topLevelBlocks
-                .takeIf { target.supportsPluginsBlock && kind == ProgramKind.TopLevel }
-                ?.singleSectionOf("plugins")
+                .takeIf { topLevelBlockIds.contains(TopLevelBlockId.plugins) && kind == ProgramKind.TopLevel }
+                ?.singleSectionOf(TopLevelBlockId.plugins)
                 ?.let { sourceWithoutComments.fragment(it) }
 
         val buildscript =
@@ -97,7 +92,7 @@ object ProgramParser {
 
     private
     fun checkForSingleBlocksOf(
-        topLevelBlockIds: Array<String>,
+        topLevelBlockIds: Array<TopLevelBlockId>,
         topLevelBlocks: List<TopLevelBlock>
     ) {
         topLevelBlockIds.forEach { id ->
@@ -117,15 +112,16 @@ internal
 fun checkForTopLevelBlockOrder(
     topLevelBlocks: List<TopLevelBlock>
 ) {
-    val pluginManagementBlock = topLevelBlocks.find { it.identifier == "pluginManagement" } ?: return
+    val pluginManagementBlock = topLevelBlocks.find { it.identifier == TopLevelBlockId.pluginManagement } ?: return
     val firstTopLevelBlock = topLevelBlocks.first()
-    if (firstTopLevelBlock.identifier != "pluginManagement") {
+    if (firstTopLevelBlock.identifier != TopLevelBlockId.pluginManagement) {
         throw UnexpectedBlockOrder(firstTopLevelBlock.identifier, firstTopLevelBlock.range, pluginManagementBlock.identifier)
     }
 }
 
+
 private
-fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: String) =
+fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: TopLevelBlockId) =
     singleOrNull { it.identifier == topLevelBlockId }?.section
 
 

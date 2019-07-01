@@ -32,12 +32,10 @@ enum class ProgramKind {
 }
 
 
-enum class ProgramTarget(
-    val supportsPluginsBlock: Boolean
-) {
-    Project(supportsPluginsBlock = true),
-    Settings(supportsPluginsBlock = true),
-    Gradle(supportsPluginsBlock = false)
+enum class ProgramTarget {
+    Project,
+    Settings,
+    Gradle
 }
 
 

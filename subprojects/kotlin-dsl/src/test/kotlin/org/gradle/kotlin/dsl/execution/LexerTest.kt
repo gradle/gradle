@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.buildscript
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.plugins
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -39,7 +41,7 @@ class LexerTest {
                     "\n ... */" +
                     "\n}" +
                     "\n// ...",
-                "buildscript", "plugins")
+                buildscript, plugins)
 
         assertThat(
             comments,
@@ -55,7 +57,7 @@ class LexerTest {
             topLevelBlocks,
             equalTo(
                 listOf(
-                    topLevelBlock("buildscript", 17..27, 29..42),
-                    topLevelBlock("plugins", 44..50, 52..65))))
+                    topLevelBlock(buildscript, 17..27, 29..42),
+                    topLevelBlock(plugins, 44..50, 52..65))))
     }
 }

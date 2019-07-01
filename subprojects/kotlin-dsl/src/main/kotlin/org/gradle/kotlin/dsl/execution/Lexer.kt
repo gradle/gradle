@@ -30,11 +30,11 @@ abstract class UnexpectedBlock(message: String) : RuntimeException(message) {
 }
 
 internal
-class UnexpectedDuplicateBlock(val identifier: String, override val location: IntRange) :
+class UnexpectedDuplicateBlock(val identifier: TopLevelBlockId, override val location: IntRange) :
     UnexpectedBlock("Unexpected `$identifier` block found. Only one `$identifier` block is allowed per script.")
 
 internal
-class UnexpectedBlockOrder(val identifier: String, override val location: IntRange, expectedFirstIdentifier: String):
+class UnexpectedBlockOrder(val identifier: TopLevelBlockId, override val location: IntRange, expectedFirstIdentifier: TopLevelBlockId):
     UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` can not appear before `$expectedFirstIdentifier`.")
 
 
@@ -50,13 +50,13 @@ enum class State {
  * Returns the comments and [top-level blocks][topLevelBlocks] found in the given [script].
  */
 internal
-fun lex(script: String, vararg topLevelBlocks: String): Pair<List<IntRange>, List<TopLevelBlock>> {
+fun lex(script: String, vararg topLevelBlocks: TopLevelBlockId): Pair<List<IntRange>, List<TopLevelBlock>> {
 
     val comments = mutableListOf<IntRange>()
     val tokens = mutableListOf<TopLevelBlock>()
 
     var state = State.SearchingTopLevelBlock
-    var inTopLevelBlock: String? = null
+    var inTopLevelBlock: TopLevelBlockId? = null
     var blockIdentifier: IntRange? = null
     var blockStart: Int? = null
 
@@ -73,7 +73,7 @@ fun lex(script: String, vararg topLevelBlocks: String): Pair<List<IntRange>, Lis
         if (depth == 0) {
             val identifier = tokenText
             for (topLevelBlock in topLevelBlocks) {
-                if (topLevelBlock == identifier) {
+                if (topLevelBlock.tokenText == identifier) {
                     state = State.SearchingBlockStart
                     inTopLevelBlock = topLevelBlock
                     blockIdentifier = tokenStart..(tokenEnd - 1)
@@ -157,14 +157,41 @@ fun lex(script: String, vararg topLevelBlocks: String): Pair<List<IntRange>, Lis
 
 
 internal
-fun topLevelBlock(identifier: String, identifierRange: IntRange, blockRange: IntRange) =
+fun topLevelBlock(identifier: TopLevelBlockId, identifierRange: IntRange, blockRange: IntRange) =
     TopLevelBlock(identifier, ScriptSection(identifierRange, blockRange))
 
 
 internal
-data class TopLevelBlock(val identifier: String, val section: ScriptSection) {
+data class TopLevelBlock(val identifier: TopLevelBlockId, val section: ScriptSection) {
     val range: IntRange
         get() = section.wholeRange
+}
+
+@Suppress("EnumEntryName")
+internal
+enum class TopLevelBlockId {
+    @Suppress("SpellCheckingInspection")
+    buildscript,
+    plugins,
+    pluginManagement,
+    @Suppress("SpellCheckingInspection")
+    initscript;
+
+    val tokenText by lazy { name }
+
+    companion object {
+        fun topLevelBlockIdFor(target: ProgramTarget) = when (target) {
+            ProgramTarget.Project -> arrayOf(buildscript, plugins)
+            ProgramTarget.Settings -> arrayOf(buildscript, pluginManagement, plugins)
+            ProgramTarget.Gradle -> arrayOf(buildscript)
+        }
+
+        fun buildscriptIdFor(target: ProgramTarget) = when(target) {
+            ProgramTarget.Gradle -> initscript
+            ProgramTarget.Settings -> buildscript
+            ProgramTarget.Project -> buildscript
+        }
+    }
 }
 
 
