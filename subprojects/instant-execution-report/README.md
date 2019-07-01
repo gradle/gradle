@@ -5,7 +5,8 @@ build with instant execution.
 The output of `:instantExecutionReport` is completely produced by the
 `processResources` task into `build/resources/main` which then gets
 embedded into the `:instantExecution` module (see
-[../instant-execution/instant-execution.gradle.kts](../instant-execution/instant-execution.gradle.kts)).
+[../instant-execution/instant-execution.gradle.kts](../instant-execution/instant-execution.gradle.kts))
+via the `report-resources` publication variant.
 
 ## Architecture
 
