@@ -485,6 +485,34 @@ testRuntimeClasspath
 
     }
 
+    def "requested dependency attributes are reported on dependency result as desugared attributes"() {
+        settingsFile << "include 'platform'"
+        buildFile << """
+            project(":platform") {
+                apply plugin: 'java-platform'
+            }
+            
+            apply plugin: 'java-library'
+            
+            dependencies {
+                implementation(platform(project(":platform")))
+            }
+            
+            task checkDependencyAttributes {
+                doLast {
+                    configurations.compileClasspath.incoming.resolutionResult.root.dependencies.each {
+                        def desugaredCategory = Attribute.of("org.gradle.category", String)
+                        assert it.requested.attributes.getAttribute(desugaredCategory) == 'platform'
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkDependencyAttributes'
+
+    }
+
     private void withResolutionResultDumper(String... configurations) {
         def confList = configurations.collect { configuration ->
             """def result_$configuration = configurations.${configuration}.incoming.resolutionResult
