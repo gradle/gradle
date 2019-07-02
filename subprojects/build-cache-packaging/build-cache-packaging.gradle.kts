@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":coreApi"))
     implementation(project(":buildCache"))
+    implementation(project(":files"))
     implementation(project(":snapshots"))
 
     implementation(library("jsr305"))

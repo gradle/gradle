@@ -10,6 +10,7 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":messaging"))
     implementation(project(":native"))
 

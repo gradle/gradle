@@ -24,6 +24,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":resources"))

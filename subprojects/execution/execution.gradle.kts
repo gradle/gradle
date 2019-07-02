@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":snapshots"))
     implementation(project(":modelCore"))
     implementation(project(":persistentCache"))

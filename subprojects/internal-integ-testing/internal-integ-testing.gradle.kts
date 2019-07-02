@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":baseServicesGroovy"))
+    implementation(project(":files"))
     implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":buildCache"))

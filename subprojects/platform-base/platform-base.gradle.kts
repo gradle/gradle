@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
