@@ -148,10 +148,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    val errorDecoration = span(" ❌")
+    val errorDecoration: View<Intent> = span(" ❌")
 
     private
-    val warningDecoration = span(" ⚠️")
+    val warningDecoration: View<Intent> = span(" ⚠️")
 
     private
     fun viewNode(node: FailureNode): View<Intent> = when (node) {

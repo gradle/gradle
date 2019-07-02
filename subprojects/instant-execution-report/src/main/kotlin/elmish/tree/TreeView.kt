@@ -37,7 +37,7 @@ object TreeView {
 
     fun <T> view(model: Model<T>): View<Intent<T>> =
         viewTree(model.tree.focus()) { focus ->
-            div(
+            div<Intent<T>>(
                 attributes {
                     onClick { Intent.Toggle(focus) }
                 },
