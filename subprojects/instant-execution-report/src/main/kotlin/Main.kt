@@ -179,7 +179,7 @@ fun toFailureNode(trace: JsTrace): FailureNode = when (val kind = trace.kind) {
     "OutputProperty" -> trace.unsafeCast<JsTraceProperty>().run {
         FailureNode.Property("output property", name, task)
     }
-    else -> FailureNode.Label(kind)
+    else -> FailureNode.Label("Gradle runtime")
 }
 
 
