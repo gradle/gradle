@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
 /**
