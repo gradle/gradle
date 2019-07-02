@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.internal.file.FileType;
@@ -49,22 +48,10 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
      *         For those only in the previous fingerprint collection it checks if some entry with the same normalized path is in the current collection.
      *         If it is, file is reported as modified, if not as removed.
      *     </li>
-     *     <li>Finally, {@code includeAdded} is always {@code true}, meaning that the remaining fingerprints which are only in the current collection are reported as added.</li>
      * </ul>
      */
     @Override
     protected boolean doVisitChangesSince(
-        ChangeVisitor visitor,
-        Map<String, FileSystemLocationFingerprint> currentFingerprints,
-        Map<String, FileSystemLocationFingerprint> previousFingerprints,
-        String propertyTitle,
-        boolean includeAdded
-    ) {
-        Preconditions.checkArgument(includeAdded);
-        return doVisitChangesSince(visitor, currentFingerprints, previousFingerprints, propertyTitle);
-    }
-
-    private boolean doVisitChangesSince(
         ChangeVisitor visitor,
         Map<String, FileSystemLocationFingerprint> currentFingerprints,
         Map<String, FileSystemLocationFingerprint> previousFingerprints,

@@ -539,28 +539,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
         outOfDate(unitOfWork, "Input property 'prop2' has been removed for ${unitOfWork.displayName}")
     }
 
-    def "up to date when output file which did not exist now exists"() {
-        given:
-        execute(unitOfWork)
-
-        when:
-        missingOutputFile.touch()
-
-        then:
-        upToDate(unitOfWork)
-    }
-
-    def "up to date when output dir which was empty is no longer empty"() {
-        given:
-        execute(unitOfWork)
-
-        when:
-        emptyOutputDir.file("some-file").touch()
-
-        then:
-        upToDate(unitOfWork)
-    }
-
     def "up to date when no inputs"() {
         when:
         def noInputsTask = builder.withoutInputFiles().build()
@@ -829,10 +807,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                     }
                 }
 
-                @Override
-                boolean isAllowOverlappingOutputs() {
-                    return true
-                }
 
                 @Override
                 boolean hasOverlappingOutputs() {

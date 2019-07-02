@@ -47,7 +47,8 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
         this.title = title;
     }
 
-    protected boolean accept(final ChangeVisitor visitor, final boolean includeAdded) {
+    @Override
+    public boolean accept(ChangeVisitor visitor) {
         return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, FileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
             @Override
             public boolean removed(String previousProperty) {
@@ -63,7 +64,7 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
             public boolean updated(String property, FileCollectionFingerprint previousFingerprint, CurrentFileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
                 FingerprintCompareStrategy compareStrategy = determineCompareStrategy(currentFingerprint);
-                return compareStrategy.visitChangesSince(currentFingerprint, previousFingerprint, propertyTitle, includeAdded, visitor);
+                return compareStrategy.visitChangesSince(currentFingerprint, previousFingerprint, propertyTitle, visitor);
             }
         });
     }
