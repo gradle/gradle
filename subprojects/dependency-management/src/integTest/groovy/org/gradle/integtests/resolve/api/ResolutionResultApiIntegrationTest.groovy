@@ -515,6 +515,125 @@ testCompileClasspath
 
     }
 
+    def "reports duplicated dependencies in all variants"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'baz', '1.0').publish()
+        mavenRepo.module('org', 'gaz', '1.0').publish()
+
+        file("producer/build.gradle") << """
+            plugins {
+              id 'java-library'
+              id 'java-test-fixtures'
+            }
+            dependencies {
+              testFixturesApi('org:foo:1.0')
+              testFixturesImplementation('org:bar:1.0')
+              testFixturesImplementation('org:baz:1.0')
+            
+              api('org:baz:1.0')
+              implementation('org:gaz:1.0')
+            }
+            """
+                    buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            allprojects {
+               repositories {
+                  maven { url "${mavenRepo.uri}" }
+               }
+            }
+                        
+            dependencies {
+              implementation(project(':producer'))
+              testImplementation(testFixtures(project(':producer')))
+            }
+        """
+        settingsFile << """
+            include 'producer'
+        """
+
+        withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
+
+        when: "baz should appear in both apiElements and testFixturesRuntimeElements"
+        succeeds 'resolve'
+
+        then:
+        outputContains("""
+testCompileClasspath
+   project :producer (apiElements)
+      org:baz:1.0 (compile)
+   project :producer (testFixturesApiElements)
+      project :producer (apiElements)
+      org:foo:1.0 (compile)
+""")
+
+        and:
+        outputContains("""
+testRuntimeClasspath
+   project :producer (runtimeElements)
+      org:baz:1.0 (runtime)
+      org:gaz:1.0 (runtime)
+   project :producer (testFixturesRuntimeElements)
+      project :producer (runtimeElements)
+      org:foo:1.0 (runtime)
+      org:bar:1.0 (runtime)
+      org:baz:1.0 (runtime)
+""")
+    }
+
+    def "reports if we try to get dependencies from a different variant"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        file("producer/build.gradle") << """
+            plugins {
+              id 'java-library'
+              id 'java-test-fixtures'
+            }
+            dependencies {
+              testFixturesApi('org:foo:1.0')
+            }
+            """
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            allprojects {
+               repositories {
+                  maven { url "${mavenRepo.uri}" }
+               }
+            }
+                        
+            dependencies {
+              implementation(project(':producer'))
+              testImplementation(testFixtures(project(':producer')))
+            }
+            
+            task resolve {
+                doLast {
+                    def result = configurations.testCompileClasspath.incoming.resolutionResult
+                    def rootComponent = result.root
+                    def childComponent = result.allComponents.find { it.toString() == 'project :producer' }
+                    def childVariant = childComponent.variants[0]
+                    // try to get dependencies for child variant on the wrong component
+                    println(rootComponent.getDependenciesForVariant(childVariant))
+                }
+            }
+        """
+        settingsFile << """
+            include 'producer'
+        """
+
+        when:
+        fails 'resolve'
+
+        then:
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+    }
+
     private void withResolutionResultDumper(String... configurations) {
         def confList = configurations.collect { configuration ->
             """
