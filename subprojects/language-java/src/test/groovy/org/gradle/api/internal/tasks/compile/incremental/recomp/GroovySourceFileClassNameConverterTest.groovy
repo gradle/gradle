@@ -36,13 +36,14 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         sourceClassesMapping.put(new File('MyClass'), 'org.gradle.MyClass2')
         sourceClassesMapping.put(new File('YourClass'), 'org.gradle.YourClass')
 
-        converter = new GroovySourceFileClassNameConverter(sourceClassesMapping)
+        converter = new GroovySourceFileClassNameConverter(new CompilationSourceDirs([]), sourceClassesMapping)
     }
 
     @Unroll
     def 'can get class names by file'() {
         expect:
         converter.getClassNames(file) == classes
+
         where:
         file                   | classes
         new File('MyClass')    | ['org.gradle.MyClass1', 'org.gradle.MyClass2'] as Set
@@ -53,7 +54,7 @@ class GroovySourceFileClassNameConverterTest extends Specification {
     @Unroll
     def 'can get file by classname'() {
         expect:
-        converter.getFile(fqcn) == file
+        converter.getFileRelativePath(fqcn) == file
         where:
         fqcn                    | file
         'org.gradle.MyClass1'   | Optional.of(new File('MyClass'))

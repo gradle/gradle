@@ -134,4 +134,5 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         fails language.compileTaskName
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
+
 }

@@ -18,6 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Unroll
 
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -91,5 +92,43 @@ class A2{}
         then:
         outputs.recompiledClasses()
         outputs.deletedClasses('Com')
+    }
+
+    @Unroll
+    def 'recompiles when #action class to source file'() {
+        given:
+        File src = source(oldFile)
+
+        outputs.snapshot { run 'compileGroovy' }
+
+        when:
+        src.text = newFile
+        run 'compileGroovy'
+
+        then:
+        outputs.recompiledClasses(recompileClasses as String[])
+        outputs.deletedClasses(deletedClasses as String[])
+
+        where:
+        action     | oldFile                                   | newFile                                    | recompileClasses | deletedClasses
+        'adding'   | 'class A { } \nclass B { } \n'            | 'class A{}\nclass B{}\nclass C{}'          | ['A', 'B', 'C']  | []
+        'removing' | 'class A { } \nclass B { } \nclass C { }' | 'class A{}\nclass B{}\n'                   | ['A', 'B']       | ['C']
+        'changing' | 'class A { } \nclass B { } \nclass C { }' | 'class A{}\nclass B{}\n class C { int i }' | ['A', 'B', 'C']  | []
+    }
+
+    def 'recompiles when moving class to another source file'() {
+        given:
+        File src1 = source('class A { }\n class B { }')
+        File src2 = source('class C { }')
+
+        outputs.snapshot { run 'compileGroovy' }
+
+        when:
+        src1.text = 'class A { }'
+        src2.text = 'class C { } \n class B { }'
+        run 'compileGroovy'
+
+        then:
+        outputs.recompiledClasses('A', 'B', 'C')
     }
 }

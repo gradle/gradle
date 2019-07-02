@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,29 @@
  */
 
 
+package org.gradle.api.internal.tasks.compile.incremental.recomp
 
-package org.gradle.api.internal.tasks.compile.incremental
-
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs
-import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaConventionalSourceFileClassNameConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class LocationBasedSourceToNameConverterTest extends Specification {
+class JavaConventionalSourceFileClassNameConverterTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def srcDirs = Stub(CompilationSourceDirs) {
-        getSourceRoots() >> ["src/main/java", "src/main/java2"].collect { temp.file(it) }
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Subject
+        converter
+
+    def setup() {
+        converter = new JavaConventionalSourceFileClassNameConverter(new CompilationSourceDirs(["src/main/java", "src/main/java2"].collect { temp.file(it) }))
     }
-    @Subject converter = new JavaConventionalSourceFileClassNameConverter(srcDirs)
 
     def "knows java source class relative path"() {
         expect:
         converter.getClassNames(temp.file("src/main/java/Foo.java")) == ["Foo"]
         converter.getClassNames(temp.file("src/main/java/org/bar/Bar.java")) == ["org.bar.Bar"]
         converter.getClassNames(temp.file("src/main/java2/com/Com.java")) == ["com.Com"]
-
-        when: converter.getClassNames(temp.file("src/main/unknown/Xxx.java"))
-        then: thrown(IllegalArgumentException)
+        converter.getClassNames(temp.file("src/main/unknown/Xxx.java")) == []
     }
 }

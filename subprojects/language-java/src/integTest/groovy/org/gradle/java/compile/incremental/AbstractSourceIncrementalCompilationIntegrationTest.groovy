@@ -398,6 +398,33 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("B", "A")
     }
 
+    def 'can move classes between source dirs'() {
+        given:
+        buildFile << "sourceSets.main.${language.name}.srcDir 'extra'"
+        source('class A1 {}')
+        file("extra/A2.${language.name}") << "class A2 {}"
+        file("extra/B.${language.name}") << "class B {}"
+
+        run language.compileTaskName
+
+        when:
+        file("extra/B.${language.name}").delete()
+        File src = source('class B {}')
+        outputs.snapshot { run language.compileTaskName }
+
+        then:
+        skipped(":${language.compileTaskName}")
+
+        when:
+        src.text = 'class C { }' // in B.java/B.groovy
+        run language.compileTaskName
+
+        then:
+        executedAndNotSkipped(":${language.compileTaskName}")
+        outputs.recompiledClasses('C')
+        outputs.deletedClasses('B')
+    }
+
     def "recompilation considers changes from dependent sourceSet"() {
         buildFile << """
 sourceSets {
@@ -841,11 +868,11 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
 
     def "deletes empty packages dirs"() {
         given:
-        def a = file('src/main/${language.name}/com/foo/internal/A.${language.name}') << """
+        def a = file("src/main/${language.name}/com/foo/internal/A.${language.name}") << """
             package com.foo.internal;
             public class A {}
         """
-        file('src/main/${language.name}/com/bar/B.${language.name}') << """
+        file("src/main/${language.name}/com/bar/B.${language.name}") << """
             package com.bar;
             public class B {}
         """
@@ -968,5 +995,24 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         then:
         succeeds language.compileTaskName
         outputs.noneRecompiled()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9380')
+    def 'full recompile when moving source sets'() {
+        given:
+        buildFile << "sourceSets.main.${language.name}.srcDir 'src/other/${language.name}'"
+        source('class Sub extends Base {}')
+        file("src/other/${language.name}/Base.${language.name}") << 'class Base { }'
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        // Remove last line
+        buildFile.text = buildFile.text.readLines().findAll { !it.trim().startsWith('sourceSets') }.join('\n')
+        fails language.compileTaskName, '-i'
+
+        then:
+        outputContains("source dirs are changed")
+        failureCauseContains('Compilation failed')
     }
 }
