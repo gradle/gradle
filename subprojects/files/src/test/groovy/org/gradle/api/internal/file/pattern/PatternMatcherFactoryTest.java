@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file.pattern;
 
-import org.gradle.api.file.RelativePath;
+import com.google.common.base.Joiner;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -338,23 +338,23 @@ public class PatternMatcherFactoryTest {
         return ((PatternMatcherFactory.DefaultPatternMatcher) matcher).getPathMatcher();
     }
 
-    private static Matcher<PatternMatcher> matchesFile(String... paths) {
-        return matches(new RelativePath(true, paths));
+    private static Matcher<PatternMatcher> matchesFile(String... segments) {
+        return matches(segments, true);
     }
 
-    private static Matcher<PatternMatcher> matchesDir(String... paths) {
-        return matches(new RelativePath(false, paths));
+    private static Matcher<PatternMatcher> matchesDir(String... segments) {
+        return matches(segments, false);
     }
 
-    private static Matcher<PatternMatcher> matches(final RelativePath path) {
+    private static Matcher<PatternMatcher> matches(String[] segments, boolean isFile) {
         return new BaseMatcher<PatternMatcher>() {
             public void describeTo(Description description) {
-                description.appendText("matches ").appendValue(path);
+                description.appendText("matches ").appendValue(Joiner.on("/").join(segments));
             }
 
             public boolean matches(Object o) {
                 PatternMatcher matcher = (PatternMatcher) o;
-                return matcher.test(path.getSegments(), path.isFile());
+                return matcher.test(segments, isFile);
             }
         };
     }
