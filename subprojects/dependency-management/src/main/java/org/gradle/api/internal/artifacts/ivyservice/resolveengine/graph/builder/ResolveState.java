@@ -251,4 +251,12 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     AttributeDesugaring getAttributeDesugaring() {
         return attributeDesugaring;
     }
+
+    void virtualPlatformInUse() {
+        resolveOptimizations.declareVirtualPlatformInUse();
+    }
+
+    ResolveOptimizations getResolveOptimizations() {
+        return resolveOptimizations;
+    }
 }

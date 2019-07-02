@@ -72,6 +72,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final AttributeDesugaring desugaring;
 
     private AttributeContainer rootAttributes;
+    private boolean mayHaveVirtualPlatforms;
 
     public StreamingResolutionResultBuilder(BinaryStore store,
                                             Store<ResolvedComponentResult> cache,
@@ -97,6 +98,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void start(final RootGraphNode root) {
         rootAttributes = desugaring.desugar(root.getMetadata().getAttributes());
+        mayHaveVirtualPlatforms = root.getResolveOptimizations().mayHaveVirtualPlatforms();
     }
 
     @Override
@@ -140,9 +142,11 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitEdges(DependencyGraphNode node) {
         final Long fromComponent = node.getOwner().getResultId();
-        final Collection<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges().stream()
+        final Collection<? extends DependencyGraphEdge> dependencies = mayHaveVirtualPlatforms
+            ? node.getOutgoingEdges().stream()
             .filter(dep -> !dep.isTargetVirtualPlatform())
-            .collect(Collectors.toList());
+            .collect(Collectors.toList())
+            : node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 @Override
@@ -260,7 +264,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Problems loading the resolution results (" + clock.getElapsed() + "). "
-                        + "Read " + valuesRead + " values, last was: " + type, e);
+                    + "Read " + valuesRead + " values, last was: " + type, e);
             }
         }
     }
