@@ -118,6 +118,7 @@ data class CIBuildModel (
             GradleSubproject("ideNative"),
             GradleSubproject("idePlay"),
             GradleSubproject("instantExecution"),
+            GradleSubproject("instantExecutionReport", unitTests = false, functionalTests = false),
             GradleSubproject("integTest", crossVersionTests = true),
             GradleSubproject("internalIntegTesting"),
             GradleSubproject("internalPerformanceTesting"),
