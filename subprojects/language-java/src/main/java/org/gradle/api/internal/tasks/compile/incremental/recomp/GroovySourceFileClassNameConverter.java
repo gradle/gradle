@@ -20,15 +20,18 @@ import com.google.common.collect.Multimap;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class GroovySourceFileClassNameConverter implements SourceFileClassNameConverter {
+public class GroovySourceFileClassNameConverter {
     private final Multimap<File, String> sourceClassesMapping;
     private final Map<String, File> classSourceMapping;
+    private final CompilationSourceDirs compilationSourceDirs;
 
-    public GroovySourceFileClassNameConverter(Multimap<File, String> sourceClassesMapping) {
+    public GroovySourceFileClassNameConverter(CompilationSourceDirs sourceDirs, Multimap<File, String> sourceClassesMapping) {
+        this.compilationSourceDirs = sourceDirs;
         this.sourceClassesMapping = sourceClassesMapping;
         this.classSourceMapping = constructReverseMapping(sourceClassesMapping);
     }
@@ -37,16 +40,17 @@ public class GroovySourceFileClassNameConverter implements SourceFileClassNameCo
         return sourceClassesMapping.entries().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
-    @Override
-    public Collection<String> getClassNames(File groovySourceFile) {
-        return sourceClassesMapping.get(groovySourceFile);
+    public Collection<String> getClassNames(File sourceFile) {
+        return compilationSourceDirs.relativize(sourceFile)
+            .map(relativeFile -> sourceClassesMapping.get(relativeFile))
+            .orElse(Collections.emptyList());
     }
 
     boolean isEmpty() {
         return classSourceMapping.isEmpty();
     }
 
-    Optional<File> getFile(String fqcn) {
+    Optional<File> getFileRelativePath(String fqcn) {
         return Optional.ofNullable(classSourceMapping.get(fqcn));
     }
 }

@@ -16,34 +16,20 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.util.RelativePathUtil;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-import static java.lang.String.format;
-
-class JavaConventionalSourceFileClassNameConverter implements SourceFileClassNameConverter {
+class JavaConventionalSourceFileClassNameConverter {
     private final CompilationSourceDirs sourceDirs;
 
     public JavaConventionalSourceFileClassNameConverter(CompilationSourceDirs sourceDirs) {
         this.sourceDirs = sourceDirs;
     }
 
-    @Override
     public Collection<String> getClassNames(File sourceFile) {
-        List<File> dirs = sourceDirs.getSourceRoots();
-        for (File sourceDir : dirs) {
-            if (sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
-                String relativePath = RelativePathUtil.relativePath(sourceDir, sourceFile);
-                if (!relativePath.startsWith("..")) {
-                    return Collections.singletonList(relativePath.replaceAll("/", ".").replaceAll("\\.java$", ""));
-                }
-            }
-        }
-        throw new IllegalArgumentException(format("Unable to find source class: '%s' because it does not belong to any of the source dirs: '%s'",
-            sourceFile, dirs));
+        return sourceDirs.relativize(sourceFile)
+            .map(relativePath -> Collections.singletonList(relativePath.toString().replaceAll("/", ".").replaceAll("\\.java$", "")))
+            .orElse(Collections.emptyList());
     }
 }

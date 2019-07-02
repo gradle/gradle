@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * The file format is:
  *
- * file:///my/path/to/groovy/source/MyGroovyClass.groovy
+ * relative/path/to/source/root/MyGroovyClass.groovy
  *  org.gradle.MyGroovyClass
  *  org.gradle.MyGroovyClass$1
  *  org.gradle.MyGroovyClass$Inner
@@ -79,7 +79,7 @@ public class SourceClassesMappingFileAccessor {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<File, Collection<String>> entry : mapping.asMap().entrySet()) {
-            sb.append(entry.getKey().toString()).append("\n");
+            sb.append(entry.getKey()).append("\n");
             for (String className : entry.getValue()) {
                 sb.append(" ").append(className).append("\n");
             }

@@ -22,11 +22,15 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.RelativePathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Attempts to infer the source root directories for the `source` inputs to a
@@ -36,34 +40,37 @@ import java.util.List;
  * This is a bit of a hack: we'd be better off inspecting the actual source file to determine the name of the class file.
  */
 @NonNullApi
-public class CompilationSourceDirs {
+public class CompilationSourceDirs implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(CompilationSourceDirs.class);
+    private final List<File> sourceRoots;
 
-    private final FileTreeInternal sources;
-    private SourceRoots sourceRoots;
-
-    public CompilationSourceDirs(FileTreeInternal sources) {
-        this.sources = sources;
+    public CompilationSourceDirs(List<File> sourceRoots) {
+        this.sourceRoots = sourceRoots;
     }
 
-    public List<File> getSourceRoots() {
-        return resolveRoots().getSourceRoots();
+    public static List<File> inferSourceRoots(FileTreeInternal sources) {
+        SourceRoots visitor = new SourceRoots();
+        sources.visitLeafCollections(visitor);
+        return visitor.canInferSourceRoots ? visitor.sourceRoots : Collections.emptyList();
     }
 
-    public boolean canInferSourceRoots() {
-        return resolveRoots().isCanInferSourceRoots();
-    }
-
-    private SourceRoots resolveRoots() {
-        if (sourceRoots == null) {
-            SourceRoots visitor = new SourceRoots();
-            sources.visitLeafCollections(visitor);
-            sourceRoots = visitor;
+    /**
+     * Calculate the relative path to the source root.
+     */
+    public Optional<File> relativize(File sourceFile) {
+        if (sourceFile.isAbsolute()) {
+            return sourceRoots.stream()
+                .filter(sourceDir -> sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath()))
+                .map(sourceDir -> RelativePathUtil.relativePath(sourceDir, sourceFile))
+                .filter(relativePath -> !relativePath.startsWith(".."))
+                .map(File::new)
+                .findFirst();
+        } else {
+            return Optional.of(sourceFile);
         }
-        return sourceRoots;
     }
 
-    private static class SourceRoots implements FileCollectionLeafVisitor {
+    private static class SourceRoots implements FileCollectionLeafVisitor, Serializable {
         private boolean canInferSourceRoots = true;
         private List<File> sourceRoots = Lists.newArrayList();
 

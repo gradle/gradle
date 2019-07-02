@@ -42,6 +42,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -73,8 +74,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
         static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec) {
-            if (spec.getCompilationMappingFile() != null) {
-                return new TrackingClassGenerationCompilationCustomizer(spec.getCompilationMappingFile());
+            if (spec.getCompilationMappingFile() != null && !spec.getSourceRoots().isEmpty()) {
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec.getSourceRoots()), spec.getCompilationMappingFile());
             } else {
                 return new NoOpCompilationCustomizer();
             }
@@ -109,9 +110,11 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             .hashKeys()
             .hashSetValues()
             .build();
+        private final CompilationSourceDirs compilationSourceDirs;
         private final File sourceClassesMappingFile;
 
-        private TrackingClassGenerationCompilationCustomizer(File mappingFile) {
+        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, File mappingFile) {
+            this.compilationSourceDirs = compilationSourceDirs;
             this.sourceClassesMappingFile = mappingFile;
         }
 
@@ -121,7 +124,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
-            sourceClassesMapping.put(new File(sourceUnit.getSource().getURI().getPath()), classNode.getName());
+            File relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
+            sourceClassesMapping.put(relativePath, classNode.getName());
             Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
             while (iterator.hasNext()) {
                 inspectClassNode(sourceUnit, iterator.next());
