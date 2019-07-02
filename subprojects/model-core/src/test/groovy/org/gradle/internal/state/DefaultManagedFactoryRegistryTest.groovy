@@ -30,23 +30,6 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         registry.lookup(fooFactory.id) == fooFactory
     }
 
-    def "returns a registered factory for a managed type"() {
-        def buzzFactory = factory(Buzz)
-        def barFactory = factory(Bar)
-
-        when:
-        registry.withFactories(buzzFactory)
-
-        then:
-        registry.lookup(barFactory.id) == null
-
-        when:
-        registry.register(barFactory)
-
-        then:
-        registry.lookup(barFactory.id) == barFactory
-    }
-
     def "returns null for unknown type"() {
         def fooFactory = factory(Foo)
         def barFactory = factory(Bar)
@@ -92,10 +75,9 @@ class DefaultManagedFactoryRegistryTest extends Specification {
     def "throws exception when a factory with the same id is registered twice"() {
         def fooFactory1 = factory(Foo)
         def fooFactory2 = factory(Foo)
-        registry.withFactories(fooFactory1)
 
         when:
-        registry.register(fooFactory2)
+        registry.withFactories(fooFactory1, fooFactory2)
 
         then:
         def e = thrown(IllegalArgumentException)
