@@ -16,41 +16,41 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.tasks.WorkResult;
+import com.google.common.reflect.TypeToken;
+import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 public class DefaultWorkerServer implements WorkerProtocol {
-    private final Instantiator instantiator;
+    private final ServiceRegistry serviceRegistry;
 
     @Inject
     public DefaultWorkerServer(ServiceRegistry serviceRegistry) {
-        this.instantiator = serviceRegistry.get(InstantiatorFactory.class).inject(serviceRegistry);
+        this.serviceRegistry = serviceRegistry;
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            Class<?> implementationClass = spec.getImplementationClass();
-            Object action = instantiator.newInstance(implementationClass, spec.getParams());
-            if (action instanceof Runnable) {
-                ((Runnable) action).run();
-                return new DefaultWorkResult(true, null);
-            } else if (action instanceof Callable) {
-                Object result = ((Callable) action).call();
-                if (result instanceof DefaultWorkResult) {
-                    return (DefaultWorkResult) result;
-                } else if (result instanceof WorkResult) {
-                    return new DefaultWorkResult(((WorkResult) result).getDidWork(), null);
-                } else {
-                    throw new IllegalArgumentException("Worker actions must return a WorkResult.");
-                }
+            Class<? extends WorkerExecution> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
+            Instantiator instantiator = serviceRegistry.get(InstantiatorFactory.class).inject(new ParameterServiceLookup(serviceRegistry, spec.getParameters()));
+            WorkerExecution execution = instantiator.newInstance(implementationClass);
+            execution.execute();
+            if (execution instanceof ProvidesWorkResult) {
+                return ((ProvidesWorkResult) execution).getWorkResult();
             } else {
-                throw new IllegalArgumentException("Worker actions must either implement Runnable or Callable<WorkResult>.");
+                return DefaultWorkResult.SUCCESS;
             }
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
@@ -60,5 +60,35 @@ public class DefaultWorkerServer implements WorkerProtocol {
     @Override
     public String toString() {
         return "DefaultWorkerServer{}";
+    }
+
+    private static class ParameterServiceLookup implements ServiceLookup {
+        private final ServiceLookup delegate;
+        private final WorkerParameters parameters;
+
+        public ParameterServiceLookup(ServiceLookup delegate, WorkerParameters parameters) {
+            this.delegate = delegate;
+            this.parameters = parameters;
+        }
+
+        @Nullable
+        @Override
+        public Object find(Type serviceType) throws ServiceLookupException {
+            TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
+            if (serviceTypeToken.isSupertypeOf(parameters.getClass())) {
+                return parameters;
+            }
+            return delegate.get(serviceType);
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            return find(serviceType);
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            return delegate.get(serviceType, annotatedWith);
+        }
     }
 }

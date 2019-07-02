@@ -18,12 +18,16 @@ package org.gradle.workers.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.AbstractConditionalExecution;
 import org.gradle.internal.work.AsyncWorkCompletion;
@@ -33,18 +37,25 @@ import org.gradle.internal.work.DefaultConditionalExecutionQueue;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.BaseWorkerSpec;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecution;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
+import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkerSpec;
 
 import java.io.File;
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
@@ -59,8 +70,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final Instantiator instantiator;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -72,36 +84,67 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.workerDirectoryProvider = workerDirectoryProvider;
         this.classLoaderStructureProvider = classLoaderStructureProvider;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+        this.instantiator = instantiatorFactory.inject();
     }
 
     @Override
     public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
-        File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
-        configuration.getForkOptions().setWorkingDir(workingDirectory);
         configAction.execute(configuration);
-        String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
 
-        if (!workingDirectory.equals(configuration.getForkOptions().getWorkingDir())) {
+        Action<WorkerSpec<AdapterWorkerParameters>> action = new Action<WorkerSpec<AdapterWorkerParameters>>() {
+            @Override
+            public void execute(WorkerSpec<AdapterWorkerParameters> adapterWorkerParametersWorkerSpec) {
+                AdapterWorkerParameters parameters = adapterWorkerParametersWorkerSpec.getParameters();
+                parameters.setImplementationClassName(actionClass.getName());
+                parameters.setParams(configuration.getParams());
+
+                adapterWorkerParametersWorkerSpec.classpath(configuration.getClasspath());
+                adapterWorkerParametersWorkerSpec.setIsolationMode(configuration.getIsolationMode());
+                adapterWorkerParametersWorkerSpec.setDisplayName(configuration.getDisplayName());
+
+                configuration.getForkOptions().copyTo(adapterWorkerParametersWorkerSpec.getForkOptions());
+            }
+        };
+        execute(AdapterWorkerExecution.class, action);
+    }
+
+    @Override
+    public <T extends WorkerParameters> void execute(Class<? extends WorkerExecution<T>> workerExecutionClass, Action<? super WorkerSpec<T>> configAction) {
+        ParameterizedType superType = (ParameterizedType) TypeToken.of(workerExecutionClass).getSupertype(WorkerExecution.class).getType();
+        Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+        if (parameterType == WorkerParameters.class) {
+            throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkerParameters.class).getDisplayName(), ModelType.of(WorkerParameters.None.class).getDisplayName()));
+        }
+        T parameters = instantiator.newInstance(parameterType);
+        WorkerSpec<T> workerSpec = new DefaultWorkerSpec<T>(forkOptionsFactory, parameters);
+        File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
+        File defaultWorkingDir = workerSpec.getForkOptions().getWorkingDir();
+        configAction.execute(workerSpec);
+        String description = getWorkerDisplayName(workerSpec, workerExecutionClass);
+
+        if (!defaultWorkingDir.equals(workerSpec.getForkOptions().getWorkingDir())) {
             throw new WorkExecutionException(description + ": setting the working directory of a worker is not supported.");
+        } else {
+            workerSpec.getForkOptions().setWorkingDir(workingDirectory);
         }
 
-        // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
-        DaemonForkOptions forkOptions = getDaemonForkOptions(actionClass, configuration);
+        DaemonForkOptions forkOptions = getDaemonForkOptions(workerExecutionClass, workerSpec);
         try {
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, actionClass, configuration.getParams(), forkOptions.getClassLoaderStructure());
+            // Isolate parameters in this thread prior to starting work in a separate thread
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workerExecutionClass, workerSpec.getParameters(), forkOptions.getClassLoaderStructure());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getIsolationMode(), forkOptions);
+        execute(spec, workerSpec.getIsolationMode(), forkOptions);
     }
 
-    private void submit(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
+    private void execute(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
-        WorkerExecution execution = new WorkerExecution(spec.getDisplayName(), currentWorkerWorkerLease, new Callable<DefaultWorkResult>() {
+        WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), currentWorkerWorkerLease, new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
@@ -115,6 +158,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         });
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
+    }
+
+    private static String getWorkerDisplayName(WorkerSpec<?> workerSpec, Class<?> workerExecutionClass) {
+        if (workerSpec.getDisplayName() != null) {
+            return workerSpec.getDisplayName();
+        }
+
+        if (workerExecutionClass == AdapterWorkerExecution.class) {
+            AdapterWorkerParameters parameters = (AdapterWorkerParameters) workerSpec.getParameters();
+            return parameters.getImplementationClassName();
+        } else {
+            return workerExecutionClass.getName();
+        }
     }
 
     private WorkerLease getCurrentWorkerLease() {
@@ -166,12 +222,22 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    DaemonForkOptions getDaemonForkOptions(Class<?> actionClass, WorkerConfiguration configuration) {
+    DaemonForkOptions getDaemonForkOptions(Class<?> executionClass, WorkerSpec configuration) {
         validateWorkerConfiguration(configuration);
-        return toDaemonOptions(actionClass, configuration.getParams(), configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
+        Class<?> actionClass;
+        Object[] params;
+        if (configuration.getParameters() instanceof AdapterWorkerParameters) {
+            AdapterWorkerParameters adapterWorkerParameters = (AdapterWorkerParameters) configuration.getParameters();
+            actionClass = classFromContextLoader(adapterWorkerParameters.getImplementationClassName());
+            params = adapterWorkerParameters.getParams();
+        } else {
+            actionClass = executionClass;
+            params = new Object[] {configuration.getParameters()};
+        }
+        return toDaemonOptions(getParamClasses(actionClass, params), configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
     }
 
-    private void validateWorkerConfiguration(WorkerConfiguration configuration) {
+    private void validateWorkerConfiguration(BaseWorkerSpec configuration) {
         if (configuration.getIsolationMode() == IsolationMode.NONE) {
             if (configuration.getClasspath().iterator().hasNext()) {
                 throw unsupportedWorkerConfigurationException("classpath", configuration.getIsolationMode());
@@ -205,7 +271,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Object[] params, JavaForkOptions userForkOptions, Iterable<File> additionalClasspath, IsolationMode isolationMode) {
+    private DaemonForkOptions toDaemonOptions(Class<?>[] visibleClasses, JavaForkOptions userForkOptions, Iterable<File> additionalClasspath, IsolationMode isolationMode) {
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         userForkOptions.copyTo(forkOptions);
         forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
@@ -216,9 +282,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         if (isolationMode != IsolationMode.NONE) {
             if (isolationMode == IsolationMode.PROCESS) {
-                builder.withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(additionalClasspath, getParamClasses(actionClass, params)));
+                builder.withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(additionalClasspath, visibleClasses));
             } else {
-                builder.withClassLoaderStructure(classLoaderStructureProvider.getInProcessClassLoaderStructure(additionalClasspath, getParamClasses(actionClass, params)));
+                builder.withClassLoaderStructure(classLoaderStructureProvider.getInProcessClassLoaderStructure(additionalClasspath, visibleClasses));
             }
         }
 
@@ -255,10 +321,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    private static class WorkerExecution extends AbstractConditionalExecution<DefaultWorkResult> implements AsyncWorkCompletion {
+    private static class WorkItemExecution extends AbstractConditionalExecution<DefaultWorkResult> implements AsyncWorkCompletion {
         private final String description;
 
-        public WorkerExecution(String description, WorkerLease parentWorkerLease, Callable<DefaultWorkResult> callable) {
+        public WorkItemExecution(String description, WorkerLease parentWorkerLease, Callable<DefaultWorkResult> callable) {
             super(callable, new LazyChildWorkerLeaseLock(parentWorkerLease));
             this.description = description;
         }

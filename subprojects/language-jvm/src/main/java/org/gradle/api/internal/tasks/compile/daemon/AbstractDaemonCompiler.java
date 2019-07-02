@@ -59,7 +59,8 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
         Worker worker = workerFactory.getWorker(daemonForkOptions);
-        DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerCallable.class, new Object[] {delegateClass.getName(), delegateParameters, spec}, daemonForkOptions.getClassLoaderStructure()));
+
+        DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newAdapterIsolatedSpec("compiler daemon", CompilerCallable.class, new Object[] {delegateClass.getName(), delegateParameters, spec}, daemonForkOptions.getClassLoaderStructure()));
         if (result.isSuccess()) {
             return result;
         } else {

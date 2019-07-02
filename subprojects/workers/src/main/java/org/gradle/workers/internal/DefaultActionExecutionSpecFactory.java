@@ -17,11 +17,14 @@
 package org.gradle.workers.internal;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.internal.snapshot.impl.IsolatedArray;
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,53 +32,63 @@ import java.io.ByteArrayOutputStream;
 public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFactory {
     private final IsolatableFactory isolatableFactory;
     private final IsolatableSerializerRegistry serializerRegistry;
+    private final InstantiatorFactory instantiatorFactory;
 
-    public DefaultActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+    public DefaultActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry, InstantiatorFactory instantiatorFactory) {
         this.isolatableFactory = isolatableFactory;
         this.serializerRegistry = serializerRegistry;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
-    public TransportableActionExecutionSpec newTransportableSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure) {
-        return new TransportableActionExecutionSpec(displayName, implementationClass.getName(), serialize(isolatableFactory.isolate(params)), classLoaderStructure);
+    public <T extends WorkerParameters> TransportableActionExecutionSpec<T> newTransportableSpec(String displayName, Class<? extends WorkerExecution<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure) {
+        return new TransportableActionExecutionSpec<T>(displayName, implementationClass.getName(), serialize(isolatableFactory.isolate(params)), classLoaderStructure);
     }
 
     @Override
-    public TransportableActionExecutionSpec newTransportableSpec(ActionExecutionSpec spec) {
+    public <T extends WorkerParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof IsolatedParametersActionExecutionSpec) {
             IsolatedParametersActionExecutionSpec isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
-            return new TransportableActionExecutionSpec(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure());
+            return new TransportableActionExecutionSpec<T>(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure());
         } else if (spec instanceof TransportableActionExecutionSpec) {
-            return (TransportableActionExecutionSpec) spec;
+            return (TransportableActionExecutionSpec<T>) spec;
         } else {
             throw new IllegalArgumentException("Can't create a TransportableActionExecutionSpec from spec with type: " + spec.getClass().getSimpleName());
         }
     }
 
     @Override
-    public IsolatedParametersActionExecutionSpec newIsolatedSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure) {
-        return new IsolatedParametersActionExecutionSpec(implementationClass, displayName, (IsolatedArray) isolatableFactory.isolate(params), classLoaderStructure);
+    public <T extends WorkerParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkerExecution<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure) {
+        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, isolatableFactory.isolate(params), classLoaderStructure);
     }
 
     @Override
-    public SimpleActionExecutionSpec newSimpleSpec(ActionExecutionSpec spec) {
+    public <T extends WorkerParameters> SimpleActionExecutionSpec<T> newSimpleSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof TransportableActionExecutionSpec) {
-            TransportableActionExecutionSpec transportableSpec = (TransportableActionExecutionSpec) spec;
-            Object[] params = Cast.uncheckedCast(deserialize(transportableSpec.getSerializedParameters()).isolate());
-            return new SimpleActionExecutionSpec(fromClassName(transportableSpec.getImplementationClassName()), transportableSpec.getDisplayName(), params, transportableSpec.getClassLoaderStructure());
+            TransportableActionExecutionSpec<T> transportableSpec = (TransportableActionExecutionSpec<T>) spec;
+            T params = Cast.uncheckedCast(deserialize(transportableSpec.getSerializedParameters()).isolate());
+            return new SimpleActionExecutionSpec<T>(Cast.uncheckedCast(fromClassName(transportableSpec.getImplementationClassName())), transportableSpec.getDisplayName(), params, transportableSpec.getClassLoaderStructure());
         } else if (spec instanceof IsolatedParametersActionExecutionSpec) {
-            IsolatedParametersActionExecutionSpec isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
-            Object[] params = Cast.uncheckedCast(isolatedSpec.getIsolatedParams().isolate());
-            return new SimpleActionExecutionSpec(isolatedSpec.getImplementationClass(), isolatedSpec.getDisplayName(), params, isolatedSpec.getClassLoaderStructure());
+            IsolatedParametersActionExecutionSpec<T> isolatedSpec = (IsolatedParametersActionExecutionSpec<T>) spec;
+            T params = Cast.uncheckedCast(isolatedSpec.getIsolatedParams().isolate());
+            return new SimpleActionExecutionSpec<T>(isolatedSpec.getImplementationClass(), isolatedSpec.getDisplayName(), params, isolatedSpec.getClassLoaderStructure());
         } else {
             throw new IllegalArgumentException("Can't create a SimpleActionExecutionSpec from spec with type: " + spec.getClass().getSimpleName());
         }
     }
 
+    @Override
+    public IsolatedParametersActionExecutionSpec<?> newAdapterIsolatedSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure) {
+        AdapterWorkerParameters workerParameters = instantiatorFactory.inject().newInstance(AdapterWorkerParameters.class);
+        workerParameters.setImplementationClassName(implementationClass.getName());
+        workerParameters.setParams(params);
+        return newIsolatedSpec(displayName, AdapterWorkerExecution.class, workerParameters, classLoaderStructure);
+    }
+
     Class<?> fromClassName(String className) {
         try {
-            return Thread.currentThread().getContextClassLoader().loadClass(className);
-        } catch (ClassNotFoundException e) {
+            return ClassLoaderUtils.classFromContextLoader(className);
+        } catch (Exception e) {
             throw new WorkSerializationException("Could not deserialize unit of work.", e);
         }
     }

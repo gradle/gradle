@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,26 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Describable;
-import org.gradle.workers.WorkerExecution;
+import org.gradle.api.Action;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkerSpec;
 
-import java.io.Serializable;
+public class DefaultWorkerSpec<T extends WorkerParameters> extends DefaultBaseWorkerSpec implements WorkerSpec<T> {
+    private final T parameters;
 
-public interface ActionExecutionSpec<T extends WorkerParameters> extends Serializable, Describable {
-    Class<? extends WorkerExecution<T>> getImplementationClass();
+    public DefaultWorkerSpec(JavaForkOptionsFactory forkOptionsFactory, T parameters) {
+        super(forkOptionsFactory);
+        this.parameters = parameters;
+    }
 
     @Override
-    String getDisplayName();
+    public T getParameters() {
+        return parameters;
+    }
 
-    T getParameters();
-
-    ClassLoaderStructure getClassLoaderStructure();
+    @Override
+    public void parameters(Action<T> action) {
+        action.execute(parameters);
+    }
 }

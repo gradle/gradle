@@ -16,7 +16,10 @@
 
 package org.gradle.workers.internal;
 
-public class TransportableActionExecutionSpec implements ActionExecutionSpec {
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
+
+public class TransportableActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
     private final String displayName;
     private final String implementationClassName;
     private final byte[] serializedParameters;
@@ -35,7 +38,7 @@ public class TransportableActionExecutionSpec implements ActionExecutionSpec {
     }
 
     @Override
-    public Class<?> getImplementationClass() {
+    public Class<? extends WorkerExecution<T>> getImplementationClass() {
         throw new UnsupportedOperationException();
     }
 
@@ -45,7 +48,7 @@ public class TransportableActionExecutionSpec implements ActionExecutionSpec {
     }
 
     @Override
-    public Object[] getParams() {
+    public T getParameters() {
         throw new UnsupportedOperationException();
     }
 

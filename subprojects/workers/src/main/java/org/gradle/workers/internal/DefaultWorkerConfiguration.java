@@ -16,54 +16,38 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.util.GUtil;
 import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 
-import java.io.File;
-import java.util.List;
-
-public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
-    private final JavaForkOptions forkOptions;
-    private IsolationMode isolationMode = IsolationMode.AUTO;
-    private List<File> classpath = Lists.newArrayList();
-    private String displayName;
+public class DefaultWorkerConfiguration extends DefaultBaseWorkerSpec implements WorkerConfiguration {
+    private final ActionConfiguration actionConfiguration = new DefaultActionConfiguration();
 
     public DefaultWorkerConfiguration(JavaForkOptionsFactory forkOptionsFactory) {
-        this.forkOptions = forkOptionsFactory.newJavaForkOptions();
-        forkOptions.setEnvironment(Maps.<String, Object>newHashMap());
+        super(forkOptionsFactory);
     }
 
     @Override
-    public Iterable<File> getClasspath() {
-        return classpath;
+    public void params(Object... params) {
+        actionConfiguration.params(params);
     }
 
     @Override
-    public void setClasspath(Iterable<File> classpath) {
-        this.classpath = Lists.newArrayList(classpath);
+    public void setParams(Object... params) {
+        actionConfiguration.setParams(params);
     }
 
     @Override
-    public IsolationMode getIsolationMode() {
-        return isolationMode;
-    }
-
-    @Override
-    public void setIsolationMode(IsolationMode isolationMode) {
-        this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
+    public Object[] getParams() {
+        return actionConfiguration.getParams();
     }
 
     @Override
     public ForkMode getForkMode() {
-        switch (isolationMode) {
+        switch (getIsolationMode()) {
             case AUTO:
                 return ForkMode.AUTO;
             case NONE:
@@ -91,28 +75,4 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
         }
     }
 
-    @Override
-    public JavaForkOptions getForkOptions() {
-        return forkOptions;
-    }
-
-    @Override
-    public void classpath(Iterable<File> files) {
-        GUtil.addToCollection(classpath, files);
-    }
-
-    @Override
-    public void forkOptions(Action<? super JavaForkOptions> forkOptionsAction) {
-        forkOptionsAction.execute(forkOptions);
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
 }
