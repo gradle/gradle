@@ -23,7 +23,7 @@ import java.util.List;
 public class PatternMatcherFactory {
 
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
-    private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/"));
+    private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/")).omitEmptyStrings();
 
     public static PatternMatcher getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
         PatternMatcher matcher = PatternMatcher.MATCH_ALL;
