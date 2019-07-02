@@ -80,7 +80,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         return delegate.execute(task, state, context);
     }
 
-    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFiles) {
+    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -96,21 +96,27 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, properties, previousInputProperties, valueSnapshotter);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = taskFingerprinter.fingerprintTaskFiles(task, properties.getInputFileProperties());
-        ImmutableSortedMap<String, FileCollectionFingerprint> previousOutputs = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
-
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilePropertyFingerprints = ImmutableSortedMap.copyOfSorted(
-            Maps.transformEntries(outputFiles, (key, value) -> {
-                    FileCollectionFingerprint previousOutputFingerprint = previousOutputs.get(key);
-                    return previousOutputFingerprint == null ? AbsolutePathFingerprintingStrategy.IGNORE_MISSING.getEmptyFingerprint() : OutputFilterUtil.filterOutputSnapshot(previousOutputFingerprint, value);
-                }
-            )
-        );
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = createFilteredOutputFingerprints(afterPreviousExecutionState, outputFileSnapshots);
         return new DefaultBeforeExecutionState(
             taskImplementation,
             taskActionImplementations,
             inputProperties,
             inputFiles,
-            outputFilePropertyFingerprints
+            outputFiles
+        );
+    }
+
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots) {
+        ImmutableSortedMap<String, FileCollectionFingerprint> previousOutputs = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
+
+        return ImmutableSortedMap.copyOfSorted(
+            Maps.transformEntries(outputFileSnapshots, (key, value) -> {
+                    FileCollectionFingerprint previousOutputFingerprint = previousOutputs.get(key);
+                    return previousOutputFingerprint == null
+                        ? AbsolutePathFingerprintingStrategy.IGNORE_MISSING.getEmptyFingerprint()
+                        : OutputFilterUtil.filterOutputSnapshot(previousOutputFingerprint, value);
+                }
+            )
         );
     }
 

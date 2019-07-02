@@ -105,20 +105,25 @@ public class OverlappingOutputs {
 
         @Override
         public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-            detectOverlappingPath(directorySnapshot);
+            if (overlappingPath == null) {
+                overlappingPath = detectOverlappingPath(directorySnapshot);
+            }
             return overlappingPath == null;
         }
 
         @Override
         public void visit(FileSystemLocationSnapshot fileSnapshot) {
-            detectOverlappingPath(fileSnapshot);
+            if (overlappingPath == null) {
+                overlappingPath = detectOverlappingPath(fileSnapshot);
+            }
         }
 
         @Override
         public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
         }
 
-        void detectOverlappingPath(FileSystemLocationSnapshot beforeSnapshot) {
+        @Nullable
+        private String detectOverlappingPath(FileSystemLocationSnapshot beforeSnapshot) {
             String path = beforeSnapshot.getAbsolutePath();
             HashCode contentHash = beforeSnapshot.getHash();
             FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
@@ -129,9 +134,10 @@ public class OverlappingOutputs {
                     || (beforeSnapshot.getType() != previousFingerprint.getType())
                     // The fingerprint hashes for non-regular files are slightly different to the snapshot hashes, we only need to compare them for regular files
                     || (beforeSnapshot.getType() == FileType.RegularFile && changedSincePreviousExecution(contentHash, previousContentHash))) {
-                    overlappingPath = path;
+                    return path;
                 }
             }
+            return null;
         }
 
         @Nullable
