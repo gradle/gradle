@@ -40,7 +40,7 @@ import java.util.Optional;
  * This is a bit of a hack: we'd be better off inspecting the actual source file to determine the name of the class file.
  */
 @NonNullApi
-public class CompilationSourceDirs implements Serializable {
+public class CompilationSourceDirs {
     private static final Logger LOG = LoggerFactory.getLogger(CompilationSourceDirs.class);
     private final List<File> sourceRoots;
 

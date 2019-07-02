@@ -29,7 +29,7 @@ class JavaConventionalSourceFileClassNameConverter {
 
     public Collection<String> getClassNames(File sourceFile) {
         return sourceDirs.relativize(sourceFile)
-            .map(relativePath -> Collections.singletonList(relativePath.toString().replaceAll("/", ".").replaceAll("\\.java$", "")))
+            .map(relativePath -> Collections.singletonList(relativePath.toString().replace(File.separatorChar, '.').replaceAll("\\.java$", "")))
             .orElse(Collections.emptyList());
     }
 }
