@@ -21,7 +21,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextUrlResourceLoader
 import org.junit.Test
 import spock.lang.Specification
 
@@ -35,10 +35,11 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def scriptHandler = Mock(ScriptHandlerInternal)
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
-    def textResourceLoader = Mock(TextResourceLoader)
+    def textUrlResourceLoaderFactory = Mock(TextUrlResourceLoader.Factory)
+    def textUrlResourceLoader = Mock(TextUrlResourceLoader)
     def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textResourceLoader, target)
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textUrlResourceLoaderFactory, target)
 
     void doesNothingWhenNothingSpecified() {
         expect:
@@ -51,6 +52,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * textUrlResourceLoaderFactory.allowInsecureProtocol(false) >> textUrlResourceLoader
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
 
         when:
@@ -68,6 +70,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
+        1 * textUrlResourceLoaderFactory.allowInsecureProtocol(false) >> textUrlResourceLoader
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
@@ -87,6 +90,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
+        1 * textUrlResourceLoaderFactory.allowInsecureProtocol(false) >> textUrlResourceLoader
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope

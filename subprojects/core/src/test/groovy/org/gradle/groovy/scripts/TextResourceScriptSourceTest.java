@@ -225,7 +225,7 @@ public class TextResourceScriptSourceTest {
     }
 
     private ScriptSource forUri(URI scriptFileUri) {
-        return new TextResourceScriptSource(resourceLoader.loadUri("<file-type>", scriptFileUri));
+        return new TextResourceScriptSource(new UriTextResource("<file-type>", scriptFileUri));
     }
 
 }

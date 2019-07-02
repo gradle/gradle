@@ -114,7 +114,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             task uriText(type: MyTask) {
-                config = resources.text.fromUri("http://localhost:$server.port/myConfig-${uuid}.txt")
+                config = resources.text.fromUri("${server.uri}/myConfig-${uuid}.txt")
                 output = project.file("output.txt")
             }
 """

@@ -52,7 +52,8 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
@@ -80,7 +81,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final ProviderFactory providerFactory;
-    private final TextResourceLoader textResourceLoader;
+    private final TextFileResourceLoader textResourceLoader;
+    private final TextUrlResourceLoader.Factory textUrlResourceLoaderFactory;
     private final ExecFactory execFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
@@ -101,7 +103,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
                                       ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader,
+                                      TextFileResourceLoader textResourceLoader,
+                                      TextUrlResourceLoader.Factory textUrlResourceLoaderFactory,
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
                                       ExecFactory execFactory,
@@ -120,6 +123,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.providerFactory = providerFactory;
+        this.textUrlResourceLoaderFactory = textUrlResourceLoaderFactory;
         this.textResourceLoader = textResourceLoader;
         this.execFactory = execFactory;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -177,7 +181,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);
-            services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(TextFileResourceLoader.class, textResourceLoader);
+            services.add(TextUrlResourceLoader.Factory.class, textUrlResourceLoaderFactory);
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);

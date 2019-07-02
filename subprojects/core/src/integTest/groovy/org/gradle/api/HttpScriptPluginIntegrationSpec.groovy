@@ -35,13 +35,17 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
+    private void applyTrustStore() {
+        def keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
+    }
+
     @Unroll
     def "can apply script via #scheme"() {
         when:
         if (useKeystore) {
-            def keyStore = TestKeyStore.init(resources.dir)
-            keyStore.enableSslWithServerCert(server)
-            keyStore.configureServerCert(executer)
+            applyTrustStore()
         }
 
         def script = file('external.gradle')
@@ -184,6 +188,7 @@ task check {
 
     def "assumes utf-8 encoding when none specified by http server"() {
         given:
+        applyTrustStore()
         executer.withDefaultCharacterEncoding("ISO-8859-15")
 
         and:

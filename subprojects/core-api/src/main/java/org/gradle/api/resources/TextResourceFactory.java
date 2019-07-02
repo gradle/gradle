@@ -97,4 +97,5 @@ public interface TextResourceFactory {
      */
     @Incubating
     TextResource fromUri(Object uri);
+
 }

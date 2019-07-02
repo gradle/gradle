@@ -17,9 +17,8 @@ package org.gradle.internal.resource;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.net.URI;
 
-public class BasicTextResourceLoader implements TextResourceLoader {
+public class BasicTextResourceLoader implements TextFileResourceLoader {
     @Override
     public TextResource loadFile(String description, @Nullable File sourceFile) {
         if (sourceFile == null) {
@@ -29,10 +28,5 @@ public class BasicTextResourceLoader implements TextResourceLoader {
             return new UriTextResource(description, sourceFile);
         }
         return new EmptyFileTextResource(description, sourceFile);
-    }
-
-    @Override
-    public TextResource loadUri(String description, URI sourceUri) {
-        return new UriTextResource(description, sourceUri);
     }
 }

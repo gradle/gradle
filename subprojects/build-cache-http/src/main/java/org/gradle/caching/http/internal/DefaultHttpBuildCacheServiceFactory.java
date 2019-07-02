@@ -70,9 +70,11 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
+        boolean allowInsecureProtocol = configuration.isAllowInsecureProtocol();
         DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
             .withAuthenticationSettings(authentications)
-            .followRedirects(false);
+            .followRedirects(false)
+            .allowInsecureProtocol(allowInsecureProtocol);
         if (allowUntrustedServer) {
             builder.allowUntrustedConnections();
         } else {
@@ -83,7 +85,8 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         describer.type("HTTP")
             .config("url", noUserInfoUrl.toASCIIString())
             .config("authenticated", Boolean.toString(authenticated))
-            .config("allowUntrustedServer", Boolean.toString(allowUntrustedServer));
+            .config("allowUntrustedServer", Boolean.toString(allowUntrustedServer))
+            .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol));
 
         return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer);
     }

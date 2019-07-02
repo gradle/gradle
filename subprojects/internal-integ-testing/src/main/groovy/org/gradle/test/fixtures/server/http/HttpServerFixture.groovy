@@ -47,6 +47,7 @@ trait HttpServerFixture {
     private SecurityHandler securityHandler
     private AuthScheme authenticationScheme = AuthScheme.BASIC
     private boolean logRequests = true
+    private boolean forceLocalhostUrl = false
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
     private final Set<Map<String, String>> allHeaders = Sets.newLinkedHashSet()
     private boolean configured
@@ -65,7 +66,16 @@ trait HttpServerFixture {
 
     URI getUri() {
         assert server.started
-        return sslConnector ? URI.create("https://localhost:${sslConnector.localPort}") : URI.create("http://localhost:${connector.localPort}")
+        if (sslConnector) {
+            return URI.create("https://localhost:${sslConnector.localPort}")
+        } else if (forceLocalhostUrl) {
+            // If used in a code-path that interacts with the HttpClientHelper, this will fail validation.
+            return URI.create("http://localhost:${connector.localPort}")
+        } else {
+            // The HttpClientHelper will not do HTTPS validation if the host matches 127.0.0.1
+            // This allows us to run integration tests without needing to use the TestKeyStore in every single test.
+            return URI.create("http://127.0.0.1:${connector.localPort}")
+        }
     }
 
     boolean isRunning() {
@@ -92,6 +102,14 @@ trait HttpServerFixture {
 
     void setLogRequests(boolean logRequests) {
         this.logRequests = logRequests
+    }
+
+    boolean getForceLocalhostUrl() {
+        return forceLocalhostUrl
+    }
+
+    void setForceLocalhostUrl(boolean forceLocalhostUrl) {
+        this.forceLocalhostUrl = forceLocalhostUrl
     }
 
     AuthScheme getAuthenticationScheme() {

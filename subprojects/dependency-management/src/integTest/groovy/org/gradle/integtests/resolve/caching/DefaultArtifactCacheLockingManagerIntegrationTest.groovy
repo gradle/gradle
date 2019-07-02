@@ -177,7 +177,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         buildFile << """
             task uriText {
                 doLast {
-                    print resources.text.fromUri("http://localhost:$server.port/$uniqueFileName").asString()
+                    print resources.text.fromUri("${server.uri}/$uniqueFileName").asString()
                 }
             }
         """

@@ -28,7 +28,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -42,18 +42,19 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
+    private boolean allowInsecureProtocol = false;
     private final ClassLoaderScope classLoaderScope;
-    private final TextResourceLoader resourceLoader;
+    private final TextUrlResourceLoader.Factory resourceLoaderFactory;
     private final Object defaultTarget;
 
     public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
                                             ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
-                                            TextResourceLoader resourceLoader, Object defaultTarget) {
+                                            TextUrlResourceLoader.Factory resourceLoaderFactory, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.classLoaderScope = classLoaderScope;
-        this.resourceLoader = resourceLoader;
+        this.resourceLoaderFactory = resourceLoaderFactory;
         this.defaultTarget = defaultTarget;
     }
 
@@ -71,6 +72,22 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
                 applyScript(script);
             }
         });
+        return this;
+    }
+
+    /**
+     * Not yet exposed in the {@link ObjectConfigurationAction} interface.
+     * Leaving this in place to determine if it's actually necessary.
+     * If users demand the ability to pull scripts resources over HTTP we can expose this method at that time.
+     *
+     * See:
+     * <a href="https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946">
+     *     https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946
+     * </a>
+     */
+    @SuppressWarnings("unused")
+    public ObjectConfigurationAction allowInsecureProtocol(final boolean allowInsecureProtocol) {
+        this.allowInsecureProtocol = allowInsecureProtocol;
         return this;
     }
 
@@ -109,7 +126,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
-        TextResource resource = resourceLoader.loadUri("script", scriptUri);
+        TextResource resource = resourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol).loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);

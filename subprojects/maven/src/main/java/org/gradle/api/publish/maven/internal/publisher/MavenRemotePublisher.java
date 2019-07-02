@@ -57,7 +57,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
 
         String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
         RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(),
-                ((AuthenticationSupportedInternal) artifactRepository).getConfiguredAuthentication());
+                ((AuthenticationSupportedInternal) artifactRepository).getConfiguredAuthentication(), artifactRepository.isAllowInsecureProtocol());
         ExternalResourceRepository repository = transport.getRepository();
 
         URI rootUri = artifactRepository.getUrl();

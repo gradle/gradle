@@ -20,19 +20,19 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextUrlResourceLoader;
 
 import java.nio.charset.Charset;
 
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
-    private final TextResourceLoader textResourceLoader;
+    private final TextUrlResourceLoader.Factory textResourceLoaderFactory;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, TextUrlResourceLoader.Factory textResourceLoaderFactory) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
-        this.textResourceLoader = textResourceLoader;
+        this.textResourceLoaderFactory = textResourceLoaderFactory;
     }
 
     @Override
@@ -62,6 +62,25 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromUri(Object uri) {
-        return new ApiTextResourceAdapter(textResourceLoader, tempFileProvider, fileOperations.uri(uri));
+        return fromUri(uri, false);
+    }
+
+    /**
+     * Not yet exposed in the {@link TextResourceFactory} interface.
+     * Leaving this in place to determine if it's actually necessary.
+     * If users demand the ability to pull text resources over HTTP we can expose this method at that time.
+     *
+     * See:
+     * <a href="https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946">
+     *     https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946
+     * </a>
+     */
+    @SuppressWarnings("unused")
+    public TextResource fromInsecureUri(Object uri) {
+        return fromUri(uri, true);
+    }
+
+    private TextResource fromUri(Object uri, boolean allowInsecureProtocol) {
+        return new ApiTextResourceAdapter(textResourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol), tempFileProvider, fileOperations.uri(uri));
     }
 }
