@@ -131,13 +131,13 @@ public class OutputFilterUtil {
         return afterPreviousFingerprints.containsKey(snapshot.getAbsolutePath());
     }
 
-    public static CurrentFileCollectionFingerprint filterOutputSnapshot(FileCollectionFingerprint previousOutputs, FileSystemSnapshot currentSnapshots) {
+    public static List<FileSystemSnapshot> filterOutputSnapshot(FileCollectionFingerprint previousOutputs, FileSystemSnapshot currentSnapshots) {
         Map<String, FileSystemLocationFingerprint> fingerprints = previousOutputs.getFingerprints();
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> {
             return snapshot.getType() != FileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
         });
         currentSnapshots.accept(filteringVisitor);
-        return DefaultCurrentFileCollectionFingerprint.from(filteringVisitor.getNewRoots(), AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
+        return filteringVisitor.getNewRoots();
     }
 
     private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {

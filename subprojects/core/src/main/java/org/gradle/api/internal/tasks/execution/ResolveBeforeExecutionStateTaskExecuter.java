@@ -35,6 +35,7 @@ import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -75,12 +76,18 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (context.getTaskExecutionMode().isTaskHistoryMaintained()) {
-            context.setBeforeExecutionState(createExecutionState(task, context.getTaskProperties(), context.getAfterPreviousExecution(), context.getOutputFilesBeforeExecution()));
+            context.setBeforeExecutionState(createExecutionState(
+                task,
+                context.getTaskProperties(),
+                context.getAfterPreviousExecution(),
+                context.getOutputFilesBeforeExecution(),
+                context.getOverlappingOutputs().isPresent()
+            ));
         }
         return delegate.execute(task, state, context);
     }
 
-    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots) {
+    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots, boolean hasOverlappingOutputs) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -96,7 +103,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, properties, previousInputProperties, valueSnapshotter);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = taskFingerprinter.fingerprintTaskFiles(task, properties.getInputFileProperties());
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = createFilteredOutputFingerprints(afterPreviousExecutionState, outputFileSnapshots);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = createFilteredOutputFingerprints(afterPreviousExecutionState, outputFileSnapshots, hasOverlappingOutputs);
         return new DefaultBeforeExecutionState(
             taskImplementation,
             taskActionImplementations,
@@ -106,18 +113,25 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         );
     }
 
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots) {
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots, boolean hasOverlappingOutputs) {
         ImmutableSortedMap<String, FileCollectionFingerprint> previousOutputs = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
 
         return ImmutableSortedMap.copyOfSorted(
-            Maps.transformEntries(outputFileSnapshots, (key, value) -> {
+            Maps.transformEntries(outputFileSnapshots, (key, outputSnapshot) -> {
                     FileCollectionFingerprint previousOutputFingerprint = previousOutputs.get(key);
                     return previousOutputFingerprint == null
                         ? AbsolutePathFingerprintingStrategy.IGNORE_MISSING.getEmptyFingerprint()
-                        : OutputFilterUtil.filterOutputSnapshot(previousOutputFingerprint, value);
+                        : fingerprintOutputSnapshot(outputSnapshot, previousOutputFingerprint, hasOverlappingOutputs);
                 }
             )
         );
+    }
+
+    private CurrentFileCollectionFingerprint fingerprintOutputSnapshot(FileSystemSnapshot outputSnapshot, FileCollectionFingerprint previousOutputFingerprint, boolean hasOverlappingOutputs) {
+        List<FileSystemSnapshot> roots = hasOverlappingOutputs
+            ? OutputFilterUtil.filterOutputSnapshot(previousOutputFingerprint, outputSnapshot)
+            : ImmutableList.of(outputSnapshot);
+        return DefaultCurrentFileCollectionFingerprint.from(roots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<InputChangesAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
