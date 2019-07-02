@@ -20,15 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Attribute representing the technical format of a variant.
- * <p>
- * This attribute is not about the packaging of the variant, which is represented by the {@link org.gradle.api.artifacts.type.ArtifactTypeDefinition} attribute.
+ * Attribute representing the technical elements of a library variant.
  *
  * @since 5.6
  */
 @Incubating
-public interface Format extends Named {
-    Attribute<Format> FORMAT_ATTRIBUTE = Attribute.of("org.gradle.format", Format.class);
+public interface LibraryElements extends Named {
+    Attribute<LibraryElements> LIBRARY_ELEMENTS_ATTRIBUTE = Attribute.of("org.gradle.libraryElements", LibraryElements.class);
 
     /**
      * The JVM classes format
@@ -44,11 +42,6 @@ public interface Format extends Named {
      * JVM resources
      */
     String RESOURCES = "resources";
-
-    /**
-     * Dependency metadata
-     */
-    String METADATA = "metadata";
 
     /**
      * Header files for C++
@@ -69,15 +62,4 @@ public interface Format extends Named {
      * Dynamic libraries for native modules
      */
     String DYNAMIC_LIB = "dynamic-lib";
-
-    /**
-     * HTML format
-     */
-    String HTML = "html";
-
-
-    /**
-     * PDF format
-     */
-    String PDF = "pdf";
 }

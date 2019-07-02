@@ -17,7 +17,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.EmptySchema;
@@ -38,15 +38,15 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 public class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Sets.newHashSet(Usage.USAGE_ATTRIBUTE, Format.FORMAT_ATTRIBUTE);
+    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Sets.newHashSet(Usage.USAGE_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
     private final PreferRuntimeVariantUsageDisambiguationRule usageDisambiguationRule;
     private final PreferJarVariantUsageDisambiguationRule formatDisambiguationRule;
 
     public PreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
         Usage runtimeUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME);
-        Format jarFormat = instantiator.named(Format.class, Format.JAR);
+        LibraryElements jarLibraryElements = instantiator.named(LibraryElements.class, LibraryElements.JAR);
         usageDisambiguationRule = new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage);
-        formatDisambiguationRule = new PreferJarVariantUsageDisambiguationRule(jarFormat);
+        formatDisambiguationRule = new PreferJarVariantUsageDisambiguationRule(jarLibraryElements);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
             return Cast.uncheckedCast(usageDisambiguationRule);
         }
-        if (Format.FORMAT_ATTRIBUTE.equals(attribute)) {
+        if (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.equals(attribute)) {
             return Cast.uncheckedCast(formatDisambiguationRule);
         }
         return super.disambiguationRules(attribute);
@@ -88,11 +88,11 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
         }
     }
 
-    private static class PreferJarVariantUsageDisambiguationRule implements DisambiguationRule<Format> {
-        private final Format jarFormat;
+    private static class PreferJarVariantUsageDisambiguationRule implements DisambiguationRule<LibraryElements> {
+        private final LibraryElements jarLibraryElements;
 
-        public PreferJarVariantUsageDisambiguationRule(Format jarFormat) {
-            this.jarFormat = jarFormat;
+        public PreferJarVariantUsageDisambiguationRule(LibraryElements jarLibraryElements) {
+            this.jarLibraryElements = jarLibraryElements;
         }
 
         @Override
@@ -101,11 +101,11 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
         }
 
         @Override
-        public void execute(MultipleCandidatesResult<Format> details) {
+        public void execute(MultipleCandidatesResult<LibraryElements> details) {
             if (details.getConsumerValue() == null) {
-                Set<Format> candidates = details.getCandidateValues();
-                if (candidates.contains(jarFormat)) {
-                    details.closestMatch(jarFormat);
+                Set<LibraryElements> candidates = details.getCandidateValues();
+                if (candidates.contains(jarLibraryElements)) {
+                    details.closestMatch(jarLibraryElements);
                 }
             }
         }

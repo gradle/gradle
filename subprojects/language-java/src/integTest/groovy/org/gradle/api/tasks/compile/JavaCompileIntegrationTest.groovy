@@ -408,7 +408,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             task processDependency {
                 def lazyInputs = configurations.runtimeClasspath.incoming.artifactView { 
                     attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME)) }
-                    attributes{ attribute(Format.FORMAT_ATTRIBUTE, objects.named(Format, Format.${token})) }
+                    attributes{ attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${token})) }
                 }.files
                 inputs.files(lazyInputs)
                 doLast {

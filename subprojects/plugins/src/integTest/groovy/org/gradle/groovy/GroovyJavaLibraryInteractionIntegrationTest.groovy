@@ -80,7 +80,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                             'org.gradle.usage': 'java-api',
-                            'org.gradle.format': 'jar'])
+                            'org.gradle.libraryElements': 'jar'])
                     switch (expected) {
                         case "jar":
                             artifact(name: "groovyLib")

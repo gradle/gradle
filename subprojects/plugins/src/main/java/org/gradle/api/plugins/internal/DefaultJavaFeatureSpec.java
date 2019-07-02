@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.java.TargetJvmVersion;
@@ -242,7 +242,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             @Override
             public void execute(AttributeContainer attrs) {
                 attrs.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage));
-                attrs.attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.JAR));
+                attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
             }
         });
     }

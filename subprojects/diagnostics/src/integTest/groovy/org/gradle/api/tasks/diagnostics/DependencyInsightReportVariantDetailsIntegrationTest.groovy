@@ -66,8 +66,8 @@ project :$expectedProject
 
         where:
         configuration      | expectedProject | expectedVariant   | expectedAttributes
-        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage               = java-api\n      org.gradle.format              = jar (compatible with: classes)'
-        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage               = java-runtime\n      org.gradle.format              = jar'
+        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage               = java-api\n      org.gradle.libraryElements     = jar (compatible with: classes)'
+        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage               = java-runtime\n      org.gradle.libraryElements     = jar'
     }
 
     def "shows published variant details"() {
@@ -75,7 +75,7 @@ project :$expectedProject
         mavenRepo.with {
             def leaf = module('org.test', 'leaf', '1.0')
                 .withModuleMetadata()
-                .variant('api', ['org.gradle.usage': 'java-api', 'org.gradle.format': 'jar', 'org.gradle.test': 'published attribute'])
+                .variant('api', ['org.gradle.usage': 'java-api', 'org.gradle.libraryElements': 'jar', 'org.gradle.test': 'published attribute'])
                 .publish()
             module('org.test', 'a', '1.0')
                 .dependsOn(leaf)
@@ -105,7 +105,7 @@ project :$expectedProject
         outputContains """org.test:leaf:1.0
    variant "api" [
       org.gradle.usage               = java-api
-      org.gradle.format              = jar (compatible with: classes)
+      org.gradle.libraryElements     = jar (compatible with: classes)
       org.gradle.test                = published attribute (not requested)
       org.gradle.status              = release (not requested)
 
@@ -180,10 +180,10 @@ org:middle:1.0 FAILED
         output.contains """
 org:leaf:1.0
    variant "runtime" [
-      org.gradle.status   = release (not requested)
-      org.gradle.usage    = java-runtime (not requested)
-      org.gradle.format   = jar (not requested)
-      org.gradle.category = library (not requested)
+      org.gradle.status          = release (not requested)
+      org.gradle.usage           = java-runtime (not requested)
+      org.gradle.libraryElements = jar (not requested)
+      org.gradle.category        = library (not requested)
    ]
 
 org:leaf:1.0
@@ -221,12 +221,12 @@ org:leaf:1.0
         then:
         output.contains """org:leaf:1.0
    variant "runtime" [
-      org.gradle.status   = release (not requested)
-      org.gradle.usage    = java-runtime (not requested)
-      org.gradle.format   = jar (not requested)
-      org.gradle.category = library (not requested)
+      org.gradle.status          = release (not requested)
+      org.gradle.usage           = java-runtime (not requested)
+      org.gradle.libraryElements = jar (not requested)
+      org.gradle.category        = library (not requested)
       Requested attributes not found in the selected variant:
-         usage               = dummy
+         usage                      = dummy
    ]
 
 org:leaf:1.0
@@ -284,11 +284,11 @@ org:leaf:1.0
         outputContains """
 org:testA:1.0
    variant "runtime" [
-      custom              = dep_value
-      org.gradle.status   = release (not requested)
-      org.gradle.usage    = java-runtime (not requested)
-      org.gradle.format   = jar (not requested)
-      org.gradle.category = library (not requested)
+      custom                     = dep_value
+      org.gradle.status          = release (not requested)
+      org.gradle.usage           = java-runtime (not requested)
+      org.gradle.libraryElements = jar (not requested)
+      org.gradle.category        = library (not requested)
    ]
 
 org:testA:1.0
@@ -296,11 +296,11 @@ org:testA:1.0
 
 org:testB:1.0
    variant "runtime" [
-      custom              = dep_value
-      org.gradle.status   = release (not requested)
-      org.gradle.usage    = java-runtime (not requested)
-      org.gradle.format   = jar (not requested)
-      org.gradle.category = library (not requested)
+      custom                     = dep_value
+      org.gradle.status          = release (not requested)
+      org.gradle.usage           = java-runtime (not requested)
+      org.gradle.libraryElements = jar (not requested)
+      org.gradle.category        = library (not requested)
    ]
 
 org:testB:+ -> 1.0

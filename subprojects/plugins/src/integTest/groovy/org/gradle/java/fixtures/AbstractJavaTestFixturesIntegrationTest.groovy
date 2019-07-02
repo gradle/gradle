@@ -272,12 +272,12 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
 
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
-            .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.format': 'jar']) {
+            .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryElements': 'jar']) {
                 capability('com.acme', 'external-module-test-fixtures', '1.3')
                 dependsOn("com.acme:external-module:1.3")
                 artifact("external-module-1.3-test-fixtures.jar")
             }
-            .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar']) {
+            .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryElements': 'jar']) {
                 capability('com.acme', 'external-module-test-fixtures', '1.3')
                 dependsOn("com.acme:external-module:1.3")
                 dependsOn("org.apache.commons:commons-lang3:3.9")
@@ -310,11 +310,11 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesApiElements", [
-                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.format': 'jar'
+                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryElements': 'jar'
                     ])
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
-                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.format': 'jar'])
+                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryElements': 'jar'])
                         artifact(name: 'external-module', version:'1.3')
                     }
                     artifact(name: 'external-module', version:'1.3', classifier:'test-fixtures')
@@ -336,11 +336,11 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesRuntimeElements", [
-                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar'
+                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryElements': 'jar'
                     ])
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
-                        variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.format': 'jar'])
+                        variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryElements': 'jar'])
                         artifact(name: 'external-module', version:'1.3')
                     }
                     module("org.apache.commons:commons-lang3:3.9") {

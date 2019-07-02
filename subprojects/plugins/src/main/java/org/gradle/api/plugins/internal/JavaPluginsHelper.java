@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.model.ObjectFactory;
@@ -44,7 +44,7 @@ public class JavaPluginsHelper {
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariant variant = publications.getVariants().maybeCreate("classes");
         variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
-        variant.getAttributes().attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.CLASSES));
+        variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, compileTask) {
             @Override
             public File getFile() {

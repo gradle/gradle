@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.resolve.bundling
 
-import org.gradle.api.attributes.Format
+
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.Bundling
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
@@ -64,12 +65,12 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                 }
                 variant('fatApi') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-api'
-                    attribute Format.FORMAT_ATTRIBUTE.name, 'jar'
+                    attribute LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name, 'jar'
                     attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
                 variant('fatRuntime') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-runtime'
-                    attribute Format.FORMAT_ATTRIBUTE.name, 'jar'
+                    attribute LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name, 'jar'
                     attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
             }
@@ -100,7 +101,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.status': defaultStatus(),
                             'org.gradle.usage': 'java-api',
-                            'org.gradle.format': 'jar'
+                            'org.gradle.libraryElements': 'jar'
                     ])
                     module('org:transitive:1.0')
                 }
@@ -127,12 +128,12 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                 }
                 variant('fatApi') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-api'
-                    attribute Format.FORMAT_ATTRIBUTE.name, 'jar'
+                    attribute LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name, 'jar'
                     attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
                 variant('fatRuntime') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-runtime'
-                    attribute Format.FORMAT_ATTRIBUTE.name, 'jar'
+                    attribute LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name, 'jar'
                     attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
             }
@@ -176,7 +177,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                                 'org.gradle.dependency.bundling': selected,
                                 'org.gradle.status': defaultStatus(),
                                 'org.gradle.usage': 'java-api',
-                                'org.gradle.format': 'jar'
+                                'org.gradle.libraryElements': 'jar'
                         ])
                     }
                 }

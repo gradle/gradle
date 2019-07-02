@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -65,7 +65,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Format.FORMAT_ATTRIBUTE;
+import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
@@ -375,7 +375,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
         ConfigurationVariant classesVariant = runtimeVariants.create("classes");
         classesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        classesVariant.getAttributes().attribute(FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.CLASSES));
+        classesVariant.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         classesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
@@ -384,7 +384,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
         ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        resourcesVariant.getAttributes().attribute(FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.RESOURCES));
+        resourcesVariant.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
         resourcesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
@@ -468,7 +468,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
         apiElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
-        apiElementsConfiguration.getAttributes().attribute(FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.JAR));
+        apiElementsConfiguration.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         apiElementsConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, EXTERNAL));
         apiElementsConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         apiElementsConfiguration.extendsFrom(runtimeConfiguration);
@@ -479,7 +479,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
         runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        runtimeElementsConfiguration.getAttributes().attribute(FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.JAR));
+        runtimeElementsConfiguration.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         runtimeElementsConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, EXTERNAL));
         runtimeElementsConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);

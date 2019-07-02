@@ -19,7 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.Format
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -98,8 +98,8 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         attributes.size() == 2
         def usage = classpath.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
         usage.name == Usage.JAVA_RUNTIME
-        def format = classpath.attributes.getAttribute(Format.FORMAT_ATTRIBUTE)
-        format.name == Format.JAR
+        def format = classpath.attributes.getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)
+        format.name == LibraryElements.JAR
 
     }
 
@@ -123,7 +123,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2
         runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencyConstraints
-        runtimeUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Format.FORMAT_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
+        runtimeUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
         runtimeUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
         runtimeUsage.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
 
@@ -131,7 +131,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         apiUsage.dependencies == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiUsage.dependencyConstraints.size() == 1
         apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
-        apiUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Format.FORMAT_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
+        apiUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
         apiUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
         apiUsage.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
     }
