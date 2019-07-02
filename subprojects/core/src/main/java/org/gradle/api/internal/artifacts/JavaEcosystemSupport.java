@@ -26,7 +26,7 @@ import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
@@ -42,7 +42,7 @@ import java.util.Set;
 public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
-        configureFormat(attributesSchema, objectFactory);
+        configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
     }
@@ -82,11 +82,11 @@ public abstract class JavaEcosystemSupport {
         });
     }
 
-    private static void configureFormat(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<Format> formatSchema = attributesSchema.attribute(Format.FORMAT_ATTRIBUTE);
-        formatSchema.getCompatibilityRules().add(FormatCompatibilityRules.class);
-        formatSchema.getDisambiguationRules().add(FormatDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(Format.class, Format.JAR));
+    private static void configureLibraryElements(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        AttributeMatchingStrategy<LibraryElements> libraryElementsSchema = attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        libraryElementsSchema.getCompatibilityRules().add(LibraryElementsCompatibilityRules.class);
+        libraryElementsSchema.getDisambiguationRules().add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
+            actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
     }
 
@@ -174,18 +174,18 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class FormatDisambiguationRules implements AttributeDisambiguationRule<Format>, ReusableAction {
-        final Format jar;
+    public static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
+        final LibraryElements jar;
 
         @Inject
-        FormatDisambiguationRules(Format jar) {
+        LibraryElementsDisambiguationRules(LibraryElements jar) {
             this.jar = jar;
         }
 
         @Override
-        public void execute(MultipleCandidatesDetails<Format> details) {
-            Set<Format> candidateValues = details.getCandidateValues();
-            Format consumerValue = details.getConsumerValue();
+        public void execute(MultipleCandidatesDetails<LibraryElements> details) {
+            Set<LibraryElements> candidateValues = details.getCandidateValues();
+            LibraryElements consumerValue = details.getConsumerValue();
             if (consumerValue == null) {
                 if (candidateValues.contains(jar)) {
                     // Use the jar when nothing has been requested
@@ -199,12 +199,12 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class FormatCompatibilityRules implements AttributeCompatibilityRule<Format>, ReusableAction {
+    public static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements>, ReusableAction {
 
         @Override
-        public void execute(CompatibilityCheckDetails<Format> details) {
-            Format consumerValue = details.getConsumerValue();
-            Format producerValue = details.getProducerValue();
+        public void execute(CompatibilityCheckDetails<LibraryElements> details) {
+            LibraryElements consumerValue = details.getConsumerValue();
+            LibraryElements producerValue = details.getProducerValue();
             if (consumerValue == null) {
                 // consumer didn't express any preferences, everything fits
                 details.compatible();
@@ -212,14 +212,9 @@ public abstract class JavaEcosystemSupport {
             }
             String consumerValueName = consumerValue.getName();
             String producerValueName = producerValue.getName();
-            // METADATA format is always compatible
-            if (Format.METADATA.equals(producerValueName)) {
-                details.compatible();
-                return;
-            }
-            if (Format.CLASSES.equals(consumerValueName) || Format.RESOURCES.equals(consumerValueName)) {
+            if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName)) {
                 // JAR is compatible with classes or resources
-                if (Format.JAR.equals(producerValueName)) {
+                if (LibraryElements.JAR.equals(producerValueName)) {
                     details.compatible();
                     return;
                 }

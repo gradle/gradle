@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -29,7 +29,7 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 public class GradleModuleMetadataCompatibilityConverter {
 
     private static final Attribute<String> USAGE_STRING_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
-    public static final Attribute<String> FORMAT_STRING_ATTRIBUTE = Attribute.of(Format.FORMAT_ATTRIBUTE.getName(), String.class);
+    private static final Attribute<String> LIBRARY_ELEMENTS_STRING_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
 
     private ImmutableAttributesFactory attributesFactory;
     private NamedObjectInstantiator instantiator;
@@ -49,8 +49,8 @@ public class GradleModuleMetadataCompatibilityConverter {
                     updatedAttributes = attributesFactory.concat(updatedAttributes, USAGE_STRING_ATTRIBUTE, new CoercingStringValueSnapshot(attributeValue.replace("-jars", ""), instantiator));
                 }
             }
-            if (!updatedAttributes.isEmpty() && !attributes.contains(FORMAT_STRING_ATTRIBUTE)) {
-                updatedAttributes = attributesFactory.concat(updatedAttributes, FORMAT_STRING_ATTRIBUTE, new CoercingStringValueSnapshot(Format.JAR, instantiator));
+            if (!updatedAttributes.isEmpty() && !attributes.contains(LIBRARY_ELEMENTS_STRING_ATTRIBUTE)) {
+                updatedAttributes = attributesFactory.concat(updatedAttributes, LIBRARY_ELEMENTS_STRING_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, instantiator));
             }
             if (!updatedAttributes.isEmpty()) {
                 updatedAttributes = attributesFactory.concat(attributes, updatedAttributes);

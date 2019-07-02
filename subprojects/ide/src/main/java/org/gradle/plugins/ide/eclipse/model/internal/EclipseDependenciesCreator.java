@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -108,8 +108,8 @@ public class EclipseDependenciesCreator {
             if (usage == null || !usage.getName().equals(Usage.JAVA_RUNTIME)) {
                 return;
             }
-            Format format = artifact.getVariant().getAttributes().getAttribute(Format.FORMAT_ATTRIBUTE);
-            if (format == null || !format.getName().equals(Format.JAR)) {
+            LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+            if (libraryElements == null || !libraryElements.getName().equals(LibraryElements.JAR)) {
                 return;
             }
             ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();

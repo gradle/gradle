@@ -24,7 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.Format;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
@@ -135,7 +135,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtimeElements);
-        declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, Format.JAR);
+        declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, LibraryElements.JAR);
 
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
@@ -143,7 +143,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private Configuration createConsumableRuntime(Project project, Configuration apiElements, String name, String platformKind) {
         Configuration runtimeElements = project.getConfigurations().create(name, AS_CONSUMABLE_CONFIGURATION);
         runtimeElements.extendsFrom(apiElements);
-        declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME, Format.METADATA);
+        declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
         declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
         return runtimeElements;
     }
@@ -151,7 +151,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private Configuration createConsumableApi(Project project, ConfigurationContainer configurations, Configuration api, String name, String platformKind) {
         Configuration apiElements = configurations.create(name, AS_CONSUMABLE_CONFIGURATION);
         apiElements.extendsFrom(api);
-        declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API, Format.METADATA);
+        declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
         declareConfigurationCategory(project.getObjects(), apiElements, platformKind);
         return apiElements;
     }
@@ -160,9 +160,13 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
     }
 
-    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage, String format) {
+    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage, String libraryContents) {
+        declareConfigurationUsage(objectFactory, configuration, usage);
+        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryContents));
+    }
+
+    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage) {
         configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage));
-        configuration.getAttributes().attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, format));
     }
 
     private void configureExtension(Project project) {
