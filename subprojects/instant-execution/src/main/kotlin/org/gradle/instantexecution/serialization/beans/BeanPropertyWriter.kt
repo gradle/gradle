@@ -29,6 +29,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import java.io.IOException
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
@@ -90,7 +91,9 @@ fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind
         writeString(name)
         try {
             writeValue(value)
-        } catch (e: Throwable) {
+        } catch (passThrough: IOException) {
+            throw passThrough
+        } catch (e: Exception) {
             logPropertyError("write", e) {
                 text("error writing value of type ")
                 reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
