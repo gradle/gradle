@@ -16,7 +16,7 @@
 
 package elmish.tree
 
-import data.updateElementAt
+import data.mapAt
 import elmish.View
 import elmish.attributes
 import elmish.div
@@ -118,7 +118,7 @@ data class Tree<T>(
         ) : Focus<T>() {
 
             override fun update(f: Tree<T>.() -> Tree<T>): Tree<T> = parent.update {
-                copy(children = children.updateElementAt(index, f))
+                copy(children = children.mapAt(index, f))
             }
         }
     }

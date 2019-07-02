@@ -17,12 +17,8 @@
 package data
 
 
-fun <T> List<T>.updateElementAt(index: Int, update: (T) -> T): List<T> = mutableListOf<T>().also { result ->
-    for (i in 0 until index) {
-        result.add(get(i))
+inline fun <T> List<T>.mapAt(index: Int, transform: (T) -> T): List<T> =
+    mapIndexed { i, e ->
+        if (index == i) transform(e)
+        else e
     }
-    result.add(update(get(index)))
-    for (i in (index + 1) until size) {
-        result.add(get(i))
-    }
-}
