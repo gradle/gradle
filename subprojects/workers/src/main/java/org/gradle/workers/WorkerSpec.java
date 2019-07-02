@@ -19,9 +19,42 @@ package org.gradle.workers;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+/**
+ * Represents the configuration of a worker.  Used when submitting an item of work
+ * to the {@link WorkerExecutor}.
+ *
+ * <pre>
+ *      workerExecutor.submit(MyWorkerExecution.class) { WorkerSpec spec -&gt;
+ *          spec.isolationMode = IsolationMode.PROCESS
+ *
+ *          forkOptions { JavaForkOptions options -&gt;
+ *              options.maxHeapSize = "512m"
+ *              options.systemProperty 'some.prop', 'value'
+ *              options.jvmArgs "-server"
+ *          }
+ *
+ *          classpath configurations.fooLibrary
+ *
+ *          // parameters are specific to the WorkerExecution class
+ *          spec.parameters {
+ *              foo = "bar"
+ *              files.from("some/file")
+ *          }
+ *      }
+ * </pre>
+ *
+ * @param <T> Parameter type for the worker execution. Should be {@link WorkerParameters.None} if the execution does not have parameters.
+ * @since 5.6
+ **/
 @Incubating
 public interface WorkerSpec<T extends WorkerParameters> extends BaseWorkerSpec {
+    /**
+     * Returns the parameters object to be used with this item of work.
+     */
     T getParameters();
 
+    /**
+     * Configures the parameters object for this item of work.
+     */
     void parameters(Action<T> action);
 }

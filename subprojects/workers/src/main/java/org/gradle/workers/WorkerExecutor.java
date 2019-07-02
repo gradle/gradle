@@ -66,6 +66,8 @@ public interface WorkerExecutor {
      * Work configured with {@link IsolationMode#PROCESS} will execute in an idle daemon that meets the requirements set
      * in the {@link WorkerSpec}.  If no idle daemons are available, a new daemon will be started.  Any errors
      * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
+     *
+     * @since 5.6
      */
     @Incubating
     <T extends WorkerParameters> void execute(Class<? extends WorkerExecution<T>> workerExecutionClass, Action<? super WorkerSpec<T>> configAction);

@@ -310,9 +310,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         outputContains("bar")
 
         where:
-        // TODO: this doesn't work yet for out-of-process workers because the managed factory
-        // for generated classes is not guaranteed to be available in the worker process yet.
-        isolationMode << (ISOLATION_MODES - "IsolationMode.PROCESS")
+        isolationMode << ISOLATION_MODES
     }
 
     String parameterRunnableWithType(String type, String action) {

@@ -62,8 +62,7 @@ class TestUtil {
         if (instantiatorFactory == null) {
             NativeServicesTestFixture.initialize()
             def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
-            def managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
-            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, managedFactoryRegistry)
+            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers)
         }
         return instantiatorFactory
     }

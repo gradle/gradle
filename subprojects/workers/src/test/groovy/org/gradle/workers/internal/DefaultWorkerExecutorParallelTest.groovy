@@ -19,10 +19,14 @@ package org.gradle.workers.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.process.internal.JavaForkOptionsFactory
+import org.gradle.process.internal.JavaForkOptionsInternal
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
@@ -44,7 +48,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
-    def forkOptionsFactory = TestFiles.execFactory()
+    def forkOptionsFactory = new TestForkOptionsFactory(TestFiles.execFactory())
     def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
         getWorkingDirectory() >> { temporaryFolder.root }
     }
@@ -52,11 +56,18 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def executionQueue = Mock(ConditionalExecutionQueue)
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
+    def instantiatorFactory = Mock(InstantiatorFactory)
+    def instantiator = Mock(Instantiator)
+    def parameters = Mock(AdapterWorkerParameters)
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
+        _ * instantiatorFactory.inject() >> instantiator
+        _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
+        _ * parameters.implementationClassName >> TestRunnable.class.getName()
+        _ * parameters.params >> []
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
@@ -117,6 +128,26 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     static class TestRunnable implements Runnable {
         @Override
         void run() {
+        }
+    }
+
+    class TestForkOptionsFactory implements JavaForkOptionsFactory {
+        private final JavaForkOptionsFactory delegate
+
+        TestForkOptionsFactory(JavaForkOptionsFactory delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        JavaForkOptionsInternal newJavaForkOptions() {
+            def forkOptions = delegate.newJavaForkOptions()
+            forkOptions.setWorkingDir(temporaryFolder.root)
+            return forkOptions
+        }
+
+        @Override
+        JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
+            return delegate.immutableCopy(options)
         }
     }
 }

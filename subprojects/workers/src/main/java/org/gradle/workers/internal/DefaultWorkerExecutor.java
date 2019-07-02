@@ -116,10 +116,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         if (parameterType == WorkerParameters.class) {
             throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkerParameters.class).getDisplayName(), ModelType.of(WorkerParameters.None.class).getDisplayName()));
         }
-        T parameters = instantiator.newInstance(parameterType);
+        T parameters = (parameterType == WorkerParameters.None.class) ? null : instantiator.newInstance(parameterType);
         WorkerSpec<T> workerSpec = new DefaultWorkerSpec<T>(forkOptionsFactory, parameters);
-        File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         File defaultWorkingDir = workerSpec.getForkOptions().getWorkingDir();
+        File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         configAction.execute(workerSpec);
         String description = getWorkerDisplayName(workerSpec, workerExecutionClass);
 
@@ -295,7 +295,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         List<Class<?>> classes = Lists.newArrayList();
         classes.add(actionClass);
         for (Object param : params) {
-            classes.add(param.getClass());
+            if (param != null) {
+                classes.add(param.getClass());
+            }
         }
         return classes.toArray(new Class[0]);
     }

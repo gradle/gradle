@@ -21,9 +21,14 @@ import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
+/**
+ * Represents the common configuration of a worker.  Used when submitting an item of work
+ * to the {@link WorkerExecutor}.
+ *
+ * @since 5.6
+ */
 @Incubating
 public interface BaseWorkerSpec extends Describable {
     /**
@@ -85,10 +90,4 @@ public interface BaseWorkerSpec extends Describable {
      * @param displayName the name of this item of work
      */
     void setDisplayName(String displayName);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Nullable
-    String getDisplayName();
 }

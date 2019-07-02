@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation;
 
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.state.ManagedFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -113,4 +114,9 @@ public interface InstantiatorFactory {
      * @param services The registry of services to make available to instances.
      */
     Instantiator injectAndDecorateLenient(ServiceLookup services);
+
+    /**
+     * Returns a managed factory to use when isolating managed objects created using this factory.
+     */
+    ManagedFactory getManagedFactory();
 }

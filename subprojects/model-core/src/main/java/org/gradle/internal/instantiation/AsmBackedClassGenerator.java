@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.instantiation;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
@@ -56,8 +55,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
-import org.gradle.internal.state.ManagedFactory;
-import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.util.CollectionUtils;
@@ -69,7 +66,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -109,7 +105,7 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
-public class AsmBackedClassGenerator extends AbstractClassGenerator implements ManagedFactory {
+public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
     private static final AtomicReference<CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
     private final boolean decorate;
@@ -122,17 +118,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         return SERVICES_FOR_NEXT_OBJECT.get().services;
     }
 
-    private AsmBackedClassGenerator(boolean decorate, String suffix, Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses) {
+    private AsmBackedClassGenerator(boolean decorate, String suffix, Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses, int factoryId) {
         super(allKnownAnnotations, enabledAnnotations, generatedClasses);
         this.decorate = decorate;
         this.suffix = suffix;
-        this.factoryId = Objects.hashCode(getClass().getName(), suffix, allKnownAnnotations, enabledAnnotations, generatedClasses);
+        this.factoryId = factoryId;
     }
 
     /**
      * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
-    static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, ManagedFactoryRegistry managedFactoryRegistry) {
+    static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, int factoryId) {
         String suffix;
         CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
         if (enabledAnnotations.isEmpty()) {
@@ -153,29 +149,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             generatedClasses = cacheFactory.newClassMap();
         }
 
-        AsmBackedClassGenerator generator = new AsmBackedClassGenerator(true, suffix, allKnownAnnotations, enabledAnnotations, generatedClasses);
-        registerManagedFactory(managedFactoryRegistry, generator);
-        return generator;
+        return new AsmBackedClassGenerator(true, suffix, allKnownAnnotations, enabledAnnotations, generatedClasses, factoryId);
     }
 
     /**
      * Returns a generator that applies service injection only for generated classes, and will generate classes only if required.
      */
-    static ClassGenerator injectOnly(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, ManagedFactoryRegistry managedFactoryRegistry) {
+    static ClassGenerator injectOnly(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, int factoryId) {
         // TODO - the suffix should be a deterministic function of the known and enabled annotations
         // For now, just assign using a counter
         String suffix = ClassGeneratorSuffixRegistry.assign("$Inject");
-        AsmBackedClassGenerator generator = new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledAnnotations, cacheFactory.newClassMap());
-        registerManagedFactory(managedFactoryRegistry, generator);
-        return generator;
-    }
-
-    private static void registerManagedFactory(ManagedFactoryRegistry managedFactoryRegistry, AsmBackedClassGenerator generator) {
-        // Don't register the generator if there is already one registered with the same criteria.
-        // (e.g. we reuse the same cache and suffix for decorated generators with empty annotations)
-        if (managedFactoryRegistry.lookup(generator.getId()) == null) {
-            managedFactoryRegistry.register(generator);
-        }
+        return new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledAnnotations, cacheFactory.newClassMap(), factoryId);
     }
 
     @Override
@@ -199,19 +183,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             formatter.append(" is not a class or interface.");
             throw new ClassGenerationException(formatter.toString());
         }
-        return new ClassInspectionVisitorImpl(type, decorate, suffix, getId());
-    }
-
-    @Nullable
-    @Override
-    public <T> T fromState(Class<T> type, Object state) {
-        Class<?> generatedClass = generate(type).getGeneratedClass();
-        return new ManagedTypeFactory(generatedClass).fromState(type, state);
-    }
-
-    @Override
-    public int getId() {
-        return factoryId;
+        return new ClassInspectionVisitorImpl(type, decorate, suffix, factoryId);
     }
 
     private static class ClassInspectionVisitorImpl implements ClassInspectionVisitor {

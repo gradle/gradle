@@ -20,6 +20,7 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,18 +34,21 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 public class DefaultWorkerServer implements WorkerProtocol {
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceRegistry parent;
 
     @Inject
-    public DefaultWorkerServer(ServiceRegistry serviceRegistry) {
-        this.serviceRegistry = serviceRegistry;
+    public DefaultWorkerServer(ServiceRegistry parent) {
+        this.parent = parent;
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             Class<? extends WorkerExecution> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
-            Instantiator instantiator = serviceRegistry.get(InstantiatorFactory.class).inject(new ParameterServiceLookup(serviceRegistry, spec.getParameters()));
+            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
+            Instantiator instantiator = parent.get(InstantiatorFactory.class).inject(serviceRegistry);
+            serviceRegistry.add(spec.getParameters().getClass(), Cast.uncheckedCast(spec.getParameters()));
+            serviceRegistry.add(Instantiator.class, instantiator);
             WorkerExecution execution = instantiator.newInstance(implementationClass);
             execution.execute();
             if (execution instanceof ProvidesWorkResult) {
@@ -78,7 +82,7 @@ public class DefaultWorkerServer implements WorkerProtocol {
             if (serviceTypeToken.isSupertypeOf(parameters.getClass())) {
                 return parameters;
             }
-            return delegate.get(serviceType);
+            return delegate.find(serviceType);
         }
 
         @Override

@@ -20,10 +20,52 @@ import org.gradle.api.Incubating;
 
 import javax.inject.Inject;
 
+/**
+ * Represents the implementation of a unit of work to be used when submitting work to the
+ * {@link WorkerExecutor}.
+ *
+ * <p>
+ *     A worker execution implementation is an abstract class implementing the {@link #execute()} method.
+ *     A minimal implementation may look like this:
+ * </p>
+ *
+ * <pre class='autoTested'>
+ * import org.gradle.workers.WorkerParameters;
+ *
+ * public abstract class MyExecution implements WorkerExecution&lt;WorkerParameters.None&gt; {
+ *     private final String greeting;
+ *
+ *     {@literal @}Inject
+ *     public MyExecution() {
+ *         this.greeting = "hello";
+ *     }
+ *
+ *     {@literal @}Override
+ *     public void execute() {
+ *         System.out.println(greeting);
+ *     }
+ * }
+ * </pre>
+ *
+ * Implementations of WorkerExecution are subject to the following constraints:
+ * <ul>
+ *     <li>Do not implement {@link #getParameters()} in your class, the method will be implemented by Gradle.</li>
+ *     <li>Constructors must be annotated with {@link Inject}.</li>
+ * </ul>
+ *
+ * @param <T> Parameter type for the worker execution. Should be {@link WorkerParameters.None} if the execution does not have parameters.
+ * @since 5.6
+ **/
 @Incubating
 public interface WorkerExecution<T extends WorkerParameters> {
+    /**
+     * The parameters associated with a concrete work item.
+     */
     @Inject
     T getParameters();
 
+    /**
+     * The work to perform when this work item executes.
+     */
     void execute();
 }
