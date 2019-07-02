@@ -49,24 +49,23 @@ tasks {
         }
     }
 
-    val unpackKotlinJsStdlib by registering {
+    val unpackKotlinJsStdlib by registering(Copy::class) {
         group = "build"
         description = "Unpacks the Kotlin JavaScript standard library"
-        val outputDir = file("$buildDir/$name")
-        inputs.property("compileClasspath", configurations.compileClasspath)
-        outputs.dir(outputDir)
-        doLast {
-            val kotlinStdLibJar = configurations.compileClasspath.get().single {
-                it.name.matches(Regex("kotlin-stdlib-js-.+\\.jar"))
-            }
-            copy {
-                includeEmptyDirs = false
-                from(zipTree(kotlinStdLibJar))
-                into(outputDir)
-                include("**/*.js")
-                exclude("META-INF/**")
-            }
+
+        val kotlinStdLibJsJar = configurations.compileClasspath.map { compileClasspath ->
+            val kotlinStdlibJsJarRegex = Regex("kotlin-stdlib-js-.+\\.jar")
+            compileClasspath.single { file -> file.name.matches(kotlinStdlibJsJarRegex) }
         }
+
+        from(zipTree(kotlinStdLibJsJar)) {
+            include("**/*.js")
+            exclude("META-INF/**")
+        }
+
+        into("$buildDir/$name")
+
+        includeEmptyDirs = false
     }
 
     processResources {
