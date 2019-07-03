@@ -34,120 +34,141 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
     def "empty snapshots"() {
         expect:
-        changes([:],
+        changes(
+            [:],
             [:]
         ) as List == []
     }
 
     def "trivial addition"() {
         expect:
-        changes(["one-new": fingerprint("one")],
+        changes(
+            ["one-new": fingerprint("one")],
             [:]
         ) as List == [added("one-new": "one")]
     }
 
     def "non-trivial addition"() {
         expect:
-        changes(["one-new": fingerprint("one"), "two-new": fingerprint("two")],
+        changes(
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two")],
             ["one-old": fingerprint("one")]
         ) == [added("two-new": "two")]
     }
 
     def "trivial removal"() {
         expect:
-        changes([:],
+        changes(
+            [:],
             ["one-old": fingerprint("one")]
         ) as List == [removed("one-old": "one")]
     }
 
     def "non-trivial removal"() {
         expect:
-        changes(["one-new": fingerprint("one")],
+        changes(
+            
+            ["one-new": fingerprint("one")],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
         ) == [removed("two-old": "two")]
     }
 
     def "non-trivial modification"() {
         expect:
-        changes(["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
+        changes(
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
         ) == [modified("two-new": "two", FileType.RegularFile, FileType.RegularFile)]
     }
 
     def "trivial replacement"() {
         expect:
-        changes(["two-new": fingerprint("two")],
+        changes(
+            ["two-new": fingerprint("two")],
             ["one-old": fingerprint("one")]
         ) as List == [removed("one-old": "one"), added("two-new": "two")]
     }
 
     def "non-trivial replacement"() {
         expect:
-        changes(["one-new": fingerprint("one"), "two-new": fingerprint("two"), "four-new": fingerprint("four")],
+        changes(
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two"), "four-new": fingerprint("four")],
             ["one-old": fingerprint("one"), "three-old": fingerprint("three"), "four-old": fingerprint("four")]
         ) == [removed("three-old": "three"), added("two-new": "two")]
     }
 
     def "reordering"() {
         expect:
-        changes(["one-new": fingerprint("one"), "two-new": fingerprint("two"), "three-new": fingerprint("three")],
+        changes(
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two"), "three-new": fingerprint("three")],
             ["one-old": fingerprint("one"), "three-old": fingerprint("three"), "two-old": fingerprint("two")]
         ) == [removed("three-old": "three"), added("two-new": "two"), removed("two-old": "two"), added("three-new": "three")]
     }
 
     def "handling duplicates"() {
         expect:
-        changes(["one-new-1": fingerprint("one"), "one-new-2": fingerprint("one"), "two-new": fingerprint("two")],
+        changes(
+            ["one-new-1": fingerprint("one"), "one-new-2": fingerprint("one"), "two-new": fingerprint("two")],
             ["one-old-1": fingerprint("one"), "one-old-2": fingerprint("one"), "two-old": fingerprint("two")]
         ) == []
     }
 
     def "addition of jar elements"() {
         expect:
-        changes([jar1: jar(1234), jar2: jar(2345), jar3: jar(3456)],
+        changes(
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456)],
             [jar1: jar(1234), jar3: jar(3456)]
         ) == [added("jar2")]
-        changes([jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)],
+        changes(
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)],
             [jar1: jar(1234), jar4: jar(4567), jar5: jar(5678)]
         ) == [added("jar2"), added("jar3")]
-        changes([jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)],
+        changes(
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)],
             [jar1: jar(1234), jar3: jar(3456), jar5: jar(5678)]
         ) == [added("jar2"), added("jar4")]
     }
 
     def "removal of jar elements"() {
         expect:
-        changes([jar1: jar(1234), jar3: jar(3456)],
+        changes(
+            [jar1: jar(1234), jar3: jar(3456)],
             [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456)]
         ) == [removed("jar2")]
-        changes([jar1: jar(1234), jar4: jar(4567), jar5: jar(5678)],
+        changes(
+            [jar1: jar(1234), jar4: jar(4567), jar5: jar(5678)],
             [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)]
         ) == [removed("jar2"), removed("jar3")]
-        changes([jar1: jar(1234), jar3: jar(3456), jar5: jar(5678)],
+        changes(
+            [jar1: jar(1234), jar3: jar(3456), jar5: jar(5678)],
             [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)]
         ) == [removed("jar2"), removed("jar4")]
     }
 
     def "modification of jar in same path"() {
         expect:
-        changes([jar1: jar(1234), jar2: jar(2345), jar3: jar(4567), jar4: jar(5678)],
+        changes(
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(4567), jar4: jar(5678)],
             [jar1: jar(1234), jar2: jar(3456), jar3: jar(4568), jar4: jar(5678)]
         ) == [modified("jar2"), modified("jar3")]
     }
 
     def "jar never modified for different paths"() {
         expect:
-        changes([jar1: jar(1234), 'new-jar2': jar(2345), jar3: jar(4567), jar4: jar(5678)],
+        changes(
+            [jar1: jar(1234), 'new-jar2': jar(2345), jar3: jar(4567), jar4: jar(5678)],
             [jar1: jar(1234), 'old-jar2': jar(3456), jar3: jar(4568), jar4: jar(5678)]
         ) == [removed("old-jar2"), added("new-jar2"), modified("jar3")]
     }
 
     def "complex jar changes"() {
         expect:
-        changes([jar2: jar(2345), jar1: jar(1234), jar3: jar(3456), jar5: jar(5680), jar7: jar(7890)],
+        changes(
+            [jar2: jar(2345), jar1: jar(1234), jar3: jar(3456), jar5: jar(5680), jar7: jar(7890)],
             [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678), jar6: jar(6789), jar7: jar(7890)]
         ) == [removed('jar1'), added('jar2'), removed('jar2'), added('jar1'), removed('jar4'), modified('jar5'), removed('jar6')]
-        changes([jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678), jar6: jar(6789), jar7: jar(7890)],
+        changes(
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678), jar6: jar(6789), jar7: jar(7890)],
             [jar2: jar(2345), jar1: jar(1234), jar3: jar(3456), jar5: jar(5680), jar7: jar(7890)]
         ) == [removed('jar2'), added('jar1'), removed('jar1'), added('jar2'), added('jar4'), modified('jar5'), added('jar6')]
     }

@@ -37,7 +37,7 @@ class FingerprintCompareStrategyTest extends Specification {
     private static final ABSOLUTE = AbsolutePathFingerprintCompareStrategy.INSTANCE
     private static final NORMALIZED = NormalizedPathFingerprintCompareStrategy.INSTANCE
     private static final IGNORED_PATH = IgnoredPathCompareStrategy.INSTANCE
-    private static final List<FingerprintCompareStrategy> ALL_STRATEGIES = ImmutableList.of(ABSOLUTE, NORMALIZED, IGNORED_PATH)
+    private static final ALL_STRATEGIES = ImmutableList.of(ABSOLUTE, NORMALIZED, IGNORED_PATH)
 
     def "empty snapshots (#strategy.class.simpleName)"() {
         expect:
