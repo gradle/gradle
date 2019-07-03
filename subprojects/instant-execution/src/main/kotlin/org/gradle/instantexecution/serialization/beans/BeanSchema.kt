@@ -37,11 +37,11 @@ fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
 
 
 private
-fun relevantTypeHierarchyOf(taskType: Class<*>) = sequence<Class<*>> {
+fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
     var current: Class<*>? = taskType
     while (current != null) {
         if (isRelevantDeclaringClass(current)) {
-            yield(current)
+            yield(current!!)
         }
         current = current.superclass
     }
@@ -81,6 +81,5 @@ val Class<*>.relevantFields: Sequence<Field>
 
 internal
 fun Field.makeAccessible() {
-    @Suppress("deprecation")
     if (!isAccessible) isAccessible = true
 }

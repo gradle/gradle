@@ -25,7 +25,6 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import kotlin.reflect.KClass
 
 
 /**
@@ -77,81 +76,6 @@ interface IsolateContext {
     val isolate: Isolate
 
     var trace: PropertyTrace
-
-    fun onFailure(failure: PropertyFailure)
-}
-
-
-sealed class PropertyFailure {
-
-    abstract val trace: PropertyTrace
-
-    abstract val message: StructuredMessage
-
-    /**
-     * A failure that does not necessarily compromise the execution of the build.
-     */
-    data class Warning(
-        override val trace: PropertyTrace,
-        override val message: StructuredMessage
-    ) : PropertyFailure()
-
-    /**
-     * A failure that compromises the execution of the build.
-     * Instant execution state should be discarded.
-     */
-    data class Error(
-        override val trace: PropertyTrace,
-        override val message: StructuredMessage,
-        val exception: Throwable
-    ) : PropertyFailure()
-}
-
-
-data class StructuredMessage(val fragments: List<Fragment>) {
-
-    override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
-        when (fragment) {
-            is Fragment.Text -> fragment.text
-            is Fragment.Reference -> "'${fragment.name}'"
-        }
-    }
-
-    sealed class Fragment {
-
-        data class Text(val text: String) : Fragment()
-
-        data class Reference(val name: String) : Fragment()
-    }
-
-    companion object {
-
-        fun build(builder: Builder.() -> Unit) = StructuredMessage(
-            Builder().apply(builder).fragments
-        )
-    }
-
-    class Builder {
-
-        internal
-        val fragments = mutableListOf<Fragment>()
-
-        fun text(string: String) {
-            fragments.add(Fragment.Text(string))
-        }
-
-        fun reference(name: String) {
-            fragments.add(Fragment.Reference(name))
-        }
-
-        fun reference(type: Class<*>) {
-            reference(type.name)
-        }
-
-        fun reference(type: KClass<*>) {
-            reference(type.qualifiedName!!)
-        }
-    }
 }
 
 
@@ -184,22 +108,6 @@ sealed class PropertyTrace {
         is Task -> "task `$path` of type `${type.name}`"
         is Unknown -> "unknown property"
     }
-
-    val sequence: Sequence<PropertyTrace>
-        get() = sequence {
-            var trace = this@PropertyTrace
-            while (true) {
-                yield(trace)
-                trace = trace.tail ?: break
-            }
-        }
-
-    val tail: PropertyTrace?
-        get() = when (this) {
-            is Bean -> trace
-            is Property -> trace
-            else -> null
-        }
 }
 
 

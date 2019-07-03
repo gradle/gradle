@@ -51,7 +51,6 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
         writeCollection(it)
     },
     {
-        @Suppress("unchecked_cast")
         val comparator = read() as Comparator<Any?>?
         readCollectionInto { TreeSet(comparator) }
     })

@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.ClassicModeBuild
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
@@ -243,7 +242,8 @@ fun ReadContext.readInputPropertiesOf(task: Task) =
                     withPropertyName(propertyName)
                     optional(optional)
                     skipWhenEmpty(skipWhenEmpty)
-                    withNormalizer(normalizer.uncheckedCast())
+                    @Suppress("unchecked_cast")
+                    withNormalizer(normalizer as Class<out FileNormalizer>)
                 }
             }
             else -> {

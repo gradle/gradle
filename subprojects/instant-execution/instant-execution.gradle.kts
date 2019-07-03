@@ -5,25 +5,7 @@ plugins {
     `kotlin-library`
 }
 
-val reportResources by configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named("report-resources"))
-    }
-}
-
-tasks {
-    processResources {
-        from(reportResources) {
-            into("org/gradle/instantexecution")
-        }
-    }
-}
-
 dependencies {
-    reportResources(project(":instantExecutionReport"))
-
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -34,9 +16,7 @@ dependencies {
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
-
     implementation(futureKotlin("stdlib-jdk8"))
-    implementation(futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
 
