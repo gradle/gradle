@@ -270,7 +270,7 @@ include::sample[dir="groovy/incrementalCompilation/kotlin",files="build.gradle.k
 This gives you the following benefits:
 
 * Incremental builds are much faster.
-* If only a small sets of Groovy source files are changed, only the affected source files will be recompiled.
+* If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
   Classes that don't need to be recompiled remain unchanged in the output directory.
   For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed ones need to be recompiled.
 
