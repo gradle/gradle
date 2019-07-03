@@ -568,7 +568,7 @@ public class GUtil {
         }
 
         final String scheme = url.getScheme();
-        return "https".equalsIgnoreCase(scheme);
+        return !"http".equalsIgnoreCase(scheme);
     }
 
 }
