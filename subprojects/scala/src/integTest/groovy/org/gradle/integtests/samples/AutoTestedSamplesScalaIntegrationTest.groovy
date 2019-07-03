@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.findbugs
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
-
 import org.junit.Test
 
-class AutoTestedSampleFindBugsIntegrationTest extends AbstractAutoTestedSamplesTest {
-// TODO: Need to enable this for all possible autoTested samples in codeQuality
-//    @Test
-//    void runSamples() {
-//        runSamplesFrom("subprojects/code-quality/src/main")
-//    }
+class AutoTestedSamplesScalaIntegrationTest extends AbstractAutoTestedSamplesTest {
 
     @Test
-    void runFindBugsSamples() {
-        executer.beforeExecute {
-            noDeprecationChecks()
-        }
-        includeOnly("**/FindBugs*.java")
-        runSamplesFrom("subprojects/code-quality/src/main")
+    void runSamples() {
+        runSamplesFrom("subprojects/scala/src/main")
     }
 }
