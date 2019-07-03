@@ -37,7 +37,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(
             [:],
             [:]
-        ) as List == []
+        ) == []
     }
 
     def "trivial addition"() {
@@ -45,7 +45,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(
             ["one-new": fingerprint("one")],
             [:]
-        ) as List == [added("one-new": "one")]
+        ) == [added("one-new": "one")]
     }
 
     def "non-trivial addition"() {
@@ -61,13 +61,12 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(
             [:],
             ["one-old": fingerprint("one")]
-        ) as List == [removed("one-old": "one")]
+        ) == [removed("one-old": "one")]
     }
 
     def "non-trivial removal"() {
         expect:
         changes(
-            
             ["one-new": fingerprint("one")],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
         ) == [removed("two-old": "two")]
@@ -86,7 +85,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(
             ["two-new": fingerprint("two")],
             ["one-old": fingerprint("one")]
-        ) as List == [removed("one-old": "one"), added("two-new": "two")]
+        ) == [removed("one-old": "one"), added("two-new": "two")]
     }
 
     def "non-trivial replacement"() {
