@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,50 +17,16 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    // Some cycles have been inherited from the time these classes were in :core
-    // gradlebuild.classycle
+    gradlebuild.classycle
 }
+
+description = "Base tools to work with files"
 
 dependencies {
-    api(library("jsr305"))
-
-    implementation(project(":baseServices"))
-    implementation(project(":baseServicesGroovy"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
-    implementation(project(":logging"))
-    implementation(project(":native"))
-
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
+    implementation(library("jsr305"))
     implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-
-    testImplementation(project(":processServices"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":coreApi")))
-    testImplementation(testFixtures(project(":modelCore")))
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":workers"))
-    testRuntimeOnly(project(":dependencyManagement"))
-
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":native"))
-
-    testFixturesImplementation(project(":internalTesting"))
-
-    testFixturesImplementation(library("guava"))
 }
 
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.CORE
-    }
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }
-
