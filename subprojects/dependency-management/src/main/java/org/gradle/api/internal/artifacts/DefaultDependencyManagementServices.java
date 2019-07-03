@@ -140,6 +140,7 @@ import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.ResolveBeforeExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
@@ -239,27 +240,31 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<BeforeExecutionContext, CachingResult> createWorkExecutor(
+        WorkExecutor<AfterPreviousExecutionContext, CachingResult> createWorkExecutor(
             ExecutionStateChangeDetector changeDetector,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ListenerManager listenerManager,
-            TimeoutHandler timeoutHandler
+            TimeoutHandler timeoutHandler,
+            ValueSnapshotter valueSnapshotter
         ) {
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new NoOpCachingStateStep(
-                    new ResolveChangesStep<>(changeDetector,
-                        new SkipUpToDateStep<>(
-                            new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                new StoreSnapshotsStep<>(
-                                    new SnapshotOutputsStep<>(fixedUniqueId,
-                                        new CreateOutputsStep<>(
-                                            new CatchExceptionStep<>(
-                                                new TimeoutStep<>(timeoutHandler,
-                                                    new ResolveInputChangesStep<>(
-                                                        new CleanupOutputsStep<>(
-                                                            new ExecuteStep<InputChangesContext>()
+                new ResolveBeforeExecutionStateStep(classLoaderHierarchyHasher, valueSnapshotter,
+                    new NoOpCachingStateStep(
+                        new ResolveChangesStep<>(changeDetector,
+                            new SkipUpToDateStep<>(
+                                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                    new StoreSnapshotsStep<>(
+                                        new SnapshotOutputsStep<>(fixedUniqueId,
+                                            new CreateOutputsStep<>(
+                                                new CatchExceptionStep<>(
+                                                    new TimeoutStep<>(timeoutHandler,
+                                                        new ResolveInputChangesStep<>(
+                                                            new CleanupOutputsStep<>(
+                                                                new ExecuteStep<InputChangesContext>()
+                                                            )
                                                         )
                                                     )
                                                 )
