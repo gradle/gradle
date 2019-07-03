@@ -44,14 +44,14 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
 
-public class ResolveBeforeExecutionStateStep implements Step<AfterPreviousExecutionContext, CachingResult> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBeforeExecutionStateStep.class);
+public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecutionContext, CachingResult> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
     private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
 
-    public ResolveBeforeExecutionStateStep(
+    public CaptureStateBeforeExecutionStep(
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         Step<? super BeforeExecutionContext, ? extends CachingResult> delegate

@@ -51,12 +51,12 @@ import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
+import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
-import org.gradle.internal.execution.steps.ResolveBeforeExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
@@ -136,7 +136,7 @@ public class ExecutionGradleServices {
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
-            new ResolveBeforeExecutionStateStep(classLoaderHierarchyHasher, valueSnapshotter,
+            new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
                 new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
                     new MarkSnapshottingInputsFinishedStep<UpToDateResult>(
                         new ResolveChangesStep<UpToDateResult>(changeDetector,

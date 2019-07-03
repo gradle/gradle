@@ -35,12 +35,12 @@ import org.gradle.internal.execution.history.changes.DefaultExecutionStateChange
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
+import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
-import org.gradle.internal.execution.steps.ResolveBeforeExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
@@ -130,7 +130,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     WorkExecutor<AfterPreviousExecutionContext, CachingResult> getExecutor() {
         new DefaultWorkExecutor<>(
-            new ResolveBeforeExecutionStateStep<>(classloaderHierarchyHasher, valueSnapshotter,
+            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter,
                 new ResolveCachingStateStep<>(buildCacheController, false,
                     new ResolveChangesStep<>(changeDetector,
                         new SkipUpToDateStep<>(
