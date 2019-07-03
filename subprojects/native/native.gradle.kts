@@ -9,8 +9,9 @@ plugins {
 }
 
 dependencies {
+    api(project(":files"))
+
     implementation(project(":baseServices"))
-    implementation(project(":files"))
 
     implementation(library("nativePlatform"))
     implementation(library("slf4j_api"))

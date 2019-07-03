@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import java.util.concurrent.Callable
 
 plugins {
     `java-library`
@@ -102,7 +103,6 @@ dependencies {
         because("test fixtures expose OutputChangeListener")
     }
     testFixturesImplementation(project(":fileCollections"))
-    testFixturesImplementation(project(":files"))
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":processServices"))
