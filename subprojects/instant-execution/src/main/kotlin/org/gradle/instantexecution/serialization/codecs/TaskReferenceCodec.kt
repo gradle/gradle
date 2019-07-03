@@ -30,7 +30,7 @@ object TaskReferenceCodec : Codec<Task> {
         if (value === isolate.owner.delegate) {
             writeBoolean(true)
         } else {
-            logUnsupported(Task::class)
+            logUnsupported(Task::class, value.javaClass)
             writeBoolean(false)
         }
     }
