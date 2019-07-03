@@ -8,7 +8,7 @@ subprojects {
     }
 
 // tag::enable-groovy-incremental[]
-    tasks.withType(GroovyCompile) {
+    tasks.withType(GroovyCompile).configureEach {
         options.incremental = true
     }
 // end::enable-groovy-incremental[]
