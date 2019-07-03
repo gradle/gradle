@@ -22,6 +22,10 @@ plugins {
 
 description = "Common shared internal classes without external dependencies"
 
+dependencies {
+    implementation(library("jsr305"))
+}
+
 gradlebuildJava {
     // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
     moduleType = ModuleType.WORKER
