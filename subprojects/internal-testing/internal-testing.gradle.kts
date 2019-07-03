@@ -22,6 +22,7 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":native"))
 
     implementation(library("groovy"))
