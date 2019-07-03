@@ -17,10 +17,22 @@ package org.gradle.internal.resource;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.net.URI;
 
-/**
- * @see TextUrlResourceLoader
- */
-public interface TextFileResourceLoader {
-    TextResource loadFile(String description, @Nullable File sourceFile);
+public class DefaultTextResourceLoader implements TextResourceLoader {
+    @Override
+    public TextResource loadFile(String description, @Nullable File sourceFile) {
+        if (sourceFile == null) {
+            return new StringTextResource(description, "");
+        }
+        if (sourceFile.exists()) {
+            return new UriTextResource(description, sourceFile);
+        }
+        return new EmptyFileTextResource(description, sourceFile);
+    }
+
+    @Override
+    public TextResource loadUri(String description, URI source) {
+        return new UriTextResource(description, source);
+    }
 }

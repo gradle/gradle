@@ -37,13 +37,13 @@ import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
+import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
@@ -52,8 +52,7 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextFileResourceLoader;
-import org.gradle.internal.resource.TextUrlResourceLoader;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
@@ -81,8 +80,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final ProviderFactory providerFactory;
-    private final TextFileResourceLoader textResourceLoader;
-    private final TextUrlResourceLoader.Factory textUrlResourceLoaderFactory;
+    private final TextResourceLoader textResourceLoader;
     private final ExecFactory execFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
@@ -103,8 +101,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
                                       ProviderFactory providerFactory,
-                                      TextFileResourceLoader textResourceLoader,
-                                      TextUrlResourceLoader.Factory textUrlResourceLoaderFactory,
+                                      TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
                                       ExecFactory execFactory,
@@ -123,7 +120,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.providerFactory = providerFactory;
-        this.textUrlResourceLoaderFactory = textUrlResourceLoaderFactory;
         this.textResourceLoader = textResourceLoader;
         this.execFactory = execFactory;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -181,8 +177,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);
-            services.add(TextFileResourceLoader.class, textResourceLoader);
-            services.add(TextUrlResourceLoader.Factory.class, textUrlResourceLoaderFactory);
+            services.add(TextResourceLoader.class, textResourceLoader);
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);

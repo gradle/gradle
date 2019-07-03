@@ -28,7 +28,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextUrlResourceLoader;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -44,17 +44,17 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private boolean allowInsecureProtocol = false;
     private final ClassLoaderScope classLoaderScope;
-    private final TextUrlResourceLoader.Factory resourceLoaderFactory;
+    private final TextResourceLoader textResourceLoader;
     private final Object defaultTarget;
 
     public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
                                             ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
-                                            TextUrlResourceLoader.Factory resourceLoaderFactory, Object defaultTarget) {
+                                            TextResourceLoader textResourceLoader, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.classLoaderScope = classLoaderScope;
-        this.resourceLoaderFactory = resourceLoaderFactory;
+        this.textResourceLoader = textResourceLoader;
         this.defaultTarget = defaultTarget;
     }
 
@@ -126,7 +126,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
-        TextResource resource = resourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol).loadUri("script", scriptUri);
+        // TODO:
+        TextResource resource = textResourceLoader.loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);

@@ -20,19 +20,19 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
-import org.gradle.internal.resource.TextUrlResourceLoader;
+import org.gradle.internal.resource.TextResourceLoader;
 
 import java.nio.charset.Charset;
 
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
-    private final TextUrlResourceLoader.Factory textResourceLoaderFactory;
+    private final TextResourceLoader textResourceLoader;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, TextUrlResourceLoader.Factory textResourceLoaderFactory) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
-        this.textResourceLoaderFactory = textResourceLoaderFactory;
+        this.textResourceLoader = textResourceLoader;
     }
 
     @Override
@@ -81,6 +81,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
     }
 
     private TextResource fromUri(Object uri, boolean allowInsecureProtocol) {
-        return new ApiTextResourceAdapter(textResourceLoaderFactory.allowInsecureProtocol(allowInsecureProtocol), tempFileProvider, fileOperations.uri(uri));
+        // TODO:
+        return new ApiTextResourceAdapter(textResourceLoader, tempFileProvider, fileOperations.uri(uri));
     }
 }

@@ -33,7 +33,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.resource.BasicTextResourceLoader
+import org.gradle.internal.resource.DefaultTextResourceLoader
 import org.gradle.internal.time.Time.startTimer
 
 import org.gradle.kotlin.dsl.*
@@ -371,7 +371,7 @@ fun scriptHandlerFactoryOf(gradle: Gradle) =
 
 private
 fun textResourceScriptSource(description: String, scriptFile: File) =
-    TextResourceScriptSource(BasicTextResourceLoader().loadFile(description, scriptFile))
+    TextResourceScriptSource(DefaultTextResourceLoader().loadFile(description, scriptFile))
 
 
 private

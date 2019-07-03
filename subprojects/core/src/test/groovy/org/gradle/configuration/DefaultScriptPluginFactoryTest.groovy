@@ -45,8 +45,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextFileResourceLoader
-import org.gradle.internal.resource.TextUrlResourceLoader
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
@@ -79,8 +78,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
     def providerFactory = Mock(ProviderFactory)
-    def textResourceLoader = Mock(TextFileResourceLoader)
-    def textUrlResourceLoaderFactory = Mock(TextUrlResourceLoader.Factory)
+    def textResourceLoader = Mock(TextResourceLoader)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
     def execFactory = Mock(ExecFactory)
@@ -88,7 +86,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def clock = Mock(Clock)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, TestFiles.fileSystem(), fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader, textUrlResourceLoaderFactory,
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
         streamHasher, fileHasher, execFactory, Stub(FileCollectionFactory), autoAppliedPluginHandler, clock)
 
     def setup() {

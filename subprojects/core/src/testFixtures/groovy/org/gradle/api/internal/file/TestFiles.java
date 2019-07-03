@@ -27,7 +27,8 @@ import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.resource.TextUrlResourceLoader;
+import org.gradle.internal.resource.DefaultTextResourceLoader;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.snapshot.FileSystemMirror;
@@ -99,16 +100,11 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
-        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textUrlResourceLoaderFactory(), fileCollectionFactory(basedDir), fileSystem(), Time.clock());
+        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoaderFactory(), fileCollectionFactory(basedDir), fileSystem(), Time.clock());
     }
 
-    public static TextUrlResourceLoader.Factory textUrlResourceLoaderFactory() {
-        return new TextUrlResourceLoader.Factory() {
-            @Override
-            public TextUrlResourceLoader allowInsecureProtocol(boolean allowInsecureProtocol) {
-                throw new UnsupportedOperationException("Not implemented for tests.");
-            }
-        };
+    public static TextResourceLoader textResourceLoaderFactory() {
+        return new DefaultTextResourceLoader();
     }
 
     public static DefaultStreamHasher streamHasher() {

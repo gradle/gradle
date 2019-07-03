@@ -19,7 +19,7 @@ package org.gradle.api.internal.resources
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.internal.resource.TextResource
-import org.gradle.internal.resource.TextUrlResourceLoader
+import org.gradle.internal.resource.TextResourceLoader
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets
 class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     TextResource textResource = Mock(TextResource)
-    TextUrlResourceLoader textResourceLoader = Mock(TextUrlResourceLoader)
+    TextResourceLoader textResourceLoader = Mock(TextResourceLoader)
     Reader reader
 
     def setup() {

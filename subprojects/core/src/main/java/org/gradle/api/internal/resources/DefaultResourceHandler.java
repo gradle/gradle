@@ -23,15 +23,15 @@ import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.internal.resource.TextUrlResourceLoader;
+import org.gradle.internal.resource.TextResourceLoader;
 
 public class DefaultResourceHandler implements ResourceHandler {
     private final ResourceResolver resourceResolver;
     private final TextResourceFactory textResourceFactory;
 
-    public DefaultResourceHandler(FileOperations fileOperations, ResourceResolver resourceResolver, TemporaryFileProvider tempFileProvider, TextUrlResourceLoader.Factory textUrlResourceLoaderFactory) {
+    public DefaultResourceHandler(FileOperations fileOperations, ResourceResolver resourceResolver, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
         this.resourceResolver = resourceResolver;
-        this.textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textUrlResourceLoaderFactory);
+        this.textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceLoader);
     }
 
     @Override
