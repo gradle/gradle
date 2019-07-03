@@ -83,7 +83,7 @@ class InstantExecutionReport(
     fun writeJsFailures() {
         outputDirectory.resolve("instant-execution-failures.js").bufferedWriter().use { writer ->
             writer.run {
-                appendln("const instantExecutionFailures = [")
+                appendln("function instantExecutionFailures() { return [")
                 failures.forEach {
                     append(
                         JsonOutput.toJson(
@@ -96,7 +96,7 @@ class InstantExecutionReport(
                     )
                     appendln(",")
                 }
-                appendln("];")
+                appendln("];}")
             }
         }
     }
