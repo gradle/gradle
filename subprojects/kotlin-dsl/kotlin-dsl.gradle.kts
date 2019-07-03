@@ -68,7 +68,6 @@ dependencies {
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
-    testImplementation(project(":files"))
     testImplementation(project(":jacoco"))
     testImplementation(project(":platformNative"))
     testImplementation(project(":plugins"))
