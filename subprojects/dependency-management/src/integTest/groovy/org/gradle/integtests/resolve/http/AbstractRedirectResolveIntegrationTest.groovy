@@ -39,8 +39,8 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
     def setupServer() {
         beforeServerStart()
-        server.setForceLocalhostUrl(true)
-        backingServer.setForceLocalhostUrl(true)
+        server.useHostname()
+        backingServer.useHostname()
         backingServer.start()
     }
 

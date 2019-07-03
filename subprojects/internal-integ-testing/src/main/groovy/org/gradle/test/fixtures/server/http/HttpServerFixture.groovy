@@ -47,7 +47,7 @@ trait HttpServerFixture {
     private SecurityHandler securityHandler
     private AuthScheme authenticationScheme = AuthScheme.BASIC
     private boolean logRequests = true
-    private boolean forceLocalhostUrl = false
+    private boolean useHostnameForUrl = false
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
     private final Set<Map<String, String>> allHeaders = Sets.newLinkedHashSet()
     private boolean configured
@@ -68,7 +68,7 @@ trait HttpServerFixture {
         assert server.started
         if (sslConnector) {
             return URI.create("https://localhost:${sslConnector.localPort}")
-        } else if (forceLocalhostUrl) {
+        } else if (useHostnameForUrl) {
             // If used in a code-path that interacts with the HttpClientHelper, this will fail validation.
             return URI.create("http://localhost:${connector.localPort}")
         } else {
@@ -104,12 +104,11 @@ trait HttpServerFixture {
         this.logRequests = logRequests
     }
 
-    boolean getForceLocalhostUrl() {
-        return forceLocalhostUrl
-    }
-
-    void setForceLocalhostUrl(boolean forceLocalhostUrl) {
-        this.forceLocalhostUrl = forceLocalhostUrl
+    /**
+     * Use the hostname for the server's URL instead of the IP.
+     */
+    void useHostname() {
+        this.useHostnameForUrl = true
     }
 
     AuthScheme getAuthenticationScheme() {
@@ -181,7 +180,7 @@ trait HttpServerFixture {
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            allHeaders << request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
+            allHeaders.add(request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] })
             String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {
