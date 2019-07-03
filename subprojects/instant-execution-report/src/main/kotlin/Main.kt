@@ -163,7 +163,7 @@ fun toPrettyText(message: Array<JsMessageFragment>) = PrettyText(
 )
 
 private
-fun toFailureNode(trace: JsTrace): FailureNode = when (val kind = trace.kind) {
+fun toFailureNode(trace: JsTrace): FailureNode = when (trace.kind) {
     "Task" -> trace.unsafeCast<JsTraceTask>().run {
         FailureNode.Task(path, type)
     }
