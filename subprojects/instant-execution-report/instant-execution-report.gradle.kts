@@ -46,6 +46,9 @@ tasks {
             outputFile = "$buildDir/js/instant-execution-report.js"
             metaInfo = false
             sourceMap = false
+            freeCompilerArgs = listOf(
+                "-XXLanguage:+NewInference"
+            )
         }
     }
 

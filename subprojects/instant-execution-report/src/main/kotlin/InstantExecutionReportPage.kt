@@ -131,10 +131,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             viewChildrenOf(model.tree.focus()) { child ->
                 when (val node = child.tree.label) {
                     is FailureNode.Error -> {
-                        viewLabel(treeIntent, child, node.label, span(" ❌"))
+                        viewLabel(treeIntent, child, node.label, errorDecoration)
                     }
                     is FailureNode.Warning -> {
-                        viewLabel(treeIntent, child, node.label, span(" ⚠️"))
+                        viewLabel(treeIntent, child, node.label, warningDecoration)
                     }
                     is FailureNode.Exception -> {
                         viewException(node)
@@ -146,6 +146,12 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             }
         )
     )
+
+    private
+    val errorDecoration = span(" ❌")
+
+    private
+    val warningDecoration = span(" ⚠️")
 
     private
     fun viewNode(node: FailureNode): View<Intent> = when (node) {
