@@ -61,7 +61,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
     }
 
     @Override
-    public void visit(FileSystemLocationSnapshot fileSnapshot) {
+    public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
         if (relativePathSegmentsTracker.isRoot()) {
             result = fileSnapshot;
         } else {

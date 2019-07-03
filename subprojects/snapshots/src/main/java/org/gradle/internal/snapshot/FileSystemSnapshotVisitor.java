@@ -31,7 +31,7 @@ public interface FileSystemSnapshotVisitor {
     /**
      * Called for each regular/missing file.
      */
-    void visit(FileSystemLocationSnapshot fileSnapshot);
+    void visitFile(FileSystemLocationSnapshot fileSnapshot);
 
     /**
      * Called when leaving a directory.

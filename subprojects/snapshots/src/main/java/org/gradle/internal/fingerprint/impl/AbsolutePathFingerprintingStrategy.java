@@ -66,7 +66,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }

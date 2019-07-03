@@ -150,7 +150,7 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
             snapshots.put(fileSnapshot.getAbsolutePath(), fileSnapshot);
         }
 
@@ -188,7 +188,7 @@ public class OutputFilterUtil {
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
             if (!predicate.test(fileSnapshot)) {
                 hasBeenFiltered = true;
                 currentRootFiltered = true;
@@ -197,7 +197,7 @@ public class OutputFilterUtil {
             if (merkleBuilder == null) {
                 newRoots.add(fileSnapshot);
             } else {
-                merkleBuilder.visit(fileSnapshot);
+                merkleBuilder.visitFile(fileSnapshot);
             }
         }
 

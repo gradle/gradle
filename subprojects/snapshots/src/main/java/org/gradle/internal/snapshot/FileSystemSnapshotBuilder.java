@@ -143,7 +143,7 @@ public class FileSystemSnapshotBuilder {
                 builder.postVisitDirectory();
             }
             for (RegularFileSnapshot fileSnapshot : files.values()) {
-                builder.visit(fileSnapshot);
+                builder.visitFile(fileSnapshot);
             }
         }
     }

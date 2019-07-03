@@ -311,7 +311,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 builder.preVisitDirectory(internedAbsolutePath, internedDirName);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
-                builder.visit(fileSnapshot);
+                builder.visitFile(fileSnapshot);
             }
         }
 
@@ -375,7 +375,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
             boolean root = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(root);
