@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
-
-import org.gradle.internal.file.FileMetadataSnapshot;
+package org.gradle.internal.file;
 
 import java.io.File;
 
-public interface Stat {
-    int getUnixMode(File f) throws FileException;
-
-    FileMetadataSnapshot stat(File f) throws FileException;
+public interface Chmod {
+    /**
+     * Changes the Unix permissions of a provided file. Implementations that don't
+     * support Unix permissions may choose to ignore this request.
+     *
+     * @param file the file to change permissions on
+     * @param mode the permissions, e.g. 0755
+     * @throws FileException if the permissions can't be changed for some reason.
+     */
+    void chmod(File file, int mode) throws FileException;
 }

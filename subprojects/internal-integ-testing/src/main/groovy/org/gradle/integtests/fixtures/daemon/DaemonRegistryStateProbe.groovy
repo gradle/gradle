@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.daemon
 
-import org.gradle.internal.nativeintegration.filesystem.Stat
+import org.gradle.internal.file.Stat
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
@@ -24,8 +24,8 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Stopped
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
     private final DaemonRegistry registry

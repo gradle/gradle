@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.file;
 
 public class FileException extends RuntimeException {
     public FileException(String message, Throwable cause) {

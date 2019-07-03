@@ -19,8 +19,8 @@ package org.gradle.internal.scopeids;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
 
 @SuppressWarnings("unused")
 public class ScopeIdsServices {
