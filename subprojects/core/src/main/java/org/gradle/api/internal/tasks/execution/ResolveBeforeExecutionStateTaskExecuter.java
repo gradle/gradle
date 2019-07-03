@@ -129,7 +129,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
 
     private CurrentFileCollectionFingerprint fingerprintOutputSnapshot(FileSystemSnapshot outputSnapshot, FileCollectionFingerprint previousOutputFingerprint, boolean hasOverlappingOutputs) {
         List<FileSystemSnapshot> roots = hasOverlappingOutputs
-            ? OutputFilterUtil.filterOutputSnapshot(previousOutputFingerprint, outputSnapshot)
+            ? OutputFilterUtil.filterOutputSnapshotBeforeExecution(previousOutputFingerprint, outputSnapshot)
             : ImmutableList.of(outputSnapshot);
         return DefaultCurrentFileCollectionFingerprint.from(roots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
     }
