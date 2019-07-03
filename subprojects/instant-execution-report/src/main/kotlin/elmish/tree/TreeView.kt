@@ -153,7 +153,12 @@ fun <T, I> viewExpanded(focus: Tree.Focus<T>, viewLabel: Tree.Focus<T>.() -> Vie
 fun <I, T> viewChildrenOf(
     focus: Tree.Focus<T>,
     viewLabel: (Tree.Focus<T>) -> View<I>
-): List<View<I>> = focus
-    .children
-    .map { child -> viewSubTree(child, viewLabel) }
+): List<View<I>> = viewSubTrees(focus.children, viewLabel)
+
+
+fun <I, T> viewSubTrees(
+    subTrees: Sequence<Tree.Focus<T>>,
+    viewLabel: (Tree.Focus<T>) -> View<I>
+): List<View<I>> = subTrees
+    .map { subTree -> viewSubTree(subTree, viewLabel) }
     .toList()

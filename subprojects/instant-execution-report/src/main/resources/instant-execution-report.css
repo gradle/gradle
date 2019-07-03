@@ -2,6 +2,33 @@
 
 /* instant execution styles */
 
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.btn {
+    padding: 0.25em;
+    border-radius: 0.25em;
+    background-color: #f0f0f0;
+    border-style: solid;
+    border-color: #d0d0d000;
+}
+
+.btn:hover {
+    cursor: pointer;
+    border-style: solid;
+    border-color: #e0e0e0ff;
+}
+
+.btn-active {
+    color: white;
+    background-color: #dfdfdfff;
+}
+
 .accordion-header {
     cursor: pointer;
 }

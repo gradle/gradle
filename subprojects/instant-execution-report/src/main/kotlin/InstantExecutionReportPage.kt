@@ -29,7 +29,7 @@ import elmish.small
 import elmish.span
 import elmish.tree.Tree
 import elmish.tree.TreeView
-import elmish.tree.viewChildrenOf
+import elmish.tree.viewSubTrees
 
 import kotlin.browser.window
 
@@ -81,8 +81,13 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     data class Model(
         val totalFailures: Int,
         val messageTree: FailureTreeModel,
-        val taskTree: FailureTreeModel
+        val taskTree: FailureTreeModel,
+        val displayFilter: DisplayFilter = DisplayFilter.All
     )
+
+    enum class DisplayFilter {
+        All, Errors, Warnings
+    }
 
     sealed class Intent {
 
@@ -91,6 +96,8 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         data class MessageTreeIntent(val delegate: FailureTreeIntent) : Intent()
 
         data class Copy(val text: String) : Intent()
+
+        data class SetFilter(val displayFilter: DisplayFilter) : Intent()
     }
 
     override fun step(intent: Intent, model: Model): Model = when (intent) {
@@ -104,31 +111,59 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             window.navigator.clipboard.writeText(intent.text)
             model
         }
+        is Intent.SetFilter -> model.copy(
+            displayFilter = intent.displayFilter
+        )
     }
 
     override fun view(model: Model): View<Intent> = div(
-        h1("${model.totalFailures} instant execution failures"),
+        attributes { className("container") },
         div(
-            attributes { className("container") },
-            span("Learn more about "),
-            a(
-                attributes { href("https://gradle.github.io/instant-execution/") },
-                "Gradle Instant Execution"
+            div(
+                attributes { className("right") },
+                div(
+                    displayFilterButton(DisplayFilter.All, model.displayFilter),
+                    displayFilterButton(DisplayFilter.Errors, model.displayFilter),
+                    displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                )
             ),
-            span(".")
-        ),
-        div(
-            attributes { className("container") },
-            viewTree(model.messageTree, Intent::MessageTreeIntent),
-            viewTree(model.taskTree, Intent::TaskTreeIntent)
+            div(
+                attributes { className("left") },
+                h1("${model.totalFailures} instant execution failures"),
+                learnMore(),
+                viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
+                viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
+            )
         )
     )
 
     private
-    fun viewTree(model: FailureTreeModel, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> = div(
+    fun displayFilterButton(displayFilter: DisplayFilter, activeFilter: DisplayFilter): View<Intent> = span(
+        attributes {
+            className("btn")
+            if (displayFilter == activeFilter) {
+                className("btn-active")
+            }
+            onClick { Intent.SetFilter(displayFilter) }
+        },
+        displayFilter.name
+    )
+
+    private
+    fun learnMore(): View<Intent> = div(
+        span("Learn more about "),
+        a(
+            attributes { href("https://gradle.github.io/instant-execution/") },
+            "Gradle Instant Execution"
+        ),
+        span(".")
+    )
+
+    private
+    fun viewTree(model: FailureTreeModel, treeIntent: (FailureTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
         h2(model.tree.label.unsafeCast<FailureNode.Label>().text),
         ol(
-            viewChildrenOf(model.tree.focus()) { child ->
+            viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
                     is FailureNode.Error -> {
                         viewLabel(treeIntent, child, node.label, span(" ❌"))
@@ -146,6 +181,16 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             }
         )
     )
+
+    private
+    fun applyFilter(displayFilter: DisplayFilter, model: FailureTreeModel): Sequence<Tree.Focus<FailureNode>> {
+        val children = model.tree.focus().children
+        return when (displayFilter) {
+            DisplayFilter.All -> children
+            DisplayFilter.Errors -> children.filter { it.tree.label is FailureNode.Error }
+            DisplayFilter.Warnings -> children.filter { it.tree.label is FailureNode.Warning }
+        }
+    }
 
     private
     fun viewNode(node: FailureNode): View<Intent> = when (node) {
