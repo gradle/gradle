@@ -17,6 +17,7 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;

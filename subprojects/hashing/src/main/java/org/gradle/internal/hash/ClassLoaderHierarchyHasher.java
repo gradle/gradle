@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
-
-import org.gradle.internal.hash.HashCode;
+package org.gradle.internal.hash;
 
 import javax.annotation.Nullable;
 
@@ -25,7 +23,8 @@ import javax.annotation.Nullable;
  */
 public interface ClassLoaderHierarchyHasher {
     /**
-     * Returns a hash for the given classloader hierarchy, or {@code null} if the hierarchy contains any classloader that cannot be hashed reliably.
+     * Returns a hash for the given classloader hierarchy, or {@code null}
+     * if the hierarchy contains any classloaders that are not known to Gradle.
      */
     @Nullable
     HashCode getClassLoaderHash(ClassLoader classLoader);

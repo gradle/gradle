@@ -16,9 +16,9 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashFunction;

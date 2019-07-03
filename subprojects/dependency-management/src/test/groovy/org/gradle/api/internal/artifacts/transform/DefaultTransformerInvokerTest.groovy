@@ -30,7 +30,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
@@ -40,6 +39,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation

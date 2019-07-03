@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable

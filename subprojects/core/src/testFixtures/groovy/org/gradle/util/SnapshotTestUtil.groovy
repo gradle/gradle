@@ -17,7 +17,7 @@
 package org.gradle.util
 
 
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter

@@ -26,7 +26,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.Hashing;
