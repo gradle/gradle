@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -36,7 +36,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private OverlappingOutputs overlappingOutputs;
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
+    private ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
@@ -68,12 +68,12 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesBeforeExecution() {
         return outputFilesBeforeExecution;
     }
 
     @Override
-    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
+    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution) {
         this.outputFilesBeforeExecution = outputFilesBeforeExecution;
     }
 

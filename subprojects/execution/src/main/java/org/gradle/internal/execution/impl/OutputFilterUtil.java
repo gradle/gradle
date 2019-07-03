@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Filters out fingerprints that are not considered outputs. Entries that are considered outputs are:
@@ -51,13 +51,13 @@ public class OutputFilterUtil {
 
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> filterOutputFingerprints(
         final @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> outputsAfterPreviousExecution,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution,
+        ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution,
         final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution
     ) {
-        return ImmutableSortedMap.copyOfSorted(Maps.transformEntries(outputsBeforeExecution, new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
+        return ImmutableSortedMap.copyOfSorted(Maps.transformEntries(outputsBeforeExecution, new Maps.EntryTransformer<String, FileSystemSnapshot, CurrentFileCollectionFingerprint>() {
             @Override
             @SuppressWarnings("NullableProblems")
-            public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint outputBeforeExecution) {
+            public CurrentFileCollectionFingerprint transformEntry(String propertyName, FileSystemSnapshot outputBeforeExecution) {
                 CurrentFileCollectionFingerprint outputAfterExecution = outputsAfterExecution.get(propertyName);
                 FileCollectionFingerprint outputAfterPreviousExecution = getFingerprintForProperty(outputsAfterPreviousExecution, propertyName);
                 return filterOutputFingerprint(outputAfterPreviousExecution, outputBeforeExecution, outputAfterExecution);
@@ -77,76 +77,27 @@ public class OutputFilterUtil {
 
     @VisibleForTesting
     static CurrentFileCollectionFingerprint filterOutputFingerprint(
-            @Nullable FileCollectionFingerprint afterPreviousExecution,
-            CurrentFileCollectionFingerprint beforeExecution,
-            CurrentFileCollectionFingerprint afterExecution
+        @Nullable FileCollectionFingerprint afterPreviousExecution,
+        FileSystemSnapshot beforeExecution,
+        CurrentFileCollectionFingerprint afterExecution
     ) {
         CurrentFileCollectionFingerprint filesFingerprint;
         final Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
-        if (!beforeExecution.getFingerprints().isEmpty() && !afterExecution.getFingerprints().isEmpty()) {
+        if (!beforeExecutionSnapshots.isEmpty() && !afterExecution.getFingerprints().isEmpty()) {
             @SuppressWarnings("RedundantTypeArguments")
             final Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints = afterPreviousExecution != null
                 ? afterPreviousExecution.getFingerprints()
                 : ImmutableMap.<String, FileSystemLocationFingerprint>of();
 
-            final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
-            final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
-
-            afterExecution.accept(new FileSystemSnapshotVisitor() {
-                private MerkleDirectorySnapshotBuilder merkleBuilder;
-                private boolean currentRootFiltered = false;
-                private DirectorySnapshot currentRoot;
-
-                @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-                    if (merkleBuilder == null) {
-                        merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-                        currentRoot = directorySnapshot;
-                        currentRootFiltered = false;
-                    }
-                    merkleBuilder.preVisitDirectory(directorySnapshot);
-                    return true;
-                }
-
-                @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
-                    if (!isOutputEntry(fileSnapshot, beforeExecutionSnapshots, afterPreviousFingerprints)) {
-                        hasBeenFiltered.set(true);
-                        currentRootFiltered = true;
-                        return;
-                    }
-                    if (merkleBuilder == null) {
-                        newRoots.add(fileSnapshot);
-                    } else {
-                        merkleBuilder.visit(fileSnapshot);
-                    }
-                }
-
-                @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
-                    boolean isOutputDir = isOutputEntry(directorySnapshot, beforeExecutionSnapshots, afterPreviousFingerprints);
-                    boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
-                    if (!includedDir) {
-                        currentRootFiltered = true;
-                        hasBeenFiltered.set(true);
-                    }
-                    if (merkleBuilder.isRoot()) {
-                        FileSystemLocationSnapshot result = merkleBuilder.getResult();
-                        if (result != null) {
-                            newRoots.add(currentRootFiltered ? result : currentRoot);
-                        }
-                        merkleBuilder = null;
-                        currentRoot = null;
-                    }
-                }
-            });
+            SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> isOutputEntry(snapshot, beforeExecutionSnapshots, afterPreviousFingerprints));
+            afterExecution.accept(filteringVisitor);
 
 
             // Are all file snapshots after execution accounted for as new entries?
-            if (!hasBeenFiltered.get()) {
+            if (!filteringVisitor.hasBeenFiltered()) {
                 filesFingerprint = afterExecution;
             } else {
-                filesFingerprint = DefaultCurrentFileCollectionFingerprint.from(newRoots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
+                filesFingerprint = DefaultCurrentFileCollectionFingerprint.from(filteringVisitor.getNewRoots(), AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
             }
         } else {
             filesFingerprint = afterExecution;
@@ -154,10 +105,10 @@ public class OutputFilterUtil {
         return filesFingerprint;
     }
 
-    private static Map<String, FileSystemLocationSnapshot> getAllSnapshots(CurrentFileCollectionFingerprint fingerprint) {
-        GetAllSnapshotsVisitor afterExecutionVisitor = new GetAllSnapshotsVisitor();
-        fingerprint.accept(afterExecutionVisitor);
-        return afterExecutionVisitor.getSnapshots();
+    private static Map<String, FileSystemLocationSnapshot> getAllSnapshots(FileSystemSnapshot fingerprint) {
+        GetAllSnapshotsVisitor allSnapshotsVisitor = new GetAllSnapshotsVisitor();
+        fingerprint.accept(allSnapshotsVisitor);
+        return allSnapshotsVisitor.getSnapshots();
     }
 
     /**
@@ -180,6 +131,15 @@ public class OutputFilterUtil {
         return afterPreviousFingerprints.containsKey(snapshot.getAbsolutePath());
     }
 
+    public static List<FileSystemSnapshot> filterOutputSnapshot(FileCollectionFingerprint previousOutputs, FileSystemSnapshot currentSnapshots) {
+        Map<String, FileSystemLocationFingerprint> fingerprints = previousOutputs.getFingerprints();
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> {
+            return snapshot.getType() != FileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
+        });
+        currentSnapshots.accept(filteringVisitor);
+        return filteringVisitor.getNewRoots();
+    }
+
     private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
         private final Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
 
@@ -200,6 +160,70 @@ public class OutputFilterUtil {
 
         public Map<String, FileSystemLocationSnapshot> getSnapshots() {
             return snapshots;
+        }
+    }
+
+    private static class SnapshotFilteringVisitor implements FileSystemSnapshotVisitor {
+        private final Predicate<FileSystemLocationSnapshot> predicate;
+        private final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
+
+        private boolean hasBeenFiltered;
+        private MerkleDirectorySnapshotBuilder merkleBuilder;
+        private boolean currentRootFiltered;
+        private DirectorySnapshot currentRoot;
+
+        public SnapshotFilteringVisitor(Predicate<FileSystemLocationSnapshot> predicate) {
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            if (merkleBuilder == null) {
+                merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+                currentRoot = directorySnapshot;
+                currentRootFiltered = false;
+            }
+            merkleBuilder.preVisitDirectory(directorySnapshot);
+            return true;
+        }
+
+        @Override
+        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+            if (!predicate.test(fileSnapshot)) {
+                hasBeenFiltered = true;
+                currentRootFiltered = true;
+                return;
+            }
+            if (merkleBuilder == null) {
+                newRoots.add(fileSnapshot);
+            } else {
+                merkleBuilder.visit(fileSnapshot);
+            }
+        }
+
+        @Override
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            boolean isOutputDir = predicate.test(directorySnapshot);
+            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
+            if (!includedDir) {
+                currentRootFiltered = true;
+                hasBeenFiltered = true;
+            }
+            if (merkleBuilder.isRoot()) {
+                FileSystemLocationSnapshot result = merkleBuilder.getResult();
+                if (result != null) {
+                    newRoots.add(currentRootFiltered ? result : currentRoot);
+                }
+                merkleBuilder = null;
+                currentRoot = null;
+            }
+        }
+        public List<FileSystemSnapshot> getNewRoots() {
+            return newRoots;
+        }
+
+        public boolean hasBeenFiltered() {
+            return hasBeenFiltered;
         }
     }
 }

@@ -27,9 +27,8 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import spock.lang.Specification
 
 class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
@@ -57,9 +56,9 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
         )
         afterPreviousExecutionState.outputFileProperties >> outputFilesAfterPreviousExecution
         def outputFilesBeforeExecution = ImmutableSortedMap.of(
-            "output", AbsolutePathFingerprintingStrategy.INCLUDE_MISSING.emptyFingerprint
+            "output", FileSystemSnapshot.EMPTY
         )
-        taskFingerprinter.fingerprintTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
+        taskFingerprinter.snapshotTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
 
         when:
         executer.execute(task, state, context)
@@ -76,14 +75,10 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
             "output", AbsolutePathFingerprintingStrategy.INCLUDE_MISSING.emptyFingerprint
         )
         afterPreviousExecutionState.outputFileProperties >> outputFilesAfterPreviousExecution
-        def beforeExecutionOutputFingerprints = Mock(CurrentFileCollectionFingerprint)
-        beforeExecutionOutputFingerprints.fingerprints >> ImmutableSortedMap.of(
-            "file", Mock(FileSystemLocationFingerprint)
+        def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+            "output", Mock(FileSystemSnapshot)
         )
-        def outputFilesBeforeExecution = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of(
-            "output", beforeExecutionOutputFingerprints
-        )
-        taskFingerprinter.fingerprintTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
+        taskFingerprinter.snapshotTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
 
         when:
         executer.execute(task, state, context)

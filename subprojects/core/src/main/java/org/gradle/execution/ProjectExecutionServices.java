@@ -164,8 +164,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
     }
 
-    TaskFingerprinter createTaskFingerprinter(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        return new DefaultTaskFingerprinter(fingerprinterRegistry);
+    TaskFingerprinter createTaskFingerprinter(FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new DefaultTaskFingerprinter(fingerprinterRegistry, fileCollectionSnapshotter);
     }
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
