@@ -14,44 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.pattern;
+package org.gradle.internal.file.pattern;
 
-public class GreedyPathMatcher implements PathMatcher {
-    private final PathMatcher next;
-
-    public GreedyPathMatcher(PathMatcher next) {
-        this.next = next;
-    }
-
+public class EndOfPathMatcher implements PathMatcher {
     @Override
     public String toString() {
-        return "{greedy next: " + next + "}";
+        return "{end-of-path}";
     }
 
     @Override
     public int getMaxSegments() {
-        return Integer.MAX_VALUE;
+        return 0;
     }
 
     @Override
     public int getMinSegments() {
-        return next.getMinSegments();
+        return 0;
     }
 
     @Override
     public boolean matches(String[] segments, int startIndex) {
-        int pos = segments.length - next.getMinSegments();
-        int minPos = Math.max(startIndex, segments.length - next.getMaxSegments());
-        for (; pos >= minPos; pos--) {
-            if (next.matches(segments, pos)) {
-                return true;
-            }
-        }
-        return false;
+        return startIndex == segments.length;
     }
 
     @Override
     public boolean isPrefix(String[] segments, int startIndex) {
-        return true;
+        return false;
     }
 }

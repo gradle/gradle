@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.pattern
+package org.gradle.internal.file.pattern
+
 
 import spock.lang.Specification
 

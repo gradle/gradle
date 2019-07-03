@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.pattern;
+package org.gradle.internal.file.pattern;
 
 /**
  * A pattern step for a pattern segment a the common case with a '*' suffix on the pattern. e.g. '._*'

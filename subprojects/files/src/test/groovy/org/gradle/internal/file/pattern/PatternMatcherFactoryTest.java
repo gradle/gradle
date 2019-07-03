@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.pattern;
+package org.gradle.internal.file.pattern;
 
 import com.google.common.base.Joiner;
 import org.hamcrest.BaseMatcher;

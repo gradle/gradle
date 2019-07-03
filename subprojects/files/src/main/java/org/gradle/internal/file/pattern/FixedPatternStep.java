@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.pattern;
+package org.gradle.internal.file.pattern;
 
-public class HasPrefixAndSuffixPatternStep implements PatternStep {
-    private final HasPrefixPatternStep prefixMatch;
-    private final HasSuffixPatternStep suffixMatch;
+/**
+ * A pattern step for a fixed pattern segment that does not contain any wildcards.
+ */
+public class FixedPatternStep implements PatternStep {
+    private final String value;
+    private final boolean caseSensitive;
 
-    public HasPrefixAndSuffixPatternStep(String prefix, String suffix, boolean caseSensitive) {
-        prefixMatch = new HasPrefixPatternStep(prefix, caseSensitive);
-        suffixMatch = new HasSuffixPatternStep(suffix, caseSensitive, prefix.length());
+    public FixedPatternStep(String value, boolean caseSensitive) {
+        this.value = value;
+        this.caseSensitive = caseSensitive;
     }
 
     @Override
     public String toString() {
-        return "{prefix: " + prefixMatch + " suffix: " + suffixMatch + "}";
+        return "{match: " + value + "}";
     }
 
     @Override
     public boolean matches(String candidate) {
-        return prefixMatch.matches(candidate) && suffixMatch.matches(candidate);
+        return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
     }
 }

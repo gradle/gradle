@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.pattern.PatternMatcher;
+import org.gradle.internal.file.pattern.PatternMatcher;
 
 public class MatchingCopyAction implements Action<FileCopyDetails> {
 
