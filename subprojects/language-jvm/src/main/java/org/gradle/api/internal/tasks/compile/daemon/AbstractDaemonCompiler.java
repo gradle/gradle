@@ -20,20 +20,21 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
+import org.gradle.workers.internal.ProvidesWorkResult;
 import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
@@ -60,7 +61,8 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
         Worker worker = workerFactory.getWorker(daemonForkOptions);
 
-        DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newAdapterIsolatedSpec("compiler daemon", CompilerCallable.class, new Object[] {delegateClass.getName(), delegateParameters, spec}, daemonForkOptions.getClassLoaderStructure()));
+        CompilerParameters parameters = new CompilerParameters(delegateClass.getName(), delegateParameters, spec);
+        DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkerExecution.class, parameters, daemonForkOptions.getClassLoaderStructure()));
         if (result.isSuccess()) {
             return result;
         } else {
@@ -80,28 +82,63 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return merged;
     }
 
-    public static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
+    public static class CompilerParameters implements WorkerParameters, Serializable {
         private final String compilerClassName;
-        private final Object[] compilerParameters;
-        private final T compileSpec;
-        private final InstantiatorFactory instantiatorFactory;
-        private final ServiceRegistry serviceRegistry;
+        private final Object[] compilerInstanceParameters;
+        private final CompileSpec compileSpec;
+
+        public CompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, CompileSpec compileSpec) {
+            this.compilerClassName = compilerClassName;
+            this.compilerInstanceParameters = compilerInstanceParameters;
+            this.compileSpec = compileSpec;
+        }
+
+        public String getCompilerClassName() {
+            return compilerClassName;
+        }
+
+        public Object[] getCompilerInstanceParameters() {
+            return compilerInstanceParameters;
+        }
+
+        public CompileSpec getCompileSpec() {
+            return compileSpec;
+        }
+    }
+
+    public static abstract class CompilerWorkerExecution implements WorkerExecution<CompilerParameters>, ProvidesWorkResult {
+        private DefaultWorkResult workResult;
+        private final Instantiator instantiator;
 
         @Inject
-        public CompilerCallable(String compilerClassName, Object[] compilerParameters, T compileSpec, InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry) {
-            this.compilerClassName = compilerClassName;
-            this.compilerParameters = compilerParameters;
-            this.compileSpec = compileSpec;
-            this.instantiatorFactory = instantiatorFactory;
-            this.serviceRegistry = serviceRegistry;
+        public CompilerWorkerExecution(Instantiator instantiator) {
+            this.instantiator = instantiator;
         }
 
         @Override
-        public WorkResult call() throws Exception {
-            Instantiator instantiator = instantiatorFactory.inject(serviceRegistry);
-            Class<? extends Compiler<T>> compilerClass = Cast.uncheckedCast(Thread.currentThread().getContextClassLoader().loadClass(compilerClassName));
-            Compiler<T> compiler = instantiator.newInstance(compilerClass, compilerParameters);
-            return compiler.execute(compileSpec);
+        public void execute() {
+            Class<? extends Compiler<?>> compilerClass;
+            try {
+                compilerClass = Cast.uncheckedCast(Thread.currentThread().getContextClassLoader().loadClass(getParameters().getCompilerClassName()));
+            } catch (ClassNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            Compiler<?> compiler = instantiator.newInstance(compilerClass, getParameters().getCompilerInstanceParameters());
+            setWorkResult(compiler.execute(Cast.uncheckedCast(getParameters().getCompileSpec())));
+        }
+
+        private void setWorkResult(WorkResult workResult) {
+            if (workResult instanceof DefaultWorkResult) {
+                this.workResult = (DefaultWorkResult) workResult;
+            } else {
+                this.workResult = new DefaultWorkResult(workResult.getDidWork(), null);
+            }
+        }
+
+        @Override
+        public DefaultWorkResult getWorkResult() {
+            return workResult;
         }
     }
 }

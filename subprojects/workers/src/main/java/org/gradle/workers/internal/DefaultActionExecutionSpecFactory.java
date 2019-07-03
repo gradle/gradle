@@ -41,11 +41,6 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkerParameters> TransportableActionExecutionSpec<T> newTransportableSpec(String displayName, Class<? extends WorkerExecution<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure) {
-        return new TransportableActionExecutionSpec<T>(displayName, implementationClass.getName(), serialize(isolatableFactory.isolate(params)), classLoaderStructure);
-    }
-
-    @Override
     public <T extends WorkerParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof IsolatedParametersActionExecutionSpec) {
             IsolatedParametersActionExecutionSpec isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
@@ -75,14 +70,6 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
         } else {
             throw new IllegalArgumentException("Can't create a SimpleActionExecutionSpec from spec with type: " + spec.getClass().getSimpleName());
         }
-    }
-
-    @Override
-    public IsolatedParametersActionExecutionSpec<?> newAdapterIsolatedSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure) {
-        AdapterWorkerParameters workerParameters = instantiatorFactory.inject().newInstance(AdapterWorkerParameters.class);
-        workerParameters.setImplementationClassName(implementationClass.getName());
-        workerParameters.setParams(params);
-        return newIsolatedSpec(displayName, AdapterWorkerExecution.class, workerParameters, classLoaderStructure);
     }
 
     Class<?> fromClassName(String className) {
