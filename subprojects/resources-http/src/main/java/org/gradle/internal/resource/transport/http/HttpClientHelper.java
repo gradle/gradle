@@ -30,6 +30,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,30 +164,7 @@ public class HttpClientHelper implements Closeable {
         if (settings.allowInsecureProtocol()) {
             return;
         }
-        /*
-         * TL;DR: http://127.0.0.1 will bypass this validation, http://localhost will fail this validation.
-         *
-         * Hundreds of Gradle's integration tests use a local web-server to test logic that relies upon
-         * this HttpClientHelper.
-         * Changing all of those tests so that they use a KeyStore would have been impractical.
-         * Instead, the test fixture was updated to use 127.0.0.1 when making HTTP requests.
-         *
-         * This allows tests that still want to exercise the deprecation logic to use http://localhost
-         * which will bypass this check and trigger the validation.
-         *
-         * It's important to note that the only way to create a certificate for an IP address is to bind
-         * the IP address as a 'Subject Alternative Name' which was deemed far too complicated for our test
-         * use case.
-         *
-         * Additionally, in the rare case that a user or a plugin author truly needs to test with a localhost
-         * server, they can use http://127.0.0.1
-         */
-        if ("127.0.0.1".equals(url.getHost())) {
-            return;
-        }
-
-        final String scheme = url.getScheme();
-        if (!"https".equalsIgnoreCase(scheme)) {
+        if (!GUtil.isSecureUrl(url)) {
             DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
                 "Insecure HTTP requests",
                 "Switch the protocol to HTTPS or allow insecure protocols.",

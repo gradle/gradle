@@ -208,8 +208,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
-    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
-        return new ProjectFactory(instantiator, projectRegistry);
+    protected IProjectFactory createProjectFactory(Instantiator instantiator, TextResourceLoader textResourceLoader, ProjectRegistry<ProjectInternal> projectRegistry) {
+        return new ProjectFactory(instantiator, textResourceLoader, projectRegistry);
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {

@@ -42,7 +42,6 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
-    private boolean allowInsecureProtocol = false;
     private final ClassLoaderScope classLoaderScope;
     private final TextResourceLoader textResourceLoader;
     private final Object defaultTarget;
@@ -72,22 +71,6 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
                 applyScript(script);
             }
         });
-        return this;
-    }
-
-    /**
-     * Not yet exposed in the {@link ObjectConfigurationAction} interface.
-     * Leaving this in place to determine if it's actually necessary.
-     * If users demand the ability to pull scripts resources over HTTP we can expose this method at that time.
-     *
-     * See:
-     * <a href="https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946">
-     *     https://github.com/gradle/gradle/pull/9419#pullrequestreview-254739946
-     * </a>
-     */
-    @SuppressWarnings("unused")
-    public ObjectConfigurationAction allowInsecureProtocol(final boolean allowInsecureProtocol) {
-        this.allowInsecureProtocol = allowInsecureProtocol;
         return this;
     }
 
@@ -126,7 +109,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
-        // TODO:
+        if (!GUtil.isSecureUrl(scriptUri)) {
+            // TODO: Deprecation warning
+        }
         TextResource resource = textResourceLoader.loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());

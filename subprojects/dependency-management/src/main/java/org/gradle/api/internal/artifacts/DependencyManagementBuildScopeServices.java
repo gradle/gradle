@@ -118,7 +118,6 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextResourceLoader;
-import org.gradle.internal.resource.transfer.ValidatingTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -249,7 +248,7 @@ class DependencyManagementBuildScopeServices {
         final HashSet<String> schemas = Sets.newHashSet("https", "http");
         RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.<Authentication>emptyList(), true);
         ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
-        return new ValidatingTextResourceLoader(new CachingTextResourceLoader(externalResourceAccessor, schemas, new DefaultTextResourceLoader()));
+        return new CachingTextResourceLoader(externalResourceAccessor, schemas, new DefaultTextResourceLoader());
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {
