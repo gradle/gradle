@@ -47,6 +47,7 @@ public interface WorkerConfiguration extends ActionConfiguration, BaseWorkerSpec
      *
      * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
      */
+    @Deprecated
     ForkMode getForkMode();
 
     /**
@@ -54,6 +55,7 @@ public interface WorkerConfiguration extends ActionConfiguration, BaseWorkerSpec
      *
      * @param forkMode the forking mode for this worker, see {@link ForkMode}
      */
+    @Deprecated
     void setForkMode(ForkMode forkMode);
 
 }
