@@ -54,7 +54,6 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
@@ -155,8 +154,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
-    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
-        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
+    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
+        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderFactory);
     }
 
     WellKnownFileLocations createFileCategorizer(List<CachedJarFileStore> fileStores) {
