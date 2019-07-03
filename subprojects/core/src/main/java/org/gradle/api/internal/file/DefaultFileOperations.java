@@ -45,6 +45,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 
@@ -199,5 +200,30 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public DefaultResourceHandler getResources() {
         return resourceHandler;
+    }
+
+    public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
+        Instantiator instantiator = services.get(Instantiator.class);
+        FileLookup fileLookup = services.get(FileLookup.class);
+        FileSystem fileSystem = services.get(FileSystem.class);
+        Clock clock = services.get(Clock.class);
+        DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
+        StreamHasher streamHasher = services.get(StreamHasher.class);
+        FileHasher fileHasher = services.get(FileHasher.class);
+        TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
+        return new DefaultFileOperations(
+            fileResolver,
+            null,
+            null,
+            instantiator,
+            fileLookup,
+            directoryFileTreeFactory,
+            streamHasher,
+            fileHasher,
+                textResourceLoader,
+            fileTreeFactory,
+            fileSystem,
+            clock
+        );
     }
 }

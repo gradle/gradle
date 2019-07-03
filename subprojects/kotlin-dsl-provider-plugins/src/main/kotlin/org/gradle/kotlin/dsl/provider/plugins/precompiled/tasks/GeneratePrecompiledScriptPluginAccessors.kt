@@ -39,7 +39,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.BasicTextResourceLoader
+import org.gradle.internal.resource.DefaultTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
@@ -239,7 +239,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCode
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
         TextResourceScriptSource(
-            BasicTextResourceLoader().loadFile("Precompiled script plugin", plugin.scriptFile)
+            DefaultTextResourceLoader().loadFile("Precompiled script plugin", plugin.scriptFile)
         )
 
     private

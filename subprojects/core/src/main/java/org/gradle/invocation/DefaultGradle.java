@@ -440,7 +440,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), getResourceLoaderFactory(), this);
     }
 
     @Override
@@ -449,7 +449,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    protected TextResourceLoader getResourceLoader() {
+    protected TextResourceLoader getResourceLoaderFactory() {
         throw new UnsupportedOperationException();
     }
 

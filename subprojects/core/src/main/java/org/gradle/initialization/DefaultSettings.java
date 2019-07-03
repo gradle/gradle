@@ -242,7 +242,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             getScriptPluginFactory(),
             getScriptHandlerFactory(),
             getRootClassLoaderScope(),
-            getResourceLoader(),
+                getResourceLoader(),
             this);
     }
 

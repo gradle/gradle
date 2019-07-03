@@ -17,24 +17,33 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
-import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.DownloadedUriTextResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.net.URI;
 import java.util.Set;
 
-public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
+public class CachingTextResourceLoader implements TextResourceLoader {
 
     private final ExternalResourceAccessor externalResourceAccessor;
     private final Set<String> cachedSchemes;
+    private final TextResourceLoader delegate;
 
-    public DefaultUriTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes) {
+    public CachingTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes, TextResourceLoader delegate) {
         this.externalResourceAccessor = externalResourceAccessor;
         this.cachedSchemes = cachedSchemes;
+        this.delegate = delegate;
+    }
+
+    @Override
+    public TextResource loadFile(String description, @Nullable File sourceFile) {
+        return delegate.loadFile(description, sourceFile);
     }
 
     @Override
@@ -47,11 +56,10 @@ public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
             ExternalResourceMetaData metaData = resource.getMetaData();
             String contentType = metaData == null ? null : metaData.getContentType();
             return new DownloadedUriTextResource(description, source, contentType, resource.getFile());
-        } else {
-            // fallback to old behavior of always loading the resource
-            return super.loadUri(description, source);
         }
 
+        // fallback to old behavior of always loading the resource
+        return delegate.loadUri(description, source);
     }
 
     private boolean isCacheable(URI source) {

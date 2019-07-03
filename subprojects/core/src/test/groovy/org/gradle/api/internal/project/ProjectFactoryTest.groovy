@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.DefaultTextResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,7 +37,7 @@ class ProjectFactoryTest extends Specification {
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def factory = new ProjectFactory(instantiator, projectRegistry)
+    def factory = new ProjectFactory(instantiator, new DefaultTextResourceLoader(), projectRegistry)
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 

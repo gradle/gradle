@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -46,7 +45,8 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
-    final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(resolver,
+    final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
+        resolver,
         transportFactory,
         locallyAvailableResourceFinder,
         TestUtil.instantiatorFactory(),
@@ -61,14 +61,13 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         SnapshotTestUtil.valueSnapshotter(),
         Mock(ObjectFactory)
     )
-    final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', _) >> transport()
+        transportFactory.createTransport('file', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'

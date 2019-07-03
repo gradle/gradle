@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
@@ -638,7 +639,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             server.enqueue(MockResponse().setBody(remoteScript))
             server.start()
 
-            val remoteScriptUrl = server.url("/remote.gradle.kts")
+            val remoteScriptUrl = server.safeUrl("/remote.gradle.kts")
 
             withBuildScript("""
                 apply(from = "$remoteScriptUrl")
@@ -648,6 +649,16 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             assert(build().output.contains("*42*"))
         }
+    }
+
+    private
+    fun MockWebServer.safeUrl(path: String, scheme: String = "http"): HttpUrl? {
+        return HttpUrl.Builder()
+            .scheme(scheme)
+            .host("127.0.0.1")
+            .port(port)
+            .build()
+            .resolve(path)
     }
 
     @Test

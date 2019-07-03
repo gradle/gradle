@@ -59,7 +59,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         def repo = repository.createResolver()
 
         then:
-        1 * transportFactory.createTransport("file", "repo-name", []) >> repositoryTransport
+        1 * transportFactory.createTransport("file", "repo-name", [], false) >> repositoryTransport
 
         and:
         repo instanceof IvyResolver

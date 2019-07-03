@@ -18,6 +18,7 @@ package org.gradle.api.resource
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
@@ -105,16 +106,79 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":generateConfigFile", ":generateConfigZip", ":archiveEntryText")
     }
 
-    def "uri backed text resource"() {
+    def "uri backed text resource over http"() {
         given:
         def uuid = UUID.randomUUID()
         def resourceFile = file("web-file.txt")
+        server.useHostname() // use localhost vs ip
         server.expectGet("/myConfig-${uuid}.txt", resourceFile)
         server.start()
 
         buildFile << """
             task uriText(type: MyTask) {
-                config = resources.text.fromUri("http://localhost:$server.port/myConfig-${uuid}.txt")
+                config = resources.text.fromUri("${server.uri}/myConfig-${uuid}.txt")
+                output = project.file("output.txt")
+            }
+"""
+        when:
+        executer.expectDeprecationWarning()
+        run("uriText")
+
+        then:
+        result.assertTasksExecuted(":uriText")
+        file("output.txt").text == "my config\n"
+        outputContains("Resolving text resources from insecure URIs")
+        outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
+
+        when:
+        run("uriText")
+
+        then:
+        result.assertTasksSkipped(":uriText")
+    }
+
+    def "uri backed text resource over https"() {
+        given:
+        def uuid = UUID.randomUUID()
+        def resourceFile = file("web-file.txt")
+        def keyStore = TestKeyStore.init(resource.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
+
+        server.expectGet("/myConfig-${uuid}.txt", resourceFile)
+        server.start()
+
+        buildFile << """
+            task uriText(type: MyTask) {
+                config = resources.text.fromUri("${server.uri}/myConfig-${uuid}.txt")
+                output = project.file("output.txt")
+            }
+"""
+        when:
+        run("uriText")
+
+        then:
+        result.assertTasksExecuted(":uriText")
+        file("output.txt").text == "my config\n"
+
+        when:
+        run("uriText")
+
+        then:
+        result.assertTasksSkipped(":uriText")
+    }
+
+    def "does not emit warning with insecure option"() {
+        given:
+        def uuid = UUID.randomUUID()
+        def resourceFile = file("web-file.txt")
+
+        server.expectGet("/myConfig-${uuid}.txt", resourceFile)
+        server.start()
+
+        buildFile << """
+            task uriText(type: MyTask) {
+                config = resources.text.fromInsecureUri("${server.uri}/myConfig-${uuid}.txt")
                 output = project.file("output.txt")
             }
 """

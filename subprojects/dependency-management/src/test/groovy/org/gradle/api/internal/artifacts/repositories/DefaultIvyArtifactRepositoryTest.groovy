@@ -34,7 +34,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -51,7 +50,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
-    final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ExternalResourceFileStore externalResourceFileStore = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
@@ -77,8 +75,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
-
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -103,7 +100,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createTransport({ it == ['file'] as Set }, 'name', _) >> transport()
+        standardMockFileTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -124,7 +121,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -145,7 +142,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -167,7 +164,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -193,7 +190,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -220,7 +217,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -244,7 +241,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         when:
         def resolver = repository.createResolver()
@@ -266,7 +263,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
@@ -296,7 +293,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplier)
@@ -313,7 +310,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         given:
         repository.setMetadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -331,7 +328,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionLister)
@@ -348,7 +345,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+        standardMockHttpTransport()
 
         given:
         repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }
@@ -359,6 +356,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         lister.rules.configurableRules[0].ruleClass == CustomVersionListerWithParams
         lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
+    }
+
+    private void standardMockFileTransport() {
+        transportFactory.createTransport({ it == ['file'] as Set }, 'name', _, _) >> transport()
+    }
+
+    private void standardMockHttpTransport() {
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _, _) >> transport()
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {
