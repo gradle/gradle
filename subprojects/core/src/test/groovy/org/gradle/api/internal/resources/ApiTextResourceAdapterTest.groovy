@@ -42,7 +42,7 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
         textResource.getCharset() >> StandardCharsets.UTF_8
         textResource.getAsReader() >> reader
 
-        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("https://www.gradle.org/unknown.txt"))
+        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("https://www.gradle.org/unknown.txt"), true)
     }
 
     def cleanup() {
