@@ -115,18 +115,18 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def jsFile = reportDir.file("instant-execution-failures.js")
         numberOfFailuresIn(jsFile) == expectedNumberOfFailures
         outputContains "$expectedNumberOfFailures instant execution issues found:"
-        failureHasCause("Maximum number of instant execution failures has been exceeded")
+        failureHasCause "Maximum number of instant execution failures has been exceeded"
 
         where:
         maxFailures << [0, 1, 2]
         expectedNumberOfFailures = maxFailures + 1
     }
 
-    private int numberOfFailuresIn(File jsFile) {
+    private static int numberOfFailuresIn(File jsFile) {
         ScriptEngineManager engineManager = new ScriptEngineManager()
         ScriptEngine engine = engineManager.getEngineByName("JavaScript")
         engine.eval(jsFile.text)
-        return engine.eval("instantExecutionFailures().length")
+        return engine.eval("instantExecutionFailures().length") as int
     }
 
     private TestFile stateDirForTasks(String... requestedTaskNames) {
@@ -134,7 +134,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         file(".instant-execution-state/${GradleVersion.current().version}/$baseName")
     }
 
-    private String clickableUrlFor(File file) {
+    private static String clickableUrlFor(File file) {
         new ConsoleRenderer().asClickableFileUrl(file)
     }
 }
