@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.VisitableURLClassLoader
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
@@ -58,7 +57,6 @@ class DefaultWorkerExecutorTest extends Specification {
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def worker = Mock(BuildOperationAwareWorker)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
-    def instantiatorFactory = Mock(InstantiatorFactory)
     def instantiator = Mock(Instantiator)
     def parameters = Mock(AdapterWorkerParameters)
     ConditionalExecution task
@@ -66,9 +64,8 @@ class DefaultWorkerExecutorTest extends Specification {
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        _ * instantiatorFactory.inject() >> instantiator
         _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

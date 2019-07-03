@@ -19,7 +19,6 @@ package org.gradle.workers.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
@@ -56,18 +55,16 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def executionQueue = Mock(ConditionalExecutionQueue)
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
-    def instantiatorFactory = Mock(InstantiatorFactory)
     def instantiator = Mock(Instantiator)
     def parameters = Mock(AdapterWorkerParameters)
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        _ * instantiatorFactory.inject() >> instantiator
         _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
         _ * parameters.implementationClassName >> TestRunnable.class.getName()
         _ * parameters.params >> []
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

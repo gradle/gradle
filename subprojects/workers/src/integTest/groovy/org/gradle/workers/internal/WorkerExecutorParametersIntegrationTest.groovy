@@ -358,23 +358,6 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
-    String parameterRunnableWithType(String type, String action) {
-        return """
-            class ParameterRunnable implements Runnable {
-                private ${type} param
-
-                @Inject
-                ParameterRunnable(${type} param) {
-                    this.param = param
-                }
-
-                void run() {
-                    ${action}
-                }
-            }
-        """
-    }
-
     String parameterWorkerExecution(String type, String action) {
         return """
             interface TestParameters extends WorkerParameters {

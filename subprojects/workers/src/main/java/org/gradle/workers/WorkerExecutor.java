@@ -56,6 +56,7 @@ public interface WorkerExecutor {
      * in the {@link WorkerConfiguration}.  If no idle daemons are available, a new daemon will be started.  Any errors
      * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
      */
+    @Deprecated
     void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 
     /**
