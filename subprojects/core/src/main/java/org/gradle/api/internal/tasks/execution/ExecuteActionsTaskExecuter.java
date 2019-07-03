@@ -259,11 +259,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean isAllowOverlappingOutputs() {
-            return true;
-        }
-
-        @Override
         public boolean hasOverlappingOutputs() {
             return context.getOverlappingOutputs().isPresent();
         }

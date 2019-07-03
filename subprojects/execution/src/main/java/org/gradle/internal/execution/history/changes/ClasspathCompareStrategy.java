@@ -35,9 +35,9 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     }
 
     @Override
-    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle) {
         TrackingVisitor trackingVisitor = new TrackingVisitor(visitor);
-        ChangeState changeState = new ChangeState(propertyTitle, includeAdded, trackingVisitor, currentSnapshots, previousSnapshots);
+        ChangeState changeState = new ChangeState(propertyTitle, trackingVisitor, currentSnapshots, previousSnapshots);
 
         while (trackingVisitor.isConsumeMore() && changeState.hasMoreToProcess()) {
             changeState.processChange();
@@ -69,7 +69,6 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     private static class ChangeState {
         private Map.Entry<String, FileSystemLocationFingerprint> current;
         private Map.Entry<String, FileSystemLocationFingerprint> previous;
-        private final boolean includeAdded;
         private final ChangeVisitor changeConsumer;
         private final Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries;
         private final Map<String, FileSystemLocationFingerprint> currentSnapshots;
@@ -77,9 +76,8 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         private final Map<String, FileSystemLocationFingerprint> previousSnapshots;
         private final String propertyTitle;
 
-        private ChangeState(String propertyTitle, boolean includeAdded, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
+        private ChangeState(String propertyTitle, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
             this.propertyTitle = propertyTitle;
-            this.includeAdded = includeAdded;
             this.changeConsumer = changeConsumer;
             this.currentEntries = currentSnapshots.entrySet().iterator();
             this.currentSnapshots = currentSnapshots;
@@ -129,10 +127,8 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         }
 
         void added() {
-            if (includeAdded) {
-                DefaultFileChange added = DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath());
-                changeConsumer.visitChange(added);
-            }
+            DefaultFileChange added = DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath());
+            changeConsumer.visitChange(added);
             current = nextEntry(currentEntries);
         }
 

@@ -79,7 +79,7 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
 
         // Otherwise do deep compare of outputs
         ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
-        OutputFileChanges changes = new OutputFileChanges(previous, current, true);
+        OutputFileChanges changes = new OutputFileChanges(previous, current);
         changes.accept(visitor);
         return visitor.hasAnyChanges();
     }
