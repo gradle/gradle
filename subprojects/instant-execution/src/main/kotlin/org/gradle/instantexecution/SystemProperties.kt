@@ -16,20 +16,19 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.GradleException
+
+internal
+object SystemProperties {
+
+    val isEnabled = SystemProperty("org.gradle.unsafe.instant-execution", false) { it != "false" }
+
+    val maxFailures = SystemProperty("org.gradle.unsafe.instant-execution.max-failures", 512, Integer::valueOf)
+}
 
 
-abstract class InstantExecutionException(message: String) : GradleException(message)
-
-
-/**
- * Instant execution state could not be cached.
- */
-class InstantExecutionErrorsException : InstantExecutionException(
-    "Instant execution state could not be cached."
-)
-
-
-class TooManyInstantExecutionFailuresException : InstantExecutionException(
-    "Maximum number of instant execution failures has been exceeded. This behavior can be adjusted via -D${SystemProperties.maxFailures.name}=<integer>."
+internal
+data class SystemProperty<T>(
+    val name: String,
+    val defaultValue: T,
+    val convert: (String) -> T
 )

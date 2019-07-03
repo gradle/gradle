@@ -23,6 +23,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.InstantExecutionException
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
@@ -92,6 +93,8 @@ fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind
         try {
             writeValue(value)
         } catch (passThrough: IOException) {
+            throw passThrough
+        } catch (passThrough: InstantExecutionException) {
             throw passThrough
         } catch (e: Exception) {
             logPropertyError("write", e) {

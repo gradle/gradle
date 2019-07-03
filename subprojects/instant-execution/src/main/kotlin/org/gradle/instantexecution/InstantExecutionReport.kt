@@ -18,9 +18,12 @@ package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
 
+import org.gradle.api.logging.Logger
+
 import org.gradle.instantexecution.serialization.PropertyFailure
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
+import org.gradle.instantexecution.serialization.unknownPropertyError
 
 import org.gradle.internal.logging.ConsoleRenderer
 
@@ -35,33 +38,99 @@ import java.net.URL
 class InstantExecutionReport(
 
     private
-    val failures: List<PropertyFailure>,
+    val outputDirectory: File,
 
     private
-    val outputDirectory: File
+    val logger: Logger,
 
+    private
+    val maxFailures: Int
 ) {
-    val summary: String
-        get() {
-            val uniquePropertyFailures = failures.groupBy {
-                propertyDescriptionFor(it) to it.message
+
+    private
+    val failures = mutableListOf<PropertyFailure>()
+
+    fun add(failure: PropertyFailure) {
+        failures.add(failure)
+        if (failures.size > maxFailures) {
+            throw TooManyInstantExecutionFailuresException()
+        }
+    }
+
+    fun withExceptionHandling(block: () -> Unit): Throwable? {
+
+        var fatalError: Throwable? = null
+        try {
+            block()
+        } catch (e: Throwable) {
+            when (e.cause) {
+                is TooManyInstantExecutionFailuresException -> fatalError = e
+                else -> add(e)
             }
-            return StringBuilder().apply {
-                appendln("${uniquePropertyFailures.size} instant execution issues found:")
-                uniquePropertyFailures.keys.forEach { (property, message) ->
-                    append("  - ")
-                    append(property)
-                    append(": ")
-                    appendln(message)
-                }
-                appendln("See the complete report at ${clickableUrlFor(reportFile)}")
-            }.toString()
         }
 
+        if (failures.isEmpty()) {
+            return fatalError
+        }
+
+        logSummary()
+        writeReportFiles()
+
+        return fatalError?.withSuppressed(errors())
+            ?: instantExecutionExceptionForErrors()
+    }
+
+    private
+    fun add(e: Throwable) {
+        failures.add(
+            unknownPropertyError(e.message ?: e.javaClass.name, e)
+        )
+    }
+
+    private
+    fun instantExecutionExceptionForErrors(): Throwable? =
+        errors()
+            .takeIf { it.isNotEmpty() }
+            ?.let { errors -> InstantExecutionErrorsException().withSuppressed(errors) }
+
+    private
+    fun Throwable.withSuppressed(errors: List<PropertyFailure.Error>) = apply {
+        errors.forEach {
+            addSuppressed(it.exception)
+        }
+    }
+
+    private
+    fun errors() =
+        failures.filterIsInstance<PropertyFailure.Error>()
+
+    private
+    fun logSummary() {
+        logger.lifecycle(summary())
+    }
+
+    private
     fun writeReportFiles() {
         outputDirectory.mkdirs()
         copyReportResources()
         writeJsFailures()
+    }
+
+    private
+    fun summary(): String {
+        val uniquePropertyFailures = failures.groupBy {
+            propertyDescriptionFor(it) to it.message
+        }
+        return StringBuilder().apply {
+            appendln("${uniquePropertyFailures.size} instant execution issues found:")
+            uniquePropertyFailures.keys.forEach { (property, message) ->
+                append("  - ")
+                append(property)
+                append(": ")
+                appendln(message)
+            }
+            appendln("See the complete report at ${clickableUrlFor(reportFile)}")
+        }.toString()
     }
 
     private

@@ -27,7 +27,6 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.PropertyFailure
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
@@ -35,7 +34,6 @@ import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
-import org.gradle.instantexecution.serialization.unknownPropertyError
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClassPath
@@ -110,27 +108,19 @@ class DefaultInstantExecution(
 
         buildOperationExecutor.withStoreOperation {
 
-            val instantExecutionFailures = mutableListOf<PropertyFailure>()
-
-            try {
+            val report = instantExecutionReport()
+            val instantExecutionException = report.withExceptionHandling {
                 KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                    writeContextFor(encoder, instantExecutionFailures).run {
+                    writeContextFor(encoder, report).run {
                         encodeTaskGraph()
                     }
                 }
-            } catch (e: Throwable) {
-                instantExecutionFailures.add(
-                    unknownPropertyError("Failed to store task graph", e)
-                )
             }
 
-            report(instantExecutionFailures)
-
             // Discard the state file on errors
-            val exception = instantExecutionExceptionFor(instantExecutionFailures)
-            if (exception != null) {
+            if (instantExecutionException != null) {
                 discardInstantExecutionState()
-                throw exception
+                throw instantExecutionException
             }
         }
     }
@@ -190,29 +180,11 @@ class DefaultInstantExecution(
     }
 
     private
-    fun report(failures: List<PropertyFailure>) {
-        if (failures.isEmpty()) {
-            return
-        }
-
-        InstantExecutionReport(failures, reportOutputDir).run {
-            logger.lifecycle(summary)
-            writeReportFiles()
-        }
-    }
-
-    private
-    fun instantExecutionExceptionFor(instantExecutionFailures: List<PropertyFailure>): Throwable? =
-        instantExecutionFailures
-            .filterIsInstance<PropertyFailure.Error>()
-            .takeIf { it.isNotEmpty() }
-            ?.let { errors ->
-                InstantExecutionException().apply {
-                    errors.forEach {
-                        addSuppressed(it.exception)
-                    }
-                }
-            }
+    fun instantExecutionReport() = InstantExecutionReport(
+        reportOutputDir,
+        logger,
+        SystemProperties.maxFailures()
+    )
 
     private
     fun discardInstantExecutionState() {
@@ -222,12 +194,13 @@ class DefaultInstantExecution(
     private
     fun writeContextFor(
         encoder: KryoBackedEncoder,
-        instantExecutionFailures: MutableList<PropertyFailure>
+        report: InstantExecutionReport
     ) = DefaultWriteContext(
         codecs(),
         encoder,
-        logger
-    ) { instantExecutionFailures.add(it) }
+        logger,
+        report::add
+    )
 
     private
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
@@ -329,8 +302,7 @@ class DefaultInstantExecution(
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean
-        get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null && !host.currentBuild.buildSrc
-
+        get() = SystemProperties.isEnabled() && !host.currentBuild.buildSrc
 
     private
     val instantExecutionStateFile by lazy {
@@ -347,6 +319,9 @@ class DefaultInstantExecution(
             resolveSibling(nameWithoutExtension)
         }
     }
+
+    private
+    operator fun <T> SystemProperty<T>.invoke() = host.getSystemProperty(name)?.let(convert) ?: defaultValue
 }
 
 
