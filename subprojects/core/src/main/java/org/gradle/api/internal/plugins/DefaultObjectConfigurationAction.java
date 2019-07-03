@@ -29,6 +29,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -110,7 +111,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         if (!GUtil.isSecureUrl(scriptUri)) {
-            // TODO: Deprecation warning
+            DeprecationLogger.nagUserOfDeprecated("Applying script plugins from insecure URIs", "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.");
         }
         TextResource resource = textResourceLoader.loadUri("script", scriptUri);
         ScriptSource scriptSource = new TextResourceScriptSource(resource);

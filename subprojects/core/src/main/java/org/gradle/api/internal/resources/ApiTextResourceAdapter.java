@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -121,7 +122,7 @@ public class ApiTextResourceAdapter implements TextResourceInternal {
     private TextResource getWrappedTextResource() {
         if (textResource == null) {
             if (!allowInsecureProtocol && !GUtil.isSecureUrl(uri)) {
-                // TODO: Warning
+                DeprecationLogger.nagUserOfDeprecated("Resolving text resources from insecure URIs", "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.");
             }
             textResource = textResourceLoader.loadUri("textResource", uri);
         }
