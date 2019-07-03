@@ -572,24 +572,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Ignore
-    def "null parameters can be provided"() {
-        fixture.withRunnableClassInBuildScript()
-
-        buildFile << """
-            task runInWorkerWithNullParameter(type: WorkerTask) {
-                foo = null
-                isolationMode = IsolationMode.NONE
-            } 
-        """
-
-        when:
-        succeeds "runInWorkerWithNullParameter"
-
-        then:
-        assertRunnableExecuted("runInWorkerWithNullParameter")
-    }
-
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/8628")
     def "can find resources in the classpath via the context classloader using #isolationMode"() {
         fixture.withRunnableClassInBuildSrc()
