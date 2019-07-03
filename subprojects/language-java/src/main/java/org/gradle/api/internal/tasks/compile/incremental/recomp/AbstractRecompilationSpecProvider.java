@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntr
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.history.changes.DefaultFileChange;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
@@ -65,11 +65,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    DefaultFileChange added = DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                    DefaultFileChange added = DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FingerprintFileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
                     classpathEntryChangeProcessor.processChange(added, spec);
                     break;
                 case removed:
-                    DefaultFileChange removed = DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                    DefaultFileChange removed = DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FingerprintFileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
                     classpathEntryChangeProcessor.processChange(removed, spec);
                     break;
                 case transformed:
@@ -82,7 +82,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
                     ClasspathEntrySnapshot previousSnapshot = previous.getClasspathEntrySnapshot(key);
                     ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
                     if (previousSnapshot == null || !snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        DefaultFileChange modified = DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                        DefaultFileChange modified = DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FingerprintFileType.RegularFile, FingerprintFileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
                         classpathEntryChangeProcessor.processChange(modified, spec);
                     }
                     break;

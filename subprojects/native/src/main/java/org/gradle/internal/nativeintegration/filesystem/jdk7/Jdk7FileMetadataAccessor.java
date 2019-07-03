@@ -17,7 +17,7 @@ package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
@@ -41,7 +41,7 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
             if (bfa.isDirectory()) {
                 return DefaultFileMetadata.directory();
             }
-            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+            return new DefaultFileMetadata(SnapshotFileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -56,6 +56,6 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
         if (bfa.isDirectory()) {
             return DefaultFileMetadata.directory();
         }
-        return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+        return new DefaultFileMetadata(SnapshotFileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
     }
 }

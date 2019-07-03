@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 
@@ -28,23 +28,23 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
     private final String path;
     private final ChangeTypeInternal change;
     private final String title;
-    private final FileType previousFileType;
-    private final FileType currentFileType;
+    private final FingerprintFileType previousFileType;
+    private final FingerprintFileType currentFileType;
     private final String normalizedPath;
 
-    public static DefaultFileChange added(String path, String title, FileType currentFileType, String normalizedPath) {
-        return new DefaultFileChange(path, ChangeTypeInternal.ADDED, title, FileType.Missing, currentFileType, normalizedPath);
+    public static DefaultFileChange added(String path, String title, FingerprintFileType currentFileType, String normalizedPath) {
+        return new DefaultFileChange(path, ChangeTypeInternal.ADDED, title, FingerprintFileType.Missing, currentFileType, normalizedPath);
     }
 
-    public static DefaultFileChange removed(String path, String title, FileType previousFileType, String normalizedPath) {
-        return new DefaultFileChange(path, ChangeTypeInternal.REMOVED, title, previousFileType, FileType.Missing, normalizedPath);
+    public static DefaultFileChange removed(String path, String title, FingerprintFileType previousFileType, String normalizedPath) {
+        return new DefaultFileChange(path, ChangeTypeInternal.REMOVED, title, previousFileType, FingerprintFileType.Missing, normalizedPath);
     }
 
-    public static DefaultFileChange modified(String path, String title, FileType previousFileType, FileType currentFileType, String normalizedPath) {
+    public static DefaultFileChange modified(String path, String title, FingerprintFileType previousFileType, FingerprintFileType currentFileType, String normalizedPath) {
         return new DefaultFileChange(path, ChangeTypeInternal.MODIFIED, title, previousFileType, currentFileType, normalizedPath);
     }
 
-    private DefaultFileChange(String path, ChangeTypeInternal change, String title, FileType previousFileType, FileType currentFileType, String normalizedPath) {
+    private DefaultFileChange(String path, ChangeTypeInternal change, String title, FingerprintFileType previousFileType, FingerprintFileType currentFileType, String normalizedPath) {
         this.path = path;
         this.change = change;
         this.title = title;
@@ -62,10 +62,10 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
         if (change != ChangeTypeInternal.MODIFIED) {
             return change;
         }
-        if (previousFileType == FileType.Missing) {
+        if (previousFileType == FingerprintFileType.Missing) {
             return ChangeTypeInternal.ADDED;
         }
-        if (currentFileType == FileType.Missing) {
+        if (currentFileType == FingerprintFileType.Missing) {
             return ChangeTypeInternal.REMOVED;
         }
         return ChangeTypeInternal.MODIFIED;
@@ -92,11 +92,11 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
 
     @Override
     public org.gradle.api.file.FileType getFileType() {
-        FileType typeToConvert = change == ChangeTypeInternal.REMOVED ? previousFileType : currentFileType;
+        FingerprintFileType typeToConvert = change == ChangeTypeInternal.REMOVED ? previousFileType : currentFileType;
         return toPublicFileType(typeToConvert);
     }
 
-    public static org.gradle.api.file.FileType toPublicFileType(FileType fileType) {
+    public static org.gradle.api.file.FileType toPublicFileType(FingerprintFileType fileType) {
         switch (fileType) {
             case RegularFile:
                 return org.gradle.api.file.FileType.FILE;

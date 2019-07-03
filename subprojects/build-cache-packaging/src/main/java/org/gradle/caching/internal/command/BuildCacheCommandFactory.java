@@ -25,7 +25,7 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
@@ -129,7 +129,7 @@ public class BuildCacheCommandFactory {
 
                 switch (type) {
                     case FILE:
-                        if (treeSnapshot.getType() != FileType.RegularFile) {
+                        if (treeSnapshot.getType() != SnapshotFileType.RegularFile) {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
                         }
                         roots.add(treeSnapshot);

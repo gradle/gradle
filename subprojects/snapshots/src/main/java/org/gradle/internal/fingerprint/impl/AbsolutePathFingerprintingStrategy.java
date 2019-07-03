@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -67,7 +67,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
                 @Override
                 public void visit(FileSystemLocationSnapshot fileSnapshot) {
-                    if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
+                    if (!includeMissing && fileSnapshot.getType() == SnapshotFileType.Missing) {
                         return;
                     }
                     String absolutePath = fileSnapshot.getAbsolutePath();

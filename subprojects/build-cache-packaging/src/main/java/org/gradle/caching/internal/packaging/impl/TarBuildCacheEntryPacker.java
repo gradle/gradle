@@ -35,7 +35,7 @@ import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.MutableLong;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -379,7 +379,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             boolean root = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(root);
-            if (fileSnapshot.getType() == FileType.Missing) {
+            if (fileSnapshot.getType() == SnapshotFileType.Missing) {
                 storeMissingTree(targetPath, tarOutput);
             } else {
                 assertCorrectType(root, fileSnapshot);
@@ -408,12 +408,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (root) {
                 switch (type) {
                     case DIRECTORY:
-                        if (snapshot.getType() != FileType.Directory) {
+                        if (snapshot.getType() != SnapshotFileType.Directory) {
                             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", snapshot.getAbsolutePath()));
                         }
                         break;
                     case FILE:
-                        if (snapshot.getType() != FileType.RegularFile) {
+                        if (snapshot.getType() != SnapshotFileType.RegularFile) {
                             throw new IllegalArgumentException(String.format("Expected '%s' to be a file", snapshot.getAbsolutePath()));
                         }
                         break;

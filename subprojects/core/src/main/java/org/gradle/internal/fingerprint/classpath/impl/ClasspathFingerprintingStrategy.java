@@ -25,7 +25,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
@@ -149,7 +149,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
 
         @Override
         public void visit(FileSystemLocationSnapshot fileSnapshot) {
-            if (fileSnapshot.getType() == FileType.RegularFile) {
+            if (FingerprintFileType.of(fileSnapshot.getType()) == FingerprintFileType.RegularFile) {
                 HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
@@ -212,16 +212,16 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         public void visit(FileSystemLocationSnapshot fileSnapshot, HashCode normalizedContentHash) {
             String absolutePath = fileSnapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath)) {
-                FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? IgnoredPathFileSystemLocationFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createFileFingerprint(fileSnapshot, normalizedContentHash);
-                builder.put(
-                    absolutePath,
-                    fingerprint);
+                FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot()
+                    ? IgnoredPathFileSystemLocationFingerprint.create(FingerprintFileType.of(fileSnapshot.getType()), normalizedContentHash)
+                    : createFileFingerprint(fileSnapshot, normalizedContentHash);
+                builder.put(absolutePath, fingerprint);
             }
         }
 
         private FileSystemLocationFingerprint createFileFingerprint(FileSystemLocationSnapshot snapshot, HashCode content) {
             relativePathStringTracker.enter(snapshot);
-            FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
+            FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FingerprintFileType.RegularFile, content);
             relativePathStringTracker.leave();
             return fingerprint;
         }

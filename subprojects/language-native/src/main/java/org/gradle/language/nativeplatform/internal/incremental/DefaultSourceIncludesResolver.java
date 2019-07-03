@@ -16,7 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.nativeplatform.internal.Expression;
@@ -293,7 +293,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         @Override
         IncludeFile searchForDependency(String includePath, boolean quotedPath) {
             CachedIncludeFile includeFile = head.get(includePath);
-            if (includeFile.getType() == FileType.RegularFile) {
+            if (includeFile.getType() == SnapshotFileType.RegularFile) {
                 return includeFile.toIncludeFile(quotedPath);
             }
             return tail.searchForDependency(includePath, quotedPath);
@@ -315,7 +315,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             if (includeFile == null) {
                 for (DirectoryContents dir : directories) {
                     includeFile = dir.get(includePath);
-                    if (includeFile.getType() == FileType.RegularFile) {
+                    if (includeFile.getType() == SnapshotFileType.RegularFile) {
                         break;
                     }
                 }
@@ -324,7 +324,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 }
                 cachedLookups.put(includePath, includeFile);
             }
-            if (includeFile.getType() == FileType.RegularFile) {
+            if (includeFile.getType() == SnapshotFileType.RegularFile) {
                 return includeFile.toIncludeFile(quotedPath);
             }
             return null;
@@ -358,7 +358,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private static abstract class CachedIncludeFile {
-        abstract FileType getType();
+        abstract SnapshotFileType getType();
 
         abstract IncludeFile toIncludeFile(boolean quotedPath);
     }
@@ -368,8 +368,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        FileType getType() {
-            return FileType.Missing;
+        SnapshotFileType getType() {
+            return SnapshotFileType.Missing;
         }
 
         @Override
@@ -405,8 +405,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        FileType getType() {
-            return FileType.RegularFile;
+        SnapshotFileType getType() {
+            return SnapshotFileType.RegularFile;
         }
 
         @Override

@@ -16,33 +16,33 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
 public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
 
-    public static final IgnoredPathFileSystemLocationFingerprint DIRECTORY = new IgnoredPathFileSystemLocationFingerprint(FileType.Directory, DIR_SIGNATURE);
-    private static final IgnoredPathFileSystemLocationFingerprint MISSING_FILE = new IgnoredPathFileSystemLocationFingerprint(FileType.Missing, MISSING_FILE_SIGNATURE);
+    public static final IgnoredPathFileSystemLocationFingerprint DIRECTORY = new IgnoredPathFileSystemLocationFingerprint(FingerprintFileType.Directory, DIR_SIGNATURE);
+    private static final IgnoredPathFileSystemLocationFingerprint MISSING_FILE = new IgnoredPathFileSystemLocationFingerprint(FingerprintFileType.Missing, MISSING_FILE_SIGNATURE);
 
-    private final FileType type;
+    private final FingerprintFileType type;
     private final HashCode normalizedContentHash;
 
-    public static IgnoredPathFileSystemLocationFingerprint create(FileType type, HashCode contentHash) {
-        switch (type) {
+    public static IgnoredPathFileSystemLocationFingerprint create(FingerprintFileType snapshotFileType, HashCode contentHash) {
+        switch (snapshotFileType) {
             case Directory:
                 return DIRECTORY;
             case Missing:
                 return MISSING_FILE;
             case RegularFile:
-                return new IgnoredPathFileSystemLocationFingerprint(FileType.RegularFile, contentHash);
+                return new IgnoredPathFileSystemLocationFingerprint(FingerprintFileType.RegularFile, contentHash);
             default:
                 throw new IllegalStateException();
         }
     }
 
-    private IgnoredPathFileSystemLocationFingerprint(FileType type, HashCode normalizedContentHash) {
+    private IgnoredPathFileSystemLocationFingerprint(FingerprintFileType type, HashCode normalizedContentHash) {
         this.type = type;
         this.normalizedContentHash = normalizedContentHash;
     }
@@ -58,7 +58,7 @@ public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocat
     }
 
     @Override
-    public FileType getType() {
+    public FingerprintFileType getType() {
         return type;
     }
 
@@ -94,6 +94,9 @@ public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocat
 
     @Override
     public String toString() {
-        return String.format("IGNORED / %s", getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : normalizedContentHash);
+        Object type = getType() == FingerprintFileType.Directory
+            ? "DIR" : getType() == FingerprintFileType.Missing
+            ? "MISSING" : normalizedContentHash;
+        return String.format("IGNORED / %s", type);
     }
 }

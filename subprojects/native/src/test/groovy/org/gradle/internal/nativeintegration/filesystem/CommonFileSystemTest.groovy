@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.SnapshotFileType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -127,7 +127,7 @@ class CommonFileSystemTest extends Specification {
 
         expect:
         def stat = fs.stat(file)
-        stat.type == FileType.Missing
+        stat.type == SnapshotFileType.Missing
         stat.lastModified == 0
         stat.length == 0
     }
@@ -138,7 +138,7 @@ class CommonFileSystemTest extends Specification {
 
         expect:
         def stat = fs.stat(file)
-        stat.type == FileType.RegularFile
+        stat.type == SnapshotFileType.RegularFile
         lastModified(stat) == lastModified(file)
         stat.length == 3
     }
@@ -148,7 +148,7 @@ class CommonFileSystemTest extends Specification {
 
         expect:
         def stat = fs.stat(dir)
-        stat.type == FileType.Directory
+        stat.type == SnapshotFileType.Directory
         stat.lastModified == 0
         stat.length == 0
     }
@@ -162,7 +162,7 @@ class CommonFileSystemTest extends Specification {
 
         expect:
         def stat = fs.stat(link)
-        stat.type == FileType.RegularFile
+        stat.type == SnapshotFileType.RegularFile
         lastModified(stat) == lastModified(file)
         stat.length == 3
     }

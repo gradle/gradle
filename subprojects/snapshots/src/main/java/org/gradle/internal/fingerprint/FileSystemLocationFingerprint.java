@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hashing;
@@ -35,5 +35,6 @@ public interface FileSystemLocationFingerprint extends Comparable<FileSystemLoca
 
     String getNormalizedPath();
     HashCode getNormalizedContentHash();
-    FileType getType();
+
+    FingerprintFileType getType();
 }

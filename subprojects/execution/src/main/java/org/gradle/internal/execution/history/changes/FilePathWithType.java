@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 
 /**
  * The absolute path and the type of a file.
@@ -25,9 +25,9 @@ import org.gradle.internal.file.FileType;
  */
 public class FilePathWithType {
     private final String absolutePath;
-    private final FileType fileType;
+    private final FingerprintFileType fileType;
 
-    public FilePathWithType(String absolutePath, FileType fileType) {
+    public FilePathWithType(String absolutePath, FingerprintFileType fileType) {
         this.absolutePath = absolutePath;
         this.fileType = fileType;
     }
@@ -36,7 +36,7 @@ public class FilePathWithType {
         return absolutePath;
     }
 
-    public FileType getFileType() {
+    public FingerprintFileType getFileType() {
         return fileType;
     }
 

@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 import java.util.Iterator;
@@ -88,7 +88,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         FilePathWithType pathWithType
     ) {
         String normalizedPath = previousFingerprint.getNormalizedPath();
-        FileType previousFingerprintType = previousFingerprint.getType();
+        FingerprintFileType previousFingerprintType = previousFingerprint.getType();
         String absolutePath = pathWithType.getAbsolutePath();
 
         List<FilePathWithType> filePathWithTypes = addedFilesByNormalizedPath.get(normalizedPath);
@@ -117,7 +117,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
 
             String absolutePath = previousEntry.getKey();
             FileSystemLocationFingerprint previousFingerprint = previousEntry.getValue();
-            FileType previousFingerprintType = previousFingerprint.getType();
+            FingerprintFileType previousFingerprintType = previousFingerprint.getType();
 
             results.put(previousFingerprint, new FilePathWithType(absolutePath, previousFingerprintType));
         }
@@ -142,7 +142,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             String absolutePath = currentEntry.getKey();
             FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
             List<FilePathWithType> previousFilesForFingerprint = unaccountedForPreviousFiles.get(currentFingerprint);
-            FileType fingerprintType = currentFingerprint.getType();
+            FingerprintFileType fingerprintType = currentFingerprint.getType();
 
             if (previousFilesForFingerprint.isEmpty()) {
                 results.put(currentFingerprint.getNormalizedPath(), new FilePathWithType(absolutePath, fingerprintType));
@@ -155,12 +155,12 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
 
     private static Change modified(
         String propertyTitle,
-        FileType previousFingerprintType,
+        FingerprintFileType previousFingerprintType,
         String normalizedPath,
         FilePathWithType modifiedFile
     ) {
         String absolutePath = modifiedFile.getAbsolutePath();
-        FileType fileType = modifiedFile.getFileType();
+        FingerprintFileType fileType = modifiedFile.getFileType();
         return DefaultFileChange.modified(absolutePath, propertyTitle, previousFingerprintType, fileType, normalizedPath);
     }
 
@@ -170,7 +170,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         FilePathWithType removedFile
     ) {
         String absolutePath = removedFile.getAbsolutePath();
-        FileType fileType = removedFile.getFileType();
+        FingerprintFileType fileType = removedFile.getFileType();
         return DefaultFileChange.removed(absolutePath, propertyTitle, fileType, normalizedPath);
     }
 
@@ -180,7 +180,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
     ) {
         FilePathWithType addedFile = addedFilesByNormalizedPathEntries.getValue();
         String absolutePath = addedFile.getAbsolutePath();
-        FileType fileType = addedFile.getFileType();
+        FingerprintFileType fileType = addedFile.getFileType();
         String normalizedPath = addedFilesByNormalizedPathEntries.getKey();
         return DefaultFileChange.added(absolutePath, propertyTitle, fileType, normalizedPath);
     }

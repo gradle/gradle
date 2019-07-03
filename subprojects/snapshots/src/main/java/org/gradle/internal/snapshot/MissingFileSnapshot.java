@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
@@ -24,15 +24,15 @@ import org.gradle.internal.hash.Hashing;
  * A snapshot of a missing file.
  */
 public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
-    private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
+    static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
     public MissingFileSnapshot(String absolutePath, String name) {
         super(absolutePath, name);
     }
 
     @Override
-    public FileType getType() {
-        return FileType.Missing;
+    public SnapshotFileType getType() {
+        return SnapshotFileType.Missing;
     }
 
     @Override

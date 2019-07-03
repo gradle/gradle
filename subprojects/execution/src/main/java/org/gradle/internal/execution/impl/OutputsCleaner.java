@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.Ordering;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class OutputsCleaner {
         cleanupDirectories();
     }
 
-    public void cleanupOutput(File file, FileType fileType) throws IOException {
+    public void cleanupOutput(File file, FingerprintFileType fileType) throws IOException {
         switch (fileType) {
             case Directory:
                 markDirForDeletion(file);

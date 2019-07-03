@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.FingerprintFileType
 import org.hamcrest.Matcher
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -1562,17 +1562,17 @@ Found the following transforms:
             abstract class FailingTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     ${switch (type) {
-                        case FileType.Missing:
+            case FingerprintFileType.Missing:
                             return """
                                 outputs.${method}('this_file_does_not.exist').delete()
                                 
                             """
-                        case FileType.Directory:
+            case FingerprintFileType.Directory:
                             return """
                                 def output = outputs.${method}('directory')
                                 output.mkdirs()
                             """
-                        case FileType.RegularFile:
+            case FingerprintFileType.RegularFile:
                             return """
                                 def output = outputs.${method}('file')
                                 output.delete()
@@ -1612,11 +1612,11 @@ Found the following transforms:
         outputContains(":resolve NO-SOURCE")
 
         where:
-        method | type                 | failureMessage
-        'file' | FileType.Directory   | 'output file .*directory must be a file, but is not'
-        'file' | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
-        'dir'  | FileType.RegularFile | 'output directory .*file must be a directory, but is not'
-        'dir'  | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
+        method | type                            | failureMessage
+        'file' | FingerprintFileType.Directory   | 'output file .*directory must be a file, but is not'
+        'file' | FingerprintFileType.Missing     | 'output .*this_file_does_not.exist must exist'
+        'dir'  | FingerprintFileType.RegularFile | 'output directory .*file must be a directory, but is not'
+        'dir'  | FingerprintFileType.Missing     | 'output .*this_file_does_not.exist must exist'
     }
 
     def "directories are created for outputs in the workspace"() {

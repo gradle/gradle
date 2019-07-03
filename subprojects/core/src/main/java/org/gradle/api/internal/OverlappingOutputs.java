@@ -17,7 +17,8 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -129,11 +130,11 @@ public class OverlappingOutputs {
             FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
             HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
             // Missing files can be ignored
-            if (beforeSnapshot.getType() != FileType.Missing) {
+            if (beforeSnapshot.getType() != SnapshotFileType.Missing) {
                 if (createdSincePreviousExecution(previousContentHash)
-                    || (beforeSnapshot.getType() != previousFingerprint.getType())
+                    || (FingerprintFileType.of(beforeSnapshot.getType()) != previousFingerprint.getType())
                     // The fingerprint hashes for non-regular files are slightly different to the snapshot hashes, we only need to compare them for regular files
-                    || (beforeSnapshot.getType() == FileType.RegularFile && changedSincePreviousExecution(contentHash, previousContentHash))) {
+                    || (beforeSnapshot.getType() == SnapshotFileType.RegularFile && changedSincePreviousExecution(contentHash, previousContentHash))) {
                     return path;
                 }
             }

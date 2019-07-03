@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.internal.execution.impl.OutputsCleaner;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
             });
             for (File f : filesToDelete) {
                 if (f.isFile()) {
-                    outputsCleaner.cleanupOutput(f, FileType.RegularFile);
+                    outputsCleaner.cleanupOutput(f, FingerprintFileType.RegularFile);
                 }
             }
             outputsCleaner.cleanupDirectories();

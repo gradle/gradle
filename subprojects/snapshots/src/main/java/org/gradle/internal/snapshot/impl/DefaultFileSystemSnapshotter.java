@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
@@ -71,7 +71,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         final String absolutePath = file.getAbsolutePath();
         FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
         if (metadata != null) {
-            if (metadata.getType() != FileType.RegularFile) {
+            if (metadata.getType() != SnapshotFileType.RegularFile) {
                 return null;
             }
             FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(absolutePath);
@@ -85,7 +85,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public HashCode get() {
                 InternableString internableAbsolutePath = new InternableString(absolutePath);
                 FileMetadataSnapshot metadata = statAndCache(internableAbsolutePath, file);
-                if (metadata.getType() != FileType.RegularFile) {
+                if (metadata.getType() != SnapshotFileType.RegularFile) {
                     return null;
                 }
                 FileSystemLocationSnapshot snapshot = snapshotAndCache(internableAbsolutePath, file, metadata, null);
@@ -168,7 +168,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
                     snapshot = snapshotAndCache(root, filter);
-                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, filter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
+                    return snapshot.getType() != SnapshotFileType.Directory ? filterSnapshot(snapshot, filter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
                 } else {
                     return filterSnapshot(snapshot, filter);
                 }
@@ -182,7 +182,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {
-        if (snapshot.getType() == FileType.Missing) {
+        if (snapshot.getType() == SnapshotFileType.Missing) {
             return FileSystemSnapshot.EMPTY;
         }
         if (filter.isEmpty()) {

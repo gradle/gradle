@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.SnapshotFileType
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
@@ -130,6 +130,6 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     private static DefaultFileMetadata fileMetadata() {
-        new DefaultFileMetadata(FileType.RegularFile, 0, 5)
+        new DefaultFileMetadata(SnapshotFileType.RegularFile, 0, 5)
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -26,16 +26,16 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
     private final HashCode normalizedContentHash;
     private final String normalizedPath;
 
-    public DefaultFileSystemLocationFingerprint(String normalizedPath, FileType type, HashCode contentHash) {
+    public DefaultFileSystemLocationFingerprint(String normalizedPath, FingerprintFileType type, HashCode contentHash) {
         this.normalizedContentHash = hashForType(type, contentHash);
         this.normalizedPath = normalizedPath;
     }
 
     public DefaultFileSystemLocationFingerprint(String normalizedPath, FileSystemLocationSnapshot snapshot) {
-        this(normalizedPath, snapshot.getType(), snapshot.getHash());
+        this(normalizedPath, FingerprintFileType.of(snapshot.getType()), snapshot.getHash());
     }
 
-    private static HashCode hashForType(FileType fileType, HashCode hash) {
+    private static HashCode hashForType(FingerprintFileType fileType, HashCode hash) {
         switch (fileType) {
             case Directory:
                 return DIR_SIGNATURE;
@@ -55,13 +55,13 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
     }
 
     @Override
-    public FileType getType() {
+    public FingerprintFileType getType() {
         if (normalizedContentHash == DIR_SIGNATURE) {
-            return FileType.Directory;
+            return FingerprintFileType.Directory;
         } else if (normalizedContentHash == MISSING_FILE_SIGNATURE) {
-            return FileType.Missing;
+            return FingerprintFileType.Missing;
         } else {
-            return FileType.RegularFile;
+            return FingerprintFileType.RegularFile;
         }
     }
 

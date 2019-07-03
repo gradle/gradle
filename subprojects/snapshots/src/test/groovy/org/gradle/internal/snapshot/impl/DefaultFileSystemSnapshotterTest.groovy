@@ -18,7 +18,7 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.SnapshotFileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
@@ -50,7 +50,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(f)
         snapshot.absolutePath == f.path
         snapshot.name == "f"
-        snapshot.type == FileType.RegularFile
+        snapshot.type == SnapshotFileType.RegularFile
         def stat = TestFiles.fileSystem().stat(f)
         snapshot.isContentAndMetadataUpToDate(new RegularFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), new FileMetadata(stat.length, stat.lastModified)))
 
@@ -65,7 +65,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(d)
         snapshot.absolutePath == d.path
         snapshot.name == "d"
-        snapshot.type == FileType.Directory
+        snapshot.type == SnapshotFileType.Directory
 
         def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
@@ -78,7 +78,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(f)
         snapshot.absolutePath == f.path
         snapshot.name == "f"
-        snapshot.type == FileType.Missing
+        snapshot.type == SnapshotFileType.Missing
 
         def snapshot2 = snapshotter.snapshot(f)
         snapshot2.is(snapshot)
@@ -288,7 +288,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             return new FileSystemSnapshotPredicate() {
                 @Override
                 boolean test(FileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
-                    return fileSystemLocationSnapshot.getType() == FileType.Directory || predicate.test(fileSystemLocationSnapshot.name)
+                    return fileSystemLocationSnapshot.getType() == SnapshotFileType.Directory || predicate.test(fileSystemLocationSnapshot.name)
                 }
             }
         }

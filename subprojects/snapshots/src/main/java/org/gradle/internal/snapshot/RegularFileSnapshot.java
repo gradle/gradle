@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.hash.HashCode;
 
 /**
@@ -33,8 +33,8 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
-    public FileType getType() {
-        return FileType.RegularFile;
+    public SnapshotFileType getType() {
+        return SnapshotFileType.RegularFile;
     }
 
     @Override

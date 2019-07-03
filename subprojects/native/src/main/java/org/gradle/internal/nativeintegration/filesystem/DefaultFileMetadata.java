@@ -17,23 +17,23 @@
 package org.gradle.internal.nativeintegration.filesystem;
 
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 
 public class DefaultFileMetadata implements FileMetadataSnapshot {
-    private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(FileType.Directory, 0, 0);
-    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadata(FileType.Missing, 0, 0);
-    private final FileType type;
+    private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(SnapshotFileType.Directory, 0, 0);
+    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadata(SnapshotFileType.Missing, 0, 0);
+    private final SnapshotFileType type;
     private final long lastModified;
     private final long length;
 
-    public DefaultFileMetadata(FileType type, long lastModified, long length) {
+    public DefaultFileMetadata(SnapshotFileType type, long lastModified, long length) {
         this.type = type;
         this.lastModified = lastModified;
         this.length = length;
     }
 
     public static FileMetadataSnapshot file(long lastModified, long length) {
-        return new DefaultFileMetadata(FileType.RegularFile, lastModified, length);
+        return new DefaultFileMetadata(SnapshotFileType.RegularFile, lastModified, length);
     }
 
     public static FileMetadataSnapshot directory() {
@@ -45,7 +45,7 @@ public class DefaultFileMetadata implements FileMetadataSnapshot {
     }
 
     @Override
-    public FileType getType() {
+    public SnapshotFileType getType() {
         return type;
     }
 

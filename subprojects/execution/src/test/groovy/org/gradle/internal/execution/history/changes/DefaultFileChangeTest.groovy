@@ -16,8 +16,7 @@
 
 package org.gradle.internal.execution.history.changes
 
-
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.FingerprintFileType
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,12 +28,12 @@ class DefaultFileChangeTest extends Specification {
         DefaultFileChange.modified("somePath", "test", previous, current, "").message == "test file somePath ${message}."
 
         where:
-        previous             | current              | message
-        FileType.RegularFile | FileType.RegularFile | "has changed"
-        FileType.Missing     | FileType.RegularFile | "has been added"
-        FileType.Missing     | FileType.Directory   | "has been added"
-        FileType.RegularFile | FileType.Missing     | "has been removed"
-        FileType.Directory   | FileType.Missing     | "has been removed"
+        previous                        | current                         | message
+        FingerprintFileType.RegularFile | FingerprintFileType.RegularFile | "has changed"
+        FingerprintFileType.Missing     | FingerprintFileType.RegularFile | "has been added"
+        FingerprintFileType.Missing     | FingerprintFileType.Directory   | "has been added"
+        FingerprintFileType.RegularFile | FingerprintFileType.Missing     | "has been removed"
+        FingerprintFileType.Directory   | FingerprintFileType.Missing     | "has been removed"
     }
 
     def "change message for ChangeType #fileChange.change is '#message'"() {
@@ -42,10 +41,10 @@ class DefaultFileChangeTest extends Specification {
         fileChange.message == "test file somePath ${message}."
 
         where:
-        fileChange                                                              | message
-        DefaultFileChange.removed("somePath", "test", FileType.RegularFile, "") | "has been removed"
-        DefaultFileChange.removed("somePath", "test", FileType.Directory, "")   | "has been removed"
-        DefaultFileChange.added("somePath", "test", FileType.RegularFile, "")   | "has been added"
-        DefaultFileChange.added("somePath", "test", FileType.Directory, "")     | "has been added"
+        fileChange                                                                         | message
+        DefaultFileChange.removed("somePath", "test", FingerprintFileType.RegularFile, "") | "has been removed"
+        DefaultFileChange.removed("somePath", "test", FingerprintFileType.Directory, "")   | "has been removed"
+        DefaultFileChange.added("somePath", "test", FingerprintFileType.RegularFile, "")   | "has been added"
+        DefaultFileChange.added("somePath", "test", FingerprintFileType.Directory, "")     | "has been added"
     }
 }

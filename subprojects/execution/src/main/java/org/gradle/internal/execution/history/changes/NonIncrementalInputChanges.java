@@ -22,7 +22,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
@@ -74,9 +74,9 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     private static class RebuildFileChange implements FileChange, InputFileDetails {
         private final String path;
         private final String normalizedPath;
-        private final FileType fileType;
+        private final FingerprintFileType fileType;
 
-        public RebuildFileChange(String path, String normalizedPath, FileType fileType) {
+        public RebuildFileChange(String path, String normalizedPath, FingerprintFileType fileType) {
             this.path = path;
             this.normalizedPath = normalizedPath;
             this.fileType = fileType;

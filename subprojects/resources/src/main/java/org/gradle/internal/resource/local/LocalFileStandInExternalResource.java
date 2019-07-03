@@ -24,7 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResource;
@@ -95,7 +95,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
     @Nullable
     public ExternalResourceMetaData getMetaData() {
         FileMetadataSnapshot stat = fileSystem.stat(localFile);
-        if (stat.getType() == FileType.Missing) {
+        if (stat.getType() == SnapshotFileType.Missing) {
             return null;
         }
         return new DefaultExternalResourceMetaData(localFile.toURI(), stat.getLastModified(), stat.getLength());

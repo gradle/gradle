@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.FingerprintFileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
@@ -137,7 +137,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ], [
             "one": fingerprint("one"),
             "two": fingerprint("two", 0xface1234)
-        ]) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
+        ]) == [modified("two", FingerprintFileType.RegularFile, FingerprintFileType.RegularFile)]
     }
 
     def "trivial replacement (NormalizedPathFingerprintCompareStrategy)"() {
@@ -283,20 +283,20 @@ class FingerprintCompareStrategyTest extends Specification {
     def "comparing regular snapshot to empty snapshot shows entries removed (strategy: #strategy)"() {
         def fingerprint = Mock(FileCollectionFingerprint) {
             getFingerprints() >> [
-                "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
-                "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+                "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FingerprintFileType.RegularFile, HashCode.fromInt(123)),
+                "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FingerprintFileType.RegularFile, HashCode.fromInt(234)),
             ]
             getRootHashes() >> ImmutableMultimap.of('/dir', HashCode.fromInt(456))
         }
         def emptyFingerprint = new EmptyCurrentFileCollectionFingerprint("test")
         expect:
         changes(strategy, emptyFingerprint, fingerprint).toList() == [
-            DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile, "file1.txt"),
-            DefaultFileChange.removed("file2.txt", "test", FileType.RegularFile, "file2.txt")
+            DefaultFileChange.removed("file1.txt", "test", FingerprintFileType.RegularFile, "file1.txt"),
+            DefaultFileChange.removed("file2.txt", "test", FingerprintFileType.RegularFile, "file2.txt")
         ]
         changes(strategy, fingerprint, emptyFingerprint).toList() == [
-            DefaultFileChange.added("file1.txt", "test", FileType.RegularFile, "file1.txt"),
-            DefaultFileChange.added("file2.txt", "test", FileType.RegularFile, "file2.txt")
+            DefaultFileChange.added("file1.txt", "test", FingerprintFileType.RegularFile, "file1.txt"),
+            DefaultFileChange.added("file2.txt", "test", FingerprintFileType.RegularFile, "file2.txt")
         ]
 
         where:
@@ -324,7 +324,7 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
+        return new DefaultFileSystemLocationFingerprint(normalizedPath, FingerprintFileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def added(String path) {
@@ -333,7 +333,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def added(Map<String, String> entry) {
         def singleEntry = Iterables.getOnlyElement(entry.entrySet())
-        DefaultFileChange.added(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
+        DefaultFileChange.added(singleEntry.key, "test", FingerprintFileType.RegularFile, singleEntry.value)
     }
 
     def removed(String path) {
@@ -342,14 +342,14 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def removed(Map<String, String> entry) {
         def singleEntry = Iterables.getOnlyElement(entry.entrySet())
-        DefaultFileChange.removed(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
+        DefaultFileChange.removed(singleEntry.key, "test", FingerprintFileType.RegularFile, singleEntry.value)
     }
 
-    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+    def modified(String path, FingerprintFileType previous = FingerprintFileType.RegularFile, FingerprintFileType current = FingerprintFileType.RegularFile) {
         modified((path): path, previous, current)
     }
 
-    def modified(Map<String, String> paths, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+    def modified(Map<String, String> paths, FingerprintFileType previous = FingerprintFileType.RegularFile, FingerprintFileType current = FingerprintFileType.RegularFile) {
         def singleEntry = Iterables.getOnlyElement(paths.entrySet())
         DefaultFileChange.modified(singleEntry.key, "test", previous, current, singleEntry.value)
     }

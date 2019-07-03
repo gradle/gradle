@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Comparator;
@@ -39,7 +39,7 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
     /**
      * The type of the file.
      */
-    FileType getType();
+    SnapshotFileType getType();
 
     /**
      * The file name.

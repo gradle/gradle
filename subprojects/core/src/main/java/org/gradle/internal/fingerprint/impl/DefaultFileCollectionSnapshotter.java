@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
@@ -87,7 +87,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), fileDetails.getName(), new DefaultFileMetadata(FileType.RegularFile, fileDetails.getLastModified(), fileDetails.getSize()));
+                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), fileDetails.getName(), new DefaultFileMetadata(SnapshotFileType.RegularFile, fileDetails.getLastModified(), fileDetails.getSize()));
             }
         });
         return builder.build();

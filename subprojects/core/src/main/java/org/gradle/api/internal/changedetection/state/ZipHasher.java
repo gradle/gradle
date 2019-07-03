@@ -22,7 +22,7 @@ import org.gradle.api.file.internal.FilePathUtil;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
@@ -114,14 +114,14 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             } else {
                 HashCode hash = resourceHasher.hash(zipEntry);
                 if (hash != null) {
-                    fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
+                    fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FingerprintFileType.RegularFile, hash));
                 }
             }
         }
     }
 
     private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
-        return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, HashCode.fromInt(0));
+        return new DefaultFileSystemLocationFingerprint(relativePath, FingerprintFileType.RegularFile, HashCode.fromInt(0));
     }
 
     private static class ZipEntryRelativePath implements Factory<String[]> {

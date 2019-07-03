@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.SnapshotFileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -115,7 +115,7 @@ public class OutputFilterUtil {
      * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
     private static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints) {
-        if (snapshot.getType() == FileType.Missing) {
+        if (snapshot.getType() == SnapshotFileType.Missing) {
             return false;
         }
         FileSystemLocationSnapshot beforeSnapshot = beforeSnapshots.get(snapshot.getAbsolutePath());
@@ -134,7 +134,7 @@ public class OutputFilterUtil {
     public static List<FileSystemSnapshot> filterOutputSnapshot(FileCollectionFingerprint previousOutputs, FileSystemSnapshot currentSnapshots) {
         Map<String, FileSystemLocationFingerprint> fingerprints = previousOutputs.getFingerprints();
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> {
-            return snapshot.getType() != FileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
+            return snapshot.getType() != SnapshotFileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
         });
         currentSnapshots.accept(filteringVisitor);
         return filteringVisitor.getNewRoots();

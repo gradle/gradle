@@ -22,7 +22,7 @@ import org.gradle.internal.execution.history.changes.ClasspathCompareStrategy
 import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
 import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.FingerprintFileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
@@ -77,7 +77,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(
             ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
-        ) == [modified("two-new": "two", FileType.RegularFile, FileType.RegularFile)]
+        ) == [modified("two-new": "two", FingerprintFileType.RegularFile, FingerprintFileType.RegularFile)]
     }
 
     def "trivial replacement"() {
@@ -181,11 +181,11 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
     }
 
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
+        return new DefaultFileSystemLocationFingerprint(normalizedPath, FingerprintFileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def jar(int hashCode) {
-        return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, HashCode.fromInt(hashCode))
+        return new DefaultFileSystemLocationFingerprint("", FingerprintFileType.RegularFile, HashCode.fromInt(hashCode))
     }
 
     def added(String path) {
@@ -194,7 +194,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
     def added(Map<String, String> entry) {
         def singleEntry = Iterables.getOnlyElement(entry.entrySet())
-        DefaultFileChange.added(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
+        DefaultFileChange.added(singleEntry.key, "test", FingerprintFileType.RegularFile, singleEntry.value)
     }
 
     def removed(String path) {
@@ -203,14 +203,14 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
     def removed(Map<String, String> entry) {
         def singleEntry = Iterables.getOnlyElement(entry.entrySet())
-        DefaultFileChange.removed(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
+        DefaultFileChange.removed(singleEntry.key, "test", FingerprintFileType.RegularFile, singleEntry.value)
     }
 
-    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+    def modified(String path, FingerprintFileType previous = FingerprintFileType.RegularFile, FingerprintFileType current = FingerprintFileType.RegularFile) {
         modified((path): "", previous, current)
     }
 
-    def modified(Map<String, String> paths, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+    def modified(Map<String, String> paths, FingerprintFileType previous = FingerprintFileType.RegularFile, FingerprintFileType current = FingerprintFileType.RegularFile) {
         def singleEntry = Iterables.getOnlyElement(paths.entrySet())
         DefaultFileChange.modified(singleEntry.key, "test", previous, current, singleEntry.value)
     }

@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FingerprintFileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -60,7 +60,7 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
     }
 
     private FileSystemLocationFingerprint readFingerprint(Decoder decoder) throws IOException {
-        FileType fileType = readFileType(decoder);
+        FingerprintFileType fileType = readFileType(decoder);
         HashCode contentHash = readContentHash(fileType, decoder);
 
         byte fingerprintKind = decoder.readByte();
@@ -75,7 +75,7 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
         }
     }
 
-    private HashCode readContentHash(FileType fileType, Decoder decoder) throws IOException {
+    private HashCode readContentHash(FingerprintFileType fileType, Decoder decoder) throws IOException {
         switch (fileType) {
             case Directory:
                 return FileSystemLocationFingerprint.DIR_SIGNATURE;
@@ -88,15 +88,15 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
         }
     }
 
-    private FileType readFileType(Decoder decoder) throws IOException {
+    private FingerprintFileType readFileType(Decoder decoder) throws IOException {
         byte fileKind = decoder.readByte();
         switch (fileKind) {
             case DIR_FINGERPRINT:
-                return FileType.Directory;
+                return FingerprintFileType.Directory;
             case MISSING_FILE_FINGERPRINT:
-                return FileType.Missing;
+                return FingerprintFileType.Missing;
             case REGULAR_FILE_FINGERPRINT:
-                return FileType.RegularFile;
+                return FingerprintFileType.RegularFile;
             default:
                 throw new RuntimeException("Unable to read serialized file fingerprint. Unrecognized value found in the data stream.");
         }
