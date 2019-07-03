@@ -347,6 +347,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public boolean isTaskHistoryMaintained() {
+            return context.getTaskExecutionMode().isTaskHistoryMaintained();
+        }
+
+        @Override
         public boolean isAllowedToLoadFromCache() {
             return context.getTaskExecutionMode().isAllowedToUseCachedResults();
         }

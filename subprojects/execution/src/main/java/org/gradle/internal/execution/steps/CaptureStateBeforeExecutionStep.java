@@ -63,11 +63,13 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
 
     @Override
     public CachingResult execute(AfterPreviousExecutionContext context) {
-        BeforeExecutionState beforeExecutionState = createExecutionState(context);
+        BeforeExecutionState beforeExecutionState = context.getWork().isTaskHistoryMaintained()
+            ? createExecutionState(context)
+            : null;
         return delegate.execute(new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return Optional.of(beforeExecutionState);
+                return Optional.ofNullable(beforeExecutionState);
             }
 
             @Override
