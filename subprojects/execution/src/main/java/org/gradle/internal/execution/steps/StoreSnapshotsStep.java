@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.CurrentSnapshotResult;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -29,7 +29,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.Optional;
 
-public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C, CurrentSnapshotResult> {
+public class StoreSnapshotsStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreSnapshotsStep(

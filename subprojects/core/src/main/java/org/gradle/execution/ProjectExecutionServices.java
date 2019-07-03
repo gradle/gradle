@@ -53,7 +53,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -114,7 +114,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionListener taskExecutionListener,
                                     TaskListenerInternal taskListenerInternal,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
-                                    WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+                                    WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor,
                                     ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
                                     ListenerManager listenerManager
     ) {

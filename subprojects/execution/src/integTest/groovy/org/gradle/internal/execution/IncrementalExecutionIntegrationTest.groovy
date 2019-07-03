@@ -125,7 +125,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def changeDetector = new DefaultExecutionStateChangeDetector()
 
-    WorkExecutor<IncrementalContext, UpToDateResult> getExecutor() {
+    WorkExecutor<BeforeExecutionContext, UpToDateResult> getExecutor() {
         new DefaultWorkExecutor<>(
             new ResolveChangesStep<>(changeDetector,
                 new SkipUpToDateStep<>(

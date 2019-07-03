@@ -33,7 +33,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -85,7 +85,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+    private final WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
@@ -93,7 +93,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final ProjectFinder projectFinder;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+    public DefaultTransformerInvoker(WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -191,7 +191,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                         outputFingerprinter
                     );
 
-                    CachingResult outcome = workExecutor.execute(new IncrementalContext() {
+                    CachingResult outcome = workExecutor.execute(new BeforeExecutionContext() {
                         @Override
                         public UnitOfWork getWork() {
                             return execution;

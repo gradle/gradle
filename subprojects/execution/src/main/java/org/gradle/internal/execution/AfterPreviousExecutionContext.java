@@ -17,11 +17,10 @@
 package org.gradle.internal.execution;
 
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 
 import java.util.Optional;
 
-public interface IncrementalContext extends Context {
+public interface AfterPreviousExecutionContext extends Context {
     /**
      * If incremental mode is disabled, this returns the reason, otherwise it's empty.
      */
@@ -32,10 +31,4 @@ public interface IncrementalContext extends Context {
      * Empty when execution history is not available.
      */
     Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
-
-    /**
-     * Returns the execution state before execution.
-     * Empty if execution state was not observed before execution.
-     */
-    Optional<BeforeExecutionState> getBeforeExecutionState();
 }

@@ -121,7 +121,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
@@ -238,7 +238,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
+        WorkExecutor<BeforeExecutionContext, CachingResult> createWorkExecutor(
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
             TimeoutHandler timeoutHandler
@@ -274,7 +274,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
     }
 
-    private static class NoOpCachingStateStep implements Step<IncrementalContext, CachingResult> {
+    private static class NoOpCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
         private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
         public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
@@ -282,7 +282,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Override
-        public CachingResult execute(IncrementalContext context) {
+        public CachingResult execute(BeforeExecutionContext context) {
             UpToDateResult result = delegate.execute(new CachingContext() {
                 @Override
                 public CachingState getCachingState() {
@@ -365,7 +365,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,

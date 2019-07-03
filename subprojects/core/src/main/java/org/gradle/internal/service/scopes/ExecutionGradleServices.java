@@ -34,7 +34,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalChangesContext;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
@@ -119,7 +119,7 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
+    public WorkExecutor<BeforeExecutionContext, CachingResult> createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildScanPluginApplied buildScanPlugin,
@@ -130,7 +130,7 @@ public class ExecutionGradleServices {
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor<IncrementalContext, CachingResult>(
+        return new DefaultWorkExecutor<BeforeExecutionContext, CachingResult>(
             new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
                 new MarkSnapshottingInputsFinishedStep<UpToDateResult>(
                     new ResolveChangesStep<UpToDateResult>(changeDetector,

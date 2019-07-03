@@ -36,7 +36,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.IncrementalContext
+import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -88,7 +88,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
     def buildCacheController = Mock(BuildCacheController)
     def listenerManager = Mock(ListenerManager)
-    def workExecutor = new DefaultWorkExecutor<IncrementalContext, CachingResult>(
+    def workExecutor = new DefaultWorkExecutor<BeforeExecutionContext, CachingResult>(
         new ResolveCachingStateStep(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
                 new SkipUpToDateStep<>(

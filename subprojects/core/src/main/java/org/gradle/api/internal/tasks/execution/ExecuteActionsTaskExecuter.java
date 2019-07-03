@@ -46,7 +46,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -98,7 +98,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
-    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+    private final WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor;
     private final ListenerManager listenerManager;
 
     public ExecuteActionsTaskExecuter(
@@ -110,7 +110,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+        WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor,
         ListenerManager listenerManager
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
@@ -128,7 +128,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
-        CachingResult result = workExecutor.execute(new IncrementalContext() {
+        CachingResult result = workExecutor.execute(new BeforeExecutionContext() {
             @Override
             public UnitOfWork getWork() {
                 return work;

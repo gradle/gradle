@@ -16,11 +16,14 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 
 import java.util.Optional;
 
-public interface InputChangesContext extends BeforeExecutionContext {
-    Optional<InputChangesInternal> getInputChanges();
-    boolean isIncrementalExecution();
+public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
+    /**
+     * Returns the execution state before execution.
+     * Empty if execution state was not observed before execution.
+     */
+    Optional<BeforeExecutionState> getBeforeExecutionState();
 }
