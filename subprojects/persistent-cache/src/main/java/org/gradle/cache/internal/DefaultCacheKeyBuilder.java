@@ -53,9 +53,9 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
             case 0:
                 return prefix;
             case 1:
-                return prefix + "/" + compactStringFor(hashOf(components[0]));
+                return prefix + "/" + compactStringFor(hashOf(components[0]).toByteArray());
             default:
-                return prefix + "/" + compactStringFor(combinedHashOf(components));
+                return prefix + "/" + compactStringFor(combinedHashOf(components).toByteArray());
         }
     }
 

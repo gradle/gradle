@@ -160,6 +160,6 @@ class DefaultCacheKeyBuilderTest extends Specification {
     }
 
     private String expectedKeyFor(String prefix, HashCode hashCode) {
-        "$prefix/${compactStringFor(hashCode)}"
+        "$prefix/${compactStringFor(hashCode.toByteArray())}"
     }
 }

@@ -82,7 +82,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         HashCode sourceHashCode = source.getResource().getContentHash();
-        final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
+        final String sourceHash = HashUtil.compactStringFor(sourceHashCode.toByteArray());
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
         if (classLoaderHash == null) {
