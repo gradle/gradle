@@ -16,71 +16,22 @@
 
 package org.gradle.instantexecution.serialization
 
-import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.instantexecution.serialization.StructuredMessage.Companion.build
 import kotlin.reflect.KClass
 
 
-typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
-
-
-fun IsolateContext.logPropertyWarning(action: String, message: StructuredMessageBuilder) {
-    logPropertyFailure(action, PropertyFailure.Warning(trace, build(message)))
+fun IsolateContext.logPropertyWarning(action: String, message: String) {
+    logger.warn("instant-execution > failed to {} {} because {}", action, trace, message)
 }
 
 
-fun IsolateContext.logPropertyError(action: String, error: Throwable, message: StructuredMessageBuilder) {
-    logPropertyFailure(action, propertyError(error, trace, message))
-}
-
-
-internal
-fun unknownPropertyError(message: String, e: Throwable): PropertyFailure =
-    propertyError(e, PropertyTrace.Unknown) {
-        text(message)
-    }
-
-
-internal
-fun propertyError(error: Throwable, trace: PropertyTrace, message: StructuredMessageBuilder) =
-    PropertyFailure.Error(trace, build(message), error)
-
-
-fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
+fun IsolateContext.logProperty(action: String, value: Any?) {
     logger.info("instant-execution > {}d {} with value {}", action, trace, value)
 }
 
 
-fun IsolateContext.logUnsupported(baseType: KClass<*>, actualType: Class<*>) {
-    logPropertyWarning {
-        text("cannot serialize object of type ")
-        reference(GeneratedSubclasses.unpack(actualType))
-        text(", a subtype of ")
-        reference(baseType)
-        text(", as these are not supported with instant execution.")
-    }
-}
-
-
-fun IsolateContext.logUnsupported(baseType: KClass<*>) {
-    logPropertyWarning {
-        text("cannot serialize object of type ")
-        reference(baseType)
-        text(" as these are not supported with instant execution.")
-    }
-}
-
-
-private
-fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
-    val failure = PropertyFailure.Warning(trace, build(message))
-    logger.warn("instant-execution > {}", failure.message)
-    logPropertyFailure("serialize", failure)
-}
-
-
-private
-fun IsolateContext.logPropertyFailure(action: String, failure: PropertyFailure) {
-    logger.debug("instant-execution > failed to {} {} because {}", action, failure.trace, failure.message)
-    onFailure(failure)
+fun IsolateContext.logUnsupported(type: KClass<*>) {
+    logger.warn(
+        "instant-execution > cannot serialize object of type {} as these are not supported with instant execution.",
+        type.qualifiedName
+    )
 }
