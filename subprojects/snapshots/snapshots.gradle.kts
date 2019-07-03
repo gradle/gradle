@@ -26,6 +26,7 @@ dependencies {
     implementation(library("guava"))
     implementation(library("jsr305"))
     implementation(project(":files"))
+    implementation(project(":hashing"))
     implementation(project(":pineapple"))
 
     testImplementation(project(":processServices"))

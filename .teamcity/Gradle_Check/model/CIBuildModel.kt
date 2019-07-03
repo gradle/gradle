@@ -115,6 +115,7 @@ data class CIBuildModel (
             GradleSubproject("execution"),
             GradleSubproject("fileCollections"),
             GradleSubproject("files", functionalTests = false),
+            GradleSubproject("hashing", functionalTests = false),
             GradleSubproject("ide", crossVersionTests = true),
             GradleSubproject("ideNative"),
             GradleSubproject("idePlay"),

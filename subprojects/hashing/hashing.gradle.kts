@@ -20,7 +20,13 @@ plugins {
      gradlebuild.classycle
 }
 
-description = "Common shared internal classes without external dependencies"
+description = "Common shared classes without external dependencies"
+
+dependencies {
+    implementation(project(":pineapple"))
+    implementation(library("jsr305"))
+    implementation(library("guava"))
+}
 
 gradlebuildJava {
     // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
