@@ -73,26 +73,11 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
     }
 
-    def "build fails if port is not available"() {
-        // TODO implement test build fails if port is not available
-    }
-
     def "can launch tests in debug mode"() {
-        when:
-        int port = findFreePort()
-        ListeningConnector connector = newConnector()
-        Map<String, Connector.Argument> arguments = newConnectorArguments(connector, port)
-        connector.startListening(arguments)
-        VirtualMachine vm
-        Thread.start {
-            while (!vm) {
-                try {
-                    vm = connector.accept(arguments)
-                } catch (TransportTimeoutException e) {
-                }
-            }
-        }
+        setup:
+        def (connector, port, arguments) = startSocketListenDebugSession()
 
+        when:
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
@@ -101,7 +86,7 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        vm
+        true // test successfully executed with debugger attached
 
         cleanup:
         connector.stopListening(arguments)
@@ -109,19 +94,7 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
 
     def "Overwrites configuration from --debug-jvm parameter"() {
         setup:
-        int port = findFreePort()
-        ListeningConnector connector = newConnector()
-        Map<String, Connector.Argument> arguments = newConnectorArguments(connector, port)
-        connector.startListening(arguments)
-        VirtualMachine vm
-        Thread.start {
-            while (!vm) {
-                try {
-                    vm = connector.accept(arguments)
-                } catch (TransportTimeoutException e) {
-                }
-            }
-        }
+        def (connector, port, arguments) = startSocketListenDebugSession()
 
         when:
         withConnection { connection ->
@@ -133,7 +106,10 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        vm
+        true // test successfully executed with debugger attached
+
+        cleanup:
+        connector.stopListening(arguments)
     }
 
     def "Forks only one JVM to debug"() {
@@ -144,20 +120,7 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
                   maxParallelForks = 2
             }
         """
-
-        int port = findFreePort()
-        ListeningConnector connector = newConnector()
-        Map<String, Connector.Argument> arguments = newConnectorArguments(connector, port)
-        connector.startListening(arguments)
-        VirtualMachine vm
-        Thread.start {
-            while (!vm) {
-                try {
-                    vm = connector.accept(arguments)
-                } catch (TransportTimeoutException e) {
-                }
-            }
-        }
+        def (connector, port, arguments) = startSocketListenDebugSession()
 
         when:
         withConnection { connection ->
@@ -168,7 +131,10 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        vm
+        true // test successfully executed with debugger attached
+
+        cleanup:
+        connector.stopListening(arguments)
     }
 
     int findFreePort() {
@@ -181,17 +147,29 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
-    ListeningConnector newConnector() {
-        Bootstrap.virtualMachineManager().listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
-    }
+    def startSocketListenDebugSession() {
+        int port = findFreePort()
 
-    Map<String, Connector.Argument> newConnectorArguments(ListeningConnector connector, int port) {
-        Map<String, Connector.Argument> acceptArguments = connector.defaultArguments()
+        ListeningConnector connector = Bootstrap.virtualMachineManager().listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
 
-        Connector.Argument param = acceptArguments.get("port")
+        Map<String, Connector.Argument> arguments = connector.defaultArguments()
+        Connector.Argument param = arguments.get("port")
         param.setValue(String.valueOf(port))
-        Connector.Argument timeout = acceptArguments.get("timeout")
+        Connector.Argument timeout = arguments.get("timeout")
         timeout.setValue("3000") // 3 seconds
-        acceptArguments
+
+        connector.startListening(arguments)
+
+        Thread.start {
+            VirtualMachine vm
+            while (!vm) {
+                try {
+                    vm = connector.accept(arguments)
+                } catch (TransportTimeoutException e) {
+                }
+            }
+        }
+
+        [connector, port, arguments]
     }
 }
