@@ -96,7 +96,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply from: resources.text.fromUri("$server.uri/external.gradle")
+            apply from: resources.text.fromInsecureUri("$server.uri/external.gradle")
             defaultTasks 'doStuff'
         """
 
