@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.BeforeExecutionContext;
+import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;

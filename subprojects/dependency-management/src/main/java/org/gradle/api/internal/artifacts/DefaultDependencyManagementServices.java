@@ -118,10 +118,11 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.AfterPreviousExecutionContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
@@ -365,12 +366,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,
-                                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                                    FileCollectionSnapshotter fileCollectionSnapshotter,
                                                     ProjectFinder projectFinder,
                                                     BuildOperationExecutor buildOperationExecutor
         ) {
@@ -380,7 +381,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTransformListener,
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
-                classLoaderHierarchyHasher,
+                fileCollectionSnapshotter,
                 projectFinder,
                 buildOperationExecutor
             );

@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
@@ -52,8 +51,8 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -102,6 +101,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                     ValueSnapshotter valueSnapshotter,
                                     TaskFingerprinter taskFingerprinter,
+                                    FileCollectionFingerprinterRegistry fingerprinterRegistry,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
@@ -114,7 +114,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionListener taskExecutionListener,
                                     TaskListenerInternal taskListenerInternal,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
-                                    WorkExecutor<BeforeExecutionContext, CachingResult> workExecutor,
+                                    WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
                                     ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
                                     ListenerManager listenerManager
     ) {
@@ -131,10 +131,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             asyncWorkTracker,
             actionListener,
             taskCacheabilityResolver,
+            fingerprinterRegistry,
+            classLoaderHierarchyHasher,
             workExecutor,
             listenerManager
         );
-        executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, taskFingerprinter, executer);
         executer = new ValidatingTaskExecuter(executer, reservedFileSystemLocationRegistry);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer);
         executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, executer);

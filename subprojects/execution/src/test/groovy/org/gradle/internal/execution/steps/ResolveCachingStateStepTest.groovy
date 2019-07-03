@@ -16,10 +16,9 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.internal.execution.CachingContext
 import org.gradle.internal.execution.BeforeExecutionContext
+import org.gradle.internal.execution.CachingContext
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
