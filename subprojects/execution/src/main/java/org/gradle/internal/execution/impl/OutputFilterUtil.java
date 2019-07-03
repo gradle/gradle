@@ -42,12 +42,12 @@ import java.util.function.Predicate;
  */
 public class OutputFilterUtil {
 
-    public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotBeforeExecution(FileCollectionFingerprint previousOutputs, FileSystemSnapshot currentSnapshots) {
-        Map<String, FileSystemLocationFingerprint> fingerprints = previousOutputs.getFingerprints();
+    public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotBeforeExecution(FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot) {
+        Map<String, FileSystemLocationFingerprint> fingerprints = afterLastExecutionFingerprint.getFingerprints();
         SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> {
             return snapshot.getType() != FileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
         });
-        currentSnapshots.accept(filteringVisitor);
+        beforeExecutionOutputSnapshot.accept(filteringVisitor);
         return filteringVisitor.getNewRoots();
     }
 

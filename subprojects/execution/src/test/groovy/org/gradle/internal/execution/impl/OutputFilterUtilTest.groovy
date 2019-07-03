@@ -34,6 +34,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
+import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
 
 class OutputFilterUtilTest extends Specification {
 
@@ -152,6 +153,17 @@ class OutputFilterUtilTest extends Specification {
 
         expect:
         collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
+    }
+
+    def "overlapping files are not part of the before execution snapshot"() {
+        def outputDir = temporaryFolder.file("outputDir").createDir()
+        def outputDirFile = outputDir.createFile("outputDirFile")
+        def afterLastExecution = fingerprintOutput(outputDir)
+        outputDir.createFile("not-in-output")
+        def beforeExecution = snapshotOutput(outputDir)
+
+        expect:
+        collectFiles(filterOutputSnapshotBeforeExecution(afterLastExecution, beforeExecution)) == [outputDir, outputDirFile]
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
