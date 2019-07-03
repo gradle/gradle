@@ -78,6 +78,20 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("c", "b")));
     }
 
+    @Test public void testDuplicateSeparatorIsIgnored() {
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a//b");
+        assertThat(matcher, matchesFile("a", "b"));
+        assertThat(matcher, not(matchesFile("a", "b", "c")));
+        assertThat(matcher, not(matchesFile("a", "c")));
+        assertThat(matcher, not(matchesFile("c", "b")));
+
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a\\\\b");
+        assertThat(matcher, matchesFile("a", "b"));
+        assertThat(matcher, not(matchesFile("a", "b", "c")));
+        assertThat(matcher, not(matchesFile("a", "c")));
+        assertThat(matcher, not(matchesFile("c", "b")));
+    }
+
     @Test public void testGreedyWithTrailingName() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**/*.jsp");
         assertThat(matcher, matchesFile("fred.jsp"));
