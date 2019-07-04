@@ -50,6 +50,7 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         when:
         assert outputFile.delete()
         withBuildCache().run"createFile", "-Dfile.encoding=$fileEncoding", "--info"
+        skipped(":createFile")
 
         then:
         output.contains("> Default charset: $fileEncoding")
@@ -59,7 +60,8 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         [type, fileName, fileEncoding] << [
             [
                 "ascii-only": "input-file.txt",
-                "chinese": "输入文件.txt",
+                "chinese-simplified": "敏捷的棕色狐狸跳过了懒狗.txt",
+                "chinese-traditional": "敏捷的棕色狐狸跳過了懶狗.txt",
                 "cyrillic": "здравствуйте.txt",
                 "hungarian": "Dezső.txt",
                 "space": "input file.txt",
@@ -71,7 +73,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
                 "ISO-8859-1",
                 "ISO-8859-2",
                 "ISO-8859-5",
-//                "GBK",
             ]
         ].combinations { text, encoding -> [text.key, text.value, encoding] }
     }
