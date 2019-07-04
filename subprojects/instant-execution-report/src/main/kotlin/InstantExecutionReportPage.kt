@@ -166,10 +166,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
                     is FailureNode.Error -> {
-                        viewLabel(treeIntent, child, node.label, span(" ❌"))
+                        viewLabel(treeIntent, child, node.label, errorIcon)
                     }
                     is FailureNode.Warning -> {
-                        viewLabel(treeIntent, child, node.label, span(" ⚠️"))
+                        viewLabel(treeIntent, child, node.label, warningIcon)
                     }
                     is FailureNode.Exception -> {
                         viewException(node)
@@ -228,15 +228,41 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         label: FailureNode,
         decoration: View<Intent> = empty
     ): View<Intent> = div(
-        attributes {
-            if (child.tree.isNotEmpty()) {
-                className("accordion-header")
-                title("Click to ${toggleVerb(child.tree.state)}")
-                onClick { treeIntent(TreeView.Intent.Toggle(child)) }
-            }
-        },
-        viewNode(label),
-        decoration
+        treeButton(child, treeIntent),
+        decoration,
+        span(" "),
+        viewNode(label)
+    )
+
+    private
+    fun treeButton(child: Tree.Focus<FailureNode>, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> {
+        val tree = child.tree
+        return when {
+            tree.isNotEmpty() -> span(
+                attributes {
+                    className("tree-btn")
+                    title("Click to ${toggleVerb(tree.state)}")
+                    onClick { treeIntent(TreeView.Intent.Toggle(child)) }
+                },
+                when (tree.state) {
+                    Tree.ViewState.Collapsed -> "► "
+                    Tree.ViewState.Expanded -> "▼ "
+                }
+            )
+            else -> emptyTreeIcon
+        }
+    }
+
+    private
+    val errorIcon = span<Intent>(" ❌")
+
+    private
+    val warningIcon = span<Intent>(" ⚠️")
+
+    private
+    val emptyTreeIcon = span<Intent>(
+        attributes { className("tree-icon") },
+        "■ "
     )
 
     private

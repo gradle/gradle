@@ -10,6 +10,15 @@
     float: right;
 }
 
+.tree-btn, .tree-icon {
+    color: #e0e0e0ff;
+}
+
+.tree-btn:hover {
+    cursor: pointer;
+    color: #d0d0d0ff;
+}
+
 .btn {
     padding: 0.25em;
     border-radius: 0.25em;
@@ -147,16 +156,15 @@ hr {
 ul, ol, dl {
     list-style-position: outside;
     line-height: 1.6;
-    margin: 0 0 1.25rem 1.5em;
+    margin: 0 0 1rem 1em;
     padding: 0;
+    list-style-type: none;
 }
 
 ul {
-    list-style-type: circle;
 }
 
 ol {
-    list-style-type: decimal;
 }
 
 dl dt {
