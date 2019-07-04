@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -239,6 +240,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         @Override
         public void allComponents(Closure closure) {
             resolutionResult.allComponents(closure);
+        }
+
+        @Override
+        public AttributeContainer getRequestedAttributes() {
+            return resolutionResult.getRequestedAttributes();
         }
     }
 

@@ -248,7 +248,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 count++
             }
 

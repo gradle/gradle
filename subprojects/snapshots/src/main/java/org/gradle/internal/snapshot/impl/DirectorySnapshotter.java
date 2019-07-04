@@ -194,7 +194,7 @@ public class DirectorySnapshotter {
                     // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                     throw new FileSnapshottingException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                 }
-                builder.visit(snapshotFile(file, name, attrs));
+                builder.visitFile(snapshotFile(file, name, attrs));
             }
             return FileVisitResult.CONTINUE;
         }
@@ -225,7 +225,7 @@ public class DirectorySnapshotter {
                 if (shouldVisit(file, name, isDirectory, null, builder.getRelativePath())) {
                     LOGGER.info("Could not read file path '{}'.", file);
                     String absolutePath = intern(file.toString());
-                    builder.visit(new MissingFileSnapshot(absolutePath, name));
+                    builder.visitFile(new MissingFileSnapshot(absolutePath, name));
                 }
             }
             return FileVisitResult.CONTINUE;

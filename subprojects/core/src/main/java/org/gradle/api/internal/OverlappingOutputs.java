@@ -112,7 +112,7 @@ public class OverlappingOutputs {
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
             if (overlappingPath == null) {
                 overlappingPath = detectOverlappingPath(fileSnapshot);
             }
