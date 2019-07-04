@@ -151,7 +151,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot snapshot) {
+        public void visitFile(FileSystemLocationSnapshot snapshot) {
             this.path = snapshot.getAbsolutePath();
             this.name = snapshot.getName();
 
