@@ -238,7 +238,7 @@ blockquote p:last-child {
 code, pre {
     background-color: #f7f7f8;
     border-radius: 4px;
-    font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+    font-family: "Fira Code", "Droid Sans Mono", "DejaVu Sans Mono", monospace;
     font-size: 1em;
     font-style: normal;
 }
