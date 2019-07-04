@@ -156,9 +156,9 @@ public class DirectorySnapshotter {
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getFilename(dir);
-            String name = stringInterner.intern(fileName);
+            String name = intern(fileName);
             if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
-                builder.preVisitDirectory(internedAbsolutePath(dir), name);
+                builder.preVisitDirectory(intern(dir.toString()), name);
                 return FileVisitResult.CONTINUE;
             } else {
                 return FileVisitResult.SKIP_SUBTREE;
@@ -173,7 +173,7 @@ public class DirectorySnapshotter {
 
         @Override
         public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
-            String name = stringInterner.intern(file.getFileName().toString());
+            String name = intern(file.getFileName().toString());
             if (isAllowed(file, name, false, attrs, builder.getRelativePath())) {
                 if (attrs == null) {
                     throw new FileSnapshottingException(String.format("Cannot read file '%s': not authorized.", file));
@@ -217,12 +217,12 @@ public class DirectorySnapshotter {
         private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs) {
             Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
             HashCode hash = hasher.hash(file.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
-            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, FileMetadata.from(attrs));
+            RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(intern(file.toString()), name, hash, FileMetadata.from(attrs));
             builder.visit(fileSnapshot);
         }
 
-        private String internedAbsolutePath(Path file) {
-            return stringInterner.intern(file.toString());
+        private String intern(String string) {
+            return stringInterner.intern(string);
         }
 
         private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
