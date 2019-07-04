@@ -123,6 +123,7 @@ import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
+import org.gradle.initialization.RecordingClassLoaderScopeRegistry;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
@@ -429,7 +430,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCache classLoaderCache) {
-        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache);
+        return new RecordingClassLoaderScopeRegistry(new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache));
     }
 
     protected ProjectTaskLister createProjectTaskLister() {

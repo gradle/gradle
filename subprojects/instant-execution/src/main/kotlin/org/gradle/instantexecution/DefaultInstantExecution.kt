@@ -40,7 +40,7 @@ import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.DefaultClassPath.of
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -282,7 +282,7 @@ class DefaultInstantExecution(
         host.classLoaderFor(classPath)
 
     private
-    fun collectClassPath() = DefaultClassPath.of(
+    fun collectClassPath() = of(
         linkedSetOf<File>().also { classPathFiles ->
             (service<ClassLoaderCache>() as ClassLoaderCacheInternal).visitClassLoadersUsedInThisBuild { loader ->
                 ClasspathUtil.collectClasspathOf(
