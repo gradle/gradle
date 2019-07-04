@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.beans
 
 import groovy.lang.Closure
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GeneratedSubclasses
@@ -26,8 +27,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logPropertyError
-import org.gradle.instantexecution.serialization.logPropertyInfo
+import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import java.util.concurrent.Callable
 import java.util.function.Supplier
@@ -81,30 +81,19 @@ fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind
     withPropertyTrace(kind, name) {
         val writeValue = writeActionFor(value)
         if (writeValue == null) {
-            logPropertyWarning("serialize") {
-                text("there's no serializer for type")
-                reference(unpackedTypeNameOf(value!!))
-            }
+            logPropertyWarning("serialize", "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")
             return false
         }
         writeString(name)
         try {
             writeValue(value)
         } catch (e: Throwable) {
-            logPropertyError("write", e) {
-                text("error writing value of type ")
-                reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
-            }
-            return false
+            throw GradleException("Could not save the value of $trace with type ${value?.javaClass?.name}.", e)
         }
-        logPropertyInfo("serialize", value)
+        logProperty("serialize", value)
         return true
     }
 }
-
-
-private
-fun unpackedTypeNameOf(value: Any) = GeneratedSubclasses.unpackType(value).name
 
 
 /**

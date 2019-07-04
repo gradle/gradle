@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
-import org.gradle.internal.execution.history.changes.CollectingChangeVisitor
 import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.snapshot.WellKnownFileLocations
@@ -95,25 +94,6 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         then:
         1 * listener.added(file2.path)
-        0 * _
-    }
-
-    def doesNotGenerateEventWhenFileAddedAndAddEventsAreFiltered() {
-        given:
-        TestFile file1 = tmpDir.createFile('file1')
-        TestFile file2 = tmpDir.file('file2')
-        TestFile file3 = tmpDir.createFile('file3')
-        TestFile file4 = tmpDir.createDir('file4')
-
-        when:
-        def fingerprint = fingerprinter.fingerprint(files(file1, file2))
-        file2.createFile()
-        def target = fingerprinter.fingerprint(files(file1, file2, file3, file4))
-        def visitor = new CollectingChangeVisitor()
-        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(target, fingerprint, "TYPE", false, visitor)
-        visitor.changes.empty
-
-        then:
         0 * _
     }
 
@@ -281,7 +261,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     }
 
     private static void changes(FileCollectionFingerprint newFingerprint, FileCollectionFingerprint oldFingerprint, ChangeListener<String> listener) {
-        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(newFingerprint, oldFingerprint, "TYPE", true) { DefaultFileChange change ->
+        AbsolutePathFingerprintCompareStrategy.INSTANCE.visitChangesSince(newFingerprint, oldFingerprint, "TYPE") { DefaultFileChange change ->
             switch (change.type) {
                 case ChangeTypeInternal.ADDED:
                     listener.added(change.path)

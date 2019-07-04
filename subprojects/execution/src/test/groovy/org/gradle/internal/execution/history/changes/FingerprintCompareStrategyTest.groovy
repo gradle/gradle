@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
@@ -36,98 +37,79 @@ class FingerprintCompareStrategyTest extends Specification {
     private static final ABSOLUTE = AbsolutePathFingerprintCompareStrategy.INSTANCE
     private static final NORMALIZED = NormalizedPathFingerprintCompareStrategy.INSTANCE
     private static final IGNORED_PATH = IgnoredPathCompareStrategy.INSTANCE
+    private static final ALL_STRATEGIES = ImmutableList.of(ABSOLUTE, NORMALIZED, IGNORED_PATH)
 
-    def "empty snapshots (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "empty snapshots (#strategy.class.simpleName)"() {
         expect:
-        changes(strategy, includeAdded,
+        changes(strategy,
             [:],
             [:]
         ) as List == []
 
         where:
-        strategy     | includeAdded
-        NORMALIZED   | true
-        IGNORED_PATH | true
-        IGNORED_PATH | false
-        ABSOLUTE     | true
-        ABSOLUTE     | false
+        strategy << ALL_STRATEGIES
     }
 
-    def "trivial addition (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "trivial addition (#strategy.class.simpleName)"() {
         expect:
-        changes(strategy, includeAdded,
+        changes(strategy,
             ["new/one": fingerprint("one")],
             [:]
         ) as List == results
 
         where:
-        strategy     | includeAdded | results
-        NORMALIZED   | true         | [added("new/one": "one")]
-        IGNORED_PATH | true         | [added("new/one": "one")]
-        IGNORED_PATH | false        | []
-        ABSOLUTE     | true         | [added("new/one": "one")]
-        ABSOLUTE     | false        | []
+        strategy     | results
+        NORMALIZED   | [added("new/one": "one")]
+        IGNORED_PATH | [added("new/one": "one")]
+        ABSOLUTE     | [added("new/one": "one")]
     }
 
     def "non-trivial addition (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
+        changes(NORMALIZED,
             ["new/one": fingerprint("one"), "new/two": fingerprint("two")],
             ["old/one": fingerprint("one")]
         ) == [added("new/two": "two")]
     }
 
-    def "non-trivial addition with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "non-trivial addition with absolute paths (AbsolutePathFingerprintCompareStrategy)"() {
         expect:
-        changes(strategy, includeAdded,
+        changes(ABSOLUTE,
             ["one": fingerprint("one"), "two": fingerprint("two")],
             ["one": fingerprint("one")]
-        ) == results
-
-        where:
-        strategy | includeAdded | results
-        ABSOLUTE | true         | [added("two")]
-        ABSOLUTE | false        | []
+        ) == [added("two")]
     }
 
-    def "trivial removal (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "trivial removal (#strategy.class.simpleName)"() {
         expect:
-        changes(strategy, includeAdded,
+        changes(strategy,
             [:],
             ["old/one": fingerprint("one")]
         ) as List == [removed("old/one": "one")]
 
         where:
-        strategy   | includeAdded
-        NORMALIZED | true
-        ABSOLUTE   | true
-        ABSOLUTE   | false
+        strategy << [NORMALIZED, ABSOLUTE]
     }
 
     def "non-trivial removal (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
+        changes(NORMALIZED,
             ["new/one": fingerprint("one")],
             ["old/one": fingerprint("one"), "old/two": fingerprint("two")]
         ) == [removed("old/two": "two")]
     }
 
-    def "non-trivial removal with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "non-trivial removal with absolute paths (AbsolutePathFingerprintCompareStrategy)"() {
         expect:
-        changes(strategy, includeAdded,
+        changes(ABSOLUTE,
             ["one": fingerprint("one")],
             ["one": fingerprint("one"), "two": fingerprint("two")]
         ) == [removed("two")]
-
-        where:
-        strategy | includeAdded
-        ABSOLUTE | true
-        ABSOLUTE | false
     }
 
     def "non-trivial modification (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "new/one": fingerprint("one"),
             "new/two": fingerprint("two", 0x9876cafe)
         ], [
@@ -138,7 +120,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "new/two/input": fingerprint("input", 0x9876cafe),
             "new/one/input": fingerprint("input")
         ], [
@@ -147,25 +129,20 @@ class FingerprintCompareStrategyTest extends Specification {
         ]) == [removed("old/two/input": "input"), added("new/two/input": "input")]
     }
 
-    def "non-trivial modification with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "non-trivial modification with absolute paths (AbsolutePathFingerprintCompareStrategy)"() {
         expect:
-        changes(strategy, includeAdded, [
+        changes(ABSOLUTE, [
             "one": fingerprint("one"),
             "two": fingerprint("two", 0x9876cafe)
         ], [
             "one": fingerprint("one"),
             "two": fingerprint("two", 0xface1234)
         ]) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
-
-        where:
-        strategy | includeAdded
-        ABSOLUTE | true
-        ABSOLUTE | false
     }
 
     def "trivial replacement (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true,
+        changes(NORMALIZED,
             ["new/two": fingerprint("two")],
             ["old/one": fingerprint("one")]
         ) == [removed("old/one": "one"), added("new/two": "two")]
@@ -173,7 +150,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "non-trivial replacement (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "new/one": fingerprint("one"),
             "new/two": fingerprint("two"),
             "new/four": fingerprint("four")
@@ -184,9 +161,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ]) == [removed("old/three": "three"), added("new/two": "two")]
     }
 
-    def "non-trivial replacement with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "non-trivial replacement with absolute paths (#strategy.class.simpleName)"() {
         expect:
-        changes(strategy, includeAdded, [
+        changes(ABSOLUTE, [
             "one": fingerprint("one"),
             "two": fingerprint("two"),
             "four": fingerprint("four")
@@ -194,17 +171,12 @@ class FingerprintCompareStrategyTest extends Specification {
             "one": fingerprint("one"),
             "three": fingerprint("three"),
             "four": fingerprint("four")
-        ]) == results
-
-        where:
-        strategy | includeAdded | results
-        ABSOLUTE | true         | [added("two"), removed("three")]
-        ABSOLUTE | false        | [removed("three")]
+        ]) == [added("two"), removed("three")]
     }
 
-    def "reordering (NormalizedPathFingerprintCompareStrategy, include added: true)"() {
+    def "reordering (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "new/one": fingerprint("one"),
             "new/two": fingerprint("two"),
             "new/three": fingerprint("three")
@@ -215,9 +187,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ]) == []
     }
 
-    def "reordering with absolute paths (#strategy.class.simpleName, include added: #includeAdded)"() {
+    def "reordering with absolute paths (AbsolutePathFingerprintCompareStrategy)"() {
         expect:
-        changes(strategy, includeAdded, [
+        changes(ABSOLUTE, [
             "one": fingerprint("one"),
             "two": fingerprint("two"),
             "three": fingerprint("three")
@@ -225,17 +197,12 @@ class FingerprintCompareStrategyTest extends Specification {
             "one": fingerprint("one"),
             "three": fingerprint("three"),
             "two": fingerprint("two")
-        ]) == results
-
-        where:
-        strategy | includeAdded | results
-        ABSOLUTE | true         | []
-        ABSOLUTE | false        | []
+        ]) == []
     }
 
     def "detects no change when only absolute path changes (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "new-1/one": fingerprint("one"),
             "new-2/one": fingerprint("one"),
             "new/two": fingerprint("two")
@@ -248,7 +215,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "detects no change when swapping contents between files with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "a/input": fingerprint("input", 2),
             "b/input": fingerprint("input", 0)
         ], [
@@ -258,7 +225,7 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def "detects no change when file move results in unchanged normalized path (NormalizedPathFingerprintCompareStrategy)"() {
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "moved/input": fingerprint("input", 1),
             "unchangedFile": fingerprint("unchangedFile", 2),
             "changedFile": fingerprint("changedFile", 4)
@@ -271,7 +238,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "change file content to collide with content of another file with same normalized path (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "modified-with-collision/input": fingerprint("input", 1),
             "unmodified/input": fingerprint("input", 1)
         ], [
@@ -282,7 +249,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "only report modifications between files with the same absolute paths, otherwise report addition and/or removal (NormalizedPathFingerprintCompareStrategy)"() {
         expect:
-        changes(NORMALIZED, true, [
+        changes(NORMALIZED, [
             "modified-with-collision/input": fingerprint("input", 0),
             "added/input": fingerprint("input", 0),
             "modified/input": fingerprint("input", 2),
@@ -304,8 +271,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
-        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test", true) == null
-        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test", false) == null
+        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test") == null
+        compareTrivialFingerprints(new CollectingChangeVisitor(), current, previous, "test") == null
 
         where:
         current                                                | previous
@@ -313,7 +280,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
     }
 
-    def "comparing regular snapshot to empty snapshot shows entries removed (strategy: #strategy, include added: #includeAdded)"() {
+    def "comparing regular snapshot to empty snapshot shows entries removed (strategy: #strategy)"() {
         def fingerprint = Mock(FileCollectionFingerprint) {
             getFingerprints() >> [
                 "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
@@ -323,50 +290,36 @@ class FingerprintCompareStrategyTest extends Specification {
         }
         def emptyFingerprint = new EmptyCurrentFileCollectionFingerprint("test")
         expect:
-        changes(strategy, includeAdded, emptyFingerprint, fingerprint).toList() == [
+        changes(strategy, emptyFingerprint, fingerprint).toList() == [
             DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile, "file1.txt"),
             DefaultFileChange.removed("file2.txt", "test", FileType.RegularFile, "file2.txt")
         ]
-        changes(strategy, includeAdded, fingerprint, emptyFingerprint).toList() == (includeAdded
-            ? [
-                DefaultFileChange.added("file1.txt", "test", FileType.RegularFile, "file1.txt"),
-                DefaultFileChange.added("file2.txt", "test", FileType.RegularFile, "file2.txt")
-            ]
-            : [])
+        changes(strategy, fingerprint, emptyFingerprint).toList() == [
+            DefaultFileChange.added("file1.txt", "test", FileType.RegularFile, "file1.txt"),
+            DefaultFileChange.added("file2.txt", "test", FileType.RegularFile, "file2.txt")
+        ]
 
         where:
-        strategy     | includeAdded
-        NORMALIZED   | true
-        NORMALIZED   | false
-        IGNORED_PATH | true
-        IGNORED_PATH | false
-        ABSOLUTE     | true
-        ABSOLUTE     | false
+        strategy << ALL_STRATEGIES
     }
 
-    def "comparing empty fingerprints produces empty (strategy: #strategy, include added: #includeAdded)"() {
+    def "comparing empty fingerprints produces empty (strategy: #strategy)"() {
         expect:
-        changes(strategy, includeAdded, new EmptyCurrentFileCollectionFingerprint("test"), new EmptyCurrentFileCollectionFingerprint("test"),).empty
+        changes(strategy, new EmptyCurrentFileCollectionFingerprint("test"), new EmptyCurrentFileCollectionFingerprint("test"),).empty
 
         where:
-        strategy     | includeAdded
-        NORMALIZED   | true
-        NORMALIZED   | false
-        IGNORED_PATH | true
-        IGNORED_PATH | false
-        ABSOLUTE     | true
-        ABSOLUTE     | false
+        strategy << ALL_STRATEGIES
     }
 
-    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
+    def changes(FingerprintCompareStrategy strategy, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)))
         def previousFingerprint = new SerializableFileCollectionFingerprint(previous,  ImmutableMultimap.of("some", HashCode.fromInt(4321)))
-        changes(strategy, includeAdded, currentFingerprint, previousFingerprint)
+        changes(strategy, currentFingerprint, previousFingerprint)
     }
 
-    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, FileCollectionFingerprint currentFingerprint, FileCollectionFingerprint previousFingerprint) {
+    def changes(FingerprintCompareStrategy strategy, FileCollectionFingerprint currentFingerprint, FileCollectionFingerprint previousFingerprint) {
         def visitor = new CollectingChangeVisitor()
-        strategy.visitChangesSince(currentFingerprint, previousFingerprint, "test", includeAdded, visitor)
+        strategy.visitChangesSince(currentFingerprint, previousFingerprint, "test", visitor)
         visitor.getChanges().toList()
     }
 

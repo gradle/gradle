@@ -22,7 +22,7 @@ import java.io.File
 
 
 internal
-fun compactStringFor(files: Iterable<File>) =
+fun compactStringFor(files: Iterable<java.io.File>) =
     compactStringFor(files.map { it.path }, File.separatorChar)
 
 
@@ -41,25 +41,24 @@ sealed class CompactTree {
                 .filter { it.isNotEmpty() }
                 .groupBy({ it[0] }, { it.drop(1) })
                 .map { (label, remaining) ->
-                    when (val subTree = of(remaining)) {
-                        is Empty -> Label(label)
-                        is Label -> Label(
+                    val subTree = CompactTree.of(remaining)
+                    when (subTree) {
+                        is CompactTree.Empty -> CompactTree.Label(label)
+                        is CompactTree.Label -> CompactTree.Label(
                             label + subTree.label
                         )
-                        is Branch -> Edge(
-                            Label(label),
-                            subTree
+                        is CompactTree.Branch -> CompactTree.Edge(
+                            Label(label), subTree
                         )
-                        is Edge -> Edge(
-                            Label(label + subTree.label),
-                            subTree.tree
+                        is CompactTree.Edge -> CompactTree.Edge(
+                            Label(label + subTree.label), subTree.tree
                         )
                     }
                 }.let {
                     when (it.size) {
-                        0 -> Empty
+                        0 -> CompactTree.Empty
                         1 -> it.first()
-                        else -> Branch(it)
+                        else -> CompactTree.Branch(it)
                     }
                 }
     }
@@ -76,7 +75,7 @@ sealed class CompactTree {
         override fun toString() = edges.joinToString(separator = ", ", prefix = "{", postfix = "}")
     }
 
-    data class Edge(val label: Label, val tree: CompactTree) : CompactTree() {
+    data class Edge(val label: CompactTree.Label, val tree: CompactTree) : CompactTree() {
         override fun toString() = "$label$tree"
     }
 }

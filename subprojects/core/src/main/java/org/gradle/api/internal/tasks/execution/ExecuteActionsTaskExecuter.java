@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
@@ -56,12 +57,16 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,9 +126,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
-        final TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
-        final CachingResult result = workExecutor.execute(new IncrementalContext() {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
+        CachingResult result = workExecutor.execute(new IncrementalContext() {
             @Override
             public UnitOfWork getWork() {
                 return work;
@@ -163,7 +168,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
-                    : Optional.<OriginMetadata>empty();
+                    : Optional.empty();
             }
 
             @Override
@@ -259,11 +264,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean isAllowOverlappingOutputs() {
-            return true;
-        }
-
-        @Override
         public boolean hasOverlappingOutputs() {
             return context.getOverlappingOutputs().isPresent();
         }
@@ -304,6 +304,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             return Optional.ofNullable(task.getTimeout().getOrNull());
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
             for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
@@ -333,19 +334,29 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-            final AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution = taskFingerprinter.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
-            return context.getOverlappingOutputs()
-                .map(new Function<OverlappingOutputs, ImmutableSortedMap<String, CurrentFileCollectionFingerprint>>() {
-                    @Override
-                    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> apply(OverlappingOutputs overlappingOutputs) {
-                        return OutputFilterUtil.filterOutputFingerprints(
-                            afterPreviousExecutionState == null ? null : afterPreviousExecutionState.getOutputFileProperties(),
-                            context.getOutputFilesBeforeExecution(),
-                            outputsAfterExecution
-                        );
+            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
+            ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskFingerprinter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
+            return createFilteredOutputFingerprints(afterPreviousExecutionState, context.getOutputFilesBeforeExecution(), outputsAfterExecution, context.getOverlappingOutputs().isPresent());
+        }
+
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots, ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots, boolean hasOverlappingOutputs) {
+            ImmutableSortedMap<String, FileCollectionFingerprint> afterLastExecutionFingerprints = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
+
+            return ImmutableSortedMap.copyOfSorted(
+                Maps.transformEntries(afterExecutionOutputSnapshots, (propertyName, afterExecutionOutputSnapshot) -> {
+                        FileCollectionFingerprint afterLastExecutionFingerprint = afterLastExecutionFingerprints.get(propertyName);
+                        FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
+                        return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasOverlappingOutputs);
                     }
-                }).orElse(outputsAfterExecution);
+                )
+            );
+        }
+
+        private CurrentFileCollectionFingerprint fingerprintOutputSnapshot(@Nullable FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot, boolean hasOverlappingOutputs) {
+            List<FileSystemSnapshot> roots = hasOverlappingOutputs
+                ? OutputFilterUtil.filterOutputSnapshotAfterExecution(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot)
+                : ImmutableList.of(afterExecutionOutputSnapshot);
+            return DefaultCurrentFileCollectionFingerprint.from(roots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
         }
 
         @Override
@@ -354,7 +365,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void markSnapshottingInputsFinished(final CachingState cachingState) {
+        public void markSnapshottingInputsFinished(CachingState cachingState) {
             // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)
             if (buildCacheEnabled || scanPluginApplied) {
@@ -396,7 +407,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasMoreWork) {
+    private void executeAction(String actionDisplayName, TaskInternal task, InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasMoreWork) {
         if (inputChanges != null) {
             action.setInputChanges(inputChanges);
         }

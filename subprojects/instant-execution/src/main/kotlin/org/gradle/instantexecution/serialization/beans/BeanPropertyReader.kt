@@ -31,7 +31,7 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.logPropertyInfo
+import org.gradle.instantexecution.serialization.logProperty
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -83,6 +83,7 @@ class BeanPropertyReader(
         }
     }
 
+    @Suppress("unchecked_cast")
     private
     fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit =
 
@@ -129,12 +130,7 @@ class BeanPropertyReader(
                 if (isAssignableTo(type, value)) {
                     field.set(bean, value)
                 } else if (value != null) {
-                    logPropertyWarning("deserialize") {
-                        text("value ")
-                        reference(value.toString())
-                        text(" is not assignable to ")
-                        reference(type)
-                    }
+                    logPropertyWarning("deserialize", "value $value is not assignable to $type")
                 } // else null value -> ignore
             }
         }
@@ -166,7 +162,7 @@ fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> U
             val value =
                 try {
                     read().also {
-                        logPropertyInfo("deserialize", it)
+                        logProperty("deserialize", it)
                     }
                 } catch (e: Throwable) {
                     throw GradleException("Could not load the value of $trace.", e)

@@ -26,7 +26,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
-    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs, IncrementalInputProperties incrementalInputProperties) {
+    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, IncrementalInputProperties incrementalInputProperties) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
@@ -67,8 +67,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             executable);
         OutputFileChanges outputFileChanges = new OutputFileChanges(
             lastExecution.getOutputFileProperties(),
-            thisExecution.getOutputFileProperties(),
-            allowOverlappingOutputs);
+            thisExecution.getOutputFileProperties()
+        );
 
         // Collect changes that would trigger a rebuild
         ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(

@@ -66,7 +66,6 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            !work.isAllowOverlappingOutputs(),
                             createIncrementalInputProperties(work))
                         )
                         .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work)))

@@ -28,27 +28,27 @@ import java.util.Map;
 public abstract class AbstractFingerprintCompareStrategy implements FingerprintCompareStrategy {
 
     @Override
-    public boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
+    public boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, ChangeVisitor visitor) {
         if (hasSameRootHashes(current, previous)) {
             return true;
         }
-        return visitChangesSince(current.getFingerprints(), previous.getFingerprints(), propertyTitle, includeAdded, visitor);
+        return visitChangesSince(current.getFingerprints(), previous.getFingerprints(), propertyTitle, visitor);
     }
 
     private boolean hasSameRootHashes(FileCollectionFingerprint current, FileCollectionFingerprint previous) {
         return Iterables.elementsEqual(current.getRootHashes().entries(), previous.getRootHashes().entries());
     }
 
-    private boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor) {
+    private boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, ChangeVisitor visitor) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
-        Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle, includeAdded);
+        Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle);
         if (trivialResult != null) {
             return trivialResult;
         }
-        return doVisitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
+        return doVisitChangesSince(visitor, current, previous, propertyTitle);
     }
 
-    protected abstract boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
+    protected abstract boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle);
 
     /**
      * Compares collection fingerprints if one of current or previous are empty or both have at most one element.
@@ -59,7 +59,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
      */
     @VisibleForTesting
     @Nullable
-    static Boolean compareTrivialFingerprints(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    static Boolean compareTrivialFingerprints(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle) {
         switch (current.size()) {
             case 0:
                 switch (previous.size()) {
@@ -78,11 +78,11 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
             case 1:
                 switch (previous.size()) {
                     case 0:
-                        return reportAllAdded(visitor, current, propertyTitle, includeAdded);
+                        return reportAllAdded(visitor, current, propertyTitle);
                     case 1:
                         Map.Entry<String, FileSystemLocationFingerprint> previousEntry = previous.entrySet().iterator().next();
                         Map.Entry<String, FileSystemLocationFingerprint> currentEntry = current.entrySet().iterator().next();
-                        return compareTrivialFingerprintEntries(visitor, currentEntry, previousEntry, propertyTitle, includeAdded);
+                        return compareTrivialFingerprintEntries(visitor, currentEntry, previousEntry, propertyTitle);
                     default:
                         return null;
                 }
@@ -91,23 +91,21 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
                 if (!previous.isEmpty()) {
                     return null;
                 }
-                return reportAllAdded(visitor, current, propertyTitle, includeAdded);
+                return reportAllAdded(visitor, current, propertyTitle);
         }
     }
 
-    private static boolean reportAllAdded(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, String propertyTitle, boolean includeAdded) {
-        if (includeAdded) {
-            for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
-                Change change = DefaultFileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType(), entry.getValue().getNormalizedPath());
-                if (!visitor.visitChange(change)) {
-                    return false;
-                }
+    private static boolean reportAllAdded(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, String propertyTitle) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
+            Change change = DefaultFileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType(), entry.getValue().getNormalizedPath());
+            if (!visitor.visitChange(change)) {
+                return false;
             }
         }
         return true;
     }
 
-    private static boolean compareTrivialFingerprintEntries(ChangeVisitor visitor, Map.Entry<String, FileSystemLocationFingerprint> currentEntry, Map.Entry<String, FileSystemLocationFingerprint> previousEntry, String propertyTitle, boolean includeAdded) {
+    private static boolean compareTrivialFingerprintEntries(ChangeVisitor visitor, Map.Entry<String, FileSystemLocationFingerprint> currentEntry, Map.Entry<String, FileSystemLocationFingerprint> previousEntry, String propertyTitle) {
         FileSystemLocationFingerprint previousFingerprint = previousEntry.getValue();
         FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
         if (currentFingerprint.getNormalizedPath().equals(previousFingerprint.getNormalizedPath())) {
@@ -122,13 +120,9 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
         } else {
             String previousPath = previousEntry.getKey();
             Change remove = DefaultFileChange.removed(previousPath, propertyTitle, previousFingerprint.getType(), previousFingerprint.getNormalizedPath());
-            if (includeAdded) {
-                String currentPath = currentEntry.getKey();
-                Change add = DefaultFileChange.added(currentPath, propertyTitle, currentFingerprint.getType(), currentFingerprint.getNormalizedPath());
-                return visitor.visitChange(remove) && visitor.visitChange(add);
-            } else {
-                return visitor.visitChange(remove);
-            }
+            String currentPath = currentEntry.getKey();
+            Change add = DefaultFileChange.added(currentPath, propertyTitle, currentFingerprint.getType(), currentFingerprint.getNormalizedPath());
+            return visitor.visitChange(remove) && visitor.visitChange(add);
         }
     }
 }
