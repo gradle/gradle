@@ -1100,13 +1100,10 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             path 'start:start:1.0 -> foo:1.0'
 
             path 'foo:1.0 -> bar:1.0'
-            path 'bar:1.0 -> baz:1.0'
-
             path 'foo:1.1 -> bar:1.1'
-            path 'bar:1.1 -> baz:1.1'
 
-            'org:baz:1.0'()
-            'org:baz:1.1'()
+            'org:bar:1.0'()
+            'org:bar:1.1'()
         }
 
         given:
@@ -1128,9 +1125,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             module('start') group('start') alignsTo('1.0')
             module('foo') tries('1.0') alignsTo('1.1') byVirtualPlatform()
             module('bar') tries('1.0') alignsTo('1.1') byVirtualPlatform()
-            module('baz') tries('1.0') alignsTo('1.1') byVirtualPlatform()
         }
-        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'baz'
+        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'bar'
 
         then:
         resolve.expectGraph {
@@ -1140,9 +1136,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                         byConstraint("belongs to platform org:platform:1.1")
                         edge("org:bar:1.0", "org:bar:1.1") {
                             byConstraint("belongs to platform org:platform:1.1")
-                            edge("org:baz:1.0", "org:baz:1.1") {
-                                byConstraint("belongs to platform org:platform:1.1")
-                            }
                         }
                     }
                 }
