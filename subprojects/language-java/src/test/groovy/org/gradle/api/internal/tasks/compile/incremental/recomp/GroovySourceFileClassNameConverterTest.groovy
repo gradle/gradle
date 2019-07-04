@@ -27,16 +27,16 @@ class GroovySourceFileClassNameConverterTest extends Specification {
     GroovySourceFileClassNameConverter converter
 
     def setup() {
-        Multimap<File, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
+        Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
             .hashSetValues()
             .build()
 
-        sourceClassesMapping.put(new File('MyClass'), 'org.gradle.MyClass1')
-        sourceClassesMapping.put(new File('MyClass'), 'org.gradle.MyClass2')
-        sourceClassesMapping.put(new File('YourClass'), 'org.gradle.YourClass')
+        sourceClassesMapping.put('MyClass', 'org.gradle.MyClass1')
+        sourceClassesMapping.put('MyClass', 'org.gradle.MyClass2')
+        sourceClassesMapping.put('YourClass', 'org.gradle.YourClass')
 
-        converter = new GroovySourceFileClassNameConverter(new CompilationSourceDirs([]), sourceClassesMapping)
+        converter = new GroovySourceFileClassNameConverter(sourceClassesMapping)
     }
 
     @Unroll
@@ -45,10 +45,10 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         converter.getClassNames(file) == classes
 
         where:
-        file                   | classes
-        new File('MyClass')    | ['org.gradle.MyClass1', 'org.gradle.MyClass2'] as Set
-        new File('YourClass')  | ['org.gradle.YourClass'] as Set
-        new File('OtherClass') | [] as Set
+        file         | classes
+        'MyClass'    | ['org.gradle.MyClass1', 'org.gradle.MyClass2'] as Set
+        'YourClass'  | ['org.gradle.YourClass'] as Set
+        'OtherClass' | [] as Set
     }
 
     @Unroll
@@ -57,9 +57,9 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         converter.getFileRelativePath(fqcn) == file
         where:
         fqcn                    | file
-        'org.gradle.MyClass1'   | Optional.of(new File('MyClass'))
-        'org.gradle.MyClass2'   | Optional.of(new File('MyClass'))
-        'org.gradle.YourClass'  | Optional.of(new File('YourClass'))
+        'org.gradle.MyClass1'   | Optional.of('MyClass')
+        'org.gradle.MyClass2'   | Optional.of('MyClass')
+        'org.gradle.YourClass'  | Optional.of('YourClass')
         'org.gradle.OtherClass' | Optional.empty()
     }
 }
