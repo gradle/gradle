@@ -31,7 +31,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
         taskForChange: ':santa-tracker:assembleDebug',
-        fileToChange: 'tracker/src/main/java/com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior.java'
+        fileToChange: 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java'
     )
     private static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
