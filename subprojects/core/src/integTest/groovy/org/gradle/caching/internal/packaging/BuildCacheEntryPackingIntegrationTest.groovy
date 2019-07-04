@@ -16,23 +16,17 @@
 
 package org.gradle.caching.internal.packaging
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class BuildCacheEntryPackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     @Issue("https://github.com/gradle/gradle/issues/9877")
     @Unroll
     def "can store and load files having #type characters in name (default file encoding #fileEncoding)"() {
         def outputFile = file(fileName)
-
-        executer.beforeExecute {
-            executer.requireDaemon()
-                .requireIsolatedDaemons()
-                .useOnlyRequestedJvmOpts()
-                .withBuildJvmOpts("-Dfile.encoding=$fileEncoding")
-        }
 
         buildFile << """
             println "> File encoding: \${System.getProperty("file.encoding")}"
@@ -48,14 +42,14 @@ class BuildCacheEntryPackingIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when:
-        withBuildCache().run"createFile", "--info"
+        withBuildCache().run"createFile", "-Dfile.encoding=$fileEncoding", "--info"
         then:
         output.contains("> Default charset: $fileEncoding")
         executedAndNotSkipped(":createFile")
 
         when:
         assert outputFile.delete()
-        withBuildCache().run"createFile", "--info"
+        withBuildCache().run"createFile", "-Dfile.encoding=$fileEncoding", "--info"
 
         then:
         output.contains("> Default charset: $fileEncoding")
@@ -77,7 +71,7 @@ class BuildCacheEntryPackingIntegrationTest extends AbstractIntegrationSpec impl
                 "ISO-8859-1",
                 "ISO-8859-2",
                 "ISO-8859-5",
-                "GBK"
+//                "GBK",
             ]
         ].combinations { text, encoding -> [text.key, text.value, encoding] }
     }
