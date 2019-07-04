@@ -213,21 +213,29 @@ fun <T> treeModelFor(
 ): TreeView.Model<T> = TreeView.Model(
     treeFromTrie(
         label,
-        Trie.from(sequence)
+        Trie.from(sequence),
+        Tree.ViewState.Collapsed
     )
 )
 
 
 private
-fun <T> treeFromTrie(label: T, trie: Trie<T>): Tree<T> =
-    Tree(label, subTreesFromTrie(trie))
+fun <T> treeFromTrie(label: T, trie: Trie<T>, state: Tree.ViewState): Tree<T> {
+    val subTreeState = if (trie.size == 1) Tree.ViewState.Expanded else Tree.ViewState.Collapsed
+    return Tree(
+        label,
+        subTreesFromTrie(trie, subTreeState),
+        state
+    )
+}
 
 
 private
-fun <T> subTreesFromTrie(trie: Trie<T>): List<Tree<T>> =
+fun <T> subTreesFromTrie(trie: Trie<T>, state: Tree.ViewState): List<Tree<T>> =
     trie.entries.sortedBy { (label, _) -> label.toString() }.map { (label, subTrie) ->
         treeFromTrie(
             label,
-            subTrie
+            subTrie,
+            state
         )
     }.toList()

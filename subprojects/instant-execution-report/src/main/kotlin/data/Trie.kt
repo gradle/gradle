@@ -34,6 +34,9 @@ inline class Trie<T>(
         get() = nestedMaps.asSequence().map { (label, subTrie) ->
             label to Trie<T>(subTrie.uncheckedCast())
         }
+
+    val size: Int
+        get() = nestedMaps.size
 }
 
 
