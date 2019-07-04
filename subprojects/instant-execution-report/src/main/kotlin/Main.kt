@@ -225,7 +225,8 @@ fun <T> treeFromTrie(label: T, trie: Trie<T>, state: Tree.ViewState): Tree<T> {
     return Tree(
         label,
         subTreesFromTrie(trie, subTreeState),
-        state
+        // nodes with no children such as Exception nodes are considered `Collapsed` by default
+        if (trie.size == 0) Tree.ViewState.Collapsed else state
     )
 }
 

@@ -172,7 +172,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
                         viewLabel(treeIntent, child, node.label, warningIcon)
                     }
                     is FailureNode.Exception -> {
-                        viewException(node)
+                        viewException(treeIntent, child, node)
                     }
                     else -> {
                         viewLabel(treeIntent, child, node)
@@ -228,30 +228,31 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         label: FailureNode,
         decoration: View<Intent> = empty
     ): View<Intent> = div(
-        treeButton(child, treeIntent),
+        treeButtonFor(child, treeIntent),
         decoration,
         span(" "),
         viewNode(label)
     )
 
     private
-    fun treeButton(child: Tree.Focus<FailureNode>, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> {
-        val tree = child.tree
-        return when {
-            tree.isNotEmpty() -> span(
-                attributes {
-                    className("tree-btn")
-                    title("Click to ${toggleVerb(tree.state)}")
-                    onClick { treeIntent(TreeView.Intent.Toggle(child)) }
-                },
-                when (tree.state) {
-                    Tree.ViewState.Collapsed -> "► "
-                    Tree.ViewState.Expanded -> "▼ "
-                }
-            )
+    fun treeButtonFor(child: Tree.Focus<FailureNode>, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> =
+        when {
+            child.tree.isNotEmpty() -> viewTreeButton(child, treeIntent)
             else -> emptyTreeIcon
         }
-    }
+
+    private
+    fun viewTreeButton(child: Tree.Focus<FailureNode>, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> = span(
+        attributes {
+            className("tree-btn")
+            title("Click to ${toggleVerb(child.tree.state)}")
+            onClick { treeIntent(TreeView.Intent.Toggle(child)) }
+        },
+        when (child.tree.state) {
+            Tree.ViewState.Collapsed -> "► "
+            Tree.ViewState.Expanded -> "▼ "
+        }
+    )
 
     private
     val errorIcon = span<Intent>(" ❌")
@@ -295,18 +296,25 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    fun viewException(node: FailureNode.Exception): View<Intent> =
-        div(
-            span("exception stack trace "),
-            copyButton(
-                text = node.stackTrace,
-                tooltip = "Copy original stacktrace to the clipboard"
-            ),
-            pre(
+    fun viewException(
+        treeIntent: (FailureTreeIntent) -> Intent,
+        child: Tree.Focus<FailureNode>,
+        node: FailureNode.Exception
+    ): View<Intent> = div(
+        viewTreeButton(child, treeIntent),
+        span("exception stack trace "),
+        copyButton(
+            text = node.stackTrace,
+            tooltip = "Copy original stacktrace to the clipboard"
+        ),
+        when (child.tree.state) {
+            Tree.ViewState.Collapsed -> empty
+            Tree.ViewState.Expanded -> pre(
                 attributes { className("stacktrace") },
                 node.stackTrace
             )
-        )
+        }
+    )
 
     private
     fun toggleVerb(state: Tree.ViewState): String = when (state) {
