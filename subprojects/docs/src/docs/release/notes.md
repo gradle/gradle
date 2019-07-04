@@ -129,6 +129,13 @@ Gradle now supports experimental compilation avoidance for Groovy.
 This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
 See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
+## Experimental incremental Groovy compilation
+
+Gradle now supports experimental incremental compilation for Groovy.
+If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
+For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed ones need to be recompiled.
+See [Incremental Groovy compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) in the user manual for more details.
+
 ## Closed Eclipse Buildship projects
 
 Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
