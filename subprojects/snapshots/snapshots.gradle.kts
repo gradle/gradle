@@ -26,6 +26,7 @@ dependencies {
     implementation(library("guava"))
     implementation(library("jsr305"))
     implementation(project(":pineapple"))
+    implementation(library("slf4j_api"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
@@ -36,7 +37,7 @@ dependencies {
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":files")))
     testImplementation(testFixtures(project(":messaging")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
     testRuntimeOnly(project(":dependencyManagement"))
