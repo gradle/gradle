@@ -62,16 +62,14 @@ public class DirectorySnapshotter {
     }
 
     public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
-        Path rootPath = Paths.get(absolutePath);
-        final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-
         try {
-            PathVisitor visitor = new PathVisitor(builder, predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
+            Path rootPath = Paths.get(absolutePath);
+            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, visitor);
+            return visitor.getResult();
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", rootPath), e);
+            throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", absolutePath), e);
         }
-        return builder.getResult();
     }
 
     @VisibleForTesting
@@ -156,14 +154,13 @@ public class DirectorySnapshotter {
         private final DefaultExcludes defaultExcludes;
 
         public PathVisitor(
-            MerkleDirectorySnapshotBuilder builder,
             @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
             AtomicBoolean hasBeenFiltered,
             FileHasher hasher,
             Interner<String> stringInterner,
             DefaultExcludes defaultExcludes
         ) {
-            this.builder = builder;
+            this.builder = MerkleDirectorySnapshotBuilder.sortingRequired();
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
             this.hasher = hasher;
@@ -276,6 +273,10 @@ public class DirectorySnapshotter {
                 hasBeenFiltered.set(true);
             }
             return allowed;
+        }
+
+        public FileSystemLocationSnapshot getResult() {
+            return builder.getResult();
         }
     }
 }
