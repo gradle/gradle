@@ -24,7 +24,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -72,7 +72,7 @@ dependencies {
 
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":baseServicesGroovy"))
-    testFixturesImplementation(project(":files"))
+    testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":languageJvm"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("guava"))

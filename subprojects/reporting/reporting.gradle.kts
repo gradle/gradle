@@ -17,7 +17,7 @@ repositories {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
