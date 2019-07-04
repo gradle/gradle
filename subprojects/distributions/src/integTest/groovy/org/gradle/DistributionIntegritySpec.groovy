@@ -63,7 +63,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'kotlin-stdlib-common-1.3.40.jar' : '5f551a3ffe7683f4741d96fdc49835864aa08ddfc63d38109884973e19eed1cb',
             'kotlin-stdlib-jdk7-1.3.40.jar' : 'f79d84613679095d17518dd8fb4249183f334cf80e4d7a25a7e0ed519ee993ab',
             'kotlin-stdlib-jdk8-1.3.40.jar' : '05e11f693719aa515e6946f51eacc88cb53437cc685d914c114f090792ba9ba1',
-            'kotlinx-metadata-jvm-0.0.5.jar' : 'e49454af130e066a4e1c31255c5fd9a23f31105324f48e98406325b051638908',
+            'kotlinx-metadata-jvm-0.1.0.jar' : '9753bb39efef35957c5c15df9a3cb769aabf2cdfa74b47afcb7760e5146be3b5',
             'kryo-2.24.0.jar' : '7e56b32c635058f9aa2820f88919ab702d029cbcd15285da9992e36cc0ae52f2',
             'log4j-over-slf4j-1.7.25.jar' : 'c84c5ce4bbb661369ccd4c7b99682027598a0fb2e3d63a84259dbe5c0bf1f949',
             'minlog-1.2.jar' : 'a678cb1aa8f5d03d901c992c75741841d98a9bc3d55dad02e84d65315c4e60f2',
