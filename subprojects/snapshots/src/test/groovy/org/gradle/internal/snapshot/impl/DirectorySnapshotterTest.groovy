@@ -175,7 +175,7 @@ class DirectorySnapshotterTest extends Specification {
             unreadableDirectory: MissingFileSnapshot
         ]
         cleanup:
-        rootDir.listFiles()*.readable = true
+        rootDir.listFiles()*.makeReadable()
     }
 
     def "default excludes are correctly parsed"() {

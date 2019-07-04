@@ -246,7 +246,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         outputDirectory.list().contains input.name
 
         cleanup:
-        unreadableOutput.readable = true
+        unreadableOutput.makeReadable()
 
         where:
         type        | create
