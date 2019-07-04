@@ -24,7 +24,6 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":baseServicesGroovy"))
-    implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":persistentCache"))
     implementation(project(":processServices"))

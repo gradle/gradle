@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
-    implementation(project(":fileCollections"))
+    implementation(project(":files"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))

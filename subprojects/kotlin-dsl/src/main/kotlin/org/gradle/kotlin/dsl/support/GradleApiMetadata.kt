@@ -16,9 +16,14 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.internal.file.pattern.PatternMatcher
-import org.gradle.internal.file.pattern.PatternMatcherFactory
+import org.gradle.api.file.RelativePath
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
+
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory
+
 import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
+
 import java.io.File
 import java.util.Properties
 import java.util.jar.JarFile
@@ -93,15 +98,17 @@ fun parameterNamesSupplierFor(parameterNames: List<Properties>): ParameterNamesS
 
 
 private
-fun apiSpecFor(includes: List<String>, excludes: List<String>): PatternMatcher =
+fun apiSpecFor(includes: List<String>, excludes: List<String>): Spec<RelativePath> =
     when {
-        includes.isEmpty() && excludes.isEmpty() -> PatternMatcher.MATCH_ALL
-        includes.isEmpty() -> patternSpecFor(excludes).negate()
+        includes.isEmpty() && excludes.isEmpty() -> Specs.satisfyAll()
+        includes.isEmpty() -> Specs.negate(patternSpecFor(excludes))
         excludes.isEmpty() -> patternSpecFor(includes)
-        else -> patternSpecFor(includes).and(patternSpecFor(excludes).negate())
+        else -> Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
     }
 
 
 private
 fun patternSpecFor(patterns: List<String>) =
-    PatternMatcherFactory.getPatternsMatcher(true, true, patterns)
+    Specs.union(patterns.map {
+        PatternMatcherFactory.getPatternMatcher(true, true, it)
+    })

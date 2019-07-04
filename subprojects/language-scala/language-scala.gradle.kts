@@ -25,7 +25,7 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
 
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":files"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":launcher")))

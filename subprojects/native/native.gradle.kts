@@ -10,7 +10,6 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
-    implementation(project(":files"))
 
     implementation(library("nativePlatform"))
     implementation(library("slf4j_api"))
@@ -20,8 +19,6 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
-
-    jmhImplementation(project(":files"))
 }
 
 gradlebuildJava {

@@ -43,7 +43,7 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("inject"))
 
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":files"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformNative")))
     testImplementation(testFixtures(project(":diagnostics")))

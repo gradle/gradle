@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.file.pattern.PathMatcher;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.pattern.PathMatcher;
-import org.gradle.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Set;

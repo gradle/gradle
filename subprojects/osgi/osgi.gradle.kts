@@ -25,7 +25,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":fileCollections"))
+    implementation(project(":files"))
     implementation(project(":platformJvm"))
     implementation(project(":plugins"))
 

@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":native"))
-    implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":logging"))
 

@@ -15,7 +15,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":fileCollections"))
+    implementation(project(":files"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":core"))

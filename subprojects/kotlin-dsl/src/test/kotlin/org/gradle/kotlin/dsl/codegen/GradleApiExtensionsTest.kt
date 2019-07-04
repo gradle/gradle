@@ -21,7 +21,8 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import org.gradle.internal.file.pattern.PatternMatcher
+
+import org.gradle.api.specs.Specs
 
 import org.gradle.internal.hash.HashUtil
 
@@ -318,7 +319,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             "SourceBaseName",
             apiJars,
             emptyList(),
-            PatternMatcher.MATCH_ALL,
+            Specs.satisfyAll(),
             fixtureParameterNamesSupplier
         )
 

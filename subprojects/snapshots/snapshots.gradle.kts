@@ -25,7 +25,6 @@ description = "Tools to take immutable, comparable snapshots of files and other 
 dependencies {
     implementation(library("guava"))
     implementation(library("jsr305"))
-    implementation(project(":files"))
     implementation(project(":pineapple"))
 
     testImplementation(project(":processServices"))
@@ -35,7 +34,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":files")))
     testImplementation(testFixtures(project(":messaging")))
     
     testRuntimeOnly(project(":runtimeApiInfo"))
@@ -44,7 +43,7 @@ dependencies {
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":fileCollections"))
+    testFixturesImplementation(project(":files"))
 }
 
 gradlebuildJava {

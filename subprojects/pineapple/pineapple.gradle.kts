@@ -23,7 +23,6 @@ plugins {
 description = "Common shared classes without external dependencies"
 
 dependencies {
-    implementation(project(":files"))
     implementation(library("jsr305"))
     implementation(library("guava"))
 }

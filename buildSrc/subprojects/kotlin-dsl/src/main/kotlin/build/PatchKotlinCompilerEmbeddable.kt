@@ -20,10 +20,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
-import org.gradle.api.internal.file.pattern.PathMatcher
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -32,11 +31,16 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.*
+
+import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory
+
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+
+import org.gradle.kotlin.dsl.*
 
 
 @CacheableTask
@@ -101,17 +105,13 @@ abstract class PatchKotlinCompilerEmbeddable : DefaultTask() {
     fun copyFromDependenciesApplyingIncludes(patchedJar: ZipOutputStream) =
         dependenciesIncludes.get().asSequence()
             .flatMap { (jarPrefix, includes) ->
-                val matchers = pathMatchersFor(includes)
-                dependencies.asSequence().filter { it.name.startsWith(jarPrefix) }.map { it to matchers }
+                val includeSpec = includeSpecFor(includes)
+                dependencies.asSequence().filter { it.name.startsWith(jarPrefix) }.map { it to includeSpec }
             }
-            .forEach { (includedJarFile, matchers) ->
+            .forEach { (includedJarFile, includeSpec) ->
                 ZipFile(includedJarFile).use { includedJar ->
                     includedJar.entries().asSequence()
-                        .filter { jarEntry ->
-                            !jarEntry.isDirectory && matchers.any { matcher ->
-                                matcher.matches(RelativePath.parse(true, jarEntry.name).segments, 0)
-                            }
-                        }
+                        .filter { !it.isDirectory && includeSpec.isSatisfiedBy(RelativePath.parse(true, it.name)) }
                         .forEach { includedEntry ->
                             copyEntry(includedJar, includedEntry, patchedJar)
                         }
@@ -142,15 +142,23 @@ abstract class PatchKotlinCompilerEmbeddable : DefaultTask() {
 
     private
     fun Sequence<ZipEntry>.filterExcluded() =
-        filter { zipEntry ->
-            pathMatchersFor(excludes.get()).none { matcher ->
-                matcher.matches(RelativePath.parse(true, zipEntry.name).segments, 0)
+        excludeSpecFor(excludes.get()).let { excludeSpec ->
+            filter {
+                excludeSpec.isSatisfiedBy(RelativePath.parse(true, it.name))
             }
         }
 
     private
-    fun pathMatchersFor(patterns: List<String>): List<PathMatcher> =
-        patterns.map {
-            PatternMatcherFactory.compile(true, it)
-        }
+    fun includeSpecFor(includes: List<String>): Spec<RelativePath> =
+        patternSpecFor(includes)
+
+    private
+    fun excludeSpecFor(excludes: List<String>): Spec<RelativePath> =
+        Specs.negate(patternSpecFor(excludes))
+
+    private
+    fun patternSpecFor(patterns: List<String>): Spec<RelativePath> =
+        Specs.union(patterns.map {
+            PatternMatcherFactory.getPatternMatcher(true, true, it)
+        })
 }

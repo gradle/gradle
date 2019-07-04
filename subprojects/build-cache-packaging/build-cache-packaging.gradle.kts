@@ -27,7 +27,6 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":coreApi"))
     implementation(project(":buildCache"))
-    implementation(project(":files"))
     implementation(project(":snapshots"))
 
     implementation(library("jsr305"))
@@ -38,7 +37,7 @@ dependencies {
     implementation(library("commons_io"))
 
     testImplementation(project(":processServices"))
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":files"))
     testImplementation(project(":resources"))
     
     testImplementation(testFixtures(project(":baseServices")))

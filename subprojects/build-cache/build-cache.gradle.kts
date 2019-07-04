@@ -24,7 +24,6 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
-    implementation(project(":files"))
     implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":resources"))
@@ -52,7 +51,7 @@ dependencies {
     jmhImplementation("org.kamranzafar:jtar:2.3")
 
     testImplementation(project(":modelCore"))
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":files"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":baseServices")))
     testRuntimeOnly(project(":workers"))

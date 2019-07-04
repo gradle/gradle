@@ -41,7 +41,7 @@ dependencies {
     implementation(library("inject"))
     implementation(library("ant")) // only used for DateUtils
 
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":files"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":platformBase")))

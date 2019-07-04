@@ -26,8 +26,8 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
-import org.gradle.internal.file.pattern.PatternMatcher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -241,14 +241,14 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        PatternMatcher matcher = copyAction.matcher
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
 
         ['/root/folder/abc', '/root/abc'].each {
-            assertMatches matcher, it
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
         }
 
         ['/notRoot/abc', '/not/root/abc', 'root/bbc', 'notRoot/bbc'].each {
-            assertMatches matcher.negate(), it
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
         }
     }
 
@@ -260,14 +260,14 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        PatternMatcher matcher = copyAction.matcher
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
 
         ['/root/folder/abc', '/root/abc', 'special/foo', 'banner.txt'].each {
-            assertMatches matcher, it
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
         }
 
         ['/notRoot/abc', '/not/root/abc', 'root/bbc', 'notRoot/bbc', 'not/special/bar'].each {
-            assertMatches matcher.negate(), it
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
         }
     }
 
@@ -279,14 +279,14 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        PatternMatcher matcher = copyAction.matcher
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
 
         ['root/folder1/folder2', 'modules/project1'].each {
-            assertMatches matcher, it
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
         }
 
         ['archive/folder/file', 'root/archives/file', 'root/folder/abc'].each {
-            assertMatches matcher.negate(), it
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
         }
     }
 
@@ -298,22 +298,17 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
         def (copyAction) = spec.copyActions
         copyAction instanceof MatchingCopyAction
-        PatternMatcher matcher = copyAction.matcher
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
 
         ['root/folder1/folder2', 'modules/project1'].each {
-            assertMatches matcher, it
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
         }
 
         ['archive/folder/file', 'root/archives/file', 'root/folder/abc',
          'collections/folder/file', 'root/collections/file', 'archives/collections/file',
          'root/folder/cde'].each {
-            assertMatches matcher.negate(), it
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
         }
-    }
-
-    private static void assertMatches(PatternMatcher matcher, String path) {
-        def file = relativeFile(path)
-        assert matcher.test(file.segments, file.isFile())
     }
 
     def 'add Spec as first child'() {

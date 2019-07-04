@@ -27,9 +27,9 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
-import org.gradle.internal.file.DefaultFileMetadata
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemMirror
