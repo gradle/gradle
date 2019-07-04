@@ -1134,7 +1134,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 module("start:start:1.0") {
                     edge("org:foo:1.0", "org:foo:1.1") {
                         byConstraint("belongs to platform org:platform:1.1")
-                        edge("org:bar:1.0", "org:bar:1.1") {
+                        module("org:bar:1.1") {
                             byConstraint("belongs to platform org:platform:1.1")
                         }
                     }
