@@ -110,11 +110,11 @@ fun reportPageModelFromJsModel(jsFailures: JsModel): InstantExecutionReportPage.
     return InstantExecutionReportPage.Model(
         totalFailures = jsFailures.size,
         messageTree = treeModelFor(
-            FailureNode.Label("Failures grouped by message"),
+            FailureNode.Label("Problems grouped by message"),
             failureNodesByMessage(failures)
         ),
         taskTree = treeModelFor(
-            FailureNode.Label("Failures grouped by task"),
+            FailureNode.Label("Problems grouped by task"),
             failureNodesByTask(failures)
         )
     )

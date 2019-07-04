@@ -129,7 +129,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             ),
             div(
                 attributes { className("left") },
-                h1("${model.totalFailures} instant execution failures"),
+                h1("${model.totalFailures} instant execution problems were found"),
                 learnMore(),
                 viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
                 viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
