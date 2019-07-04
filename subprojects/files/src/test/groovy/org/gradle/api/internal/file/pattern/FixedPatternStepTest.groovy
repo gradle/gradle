@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file.pattern
-
+package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
 
-class HasPrefixPatternStepTest extends Specification {
+class FixedPatternStepTest extends Specification {
     def "matches name case sensitive"() {
-        def step = new HasPrefixPatternStep(".abc", true)
+        def step = new FixedPatternStep("name", true)
 
         expect:
-        step.matches(".abcd")
-        step.matches(".abc")
-        !step.matches(".")
-        !step.matches(".a")
-        !step.matches(".ab")
-        !step.matches(".b")
-        !step.matches(".bcd")
-        !step.matches("_abc")
+        step.matches("name")
+        !step.matches("Name")
         !step.matches("")
         !step.matches("something else")
     }
 
     def "matches name case insensitive"() {
-        def step = new HasPrefixPatternStep(".abc", false)
+        def step = new FixedPatternStep("name", false)
 
         expect:
-        step.matches(".abc")
-        step.matches(".ABC")
-        step.matches(".Abc")
-        step.matches(".aBCD")
-        !step.matches(".A")
-        !step.matches(".Ab")
-        !step.matches(".BCD")
-        !step.matches("ABC")
+        step.matches("name")
+        step.matches("Name")
+        step.matches("NAME")
         !step.matches("")
         !step.matches("something else")
     }

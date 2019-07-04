@@ -22,11 +22,11 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.pattern.PatternStep;
+import org.gradle.api.internal.file.pattern.PatternStepFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.pattern.PatternStep;
-import org.gradle.internal.file.pattern.PatternStepFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 

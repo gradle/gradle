@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file.pattern;
+package org.gradle.api.internal.file.pattern;
 
-public class AnythingMatcher implements PathMatcher {
+public class EndOfPathMatcher implements PathMatcher {
     @Override
     public String toString() {
-        return "{anything}";
+        return "{end-of-path}";
     }
 
     @Override
     public int getMaxSegments() {
-        return Integer.MAX_VALUE;
+        return 0;
     }
 
     @Override
@@ -34,11 +34,11 @@ public class AnythingMatcher implements PathMatcher {
 
     @Override
     public boolean matches(String[] segments, int startIndex) {
-        return true;
+        return startIndex == segments.length;
     }
 
     @Override
     public boolean isPrefix(String[] segments, int startIndex) {
-        return true;
+        return false;
     }
 }

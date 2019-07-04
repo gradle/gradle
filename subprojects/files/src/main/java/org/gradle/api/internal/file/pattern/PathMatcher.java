@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file.pattern;
+package org.gradle.api.internal.file.pattern;
 
 public interface PathMatcher {
     /**

@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.internal.file.pattern.PatternMatcher
-import org.gradle.internal.file.pattern.PatternMatcherFactory
+import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory
 import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
 import java.io.File
 import java.util.Properties

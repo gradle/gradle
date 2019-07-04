@@ -26,8 +26,8 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.internal.Actions
-import org.gradle.internal.file.pattern.PatternMatcher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil

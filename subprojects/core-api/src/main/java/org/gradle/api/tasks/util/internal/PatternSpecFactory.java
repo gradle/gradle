@@ -20,11 +20,11 @@ import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.RelativePathSpec;
+import org.gradle.api.internal.file.pattern.PatternMatcher;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.pattern.PatternMatcher;
-import org.gradle.internal.file.pattern.PatternMatcherFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;

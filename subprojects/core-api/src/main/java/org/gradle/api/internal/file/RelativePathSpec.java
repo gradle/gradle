@@ -17,8 +17,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.file.pattern.PatternMatcher;
 
 public class RelativePathSpec implements Spec<FileTreeElement> {
     private final PatternMatcher matcher;

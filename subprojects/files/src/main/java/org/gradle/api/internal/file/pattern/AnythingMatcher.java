@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file.pattern;
+package org.gradle.api.internal.file.pattern;
 
-public class GreedyPathMatcher implements PathMatcher {
-    private final PathMatcher next;
-
-    public GreedyPathMatcher(PathMatcher next) {
-        this.next = next;
-    }
-
+public class AnythingMatcher implements PathMatcher {
     @Override
     public String toString() {
-        return "{greedy next: " + next + "}";
+        return "{anything}";
     }
 
     @Override
@@ -35,19 +29,12 @@ public class GreedyPathMatcher implements PathMatcher {
 
     @Override
     public int getMinSegments() {
-        return next.getMinSegments();
+        return 0;
     }
 
     @Override
     public boolean matches(String[] segments, int startIndex) {
-        int pos = segments.length - next.getMinSegments();
-        int minPos = Math.max(startIndex, segments.length - next.getMaxSegments());
-        for (; pos >= minPos; pos--) {
-            if (next.matches(segments, pos)) {
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
     @Override
