@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -57,20 +56,15 @@ public class CompilationSourceDirs {
     /**
      * Calculate the relative path to the source root.
      */
-    public Optional<File> relativize(File sourceFile) {
-        if (sourceFile.isAbsolute()) {
-            return sourceRoots.stream()
-                .filter(sourceDir -> sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath()))
-                .map(sourceDir -> RelativePathUtil.relativePath(sourceDir, sourceFile))
-                .filter(relativePath -> !relativePath.startsWith(".."))
-                .map(File::new)
-                .findFirst();
-        } else {
-            return Optional.of(sourceFile);
-        }
+    public Optional<String> relativize(File sourceFile) {
+        return sourceRoots.stream()
+            .filter(sourceDir -> sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath()))
+            .map(sourceDir -> RelativePathUtil.relativePath(sourceDir, sourceFile))
+            .filter(relativePath -> !relativePath.startsWith(".."))
+            .findFirst();
     }
 
-    private static class SourceRoots implements FileCollectionLeafVisitor, Serializable {
+    private static class SourceRoots implements FileCollectionLeafVisitor {
         private boolean canInferSourceRoots = true;
         private List<File> sourceRoots = Lists.newArrayList();
 
@@ -97,14 +91,6 @@ public class CompilationSourceDirs {
         private void cannotInferSourceRoots(Object fileCollection) {
             canInferSourceRoots = false;
             LOG.info("Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.", fileCollection);
-        }
-
-        public boolean isCanInferSourceRoots() {
-            return canInferSourceRoots;
-        }
-
-        public List<File> getSourceRoots() {
-            return sourceRoots;
         }
     }
 }

@@ -74,7 +74,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
         static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec) {
-            if (spec.getCompilationMappingFile() != null && !spec.getSourceRoots().isEmpty()) {
+            if (spec.getCompilationMappingFile() != null) {
                 return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec.getSourceRoots()), spec.getCompilationMappingFile());
             } else {
                 return new NoOpCompilationCustomizer();
@@ -106,7 +106,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
-        private final Multimap<File, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
+        private final Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
             .hashSetValues()
             .build();
@@ -124,7 +124,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
-            File relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
+            String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
             sourceClassesMapping.put(relativePath, classNode.getName());
             Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
             while (iterator.hasNext()) {

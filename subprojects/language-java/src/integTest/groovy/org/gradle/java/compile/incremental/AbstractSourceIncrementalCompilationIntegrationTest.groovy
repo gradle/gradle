@@ -403,26 +403,31 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         buildFile << "sourceSets.main.${language.name}.srcDir 'extra'"
         source('class A1 {}')
         file("extra/A2.${language.name}") << "class A2 {}"
-        file("extra/B.${language.name}") << "class B {}"
+        def movedFile = file("extra/some/dir/B.${language.name}") << """package some.dir;
+        public class B {
+            public static class Inner { }
+        }"""
 
         run language.compileTaskName
 
         when:
-        file("extra/B.${language.name}").delete()
-        File src = source('class B {}')
-        outputs.snapshot { run language.compileTaskName }
+        movedFile.moveToDirectory(file("src/main/${language.name}/some/dir"))
+        outputs.snapshot { run language.compileTaskName, '-i' }
 
         then:
         skipped(":${language.compileTaskName}")
 
         when:
-        src.text = 'class C { }' // in B.java/B.groovy
+        file("src/main/${language.name}/some/dir/B.${language.name}").text = """package some.dir;
+        public class B {
+            public static class NewInner { }
+        }""" // in B.java/B.groovy
         run language.compileTaskName
 
         then:
         executedAndNotSkipped(":${language.compileTaskName}")
-        outputs.recompiledClasses('C')
-        outputs.deletedClasses('B')
+        outputs.recompiledClasses('B', 'B$NewInner')
+        outputs.deletedClasses('B$Inner')
     }
 
     def "recompilation considers changes from dependent sourceSet"() {
@@ -555,7 +560,6 @@ sourceSets {
         then:
         outputs.recompiledClasses("A", "B", "C")
         output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
-        output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
     def "missing files are ignored as source roots"() {
@@ -998,7 +1002,7 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')
-    def 'full recompile when moving source sets'() {
+    def 'can move source sets'() {
         given:
         buildFile << "sourceSets.main.${language.name}.srcDir 'src/other/${language.name}'"
         source('class Sub extends Base {}')
@@ -1012,7 +1016,10 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         fails language.compileTaskName, '-i'
 
         then:
-        outputContains("source dirs are changed")
+        if (language == CompiledLanguage.JAVA) {
+            // Full recompilation in Java incremental compiler
+            outputContains("source dirs are changed")
+        }
         failureCauseContains('Compilation failed')
     }
 }

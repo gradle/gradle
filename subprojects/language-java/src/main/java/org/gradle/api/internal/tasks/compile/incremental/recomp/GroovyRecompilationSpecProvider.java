@@ -81,7 +81,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         PatternSet classesToDelete = patternSetFactory.create();
         PatternSet filesToRecompile = patternSetFactory.create();
 
-        prepareFilePatterns(recompilationSpec.getFilesToCompile(), classesToDelete, filesToRecompile);
+        prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, filesToRecompile);
 
         spec.setSourceFiles(sourceTree.matching(filesToRecompile));
         includePreviousCompilationOutputOnClasspath(spec);
@@ -90,16 +90,14 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
-    private void prepareFilePatterns(Set<File> filesToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
-        for (File file : filesToCompile) {
-            sourceDirs.relativize(file).ifPresent(relativeFile -> {
-                filesToRecompilePatterns.include(relativeFile.toString());
+    private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
+        for (String fileRelativePath : relativeSourcePathsToCompile) {
+            filesToRecompilePatterns.include(fileRelativePath);
 
-                sourceFileClassNameConverter.getClassNames(relativeFile)
-                    .stream()
-                    .map(staleClass -> staleClass.replaceAll("\\.", "/").concat(".class"))
-                    .forEach(classesToDelete::include);
-            });
+            sourceFileClassNameConverter.getClassNames(fileRelativePath)
+                .stream()
+                .map(staleClass -> staleClass.replaceAll("\\.", "/").concat(".class"))
+                .forEach(classesToDelete::include);
         }
     }
 
@@ -115,17 +113,10 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             }
 
             File changedFile = fileChange.getFile();
-            Optional<File> relativeFile = sourceDirs.relativize(changedFile);
+            String relativeFilePath = fileChange.getNormalizedPath();
 
-            if (!relativeFile.isPresent()) {
-                // https://github.com/gradle/gradle/issues/9380
-                // Remove a srcDir from a sourceSet
-                spec.setFullRebuildCause("source dirs are changed", changedFile);
-                return;
-            }
-
-            Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFile.get());
-            spec.getFilesToCompile().add(relativeFile.get());
+            Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
+            spec.getRelativeSourcePathsToCompile().add(relativeFilePath);
             sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
         }
 
@@ -134,9 +125,9 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                 return;
             }
 
-            Optional<File> relativeSourceFile = sourceFileClassNameConverter.getFileRelativePath(className);
+            Optional<String> relativeSourceFile = sourceFileClassNameConverter.getFileRelativePath(className);
             if (relativeSourceFile.isPresent()) {
-                spec.getFilesToCompile().add(relativeSourceFile.get());
+                spec.getRelativeSourcePathsToCompile().add(relativeSourceFile.get());
             } else {
                 spec.setFullRebuildCause("Can't find source file of class " + className, null);
             }

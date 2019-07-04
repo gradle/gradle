@@ -18,39 +18,33 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.Multimap;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class GroovySourceFileClassNameConverter {
-    private final Multimap<File, String> sourceClassesMapping;
-    private final Map<String, File> classSourceMapping;
-    private final CompilationSourceDirs compilationSourceDirs;
+    private final Multimap<String, String> sourceClassesMapping;
+    private final Map<String, String> classSourceMapping;
 
-    public GroovySourceFileClassNameConverter(CompilationSourceDirs sourceDirs, Multimap<File, String> sourceClassesMapping) {
-        this.compilationSourceDirs = sourceDirs;
+    public GroovySourceFileClassNameConverter(Multimap<String, String> sourceClassesMapping) {
         this.sourceClassesMapping = sourceClassesMapping;
         this.classSourceMapping = constructReverseMapping(sourceClassesMapping);
     }
 
-    private Map<String, File> constructReverseMapping(Multimap<File, String> sourceClassesMapping) {
+    private Map<String, String> constructReverseMapping(Multimap<String, String> sourceClassesMapping) {
         return sourceClassesMapping.entries().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
-    public Collection<String> getClassNames(File sourceFile) {
-        return compilationSourceDirs.relativize(sourceFile)
-            .map(relativeFile -> sourceClassesMapping.get(relativeFile))
-            .orElse(Collections.emptyList());
+    public Collection<String> getClassNames(String sourceFileRelativePath) {
+        return sourceClassesMapping.get(sourceFileRelativePath);
     }
 
     boolean isEmpty() {
         return classSourceMapping.isEmpty();
     }
 
-    Optional<File> getFileRelativePath(String fqcn) {
+    Optional<String> getFileRelativePath(String fqcn) {
         return Optional.ofNullable(classSourceMapping.get(fqcn));
     }
 }
