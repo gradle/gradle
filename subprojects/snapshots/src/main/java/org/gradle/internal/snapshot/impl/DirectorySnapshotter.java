@@ -189,12 +189,9 @@ public class DirectorySnapshotter {
         }
 
         @Override
-        public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             String name = intern(file.getFileName().toString());
             if (shouldVisit(file, name, false, attrs, builder.getRelativePath())) {
-                if (attrs == null) {
-                    throw new FileSnapshottingException(String.format("Cannot read file '%s': not authorized.", file));
-                }
                 if (attrs.isSymbolicLink()) {
                     // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                     throw new FileSnapshottingException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
