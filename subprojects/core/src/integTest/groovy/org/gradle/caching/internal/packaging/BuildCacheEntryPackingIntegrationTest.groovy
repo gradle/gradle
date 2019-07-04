@@ -27,9 +27,15 @@ class BuildCacheEntryPackingIntegrationTest extends AbstractIntegrationSpec impl
     def "can store and load files having #type characters in name (default file encoding #fileEncoding)"() {
         def outputFile = file(fileName)
 
-        executer.requireDaemon().requireIsolatedDaemons()
+        executer.beforeExecute {
+            executer.requireDaemon()
+                .requireIsolatedDaemons()
+                .useOnlyRequestedJvmOpts()
+                .withBuildJvmOpts("-Dfile.encoding=$fileEncoding")
+        }
 
         buildFile << """
+            println "> File encoding: \${System.getProperty("file.encoding")}"
             println "> Default charset: \${java.nio.charset.Charset.defaultCharset()}"
 
             task createFile {
@@ -42,14 +48,14 @@ class BuildCacheEntryPackingIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when:
-        withBuildCache().run"createFile", "-Dfile.encoding=$fileEncoding", "--info"
+        withBuildCache().run"createFile", "--info"
         then:
         output.contains("> Default charset: $fileEncoding")
         executedAndNotSkipped(":createFile")
 
         when:
         assert outputFile.delete()
-        withBuildCache().run"createFile", "-Dfile.encoding=$fileEncoding", "--info"
+        withBuildCache().run"createFile", "--info"
 
         then:
         output.contains("> Default charset: $fileEncoding")
@@ -66,7 +72,13 @@ class BuildCacheEntryPackingIntegrationTest extends AbstractIntegrationSpec impl
                 "zwnj": "input\u200cfile.txt",
                 "url-quoted": "input%<file>#2.txt",
             ].entrySet(),
-            ["UTF-8", "ISO-8859-1", "ISO-8859-1", "ISO-8859-5", "CP-936"]
+            [
+                "UTF-8",
+                "ISO-8859-1",
+                "ISO-8859-2",
+                "ISO-8859-5",
+                "GBK"
+            ]
         ].combinations { text, encoding -> [text.key, text.value, encoding] }
     }
 }
