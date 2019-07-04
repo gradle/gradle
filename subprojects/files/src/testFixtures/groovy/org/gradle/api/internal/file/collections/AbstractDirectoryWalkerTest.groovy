@@ -145,30 +145,6 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         walkerInstance << walkers
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
-    def "missing symbolic link causes an exception - walker: #walkerInstance.class.simpleName"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        def dir = rootDir.createDir("a/b")
-        def link = rootDir.file("a/d")
-        link.createLink(dir)
-
-        when:
-        dir.deleteDir()
-        walkDirForPaths(walkerInstance, rootDir, new PatternSet())
-
-        then:
-        def e = thrown Exception
-        e.message.contains("Could not list contents of '${link.absolutePath}'.")
-
-        cleanup:
-        link.delete()
-
-        where:
-        walkerInstance << walkers
-    }
-
     @Issue("GRADLE-3400")
     @Requires(TestPrecondition.SYMLINKS)
     @Unroll
