@@ -26,6 +26,7 @@ import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSnapshottingException;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.slf4j.Logger;
@@ -203,21 +204,31 @@ public class DirectorySnapshotter {
 
         private FileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String name, BasicFileAttributes attrs) {
             String internedAbsoluteFilePath = intern(absoluteFilePath.toString());
-            HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
-            FileMetadata metadata = FileMetadata.from(attrs);
-            return new RegularFileSnapshot(internedAbsoluteFilePath, name, hash, metadata);
+            if (attrs.isRegularFile()) {
+                try {
+                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
+                    FileMetadata metadata = FileMetadata.from(attrs);
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, name, hash, metadata);
+                } catch (UncheckedIOException e) {
+                    LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
+                }
+            }
+            return new MissingFileSnapshot(internedAbsoluteFilePath, name);
         }
 
+        /** unlistable directories (and maybe some locked files) will stop here */
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) {
             // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
-                String name = file.getFileName().toString();
-                boolean isDirectory = false;
+                String name = intern(file.getFileName().toString());
+                boolean isDirectory = Files.isDirectory(file);
                 if (shouldVisit(file, name, isDirectory, null, builder.getRelativePath())) {
-                    throw new UncheckedIOException(String.format("Could not read path '%s'.", file), exc);
+                    LOGGER.info("Could not read file path '{}'.", file);
+                    String absolutePath = intern(file.toString());
+                    builder.visit(new MissingFileSnapshot(absolutePath, name));
                 }
             }
             return FileVisitResult.CONTINUE;
