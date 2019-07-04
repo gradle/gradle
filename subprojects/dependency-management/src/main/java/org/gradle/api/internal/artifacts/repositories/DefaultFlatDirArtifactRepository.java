@@ -151,7 +151,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList(), false);
+        RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
         IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
         for (File root : dirs) {

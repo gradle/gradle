@@ -62,15 +62,6 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromUri(Object uri) {
-        return fromUri(uri, false);
-    }
-
-    @Override
-    public TextResource fromInsecureUri(Object uri) {
-        return fromUri(uri, true);
-    }
-
-    private TextResource fromUri(Object uri, boolean allowInsecureProtocol) {
-        return new ApiTextResourceAdapter(textResourceLoader, tempFileProvider, fileOperations.uri(uri), allowInsecureProtocol);
+        return new ApiTextResourceAdapter(textResourceLoader, tempFileProvider, fileOperations.uri(uri));
     }
 }

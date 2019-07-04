@@ -30,8 +30,6 @@ public interface HttpSettings {
 
     boolean isFollowRedirects();
 
-    boolean allowInsecureProtocol();
-
     Collection<Authentication> getAuthenticationSettings();
 
     SslContextFactory getSslContextFactory();

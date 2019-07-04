@@ -82,10 +82,11 @@ import java.util.Set;
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+    private Object baseUrl;
     private Set<String> schemes = null;
     private AbstractRepositoryLayout layout;
-    private final DefaultUrlArtifactRepository urlArtifactRepository;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
+    private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
@@ -116,7 +117,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         IsolatableFactory isolatableFactory,
                                         ObjectFactory objectFactory) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
-        this.urlArtifactRepository = new DefaultUrlArtifactRepository(fileResolver);
+        this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -202,7 +203,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), isAllowInsecureProtocol()));
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication()));
     }
 
     private void validate(Set<String> schemes) {
@@ -257,30 +258,19 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public URI getUrl() {
-        return urlArtifactRepository.getUrl();
+        return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
     }
 
     @Override
     public void setUrl(URI url) {
         invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
+        baseUrl = url;
     }
 
     @Override
     public void setUrl(Object url) {
         invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
-    }
-
-    @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
+        baseUrl = url;
     }
 
     @Override

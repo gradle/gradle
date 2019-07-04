@@ -301,7 +301,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         settingsFile << """        
             buildCache {
                 remote {
-                    url = "https://invalid.invalid/"
+                    url = "http://invalid.invalid/"
                 }
             }
         """

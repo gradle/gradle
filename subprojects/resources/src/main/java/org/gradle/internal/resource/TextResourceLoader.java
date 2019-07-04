@@ -21,5 +21,6 @@ import java.net.URI;
 
 public interface TextResourceLoader {
     TextResource loadFile(String description, @Nullable File sourceFile);
+
     TextResource loadUri(String description, URI sourceUri);
 }

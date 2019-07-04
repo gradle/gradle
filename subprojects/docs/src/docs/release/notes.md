@@ -155,12 +155,6 @@ On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename wher
 For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. 
 The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
 
-## Improving integrity of builds
-
-Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
-
-TBD
-
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.

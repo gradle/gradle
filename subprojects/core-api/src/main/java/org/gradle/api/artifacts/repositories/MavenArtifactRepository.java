@@ -26,7 +26,7 @@ import java.util.Set;
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(org.gradle.api.Action)} group of methods.
  */
-public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
+public interface MavenArtifactRepository extends ArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
     /**
      * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
@@ -34,7 +34,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @return The URL.
      */
-    @Override
     URI getUrl();
 
     /**
@@ -44,7 +43,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @param url The base URL.
      * @since 4.0
      */
-    @Override
     void setUrl(URI url);
 
     /**
@@ -56,7 +54,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @param url The base URL.
      */
-    @Override
     void setUrl(Object url);
 
     /**

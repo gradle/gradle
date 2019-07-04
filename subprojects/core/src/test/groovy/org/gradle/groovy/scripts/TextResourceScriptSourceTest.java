@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.StringTextResource;
-import org.gradle.internal.resource.DefaultTextResourceLoader;
+import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -37,7 +37,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class TextResourceScriptSourceTest {
-    private final DefaultTextResourceLoader resourceLoader = new DefaultTextResourceLoader();
+    private final BasicTextResourceLoader resourceLoader = new BasicTextResourceLoader();
     private TestFile testDir;
     private File scriptFile;
     private URI scriptFileUri;
