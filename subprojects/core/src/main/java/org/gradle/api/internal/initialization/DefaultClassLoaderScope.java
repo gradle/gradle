@@ -33,7 +33,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     private boolean locked;
 
-    private ClassPath export = ClassPath.EMPTY;
+    protected ClassPath export = ClassPath.EMPTY;
     private List<ClassLoader> exportLoaders; // if not null, is not empty
     private ClassPath local = ClassPath.EMPTY;
     private List<ClassLoader> ownLoaders;
@@ -232,5 +232,9 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public boolean isLocked() {
         return locked;
+    }
+
+    public ClassPath getExport() {
+        return export;
     }
 }

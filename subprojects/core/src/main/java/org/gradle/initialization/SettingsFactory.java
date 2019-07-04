@@ -18,6 +18,8 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
+import org.gradle.api.internal.initialization.DeprecatingClassLoaderScope;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -47,7 +49,7 @@ public class SettingsFactory {
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            ClassLoaderScope buildRootClassLoaderScope) {
 
-        ClassLoaderScope settingsClassLoaderScope = buildRootClassLoaderScope.createChild("settings");
+        ClassLoaderScope settingsClassLoaderScope = cloneScope(buildRootClassLoaderScope).createChild("settings");
         ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, settingsClassLoaderScope);
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
             serviceRegistryFactory, gradle,
@@ -58,5 +60,20 @@ public class SettingsFactory {
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
         ((ExtensibleDynamicObject) dynamicObject).addProperties(gradleProperties);
         return settings;
+    }
+
+
+    private ClassLoaderScope cloneScope(ClassLoaderScope originScope) {
+        if (originScope instanceof DefaultClassLoaderScope) {
+            DefaultClassLoaderScope origin = (DefaultClassLoaderScope) originScope;
+            DefaultClassLoaderScope clonedScope = new DeprecatingClassLoaderScope(origin.getId(), origin.getParent(), origin.getClassLoaderCache());
+            clonedScope.export(origin.getExport());
+            if(origin.isLocked()) {
+                clonedScope.lock();
+            }
+            return clonedScope;
+        } else {
+            return originScope;
+        }
     }
 }

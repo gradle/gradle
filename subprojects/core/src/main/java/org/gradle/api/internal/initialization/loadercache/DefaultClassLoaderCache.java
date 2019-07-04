@@ -30,6 +30,7 @@ import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DeprecatedClasspath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
 import org.slf4j.Logger;
@@ -119,6 +120,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
                 classLoader = classLoaderFactory.createChildClassLoader(spec.name, spec.parent, classPath, spec.implementationHash);
+            }
+            if(classPath instanceof DeprecatedClasspath){
+                classLoader = new DeprecatingClassLoader(classPath, classLoader, spec.parent);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
