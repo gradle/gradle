@@ -16,16 +16,11 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -33,9 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -49,60 +42,34 @@ import java.util.function.Predicate;
  */
 public class OutputFilterUtil {
 
-    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> filterOutputFingerprints(
-        final @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> outputsAfterPreviousExecution,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution,
-        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution
-    ) {
-        return ImmutableSortedMap.copyOfSorted(Maps.transformEntries(outputsBeforeExecution, new Maps.EntryTransformer<String, FileSystemSnapshot, CurrentFileCollectionFingerprint>() {
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public CurrentFileCollectionFingerprint transformEntry(String propertyName, FileSystemSnapshot outputBeforeExecution) {
-                CurrentFileCollectionFingerprint outputAfterExecution = outputsAfterExecution.get(propertyName);
-                FileCollectionFingerprint outputAfterPreviousExecution = getFingerprintForProperty(outputsAfterPreviousExecution, propertyName);
-                return filterOutputFingerprint(outputAfterPreviousExecution, outputBeforeExecution, outputAfterExecution);
-            }
-        }));
+    public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotBeforeExecution(FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot) {
+        Map<String, FileSystemLocationFingerprint> fingerprints = afterLastExecutionFingerprint.getFingerprints();
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> {
+            return snapshot.getType() != FileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
+        });
+        beforeExecutionOutputSnapshot.accept(filteringVisitor);
+        return filteringVisitor.getNewRoots();
     }
 
-    private static FileCollectionFingerprint getFingerprintForProperty(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> fingerprinters, String propertyName) {
-        if (fingerprinters != null) {
-            FileCollectionFingerprint afterPreviousExecution = fingerprinters.get(propertyName);
-            if (afterPreviousExecution != null) {
-                return afterPreviousExecution;
-            }
+    public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotAfterExecution(@Nullable FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot) {
+        Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecutionOutputSnapshot);
+        if (beforeExecutionSnapshots.isEmpty()) {
+            return ImmutableList.of(afterExecutionOutputSnapshot);
         }
-        return FileCollectionFingerprint.EMPTY;
-    }
 
-    @VisibleForTesting
-    static CurrentFileCollectionFingerprint filterOutputFingerprint(
-        @Nullable FileCollectionFingerprint afterPreviousExecution,
-        FileSystemSnapshot beforeExecution,
-        CurrentFileCollectionFingerprint afterExecution
-    ) {
-        CurrentFileCollectionFingerprint filesFingerprint;
-        final Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
-        if (!beforeExecutionSnapshots.isEmpty() && !afterExecution.getFingerprints().isEmpty()) {
-            @SuppressWarnings("RedundantTypeArguments")
-            final Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints = afterPreviousExecution != null
-                ? afterPreviousExecution.getFingerprints()
-                : ImmutableMap.<String, FileSystemLocationFingerprint>of();
+        Map<String, FileSystemLocationFingerprint> afterLastExecutionFingerprints = afterLastExecutionFingerprint != null
+            ? afterLastExecutionFingerprint.getFingerprints()
+            : ImmutableMap.of();
 
-            SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> isOutputEntry(snapshot, beforeExecutionSnapshots, afterPreviousFingerprints));
-            afterExecution.accept(filteringVisitor);
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(afterExecutionSnapshot -> isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot));
+        afterExecutionOutputSnapshot.accept(filteringVisitor);
 
-
-            // Are all file snapshots after execution accounted for as new entries?
-            if (!filteringVisitor.hasBeenFiltered()) {
-                filesFingerprint = afterExecution;
-            } else {
-                filesFingerprint = DefaultCurrentFileCollectionFingerprint.from(filteringVisitor.getNewRoots(), AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
-            }
+        // Are all file snapshots after execution accounted for as new entries?
+        if (filteringVisitor.hasBeenFiltered()) {
+            return filteringVisitor.getNewRoots();
         } else {
-            filesFingerprint = afterExecution;
+            return ImmutableList.of(afterExecutionOutputSnapshot);
         }
-        return filesFingerprint;
     }
 
     private static Map<String, FileSystemLocationSnapshot> getAllSnapshots(FileSystemSnapshot fingerprint) {
@@ -114,30 +81,21 @@ public class OutputFilterUtil {
     /**
      * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
-    private static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints) {
-        if (snapshot.getType() == FileType.Missing) {
+    private static boolean isOutputEntry(Map<String, FileSystemLocationFingerprint> afterPreviousExecutionFingerprints, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot) {
+        if (afterExecutionSnapshot.getType() == FileType.Missing) {
             return false;
         }
-        FileSystemLocationSnapshot beforeSnapshot = beforeSnapshots.get(snapshot.getAbsolutePath());
+        FileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
         if (beforeSnapshot == null) {
             return true;
         }
         // Was it updated during execution?
-        if (!snapshot.isContentAndMetadataUpToDate(beforeSnapshot)) {
+        if (!afterExecutionSnapshot.isContentAndMetadataUpToDate(beforeSnapshot)) {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousFingerprints.containsKey(snapshot.getAbsolutePath());
-    }
-
-    public static List<FileSystemSnapshot> filterOutputSnapshot(FileCollectionFingerprint previousOutputs, FileSystemSnapshot currentSnapshots) {
-        Map<String, FileSystemLocationFingerprint> fingerprints = previousOutputs.getFingerprints();
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor(snapshot -> {
-            return snapshot.getType() != FileType.Missing && fingerprints.containsKey(snapshot.getAbsolutePath());
-        });
-        currentSnapshots.accept(filteringVisitor);
-        return filteringVisitor.getNewRoots();
+        return afterPreviousExecutionFingerprints.containsKey(afterExecutionSnapshot.getAbsolutePath());
     }
 
     private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
@@ -165,7 +123,7 @@ public class OutputFilterUtil {
 
     private static class SnapshotFilteringVisitor implements FileSystemSnapshotVisitor {
         private final Predicate<FileSystemLocationSnapshot> predicate;
-        private final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
+        private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 
         private boolean hasBeenFiltered;
         private MerkleDirectorySnapshotBuilder merkleBuilder;
@@ -195,7 +153,7 @@ public class OutputFilterUtil {
                 return;
             }
             if (merkleBuilder == null) {
-                newRoots.add(fileSnapshot);
+                newRootsBuilder.add(fileSnapshot);
             } else {
                 merkleBuilder.visit(fileSnapshot);
             }
@@ -212,14 +170,14 @@ public class OutputFilterUtil {
             if (merkleBuilder.isRoot()) {
                 FileSystemLocationSnapshot result = merkleBuilder.getResult();
                 if (result != null) {
-                    newRoots.add(currentRootFiltered ? result : currentRoot);
+                    newRootsBuilder.add(currentRootFiltered ? result : currentRoot);
                 }
                 merkleBuilder = null;
                 currentRoot = null;
             }
         }
-        public List<FileSystemSnapshot> getNewRoots() {
-            return newRoots;
+        public ImmutableList<FileSystemSnapshot> getNewRoots() {
+            return newRootsBuilder.build();
         }
 
         public boolean hasBeenFiltered() {
