@@ -498,6 +498,19 @@ public class TestFile extends File {
         NativeServices.getInstance().get(FileSystem.class)
             .createSymbolicLink(this, target);
         clearCanonCaches();
+        return this;
+    }
+
+    public TestFile createNamedPipe() {
+        try {
+            Process mkfifo = new ProcessBuilder("mkfifo", getAbsolutePath())
+                .redirectErrorStream(true)
+                .start();
+            assert mkfifo.waitFor() == 0; // assert the exit value signals success
+            return this;
+        } catch (IOException | InterruptedException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void clearCanonCaches() {
