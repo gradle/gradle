@@ -20,8 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
-import org.gradle.api.internal.initialization.DeprecatingClassLoaderScope;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.TextResourceScriptSource;

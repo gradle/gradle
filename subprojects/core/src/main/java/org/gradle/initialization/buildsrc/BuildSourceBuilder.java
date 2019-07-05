@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
