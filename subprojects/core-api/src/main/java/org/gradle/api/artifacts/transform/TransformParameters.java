@@ -39,7 +39,6 @@ import org.gradle.api.Incubating;
  *
  * @since 5.3
  */
-@Incubating
 public interface TransformParameters {
     /**
      * Used for {@link TransformAction}s without parameters.

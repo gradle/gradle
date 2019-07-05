@@ -491,7 +491,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @see TransformAction
      * @since 5.3
      */
-    @Incubating
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
