@@ -191,7 +191,7 @@ class DirectorySnapshotterTest extends Specification {
         then:
         assert snapshot instanceof DirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
-            testPipe: MissingFileSnapshot,
+            testPipe: MissingFileSnapshot
         ]
 
         cleanup:
