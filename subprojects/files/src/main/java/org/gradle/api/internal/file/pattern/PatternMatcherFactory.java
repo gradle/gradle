@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.pattern;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
@@ -71,15 +72,17 @@ public class PatternMatcherFactory {
         return new FixedStepPathMatcher(PatternStepFactory.getStep(parts.get(pos), caseSensitive), compile(parts, pos + 1, caseSensitive));
     }
 
-    static class DefaultPatternMatcher implements PatternMatcher {
+    @VisibleForTesting
+    static class DefaultPatternMatcher extends PatternMatcher {
         private final boolean partialMatchDirs;
         private final PathMatcher pathMatcher;
 
-        DefaultPatternMatcher(boolean partialMatchDirs, PathMatcher pathMatcher) {
+        public DefaultPatternMatcher(boolean partialMatchDirs, PathMatcher pathMatcher) {
             this.partialMatchDirs = partialMatchDirs;
             this.pathMatcher = pathMatcher;
         }
 
+        @VisibleForTesting
         PathMatcher getPathMatcher() {
             return pathMatcher;
         }

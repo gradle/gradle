@@ -360,7 +360,7 @@ public class PatternMatcherFactoryTest {
         return matches(segments, false);
     }
 
-    private static Matcher<PatternMatcher> matches(String[] segments, boolean isFile) {
+    private static Matcher<PatternMatcher> matches(final String[] segments, final boolean isFile) {
         return new BaseMatcher<PatternMatcher>() {
             public void describeTo(Description description) {
                 description.appendText("matches ").appendValue(Joiner.on("/").join(segments));

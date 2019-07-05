@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.file.pattern;
 
-@FunctionalInterface
-public interface PatternMatcher {
-    PatternMatcher MATCH_ALL = new PatternMatcher() {
+public abstract class PatternMatcher {
+    public static PatternMatcher MATCH_ALL = new PatternMatcher() {
         @Override
         public boolean test(String[] segments, boolean isFile) {
             return true;
@@ -35,17 +34,32 @@ public interface PatternMatcher {
         }
     };
 
-    boolean test(String[] segments, boolean isFile);
+    public abstract boolean test(String[] segments, boolean isFile);
 
-    default PatternMatcher and(PatternMatcher other) {
-        return (segments, isFile) -> this.test(segments, isFile) && other.test(segments, isFile);
+    public PatternMatcher and(final PatternMatcher other) {
+        return new PatternMatcher() {
+            @Override
+            public boolean test(String[] segments, boolean isFile) {
+                return PatternMatcher.this.test(segments, isFile) && other.test(segments, isFile);
+            }
+        };
     }
 
-    default PatternMatcher or(PatternMatcher other) {
-        return (segments, isFile) -> this.test(segments, isFile) || other.test(segments, isFile);
+    public PatternMatcher or(final PatternMatcher other) {
+        return new PatternMatcher() {
+            @Override
+            public boolean test(String[] segments, boolean isFile) {
+                return PatternMatcher.this.test(segments, isFile) || other.test(segments, isFile);
+            }
+        };
     }
 
-    default PatternMatcher negate() {
-        return (segments, isFile) -> !test(segments, isFile);
+    public PatternMatcher negate() {
+        return new PatternMatcher() {
+            @Override
+            public boolean test(String[] segments, boolean isFile) {
+                return !PatternMatcher.this.test(segments, isFile);
+            }
+        };
     }
 }
