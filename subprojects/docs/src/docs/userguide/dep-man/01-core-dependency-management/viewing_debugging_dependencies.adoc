@@ -25,14 +25,14 @@ To pair down on the information provide the optional parameter `--configuration`
 == Listing dependencies in a project
 
 A project can declare one or more dependencies.
-Gradle can visualize the whole dependency tree for every <<managing_dependency_configurations.adoc#sub:what_is_a_configuration,configuration>> available in the project.
+Gradle can visualize the whole dependency tree for every <<declaring_dependencies.adoc#sub:what_is_a_configuration,configuration>> available in the project.
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime.
 It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version.
 The dependency report always contains declared and transitive dependencies.
 
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process.
-You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations.adoc#managing_dependency_configurations,custom configuration>> so that it doesn't pollute other contexts like the compilation classpath for your production source code.
+You can declare dependencies for any external tooling with the help of a <<declaring_dependencies.adoc#what-are-dependency-configurations,custom configuration>> so that it doesn't pollute other contexts like the compilation classpath for your production source code.
 
 .Declaring the JGit dependency with a custom configuration
 ====
@@ -126,9 +126,9 @@ TODO: BELOW OLD CONTENT TO BE RESHUFFLED
 [[sub:version_conflicts]]
 == Resolving version conflicts
 
-Gradle resolves version conflicts by picking the highest version of a module. link:https://scans.gradle.com/get-started[Build scans] and the <<inspecting_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> are immensely helpful in identifying why a specific version was selected. If the resolution result is not satisfying (e.g. the selected version of a module is too high) or it fails (because you configured link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:failOnVersionConflict()[ResolutionStrategy.failOnVersionConflict()]) you have the following possibilities to fix it.
+Gradle resolves version conflicts by picking the highest version of a module. link:https://scans.gradle.com/get-started[Build scans] and the <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> are immensely helpful in identifying why a specific version was selected. If the resolution result is not satisfying (e.g. the selected version of a module is too high) or it fails (because you configured link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:failOnVersionConflict()[ResolutionStrategy.failOnVersionConflict()]) you have the following possibilities to fix it.
 
-* Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. See <<managing_transitive_dependencies.adoc#sec:enforcing_dependency_version,Enforcing a particular dependency version>> for examples.
+* Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. See <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,Enforcing a particular dependency version>> for examples.
 * Configuring dependency resolution to _prefer modules that are part of your build_ (transitive or not). This approach is useful if your build contains custom forks of modules (as part of <<multi_project_builds.adoc#multi_project_builds,multi-project builds>> or as include in <<composite_builds.adoc#composite_builds,composite builds>>). See link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:preferProjectModules()[ResolutionStrategy.preferProjectModules()] for more information.
 * Using <<customizing_dependency_resolution_behavior.adoc#sec:dependency_resolve_rules,dependency resolve rules>> for fine-grained control over the version selected for a particular dependency.
 
@@ -207,7 +207,7 @@ This file is then checked in and the versions in it are used on all subsequent r
 [[sub:versioning_file_dependencies]]
 == Versioning of file dependencies
 
-Legacy projects sometimes prefer to consume <<declaring_dependencies.adoc#sec:declaring_file_dependency,file dependencies>> instead of <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependencies>>. File dependencies can point to any file in the filesystem and do not need to adhere a specific naming convention. It is recommended to clearly express the intention and a concrete version for file dependencies. File dependencies are not considered by Gradle's <<introduction_dependency_management.adoc#sec:dependency_resolution,version conflict resolution>>. Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it. For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
+Legacy projects sometimes prefer to consume <<declaring_dependencies.adoc#sec:declaring_file_dependency,file dependencies>> instead of <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependencies>>. File dependencies can point to any file in the filesystem and do not need to adhere a specific naming convention. It is recommended to clearly express the intention and a concrete version for file dependencies. File dependencies are not considered by Gradle's <<core_dependency_management.adoc#sec:dependency_resolution,version conflict resolution>>. Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it. For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
 
 As a result, the dependencies of the project are easier to maintain and organize. It's much easier to uncover potential API incompatibilities by the assigned version.
 

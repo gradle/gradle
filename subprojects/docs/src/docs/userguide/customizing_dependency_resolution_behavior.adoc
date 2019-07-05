@@ -15,7 +15,7 @@
 [[customizing_dependency_resolution_behavior]]
 = Customizing Dependency Resolution Behavior
 
-There are a number of ways that you can influence how Gradle resolves dependencies. All of these mechanisms offer an API to define a reason for why they are used. Providing reasons makes dependency resolution results more understandable. If any customization influenced the resolution result, the provided reason will show up in <<inspecting_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight>> report.
+There are a number of ways that you can influence how Gradle resolves dependencies. All of these mechanisms offer an API to define a reason for why they are used. Providing reasons makes dependency resolution results more understandable. If any customization influenced the resolution result, the provided reason will show up in <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight>> report.
 
 
 [[sec:dependency_resolve_rules]]

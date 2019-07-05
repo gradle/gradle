@@ -367,7 +367,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<dependency_types.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency. For example: `project(path: ':myJavaProject', configuration: 'default')`.
  * Default Zinc compiler upgraded from 0.3.13 to 0.3.15.

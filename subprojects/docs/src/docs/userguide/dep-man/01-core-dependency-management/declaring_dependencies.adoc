@@ -50,7 +50,7 @@ include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/
 [[resolvable-consumable-configs]]
 === Resolvable and consumable configurations
 
-Historically, <<managing_dependency_configurations.adoc#sub:what_is_a_configuration,configurations>>  have been at the root of dependency resolution in Gradle.
+Historically, <<declaring_dependencies.adoc#sub:what_is_a_configuration,configurations>>  have been at the root of dependency resolution in Gradle.
 In the end, what we want to make a difference is between a _consumer_ and a _producer_. For this purpose, configurations are used for at least 3 different aspects:
 
 1. to declare dependencies
@@ -190,7 +190,7 @@ Gradle provides different notations for module dependencies. There is a string n
 
 [NOTE]
 ====
-If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories. If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module metadata file exists, Gradle may look, depending on the <<repository_types.adoc#sub:supported_metadata_sources,metadata sources definitions>>, for an artifact file called `hibernate-3.0.5.jar` directly. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
+If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories. If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module metadata file exists, Gradle may look, depending on the <<declaring_repositories.adoc#sub:supported_metadata_sources,metadata sources definitions>>, for an artifact file called `hibernate-3.0.5.jar` directly. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
 ====
 
 [[sub:file_dependencies]]
@@ -216,7 +216,7 @@ The most prominent methods for creating a file reference are
 link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)],
 link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)]
 and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
-Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<repository_types.adoc#sec:flat_dir_resolver,flat directory repository>>.
+Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<declaring_repositories.adoc#sec:flat_dir_resolver,flat directory repository>>.
 
 File dependencies allow you to directly add a set of files to a configuration, without first adding them to a repository. This can be useful if you cannot, or do not want to, place certain files in a repository. Or if you do not want to use any repositories at all for storing your dependencies.
 
@@ -319,7 +319,7 @@ include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=lo
 [[documenting-dependencies]]
 == Documenting dependencies
 
-When you declare a <<declaring_dependencies.adoc#declaring_dependencies,dependency>> or a <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
+When you declare a <<declaring_dependencies.adoc#declaring_dependencies,dependency>> or a <<controlling_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
 .Giving a reason for choosing a certain module version in a dependency declaration
 ====

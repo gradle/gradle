@@ -240,7 +240,7 @@ This similarity means that it's usually quite straightforward to migrate from Iv
  * Transcribe any configuration declarations from your module descriptors into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[configurations {}] block of the build script for any custom configurations that can't be replaced by Gradle's standard ones.
  * Transcribe the resolvers from your Ivy settings file into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[repositories {}] block of the build script.
 
-See the chapters on <<declaring_dependencies#declaring_dependencies,Declaring Dependencies>>, <<managing_dependency_configurations#managing_dependency_configurations,Managing Dependency Configurations>> and <<declaring_repositories#declaring_repositories,Declaring Repositories>> for more information.
+See the chapters on <<declaring_dependencies#declaring_dependencies,Declaring Dependencies>>, <<managing_dependency_configurations#what-are-dependency-configurations,Managing Dependency Configurations>> and <<declaring_repositories#declaring_repositories,Declaring Repositories>> for more information.
 
 Ivy provides several Ant tasks that handle Ivy's process for fetching dependencies. The basic steps of that process consist of:
 
