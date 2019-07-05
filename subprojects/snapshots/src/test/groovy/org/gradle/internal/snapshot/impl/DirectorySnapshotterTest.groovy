@@ -33,6 +33,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.file.Paths
@@ -176,6 +177,25 @@ class DirectorySnapshotterTest extends Specification {
         ]
         cleanup:
         rootDir.listFiles()*.makeReadable()
+    }
+
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Issue("https://github.com/gradle/gradle/issues/2552")
+    def "named pipe snapshots to MissingFileSnapshot"() {
+        def rootDir = tmpDir.createDir("root")
+        def pipe = rootDir.file("testPipe").createNamedPipe()
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(new PatternSet()), new AtomicBoolean(false))
+        then:
+        assert snapshot instanceof DirectorySnapshot
+        snapshot.children.collectEntries { [it.name, it.class] } == [
+            testPipe: MissingFileSnapshot,
+        ]
+
+        cleanup:
+        pipe.delete()
     }
 
     def "default excludes are correctly parsed"() {
