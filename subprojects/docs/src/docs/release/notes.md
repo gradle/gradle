@@ -26,6 +26,7 @@ Include only their name, impactful features should be called out separately belo
 [Dominik Giger](https://github.com/gigerdo),
 [Stephan Windmüller](https://github.com/stovocor),
 [Zemian Deng](https://github.com/zemian),
+[Robin Verduijn](https://github.com/robinverduijn),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
@@ -154,6 +155,10 @@ TBD
 On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. 
 For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. 
 The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
+
+## Fail the build on deprecation warnings
+
+The `warning-mode` command line option now has a [new `fail` value](userguide/command_line_interface.html#sec:command_line_warnings) that will behave like `all` and in addition fail the build if any deprecation warning was reported during the execution.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

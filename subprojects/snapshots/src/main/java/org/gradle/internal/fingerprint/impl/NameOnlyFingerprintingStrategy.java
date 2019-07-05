@@ -66,7 +66,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(

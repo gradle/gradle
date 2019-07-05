@@ -47,6 +47,7 @@ public class VirtualPlatformState {
     void participatingModule(ModuleResolveState state) {
         state.registerPlatformOwner(this);
         if (participatingModules.add(state)) {
+            resolveOptimizations.declareVirtualPlatformInUse();
             ComponentState selected = platformModule.getSelected();
             if (selected != null) {
                 // There is a possibility that a platform version was selected before a new member

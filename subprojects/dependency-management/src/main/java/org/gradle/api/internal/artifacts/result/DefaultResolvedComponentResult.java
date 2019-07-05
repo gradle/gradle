@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -31,6 +35,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +47,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> variants;
     private final String repositoryName;
+    private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = HashMultimap.create();
 
     public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> variants, String repositoryName) {
         assert moduleVersion != null;
@@ -104,10 +110,11 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         }
         // Returns an approximation of a composite variant
         List<String> parts = variants.stream()
-                .map(ResolvedVariantResult::getDisplayName)
-                .collect(Collectors.toList());
+            .map(ResolvedVariantResult::getDisplayName)
+            .collect(Collectors.toList());
         DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
-        return new DefaultResolvedVariantResult(variantName, variants.get(0).getAttributes(), variants.get(0).getCapabilities());
+        ResolvedVariantResult firstVariant = variants.get(0);
+        return new DefaultResolvedVariantResult(variantName, firstVariant.getAttributes(), firstVariant.getCapabilities());
     }
 
     @Override
@@ -118,5 +125,27 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @Override
     public List<ResolvedVariantResult> getVariants() {
         return variants;
+    }
+
+    @Override
+    public List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant) {
+        if (!variants.contains(variant)) {
+            reportInvalidVariant(variant);
+        }
+        return ImmutableList.copyOf(variantDependencies.get(variant));
+    }
+
+    private void reportInvalidVariant(ResolvedVariantResult variant) {
+        Optional<ResolvedVariantResult> sameName = variants.stream()
+            .filter(v -> v.getDisplayName().equals(variant.getDisplayName()))
+            .findFirst();
+        String moreInfo = sameName.isPresent()
+            ? "A variant with the same name exists but is not the same instance."
+            : "There's no resolved variant with the same name.";
+        throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
+    }
+
+    public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
+        variantDependencies.put(fromVariant, dependencyResult);
     }
 }

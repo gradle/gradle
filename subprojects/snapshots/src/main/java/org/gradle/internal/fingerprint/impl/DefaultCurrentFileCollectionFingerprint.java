@@ -67,7 +67,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
             }
 
             @Override
-            public void visit(FileSystemLocationSnapshot fileSnapshot) {
+            public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
             }
 

@@ -25,10 +25,15 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.file.Paths
@@ -150,6 +155,49 @@ class DirectorySnapshotterTest extends Specification {
         ] as Set
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "unreadable files and directories are snapshotted as missing"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        rootDir.file('readableFile').createFile()
+        rootDir.file('readableDirectory').createDir()
+        rootDir.file('unreadableFile').createFile().makeUnreadable()
+        rootDir.file('unreadableDirectory').createDir().makeUnreadable()
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+
+        then:
+        assert snapshot instanceof DirectorySnapshot
+        snapshot.children.collectEntries { [it.name, it.class] } == [
+            readableFile: RegularFileSnapshot,
+            readableDirectory: DirectorySnapshot,
+            unreadableFile: MissingFileSnapshot,
+            unreadableDirectory: MissingFileSnapshot
+        ]
+        cleanup:
+        rootDir.listFiles()*.makeReadable()
+    }
+
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Issue("https://github.com/gradle/gradle/issues/2552")
+    def "named pipe snapshots to MissingFileSnapshot"() {
+        def rootDir = tmpDir.createDir("root")
+        def pipe = rootDir.file("testPipe").createNamedPipe()
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        then:
+        assert snapshot instanceof DirectorySnapshot
+        snapshot.children.collectEntries { [it.name, it.class] } == [
+            testPipe: MissingFileSnapshot
+        ]
+
+        cleanup:
+        pipe.delete()
+    }
+
     def "default excludes are correctly parsed"() {
         def defaultExcludes = new DirectorySnapshotter.DefaultExcludes(DirectoryScanner.getDefaultExcludes())
 
@@ -191,7 +239,7 @@ abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor 
     }
 
     @Override
-    void visit(FileSystemLocationSnapshot fileSnapshot) {
+    void visitFile(FileSystemLocationSnapshot fileSnapshot) {
         relativePath.addLast(fileSnapshot.name)
         visit(fileSnapshot.absolutePath, relativePath)
         relativePath.removeLast()

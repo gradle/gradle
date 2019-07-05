@@ -75,7 +75,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot) : createFingerprint(fileSnapshot);

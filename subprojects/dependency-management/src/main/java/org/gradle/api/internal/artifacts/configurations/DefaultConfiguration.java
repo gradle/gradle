@@ -1554,6 +1554,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
+            public AttributeContainer getRequestedAttributes() {
+                return delegate.getRequestedAttributes();
+            }
+
+            @Override
             public int hashCode() {
                 resolve();
                 return delegate.hashCode();

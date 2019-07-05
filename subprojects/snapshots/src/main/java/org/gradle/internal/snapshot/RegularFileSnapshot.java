@@ -57,6 +57,6 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
 
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visit(this);
+        visitor.visitFile(this);
     }
 }

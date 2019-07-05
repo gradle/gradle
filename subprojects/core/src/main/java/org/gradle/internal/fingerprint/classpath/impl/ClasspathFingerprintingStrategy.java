@@ -148,7 +148,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
             if (fileSnapshot.getType() == FileType.RegularFile) {
                 HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {

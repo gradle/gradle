@@ -186,7 +186,7 @@ class OutputFilterUtilTest extends Specification {
                 }
 
                 @Override
-                void visit(FileSystemLocationSnapshot fileSnapshot) {
+                void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     result.add(fileSnapshot)
                 }
 

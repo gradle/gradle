@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":modelCore"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

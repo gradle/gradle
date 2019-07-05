@@ -427,13 +427,15 @@ Deprecated Gradle features were used in this build, making it incompatible with 
 
 You can control the verbosity of warnings on the console with the following options:
 
-`-Dorg.gradle.warning.mode=(all,none,summary)`::
+`-Dorg.gradle.warning.mode=(all,fail,none,summary)`::
 Specify warning mode via <<build_environment.adoc#sec:gradle_configuration_properties, Gradle properties>>. Different modes described immediately below.
 
-`--warning-mode=(all,none,summary)`::
+`--warning-mode=(all,fail,none,summary)`::
 Specifies how to log warnings. Default is `summary`.
 +
 Set to `all` to log all warnings.
++
+Set to `fail` to log all warnings and fail the build if there are any warnings.
 +
 Set to `summary` to suppress all warnings and log a summary at the end of the build.
 +
