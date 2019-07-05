@@ -68,7 +68,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
                 noLongerPending = Lists.newLinkedList();
             }
             noLongerPending.add(pendingDependencies);
-            activatedPending = true;
+            activatedPending = pendingDependencies.shouldReportActivatePending();
         }
         pendingDependencies.increaseHardEdgeCount();
         return activatedPending;
