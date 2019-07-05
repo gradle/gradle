@@ -461,45 +461,51 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getIdentityPath().getPath()).name(actionDisplayName);
+                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getIdentityPath().getPath()).name(actionDisplayName)
+                        .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE);
             }
 
             @Override
             public void run(BuildOperationContext context) {
-                BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
-                Throwable actionFailure = null;
                 try {
-                    action.execute(task);
-                } catch (Throwable t) {
-                    actionFailure = t;
-                } finally {
-                    action.clearInputChanges();
-                }
+                    BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+                    Throwable actionFailure = null;
+                    try {
+                        action.execute(task);
+                    } catch (Throwable t) {
+                        actionFailure = t;
+                    } finally {
+                        action.clearInputChanges();
+                    }
 
-                try {
-                    asyncWorkTracker.waitForCompletion(currentOperation, hasMoreWork ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
-                } catch (Throwable t) {
-                    List<Throwable> failures = Lists.newArrayList();
+                    try {
+                        asyncWorkTracker.waitForCompletion(currentOperation, hasMoreWork ? RELEASE_AND_REACQUIRE_PROJECT_LOCKS : RELEASE_PROJECT_LOCKS);
+                    } catch (Throwable t) {
+                        List<Throwable> failures = Lists.newArrayList();
+
+                        if (actionFailure != null) {
+                            failures.add(actionFailure);
+                        }
+
+                        if (t instanceof MultiCauseException) {
+                            failures.addAll(((MultiCauseException) t).getCauses());
+                        } else {
+                            failures.add(t);
+                        }
+
+                        if (failures.size() > 1) {
+                            throw new MultipleTaskActionFailures("Multiple task action failures occurred:", failures);
+                        } else {
+                            throw UncheckedException.throwAsUncheckedException(failures.get(0));
+                        }
+                    }
 
                     if (actionFailure != null) {
-                        failures.add(actionFailure);
+                        context.failed(actionFailure);
+                        throw UncheckedException.throwAsUncheckedException(actionFailure);
                     }
-
-                    if (t instanceof MultiCauseException) {
-                        failures.addAll(((MultiCauseException) t).getCauses());
-                    } else {
-                        failures.add(t);
-                    }
-
-                    if (failures.size() > 1) {
-                        throw new MultipleTaskActionFailures("Multiple task action failures occurred:", failures);
-                    } else {
-                        throw UncheckedException.throwAsUncheckedException(failures.get(0));
-                    }
-                }
-
-                if (actionFailure != null) {
-                    throw UncheckedException.throwAsUncheckedException(actionFailure);
+                } finally {
+                    context.setResult(ExecuteTaskActionBuildOperationType.RESULT_INSTANCE);
                 }
             }
         });
