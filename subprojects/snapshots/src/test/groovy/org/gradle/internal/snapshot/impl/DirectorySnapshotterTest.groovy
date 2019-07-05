@@ -165,7 +165,7 @@ class DirectorySnapshotterTest extends Specification {
         rootDir.file('unreadableDirectory').createDir().makeUnreadable()
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(new PatternSet()), new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
 
         then:
         assert snapshot instanceof DirectorySnapshot
@@ -187,7 +187,7 @@ class DirectorySnapshotterTest extends Specification {
         def pipe = rootDir.file("testPipe").createNamedPipe()
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(new PatternSet()), new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
         assert snapshot instanceof DirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
