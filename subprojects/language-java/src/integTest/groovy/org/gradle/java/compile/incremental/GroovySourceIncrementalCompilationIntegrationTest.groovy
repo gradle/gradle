@@ -131,4 +131,29 @@ class A2{}
         then:
         outputs.recompiledClasses('A', 'B', 'C')
     }
+
+    def "reports source type that does not support detection of source root"() {
+        given:
+        buildFile << "${language.compileTaskName}.source([file('extra'), file('other'), file('text-file.txt')])"
+
+        source("class A extends B {}")
+        file("extra/B.${language.name}") << "class B {}"
+        file("extra/C.${language.name}") << "class C {}"
+        def textFile = file('text-file.txt')
+        textFile.text = "text file as root"
+
+        executer.expectDeprecationWarning()
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("extra/B.${language.name}").text = "class B { String change; }"
+        executer.withArgument "--info"
+        executer.expectDeprecationWarning()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        output.contains('Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.')
+        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
+    }
 }
