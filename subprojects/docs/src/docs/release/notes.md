@@ -170,6 +170,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Transforming dependency artifacts on resolution
+
+The API around [artifact transforms](userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms) is not incubating any more.
+
 ## Fixed issues
 
 ## Known issues
