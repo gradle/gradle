@@ -283,6 +283,8 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
 
 def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
     dependsOn css, samples, defaultImports
+    finalizedBy("checkDeadInternalLinks")
+    
     duplicatesStrategy = DuplicatesStrategy.FAIL
     into("${buildDir}/userguide-resources")
     from("src/docs/css") {
@@ -546,4 +548,9 @@ tasks.register("docsZip", Zip) {
     // TODO: Reduce duplication
     from(docsDir)
     dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+}
+
+tasks.register("checkDeadInternalLinks", org.gradle.gradlebuild.docs.FindBrokenInternalLinks) {
+    dependsOn(userguideFlattenSources)
+    inputDirectory.set(userguideFlattenSources.get().destinationDir)
 }
