@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file.pattern;
 
 public abstract class PatternMatcher {
-    public static PatternMatcher MATCH_ALL = new PatternMatcher() {
+    public static final PatternMatcher MATCH_ALL = new PatternMatcher() {
         @Override
         public boolean test(String[] segments, boolean isFile) {
             return true;
