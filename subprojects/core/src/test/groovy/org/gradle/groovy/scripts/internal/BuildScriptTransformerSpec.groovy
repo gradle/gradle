@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal
 
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.project.ProjectScript
@@ -57,11 +58,14 @@ class BuildScriptTransformerSpec extends Specification {
         def target = Mock(ScriptTarget) {
             getClasspathBlockName() >> "buildscript"
         }
+        def targetScope = Stub(ClassLoaderScope) {
+            createChild(_) >> Stub(ClassLoaderScope)
+        }
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(source, target)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
-        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }
 
     def "empty script does not contain any code"() {

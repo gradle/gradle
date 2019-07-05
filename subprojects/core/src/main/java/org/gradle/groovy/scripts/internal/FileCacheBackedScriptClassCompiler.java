@@ -19,6 +19,7 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
@@ -71,6 +72,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
+                                                              final ClassLoaderScope targetScope,
                                                               final ClassLoader classLoader,
                                                               final ClassLoaderId classLoaderId,
                                                               final CompileOperation<M> operation,
@@ -107,7 +109,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             File remappedClassesDir = classesDir(remappedClassesCache);
             File remappedMetadataDir = metadataDir(remappedClassesCache);
 
-            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
         } finally {
             remappedClassesCache.close();
         }
