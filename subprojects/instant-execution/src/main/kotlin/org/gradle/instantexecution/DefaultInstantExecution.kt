@@ -17,11 +17,11 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
+import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.InstantExecution
+import org.gradle.initialization.RecordingClassLoaderScopeRegistry
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateContext
@@ -38,7 +38,6 @@ import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath.of
 import org.gradle.internal.hash.HashUtil
@@ -54,6 +53,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
+import java.util.ArrayDeque
 
 import java.util.ArrayList
 import java.util.SortedSet
@@ -284,11 +284,15 @@ class DefaultInstantExecution(
     private
     fun collectClassPath() = of(
         linkedSetOf<File>().also { classPathFiles ->
-            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).visitClassLoadersUsedInThisBuild { loader ->
-                ClasspathUtil.collectClasspathOf(
-                    loader,
-                    classPathFiles
-                )
+            val scopeRegistry = service<ClassLoaderScopeRegistry>() as RecordingClassLoaderScopeRegistry
+            val stack = ArrayDeque<RecordingClassLoaderScopeRegistry.RecordedClassLoaderScopeSpec>()
+            stack.addAll(scopeRegistry.coreChildrenSpec)
+            stack.addAll(scopeRegistry.coreAndPluginsChildrenSpec)
+            while (stack.isNotEmpty()) {
+                val current = stack.pop()
+                classPathFiles.addAll(current.localClassPath.asFiles)
+                classPathFiles.addAll(current.exportClassPath.asFiles)
+                stack.addAll(current.children)
             }
         }
     )
