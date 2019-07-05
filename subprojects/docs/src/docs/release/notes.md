@@ -26,6 +26,7 @@ Include only their name, impactful features should be called out separately belo
 [Dominik Giger](https://github.com/gigerdo),
 [Stephan Windmüller](https://github.com/stovocor),
 [Zemian Deng](https://github.com/zemian),
+[Robin Verduijn](https://github.com/robinverduijn),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
