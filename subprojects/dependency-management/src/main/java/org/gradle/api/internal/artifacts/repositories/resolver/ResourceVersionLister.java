@@ -54,12 +54,42 @@ public class ResourceVersionLister implements VersionLister {
     @Override
     public void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
         List<String> collector = Lists.newArrayList();
-        Map<ResourcePattern, ExternalResourceName> versionListPatterns = patterns.stream().collect(Collectors.toMap(pattern -> pattern, pattern -> pattern.toVersionListPattern(module, artifact)));
-        for (ResourcePattern pattern : patterns) {
+        List<ResourcePattern> filteredPatterns = filterDuplicates(patterns);
+        Map<ResourcePattern, ExternalResourceName> versionListPatterns = filteredPatterns.stream().collect(Collectors.toMap(pattern -> pattern, pattern -> pattern.toVersionListPattern(module, artifact)));
+        for (ResourcePattern pattern : filteredPatterns) {
             visit(pattern, versionListPatterns, collector, result);
         }
         if (!collector.isEmpty()) {
             result.listed(collector);
+        }
+    }
+
+    private List<ResourcePattern> filterDuplicates(List<ResourcePattern> patterns) {
+        if (patterns.size() <= 1) {
+            return patterns;
+        }
+        List<ResourcePattern> toRemove = new ArrayList<>(patterns.size());
+        for (int i = 0; i < patterns.size() - 1; i++) {
+            ResourcePattern first = patterns.get(i);
+            if (toRemove.contains(first)) {
+                continue;
+            }
+            for (int j = i + 1; j < patterns.size(); j++) {
+                ResourcePattern second = patterns.get(j);
+                if (first.getPattern().startsWith(second.getPattern())) {
+                    toRemove.add(second);
+                } else if (second.getPattern().startsWith(first.getPattern())) {
+                    toRemove.add(first);
+                    break;
+                }
+            }
+        }
+        if (toRemove.isEmpty()) {
+            return patterns;
+        } else {
+            ArrayList<ResourcePattern> result = new ArrayList<>(patterns);
+            result.removeAll(toRemove);
+            return result;
         }
     }
 

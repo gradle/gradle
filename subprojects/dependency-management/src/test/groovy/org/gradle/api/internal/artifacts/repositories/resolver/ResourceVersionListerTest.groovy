@@ -163,6 +163,24 @@ class ResourceVersionListerTest extends Specification {
         0 * _
     }
 
+    def 'exact duplicates do not filter out all results'() {
+        def resource1 = Mock(ExternalResource)
+
+        when:
+        def pattern1 = pattern("/[organisation]/[module]/ivy-[revision].xml")
+        def pattern2 = pattern("/[organisation]/[module]/ivy-[revision].xml")
+        lister.listVersions(module, artifact, [pattern1, pattern2], result)
+        def versions = result.versions
+
+        then:
+        versions == ['1.0.0', '2.0.0'] as Set
+
+        and:
+        1 * repo.resource(new ExternalResourceName('/org.acme/proj1/')) >> resource1
+        1 * resource1.list() >> ['ivy-1.0.0.xml', 'ivy-2.0.0.xml']
+        0 * _
+    }
+
     def "ignores duplicate patterns"() {
         def resource = Mock(ExternalResource)
 
