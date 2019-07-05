@@ -182,7 +182,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 relativePath.addLast(fileSnapshot.name)
                 relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
@@ -229,7 +229,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 assert fileSnapshot.absolutePath == d.getAbsolutePath()
                 assert fileSnapshot.name == d.name
             }
@@ -260,7 +260,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 count++
             }
 

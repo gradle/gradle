@@ -18,6 +18,10 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
+
 class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create named instances of interface using injected factory"() {
         buildFile << """
@@ -177,7 +181,10 @@ class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         fails("changeDynProp")
 
         then:
-        failure.assertHasCause("No signature of method: Thing\$Impl.setProperty() is applicable for argument types: (String, String) values: [name, 123]")
+        failure.assertThatCause(allOf(
+            startsWith("No signature of method: Thing\$Impl"),
+            containsString(".setProperty() is applicable for argument types: (String, String) values: [name, 123]")
+        ))
 
         when:
         fails("changeField")

@@ -35,7 +35,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), false, newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), false, newModule(group, module, selectedVersion), newVariant("variant"), newModule())
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
@@ -49,7 +49,7 @@ class ResolutionResultDataBuilder {
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(componentSelector, false, newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(componentSelector, false, newModule(group, module, selectedVersion), newVariant("variant"), newModule())
     }
 
     static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {

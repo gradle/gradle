@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
-    implementation(project(":logging"))
 
     implementation(library("commons_httpclient"))
     implementation(library("slf4j_api"))

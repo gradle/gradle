@@ -55,7 +55,7 @@ public class BlockingHttpServer extends ExternalResource {
     private final ChainingHttpHandler handler;
     private final int timeoutMs;
     private final int serverId;
-    private final Scheme scheme;
+    private final String scheme;
     private boolean running;
     private int clientVarCounter;
 
@@ -65,10 +65,10 @@ public class BlockingHttpServer extends ExternalResource {
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
-        this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, Scheme.HTTP);
+        this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, "http");
     }
 
-    protected BlockingHttpServer(HttpServer server, int timeoutMs, Scheme scheme) {
+    protected BlockingHttpServer(HttpServer server, int timeoutMs, String scheme) {
         this.server = server;
         this.server.setExecutor(EXECUTOR_SERVICE);
         this.serverId = COUNTER.incrementAndGet();
@@ -83,7 +83,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI getUri() {
         try {
-            return new URI(scheme.scheme + "://" + scheme.host + ":" + getPort());
+            return new URI(scheme + "://localhost:" + getPort());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -94,7 +94,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI uri(String resource) {
         try {
-            return new URI(scheme.scheme, null, scheme.host, getPort(), "/" + resource, null, null);
+            return new URI(scheme, null, "localhost", getPort(), "/" + resource, null, null);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -507,19 +507,6 @@ public class BlockingHttpServer extends ExternalResource {
             } finally {
                 lock.unlock();
             }
-        }
-    }
-
-    protected enum Scheme {
-        HTTP("http", "127.0.0.1"),
-        HTTPS("https", "localhost");
-
-        private final String scheme;
-        private final String host;
-
-        Scheme(String scheme, String host) {
-            this.scheme = scheme;
-            this.host = host;
         }
     }
 }

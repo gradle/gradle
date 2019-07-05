@@ -162,7 +162,6 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.DefaultTextResourceLoader;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -210,7 +209,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
-        return new ProjectFactory(instantiator, new DefaultTextResourceLoader(), projectRegistry);
+        return new ProjectFactory(instantiator, projectRegistry);
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {

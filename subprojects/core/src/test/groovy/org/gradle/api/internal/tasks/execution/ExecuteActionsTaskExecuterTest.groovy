@@ -76,7 +76,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def taskFingerprinter = Stub(TaskFingerprinter) {
-        fingerprintTaskFiles(task, _) >> ImmutableSortedMap.of()
+        snapshotTaskFiles(task, _) >> ImmutableSortedMap.of()
     }
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     def buildId = UniqueId.generate()

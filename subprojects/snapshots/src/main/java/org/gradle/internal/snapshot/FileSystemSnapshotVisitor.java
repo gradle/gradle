@@ -29,9 +29,9 @@ public interface FileSystemSnapshotVisitor {
     boolean preVisitDirectory(DirectorySnapshot directorySnapshot);
 
     /**
-     * Called for each regular/missing file.
+     * Called for each regular/missing/unavailable file.
      */
-    void visit(FileSystemLocationSnapshot fileSnapshot);
+    void visitFile(FileSystemLocationSnapshot fileSnapshot);
 
     /**
      * Called when leaving a directory.

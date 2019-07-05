@@ -49,7 +49,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "cannot create a transport for url with unsupported scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['unsupported'] as Set, null, [], false)
+        repositoryTransportFactory.createTransport(['unsupported'] as Set, null, [])
 
         then:
         InvalidUserDataException e = thrown()
@@ -58,7 +58,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "cannot creates a transport for mixed url scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, [], false)
+        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, [])
 
         then:
         InvalidUserDataException e = thrown()
@@ -70,7 +70,7 @@ class RepositoryTransportFactoryTest extends Specification {
         authentication.credentials = Mock(GoodCredentials)
 
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication], false)
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication])
 
         then:
         transport.class == ResourceConnectorRepositoryTransport
@@ -81,7 +81,7 @@ class RepositoryTransportFactoryTest extends Specification {
         authentication.credentials = Mock(GoodCredentials)
 
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication], false)
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication])
 
         then:
         transport.class == ResourceConnectorRepositoryTransport
@@ -92,7 +92,7 @@ class RepositoryTransportFactoryTest extends Specification {
         authentication.credentials = credentials
 
         when:
-        repositoryTransportFactory.createTransport(protocols as Set, null, [authentication], false)
+        repositoryTransportFactory.createTransport(protocols as Set, null, [authentication])
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -109,7 +109,7 @@ class RepositoryTransportFactoryTest extends Specification {
         authentication*.credentials = credentials
 
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, authentication, false)
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, authentication)
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -123,7 +123,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "should throw when specifying authentication types with null credentials"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new GoodCredentialsAuthentication('good')], false)
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new GoodCredentialsAuthentication('good')])
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -132,7 +132,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "should accept no credentials for auth"() {
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new AuthenticationWithoutCredentials('good')], false)
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new AuthenticationWithoutCredentials('good')])
 
         then:
         transport.class == ResourceConnectorRepositoryTransport
@@ -143,7 +143,7 @@ class RepositoryTransportFactoryTest extends Specification {
         authentication.credentials = Mock(GoodCredentials)
 
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication, authentication], false)
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication, authentication])
 
         then:
         def ex = thrown(InvalidUserDataException)

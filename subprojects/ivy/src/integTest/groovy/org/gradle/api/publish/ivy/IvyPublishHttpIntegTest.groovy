@@ -207,6 +207,7 @@ credentials {
     def "reports failure publishing to HTTP repository"() {
         given:
         server.start()
+        def repositoryUrl = "http://localhost:${server.port}"
         def repositoryPort = server.port
 
         buildFile << """
@@ -248,7 +249,7 @@ credentials {
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
     def "uses first configured pattern for publication"() {

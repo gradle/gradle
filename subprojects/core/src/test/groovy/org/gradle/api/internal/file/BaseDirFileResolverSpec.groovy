@@ -165,8 +165,7 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.
-  - A TextResource instance.""")
+  - A URI or URL instance.""")
     }
 
     def "normalizes null-returning closure to null"() {

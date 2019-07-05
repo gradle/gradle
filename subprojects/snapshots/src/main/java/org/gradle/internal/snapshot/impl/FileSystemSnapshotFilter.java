@@ -53,12 +53,12 @@ public class FileSystemSnapshotFilter {
             }
 
             @Override
-            public void visit(FileSystemLocationSnapshot fileSnapshot) {
+            public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(fileSnapshot);
                 Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
                 if (predicate.test(fileSnapshot, relativePathForFiltering)) {
-                    builder.visit(fileSnapshot);
+                    builder.visitFile(fileSnapshot);
                 } else {
                     hasBeenFiltered.set(true);
                 }

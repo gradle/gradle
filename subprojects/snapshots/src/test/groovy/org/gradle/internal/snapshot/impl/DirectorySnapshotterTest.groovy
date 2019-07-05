@@ -191,7 +191,7 @@ abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor 
     }
 
     @Override
-    void visit(FileSystemLocationSnapshot fileSnapshot) {
+    void visitFile(FileSystemLocationSnapshot fileSnapshot) {
         relativePath.addLast(fileSnapshot.name)
         visit(fileSnapshot.absolutePath, relativePath)
         relativePath.removeLast()
