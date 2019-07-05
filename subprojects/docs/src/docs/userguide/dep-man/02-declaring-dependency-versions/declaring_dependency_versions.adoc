@@ -1,7 +1,7 @@
 [[declaring-dependency-versions]]
 = Declaring dependency versions
 
-include::rich-versions.adoc[]
+include::rich_versions.adoc[]
 
 [[sub::declaring_without_version]]
 == Declaring a dependency without version
@@ -74,4 +74,4 @@ All you need to do is to set the property link:{javadocPath}/org/gradle/api/arti
 [[refreshing-dependencies]]
 === Refreshing dependencies
 
-include::dependency-locking.adoc[leveloffset=+1]
+include::dependency_locking.adoc[leveloffset=+1]

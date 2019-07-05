@@ -8,7 +8,7 @@ Software projects rarely work in isolation. In most cases, a project relies on r
 
 [NOTE]
 ====
-For a general overview on the terms used throughout the user guide, refer to <<dependency-management-terminology.adoc#dependency-management-terminology,Dependency Management Terminology>>.
+For a general overview on the terms used throughout the user guide, refer to <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management Terminology>>.
 ====
 
 [[dependency-mgmt-in-gradle]]
@@ -31,7 +31,7 @@ A build script developer can <<sec:declaring-dependencies,declare dependencies>>
 In Gradle, the <<managing_dependency_configurations.adoc#managing_dependency_configurations,scope of a dependency>> is called a _configuration_.
 For a full overview, see the reference material on <<dependency_types.adoc#dependency_types,dependency types>>.
 
-Often times dependencies come in the form of <<dependency-management-terminology.adoc#sub:terminology_module,modules>>.
+Often times dependencies come in the form of <<dependency_management_terminology.adoc#sub:terminology_module,modules>>.
 You’ll need to tell Gradle where to find those modules so they can be consumed by the build.
 The location for storing modules is called a _repository_.
 By <<declaring_repositories.adoc#declaring_repositories,declaring repositories>> for a build, Gradle will know how to find and retrieve modules.
@@ -60,9 +60,9 @@ Learn more in <<inspecting_dependencies.adoc#inspecting_dependencies,Inspecting 
 .Build scan dependencies report
 image::gradle-core-test-build-scan-dependencies.png[]
 
-include::declaring-repositories.adoc[leveloffset=+1]
+include::declaring_repositories.adoc[leveloffset=+1]
 
-include::declaring-dependencies.adoc[leveloffset=+1]
+include::declaring_dependencies.adoc[leveloffset=+1]
 
 [[understanding-diff-libraries-and-apps]]
 == Understanding difference between libraries and applications
@@ -79,4 +79,4 @@ include::declaring-dependencies.adoc[leveloffset=+1]
 [[being-respectful-consumers]]
 === Being respectful of consumers
 
-include::viewing-debugging-dependencies.adoc[leveloffset=+1]
+include::viewing_debugging_dependencies.adoc[leveloffset=+1]

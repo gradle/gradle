@@ -295,7 +295,7 @@ There are a few cases where you might, legitimately, want to use `mavenLocal()`:
 ** in case this is not possible, you should limit this to _local builds only_
 * for interoperability with Gradle itself
 ** in a multi-repository world, you want to check that changes to project A work with project B
-** it is preferable to use <<composite-builds#composite-builds.adoc, composite builds>> for this use case
+** it is preferable to use <<composite-builds#composite_builds.adoc, composite builds>> for this use case
 ** if for some reason composite builds are not applicable, you can add `mavenLocal()`
 
 [[sub:supported_transport_protocols]]
