@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.file.pattern;
 
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
+import com.google.common.base.Joiner;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -28,7 +27,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class PatternMatcherFactoryTest {
-    private Spec<RelativePath> matcher;
+    private PatternMatcher matcher;
 
     @Test public void testEmpty() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "");
@@ -75,6 +74,20 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesFile("a", "b"));
         assertThat(matcher, matchesFile("a", "b", "c"));
         assertThat(matcher, not(matchesFile("a")));
+        assertThat(matcher, not(matchesFile("a", "c")));
+        assertThat(matcher, not(matchesFile("c", "b")));
+    }
+
+    @Test public void testDuplicateSeparatorIsIgnored() {
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a//b");
+        assertThat(matcher, matchesFile("a", "b"));
+        assertThat(matcher, not(matchesFile("a", "b", "c")));
+        assertThat(matcher, not(matchesFile("a", "c")));
+        assertThat(matcher, not(matchesFile("c", "b")));
+
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a\\\\b");
+        assertThat(matcher, matchesFile("a", "b"));
+        assertThat(matcher, not(matchesFile("a", "b", "c")));
         assertThat(matcher, not(matchesFile("a", "c")));
         assertThat(matcher, not(matchesFile("c", "b")));
     }
@@ -335,27 +348,27 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesDir("b", "a")));
     }
 
-    private PathMatcher pathMatcher(Spec<RelativePath> matcher) {
-        return ((PatternMatcherFactory.PathMatcherBackedSpec) matcher).getPathMatcher();
+    private static PathMatcher pathMatcher(PatternMatcher matcher) {
+        return ((PatternMatcherFactory.DefaultPatternMatcher) matcher).getPathMatcher();
     }
 
-    private Matcher<Spec<RelativePath>> matchesFile(String... paths) {
-        return matches(new RelativePath(true, paths));
+    private static Matcher<PatternMatcher> matchesFile(String... segments) {
+        return matches(segments, true);
     }
 
-    private Matcher<Spec<RelativePath>> matchesDir(String... paths) {
-        return matches(new RelativePath(false, paths));
+    private static Matcher<PatternMatcher> matchesDir(String... segments) {
+        return matches(segments, false);
     }
 
-    private Matcher<Spec<RelativePath>> matches(final RelativePath path) {
-        return new BaseMatcher<Spec<RelativePath>>() {
+    private static Matcher<PatternMatcher> matches(String[] segments, boolean isFile) {
+        return new BaseMatcher<PatternMatcher>() {
             public void describeTo(Description description) {
-                description.appendText("matches ").appendValue(path);
+                description.appendText("matches ").appendValue(Joiner.on("/").join(segments));
             }
 
             public boolean matches(Object o) {
-                Spec<RelativePath> matcher = (Spec<RelativePath>) o;
-                return matcher.isSatisfiedBy(path);
+                PatternMatcher matcher = (PatternMatcher) o;
+                return matcher.test(segments, isFile);
             }
         };
     }

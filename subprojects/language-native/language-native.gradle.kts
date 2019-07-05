@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))

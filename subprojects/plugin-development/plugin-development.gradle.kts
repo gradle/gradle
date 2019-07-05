@@ -48,7 +48,7 @@ dependencies {
     implementation(library("inject"))
     implementation(library("asm"))
 
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 

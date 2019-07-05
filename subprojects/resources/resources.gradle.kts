@@ -10,6 +10,7 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":messaging"))
     implementation(project(":native"))
 
@@ -19,7 +20,7 @@ dependencies {
 
     testImplementation(project(":processServices"))
     testImplementation(project(":coreApi"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":snapshots"))
 
     testImplementation(testFixtures(project(":core")))

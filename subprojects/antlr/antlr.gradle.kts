@@ -40,7 +40,7 @@ dependencies {
     }
 
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testRuntimeOnly(project(":runtimeApiInfo"))
 }

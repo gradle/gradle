@@ -42,7 +42,7 @@ dependencies {
     }
 
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testRuntimeOnly("com.google.code.findbugs:bcel:2.0.1")
     testRuntimeOnly("jaxen:jaxen:1.1")
