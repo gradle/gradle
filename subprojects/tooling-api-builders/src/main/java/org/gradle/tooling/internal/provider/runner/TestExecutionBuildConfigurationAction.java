@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
@@ -61,10 +62,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
             if (debugOptions.isDebugMode()) {
                 task.setDebug(true);
-                task.setDebugOptions(debugOptions.getPort());
-                // run all tests on the same JVM
-                task.setForkEvery(null);
-                task.setMaxParallelForks(1);
+                task.setDebugOptions(new JavaDebugOptions(debugOptions.getPort(), false, false));
             }
         }
     }

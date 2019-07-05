@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
@@ -199,8 +200,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public void setDebugOptions(int port) {
-        javaOptions.setDebugOptions(port);
+    public void setDebugOptions(JavaDebugOptions debugOptions) {
+        javaOptions.setDebugOptions(debugOptions);
     }
 
     @Override

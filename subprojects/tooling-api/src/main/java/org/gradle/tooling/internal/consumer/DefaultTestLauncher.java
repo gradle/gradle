@@ -103,7 +103,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
-    public TestLauncher withDebugOptions(int port) {
+    public TestLauncher debugTests(int port) {
         this.debugOptions.setPort(port);
         return this;
     }

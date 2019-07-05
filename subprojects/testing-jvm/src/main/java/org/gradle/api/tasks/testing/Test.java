@@ -65,6 +65,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -457,8 +458,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * {@inheritDoc}
      */
     @Override
-    public void setDebugOptions(int port) {
-        forkOptions.setDebugOptions(port);
+    public void setDebugOptions(JavaDebugOptions debugOptions) {
+        forkOptions.setDebugOptions(debugOptions);
+        // run all tests on the same JVM
+        setForkEvery(null);
+        setMaxParallelForks(1);
     }
 
     /**

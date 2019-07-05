@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -58,7 +59,6 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.bootstrapClasspath.files.isEmpty()
         !options.enableAssertions
         !options.debug
-        !options.port
         options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
     }
 
@@ -340,10 +340,10 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "can set debug options"() {
         when:
-        options.setDebugOptions(2233)
+        options.setDebugOptions(new JavaDebugOptions(2233, false, false)) // TODO add more tests
 
         then:
-        options.port == 2233
+        options.debugOptions.port == 2233
     }
 
     def "can set bootstrapClasspath"() {

@@ -84,15 +84,24 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
 
     /**
-     * Runs the tests in debug mode.
+     * Configures test JVM to run in debug mode.
+     * <p>
+     * When called, the forked test JVM is launched with the following argument:
+     * <pre>-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:&lt;port&gt;</pre>
+     * This means the test JVM expects a debugger at the specified port that uses a
+     * <a href="https://docs.oracle.com/javase/1.5.0/docs/guide/jpda/conninv.html#Connectors">socket listening connector</a>.
+     * If the debugger is not present then the test execution will fail.
+     * <p>
+     * Invoking this method adjusts the test task to launch only one JVM. More specifically, the parallel execution
+     * gets disabled and the {@code forkEvery} property is set to 0.
      *
-     * @param port the target port where to wait for the debugger
+     * @param port the target port where the test JVM expects the debugger
      * @return this
      *
      * @since 5.6
      */
     @Incubating
-    TestLauncher withDebugOptions(int port);
+    TestLauncher debugTests(int port);
 
     /**
      * Executes the tests, blocking until complete.

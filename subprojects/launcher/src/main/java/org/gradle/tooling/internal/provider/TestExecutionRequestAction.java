@@ -62,12 +62,11 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
                                                 getDebugOptions(testExecutionRequest));
     }
 
-    // TODO (donat) how can we handle this properly in the TAPI protocol?
     private static InternalDebugOptions getDebugOptions(ProviderInternalTestExecutionRequest testExecutionRequest) {
         try {
-        return testExecutionRequest.getDebugOptions();
+            return testExecutionRequest.getDebugOptions();
         } catch (UnsupportedMethodException e) {
-        // default value for older Gradle clients
+            // default value for older Gradle clients
             return new DefaultDebugOptions();
         }
     }

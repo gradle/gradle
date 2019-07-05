@@ -24,6 +24,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -306,8 +307,8 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Override
-    public void setDebugOptions(int port) {
-        javaExecHandleBuilder.setDebugOptions(port);
+    public void setDebugOptions(JavaDebugOptions debugOptions) {
+        javaExecHandleBuilder.setDebugOptions(debugOptions);
     }
 
     /**

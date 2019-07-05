@@ -211,6 +211,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * is started in a suspended state, listening on port 5005. You should disable parallel test execution when
      * debugging and you will need to reattach the debugger occasionally if you use a non-zero value for
      * {@link org.gradle.api.tasks.testing.Test#getForkEvery()}.
+     * <p>
+     * Since Gradle 5.6, you can configure the port and other Java debug properties via
+     * {@link #setDebugOptions(JavaDebugOptions)}.
      *
      * @return true when debugging is enabled, false to disable.
      */
@@ -220,19 +223,24 @@ public interface JavaForkOptions extends ProcessForkOptions {
     /**
      * Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port
      * 5005.
+     * <p>
+     * Since Gradle 5.6, you can configure the port and other Java debug properties via
+     * {@link #setDebugOptions(JavaDebugOptions)}.
      *
      * @param enabled true to enable debugging, false to disable.
      */
     void setDebug(boolean enabled);
 
     /**
-     * Enable debugging for the process. When called, the process is started in debug mode with the specified parameters.
+     * Configures Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
+     * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
      *
-     * @param port The started process will listen on this port.
+     * @param debugOptions the Java debug configuration
      * @since 5.6
      */
+    @Input
     @Incubating
-    void setDebugOptions(int port);
+    void setDebugOptions(JavaDebugOptions debugOptions);
 
     /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define

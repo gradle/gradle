@@ -31,10 +31,7 @@ import spock.lang.Timeout
 @ToolingApiVersion(">=5.6")
 @TargetGradleVersion(">=5.6")
 @Timeout(60)
-class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
-
-    // TODO extract common elements to setup()
-    // TODO use async api to connect to VirtualMachine
+class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {
         buildFile << """
@@ -65,7 +62,7 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .withDebugOptions(findFreePort())
+                .debugTests(findFreePort())
                 .run()
         }
 
@@ -81,27 +78,7 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .withDebugOptions(port)
-                .run()
-        }
-
-        then:
-        true // test successfully executed with debugger attached
-
-        cleanup:
-        connector.stopListening(arguments)
-    }
-
-    def "Overwrites configuration from --debug-jvm parameter"() {
-        setup:
-        def (connector, port, arguments) = startSocketListenDebugSession()
-
-        when:
-        withConnection { connection ->
-            connection.newTestLauncher()
-                .withJvmTestClasses("example.MyTest")
-                .withDebugOptions(port)
-                .addJvmArguments("--debug-jvm")
+                .debugTests(port)
                 .run()
         }
 
@@ -126,7 +103,7 @@ class TestLauncherDebuggingCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest", "example.SecondTest")
-                .withDebugOptions(port)
+                .debugTests(port)
                 .run()
         }
 

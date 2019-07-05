@@ -18,6 +18,7 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -92,7 +93,7 @@ class JvmOptionsTest extends Specification {
         when:
         opts.allJvmArgs = []
         then:
-        opts.debug == false
+        !opts.debug
     }
 
     def "debug port can be set via allJvmArgs"() {
@@ -100,17 +101,43 @@ class JvmOptionsTest extends Specification {
         def opts = createOpts()
 
         when:
+        opts.allJvmArgs = ['-Xdebug']
+
+        then:
+        !opts.debug
+
+        when:
+        opts.allJvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=n,suspend=y,address=8989']
+
+        then:
+        opts.debug
+        opts.debugOptions.port == 8989
+        !opts.debugOptions.server
+        opts.debugOptions.suspend
+
+        when:
         opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:4456']
 
         then:
         opts.debug
-        opts.debugPort == 4456
+        !opts.debugOptions.suspend
+        !opts.debugOptions.server
+        opts.debugOptions.port == 4456
+
+        when:
+        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:4457']
+
+        then:
+        opts.debug
+        opts.debugOptions.suspend
+        opts.debugOptions.server
+        opts.debugOptions.port == 4457
 
         when:
         opts.allJvmArgs = []
 
         then:
-        opts.debug == false
+        !opts.debug
     }
 
     def "managed jvm args includes heap settings"() {
@@ -237,6 +264,25 @@ class JvmOptionsTest extends Specification {
         opts.jvmArgs(fromString('-Xmx1G -Xms1G'))
         then:
         opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'])
+    }
+
+    def "can configure debug mode"(port, server, suspend, expected) {
+        setup:
+        def opts = createOpts()
+
+        when:
+        opts.debug = true
+        opts.debugOptions = new JavaDebugOptions(port, server, suspend)
+
+        then:
+        opts.allJvmArgs.findAll { it.contains 'jdwp' } == [expected]
+
+        where:
+        port | server | suspend | expected
+        1122 | false  | false   | '-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=1122'
+        1123 | false  | true    | '-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=1123'
+        1124 | true   | false   | '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1124'
+        1125 | true   | true    | '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1125'
     }
 
     def "options with newlines are parsed correctly"() {

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 
 import java.util.ArrayList;
@@ -207,13 +208,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         options.setDebug(enabled);
     }
 
-    public int getPort() {
-        return options.getDebugPort();
+    public JavaDebugOptions getDebugOptions() {
+        return options.getDebugOptions();
     }
 
     @Override
-    public void setDebugOptions(int port) {
-        options.setDebugPort(port);
+    public void setDebugOptions(JavaDebugOptions debugOptions) {
+        options.setDebugOptions(debugOptions);
     }
 
     @Override

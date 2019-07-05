@@ -34,6 +34,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -354,7 +355,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public void setDebugOptions(int port) {
+        public void setDebugOptions(JavaDebugOptions debugOptions) {
             throw new UnsupportedOperationException();
         }
 
