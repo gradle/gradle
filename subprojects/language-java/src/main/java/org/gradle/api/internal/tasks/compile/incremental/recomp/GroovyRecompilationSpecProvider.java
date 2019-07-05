@@ -88,7 +88,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
-        for (String fileRelativePath : relativeSourcePathsToCompile) {
+        for (String relativeSourcePath : relativeSourcePathsToCompile) {
             filesToRecompilePatterns.include(fileRelativePath);
 
             sourceFileClassNameConverter.getClassNames(fileRelativePath)
