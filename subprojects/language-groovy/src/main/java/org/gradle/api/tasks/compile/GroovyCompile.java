@@ -270,7 +270,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private boolean enableIncrementalCompilation(GroovyJavaJointCompileSpec spec) {
         if (getOptions().isIncremental() && spec.getSourceRoots().isEmpty()) {
-            DeprecationLogger.nagUserOfDeprecated("Groovy incremental compilation with uninferable source roots");
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.");
         }
         return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty();
     }
