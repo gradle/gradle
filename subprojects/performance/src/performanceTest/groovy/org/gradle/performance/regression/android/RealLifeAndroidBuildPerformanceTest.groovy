@@ -30,8 +30,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
     private static final SANTA_TRACKER = new AndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
-        taskForChange: ':santa-tracker:assembleDebug',
-        fileToChange: 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java'
     )
     private static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
@@ -41,6 +39,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         templateName: 'k9AndroidBuild',
         memory: '1g',
     )
+    private static final String SANTA_TRACKER_ASSEMBLE_DEBUG = ':santa-tracker:assembleDebug'
+    private static final String SANTA_TRACKER_JAVA_FILE_TO_CHANGE = 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java'
 
     @Unroll
     def "#tasks on #testProject"() {
@@ -101,11 +101,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
     def "abi change on #testProject"() {
         given:
         testProject.configure(runner)
-        runner.tasksToRun = [testProject.taskForChange]
+        runner.tasksToRun = [SANTA_TRACKER_ASSEMBLE_DEBUG]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
         runner.targetVersions = ["5.6-20190702000118+0000"]
-        runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.fileToChange))
+        runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(SANTA_TRACKER_JAVA_FILE_TO_CHANGE))
 
         when:
         def result = runner.run()
@@ -121,11 +121,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
     def "non-abi change on #testProject"() {
         given:
         testProject.configure(runner)
-        runner.tasksToRun = [testProject.taskForChange]
+        runner.tasksToRun = [SANTA_TRACKER_ASSEMBLE_DEBUG]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
         runner.targetVersions = ["5.6-20190702000118+0000"]
-        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.fileToChange))
+        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(SANTA_TRACKER_JAVA_FILE_TO_CHANGE))
 
         when:
         def result = runner.run()
@@ -159,8 +159,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
     static class AndroidTestProject {
         String templateName
         String memory
-        String taskForChange
-        String fileToChange
 
         void configure(CrossVersionPerformanceTestRunner runner) {
             runner.testProject = templateName
