@@ -38,7 +38,7 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":internalIntegTesting"))
     testImplementation(testLibrary("jsoup"))
     testImplementation(testFixtures(project(":core")))

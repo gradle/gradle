@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
-
-import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+package org.gradle.internal.file;
 
 public class DefaultFileMetadata implements FileMetadataSnapshot {
     private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(FileType.Directory, 0, 0);

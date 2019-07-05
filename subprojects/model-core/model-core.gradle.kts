@@ -47,7 +47,7 @@ dependencies {
     testFixturesImplementation(library("guava"))
 
     testImplementation(project(":processServices"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":coreApi")))

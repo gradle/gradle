@@ -22,7 +22,7 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":native"))
-    testImplementation(project(":files"))
+    testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))

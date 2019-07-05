@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":jvmServices"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))

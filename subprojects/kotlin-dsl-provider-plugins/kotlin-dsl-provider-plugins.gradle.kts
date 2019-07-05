@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":plugins"))
     implementation(project(":pluginDevelopment"))

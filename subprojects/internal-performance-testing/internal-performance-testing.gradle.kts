@@ -42,7 +42,7 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
     implementation(project(":buildOption"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":snapshots"))
     implementation(project(":resources"))
     implementation(project(":persistentCache"))

@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
@@ -25,7 +26,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesApi(project(":core"))
-    testFixturesApi(project(":files"))
+    testFixturesApi(project(":fileCollections"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesImplementation(library("guava"))
     testFixturesApi(testFixtures(project(":modelCore")))
