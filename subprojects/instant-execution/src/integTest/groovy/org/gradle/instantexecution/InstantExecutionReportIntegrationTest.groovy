@@ -67,7 +67,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def reportDir = stateDirForTasks("c")
         def reportFile = reportDir.file("instant-execution-report.html")
         reportFile.isFile()
-        def jsFile = reportDir.file("instant-execution-failures.js")
+        def jsFile = reportDir.file("instant-execution-report-data.js")
         jsFile.isFile()
         outputContains """
             3 instant execution issues found:
@@ -112,7 +112,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         def reportDir = stateDirForTasks("foo")
-        def jsFile = reportDir.file("instant-execution-failures.js")
+        def jsFile = reportDir.file("instant-execution-report-data.js")
         numberOfFailuresIn(jsFile) == expectedNumberOfFailures
         outputContains "$expectedNumberOfFailures instant execution issues found:"
         failureHasCause "Maximum number of instant execution failures has been exceeded"

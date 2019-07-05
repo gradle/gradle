@@ -150,7 +150,7 @@ class InstantExecutionReport(
 
     private
     fun writeJsFailures() {
-        outputDirectory.resolve("instant-execution-failures.js").bufferedWriter().use { writer ->
+        outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
             writer.run {
                 appendln("function instantExecutionFailures() { return [")
                 failures.forEach {
