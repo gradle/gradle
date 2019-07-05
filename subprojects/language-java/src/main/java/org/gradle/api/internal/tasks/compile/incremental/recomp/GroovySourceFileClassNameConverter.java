@@ -44,7 +44,7 @@ public class GroovySourceFileClassNameConverter {
         return classSourceMapping.isEmpty();
     }
 
-    Optional<String> getFileRelativePath(String fqcn) {
+    Optional<String> getRelativeSourcePath(String fqcn) {
         return Optional.ofNullable(classSourceMapping.get(fqcn));
     }
 }
