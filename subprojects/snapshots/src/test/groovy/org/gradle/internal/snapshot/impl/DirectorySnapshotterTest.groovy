@@ -156,6 +156,26 @@ class DirectorySnapshotterTest extends Specification {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "broken symlinks are snapshotted as missing"() {
+        def rootDir = tmpDir.createDir("root")
+        rootDir.file('brokenSymlink').createLink("linkTarget")
+        assert rootDir.listFiles()*.exists() == [false]
+        def predicate = directoryWalkerPredicate(new PatternSet())
+
+        when:
+        def brokenSymlinkSnapshot = directorySnapshotter.snapshot(rootDir.absolutePath, predicate, new AtomicBoolean(false))
+        then:
+        brokenSymlinkSnapshot.children*.class == [MissingFileSnapshot]
+
+        when:
+        rootDir.file("linkTarget").createFile() // unbreak my heart
+        and:
+        def unbrokenSymlinkSnapshot = directorySnapshotter.snapshot(rootDir.absolutePath, predicate, new AtomicBoolean(false))
+        then:
+        unbrokenSymlinkSnapshot.children*.class == [RegularFileSnapshot, RegularFileSnapshot]
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unreadable files and directories are snapshotted as missing"() {
         given:
         def rootDir = tmpDir.createDir("root")

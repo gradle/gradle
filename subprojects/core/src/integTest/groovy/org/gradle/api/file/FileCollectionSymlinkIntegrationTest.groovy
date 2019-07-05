@@ -66,6 +66,52 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         "project.objects.fileCollection()"   | "project.objects.fileCollection().from(file, symlink, symlinked)"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1365")
+    def "detect changes to broken symlink outputs"() {
+        def root = file("root").createDir()
+        def target = file("target")
+        def link = root.file("link")
+
+        buildFile << """
+            import java.nio.file.*
+            class ProducesLink extends DefaultTask {
+                @OutputDirectory File outputDirectory // TODO outputfile?
+    
+                @TaskAction execute() {
+                    def link = Paths.get('${link}')
+                    Files.deleteIfExists(link);
+                    Files.createSymbolicLink(link, Paths.get('${target}'));
+                }
+            }
+            
+            task producesLink(type: ProducesLink) {
+                outputDirectory = file '${root.name}'
+            }
+        """
+
+        when:
+        target.createFile()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
+
+        when:
+        target.delete()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/1365')
     def "broken symlink not produced by task is ignored"() {
         given:
