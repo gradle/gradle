@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -74,6 +73,8 @@ import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
+import java.util.function.Supplier
+
 import static java.util.Collections.emptyList
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
@@ -88,7 +89,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def state = new TaskStateInternal()
     def taskProperties = Stub(TaskProperties) {
-        getInputPropertyValues() >> { { -> ImmutableSortedMap.of() } as Factory }
+        getInputPropertyValues() >> { { -> ImmutableSortedMap.of() } as Supplier }
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
@@ -247,7 +248,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        //noMoreInteractions()
+        noMoreInteractions()
 
         !state.executing
         state.didWork

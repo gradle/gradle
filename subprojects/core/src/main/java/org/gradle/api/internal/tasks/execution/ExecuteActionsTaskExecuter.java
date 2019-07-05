@@ -259,8 +259,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitInputProperties(InputPropertyVisitor visitor) {
-            Map<String, Object> inputPropertyValues = context.getTaskProperties().getInputPropertyValues().create();
-            assert inputPropertyValues != null;
+            Map<String, Object> inputPropertyValues = context.getTaskProperties().getInputPropertyValues().get();
             for (Map.Entry<String, Object> entry : inputPropertyValues.entrySet()) {
                 String propertyName = entry.getKey();
                 Object value = entry.getValue();
