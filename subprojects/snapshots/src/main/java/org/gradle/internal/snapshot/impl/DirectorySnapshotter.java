@@ -171,9 +171,9 @@ public class DirectorySnapshotter {
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getFilename(dir);
-            String name = intern(fileName);
-            if (builder.isRoot() || shouldVisit(dir, name, true, attrs, builder.getRelativePath())) {
-                builder.preVisitDirectory(intern(dir.toString()), name);
+            String internedName = intern(fileName);
+            if (builder.isRoot() || shouldVisit(dir, internedName, true, attrs, builder.getRelativePath())) {
+                builder.preVisitDirectory(intern(dir.toString()), internedName);
                 return FileVisitResult.CONTINUE;
             } else {
                 return FileVisitResult.SKIP_SUBTREE;
@@ -188,29 +188,29 @@ public class DirectorySnapshotter {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            String name = intern(file.getFileName().toString());
-            if (shouldVisit(file, name, false, attrs, builder.getRelativePath())) {
+            String internedName = intern(file.getFileName().toString());
+            if (shouldVisit(file, internedName, false, attrs, builder.getRelativePath())) {
                 if (attrs.isSymbolicLink()) {
                     // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                     throw new FileSnapshottingException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                 }
-                builder.visitFile(snapshotFile(file, name, attrs));
+                builder.visitFile(snapshotFile(file, internedName, attrs));
             }
             return FileVisitResult.CONTINUE;
         }
 
-        private FileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String name, BasicFileAttributes attrs) {
+        private FileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs) {
             String internedAbsoluteFilePath = intern(absoluteFilePath.toString());
             if (attrs.isRegularFile()) {
                 try {
                     HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
                     FileMetadata metadata = FileMetadata.from(attrs);
-                    return new RegularFileSnapshot(internedAbsoluteFilePath, name, hash, metadata);
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
             }
-            return new MissingFileSnapshot(internedAbsoluteFilePath, name);
+            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName);
         }
 
         /** unlistable directories (and maybe some locked files) will stop here */
@@ -220,12 +220,12 @@ public class DirectorySnapshotter {
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
-                String name = intern(file.getFileName().toString());
+                String internedName = intern(file.getFileName().toString());
                 boolean isDirectory = Files.isDirectory(file);
-                if (shouldVisit(file, name, isDirectory, null, builder.getRelativePath())) {
+                if (shouldVisit(file, internedName, isDirectory, null, builder.getRelativePath())) {
                     LOGGER.info("Could not read file path '{}'.", file);
-                    String absolutePath = intern(file.toString());
-                    builder.visitFile(new MissingFileSnapshot(absolutePath, name));
+                    String internedAbsolutePath = intern(file.toString());
+                    builder.visitFile(new MissingFileSnapshot(internedAbsolutePath, internedName));
                 }
             }
             return FileVisitResult.CONTINUE;
@@ -256,19 +256,19 @@ public class DirectorySnapshotter {
          * based on the directory/file excludes or the provided filtering predicate.
          * Excludes won't mark this walk as `filtered`, only if the `predicate` rejects any entry.
          **/
-        private boolean shouldVisit(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+        private boolean shouldVisit(Path path, String internedName, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
             if (isDirectory) {
-                if (defaultExcludes.excludeDir(name)) {
+                if (defaultExcludes.excludeDir(internedName)) {
                     return false;
                 }
-            } else if (defaultExcludes.excludeFile(name)) {
+            } else if (defaultExcludes.excludeFile(internedName)) {
                 return false;
             }
 
             if (predicate == null) {
                 return true;
             }
-            boolean allowed = predicate.test(path, name, isDirectory, attrs, relativePath);
+            boolean allowed = predicate.test(path, internedName, isDirectory, attrs, relativePath);
             if (!allowed) {
                 hasBeenFiltered.set(true);
             }
