@@ -25,8 +25,12 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -148,6 +152,30 @@ class DirectorySnapshotterTest extends Specification {
             'root/a/c', 'root/a/c/c.txt',
             'root/a.txt'
         ] as Set
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "unreadable files and directories are snapshotted as missing"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        rootDir.file('readableFile').createFile()
+        rootDir.file('readableDirectory').createDir()
+        rootDir.file('unreadableFile').createFile().makeUnreadable()
+        rootDir.file('unreadableDirectory').createDir().makeUnreadable()
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(new PatternSet()), new AtomicBoolean(false))
+
+        then:
+        assert snapshot instanceof DirectorySnapshot
+        snapshot.children.collectEntries { [it.name, it.class] } == [
+            readableFile: RegularFileSnapshot,
+            readableDirectory: DirectorySnapshot,
+            unreadableFile: MissingFileSnapshot,
+            unreadableDirectory: MissingFileSnapshot
+        ]
+        cleanup:
+        rootDir.listFiles()*.makeReadable()
     }
 
     def "default excludes are correctly parsed"() {

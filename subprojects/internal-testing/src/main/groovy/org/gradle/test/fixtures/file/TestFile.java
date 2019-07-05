@@ -709,6 +709,18 @@ public class TestFile extends File {
         return this;
     }
 
+    public TestFile makeUnreadable() {
+        setReadable(false, false);
+        assert !Files.isReadable(toPath());
+        return this;
+    }
+
+    public TestFile makeReadable() {
+        setReadable(true, false);
+        assert Files.isReadable(toPath());
+        return this;
+    }
+
     public TestFile createFile(Object path) {
         return file(path).createFile();
     }

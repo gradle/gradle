@@ -17,7 +17,6 @@
 package org.gradle.internal.hash
 
 import com.google.common.io.Files
-import org.gradle.api.UncheckedIOException
 
 class TestFileHasher implements FileHasher {
     @Override

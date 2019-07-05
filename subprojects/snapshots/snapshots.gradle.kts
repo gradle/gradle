@@ -27,6 +27,7 @@ dependencies {
     implementation(library("jsr305"))
     implementation(project(":files"))
     implementation(project(":pineapple"))
+    implementation(library("slf4j_api"))
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
@@ -37,7 +38,7 @@ dependencies {
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":fileCollections")))
     testImplementation(testFixtures(project(":messaging")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
     testRuntimeOnly(project(":dependencyManagement"))
