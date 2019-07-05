@@ -18,15 +18,16 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.escapeString
 
+@Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll("#desc can handle symlinks")
-    def "file collection can handle symlinks"() {
+    def "#desc can handle symlinks"() {
         def buildScript = file("build.gradle")
         def baseDir = file('build')
         baseDir.file('file').text = 'some contents'
@@ -63,6 +64,28 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         "project.layout.files()"             | "project.layout.files(file, symlink, symlinked)"
         "project.layout.configurableFiles()" | "project.layout.configurableFiles(file, symlink, symlinked)"
         "project.objects.fileCollection()"   | "project.objects.fileCollection().from(file, symlink, symlinked)"
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/1365')
+    def "broken symlink not produced by task is ignored"() {
+        given:
+        def input = file("input.txt").createFile()
+        def outputDirectory = file("output")
+
+        def brokenLink = file('link').createLink("broken")
+        assert !brokenLink.exists()
+
+        buildFile << """
+            task copy(type: Copy) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+            }
+        """
+
+        when:
+        succeeds 'copy'
+        then:
+        outputDirectory.list().contains input.name
     }
 
     void maybeDeprecated(String expression) {
