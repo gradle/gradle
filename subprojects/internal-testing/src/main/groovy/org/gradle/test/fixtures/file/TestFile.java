@@ -490,12 +490,13 @@ public class TestFile extends File {
         return hashingStream.hash().toString();
     }
 
-    public void createLink(File target) {
-        createLink(target.getAbsolutePath());
+    public TestFile createLink(String target) {
+        return createLink(new File(target));
     }
 
-    public void createLink(String target) {
-        NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+    public TestFile createLink(File target) {
+        NativeServices.getInstance().get(FileSystem.class)
+            .createSymbolicLink(this, target);
         clearCanonCaches();
     }
 
