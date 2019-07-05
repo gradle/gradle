@@ -232,7 +232,6 @@ public class GroovyCompile extends AbstractCompile {
         return new GroovyRecompilationSpecProvider(
             ((ProjectInternal) getProject()).getFileOperations(),
             getSource(),
-            new CompilationSourceDirs(spec.getSourceRoots()),
             inputChanges,
             inputChanges.getFileChanges(getStableSources()),
             new GroovySourceFileClassNameConverter(sourceClassesMapping));
@@ -270,6 +269,9 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private boolean enableIncrementalCompilation(GroovyJavaJointCompileSpec spec) {
+        if (getOptions().isIncremental() && spec.getSourceRoots().isEmpty()) {
+            DeprecationLogger.nagUserOfDeprecated("Groovy incremental compilation with uninferable source roots");
+        }
         return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty();
     }
 

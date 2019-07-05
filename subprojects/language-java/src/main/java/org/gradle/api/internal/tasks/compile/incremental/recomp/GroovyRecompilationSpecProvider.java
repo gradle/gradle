@@ -31,19 +31,16 @@ import java.util.Optional;
 import java.util.Set;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
-    private final CompilationSourceDirs sourceDirs;
     private final InputChanges inputChanges;
     private final Iterable<FileChange> sourceChanges;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
                                            FileTree sources,
-                                           CompilationSourceDirs compilationSourceDirs,
                                            InputChanges inputChanges,
                                            Iterable<FileChange> sourceChanges,
                                            GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
         super(fileOperations, sources);
-        this.sourceDirs = compilationSourceDirs;
         this.inputChanges = inputChanges;
         this.sourceChanges = sourceChanges;
         this.sourceFileClassNameConverter = sourceFileClassNameConverter;
@@ -125,7 +122,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                 return;
             }
 
-            Optional<String> relativeSourceFile = sourceFileClassNameConverter.getFileRelativePath(className);
+            Optional<String> relativeSourceFile = sourceFileClassNameConverter.getRelativeSourcePath(className);
             if (relativeSourceFile.isPresent()) {
                 spec.getRelativeSourcePathsToCompile().add(relativeSourceFile.get());
             } else {
