@@ -118,7 +118,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         def input = file("input.txt").createFile()
         def outputDirectory = file("output")
 
-        def brokenLink = file('link').createLink("broken")
+        def brokenLink = outputDirectory.file('link').createLink("broken")
         assert !brokenLink.exists()
 
         buildFile << """
