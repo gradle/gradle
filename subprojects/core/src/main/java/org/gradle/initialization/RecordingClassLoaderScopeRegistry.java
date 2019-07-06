@@ -127,13 +127,21 @@ public class RecordingClassLoaderScopeRegistry implements ClassLoaderScopeRegist
     }
 
     public static class RecordedClassLoaderScopeSpec {
+
         private final String id;
-        private final List<RecordedClassLoaderScopeSpec> children = new ArrayList<>();
         private ClassPath localClassPath = ClassPath.EMPTY;
         private ClassPath exportClassPath = ClassPath.EMPTY;
+        private final List<RecordedClassLoaderScopeSpec> children = new ArrayList<>();
 
         private RecordedClassLoaderScopeSpec(String id) {
             this.id = id;
+        }
+
+        public RecordedClassLoaderScopeSpec(String id, ClassPath localClassPath, ClassPath exportClassPath, List<RecordedClassLoaderScopeSpec> children) {
+            this(id);
+            this.localClassPath = localClassPath;
+            this.exportClassPath = exportClassPath;
+            this.children.addAll(children);
         }
 
         public String getId() {
