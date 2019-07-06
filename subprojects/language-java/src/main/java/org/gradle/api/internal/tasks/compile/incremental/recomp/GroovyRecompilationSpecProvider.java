@@ -16,35 +16,31 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.util.RelativePathUtil;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
-    private final CompilationSourceDirs sourceDirs;
     private final InputChanges inputChanges;
     private final Iterable<FileChange> sourceChanges;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
-                                           FileTreeInternal sources,
+                                           FileTree sources,
                                            InputChanges inputChanges,
                                            Iterable<FileChange> sourceChanges,
                                            GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
         super(fileOperations, sources);
-        this.sourceDirs = new CompilationSourceDirs(sources);
         this.inputChanges = inputChanges;
         this.sourceChanges = sourceChanges;
         this.sourceFileClassNameConverter = sourceFileClassNameConverter;
@@ -53,11 +49,6 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     @Override
     public boolean isIncremental() {
         return inputChanges.isIncremental();
-    }
-
-    @Override
-    public CompilationSourceDirs getSourceDirs() {
-        return sourceDirs;
     }
 
     @Override
@@ -87,7 +78,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         PatternSet classesToDelete = patternSetFactory.create();
         PatternSet filesToRecompile = patternSetFactory.create();
 
-        prepareFilePatterns(recompilationSpec.getFilesToCompile(), classesToDelete, filesToRecompile);
+        prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, filesToRecompile);
 
         spec.setSourceFiles(sourceTree.matching(filesToRecompile));
         includePreviousCompilationOutputOnClasspath(spec);
@@ -96,39 +87,34 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
-    private void prepareFilePatterns(Set<File> filesToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
-        for (File file : filesToCompile) {
-            filesToRecompilePatterns.include(relativize(file));
+    private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
+        for (String relativeSourcePath : relativeSourcePathsToCompile) {
+            filesToRecompilePatterns.include(relativeSourcePath);
 
-            Collection<String> classes = sourceFileClassNameConverter.getClassNames(file);
-            for (String staleClass : classes) {
-                String path = staleClass.replaceAll("\\.", "/");
-                classesToDelete.include(path.concat(".class"));
-            }
+            sourceFileClassNameConverter.getClassNames(relativeSourcePath)
+                .stream()
+                .map(staleClass -> staleClass.replaceAll("\\.", "/").concat(".class"))
+                .forEach(classesToDelete::include);
         }
-    }
-
-    private String relativize(File sourceFile) {
-        List<File> dirs = sourceDirs.getSourceRoots();
-        for (File sourceDir : dirs) {
-            if (sourceFile.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) {
-                return RelativePathUtil.relativePath(sourceDir, sourceFile);
-            }
-        }
-        throw new IllegalStateException("Not found " + sourceFile + " in source dirs: " + dirs);
     }
 
     private void processOtherChanges(PreviousCompilation previous, RecompilationSpec spec) {
         if (spec.getFullRebuildCause() != null) {
             return;
         }
-        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous, sourceFileClassNameConverter);
+        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+
         for (FileChange fileChange : sourceChanges) {
             if (spec.getFullRebuildCause() != null) {
                 return;
             }
-            spec.getFilesToCompile().add(fileChange.getFile());
-            sourceFileChangeProcessor.processChange(fileChange.getFile(), spec);
+
+            File changedFile = fileChange.getFile();
+            String relativeFilePath = fileChange.getNormalizedPath();
+
+            Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
+            spec.getRelativeSourcePathsToCompile().add(relativeFilePath);
+            sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
         }
 
         for (String className : spec.getClassesToCompile()) {
@@ -136,9 +122,9 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                 return;
             }
 
-            Optional<File> sourceFile = sourceFileClassNameConverter.getFile(className);
-            if (sourceFile.isPresent()) {
-                spec.getFilesToCompile().add(sourceFile.get());
+            Optional<String> relativeSourceFile = sourceFileClassNameConverter.getRelativeSourcePath(className);
+            if (relativeSourceFile.isPresent()) {
+                spec.getRelativeSourcePathsToCompile().add(relativeSourceFile.get());
             } else {
                 spec.setFullRebuildCause("Can't find source file of class " + className, null);
             }

@@ -27,7 +27,7 @@ public class RecompilationSpec {
     private final Collection<String> classesToCompile = new NormalizingClassNamesSet();
     private final Collection<String> classesToProcess = new NormalizingClassNamesSet();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<GeneratedResource>();
-    private final Set<File> filesToCompile = new LinkedHashSet<>();
+    private final Set<String> relativeSourcePathsToCompile = new LinkedHashSet<>();
     private String fullRebuildCause;
 
     @Override
@@ -36,7 +36,7 @@ public class RecompilationSpec {
             "classesToCompile=" + classesToCompile +
             ", classesToProcess=" + classesToProcess +
             ", resourcesToGenerate=" + resourcesToGenerate +
-            ", filesToCompile=" + filesToCompile +
+            ", relativeSourcePathsToCompile=" + relativeSourcePathsToCompile +
             ", fullRebuildCause='" + fullRebuildCause + '\'' +
             ", buildNeeded=" + isBuildNeeded() +
             ", fullRebuildNeeded=" + isFullRebuildNeeded() +
@@ -48,10 +48,10 @@ public class RecompilationSpec {
     }
 
     /**
-     * @return the files we clearly know to recompile
+     * @return the relative paths of files we clearly know to recompile
      */
-    public Set<File> getFilesToCompile() {
-        return filesToCompile;
+    public Set<String> getRelativeSourcePathsToCompile() {
+        return relativeSourcePathsToCompile;
     }
 
     public Collection<String> getClassesToProcess() {
@@ -63,7 +63,7 @@ public class RecompilationSpec {
     }
 
     public boolean isBuildNeeded() {
-        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty() || !filesToCompile.isEmpty();
+        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty() || !relativeSourcePathsToCompile.isEmpty();
     }
 
     public boolean isFullRebuildNeeded() {

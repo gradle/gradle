@@ -134,4 +134,28 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         fails language.compileTaskName
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
+
+    def "reports source type that does not support detection of source root"() {
+        given:
+        buildFile << "${language.compileTaskName}.source([file('extra'), file('other'), file('text-file.txt')])"
+
+        source("class A extends B {}")
+        file("extra/B.${language.name}") << "class B {}"
+        file("extra/C.${language.name}") << "class C {}"
+        def textFile = file('text-file.txt')
+        textFile.text = "text file as root"
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("extra/B.${language.name}").text = "class B { String change; }"
+        executer.withArgument "--info"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
+        output.contains("Full recompilation is required because the source roots could not be inferred.")
+    }
+
 }
