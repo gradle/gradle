@@ -26,8 +26,6 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 public interface RecompilationSpecProvider {
     boolean isIncremental();
 
-    CompilationSourceDirs getSourceDirs();
-
     RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous);
 
     void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec);

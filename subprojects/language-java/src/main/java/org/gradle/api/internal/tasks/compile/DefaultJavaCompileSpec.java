@@ -30,6 +30,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> annotationProcessorPath;
     private Set<AnnotationProcessorDeclaration> effectiveAnnotationProcessors;
     private Set<String> classes;
+    private List<File> sourceRoots;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -82,5 +83,15 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
             result.add(new File(module));
         }
         return result;
+    }
+
+    @Override
+    public List<File> getSourceRoots() {
+        return sourceRoots;
+    }
+
+    @Override
+    public void setSourcesRoots(List<File> sourcesRoots) {
+        this.sourceRoots = sourcesRoots;
     }
 }

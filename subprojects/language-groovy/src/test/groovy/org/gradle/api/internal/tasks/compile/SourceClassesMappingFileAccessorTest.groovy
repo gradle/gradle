@@ -28,14 +28,14 @@ class SourceClassesMappingFileAccessorTest extends Specification {
 
     def 'can write then read mapping file'() {
         given:
-        Multimap<File, String> mapping = MultimapBuilder.SetMultimapBuilder
+        Multimap<String, String> mapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
             .hashSetValues()
             .build()
 
-        mapping.putAll(temporaryFolder.newFile(), ['org.gradle.test.MyClass'])
-        mapping.putAll(temporaryFolder.newFile(), ['org.gradle.test.MyClass', 'org.gradle.test.MyClass2'])
-        mapping.putAll(temporaryFolder.newFile(), ['org.gradle.test.MyClass', 'org.gradle.test.MyClass2', 'org.gradle.test.MyClass3'])
+        mapping.putAll('MyClass.groovy', ['org.gradle.test.MyClass'])
+        mapping.putAll('MyClass2.groovy', ['org.gradle.test.MyClass', 'org.gradle.test.MyClass2'])
+        mapping.putAll('MyClass3.grooyy', ['org.gradle.test.MyClass', 'org.gradle.test.MyClass2', 'org.gradle.test.MyClass3'])
 
         when:
         File file = temporaryFolder.newFile()

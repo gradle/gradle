@@ -35,12 +35,10 @@ import java.util.Map;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final IncrementalTaskInputs inputs;
-    private final CompilationSourceDirs sourceDirs;
-    private final SourceFileClassNameConverter sourceFileClassNameConverter;
+    private final JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, IncrementalTaskInputs inputs) {
+    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         super(fileOperations, sources);
-        this.sourceDirs = new CompilationSourceDirs(sources);
         this.sourceFileClassNameConverter = new JavaConventionalSourceFileClassNameConverter(sourceDirs);
         this.inputs = inputs;
     }
@@ -48,11 +46,6 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     @Override
     public boolean isIncremental() {
         return inputs.isIncremental();
-    }
-
-    @Override
-    public CompilationSourceDirs getSourceDirs() {
-        return sourceDirs;
     }
 
     @Override
@@ -107,10 +100,10 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous, sourceFileClassNameConverter);
+        SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous);
         AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor = new AnnotationProcessorChangeProcessor(current, previous);
         ResourceChangeProcessor resourceChangeProcessor = new ResourceChangeProcessor(current.getAnnotationProcessorPath());
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor);
+        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor, sourceFileClassNameConverter);
         inputs.outOfDate(action);
         inputs.removed(action);
     }
