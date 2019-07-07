@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 
@@ -110,6 +111,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             }
 
             File changedFile = fileChange.getFile();
+            if (FileUtils.hasExtension(changedFile, ".java")) {
+                spec.setFullRebuildCause("Groovy-Java joint compilation detected", changedFile);
+                return;
+            }
+
             String relativeFilePath = fileChange.getNormalizedPath();
 
             Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);

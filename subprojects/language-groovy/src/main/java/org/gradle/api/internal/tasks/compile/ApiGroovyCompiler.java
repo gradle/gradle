@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.writeSourceClassesMappingFile;
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -73,12 +74,16 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
-        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec) {
-            if (spec.getCompilationMappingFile() != null) {
+        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, File[] sortedSourceFiles) {
+            if (spec.getCompilationMappingFile() != null && !isJavaGroovyJointCompilation(sortedSourceFiles)) {
                 return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec.getSourceRoots()), spec.getCompilationMappingFile());
             } else {
                 return new NoOpCompilationCustomizer();
             }
+        }
+
+        private static boolean isJavaGroovyJointCompilation(File[] sourceFiles) {
+            return Stream.of(sourceFiles).anyMatch(file -> hasExtension(file, ".java"));
         }
 
         public IncrementalCompilationCustomizer() {
@@ -143,6 +148,13 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
+    private File[] getSortedSourceFiles(GroovyJavaJointCompileSpec spec) {
+        // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
+        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
+        Arrays.sort(sortedSourceFiles);
+        return sortedSourceFiles;
+    }
+
     @Override
     public WorkResult execute(final GroovyJavaJointCompileSpec spec) {
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
@@ -156,7 +168,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setTargetDirectory(spec.getDestinationDir());
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
 
-        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec);
+        File[] sortedSourceFiles = getSortedSourceFiles(spec);
+
+        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec, sortedSourceFiles);
         customizer.addToConfiguration(configuration);
 
         if (spec.getGroovyCompileOptions().getConfigurationScript() != null) {
@@ -217,10 +231,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // to the sources won't cause any issues.
             unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
-
-        // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
-        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
-        Arrays.sort(sortedSourceFiles);
         unit.addSources(sortedSourceFiles);
 
         unit.setCompilerFactory(new JavaCompilerFactory() {
