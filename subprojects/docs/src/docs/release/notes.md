@@ -10,6 +10,7 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Dan Sănduleac](https://github.com/dansanduleac),
 [Martin d'Anjou](https://github.com/martinda),
 [Ben Asher](https://github.com/benasher44),
 [Mike Kobit](https://github.com/mkobit),
