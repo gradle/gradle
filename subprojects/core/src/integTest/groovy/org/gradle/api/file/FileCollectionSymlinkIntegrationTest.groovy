@@ -155,9 +155,18 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'copy'
+        run 'copy'
         then:
+        executedAndNotSkipped ':copy'
         outputDirectory.list().contains input.name
+
+        when:
+        run 'copy'
+        then:
+        skipped ':copy'
+
+        cleanup:
+        brokenLink.delete()
     }
 
     void maybeDeprecated(String expression) {
