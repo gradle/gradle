@@ -61,7 +61,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.writeSourceClassesMappingFile;
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -74,7 +73,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
-        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, File[] sortedSourceFiles) {
+        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec) {
             if (spec.getCompilationMappingFile() != null) {
                 return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec.getSourceRoots()), spec.getCompilationMappingFile());
             } else {
@@ -164,9 +163,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setTargetDirectory(spec.getDestinationDir());
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
 
-        File[] sortedSourceFiles = getSortedSourceFiles(spec);
-
-        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec, sortedSourceFiles);
+        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec);
         customizer.addToConfiguration(configuration);
 
         if (spec.getGroovyCompileOptions().getConfigurationScript() != null) {
@@ -227,7 +224,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // to the sources won't cause any issues.
             unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
-        unit.addSources(sortedSourceFiles);
+        unit.addSources(getSortedSourceFiles(spec));
 
         unit.setCompilerFactory(new JavaCompilerFactory() {
             @Override
