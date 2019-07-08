@@ -132,7 +132,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             if (relativeSourceFile.isPresent()) {
                 spec.getRelativeSourcePathsToCompile().add(relativeSourceFile.get());
             } else {
-                spec.setFullRebuildCause("Can't find source file of class " + className, null);
+                spec.setFullRebuildCause("unable to find source file of class " + className, null);
             }
         }
     }
