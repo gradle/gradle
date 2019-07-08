@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Incubating;
-
 /**
  * Marker interface for parameter objects to {@link TransformAction}s.
  *
@@ -47,7 +45,6 @@ public interface TransformParameters {
      *
      * @since 5.3
      */
-    @Incubating
     final class None implements TransformParameters {
         private None() {}
     }
