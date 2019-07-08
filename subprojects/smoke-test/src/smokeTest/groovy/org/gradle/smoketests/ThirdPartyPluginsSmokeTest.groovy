@@ -395,6 +395,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             
             ${mavenCentralRepository()}
             
+            if (JavaVersion.current().java8) {
+                dependencies {
+                    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+                }
+            }
+            
             dependencies {
                 errorprone("com.google.errorprone:error_prone_core:2.3.3")
             }
@@ -417,6 +423,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             
             }
         """
+
         expect:
         runner('compileJava').forwardOutput().build()
     }
