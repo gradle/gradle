@@ -384,7 +384,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         file('build/reports/spotbugs').isDirectory()
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
         given:

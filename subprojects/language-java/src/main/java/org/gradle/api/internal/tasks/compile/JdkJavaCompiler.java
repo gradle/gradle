@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
+import org.gradle.api.internal.tasks.compile.reflect.FilteringClassLoaderInjectingProxy;
 import org.gradle.api.internal.tasks.compile.reflect.SourcepathIgnoringProxy;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
@@ -66,6 +67,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         if (JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options)) {
             fileManager = (StandardJavaFileManager) SourcepathIgnoringProxy.proxy(standardFileManager, StandardJavaFileManager.class);
         }
+        fileManager = (StandardJavaFileManager) FilteringClassLoaderInjectingProxy.proxy(fileManager, StandardJavaFileManager.class);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
 
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
