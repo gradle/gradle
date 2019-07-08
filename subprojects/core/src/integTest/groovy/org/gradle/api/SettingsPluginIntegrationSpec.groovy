@@ -62,6 +62,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarnings(2)
         settingsFile << "apply plugin: 'simple-plugin'"
 
         then:

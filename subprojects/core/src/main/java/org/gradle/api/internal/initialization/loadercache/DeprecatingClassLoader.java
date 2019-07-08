@@ -21,6 +21,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.DeprecationLogger;
 
+import java.net.URL;
+
 public class DeprecatingClassLoader extends ClassLoader implements ImplementationHashAware {
 
     private final ClassLoader deprecatedUsageLoader;
@@ -35,6 +37,19 @@ public class DeprecatingClassLoader extends ClassLoader implements Implementatio
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         return loadClass(name, false);
+    }
+
+    @Override
+    public URL getResource(String name) {
+        URL resource = nonDeprecatedParent.getResource(name);
+        if (resource != null) {
+            return resource;
+        }
+        resource = deprecatedUsageLoader.getResource(name);
+        if (resource != null) {
+            DeprecationLogger.nagUserOfDeprecated("Using buildSrc resources in settings", "Do not use '" + name + "' in settings.");
+        }
+        return resource;
     }
 
     @Override
