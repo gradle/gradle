@@ -183,7 +183,7 @@ class DefaultInstantExecution(
     fun instantExecutionReport() = InstantExecutionReport(
         reportOutputDir,
         logger,
-        SystemProperties.maxFailures()
+        maxFailures()
     )
 
     private
@@ -299,11 +299,6 @@ class DefaultInstantExecution(
         Files.createDirectories(parentFile.toPath())
     }
 
-    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
-    private
-    val isInstantExecutionEnabled: Boolean
-        get() = SystemProperties.isEnabled() && !host.currentBuild.buildSrc
-
     private
     val instantExecutionStateFile by lazy {
         val currentGradleVersion = GradleVersion.current().version
@@ -320,8 +315,20 @@ class DefaultInstantExecution(
         }
     }
 
+    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
-    operator fun <T> SystemProperty<T>.invoke() = host.getSystemProperty(name)?.let(convert) ?: defaultValue
+    val isInstantExecutionEnabled: Boolean
+        get() = systemProperty(SystemProperties.isEnabled) != null && !host.currentBuild.buildSrc
+
+    private
+    fun maxFailures(): Int =
+        systemProperty(SystemProperties.maxFailures)
+            ?.let(Integer::valueOf)
+            ?: 512
+
+    private
+    fun systemProperty(propertyName: String) =
+        host.getSystemProperty(propertyName)
 }
 
 

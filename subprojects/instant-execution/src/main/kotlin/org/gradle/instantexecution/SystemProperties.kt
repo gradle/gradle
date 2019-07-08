@@ -20,15 +20,7 @@ package org.gradle.instantexecution
 internal
 object SystemProperties {
 
-    val isEnabled = SystemProperty("org.gradle.unsafe.instant-execution", false) { it != "false" }
+    const val isEnabled = "org.gradle.unsafe.instant-execution"
 
-    val maxFailures = SystemProperty("org.gradle.unsafe.instant-execution.max-failures", 512, Integer::valueOf)
+    const val maxFailures = "org.gradle.unsafe.instant-execution.max-failures"
 }
-
-
-internal
-data class SystemProperty<T>(
-    val name: String,
-    val defaultValue: T,
-    val convert: (String) -> T
-)
