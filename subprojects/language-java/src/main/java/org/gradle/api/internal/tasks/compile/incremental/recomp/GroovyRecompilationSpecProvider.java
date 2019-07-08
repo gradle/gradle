@@ -56,7 +56,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
-            spec.setFullRebuildCause("no source class mapping file found", null);
+            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
             return spec;
         }
 
@@ -111,8 +111,8 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             }
 
             File changedFile = fileChange.getFile();
-            if (FileUtils.hasExtension(changedFile, ".java")) {
-                spec.setFullRebuildCause("Groovy-Java joint compilation detected", changedFile);
+            if (!FileUtils.hasExtension(changedFile, ".groovy")) {
+                spec.setFullRebuildCause("changes to non-Groovy files are not supported by incremental compilation", changedFile);
                 return;
             }
 

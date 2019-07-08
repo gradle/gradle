@@ -27,33 +27,23 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
     }
 
     static Map sources = [
-        'G.groovy': 'class G {}',
-        'G.groovy.changed': 'class G { int i }',
-        'J.java': 'class J { }',
-        'J.java.changed': 'class J { int i; }',
+        'G': 'class G { }',
+        'G.changed': 'class G { int i }',
+        'J': 'class J { }',
+        'J.changed': 'class J { int i; }',
 
-        'J2.java': 'class J2 {}',
-        'J2.java.changed': 'class J2 { int i; }',
-        'G2.groovy': 'class G2 extends J2{}',
+        'G_J': 'class G_J extends J { }',
 
-        'J3.java': 'class J3 extends G3 {}',
-        'G3.groovy.changed': 'class G3 { int i }',
-        'G3.groovy': 'class G3 {}',
+        'J_G': 'class J_G extends G { }',
 
-        'G4.groovy': 'class G4 {}',
-        'G4.groovy.changed': 'class G4 { int i }',
-        'G5.groovy': 'class G5 extends G4 {}',
-        'J4.java': 'class J4 extends G5 {}',
+        'G_G': 'class G_G extends G { }',
+        'J_G_G': 'class J_G_G extends G_G { }',
     ]
 
     void applyFileSet(List<String> fileSet) {
         file('src/main/groovy').forceDeleteDir()
         fileSet.each {
-            try {
-                file("src/main/groovy/${it.replace('.changed', '')}").text = sources[it]
-            } catch (NullPointerException e) {
-                println("NPE: ${it}")
-            }
+            file("src/main/groovy/${it.replace('.changed', '') + (it.startsWith('J') ? '.java' : '.groovy')}").text = sources[it]
         }
     }
 
@@ -63,21 +53,21 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         } else {
             executedAndNotSkipped(":compileGroovy")
         }
+        outputContains(message)
     }
 
     @Unroll
-    def 'full compilation with Groovy-Java joint compilation'() {
+    def 'Groovy-Java joint compilation on #scenario'() {
         given:
         applyFileSet(initialSet)
+        run "compileGroovy"
 
         when:
-        run "compileGroovy"
         applyFileSet(firstChange)
+        run "compileGroovy", "--info"
 
         then: 'first build'
-        run "compileGroovy", "--info"
         upToDateOrMessage(firstBuildMessage)
-        outputContains(firstBuildMessage)
 
         when: 'second build'
         applyFileSet(secondChange)
@@ -85,17 +75,16 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
 
         then:
         upToDateOrMessage(secondBuildMessage)
-        outputContains(secondBuildMessage)
 
         where:
-        initialSet                            | firstChange                                   | firstBuildMessage                                        | secondChange                                  | secondBuildMessage
-        ['G.groovy']                          | ['G.groovy', 'J.java']                        | 'Groovy-Java joint compilation detected'                 | ['G.groovy', 'J.java']                        | 'UP-TO-DATE'
-        ['J.java']                            | ['G.groovy', 'J.java']                        | 'no source class mapping file found'                     | ['G.groovy', 'J.java.changed']                | 'Groovy-Java joint compilation detected'
-        ['G2.groovy', 'J2.java']              | ['G2.groovy', 'J2.java.changed']              | 'Groovy-Java joint compilation detected'                 | ['G2.groovy', 'J2.java.changed']              | 'UP-TO-DATE'
-        ['G3.groovy', 'J3.java']              | ['G3.groovy.changed', 'J3.java']              | 'unable to find source file of class J3'                 | ['G3.groovy.changed', 'J3.java']              | 'UP-TO-DATE'
-        ['G.groovy', 'J.java']                | ['G.groovy']                                  | 'Groovy-Java joint compilation detected'                 | ['G.groovy', 'G4.groovy']                     | 'Incremental compilation of '
-        ['G.groovy', 'J.java']                | ['J.java']                                    | 'UP-TO-DATE'/*None of the classes needs to be compiled*/ | ['J.java', 'J2.java']                         | 'no source class mapping file found'
-        ['G.groovy', 'J.java']                | ['G.groovy', 'J.java', 'G4.groovy']           | 'Incremental compilation of'                             | ['G.groovy', 'J.java', 'G4.groovy']           | 'UP-TO-DATE'
-        ['G4.groovy', 'G5.groovy', 'J4.java'] | ['G4.groovy.changed', 'G5.groovy', 'J4.java'] | 'unable to find source file of class J4'                 | ['G4.groovy.changed', 'G5.groovy', 'J4.java'] | 'UP-TO-DATE'
+        scenario                                     | initialSet            | firstChange                   | firstBuildMessage                                        | secondChange                  | secondBuildMessage
+        'Add Java files to Groovy file set'          | ['G']                 | ['G', 'J']                    | 'changes to non-Groovy files'                            | ['G', 'J']                    | 'UP-TO-DATE'
+        'Add Groovy files to Java file set'          | ['J']                 | ['G', 'J']                    | 'unable to get source-classes mapping'                   | ['G', 'J.changed']            | 'changes to non-Groovy files'
+        'Change Java files in joint compilation'     | ['G', 'J']            | ['G', 'J.changed']            | 'changes to non-Groovy files'                            | ['G', 'J.changed']            | 'UP-TO-DATE'
+        'Change Groovy files which Java  depends on' | ['G', 'J_G']          | ['G.changed', 'J_G']          | 'unable to find source file of class J_G'                | ['G.changed', 'J_G']          | 'UP-TO-DATE'
+        'Remove Java files in joint compilation'     | ['G', 'J']            | ['G']                         | 'changes to non-Groovy files'                            | ['G', 'G_G']                  | 'Incremental compilation of '
+        'Remove Groovy fiels in joint compilation'   | ['G', 'J']            | ['J']                         | 'UP-TO-DATE'/*None of the classes needs to be compiled*/ | ['J', 'G']                    | 'unable to get source-classes mapping'
+        'Add Groovy files to joint file set'         | ['G', 'J']            | ['G', 'J', 'G_G']             | 'Incremental compilation of'                             | ['G', 'J', 'G_G']             | 'UP-TO-DATE'
+        'Change root Groovy files '                  | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'unable to find source file of class J_G_G'              | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'
     }
 }
