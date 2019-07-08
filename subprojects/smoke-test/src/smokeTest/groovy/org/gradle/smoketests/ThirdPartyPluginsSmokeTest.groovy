@@ -384,4 +384,42 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         file('build/reports/spotbugs').isDirectory()
     }
 
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/9897")
+    def 'errorprone plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id('java')
+                id("net.ltgt.errorprone") version "${TestedVersions.errorProne}"
+            }
+            
+            ${mavenCentralRepository()}
+            
+            dependencies {
+                errorprone("com.google.errorprone:error_prone_core:2.3.3")
+            }
+            
+            tasks.withType(JavaCompile).configureEach {
+                options.fork = true                
+                options.errorprone {
+                    check("DoubleBraceInitialization", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+                }
+            }
+        """
+        file("src/main/java/Test.java") << """
+            import java.util.HashSet;
+            import java.util.Set;
+            
+            public class Test {
+            
+                public static void main(String[] args) {
+                }
+            
+            }
+        """
+        expect:
+        runner('compileJava').forwardOutput().build()
+    }
+
 }
