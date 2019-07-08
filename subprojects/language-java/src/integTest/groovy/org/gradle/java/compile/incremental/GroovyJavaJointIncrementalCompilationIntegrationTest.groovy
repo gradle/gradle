@@ -26,7 +26,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         configureGroovyIncrementalCompilation()
     }
 
-    static Map sources = [
+    private static final Map SOURCES = [
         'G': 'class G { }',
         'G.changed': 'class G { int i }',
         'J': 'class J { }',
@@ -39,22 +39,6 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'G_G': 'class G_G extends G { }',
         'J_G_G': 'class J_G_G extends G_G { }',
     ]
-
-    void applyFileSet(List<String> fileSet) {
-        file('src/main/groovy').forceDeleteDir()
-        fileSet.each {
-            file("src/main/groovy/${it.replace('.changed', '') + (it.startsWith('J') ? '.java' : '.groovy')}").text = sources[it]
-        }
-    }
-
-    void upToDateOrMessage(String message) {
-        if (message == 'UP-TO-DATE') {
-            skipped(":compileGroovy")
-        } else {
-            executedAndNotSkipped(":compileGroovy")
-        }
-        outputContains(message)
-    }
 
     @Unroll
     def 'Groovy-Java joint compilation on #scenario'() {
@@ -86,5 +70,21 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'Remove Groovy fiels in joint compilation'   | ['G', 'J']            | ['J']                         | 'UP-TO-DATE'/*None of the classes needs to be compiled*/ | ['J', 'G']                    | 'unable to get source-classes mapping'
         'Add Groovy files to joint file set'         | ['G', 'J']            | ['G', 'J', 'G_G']             | 'Incremental compilation of'                             | ['G', 'J', 'G_G']             | 'UP-TO-DATE'
         'Change root Groovy files '                  | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'unable to find source file of class J_G_G'              | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'
+    }
+
+    void applyFileSet(List<String> fileSet) {
+        file('src/main/groovy').forceDeleteDir()
+        fileSet.each {
+            file("src/main/groovy/${it.replace('.changed', '') + (it.startsWith('J') ? '.java' : '.groovy')}").text = SOURCES[it]
+        }
+    }
+
+    void upToDateOrMessage(String message) {
+        if (message == 'UP-TO-DATE') {
+            skipped(":compileGroovy")
+        } else {
+            executedAndNotSkipped(":compileGroovy")
+        }
+        outputContains(message)
     }
 }
