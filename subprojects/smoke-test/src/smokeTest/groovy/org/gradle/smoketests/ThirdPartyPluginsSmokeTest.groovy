@@ -258,41 +258,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         runner('integrationTest').build()
     }
 
-    @Issue('https://plugins.gradle.org/plugin/org.gosu-lang.gosu')
-    @Ignore("Relies on SourceTask.source - https://github.com/gosu-lang/gradle-gosu-plugin/issues/47")
-    def 'gosu plugin'() { // Requires JDK 8 or later
-        given:
-        buildFile << """
-            plugins {
-                id 'org.gosu-lang.gosu' version '${TestedVersions.gosu}'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.9'
-            }
-            """.stripIndent()
-
-        file('src/main/gosu/example/Foo.gs') << """
-            package example
-
-            public class Foo {
-
-              function doSomething(arg : String) : String {
-                return "Hello, got the argument '\${arg}'"
-              }
-            }
-            """.stripIndent()
-
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':compileGosu').outcome == SUCCESS
-    }
-
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     def 'org.ajoberstar.grgit plugin'() {
         given:

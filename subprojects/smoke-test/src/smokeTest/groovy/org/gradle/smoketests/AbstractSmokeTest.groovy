@@ -91,9 +91,6 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/com.eriwen.gradle.css
         static gradleCss = "2.14.0"
 
-        // https://plugins.gradle.org/plugin/org.gosu-lang.gosu
-        static gosu = "0.3.10"
-
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "3.1.1"
 
