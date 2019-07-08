@@ -59,18 +59,11 @@ class InstantExecutionReport(
 
     fun withExceptionHandling(block: () -> Unit): Throwable? {
 
-        var fatalError: Throwable? = null
-        try {
-            block()
-        } catch (e: Throwable) {
-            when (e.cause) {
-                is TooManyInstantExecutionFailuresException -> fatalError = e
-                else -> add(e)
-            }
-        }
+        val fatalError = runWithExceptionHandling(block)
 
         if (failures.isEmpty()) {
-            return fatalError
+            require(fatalError == null)
+            return null
         }
 
         logSummary()
@@ -78,6 +71,23 @@ class InstantExecutionReport(
 
         return fatalError?.withSuppressed(errors())
             ?: instantExecutionExceptionForErrors()
+    }
+
+    private
+    fun runWithExceptionHandling(block: () -> Unit): Throwable? {
+        try {
+            block()
+        } catch (e: Throwable) {
+            when (e.cause) {
+                is TooManyInstantExecutionFailuresException -> {
+                    return e
+                }
+                else -> {
+                    add(e)
+                }
+            }
+        }
+        return null
     }
 
     private
