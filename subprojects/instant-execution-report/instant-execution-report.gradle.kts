@@ -47,7 +47,7 @@ tasks {
             compileClasspath.single { file -> file.name.matches(kotlinStdlibJsJarRegex) }
         }
 
-        from(zipTree(kotlinStdLibJsJar)) {
+        from(kotlinStdLibJsJar.map(::zipTree)) {
             include("**/*.js")
             exclude("META-INF/**")
         }
