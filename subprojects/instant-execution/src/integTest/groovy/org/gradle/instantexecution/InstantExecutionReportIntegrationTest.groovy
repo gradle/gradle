@@ -123,10 +123,14 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
     }
 
     private static int numberOfFailuresIn(File jsFile) {
-        ScriptEngineManager engineManager = new ScriptEngineManager()
-        ScriptEngine engine = engineManager.getEngineByName("JavaScript")
-        engine.eval(jsFile.text)
-        return engine.eval("instantExecutionFailures().length") as int
+        newJavaScriptEngine().with {
+            eval(jsFile.text)
+            eval("instantExecutionFailures().length") as int
+        }
+    }
+
+    private static ScriptEngine newJavaScriptEngine() {
+        new ScriptEngineManager().getEngineByName("JavaScript")
     }
 
     private TestFile stateDirForTasks(String... requestedTaskNames) {
