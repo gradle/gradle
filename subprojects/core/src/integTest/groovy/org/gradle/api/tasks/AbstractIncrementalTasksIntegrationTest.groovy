@@ -211,6 +211,10 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         inputDir = project.mkdir('inputs')
     }
 """
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
+
         and:
         previousExecution()
 
@@ -262,6 +266,9 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         inputDir = project.mkdir('inputs')
     }
 """
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
 
         then:
         executesNonIncrementally()

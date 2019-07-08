@@ -21,9 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.gradle.work.InputChanges
-import org.intellij.lang.annotations.Language
 import spock.lang.Issue
+import spock.lang.Unroll
 
+@Unroll
 class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
@@ -32,11 +33,15 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
         def modifiedInput = inputs[1]
 
-        @Language("Groovy") script = """
-            class IncrementalTask extends DefaultTask {
+        buildFile << """
+            abstract class IncrementalTask extends DefaultTask {
                 @InputFiles
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 def inputFiles = project.files(${asFileList(inputs)})
+
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
             
                 @TaskAction
                 def action(${taskChangeType.name} changes) {}
@@ -44,7 +49,6 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
             
             task ${taskName}(type: IncrementalTask) {}
         """
-        buildScript script
         run taskName, "--info"
 
         when:
@@ -73,11 +77,15 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def movableInput = inputs[1]
         def renamedInput = file("moved/${movableInput.name}")
 
-        @Language("Groovy") script = """
-            class IncrementalTask extends DefaultTask {
+        buildFile << """
+            abstract class IncrementalTask extends DefaultTask {
                 @InputFiles
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 def inputFiles = project.files(${asFileList(inputs)}, '${TextUtil.escapeString(renamedInput.absolutePath)}')
+            
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
             
                 @TaskAction
                 def action(${taskChangeType.name} changes) {}
@@ -85,7 +93,6 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
             
             task ${taskName}(type: IncrementalTask) {}
         """
-        buildScript script
         run taskName, "--info"
 
         when:
@@ -108,11 +115,15 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         def taskName = "incrementalTask"
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
 
-        @Language("Groovy") script = """
-            class IncrementalTask extends DefaultTask {
+        buildFile << """
+            abstract class IncrementalTask extends DefaultTask {
                 @InputFiles
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 def inputFiles = project.files(${asFileList(inputs)})
+            
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
             
                 @TaskAction
                 def action(${taskChangeType.name} changes) {}
@@ -120,7 +131,6 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
             
             task ${taskName}(type: IncrementalTask) {}
         """
-        buildScript script
         run taskName
 
         when:

@@ -143,6 +143,9 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             }
         """
         file("nonIncremental").text = "input"
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
 
         expect:
         fails("withNonIncrementalInput")
@@ -170,6 +173,9 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             }
         """
         file("nonIncremental").text = "input"
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
         run("withNonIncrementalInput")
 
         when:

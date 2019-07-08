@@ -1256,6 +1256,9 @@ task generate(type: TransformerTask) {
         project.ext.inputDirs.split(',').each { inputs.dir(it) }
     }
 '''
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
 
         when:
         args('-PinputDirs=inputDir1,inputDir2')
