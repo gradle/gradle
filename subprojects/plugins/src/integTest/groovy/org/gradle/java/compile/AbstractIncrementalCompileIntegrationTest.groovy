@@ -25,9 +25,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
 
     def setup() {
         if (language == CompiledLanguage.GROOVY) {
-            executer.beforeExecute {
-                executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=true")
-            }
+            settingsFile << "enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')\n"
         }
     }
 

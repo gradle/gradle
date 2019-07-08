@@ -48,9 +48,7 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
 
     def enableCompilationAvoidance() {
         if (language == CompiledLanguage.GROOVY) {
-            executer.beforeExecute {
-                executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=true")
-            }
+            settingsFile << "enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')\n"
         }
     }
 

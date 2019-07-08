@@ -29,8 +29,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     abstract CompiledLanguage getLanguage()
 
-    boolean enableGroovyCompilationAvoidance = true
-
     def setup() {
         settingsFile << """
 include 'a', 'b'
@@ -51,9 +49,7 @@ include 'a', 'b'
 
         if (language == CompiledLanguage.GROOVY) {
             buildFile << language.projectGroovyDependencies()
-            executer.beforeExecute {
-                executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=${enableGroovyCompilationAvoidance}")
-            }
+            settingsFile << "enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')\n"
         }
 
         if (isUseJar()) {
