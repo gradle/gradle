@@ -21,6 +21,7 @@ import com.google.common.base.Strings;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.internal.IllegalPluginApplyFalseException;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.internal.InvalidPluginVersionException;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
@@ -33,6 +34,7 @@ import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,12 +49,19 @@ import static org.gradle.util.CollectionUtils.collect;
  * The {@link PluginUseScriptBlockMetadataCompiler} interacts with this type.
  */
 public class PluginRequestCollector {
+    public enum AllowApplyFalse {
+        ALLOWED,
+        FORBIDDEN
+    }
+
     public static final String EMPTY_VALUE = "cannot be null or empty";
 
     private final ScriptSource scriptSource;
+    private final PluginRequestCollector.AllowApplyFalse allowApplyFalse;
 
-    public PluginRequestCollector(ScriptSource scriptSource) {
+    public PluginRequestCollector(ScriptSource scriptSource, AllowApplyFalse allowApplyFalse) {
         this.scriptSource = scriptSource;
+        this.allowApplyFalse = allowApplyFalse;
     }
 
     private final List<PluginDependencySpecImpl> specs = new LinkedList<PluginDependencySpecImpl>();
@@ -114,7 +123,40 @@ public class PluginRequestCollector {
         public PluginDependencySpec id(String id, int requestLineNumber) {
             PluginDependencySpecImpl spec = new PluginDependencySpecImpl(id, requestLineNumber);
             specs.add(spec);
-            return spec;
+
+            final PluginDependencySpec specToUse;
+            if (AllowApplyFalse.FORBIDDEN.equals(allowApplyFalse)) {
+                specToUse = new RestrictedPluginDependencySpecImpl(spec);
+            } else {
+                specToUse = spec;
+            }
+            return specToUse;
+        }
+    }
+
+    /**
+     * Implementation used when {@link AllowApplyFalse#FORBIDDEN} is passed.
+     */
+    private static class RestrictedPluginDependencySpecImpl implements PluginDependencySpec {
+
+        private final PluginDependencySpec decorated;
+
+        RestrictedPluginDependencySpecImpl(final PluginDependencySpec decorated) {
+            this.decorated = decorated;
+        }
+
+        @Override
+        public PluginDependencySpec version(@Nullable String version) {
+            return new RestrictedPluginDependencySpecImpl(decorated.version(version));
+        }
+
+        @Override
+        public PluginDependencySpec apply(boolean apply) {
+            if (!apply) {
+                throw new IllegalPluginApplyFalseException();
+            }
+            //noinspection ConstantConditions
+            return new RestrictedPluginDependencySpecImpl(decorated.apply(apply));
         }
     }
 

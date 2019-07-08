@@ -21,6 +21,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.internal.PluginRequestCollector;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -29,13 +30,18 @@ import javax.annotation.Nullable;
 abstract public class PluginScript extends DefaultScript {
     @Nullable
     public PluginRequestCollector pluginRequestCollector;
+    private final PluginRequestCollector.AllowApplyFalse allowApplyFalse;
+
+    protected PluginScript(@Nonnull PluginRequestCollector.AllowApplyFalse allowApplyFalse) {
+        this.allowApplyFalse = allowApplyFalse;
+    }
 
     /**
      * Called by the {@link org.gradle.groovy.scripts.internal.InitialPassStatementTransformer#addLineNumberToMethodCall}.
      */
     public void plugins(int lineNumber, Closure configureClosure) {
         if (pluginRequestCollector == null) {
-            pluginRequestCollector = new PluginRequestCollector(getScriptSource());
+            pluginRequestCollector = new PluginRequestCollector(getScriptSource(), allowApplyFalse);
         }
         PluginDependenciesSpec spec = pluginRequestCollector.createSpec(lineNumber);
         ConfigureUtil.configure(configureClosure, spec);

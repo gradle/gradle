@@ -131,4 +131,3 @@ fun handleUnexpectedBlock(unexpectedBlock: UnexpectedBlock, script: String, scri
     val message = compilerMessageFor(scriptPath, line, column, unexpectedBlock.message!!)
     throw IllegalStateException(message, unexpectedBlock)
 }
-

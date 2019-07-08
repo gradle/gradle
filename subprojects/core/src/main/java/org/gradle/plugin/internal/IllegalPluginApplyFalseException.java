@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.groovy.scripts.PluginScript;
-import org.gradle.plugin.use.internal.PluginRequestCollector;
+package org.gradle.plugin.internal;
 
-public abstract class SettingsScript extends PluginScript {
+import org.gradle.api.GradleException;
 
-    protected SettingsScript() {
-        super(PluginRequestCollector.AllowApplyFalse.FORBIDDEN);
-    }
+public class IllegalPluginApplyFalseException extends GradleException {
 
-    public String toString() {
-        return getScriptTarget().toString();
+    public IllegalPluginApplyFalseException() {
+        super("Use of 'apply false' on this script type is not supported.");
     }
 }

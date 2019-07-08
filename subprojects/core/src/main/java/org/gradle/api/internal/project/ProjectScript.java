@@ -21,10 +21,15 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.groovy.scripts.PluginScript;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.plugin.use.internal.PluginRequestCollector;
 
 import java.util.Map;
 
 public abstract class ProjectScript extends PluginScript {
+
+    protected ProjectScript() {
+        super(PluginRequestCollector.AllowApplyFalse.ALLOWED);
+    }
 
     @Override
     public void apply(Closure closure) {

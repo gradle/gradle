@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -106,7 +107,9 @@ abstract class KotlinSettingsScript(
      * Configures the plugin dependencies for the project's settings.
      *
      * @see [PluginDependenciesSpec]
+     * @since 5.6
      */
+    @Incubating
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         throw Exception("The plugins {} block must not be used here. "

@@ -16,7 +16,10 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.kotlin.dsl.execution.TopLevelBlockId.*
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.buildscript
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.pluginManagement
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.plugins
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -130,6 +133,5 @@ class TopLevelBlockExtractionTest {
 
     private
     fun extractPluginAndPluginManagementBlockFrom(script: String) =
-        lex(script,  pluginManagement, plugins).second
-
+        lex(script, pluginManagement, plugins).second
 }

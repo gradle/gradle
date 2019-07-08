@@ -18,6 +18,7 @@ package org.gradle.plugin.use.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.plugin.internal.IllegalPluginApplyFalseException
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
 import org.gradle.plugin.use.PluginDependenciesSpec
 import spock.lang.Specification
@@ -27,13 +28,17 @@ class PluginRequestCollectorTest extends Specification {
     final scriptSource = new StringScriptSource("d", "c")
     static final int LINE_NUMBER = 10
 
-    List<Map> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
-        new PluginRequestCollector(scriptSource).with {
+    List<Map> plugins(PluginRequestCollector.AllowApplyFalse allowApplyFalse, @DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
+        new PluginRequestCollector(scriptSource, allowApplyFalse).with {
             createSpec(LINE_NUMBER).with(closure)
             listPluginRequests()
         }.collect {
             [id: it.id.id, version: it.version]
         }
+    }
+
+    List<Map> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
+        return plugins(PluginRequestCollector.AllowApplyFalse.ALLOWED, closure)
     }
 
     def "can use spec dsl to build one request"() {
@@ -73,6 +78,16 @@ class PluginRequestCollectorTest extends Specification {
         then:
         def e = thrown(LocationAwareException)
         e.cause instanceof InvalidPluginRequestException
+    }
+
+    def "prevents apply false when forbidden"() {
+        when:
+        plugins(PluginRequestCollector.AllowApplyFalse.FORBIDDEN) {
+            id "foo" version "1.0" apply false
+        }
+
+        then:
+        thrown(IllegalPluginApplyFalseException)
     }
 
 }

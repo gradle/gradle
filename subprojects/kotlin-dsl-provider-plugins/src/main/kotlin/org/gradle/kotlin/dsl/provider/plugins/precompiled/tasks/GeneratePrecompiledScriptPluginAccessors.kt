@@ -231,10 +231,19 @@ abstract class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCode
             pluginRequests
         }
 
+    private
+    fun allowPluginApplyFalse(scriptType: KotlinScriptType) =
+        when (scriptType) {
+            KotlinScriptType.PROJECT -> PluginRequestCollector.AllowApplyFalse.ALLOWED
+            else -> PluginRequestCollector.AllowApplyFalse.FORBIDDEN
+        }
 
     private
     fun pluginRequestCollectorFor(plugin: PrecompiledScriptPlugin) =
-        PluginRequestCollector(scriptSourceFor(plugin))
+        PluginRequestCollector(
+            scriptSourceFor(plugin),
+            allowPluginApplyFalse(plugin.scriptType)
+        )
 
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =

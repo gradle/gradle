@@ -315,7 +315,11 @@ class ResidualProgramCompiler(
 
         precompiledScriptClassInstantiation(precompiledPluginsBlock) {
 
-            // val collector = PluginRequestCollector(scriptSource)
+            /*
+             * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.ALLOWED)
+             * OR
+             * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.FORBIDDEN)
+             */
             emitPluginRequestCollectorInstantiation()
 
             // ${precompiledPluginsBlock}(collector.createSpec(lineNumber))
@@ -331,7 +335,9 @@ class ResidualProgramCompiler(
     }
 
     /**
-     * val collector = PluginRequestCollector(scriptSource)
+     * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.ALLOWED)
+     * OR
+     * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.FORBIDDEN)
      */
     private
     fun MethodVisitor.emitPluginRequestCollectorInstantiation() {
@@ -342,10 +348,11 @@ class ResidualProgramCompiler(
             KotlinScriptHost::class.internalName,
             "getScriptSource",
             "()Lorg/gradle/groovy/scripts/ScriptSource;")
+        GETSTATIC(pluginRequestCollectorAllowApplyFalse)
         INVOKESPECIAL(
             pluginRequestCollectorType,
             "<init>",
-            "(Lorg/gradle/groovy/scripts/ScriptSource;)V")
+            "(Lorg/gradle/groovy/scripts/ScriptSource;Lorg/gradle/plugin/use/internal/PluginRequestCollector${'$'}AllowApplyFalse;)V")
         ASTORE(Vars.PluginRequestCollector)
     }
 
@@ -370,6 +377,12 @@ class ResidualProgramCompiler(
 
     private
     val pluginRequestCollectorType = PluginRequestCollector::class.internalName
+
+    private
+    val pluginRequestCollectorAllowApplyFalse = when (programTarget) {
+        ProgramTarget.Project -> PluginRequestCollector.AllowApplyFalse.ALLOWED
+        else -> PluginRequestCollector.AllowApplyFalse.FORBIDDEN
+    }
 
     private
     fun MethodVisitor.invokeApplyPluginsTo() {

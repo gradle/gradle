@@ -29,12 +29,14 @@ abstract class UnexpectedBlock(message: String) : RuntimeException(message) {
     abstract val location: IntRange
 }
 
+
 internal
 class UnexpectedDuplicateBlock(val identifier: TopLevelBlockId, override val location: IntRange) :
     UnexpectedBlock("Unexpected `$identifier` block found. Only one `$identifier` block is allowed per script.")
 
+
 internal
-class UnexpectedBlockOrder(val identifier: TopLevelBlockId, override val location: IntRange, expectedFirstIdentifier: TopLevelBlockId):
+class UnexpectedBlockOrder(val identifier: TopLevelBlockId, override val location: IntRange, expectedFirstIdentifier: TopLevelBlockId) :
     UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` can not appear before `$expectedFirstIdentifier`.")
 
 
@@ -167,6 +169,7 @@ data class TopLevelBlock(val identifier: TopLevelBlockId, val section: ScriptSec
         get() = section.wholeRange
 }
 
+
 @Suppress("EnumEntryName")
 internal
 enum class TopLevelBlockId {
@@ -186,7 +189,8 @@ enum class TopLevelBlockId {
             ProgramTarget.Gradle -> arrayOf(buildscript)
         }
 
-        fun buildscriptIdFor(target: ProgramTarget) = when(target) {
+
+        fun buildscriptIdFor(target: ProgramTarget) = when (target) {
             ProgramTarget.Gradle -> initscript
             ProgramTarget.Settings -> buildscript
             ProgramTarget.Project -> buildscript

@@ -60,24 +60,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     }
 
     @Unroll
-    def "settings script with a plugins block with apply false - #settingScriptExtension"() {
-        given:
-        doConfigureSettingsPlugin()
-        file("settings$settingScriptExtension") << use
-
-        when:
-        fails 'customTask'
-
-        then:
-        errorOutput.contains("Task 'customTask' not found in root project")
-
-        where:
-        settingScriptExtension | use
-        '.gradle.kts'          | USE_APPLY_FALSE_KOTLIN
-        '.gradle'              | USE_APPLY_FALSE
-    }
-
-    @Unroll
     def "multiple plugins blocks in settings fail the build - #settingScriptExtension"() {
         given:
         file("settings$settingScriptExtension") << use
@@ -126,5 +108,22 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         settingScriptExtension | use
         '.gradle.kts'          | "plugins { id(\"unknown\") version \"1.0\" }"
         '.gradle'              | "plugins { id 'unknown' version '1.0' }"
+    }
+
+    @Unroll
+    def "plugins block does not allow apply false on settings"() {
+        given:
+        file("settings$settingScriptExtension") << use
+
+        when:
+        fails 'help'
+
+        then:
+        errorOutput.contains("Use of 'apply false' on this script type is not supported.")
+
+        where:
+        settingScriptExtension | use
+        '.gradle.kts'          | "plugins { id(\"noop\").version(\"1.0\").apply(false) }"
+        '.gradle'              | "plugins { id 'noop' version '1.0' apply false }"
     }
 }
