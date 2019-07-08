@@ -158,13 +158,13 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
         then:
         executedAndNotSkipped ':copy'
-        outputDirectory.list() == [input.name, brokenLink.name]
+        outputDirectory.list().sort() == [input.name, brokenLink.name].sort()
 
         when:
         run 'copy'
         then:
         skipped ':copy'
-        outputDirectory.list() == [input.name, brokenLink.name]
+        outputDirectory.list().sort() == [input.name, brokenLink.name].sort()
 
         when:
         brokenLink.delete()
