@@ -203,6 +203,8 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
     }
 
     fun hasTestsOf(type: TestType) = (unitTests && type.unitTests) || (functionalTests && type.functionalTests) || (crossVersionTests && type.crossVersionTests)
+
+    fun hasOnlyUnitTests() = unitTests && !functionalTests && !crossVersionTests
 }
 
 interface StageName {

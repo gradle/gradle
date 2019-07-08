@@ -123,6 +123,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                     if (subProject.containsSlowTests && stage.omitsSlowProjects) {
                         return@forEach
                     }
+                    if (subProject.hasOnlyUnitTests()) {
+                        return@forEach
+                    }
                     if (subProject.unitTests && testCoverage.testType.unitTests) {
                         dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
                     } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
@@ -130,6 +133,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                     } else if (subProject.crossVersionTests && testCoverage.testType.crossVersionTests) {
                         dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
                     }
+                }
+                if (testCoverage.testType.unitTests && model.subProjects.any { it.hasOnlyUnitTests() }) {
+                    dependency(AbsoluteId(testCoverage.asConfigurationId(model, FunctionalTestProject.allUnitTestsBuildTypeName))) { snapshot {} }
                 }
             } else {
                 dependency(AbsoluteId(testCoverage.asConfigurationId(model))) {

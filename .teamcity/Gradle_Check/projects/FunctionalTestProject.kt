@@ -22,13 +22,21 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
             return@forEach
         }
 
-        if (subProject.hasTestsOf(testConfig.testType)) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
+        if (subProject.hasTestsOf(testConfig.testType) && !subProject.hasOnlyUnitTests()) {
+            buildType(FunctionalTest(model, testConfig, listOf(subProject.name), stage))
         }
     }
+
+    if (testConfig.testType.unitTests && model.subProjects.any { it.hasOnlyUnitTests() }) {
+        val projectsWithOnlyUnitTests = model.subProjects.filter { it.hasOnlyUnitTests() }.map { it.name }
+        buildType(FunctionalTest(model, testConfig, projectsWithOnlyUnitTests, stage, allUnitTestsBuildTypeName))
+    }
+
 }){
     companion object {
-        val missingTestCoverage = mutableListOf<TestCoverage>()
+        const val allUnitTestsBuildTypeName = "AllUnitTests"
+
+        val missingTestCoverage = mutableSetOf<TestCoverage>()
 
         private fun addMissingTestCoverage(coverage: TestCoverage) {
             this.missingTestCoverage.add(coverage)
