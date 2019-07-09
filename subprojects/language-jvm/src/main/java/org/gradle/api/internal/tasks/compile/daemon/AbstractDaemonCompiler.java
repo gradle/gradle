@@ -40,20 +40,12 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
-    private final Class<? extends Compiler<T>> delegateClass;
-    private final Object[] delegateParameters;
     private final WorkerFactory workerFactory;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public AbstractDaemonCompiler(Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
-        this.delegateClass = delegateClass;
-        this.delegateParameters = delegateParameters;
+    public AbstractDaemonCompiler(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workerFactory = workerFactory;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
-    }
-
-    public Class<? extends Compiler<T>> getDelegateClass() {
-        return delegateClass;
     }
 
     @Override
@@ -61,7 +53,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
         Worker worker = workerFactory.getWorker(daemonForkOptions);
 
-        CompilerParameters parameters = new CompilerParameters(delegateClass.getName(), delegateParameters, spec);
+        CompilerParameters parameters = getCompilerParameters(spec);
         DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkerExecution.class, parameters, daemonForkOptions.getClassLoaderStructure()));
         if (result.isSuccess()) {
             return result;
@@ -71,6 +63,8 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     }
 
     protected abstract DaemonForkOptions toDaemonForkOptions(T spec);
+
+    protected abstract CompilerParameters getCompilerParameters(T spec);
 
     protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
         BaseForkOptions merged = new BaseForkOptions();
@@ -82,15 +76,13 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return merged;
     }
 
-    public static class CompilerParameters implements WorkerParameters, Serializable {
+    public abstract static class CompilerParameters implements WorkerParameters, Serializable {
         private final String compilerClassName;
         private final Object[] compilerInstanceParameters;
-        private final CompileSpec compileSpec;
 
-        public CompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, CompileSpec compileSpec) {
+        public CompilerParameters(String compilerClassName, Object[] compilerInstanceParameters) {
             this.compilerClassName = compilerClassName;
             this.compilerInstanceParameters = compilerInstanceParameters;
-            this.compileSpec = compileSpec;
         }
 
         public String getCompilerClassName() {
@@ -101,9 +93,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
             return compilerInstanceParameters;
         }
 
-        public CompileSpec getCompileSpec() {
-            return compileSpec;
-        }
+        abstract public CompileSpec getCompileSpec();
     }
 
     public static abstract class CompilerWorkerExecution implements WorkerExecution<CompilerParameters>, ProvidesWorkResult {

@@ -31,17 +31,27 @@ import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
+import java.io.Serializable;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
+    private final Class<? extends Compiler<JavaCompileSpec>> compilerClass;
+    private final Object[] compilerConstructorArguments;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Class<? extends Compiler<JavaCompileSpec>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
-        super(delegateClass, delegateParameters, workerDaemonFactory, actionExecutionSpecFactory);
+    public DaemonJavaCompiler(File daemonWorkingDir, Class<? extends Compiler<JavaCompileSpec>> compilerClass, Object[] compilerConstructorArguments, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        super(workerDaemonFactory, actionExecutionSpecFactory);
+        this.compilerClass = compilerClass;
+        this.compilerConstructorArguments = compilerConstructorArguments;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.classPathRegistry = classPathRegistry;
+    }
+
+    @Override
+    protected CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
+        return new JavaCompilerParameters(compilerClass.getName(), compilerConstructorArguments, spec);
     }
 
     @Override
@@ -58,5 +68,19 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+    }
+
+    public static class JavaCompilerParameters extends CompilerParameters {
+        private final JavaCompileSpec compileSpec;
+
+        public JavaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, JavaCompileSpec compileSpec) {
+            super(compilerClassName, compilerInstanceParameters);
+            this.compileSpec = compileSpec;
+        }
+
+        @Override
+        public JavaCompileSpec getCompileSpec() {
+            return compileSpec;
+        }
     }
 }
