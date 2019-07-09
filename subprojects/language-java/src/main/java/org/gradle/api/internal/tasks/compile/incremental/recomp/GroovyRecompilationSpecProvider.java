@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
@@ -111,7 +112,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             }
 
             File changedFile = fileChange.getFile();
-            if (!FileUtils.hasExtension(changedFile, ".groovy")) {
+            if (fileChange.getFileType() != FileType.DIRECTORY && !FileUtils.hasExtension(changedFile, ".groovy")) {
                 spec.setFullRebuildCause("changes to non-Groovy files are not supported by incremental compilation", changedFile);
                 return;
             }
