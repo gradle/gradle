@@ -127,112 +127,12 @@ h4, h5, h6 {
     font-size: 1.0625rem;
 }
 
-p {
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 1.25rem;
-}
-
-dt {
-    font-weight: 700;
-}
-
-dd {
-    margin-bottom: 0.5rem;
-    margin-left: 1.5em;
-}
-
-dd p {
-    margin-top: 0;
-}
-
-hr {
-    position: relative;
-    border: 0;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #fff;
-    margin: 0;
-}
-
 ul, ol, dl {
     list-style-position: outside;
     line-height: 1.6;
     margin: 0 0 1rem 1em;
     padding: 0;
     list-style-type: none;
-}
-
-ul {
-}
-
-ol {
-}
-
-dl dt {
-    font-weight: normal;
-}
-
-tfoot {
-    font-style: italic;
-}
-
-caption {
-    background: #eee;
-}
-
-abbr, acronym {
-    font-size: 85%;
-    font-weight: bold;
-    color: #555;
-    text-transform: uppercase;
-}
-
-abbr[title], acronym[title] {
-    cursor: help;
-    border-bottom: 1px dotted #e5e5e5;
-}
-
-b, strong, dfn {
-    font-weight: 700;
-}
-
-em, dfn {
-    font-style: italic;
-}
-
-sup, sub {
-    line-height: 0;
-}
-
-address {
-    margin: 0 0 1.5em;
-    font-style: italic;
-}
-
-del {
-    color: #666;
-}
-
-blockquote {
-    padding: .5rem 1rem;
-    margin: .8rem 0;
-    color: #7a7a7a;
-    border-left: .25rem solid #e5e5e5;
-}
-
-blockquote p:first-child {
-    margin-top: 0;
-}
-
-blockquote p:last-child {
-    margin-bottom: 0;
-}
-
-@media (min-width: 30em) {
-    blockquote {
-        padding-right: 5rem;
-        padding-left: 1.25rem;
-    }
 }
 
 /* code */
@@ -242,12 +142,6 @@ code, pre {
     font-family: "Fira Code", "Droid Sans Mono", "DejaVu Sans Mono", monospace;
     font-size: 1em;
     font-style: normal;
-}
-
-.example-contents > p > code {
-    line-height: 1.0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
 }
 
 *:not(pre) > code {
@@ -286,10 +180,6 @@ pre.code, pre.programlisting, pre.screen, pre.tt {
     margin-bottom: 1.25em;
     overflow-x: auto;
     padding: 1rem;
-}
-
-tbody tr:nth-child(even) td, tbody tr.even td {
-    background: #F7F7F7;
 }
 
 li em, p em {
