@@ -118,10 +118,11 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.AfterPreviousExecutionContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
@@ -135,6 +136,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
+import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
@@ -238,27 +240,31 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
+        WorkExecutor<AfterPreviousExecutionContext, CachingResult> createWorkExecutor(
             ExecutionStateChangeDetector changeDetector,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ListenerManager listenerManager,
-            TimeoutHandler timeoutHandler
+            TimeoutHandler timeoutHandler,
+            ValueSnapshotter valueSnapshotter
         ) {
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new NoOpCachingStateStep(
-                    new ResolveChangesStep<>(changeDetector,
-                        new SkipUpToDateStep<>(
-                            new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                new StoreSnapshotsStep<>(
-                                    new SnapshotOutputsStep<>(fixedUniqueId,
-                                        new CreateOutputsStep<>(
-                                            new CatchExceptionStep<>(
-                                                new TimeoutStep<>(timeoutHandler,
-                                                    new ResolveInputChangesStep<>(
-                                                        new CleanupOutputsStep<>(
-                                                            new ExecuteStep<InputChangesContext>()
+                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
+                    new NoOpCachingStateStep(
+                        new ResolveChangesStep<>(changeDetector,
+                            new SkipUpToDateStep<>(
+                                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                    new StoreSnapshotsStep<>(
+                                        new SnapshotOutputsStep<>(fixedUniqueId,
+                                            new CreateOutputsStep<>(
+                                                new CatchExceptionStep<>(
+                                                    new TimeoutStep<>(timeoutHandler,
+                                                        new ResolveInputChangesStep<>(
+                                                            new CleanupOutputsStep<>(
+                                                                new ExecuteStep<InputChangesContext>()
+                                                            )
                                                         )
                                                     )
                                                 )
@@ -274,7 +280,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
     }
 
-    private static class NoOpCachingStateStep implements Step<IncrementalContext, CachingResult> {
+    private static class NoOpCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
         private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
         public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
@@ -282,7 +288,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Override
-        public CachingResult execute(IncrementalContext context) {
+        public CachingResult execute(BeforeExecutionContext context) {
             UpToDateResult result = delegate.execute(new CachingContext() {
                 @Override
                 public CachingState getCachingState() {
@@ -365,12 +371,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,
-                                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                                    FileCollectionSnapshotter fileCollectionSnapshotter,
                                                     ProjectFinder projectFinder,
                                                     BuildOperationExecutor buildOperationExecutor
         ) {
@@ -380,7 +386,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTransformListener,
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
-                classLoaderHierarchyHasher,
+                fileCollectionSnapshotter,
                 projectFinder,
                 buildOperationExecutor
             );

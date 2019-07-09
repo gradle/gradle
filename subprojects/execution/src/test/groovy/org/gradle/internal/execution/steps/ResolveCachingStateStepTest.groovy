@@ -16,10 +16,9 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.caching.internal.controller.BuildCacheController
+import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.CachingContext
-import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
@@ -29,7 +28,7 @@ import spock.lang.Specification
 class ResolveCachingStateStepTest extends Specification {
 
     def work = Mock(UnitOfWork)
-    def context = Mock(IncrementalContext)
+    def context = Mock(BeforeExecutionContext)
     def buildCache = Mock(BuildCacheController)
     def delegateStep = Mock(Step)
 

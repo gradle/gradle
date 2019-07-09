@@ -326,7 +326,7 @@ class DefaultTaskInputsTest extends Specification {
     def inputProperties() {
         def visitor = new GetInputPropertiesVisitor("test")
         TaskPropertyUtils.visitProperties(walker, task, visitor)
-        return visitor.propertyValuesFactory.create()
+        return visitor.propertyValuesSupplier.get()
     }
 
     def inputFileProperties() {

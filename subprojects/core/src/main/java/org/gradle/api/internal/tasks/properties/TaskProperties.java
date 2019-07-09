@@ -21,9 +21,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.internal.Factory;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A view of the properties of a task.
@@ -46,7 +46,7 @@ public interface TaskProperties {
      *
      * Calling `create` on the factory results in evaluating the input properties and gathering them into a Map.
      */
-    Factory<Map<String, Object>> getInputPropertyValues();
+    Supplier<Map<String, Object>> getInputPropertyValues();
 
     /**
      * Input file properties.
