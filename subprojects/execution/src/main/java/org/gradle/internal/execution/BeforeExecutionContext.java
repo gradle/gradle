@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.recomp;
+package org.gradle.internal.execution;
 
-import java.io.File;
-import java.util.Collection;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 
-public interface SourceFileClassNameConverter {
-    Collection<String> getClassNames(File sourceClassFile);
+import java.util.Optional;
+
+public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
+    /**
+     * Returns the execution state before execution.
+     * Empty if execution state was not observed before execution.
+     */
+    Optional<BeforeExecutionState> getBeforeExecutionState();
 }

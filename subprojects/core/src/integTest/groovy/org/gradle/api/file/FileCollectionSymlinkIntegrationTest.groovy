@@ -18,15 +18,16 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.escapeString
 
+@Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll("#desc can handle symlinks")
-    def "file collection can handle symlinks"() {
+    def "#desc can handle symlinks"() {
         def buildScript = file("build.gradle")
         def baseDir = file('build')
         baseDir.file('file').text = 'some contents'
@@ -63,6 +64,114 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         "project.layout.files()"             | "project.layout.files(file, symlink, symlinked)"
         "project.layout.configurableFiles()" | "project.layout.configurableFiles(file, symlink, symlinked)"
         "project.objects.fileCollection()"   | "project.objects.fileCollection().from(file, symlink, symlinked)"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1365")
+    def "detect changes to broken symlink outputs in #outputType"() {
+        def root = file("root").createDir()
+        def target = file("target")
+        def link = root.file("link")
+        buildFile << script(target, link)
+
+        when:
+        target.createFile()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
+
+        when:
+        target.delete()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
+
+        where:
+        outputType        | script
+        'OutputDirectory' | { targetParam, linkParam -> symbolicLinkOutputDirectory(targetParam, linkParam) }
+        'OutputFile'      | { targetParam, linkParam -> symbolicLinkOutputFile(targetParam, linkParam) }
+    }
+
+    def symbolicLinkOutputDirectory(target, link) {
+        """
+            import java.nio.file.*
+            class ProducesLink extends DefaultTask {
+                @OutputDirectory File outputDirectory 
+    
+                @TaskAction execute() {
+                    def link = Paths.get('${link}')
+                    Files.deleteIfExists(link);
+                    Files.createSymbolicLink(link, Paths.get('${target}'));
+                }
+            }
+            
+            task producesLink(type: ProducesLink) {
+                outputDirectory = file '${link.parentFile}'
+            }
+        """
+    }
+
+    def symbolicLinkOutputFile(target, link) {
+        """
+            import java.nio.file.*
+            class ProducesLink extends DefaultTask {
+                @OutputFile Path outputFile
+    
+                @TaskAction execute() {
+                    Files.deleteIfExists(outputFile);
+                    Files.createSymbolicLink(outputFile, Paths.get('${target}'));
+                }
+            }
+            
+            task producesLink(type: ProducesLink) {
+                outputFile = Paths.get('${link}')
+            }
+        """
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/1365')
+    def "broken symlink not produced by task is ignored"() {
+        given:
+        def input = file("input.txt").createFile()
+        def outputDirectory = file("output")
+
+        def brokenLink = outputDirectory.file('link').createLink("broken")
+        assert !brokenLink.exists()
+
+        buildFile << """
+            task copy(type: Copy) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+            }
+        """
+
+        when:
+        run 'copy'
+        then:
+        executedAndNotSkipped ':copy'
+        outputDirectory.list().sort() == [input.name, brokenLink.name].sort()
+
+        when:
+        run 'copy'
+        then:
+        skipped ':copy'
+        outputDirectory.list().sort() == [input.name, brokenLink.name].sort()
+
+        when:
+        brokenLink.delete()
+        run 'copy'
+        then:
+        skipped ':copy'
+        outputDirectory.list() == [input.name]
     }
 
     void maybeDeprecated(String expression) {

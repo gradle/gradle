@@ -459,16 +459,16 @@ class ComponentAttributeMatcherTest extends Specification {
             attribute(usage)
             attribute(bundling)
             attribute(status)
-            accept(usage, 'java-api', 'java-api-jars')
-            accept(usage, 'java-api', 'java-runtime-jars')
-            prefer(usage, 'java-api-jars')
+            accept(usage, 'java-api', 'java-api-extra')
+            accept(usage, 'java-api', 'java-runtime-extra')
+            prefer(usage, 'java-api-extra')
         }
 
         def requested = attributes(usage: 'java-api')
-        def candidate1 = attributes(usage: 'java-api-jars', status: 'integration')
-        def candidate2 = attributes(usage: 'java-runtime-jars', status: 'integration')
-        def candidate3 = attributes(usage: 'java-api-jars', status: 'integration', bundling: 'embedded')
-        def candidate4 = attributes(usage: 'java-runtime-jars', status: 'integration', bundling: 'embedded')
+        def candidate1 = attributes(usage: 'java-api-extra', status: 'integration')
+        def candidate2 = attributes(usage: 'java-runtime-extra', status: 'integration')
+        def candidate3 = attributes(usage: 'java-api-extra', status: 'integration', bundling: 'embedded')
+        def candidate4 = attributes(usage: 'java-runtime-extra', status: 'integration', bundling: 'embedded')
 
         when:
         def result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null)
@@ -477,10 +477,10 @@ class ComponentAttributeMatcherTest extends Specification {
         result == [candidate1]
 
         when: // check with a different attribute order
-        candidate1 = attributes(usage: 'java-api-jars', status: 'integration')
-        candidate2 = attributes(usage: 'java-runtime-jars', status: 'integration')
-        candidate3 = attributes(usage: 'java-api-jars', bundling: 'embedded', status: 'integration')
-        candidate4 = attributes(usage: 'java-runtime-jars', bundling: 'embedded', status: 'integration')
+        candidate1 = attributes(usage: 'java-api-extra', status: 'integration')
+        candidate2 = attributes(usage: 'java-runtime-extra', status: 'integration')
+        candidate3 = attributes(usage: 'java-api-extra', bundling: 'embedded', status: 'integration')
+        candidate4 = attributes(usage: 'java-runtime-extra', bundling: 'embedded', status: 'integration')
 
         result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null)
 
@@ -488,10 +488,10 @@ class ComponentAttributeMatcherTest extends Specification {
         result == [candidate1]
 
         when: // yet another attribute order
-        candidate1 = attributes(status: 'integration', usage: 'java-api-jars')
-        candidate2 = attributes(usage: 'java-runtime-jars', status: 'integration')
-        candidate3 = attributes(bundling: 'embedded', status: 'integration', usage: 'java-api-jars')
-        candidate4 = attributes(status: 'integration', usage: 'java-runtime-jars', bundling: 'embedded')
+        candidate1 = attributes(status: 'integration', usage: 'java-api-extra')
+        candidate2 = attributes(usage: 'java-runtime-extra', status: 'integration')
+        candidate3 = attributes(bundling: 'embedded', status: 'integration', usage: 'java-api-extra')
+        candidate4 = attributes(status: 'integration', usage: 'java-runtime-extra', bundling: 'embedded')
 
         result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null)
 

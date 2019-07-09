@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -39,10 +38,6 @@ public interface TaskExecutionContext {
     void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
 
     TaskExecutionMode getTaskExecutionMode();
-
-    Optional<BeforeExecutionState> getBeforeExecutionState();
-
-    void setBeforeExecutionState(BeforeExecutionState beforeExecutionState);
 
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 

@@ -17,36 +17,13 @@
 package org.gradle.java.compile.incremental
 
 
-import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
 import spock.lang.Unroll
 
 abstract class AbstractSourceIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
-    CompilationOutputsFixture outputs
-
-    def setup() {
-        outputs = new CompilationOutputsFixture(file("build/classes"))
-
-        buildFile << """
-            apply plugin: '${language.name}'
-        """
-    }
 
     abstract void recompiledWithFailure(String expectedFailure, String... recompiledClasses)
-
-    File source(String... classBodies) {
-        File out
-        for (String body : classBodies) {
-            def className = (body =~ /(?s).*?(?:class|interface|enum) (\w+) .*/)[0][1]
-            assert className: "unable to find class name"
-            def f = file("src/main/${language.name}/${className}.${language.name}")
-            f.createFile()
-            f.text = body
-            out = f
-        }
-        out
-    }
 
     def "detects deletion of an isolated source class with an inner class"() {
         def a = source """class A {
@@ -398,6 +375,38 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("B", "A")
     }
 
+    def 'can move classes between source dirs'() {
+        given:
+        buildFile << "sourceSets.main.${language.name}.srcDir 'extra'"
+        source('class A1 {}')
+        file("extra/A2.${language.name}") << "class A2 {}"
+        def movedFile = file("extra/some/dir/B.${language.name}") << """package some.dir;
+        public class B {
+            public static class Inner { }
+        }"""
+
+        run language.compileTaskName
+
+        when:
+        movedFile.moveToDirectory(file("src/main/${language.name}/some/dir"))
+        outputs.snapshot { run language.compileTaskName, '-i' }
+
+        then:
+        skipped(":${language.compileTaskName}")
+
+        when:
+        file("src/main/${language.name}/some/dir/B.${language.name}").text = """package some.dir;
+        public class B {
+            public static class NewInner { }
+        }""" // in B.java/B.groovy
+        run language.compileTaskName
+
+        then:
+        executedAndNotSkipped(":${language.compileTaskName}")
+        outputs.recompiledClasses('B', 'B$NewInner')
+        outputs.deletedClasses('B$Inner')
+    }
+
     def "recompilation considers changes from dependent sourceSet"() {
         buildFile << """
 sourceSets {
@@ -507,28 +516,6 @@ sourceSets {
         type            | method
         "File"          | "file"
         "DirectoryTree" | "fileTree"
-    }
-
-    def "reports source type that does not support detection of source root"() {
-        buildFile << "${language.compileTaskName}.source([file('extra'), file('other'), file('text-file.txt')])"
-
-        source("class A extends B {}")
-        file("extra/B.${language.name}") << "class B {}"
-        file("extra/C.${language.name}") << "class C {}"
-        def textFile = file('text-file.txt')
-        textFile.text = "text file as root"
-
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        file("extra/B.${language.name}").text = "class B { String change; }"
-        executer.withArgument "--info"
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledClasses("A", "B", "C")
-        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
-        output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
     def "missing files are ignored as source roots"() {
@@ -841,11 +828,11 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
 
     def "deletes empty packages dirs"() {
         given:
-        def a = file('src/main/${language.name}/com/foo/internal/A.${language.name}') << """
+        def a = file("src/main/${language.name}/com/foo/internal/A.${language.name}") << """
             package com.foo.internal;
             public class A {}
         """
-        file('src/main/${language.name}/com/bar/B.${language.name}') << """
+        file("src/main/${language.name}/com/bar/B.${language.name}") << """
             package com.bar;
             public class B {}
         """
@@ -968,5 +955,27 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         then:
         succeeds language.compileTaskName
         outputs.noneRecompiled()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9380')
+    def 'can move source sets'() {
+        given:
+        buildFile << "sourceSets.main.${language.name}.srcDir 'src/other/${language.name}'"
+        source('class Sub extends Base {}')
+        file("src/other/${language.name}/Base.${language.name}") << 'class Base { }'
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        // Remove last line
+        buildFile.text = buildFile.text.readLines().findAll { !it.trim().startsWith('sourceSets') }.join('\n')
+        fails language.compileTaskName, '-i'
+
+        then:
+        if (language == CompiledLanguage.JAVA) {
+            // Full recompilation in Java incremental compiler
+            outputContains("source dirs are changed")
+        }
+        failureCauseContains('Compilation failed')
     }
 }

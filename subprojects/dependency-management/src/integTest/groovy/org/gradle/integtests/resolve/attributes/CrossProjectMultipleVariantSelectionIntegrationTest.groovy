@@ -47,7 +47,8 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, 'jar'))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
                         attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
                     }
@@ -65,7 +66,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                 implementation project(':lib')
                 implementation (project(':lib')) {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
                     }
                     capabilities {
                         requireCapability('org:lib-fixtures')
@@ -81,11 +82,11 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "testFixtures", ['org.gradle.usage':'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
                 }
             }
@@ -102,7 +103,8 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, 'jar'))
                         attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.LIBRARY))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
                         attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
@@ -130,7 +132,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }

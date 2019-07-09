@@ -35,8 +35,7 @@ class TaskPropertyTestUtils {
     static Map<String, Object> getProperties(TaskInternal task, PropertyWalker propertyWalker) {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName())
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor)
-        //noinspection ConstantConditions
-        return visitor.getPropertyValuesFactory().create()
+        return visitor.getPropertyValuesSupplier().get()
     }
 
     static FileCollection getInputFiles(AbstractTask task) {

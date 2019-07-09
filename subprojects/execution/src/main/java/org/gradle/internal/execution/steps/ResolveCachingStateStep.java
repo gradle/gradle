@@ -22,10 +22,10 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -45,7 +45,7 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
 
-public class ResolveCachingStateStep implements Step<IncrementalContext, CachingResult> {
+public class ResolveCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
     private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
     private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
@@ -65,7 +65,7 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
     }
 
     @Override
-    public CachingResult execute(IncrementalContext context) {
+    public CachingResult execute(BeforeExecutionContext context) {
         UnitOfWork work = context.getWork();
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {

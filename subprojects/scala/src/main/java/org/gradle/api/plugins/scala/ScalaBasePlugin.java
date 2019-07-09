@@ -110,7 +110,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(incrementalAnalysisUsage);
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
             }
         });
     }
@@ -252,19 +252,19 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
     static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
         private final ImmutableSet<Usage> expectedUsages;
-        private final Usage javaRuntimeJars;
+        private final Usage javaRuntime;
 
         @Inject
-        UsageDisambiguationRules(Usage incrementalAnalysis, Usage javaApi, Usage javaRuntimeJars) {
-            this.javaRuntimeJars = javaRuntimeJars;
-            this.expectedUsages = ImmutableSet.of(incrementalAnalysis, javaApi, javaRuntimeJars);
+        UsageDisambiguationRules(Usage incrementalAnalysis, Usage javaApi, Usage javaRuntime) {
+            this.javaRuntime = javaRuntime;
+            this.expectedUsages = ImmutableSet.of(incrementalAnalysis, javaApi, javaRuntime);
         }
 
         @Override
         public void execute(MultipleCandidatesDetails<Usage> details) {
             if (details.getConsumerValue() == null) {
                 if (details.getCandidateValues().equals(expectedUsages)) {
-                    details.closestMatch(javaRuntimeJars);
+                    details.closestMatch(javaRuntime);
                 }
             }
         }

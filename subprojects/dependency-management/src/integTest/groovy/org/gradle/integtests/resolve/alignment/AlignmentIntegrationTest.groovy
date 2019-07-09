@@ -1089,4 +1089,58 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             virtualConfiguration("org:platform:1.1")
         }
     }
+
+    @RequiredFeatures([
+        // We only need to test one flavor
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    ])
+    def "should manage to realign through two conflicts"() {
+        repository {
+            path 'start:start:1.0 -> foo:1.0'
+
+            path 'foo:1.0 -> bar:1.0'
+            path 'foo:1.1 -> bar:1.1'
+
+            'org:bar:1.0'()
+            'org:bar:1.1'()
+        }
+
+        given:
+        buildFile << '''
+            dependencies {
+              constraints {
+                  conf platform("org:platform:1.1")
+              }
+            
+              conf 'start:start:1.0'
+            }
+        '''
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('start') group('start') alignsTo('1.0')
+            module('foo') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('bar') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'bar'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("start:start:1.0") {
+                    edge("org:foo:1.0", "org:foo:1.1") {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        module("org:bar:1.1") {
+                            byConstraint("belongs to platform org:platform:1.1")
+                        }
+                    }
+                }
+            }
+            virtualConfiguration("org:platform:1.1")
+        }
+    }
 }

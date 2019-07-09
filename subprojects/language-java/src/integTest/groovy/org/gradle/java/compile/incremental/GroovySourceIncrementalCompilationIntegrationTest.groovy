@@ -18,6 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Unroll
 
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -52,7 +53,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         run language.compileTaskName, '-i'
 
         then:
-        outputContains('no source class mapping file found')
+        outputContains('unable to get source-classes mapping relationship')
     }
 
     def 'only recompile affected classes when multiple class in one groovy file'() {
@@ -91,5 +92,68 @@ class A2{}
         then:
         outputs.recompiledClasses()
         outputs.deletedClasses('Com')
+    }
+
+    @Unroll
+    def 'recompiles when #action class to source file'() {
+        given:
+        File src = source(oldFile)
+
+        outputs.snapshot { run 'compileGroovy' }
+
+        when:
+        src.text = newFile
+        run 'compileGroovy'
+
+        then:
+        outputs.recompiledClasses(recompileClasses as String[])
+        outputs.deletedClasses(deletedClasses as String[])
+
+        where:
+        action     | oldFile                                   | newFile                                    | recompileClasses | deletedClasses
+        'adding'   | 'class A { } \nclass B { } \n'            | 'class A{}\nclass B{}\nclass C{}'          | ['A', 'B', 'C']  | []
+        'removing' | 'class A { } \nclass B { } \nclass C { }' | 'class A{}\nclass B{}\n'                   | ['A', 'B']       | ['C']
+        'changing' | 'class A { } \nclass B { } \nclass C { }' | 'class A{}\nclass B{}\n class C { int i }' | ['A', 'B', 'C']  | []
+    }
+
+    def 'recompiles when moving class to another source file'() {
+        given:
+        File src1 = source('class A { }\n class B { }')
+        File src2 = source('class C { }')
+
+        outputs.snapshot { run 'compileGroovy' }
+
+        when:
+        src1.text = 'class A { }'
+        src2.text = 'class C { } \n class B { }'
+        run 'compileGroovy'
+
+        then:
+        outputs.recompiledClasses('A', 'B', 'C')
+    }
+
+    def "reports source type that does not support detection of source root"() {
+        given:
+        buildFile << "${language.compileTaskName}.source([file('extra'), file('other'), file('text-file.txt')])"
+
+        source("class A extends B {}")
+        file("extra/B.${language.name}") << "class B {}"
+        file("extra/C.${language.name}") << "class C {}"
+        def textFile = file('text-file.txt')
+        textFile.text = "text file as root"
+
+        executer.expectDeprecationWarning()
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("extra/B.${language.name}").text = "class B { String change; }"
+        executer.withArgument "--info"
+        executer.expectDeprecationWarning()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        output.contains('Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.')
+        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
     }
 }

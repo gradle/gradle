@@ -29,17 +29,17 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultTaskProperties implements TaskProperties {
 
-    private final Factory<Map<String, Object>> inputPropertyValues;
+    private final Supplier<Map<String, Object>> inputPropertyValues;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
     private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
     private final FileCollection inputFiles;
@@ -74,7 +74,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
         return new DefaultTaskProperties(
             task.toString(),
-            inputPropertiesVisitor.getPropertyValuesFactory(),
+            inputPropertiesVisitor.getPropertyValuesSupplier(),
             inputFilesVisitor.getFileProperties(),
             outputFilesVisitor.getFileProperties(),
             outputFilesVisitor.hasDeclaredOutputs(),
@@ -83,7 +83,16 @@ public class DefaultTaskProperties implements TaskProperties {
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingProperty> validatingProperties) {
+    private DefaultTaskProperties(
+        String name,
+        Supplier<Map<String, Object>> inputPropertyValues,
+        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
+        ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
+        boolean hasDeclaredOutputs,
+        FileCollection localStateFiles,
+        FileCollection destroyableFiles,
+        List<ValidatingProperty> validatingProperties
+    ) {
         this.validatingProperties = validatingProperties;
 
         this.inputPropertyValues = inputPropertyValues;
@@ -191,7 +200,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public Factory<Map<String, Object>> getInputPropertyValues() {
+    public Supplier<Map<String, Object>> getInputPropertyValues() {
         return inputPropertyValues;
     }
 

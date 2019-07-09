@@ -45,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 import org.gradle.work.InputChanges
@@ -57,9 +58,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
 
+    def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_ as ClassLoader) >> HashCode.fromInt(1234)
+    }
+    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
+
     def executionHistoryStore = new TestExecutionHistoryStore()
     def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
-    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror)
+    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror, classloaderHasher, valueSnapshotter)
     def fileSystemSnapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, TestFiles.fileSystem())
 
@@ -70,10 +76,6 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileCollectionSnapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter, outputFilesFingerprinter])
-
-    def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_) >> HashCode.fromInt(1234)
-    }
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
         get(CachingTransformationWorkspaceProvider) >> new TestTransformationWorkspaceProvider(mutableTransformsStoreDirectory, executionHistoryStore)
@@ -104,7 +106,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         artifactTransformListener,
         transformationWorkspaceProvider,
         fileCollectionFactory,
-        classloaderHasher,
+        fileCollectionSnapshotter,
         projectFinder,
         buildOperationExecutor
     )

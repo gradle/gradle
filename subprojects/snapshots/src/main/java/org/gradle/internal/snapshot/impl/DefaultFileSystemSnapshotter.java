@@ -137,12 +137,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter filter, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
-        String name = stringInterner.intern(file.getName());
+        String internedName = stringInterner.intern(file.getName());
         switch (metadata.getType()) {
             case Missing:
-                return new MissingFileSnapshot(absolutePath, name);
+                return new MissingFileSnapshot(absolutePath, internedName);
             case RegularFile:
-                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata.getLength(), metadata.getLastModified()), FileMetadata.from(metadata));
+                return new RegularFileSnapshot(absolutePath, internedName, hasher.hash(file, metadata.getLength(), metadata.getLastModified()), FileMetadata.from(metadata));
             case Directory:
                 SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
                     ? null

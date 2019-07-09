@@ -23,8 +23,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,23 +60,8 @@ public class DefaultTaskFingerprinter implements TaskFingerprinter {
         for (FilePropertySpec propertySpec : fileProperties) {
             LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
             List<FileSystemSnapshot> result = fileCollectionSnapshotter.snapshot(propertySpec.getPropertyFiles());
-            builder.put(propertySpec.getPropertyName(), new CompositeFileSystemSnapshot(result));
+            builder.put(propertySpec.getPropertyName(), CompositeFileSystemSnapshot.of(result));
         }
         return builder.build();
-    }
-
-    private static class CompositeFileSystemSnapshot implements FileSystemSnapshot {
-        private final List<FileSystemSnapshot> snapshots;
-
-        CompositeFileSystemSnapshot(List<FileSystemSnapshot> snapshots) {
-            this.snapshots = snapshots;
-        }
-
-        @Override
-        public void accept(FileSystemSnapshotVisitor visitor) {
-            for (FileSystemSnapshot snapshot : snapshots) {
-                snapshot.accept(visitor);
-            }
-        }
     }
 }

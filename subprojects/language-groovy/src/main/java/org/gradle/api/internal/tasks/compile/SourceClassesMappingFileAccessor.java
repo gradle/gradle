@@ -34,14 +34,14 @@ import java.util.Map;
  *
  * The file format is:
  *
- * file:///my/path/to/groovy/source/MyGroovyClass.groovy
+ * relative/path/to/source/root/MyGroovyClass.groovy
  *  org.gradle.MyGroovyClass
  *  org.gradle.MyGroovyClass$1
  *  org.gradle.MyGroovyClass$Inner
  */
 public class SourceClassesMappingFileAccessor {
-    public static Multimap<File, String> readSourceClassesMappingFile(File mappingFile) {
-        Multimap<File, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
+    public static Multimap<String, String> readSourceClassesMappingFile(File mappingFile) {
+        Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
             .hashSetValues()
             .build();
@@ -51,14 +51,14 @@ public class SourceClassesMappingFileAccessor {
 
         try {
             Files.asCharSource(mappingFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
-                private File currentFile;
+                private String currentFile;
 
                 @Override
                 public boolean processLine(String line) throws IOException {
                     if (line.startsWith(" ")) {
                         sourceClassesMapping.put(currentFile, line.substring(1));
                     } else {
-                        currentFile = new File(line);
+                        currentFile = line;
                     }
 
                     return true;
@@ -75,11 +75,11 @@ public class SourceClassesMappingFileAccessor {
         return sourceClassesMapping;
     }
 
-    public static void writeSourceClassesMappingFile(File mappingFile, Multimap<File, String> mapping) {
+    public static void writeSourceClassesMappingFile(File mappingFile, Multimap<String, String> mapping) {
         StringBuilder sb = new StringBuilder();
 
-        for (Map.Entry<File, Collection<String>> entry : mapping.asMap().entrySet()) {
-            sb.append(entry.getKey().toString()).append("\n");
+        for (Map.Entry<String, Collection<String>> entry : mapping.asMap().entrySet()) {
+            sb.append(entry.getKey()).append("\n");
             for (String className : entry.getValue()) {
                 sb.append(" ").append(className).append("\n");
             }

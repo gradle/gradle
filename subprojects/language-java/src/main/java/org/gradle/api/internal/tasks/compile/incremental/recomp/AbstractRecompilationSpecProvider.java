@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
@@ -40,7 +39,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     protected final FileTree sourceTree;
 
     public AbstractRecompilationSpecProvider(FileOperations fileOperations,
-                                             FileTreeInternal sourceTree) {
+                                             FileTree sourceTree) {
         this.fileOperations = fileOperations;
         this.sourceTree = sourceTree;
     }

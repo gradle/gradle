@@ -368,4 +368,9 @@ public class SingleMessageLogger {
     public static void incubatingFeatureUsed(String incubatingFeature) {
         nagUserWith(incubatingFeatureHandler, new IncubatingFeatureUsage(incubatingFeature, SingleMessageLogger.class));
     }
+
+    @Nullable
+    public static Throwable getDeprecationFailure() {
+        return deprecatedFeatureHandler.getDeprecationFailure();
+    }
 }
