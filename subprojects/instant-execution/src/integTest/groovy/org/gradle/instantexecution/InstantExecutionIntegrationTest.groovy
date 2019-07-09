@@ -16,15 +16,21 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.invocation.DefaultGradle
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.junit.Rule
@@ -462,14 +468,14 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
-    def "warns when task field references an object of type #type"() {
+    def "warns when task field references an object of type #baseType"() {
         buildFile << """
             class SomeBean {
-                private ${type} badReference
+                private ${baseType} badReference
             }
             
             class SomeTask extends DefaultTask {
-                private final ${type} badReference
+                private final ${baseType} badReference
                 private final bean = new SomeBean()
                 
                 SomeTask() {
@@ -492,7 +498,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "broken"
 
         then:
-        outputContains("instant-execution > cannot serialize object of type ${type} as these are not supported with instant execution.")
+        outputContains("instant-execution > cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.")
 
         when:
         instantRun "broken"
@@ -502,13 +508,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.reference = null")
 
         where:
-        type                        | reference
-        Project.name                | "project"
-        Gradle.name                 | "project.gradle"
-        Settings.name               | "project.gradle.settings"
-        Task.name                   | "project.tasks.other"
-        TaskContainer.name          | "project.tasks"
-        ConfigurationContainer.name | "project.configurations"
+        concreteType                       | baseType                    | reference
+        DefaultProject.name                | Project.name                | "project"
+        DefaultGradle.name                 | Gradle.name                 | "project.gradle"
+        DefaultSettings.name               | Settings.name               | "project.gradle.settings"
+        DefaultTask.name                   | Task.name                   | "project.tasks.other"
+        DefaultTaskContainer.name          | TaskContainer.name          | "project.tasks"
+        DefaultConfigurationContainer.name | ConfigurationContainer.name | "project.configurations"
     }
 
     def "task can reference itself"() {
