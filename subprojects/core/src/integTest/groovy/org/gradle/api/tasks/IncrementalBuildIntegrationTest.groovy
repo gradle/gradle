@@ -1254,11 +1254,9 @@ task generate(type: TransformerTask) {
     
     task myTask (type: MyTask){
         project.ext.inputDirs.split(',').each { inputs.dir(it) }
+        project.upToDateWhen { true }
     }
 '''
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
 
         when:
         args('-PinputDirs=inputDir1,inputDir2')

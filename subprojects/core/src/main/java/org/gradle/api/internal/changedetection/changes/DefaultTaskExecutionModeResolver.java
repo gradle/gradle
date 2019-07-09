@@ -43,7 +43,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         if (!properties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             if (task.hasTaskActions()) {
                 if (requiresInputChanges(task)) {
-                    DeprecationLogger.nagUserOfDeprecated("Using the incremental task API without declaring any outputs", "Please declare output files for your task or use `task.upToDateWhen { true }`.");
+                    DeprecationLogger.nagUserOfDeprecated("Using the incremental task API without declaring any outputs", "Please declare output files for your task or use `TaskOutputs.upToDateWhen()`.");
                 } else {
                     return TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS;
                 }

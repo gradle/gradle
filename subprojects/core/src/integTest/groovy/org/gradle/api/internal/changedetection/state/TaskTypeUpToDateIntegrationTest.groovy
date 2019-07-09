@@ -200,7 +200,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning()
         run 'noOutput'
         then:
-        outputContains("Using the incremental task API without declaring any outputs has been deprecated. This is scheduled to be removed in Gradle 6.0. Please declare output files for your task or use `task.upToDateWhen { true }`.")
+        outputContains("Using the incremental task API without declaring any outputs has been deprecated. This is scheduled to be removed in Gradle 6.0. Please declare output files for your task or use `TaskOutputs.upToDateWhen()`.")
         noneSkipped()
 
         where:

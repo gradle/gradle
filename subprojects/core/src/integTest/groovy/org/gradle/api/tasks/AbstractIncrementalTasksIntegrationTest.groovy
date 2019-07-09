@@ -59,6 +59,10 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         @InputDirectory
         abstract DirectoryProperty getInputDir()
 
+        @Optional
+        @OutputFile
+        abstract RegularFileProperty getOutputFile()
+
         @TaskAction
         $taskAction
 
@@ -211,10 +215,6 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         inputDir = project.mkdir('inputs')
     }
 """
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
-
         and:
         previousExecution()
 
@@ -266,9 +266,6 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         inputDir = project.mkdir('inputs')
     }
 """
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
 
         then:
         executesNonIncrementally()
