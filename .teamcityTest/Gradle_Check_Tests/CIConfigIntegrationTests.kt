@@ -74,7 +74,7 @@ class CIConfigIntegrationTests {
                         }
                         if (subProject.hasOnlyUnitTests()) {
                             return@forEach
-                        } else if(subProject.unitTests && testCoverage.testType.unitTests) {
+                        } else if (subProject.unitTests && testCoverage.testType.unitTests) {
                             functionalTestCount++
                         } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
                             functionalTestCount++

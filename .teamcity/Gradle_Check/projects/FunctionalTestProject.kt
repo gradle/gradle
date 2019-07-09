@@ -17,19 +17,22 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         if (shouldBeSkipped(subProject, testConfig)) {
             return@forEach
         }
-        if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+        if (stage.shouldOmitSlowProject(subProject)) {
             addMissingTestCoverage(testConfig)
             return@forEach
         }
 
-        if (subProject.hasTestsOf(testConfig.testType) && !subProject.hasOnlyUnitTests()) {
+        if (subProject.hasSeparateTestBuild(testConfig.testType)) {
             buildType(FunctionalTest(model, testConfig, listOf(subProject.name), stage))
         }
     }
 
-    if (testConfig.testType.unitTests && model.subProjects.any { it.hasOnlyUnitTests() }) {
-        val projectsWithOnlyUnitTests = model.subProjects.filter { it.hasOnlyUnitTests() }.map { it.name }
-        buildType(FunctionalTest(model, testConfig, projectsWithOnlyUnitTests, stage, allUnitTestsBuildTypeName))
+    val projectNamesForMergedTestsBuild = model.subProjects
+        .filter { it.includeInMergedTestBuild(testConfig.testType) }
+        .map { it.name }
+
+    if (projectNamesForMergedTestsBuild.isNotEmpty()) {
+        buildType(FunctionalTest(model, testConfig, projectNamesForMergedTestsBuild, stage, allUnitTestsBuildTypeName))
     }
 
 }){
