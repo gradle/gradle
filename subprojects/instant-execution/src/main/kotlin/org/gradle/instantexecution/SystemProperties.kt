@@ -22,5 +22,5 @@ object SystemProperties {
 
     const val isEnabled = "org.gradle.unsafe.instant-execution"
 
-    const val maxFailures = "org.gradle.unsafe.instant-execution.max-failures"
+    const val maxProblems = "org.gradle.unsafe.instant-execution.max-problems"
 }

@@ -183,7 +183,7 @@ class DefaultInstantExecution(
     fun instantExecutionReport() = InstantExecutionReport(
         reportOutputDir,
         logger,
-        maxFailures()
+        maxProblems()
     )
 
     private
@@ -321,8 +321,8 @@ class DefaultInstantExecution(
         get() = systemProperty(SystemProperties.isEnabled) != null && !host.currentBuild.buildSrc
 
     private
-    fun maxFailures(): Int =
-        systemProperty(SystemProperties.maxFailures)
+    fun maxProblems(): Int =
+        systemProperty(SystemProperties.maxProblems)
             ?.let(Integer::valueOf)
             ?: 512
 

@@ -36,7 +36,7 @@ class DefaultWriteContext(
     override val logger: Logger,
 
     private
-    val failureHandler: (PropertyFailure) -> Unit
+    val problemHandler: (PropertyProblem) -> Unit
 
 ) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
 
@@ -60,8 +60,8 @@ class DefaultWriteContext(
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
 
-    override fun onFailure(failure: PropertyFailure) {
-        failureHandler(failure)
+    override fun onProblem(problem: PropertyProblem) {
+        problemHandler(problem)
     }
 }
 
@@ -122,8 +122,8 @@ class DefaultReadContext(
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
 
-    override fun onFailure(failure: PropertyFailure) {
-        // ignore property failures
+    override fun onProblem(problem: PropertyProblem) {
+        // ignore problems
     }
 }
 

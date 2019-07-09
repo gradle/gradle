@@ -20,7 +20,7 @@ import groovy.json.JsonOutput
 
 import org.gradle.api.logging.Logger
 
-import org.gradle.instantexecution.serialization.PropertyFailure
+import org.gradle.instantexecution.serialization.PropertyProblem
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.unknownPropertyError
@@ -44,16 +44,16 @@ class InstantExecutionReport(
     val logger: Logger,
 
     private
-    val maxFailures: Int
+    val maxProblems: Int
 ) {
 
     private
-    val failures = mutableListOf<PropertyFailure>()
+    val problems = mutableListOf<PropertyProblem>()
 
-    fun add(failure: PropertyFailure) {
-        failures.add(failure)
-        if (failures.size > maxFailures) {
-            throw TooManyInstantExecutionFailuresException()
+    fun add(problem: PropertyProblem) {
+        problems.add(problem)
+        if (problems.size > maxProblems) {
+            throw TooManyInstantExecutionProblemsException()
         }
     }
 
@@ -61,7 +61,7 @@ class InstantExecutionReport(
 
         val fatalError = runWithExceptionHandling(block)
 
-        if (failures.isEmpty()) {
+        if (problems.isEmpty()) {
             require(fatalError == null)
             return null
         }
@@ -79,7 +79,7 @@ class InstantExecutionReport(
             block()
         } catch (e: Throwable) {
             when (e.cause) {
-                is TooManyInstantExecutionFailuresException -> {
+                is TooManyInstantExecutionProblemsException -> {
                     return e
                 }
                 else -> {
@@ -92,7 +92,7 @@ class InstantExecutionReport(
 
     private
     fun add(e: Throwable) {
-        failures.add(
+        problems.add(
             unknownPropertyError(e.message ?: e.javaClass.name, e)
         )
     }
@@ -104,7 +104,7 @@ class InstantExecutionReport(
             ?.let { errors -> InstantExecutionErrorsException().withSuppressed(errors) }
 
     private
-    fun Throwable.withSuppressed(errors: List<PropertyFailure.Error>) = apply {
+    fun Throwable.withSuppressed(errors: List<PropertyProblem.Error>) = apply {
         errors.forEach {
             addSuppressed(it.exception)
         }
@@ -112,7 +112,7 @@ class InstantExecutionReport(
 
     private
     fun errors() =
-        failures.filterIsInstance<PropertyFailure.Error>()
+        problems.filterIsInstance<PropertyProblem.Error>()
 
     private
     fun logSummary() {
@@ -123,17 +123,17 @@ class InstantExecutionReport(
     fun writeReportFiles() {
         outputDirectory.mkdirs()
         copyReportResources()
-        writeJsFailures()
+        writeJsReportData()
     }
 
     private
     fun summary(): String {
-        val uniquePropertyFailures = failures.groupBy {
+        val uniquePropertyProblems = problems.groupBy {
             propertyDescriptionFor(it) to it.message
         }
         return StringBuilder().apply {
-            appendln("${uniquePropertyFailures.size} instant execution issues found:")
-            uniquePropertyFailures.keys.forEach { (property, message) ->
+            appendln("${uniquePropertyProblems.size} instant execution problems found:")
+            uniquePropertyProblems.keys.forEach { (property, message) ->
                 append("  - ")
                 append(property)
                 append(": ")
@@ -159,11 +159,11 @@ class InstantExecutionReport(
     }
 
     private
-    fun writeJsFailures() {
+    fun writeJsReportData() {
         outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
             writer.run {
-                appendln("function instantExecutionFailures() { return [")
-                failures.forEach {
+                appendln("function instantExecutionProblems() { return [")
+                problems.forEach {
                     append(
                         JsonOutput.toJson(
                             mapOf(
@@ -181,8 +181,8 @@ class InstantExecutionReport(
     }
 
     private
-    fun stackTraceStringOf(failure: PropertyFailure): String? =
-        (failure as? PropertyFailure.Error)?.exception?.let {
+    fun stackTraceStringOf(problem: PropertyProblem): String? =
+        (problem as? PropertyProblem.Error)?.exception?.let {
             stackTraceStringFor(it)
         }
 
@@ -191,7 +191,7 @@ class InstantExecutionReport(
         StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
 
     private
-    fun traceListOf(failure: PropertyFailure): List<Map<String, Any>> = mutableListOf<Map<String, Any>>().also { result ->
+    fun traceListOf(problem: PropertyProblem): List<Map<String, Any>> = mutableListOf<Map<String, Any>>().also { result ->
         fun collectTrace(current: PropertyTrace): Unit = current.run {
             when (this) {
                 is PropertyTrace.Property -> {
@@ -241,11 +241,11 @@ class InstantExecutionReport(
                 }
             }
         }
-        collectTrace(failure.trace)
+        collectTrace(problem.trace)
     }
 
     private
-    fun propertyDescriptionFor(failure: PropertyFailure): String = failure.trace.run {
+    fun propertyDescriptionFor(problem: PropertyProblem): String = problem.trace.run {
         when (this) {
             is PropertyTrace.Property -> simplePropertyDescription()
             else -> toString()

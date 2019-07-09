@@ -25,17 +25,17 @@ typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
 fun IsolateContext.logPropertyWarning(action: String, message: StructuredMessageBuilder) {
-    logPropertyFailure(action, PropertyFailure.Warning(trace, build(message)))
+    logPropertyProblem(action, PropertyProblem.Warning(trace, build(message)))
 }
 
 
 fun IsolateContext.logPropertyError(action: String, error: Throwable, message: StructuredMessageBuilder) {
-    logPropertyFailure(action, propertyError(error, trace, message))
+    logPropertyProblem(action, propertyError(error, trace, message))
 }
 
 
 internal
-fun unknownPropertyError(message: String, e: Throwable): PropertyFailure =
+fun unknownPropertyError(message: String, e: Throwable): PropertyProblem =
     propertyError(e, PropertyTrace.Unknown) {
         text(message)
     }
@@ -43,7 +43,7 @@ fun unknownPropertyError(message: String, e: Throwable): PropertyFailure =
 
 internal
 fun propertyError(error: Throwable, trace: PropertyTrace, message: StructuredMessageBuilder) =
-    PropertyFailure.Error(trace, build(message), error)
+    PropertyProblem.Error(trace, build(message), error)
 
 
 fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
@@ -73,14 +73,14 @@ fun IsolateContext.logUnsupported(baseType: KClass<*>) {
 
 private
 fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
-    val failure = PropertyFailure.Warning(trace, build(message))
-    logger.warn("instant-execution > {}", failure.message)
-    logPropertyFailure("serialize", failure)
+    val problem = PropertyProblem.Warning(trace, build(message))
+    logger.warn("instant-execution > {}", problem.message)
+    logPropertyProblem("serialize", problem)
 }
 
 
 private
-fun IsolateContext.logPropertyFailure(action: String, failure: PropertyFailure) {
-    logger.debug("instant-execution > failed to {} {} because {}", action, failure.trace, failure.message)
-    onFailure(failure)
+fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) {
+    logger.debug("instant-execution > failed to {} {} because {}", action, problem.trace, problem.message)
+    onProblem(problem)
 }

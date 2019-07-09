@@ -78,33 +78,33 @@ interface IsolateContext {
 
     var trace: PropertyTrace
 
-    fun onFailure(failure: PropertyFailure)
+    fun onProblem(problem: PropertyProblem)
 }
 
 
-sealed class PropertyFailure {
+sealed class PropertyProblem {
 
     abstract val trace: PropertyTrace
 
     abstract val message: StructuredMessage
 
     /**
-     * A failure that does not necessarily compromise the execution of the build.
+     * A problem that does not necessarily compromise the execution of the build.
      */
     data class Warning(
         override val trace: PropertyTrace,
         override val message: StructuredMessage
-    ) : PropertyFailure()
+    ) : PropertyProblem()
 
     /**
-     * A failure that compromises the execution of the build.
+     * A problem that compromises the execution of the build.
      * Instant execution state should be discarded.
      */
     data class Error(
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
         val exception: Throwable
-    ) : PropertyFailure()
+    ) : PropertyProblem()
 }
 
 

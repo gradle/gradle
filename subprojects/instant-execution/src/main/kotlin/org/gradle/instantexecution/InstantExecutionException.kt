@@ -30,6 +30,6 @@ class InstantExecutionErrorsException : InstantExecutionException(
 )
 
 
-class TooManyInstantExecutionFailuresException : InstantExecutionException(
-    "Maximum number of instant execution failures has been exceeded. This behavior can be adjusted via -D${SystemProperties.maxFailures}=<integer>."
+class TooManyInstantExecutionProblemsException : InstantExecutionException(
+    "Maximum number of instant execution problems has been exceeded. This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
 )

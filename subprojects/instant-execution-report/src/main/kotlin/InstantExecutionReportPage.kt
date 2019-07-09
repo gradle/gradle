@@ -35,23 +35,23 @@ import kotlin.browser.window
 
 
 internal
-sealed class FailureNode {
+sealed class ProblemNode {
 
-    data class Error(val label: FailureNode) : FailureNode()
+    data class Error(val label: ProblemNode) : ProblemNode()
 
-    data class Warning(val label: FailureNode) : FailureNode()
+    data class Warning(val label: ProblemNode) : ProblemNode()
 
-    data class Task(val path: String, val type: String) : FailureNode()
+    data class Task(val path: String, val type: String) : ProblemNode()
 
-    data class Bean(val type: String) : FailureNode()
+    data class Bean(val type: String) : ProblemNode()
 
-    data class Property(val kind: String, val name: String, val owner: String) : FailureNode()
+    data class Property(val kind: String, val name: String, val owner: String) : ProblemNode()
 
-    data class Label(val text: String) : FailureNode()
+    data class Label(val text: String) : ProblemNode()
 
-    data class Message(val prettyText: PrettyText) : FailureNode()
+    data class Message(val prettyText: PrettyText) : ProblemNode()
 
-    data class Exception(val stackTrace: String) : FailureNode()
+    data class Exception(val stackTrace: String) : ProblemNode()
 }
 
 
@@ -68,20 +68,20 @@ data class PrettyText(val fragments: List<Fragment>) {
 
 
 internal
-typealias FailureTreeModel = TreeView.Model<FailureNode>
+typealias ProblemTreeModel = TreeView.Model<ProblemNode>
 
 
 internal
-typealias FailureTreeIntent = TreeView.Intent<FailureNode>
+typealias ProblemTreeIntent = TreeView.Intent<ProblemNode>
 
 
 internal
 object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
 
     data class Model(
-        val totalFailures: Int,
-        val messageTree: FailureTreeModel,
-        val taskTree: FailureTreeModel,
+        val totalProblems: Int,
+        val messageTree: ProblemTreeModel,
+        val taskTree: ProblemTreeModel,
         val displayFilter: DisplayFilter = DisplayFilter.All
     )
 
@@ -91,9 +91,9 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     sealed class Intent {
 
-        data class TaskTreeIntent(val delegate: FailureTreeIntent) : Intent()
+        data class TaskTreeIntent(val delegate: ProblemTreeIntent) : Intent()
 
-        data class MessageTreeIntent(val delegate: FailureTreeIntent) : Intent()
+        data class MessageTreeIntent(val delegate: ProblemTreeIntent) : Intent()
 
         data class Copy(val text: String) : Intent()
 
@@ -129,7 +129,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             ),
             div(
                 attributes { className("left") },
-                h1("${model.totalFailures} instant execution problems were found"),
+                h1("${model.totalProblems} instant execution problems were found"),
                 learnMore(),
                 viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
                 viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
@@ -160,18 +160,18 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    fun viewTree(model: FailureTreeModel, treeIntent: (FailureTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
-        h2(model.tree.label.unsafeCast<FailureNode.Label>().text),
+    fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
+        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text),
         ol(
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
-                    is FailureNode.Error -> {
+                    is ProblemNode.Error -> {
                         viewLabel(treeIntent, child, node.label, errorIcon)
                     }
-                    is FailureNode.Warning -> {
+                    is ProblemNode.Warning -> {
                         viewLabel(treeIntent, child, node.label, warningIcon)
                     }
-                    is FailureNode.Exception -> {
+                    is ProblemNode.Exception -> {
                         viewException(treeIntent, child, node)
                     }
                     else -> {
@@ -183,37 +183,37 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    fun applyFilter(displayFilter: DisplayFilter, model: FailureTreeModel): Sequence<Tree.Focus<FailureNode>> {
+    fun applyFilter(displayFilter: DisplayFilter, model: ProblemTreeModel): Sequence<Tree.Focus<ProblemNode>> {
         val children = model.tree.focus().children
         return when (displayFilter) {
             DisplayFilter.All -> children
-            DisplayFilter.Errors -> children.filter { it.tree.label is FailureNode.Error }
-            DisplayFilter.Warnings -> children.filter { it.tree.label is FailureNode.Warning }
+            DisplayFilter.Errors -> children.filter { it.tree.label is ProblemNode.Error }
+            DisplayFilter.Warnings -> children.filter { it.tree.label is ProblemNode.Warning }
         }
     }
 
     private
-    fun viewNode(node: FailureNode): View<Intent> = when (node) {
-        is FailureNode.Property -> span(
+    fun viewNode(node: ProblemNode): View<Intent> = when (node) {
+        is ProblemNode.Property -> span(
             span(node.kind),
             reference(node.name),
             span(" of "),
             reference(node.owner)
         )
-        is FailureNode.Task -> span(
+        is ProblemNode.Task -> span(
             span("task"),
             reference(node.path),
             span(" of type "),
             reference(node.type)
         )
-        is FailureNode.Bean -> span(
+        is ProblemNode.Bean -> span(
             span("bean of type "),
             reference(node.type)
         )
-        is FailureNode.Label -> span(
+        is ProblemNode.Label -> span(
             node.text
         )
-        is FailureNode.Message -> viewPrettyText(
+        is ProblemNode.Message -> viewPrettyText(
             node.prettyText
         )
         else -> span(
@@ -223,9 +223,9 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun viewLabel(
-        treeIntent: (FailureTreeIntent) -> Intent,
-        child: Tree.Focus<FailureNode>,
-        label: FailureNode,
+        treeIntent: (ProblemTreeIntent) -> Intent,
+        child: Tree.Focus<ProblemNode>,
+        label: ProblemNode,
         decoration: View<Intent> = empty
     ): View<Intent> = div(
         treeButtonFor(child, treeIntent),
@@ -235,14 +235,14 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    fun treeButtonFor(child: Tree.Focus<FailureNode>, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> =
+    fun treeButtonFor(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> =
         when {
             child.tree.isNotEmpty() -> viewTreeButton(child, treeIntent)
             else -> emptyTreeIcon
         }
 
     private
-    fun viewTreeButton(child: Tree.Focus<FailureNode>, treeIntent: (FailureTreeIntent) -> Intent): View<Intent> = span(
+    fun viewTreeButton(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> = span(
         attributes {
             className("tree-btn")
             title("Click to ${toggleVerb(child.tree.state)}")
@@ -297,9 +297,9 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun viewException(
-        treeIntent: (FailureTreeIntent) -> Intent,
-        child: Tree.Focus<FailureNode>,
-        node: FailureNode.Exception
+        treeIntent: (ProblemTreeIntent) -> Intent,
+        child: Tree.Focus<ProblemNode>,
+        node: ProblemNode.Exception
     ): View<Intent> = div(
         viewTreeButton(child, treeIntent),
         span("exception stack trace "),

@@ -70,7 +70,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def jsFile = reportDir.file("instant-execution-report-data.js")
         jsFile.isFile()
         outputContains """
-            3 instant execution issues found:
+            3 instant execution problems found:
               - field 'gradle' from type 'SomeBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
               - field 'gradle' from type 'NestedBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
               - field 'project' from type 'NestedBean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.
@@ -79,7 +79,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
     }
 
     @Unroll
-    def "can limit the number of failures to #maxFailures"() {
+    def "can limit the number of problems to #maxProblems"() {
         given:
         buildFile << """
             class Bean {
@@ -108,24 +108,24 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.max-failures=$maxFailures"
+        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.max-problems=$maxProblems"
 
         then:
         def reportDir = stateDirForTasks("foo")
         def jsFile = reportDir.file("instant-execution-report-data.js")
-        numberOfFailuresIn(jsFile) == expectedNumberOfFailures
-        outputContains "$expectedNumberOfFailures instant execution issues found:"
-        failureHasCause "Maximum number of instant execution failures has been exceeded"
+        numberOfProblemsIn(jsFile) == expectedNumberOfProblems
+        outputContains "$expectedNumberOfProblems instant execution problems found:"
+        failureHasCause "Maximum number of instant execution problems has been exceeded"
 
         where:
-        maxFailures << [0, 1, 2]
-        expectedNumberOfFailures = maxFailures + 1
+        maxProblems << [0, 1, 2]
+        expectedNumberOfProblems = maxProblems + 1
     }
 
-    private static int numberOfFailuresIn(File jsFile) {
+    private static int numberOfProblemsIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("instantExecutionFailures().length") as int
+            eval("instantExecutionProblems().length") as int
         }
     }
 
