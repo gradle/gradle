@@ -29,6 +29,7 @@ dependencies {
     implementation(futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
 
     integTestImplementation(project(":toolingApi"))
 

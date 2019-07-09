@@ -265,10 +265,10 @@ interface MutableIsolateContext {
 
 
 internal
-inline fun <T : MutableIsolateContext> T.withIsolate(owner: IsolateOwner, block: T.() -> Unit) {
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
     enterIsolate(owner)
     try {
-        block()
+        return block()
     } finally {
         leaveIsolate()
     }
