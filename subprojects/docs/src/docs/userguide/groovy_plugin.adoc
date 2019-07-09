@@ -224,7 +224,7 @@ The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.Groov
 
 _Caveat: Groovy compilation avoidance is an incubating feature since Gradle 5.6. There are known inaccuracies so please enable it at your own risk._
 
-To enable the incubating support for Groovy compilation avoidance, add a line to your settings file:
+To enable the incubating support for Groovy compilation avoidance, add a link:{javadocPath}/org/gradle/api/initialization/Settings.html#enableFeaturePreview-java.lang.String-[`enableFeaturePreview`] to your settings file:
 
 ====
 [.multi-language-sample]

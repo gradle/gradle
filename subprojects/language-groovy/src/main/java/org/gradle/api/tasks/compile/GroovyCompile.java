@@ -388,8 +388,6 @@ public class GroovyCompile extends AbstractCompile {
 
     /**
      * Injects and returns an instance of {@link FeaturePreviews}.
-     *
-     * @since 5.6
      */
     @Inject
     protected FeaturePreviews getFeaturePreviews() {
