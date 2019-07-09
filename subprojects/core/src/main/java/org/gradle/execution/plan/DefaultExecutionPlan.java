@@ -59,6 +59,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.resources.SharedResourceLeaseLockRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -106,15 +107,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
+    private final SharedResourceLeaseLockRegistry sharedResourceLeaseLockRegistry;
+    private final Map<Node, List<ResourceLock>> sharedResourceLocks = Maps.newIdentityHashMap();
     private final GradleInternal gradle;
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseLockRegistry sharedResourceLeaseLockRegistry) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
+        this.sharedResourceLeaseLockRegistry = sharedResourceLeaseLockRegistry;
     }
 
     @Override
@@ -550,6 +554,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 // TODO: convert output file checks to a resource lock
                 if (!tryLockProjectFor(node)
+                    || !tryLockSharedResourceFor(node, workerLease)
                     || !workerLease.tryLock()
                     || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
                     resourceLockState.releaseLocks();
@@ -586,6 +591,28 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private ResourceLock getProjectLock(Project project) {
         return projectLocks.get(project);
+    }
+
+    private boolean tryLockSharedResourceFor(Node node, WorkerLeaseRegistry.WorkerLease workerLease) {
+        if (node instanceof TaskNode) {
+            Map<String, Integer> sharedResources = ((TaskNode) node).getTask().getSharedResources();
+            if (sharedResources == null || sharedResources.isEmpty()) {
+                return true;
+            } else {
+                List<ResourceLock> locks = Lists.newArrayList();
+                for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
+                    locks.add(sharedResourceLeaseLockRegistry.getResourceLock(entry.getKey(), entry.getValue(), workerLease.getOwnerThread()));
+                }
+                sharedResourceLocks.put(node, locks);
+                return locks.stream().allMatch(ResourceLock::tryLock);
+            }
+        } else {
+            return true;
+        }
+    }
+
+    private void unlockSharedResourcesFor(Node node) {
+        sharedResourceLocks.getOrDefault(node, Collections.emptyList()).forEach(ResourceLock::unlock);
     }
 
     private MutationInfo getResolvedMutationInfo(Node node) {
@@ -885,6 +912,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         } finally {
             unlockProjectFor(node);
+            unlockSharedResourcesFor(node);
         }
     }
 

@@ -53,6 +53,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.resources.SharedResourceLeaseLockRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -82,6 +83,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
+    private final SharedResourceLeaseLockRegistry sharedResourceRegistry;
     private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
@@ -99,7 +101,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
-        ListenerBroadcast<TaskExecutionListener> taskListeners
+        ListenerBroadcast<TaskExecutionListener> taskListeners,
+        SharedResourceLeaseLockRegistry sharedResourceRegistry
     ) {
         this.planExecutor = planExecutor;
         this.nodeExecutors = nodeExecutors;
@@ -109,7 +112,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
-        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskNodeFactory, dependencyResolver);
+        this.sharedResourceRegistry = sharedResourceRegistry;
+        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskNodeFactory, dependencyResolver, sharedResourceRegistry);
     }
 
     @Override
@@ -381,6 +385,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public ProjectInternal getRootProject() {
         return gradleInternal.getRootProject();
+    }
+
+    @Override
+    public void sharedResource(String name, int leases) {
+        sharedResourceRegistry.registerSharedResource(name, leases);
     }
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {

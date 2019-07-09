@@ -451,6 +451,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         public void leaseFinish() {
             coordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(this));
         }
+
+        @Override
+        public Thread getOwnerThread() {
+            return ownerThread;
+        }
     }
 
     private static class ProjectLockStatisticsImpl implements ProjectLockStatistics {

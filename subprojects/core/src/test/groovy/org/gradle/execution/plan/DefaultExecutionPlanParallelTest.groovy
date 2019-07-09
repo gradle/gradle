@@ -55,7 +55,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver)
+        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver, sharedResourceLockRegistry)
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {

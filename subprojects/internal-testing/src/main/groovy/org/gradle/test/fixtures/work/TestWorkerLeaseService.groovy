@@ -130,6 +130,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
             String getDisplayName() {
                 return null
             }
+
+            @Override
+            Thread getOwnerThread() {
+                return null
+            }
         }
     }
 }

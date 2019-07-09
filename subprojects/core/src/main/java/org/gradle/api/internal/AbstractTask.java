@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -83,6 +84,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -136,6 +138,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
+
+    private Map<String, Integer> sharedResources;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -936,5 +940,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Property<Duration> getTimeout() {
         return timeout;
+    }
+
+    @Override
+    public void setSharedResources(Map<String, Integer> sharedResources) {
+        this.sharedResources = sharedResources;
+    }
+
+    @Override
+    public Map<String, Integer> getSharedResources() {
+        return sharedResources;
     }
 }

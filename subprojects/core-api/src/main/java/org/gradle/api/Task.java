@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -753,4 +754,16 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Optional
     @Incubating
     Property<Duration> getTimeout();
+
+    /**
+     * <p>Sets the shared resources required by this task.</p>
+     *
+     * @param sharedResources the shared resources.
+     */
+    void setSharedResources(Map<String, Integer> sharedResources);
+
+    /**
+     * <p>Gets the shared resources required by this task.</p>
+     */
+    Map<String, Integer> getSharedResources();
 }
