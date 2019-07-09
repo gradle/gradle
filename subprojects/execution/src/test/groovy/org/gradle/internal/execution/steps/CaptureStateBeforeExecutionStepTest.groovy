@@ -1,0 +1,149 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.execution.steps
+
+import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.execution.AfterPreviousExecutionContext
+import org.gradle.internal.execution.BeforeExecutionContext
+import org.gradle.internal.execution.CachingResult
+import org.gradle.internal.execution.Step
+import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import spock.lang.Specification
+import spock.lang.Subject
+
+@Subject(CaptureStateBeforeExecutionStep)
+class CaptureStateBeforeExecutionStepTest extends Specification {
+
+    def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def valueSnapshotter = Mock(ValueSnapshotter)
+    def context = Mock(AfterPreviousExecutionContext)
+    def work = Mock(UnitOfWork)
+    def result = Mock(CachingResult)
+    Step<BeforeExecutionContext, CachingResult> delegate = Mock()
+    def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
+
+    def step = new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, delegate)
+
+    def "no state is captured when task history is not maintained"() {
+        when:
+        step.execute(context)
+        then:
+        1 * context.work >> work
+        1 * work.isTaskHistoryMaintained() >> false
+        1 * delegate.execute { BeforeExecutionContext context ->
+            context.beforeExecutionState.empty
+        } >> result
+        0 * _
+    }
+
+    def "implementations are snapshotted"() {
+        def additionalImplementations = [
+            ImplementationSnapshot.of("FirstAction", HashCode.fromInt(2345)),
+            ImplementationSnapshot.of("SecondAction", HashCode.fromInt(3456))
+        ]
+
+        when:
+        step.execute(context)
+        then:
+        1 * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
+            visitor.visitImplementation(implementationSnapshot)
+            additionalImplementations.each {
+                visitor.visitAdditionalImplementation(it)
+            }
+        }
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext context ->
+            def state = context.beforeExecutionState.get()
+            state.implementation == implementationSnapshot
+            state.additionalImplementations == additionalImplementations
+        }
+        0 * _
+    }
+
+    def "input properties are snapshotted"() {
+        def inputPropertyValue = 'myValue'
+        def valueSnapshot = Mock(ValueSnapshot)
+
+        when:
+        step.execute(context)
+        then:
+        1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
+            visitor.visitInputProperty("inputString", inputPropertyValue)
+        }
+        1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext context ->
+            def state = context.beforeExecutionState.get()
+            state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
+        }
+        0 * _
+    }
+
+    def "input file properties are fingerprinted"() {
+        def fingerprint = Mock(CurrentFileCollectionFingerprint)
+
+        when:
+        step.execute(context)
+        then:
+        1 * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
+            visitor.visitInputFileProperty("inputFile", "ignored", false, { -> fingerprint })
+        }
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext context ->
+            def state = context.beforeExecutionState.get()
+            state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
+        }
+        0 * _
+    }
+
+    def "output file properties are fingerprinted"() {
+        def outputFileSnapshot = Mock(FileSystemSnapshot)
+
+        when:
+        step.execute(context)
+        then:
+        1 * work.outputFileSnapshotsBeforeExecution >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext context ->
+            def state = context.beforeExecutionState.get()
+            state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
+        }
+        0 * _
+    }
+
+    void fingerprintInputs() {
+        _ * context.work >> work
+        _ * context.afterPreviousExecutionState >> Optional.empty()
+        _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
+            visitor.visitImplementation(implementationSnapshot)
+        }
+        _ * work.visitInputProperties(_)
+        _ * work.visitInputFileProperties(_)
+        _ * work.hasOverlappingOutputs() >> false
+        _ * work.getOutputFileSnapshotsBeforeExecution() >> ImmutableSortedMap.of()
+        1 * work.isTaskHistoryMaintained() >> true
+    }
+
+}
