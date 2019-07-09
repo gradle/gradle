@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 
@@ -55,7 +57,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
-            spec.setFullRebuildCause("no source class mapping file found", null);
+            spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
             return spec;
         }
 
@@ -110,6 +112,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             }
 
             File changedFile = fileChange.getFile();
+            if (fileChange.getFileType() != FileType.DIRECTORY && !FileUtils.hasExtension(changedFile, ".groovy")) {
+                spec.setFullRebuildCause("changes to non-Groovy files are not supported by incremental compilation", changedFile);
+                return;
+            }
+
             String relativeFilePath = fileChange.getNormalizedPath();
 
             Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
@@ -126,7 +133,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             if (relativeSourceFile.isPresent()) {
                 spec.getRelativeSourcePathsToCompile().add(relativeSourceFile.get());
             } else {
-                spec.setFullRebuildCause("Can't find source file of class " + className, null);
+                spec.setFullRebuildCause("unable to find source file of class " + className, null);
             }
         }
     }
