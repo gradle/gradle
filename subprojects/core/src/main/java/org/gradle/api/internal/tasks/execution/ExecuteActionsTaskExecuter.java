@@ -58,10 +58,10 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -95,7 +95,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     private final boolean buildCacheEnabled;
     private final boolean scanPluginApplied;
-    private final TaskFingerprinter taskFingerprinter;
+    private final TaskSnapshotter taskSnapshotter;
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
@@ -109,7 +109,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
         boolean scanPluginApplied,
-        TaskFingerprinter taskFingerprinter,
+        TaskSnapshotter taskSnapshotter,
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
@@ -122,7 +122,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
-        this.taskFingerprinter = taskFingerprinter;
+        this.taskSnapshotter = taskSnapshotter;
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -382,7 +382,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskFingerprinter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
+            ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
             return createFilteredOutputFingerprints(afterPreviousExecutionState, context.getOutputFilesBeforeExecution(), outputsAfterExecution, context.getOverlappingOutputs().isPresent());
         }
 
