@@ -59,6 +59,10 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         @InputDirectory
         abstract DirectoryProperty getInputDir()
 
+        @Optional
+        @OutputFile
+        abstract RegularFileProperty getOutputFile()
+
         @TaskAction
         $taskAction
 
