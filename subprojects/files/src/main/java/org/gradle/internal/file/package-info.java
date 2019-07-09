@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullInternalApi
+package org.gradle.internal.file;
 
-package org.gradle.internal.classloader;
-
-import org.gradle.internal.hash.HashCode;
-
-import javax.annotation.Nullable;
-
-/**
- * Provides a combined hash for a hierarchy of classloaders.
- */
-public interface ClassLoaderHierarchyHasher {
-    /**
-     * Returns a hash for the given classloader hierarchy, or {@code null} if the hierarchy contains any classloader that cannot be hashed reliably.
-     */
-    @Nullable
-    HashCode getClassLoaderHash(ClassLoader classLoader);
-}
+import org.gradle.internal.NonNullInternalApi;

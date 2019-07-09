@@ -26,9 +26,9 @@ import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.Providers
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.ManagedTypeFactory
 import org.gradle.internal.snapshot.ValueSnapshot

@@ -24,8 +24,8 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.Chmod;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 

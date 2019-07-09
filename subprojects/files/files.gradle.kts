@@ -23,10 +23,11 @@ plugins {
 description = "Base tools to work with files"
 
 dependencies {
+    implementation(project(":pineapple"))
     implementation(library("jsr305"))
     implementation(library("guava"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.CORE
+    moduleType = ModuleType.WORKER
 }

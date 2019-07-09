@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
@@ -60,6 +59,7 @@ import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext

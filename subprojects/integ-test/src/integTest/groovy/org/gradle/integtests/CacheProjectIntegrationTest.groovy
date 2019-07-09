@@ -68,7 +68,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        def hash = HashUtil.compactStringFor(new CachingTextResource(new UriTextResource("build file", buildFile)).contentHash)
+        def hash = HashUtil.compactStringFor(new CachingTextResource(new UriTextResource("build file", buildFile)).contentHash.toByteArray())
         String dirName = userHomeDir.file("caches/$version/scripts/$hash/proj").list()[0]
         String baseDir = "caches/$version/scripts/$hash/proj/$dirName"
         propertiesFile = userHomeDir.file("$baseDir/cache.properties")
