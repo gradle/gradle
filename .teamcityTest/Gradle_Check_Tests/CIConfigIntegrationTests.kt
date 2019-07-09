@@ -93,10 +93,10 @@ class CIConfigIntegrationTests {
                 // hacky way to consider deferred tests
                 val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 4 else 0
                 assertEquals(
-               stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
-                       it.dependencies.items.size, stage.stageName.stageName)
+                    stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
+                    it.dependencies.items.size, stage.stageName.stageName)
             } else {
-                assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
+                assertEquals(2, it.dependencies.items.size) // Individual Performance Worker
             }
         }
     }
@@ -129,7 +129,6 @@ class CIConfigIntegrationTests {
 
         data class DefaultStageName(override val stageName: String, override val description: String) : StageName
 
-
         val m = CIBuildModel(
             projectPrefix = "",
             parentBuildCache = NoBuildCache,
@@ -148,7 +147,7 @@ class CIConfigIntegrationTests {
                 Stage(DefaultStageName("Stage3", "Stage3 description"),
                     functionalTests = listOf(
                         TestCoverage(5, TestType.platform, Os.linux, JvmVersion.java8),
-                       TestCoverage(6, TestType.platform, Os.windows, JvmVersion.java8)),
+                        TestCoverage(6, TestType.platform, Os.windows, JvmVersion.java8)),
                     omitsSlowProjects = false),
                 Stage(DefaultStageName("Stage4", "Stage4 description"),
                     functionalTests = listOf(
@@ -164,7 +163,7 @@ class CIConfigIntegrationTests {
         val p = RootProject(m)
         assertTrue(!p.hasSubProject("Stage1", "deferred"))
         assertTrue(!p.hasSubProject("Stage2", "deferred"))
-        assertTrue( p.hasSubProject("Stage3", "deferred"))
+        assertTrue(p.hasSubProject("Stage3", "deferred"))
         assertTrue(!p.hasSubProject("Stage4", "deferred"))
         assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("Quick", "slowBuild"))
         assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("NoDaemon", "slowBuild"))
@@ -176,7 +175,7 @@ class CIConfigIntegrationTests {
 
     private fun Project.findSubProject(vararg patterns: String): Project? {
         val tail = patterns.drop(1).toTypedArray()
-        val sub =  this.subProjects.find { it.name.contains(patterns[0]) }
+        val sub = this.subProjects.find { it.name.contains(patterns[0]) }
         return if (sub == null || tail.isEmpty()) sub else sub.findSubProject(*tail)
     }
 
@@ -202,9 +201,9 @@ class CIConfigIntegrationTests {
     @Test
     fun allSubprojectsDefineTheirUnitTestPropertyCorrectly() {
         val projectsWithUnitTests = CIBuildModel().subProjects.filter { it.unitTests }
-        val projectFoldersWithUnitTests = subProjectFolderList().filter { File(it, "src/test").exists()
-                    && it.name != "docs" //docs:check is part of Sanity Check
-                    && it.name != "architecture-test" //architectureTest:test is part of Sanity Check
+        val projectFoldersWithUnitTests = subProjectFolderList().filter { File(it, "src/test").exists() &&
+                    it.name != "docs" && // docs:check is part of Sanity Check
+                    it.name != "architecture-test" // architectureTest:test is part of Sanity Check
         }
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
@@ -237,9 +236,9 @@ class CIConfigIntegrationTests {
     @Test
     fun allSubprojectsDefineTheirFunctionTestPropertyCorrectly() {
         val projectsWithFunctionalTests = CIBuildModel().subProjects.filter { it.functionalTests }
-        val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists()
-                    && it.name != "distributions" //distributions:integTest is part of Build Distributions
-                    && it.name != "soak"          //soak tests have their own test category
+        val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists() &&
+                    it.name != "distributions" && // distributions:integTest is part of Build Distributions
+                    it.name != "soak" // soak tests have their own test category
         }
         assertFalse(projectFoldersWithFunctionalTests.isEmpty())
         projectFoldersWithFunctionalTests.forEach {
@@ -262,7 +261,7 @@ class CIConfigIntegrationTests {
         val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists() }
         assertFalse(projectFoldersWithFunctionalTests.isEmpty())
         projectFoldersWithFunctionalTests.forEach {
-            assertFalse(containsSrcFileWithString(File(it, "src/integTest"), "CrossVersion", listOf("package org.gradle.testkit" ,"CrossVersionPerformanceTest")))
+            assertFalse(containsSrcFileWithString(File(it, "src/integTest"), "CrossVersion", listOf("package org.gradle.testkit", "CrossVersionPerformanceTest")))
         }
     }
 
@@ -293,7 +292,7 @@ class CIConfigIntegrationTests {
         return false
     }
 
-    private fun subProjectFolderList() : List<File> {
+    private fun subProjectFolderList(): List<File> {
         val subprojectFolders = File("../subprojects").listFiles().filter { it.isDirectory }
         assertFalse(subprojectFolders.isEmpty())
         return subprojectFolders
