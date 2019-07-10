@@ -41,7 +41,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
-import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -175,7 +175,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
-                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
+                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
                     @Override
                     public CompileOptions transform(JavaCompile javaCompile) {
                         return javaCompile.getOptions();
@@ -198,7 +198,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                         return sourceSet.getCompileClasspath();
                     }
                 });
-                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
+                JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
                 compileTask.setDestinationDir(target.provider(new Callable<File>() {
                     @Override
                     public File call() {

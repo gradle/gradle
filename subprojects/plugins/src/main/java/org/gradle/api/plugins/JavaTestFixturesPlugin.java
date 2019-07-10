@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
-import static org.gradle.api.plugins.internal.JavaPluginsHelper.addApiToSourceSet;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME;
@@ -49,7 +49,7 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
             JavaPluginExtension extension = findJavaPluginExtension(project);
             SourceSet testFixtures = convention.getSourceSets().create(TEST_FIXTURE_SOURCESET_NAME);
             extension.registerFeature(TEST_FIXTURES_FEATURE_NAME, featureSpec -> featureSpec.usingSourceSet(testFixtures));
-            addApiToSourceSet(project, testFixtures, project.getConfigurations());
+            addApiToSourceSet(testFixtures, project.getConfigurations());
             createImplicitTestFixturesDependencies(project, convention);
         });
     }

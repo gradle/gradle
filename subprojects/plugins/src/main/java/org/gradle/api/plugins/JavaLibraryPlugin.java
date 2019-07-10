@@ -18,9 +18,11 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
-import static org.gradle.api.plugins.internal.JavaPluginsHelper.addApiToSourceSet;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureClassesDirectoryVariant;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -36,7 +38,9 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
-        addApiToSourceSet(project, sourceSets.getByName("main"), configurations);
+        SourceSet sourceSet = sourceSets.getByName("main");
+        addApiToSourceSet(sourceSet, configurations);
+        configureClassesDirectoryVariant(sourceSet, project, sourceSet.getApiElementsConfigurationName());
     }
 
 }
