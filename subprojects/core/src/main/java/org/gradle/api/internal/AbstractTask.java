@@ -19,7 +19,6 @@ package org.gradle.api.internal;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
