@@ -62,6 +62,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
         _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
+        _ * instantiator.newInstance(DefaultWorkerSpec, _) >> { args -> new DefaultWorkerSpec<>(args[1][0], args[1][1]) }
         _ * parameters.implementationClassName >> TestRunnable.class.getName()
         _ * parameters.params >> []
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)

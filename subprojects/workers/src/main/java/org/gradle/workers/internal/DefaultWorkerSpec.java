@@ -21,9 +21,12 @@ import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.WorkerParameters;
 import org.gradle.workers.WorkerSpec;
 
+import javax.inject.Inject;
+
 public class DefaultWorkerSpec<T extends WorkerParameters> extends DefaultBaseWorkerSpec implements WorkerSpec<T> {
     private final T parameters;
 
+    @Inject
     public DefaultWorkerSpec(JavaForkOptionsFactory forkOptionsFactory, T parameters) {
         super(forkOptionsFactory);
         this.parameters = parameters;

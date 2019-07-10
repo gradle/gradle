@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -31,17 +32,35 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    WorkerExecutorFixture.ParameterClass parallelParameterType
+    WorkerExecutorFixture.ExecutionClass parallelWorkerExecution
+
 
     def setup() {
         blockingHttpServer.start()
-        withMultipleActionTaskTypeInBuildScript()
+
         buildFile << """
             task slowTask {
                 doLast { 
                     ${blockingHttpServer.callFromBuild("slowTask")} 
                 }
             }
-"""
+        """
+
+        parallelParameterType = fixture.parameterClass("ParallelParameter", "org.gradle.test").withFields([
+                "itemName": "String"
+        ])
+
+        parallelWorkerExecution = fixture.executionClass("ParallelWorkerExecution", "org.gradle.test", parallelParameterType)
+        parallelWorkerExecution.with {
+            imports += ["java.net.URI"]
+            action = """
+                System.out.println("Running \${parameters.itemName}...")
+                new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${parameters.itemName}", null, null).toURL().text
+            """
+        }
+
+        withMultipleActionTaskTypeInBuildScript()
     }
 
     def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
@@ -151,28 +170,11 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 
     String getMultipleActionTaskType() {
         return """
-            import java.net.URI
             import javax.inject.Inject
             import org.gradle.test.FileHelper
-            import org.gradle.workers.WorkerExecutor
-
-            public class TestParallelRunnable implements Runnable {
-                final String itemName
-
-                @Inject
-                public TestParallelRunnable(String itemName) {
-                    this.itemName = itemName
-                }
-                
-                public void run() {
-                    System.out.println("Running \${itemName}...")
-                    new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${itemName}", null, null).toURL().text
-                }
-            }
 
             class MultipleWorkItemTask extends DefaultTask {
                 def isolationMode = IsolationMode.NONE
-                def runnableClass = TestParallelRunnable.class
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -180,9 +182,11 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
                 }
                 
                 def submitWorkItem(item) {
-                    return workerExecutor.submit(TestParallelRunnable.class) { config ->
-                        config.isolationMode = IsolationMode.NONE
-                        config.params = [ item.toString() ]
+                    return workerExecutor.execute(${parallelWorkerExecution.name}.class) {
+                        isolationMode = IsolationMode.NONE
+                        parameters {
+                            itemName = item.toString()
+                        }
                     }
                 }
             }
@@ -190,6 +194,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
     }
 
     def withMultipleActionTaskTypeInBuildScript() {
+        parallelWorkerExecution.writeToBuildFile()
         buildFile << """
             $multipleActionTaskType
         """

@@ -28,7 +28,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
         fixture.prepareTaskTypeUsingWorker()
     }
 
-    void assertRunnableExecuted(String taskName) {
+    void assertWorkerExecuted(String taskName) {
         fixture.list.each {
             outputFileDir.file(taskName).file(it).assertExists()
         }

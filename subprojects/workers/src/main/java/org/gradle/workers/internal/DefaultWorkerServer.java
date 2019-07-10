@@ -39,7 +39,9 @@ public class DefaultWorkerServer implements WorkerProtocol {
             Class<? extends WorkerExecution> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
             DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
             Instantiator instantiator = parent.get(InstantiatorFactory.class).inject(serviceRegistry);
-            serviceRegistry.add(spec.getParameters().getClass(), Cast.uncheckedCast(spec.getParameters()));
+            if (spec.getParameters() != null) {
+                serviceRegistry.add(spec.getParameters().getClass(), Cast.uncheckedCast(spec.getParameters()));
+            }
             serviceRegistry.add(Instantiator.class, instantiator);
             WorkerExecution execution = instantiator.newInstance(implementationClass);
             execution.execute();

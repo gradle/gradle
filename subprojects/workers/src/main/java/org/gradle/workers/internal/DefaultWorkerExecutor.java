@@ -16,12 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -116,7 +114,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkerParameters.class).getDisplayName(), ModelType.of(WorkerParameters.None.class).getDisplayName()));
         }
         T parameters = (parameterType == WorkerParameters.None.class) ? null : instantiator.newInstance(parameterType);
-        WorkerSpec<T> workerSpec = new DefaultWorkerSpec<T>(forkOptionsFactory, parameters);
+        WorkerSpec<T> workerSpec = Cast.uncheckedCast(instantiator.newInstance(DefaultWorkerSpec.class, forkOptionsFactory, parameters));
         File defaultWorkingDir = workerSpec.getForkOptions().getWorkingDir();
         File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         configAction.execute(workerSpec);
@@ -299,12 +297,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         }
         return classes.toArray(new Class[0]);
-    }
-
-    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
-        if (visibleClass.getClassLoader() != null) {
-            classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
-        }
     }
 
     @Contextual

@@ -34,7 +34,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     void setup() {
         fixture.prepareTaskTypeUsingWorker()
-        fixture.withRunnableClassInBuildSrc()
+        fixture.withWorkerExecutionClassInBuildSrc()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 displayName = "Test Work"
@@ -91,7 +91,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def "includes failure in progress event"() {
         given:
         buildFile << """
-            ${fixture.getRunnableThatFails(IllegalStateException, "something went horribly wrong")}
+            ${fixture.getWorkerExecutionThatFails(IllegalStateException, "something went horribly wrong")}
             runInWorker {
                 displayName = null
                 runnableClass = RunnableThatFails

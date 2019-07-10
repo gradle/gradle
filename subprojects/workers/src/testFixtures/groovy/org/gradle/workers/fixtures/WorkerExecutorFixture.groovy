@@ -26,11 +26,26 @@ class WorkerExecutorFixture {
     def outputFileDirPath
     def list = [ 1, 2, 3 ]
     private final TestNameTestDirectoryProvider temporaryFolder
+    final ParameterClass testParameterType
+    final ExecutionClass workerExecutionThatCreatesFiles
+    final ExecutionClass workerExecutionThatFails
 
     WorkerExecutorFixture(TestNameTestDirectoryProvider temporaryFolder) {
         this.temporaryFolder = temporaryFolder
         this.outputFileDir = temporaryFolder.file("build/workers")
         outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
+
+        testParameterType = parameterClass("TestParameters", "org.gradle.test")
+        testParameterType.imports += ["java.io.File", "java.util.List", "org.gradle.other.Foo"]
+        testParameterType.fields += [
+                "files": "List<String>",
+                "outputDir": "File",
+                "bar": "Foo"
+        ]
+
+        workerExecutionThatCreatesFiles = getWorkerExecutionThatCreatesFiles("TestWorkerExecution")
+
+        workerExecutionThatFails = getWorkerExecutionThatFails(RuntimeException.class, "Failure from worker execution")
     }
 
     def prepareTaskTypeUsingWorker() {
@@ -52,7 +67,7 @@ class WorkerExecutorFixture {
                 def list = $list
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
                 def additionalForkOptions = {}
-                def runnableClass = TestRunnable.class
+                def workerExecutionClass = TestWorkerExecution.class
                 def additionalClasspath = project.layout.files()
                 def foo = new Foo()
                 def displayName = null
@@ -66,7 +81,7 @@ class WorkerExecutorFixture {
 
                 @TaskAction
                 void executeTask() {
-                    workerExecutor.submit(runnableClass) {
+                    workerExecutor.execute(workerExecutionClass) {
                         isolationMode = this.isolationMode
                         displayName = this.displayName
                         if (isolationMode == IsolationMode.PROCESS) {
@@ -74,7 +89,11 @@ class WorkerExecutorFixture {
                         }
                         forkOptions(additionalForkOptions)
                         classpath(additionalClasspath)
-                        params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
+                        parameters {
+                            files = list.collect { it as String }
+                            outputDir = new File(outputFileDirPath)
+                            bar = foo
+                        }
                         if (this.forkMode != null) {
                             forkMode = this.forkMode
                         }
@@ -84,58 +103,57 @@ class WorkerExecutorFixture {
         """
     }
 
-    String getRunnableThatCreatesFiles() {
-        return """
-            import java.io.File;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import org.gradle.test.FileHelper;
-            import java.util.UUID;
-            import javax.inject.Inject;
-
-            public class TestRunnable implements Runnable {
-                private final List<String> files;
-                protected final File outputDir;
-                private final Foo foo;
-                private static final String id = UUID.randomUUID().toString();
-
-                @Inject
-                public TestRunnable(List<String> files, File outputDir, Foo foo) {
-                    this.files = files;
-                    this.outputDir = outputDir;
-                    this.foo = foo;
-                }
-
-                public void run() {
-                    for (String name : files) {
-                        File outputFile = new File(outputDir, name);
-                        FileHelper.write(id, outputFile);
-                    }
-                }
-            }
-        """
+    ExecutionClass executionClass(String name, String packageName, ParameterClass parameterClass) {
+       return new ExecutionClass(name, packageName, parameterClass)
     }
 
-    String getRunnableThatFails(Class<? extends RuntimeException> exceptionClass = RuntimeException.class, String message = "Failure from runnable") {
-        return """
-            public class RunnableThatFails implements Runnable {
-                private final File outputDir;
-                
-                @javax.inject.Inject
-                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
-                    this.outputDir = outputDir;
-                }
+    ParameterClass parameterClass(String name, String packageName) {
+        return new ParameterClass(name, packageName)
+    }
 
-                public void run() {
-                    try {
-                        throw new ${exceptionClass.name}("$message");
-                    } finally {
-                        outputDir.mkdirs();
-                        new File(outputDir, "finished").createNewFile();
-                    }                    
-                }
+    ExecutionClass getWorkerExecutionThatCreatesFiles(String name) {
+        def workerClass = executionClass(name, "org.gradle.test", testParameterType)
+        workerClass.imports += [
+                "java.io.File",
+                "java.util.UUID"
+        ]
+        workerClass.extraFields = """
+            private static final String id = UUID.randomUUID().toString();
+        """
+        workerClass.action = """
+            for (String name : getParameters().getFiles()) {
+                File outputFile = new File(getParameters().getOutputDir(), name);
+                org.gradle.test.FileHelper.write(id, outputFile);
             }
         """
+        return workerClass
+    }
+
+    ExecutionClass getWorkerExecutionThatFails(Class<? extends RuntimeException> exceptionClass, String message) {
+        def workerClass = executionClass("WorkerExecutionThatFails", "org.gradle.test", testParameterType)
+        workerClass.imports += ["java.io.File"]
+        workerClass.action = """
+            try {
+                throw new ${exceptionClass.name}("$message");
+            } finally {
+                getParameters().getOutputDir().mkdirs();
+                new File(getParameters().getOutputDir(), "finished").createNewFile();
+            } 
+        """
+        return workerClass
+    }
+
+    ExecutionClass getBlockingWorkerExecutionThatCreatesFiles(String url) {
+        def workerClass = getWorkerExecutionThatCreatesFiles("BlockingWorkerExecution")
+        workerClass.imports += ["java.net.URL"]
+        workerClass.action += """
+            try {
+                new URL("$url/" + getParameters().getOutputDir().getName()).openConnection().getHeaderField("RESPONSE");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        """
+        return workerClass
     }
 
     void withParameterClassInBuildSrc() {
@@ -154,20 +172,20 @@ class WorkerExecutorFixture {
         """
     }
 
-    void withRunnableClassInBuildSrc() {
-        file("buildSrc/src/main/java/org/gradle/test/TestRunnable.java") << """
-            package org.gradle.test;
-
-            $runnableThatCreatesFiles
-        """
-
-        addImportToBuildScript("org.gradle.test.TestRunnable")
+    void withWorkerExecutionClassInBuildSrc() {
+        workerExecutionThatCreatesFiles.writeToBuildSrc()
     }
 
-    void withRunnableClassInBuildScript() {
-        buildFile << """
-            $runnableThatCreatesFiles
-        """
+    void withWorkerExecutionClassInBuildScript() {
+        workerExecutionThatCreatesFiles.writeToBuildFile()
+    }
+
+    void withBlockingWorkerExecutionClassInBuildSrc(String url) {
+        getBlockingWorkerExecutionThatCreatesFiles(url).writeToBuildSrc()
+    }
+
+    void withAlternateWorkerExecutionClassInBuildSrc() {
+        alternateWorkerExecution.writeToBuildSrc()
     }
 
     void withJava7CompatibleClasses() {
@@ -225,21 +243,36 @@ class WorkerExecutorFixture {
         """
     }
 
-    String getAlternateRunnable() {
-        return """
-            import java.io.File;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import java.net.URL;
-            import javax.inject.Inject;
-
-            public class AlternateRunnable extends TestRunnable {
-                @Inject
-                public AlternateRunnable(List<String> files, File outputDir, Foo foo) {
-                    super(files, outputDir, foo);
-                }
+    TestClass getAlternateWorkerExecution() {
+        String name = "AlternateWorkerExecution"
+        String packageName = "org.gradle.test"
+        return new TestClass(name, packageName) {
+            @Override
+            TestClass writeToBuildFile() {
+                workerExecutionThatCreatesFiles.writeToBuildFile()
+                super.writeToBuildFile()
+                return this
             }
-        """
+
+            @Override
+            TestClass writeToBuildSrc() {
+                addImportToBuildScript("${packageName}.${name.capitalize()}")
+                workerExecutionThatCreatesFiles.writeToBuildSrc()
+                super.writeToBuildSrc()
+                return this
+            }
+
+            @Override
+            String getBody() {
+                return """
+                public abstract class ${name.capitalize()} extends TestWorkerExecution {
+
+                @javax.inject.Inject
+                public ${name.capitalize()}() { }
+            }
+            """
+            }
+        }
     }
 
     def getBuildFile() {
@@ -248,5 +281,136 @@ class WorkerExecutorFixture {
 
     private def file(Object... path) {
         temporaryFolder.file(path)
+    }
+
+    abstract class TestClass {
+        String name
+        String packageName
+        List<String> imports = []
+        boolean writtenToBuildFile = false
+
+        TestClass(String name, String packageName) {
+            this.name = name
+            this.packageName = packageName
+        }
+
+        String getImportDeclarations() {
+            String importDeclarations = ""
+            imports.each {
+                importDeclarations += """
+                    import ${it};
+                """
+            }
+            return importDeclarations
+        }
+
+        TestClass writeToFile(File file) {
+            file.text = """
+                package ${packageName};
+
+                ${importDeclarations}
+
+                ${body}
+            """
+            return this
+        }
+
+        TestClass writeToBuildSrc() {
+            writeToFile file("buildSrc/src/main/java/${packageName.replace("\\.", "/")}/${name.capitalize()}.java")
+            return this
+        }
+
+        TestClass writeToBuildFile() {
+            if (!writtenToBuildFile) {
+                buildFile << """
+                    ${importDeclarations}
+
+                    ${body}
+                """
+                writtenToBuildFile = true
+            }
+            return this
+        }
+
+        abstract String getBody()
+    }
+
+    class ParameterClass extends TestClass {
+        Map<String, String> fields = [:]
+
+        ParameterClass(String name, String packageName) {
+            super(name, packageName)
+            this.imports += ["org.gradle.workers.WorkerParameters"]
+        }
+
+        String getBody() {
+            return """
+                public interface ${name} extends WorkerParameters {
+                    ${fieldDeclarations}
+                }
+            """
+        }
+
+        String getFieldDeclarations() {
+            String fieldDeclarations = ""
+            fields.each { name, type ->
+                fieldDeclarations += """
+                    ${type} get${name.capitalize()}();
+                    void set${name.capitalize()}(${type} ${name.uncapitalize()});
+                """
+            }
+            return fieldDeclarations
+        }
+
+        ParameterClass withFields(Map<String, String> fields) {
+            this.fields = fields
+            return this
+        }
+    }
+
+    class ExecutionClass extends TestClass {
+        ParameterClass parameters
+        String extraFields = ""
+        String action = ""
+        String constructorArgs = ""
+        String constructorAction = ""
+
+        ExecutionClass(String name, String packageName, ParameterClass parameters) {
+            super(name, packageName)
+            this.parameters = parameters
+            this.imports += ["org.gradle.workers.WorkerExecution"]
+        }
+
+        @Override
+        ExecutionClass writeToBuildSrc() {
+            parameters.writeToBuildSrc()
+            addImportToBuildScript("${packageName}.${name.capitalize()}")
+            super.writeToBuildSrc()
+            return this
+        }
+
+        @Override
+        ExecutionClass writeToBuildFile() {
+            parameters.writeToBuildFile()
+            super.writeToBuildFile()
+            return this
+        }
+
+        String getBody() {
+            return """
+                public abstract class ${name.capitalize()} implements WorkerExecution<${parameters.name.capitalize()}> {
+                    ${extraFields}
+
+                    @javax.inject.Inject
+                    public ${name.capitalize()}(${constructorArgs}) { 
+                        ${constructorAction}
+                    }
+                    
+                    public void execute() {
+                        ${action}
+                    }
+                }
+            """
+        }
     }
 }

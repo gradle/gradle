@@ -65,6 +65,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
         _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
+        _ * instantiator.newInstance(DefaultWorkerSpec, _) >> { args -> new DefaultWorkerSpec<>(args[1][0], args[1][1]) }
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
