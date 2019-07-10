@@ -236,18 +236,14 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
                 @InputFiles FileCollection brokenInputFiles
 
-                @SkipWhenEmpty @InputFiles FileCollection brokenInputFilesWithSkip
-
                 @OutputFile File output
 
                 @TaskAction execute() {
-                    assert brokenInputFilesWithSkip.files == brokenInputFiles.files
                     output.text = brokenInputFiles.files*.name
                 }
             }
             task inputBrokenLinkNameCollector(type: CustomTask) {
                 brokenInputFiles = files '${brokenInputFile}'
-                brokenInputFilesWithSkip = files '${brokenInputFile}'
                 output = file '${output}'
             }
         """
