@@ -156,7 +156,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
             } else if (!relativePathSegmentsTracker.isRoot()) {
-                throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", fileSnapshot.getAbsolutePath()));
+                throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", fileSnapshot.getAbsolutePath()));
             }
         }
 
