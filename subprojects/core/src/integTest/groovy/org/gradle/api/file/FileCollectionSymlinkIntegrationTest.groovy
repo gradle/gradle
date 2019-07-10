@@ -15,10 +15,13 @@
  */
 package org.gradle.api.file
 
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
+import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.escapeString
@@ -325,6 +328,70 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
         output.text == "${[MODIFIED]}"
+    }
+
+    @PendingFeature
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "fails task with a #classpathType.simpleName FileCollection input"() {
+        def brokenInputFile = file('BrokenInputFile.class').createLink("BrokenInputFile.target")
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @${classpathType.name} FileCollection brokenInputFiles
+    
+                @OutputFile File output
+    
+                @TaskAction execute() {
+                    output.text = "executed"
+                }
+            }
+            task brokenClasspathInput(type: CustomTask) {
+                brokenInputFiles = files '${brokenInputFile}'
+                output = file '${output}'
+            }
+        """
+        assert !brokenInputFile.exists()
+
+        when:
+        run 'brokenClasspathInput'
+        then:
+        fails ':brokenClasspathInput'
+
+        where:
+        classpathType << [Classpath, CompileClasspath]
+    }
+
+    @PendingFeature
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "fails task with a #classpathType.simpleName File input"() {
+        def brokenInputFile = file('BrokenInputFile.class').createLink("BrokenInputFile.target")
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @${classpathType.name} File brokenInputFile
+    
+                @OutputFile File output
+    
+                @TaskAction execute() {
+                    output.text = "executed"
+                }
+            }
+            task brokenClasspathInput(type: CustomTask) {
+                brokenInputFile = file '${brokenInputFile}'
+                output = file '${output}'
+            }
+        """
+        assert !brokenInputFile.exists()
+
+        when:
+        run 'brokenClasspathInput'
+        then:
+        fails ':brokenClasspathInput'
+
+        where:
+        classpathType << [Classpath, CompileClasspath]
     }
 
     void maybeDeprecated(String expression) {
