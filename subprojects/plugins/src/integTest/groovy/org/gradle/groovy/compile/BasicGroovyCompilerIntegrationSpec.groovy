@@ -17,6 +17,7 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
@@ -30,7 +31,7 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetCoverage({GroovyCoverage.ALL})
+@TargetCoverage({ GroovyCoverage.ALL })
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -77,6 +78,41 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy.class').exists()
         groovyGeneratedSourceFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
+        outputDoesNotContain('Annotation processing is not supported when incremental Groovy compilation is enabled.')
+    }
+
+    def "disableIncrementalCompilationWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy {}"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+        enableIncrementalCompilation()
+
+        then:
+        executer.expectDeprecationWarning()
+        succeeds("compileGroovy")
+        groovyClassFile('Groovy.class').exists()
+        groovyGeneratedSourceFile('Groovy$$Generated.java').exists()
+        groovyClassFile('Groovy$$Generated.class').exists()
+        outputContains('Annotation processing is not supported when incremental Groovy compilation is enabled.')
+
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy { int i }"
+        )
+
+        then:
+        executer.expectDeprecationWarning()
+        succeeds("compileGroovy")
+        outputContains('Annotation processing is not supported when incremental Groovy compilation is enabled.')
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
@@ -679,10 +715,10 @@ ${compilerConfiguration()}
         """
 
         if (java) {
-            file("src/main/groovy/Java.java") << java
+            file("src/main/groovy/Java.java").text = java
         }
         if (groovy) {
-            file("src/main/groovy/Groovy.groovy") << groovy
+            file("src/main/groovy/Groovy.groovy").text = groovy
         }
     }
 
@@ -701,5 +737,14 @@ ${compilerConfiguration()}
         buildFile << """
                 compileGroovy.groovyOptions.javaAnnotationProcessing = true
             """
+    }
+
+    private void enableIncrementalCompilation() {
+        FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
+        buildFile << '''
+tasks.withType(GroovyCompile) {
+    options.incremental = true
+}
+'''
     }
 }
