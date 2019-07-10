@@ -266,6 +266,7 @@ class DefaultValueSnapshotterTest extends Specification {
         isolated1 instanceof IsolatedArray
         def copy1 = isolated1.isolate()
         copy1 == [] as String[]
+        copy1.class == String[].class
         !copy1.is(original1)
 
         def original2 = ["123"] as String[]
@@ -273,6 +274,7 @@ class DefaultValueSnapshotterTest extends Specification {
         isolated2 instanceof IsolatedArray
         def copy2 = isolated2.isolate()
         copy2 == ["123"] as String[]
+        copy2.class == String[].class
         !copy2.is(original2)
     }
 
