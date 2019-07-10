@@ -27,6 +27,7 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
     def "can store and load files having non-ascii characters in file name and property name using default file encoding #fileEncoding"() {
         def name = [
             "ascii-only": "ascii",
+            "space": " ",
             "zwnj": "\u200c",
             "chinese": "敏捷的棕色狐狸跳过了懒狗",
             "cyrillic": "здравствуйте",
@@ -44,7 +45,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
                     .withPropertyName("$name")
                 outputs.cacheIf { true }
                 doLast {
-        
                     file("dir/$fileName").text = "output"
                 }
             }
