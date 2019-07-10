@@ -22,6 +22,8 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.escapeString
+import static org.gradle.work.ChangeType.ADDED
+import static org.gradle.work.ChangeType.MODIFIED
 
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
@@ -34,7 +36,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         def symlinked = baseDir.file('symlinked')
         symlinked.text = 'target of symlink'
         baseDir.file('symlink').createLink(symlinked)
-
 
         buildScript << """
             def baseDir = new File("${escapeString(baseDir)}")
@@ -105,15 +106,15 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         """
             import java.nio.file.*
             class ProducesLink extends DefaultTask {
-                @OutputDirectory File outputDirectory 
-    
+                @OutputDirectory File outputDirectory
+
                 @TaskAction execute() {
                     def link = Paths.get('${link}')
                     Files.deleteIfExists(link);
                     Files.createSymbolicLink(link, Paths.get('${target}'));
                 }
             }
-            
+
             task producesLink(type: ProducesLink) {
                 outputDirectory = file '${link.parentFile}'
             }
@@ -125,13 +126,13 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
             import java.nio.file.*
             class ProducesLink extends DefaultTask {
                 @OutputFile Path outputFile
-    
+
                 @TaskAction execute() {
                     Files.deleteIfExists(outputFile);
                     Files.createSymbolicLink(outputFile, Paths.get('${target}'));
                 }
             }
-            
+
             task producesLink(type: ProducesLink) {
                 outputFile = Paths.get('${link}')
             }
@@ -178,12 +179,12 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "task with broken symlink in InputDirectory is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
-        def output = file("output.txt")
         def inputDirectoryWithBrokenLink = file('inputDirectoryWithBrokenLink')
         inputDirectoryWithBrokenLink.file('brokenInputFile').createLink(inputFileTarget)
+        def output = file("output.txt")
 
         buildFile << """
-            class CustomTask extends DefaultTask {                
+            class CustomTask extends DefaultTask {
                 @InputDirectory File inputDirectoryWithBrokenLink
 
                 @OutputFile File output
@@ -225,11 +226,12 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "task with broken symlink in InputFiles is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
-        def output = file("output.txt")
         def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
+        def output = file("output.txt")
 
         buildFile << """
-            class CustomTask extends DefaultTask {   
+            class CustomTask extends DefaultTask {
+
                 @InputFiles FileCollection brokenInputFiles
 
                 @SkipWhenEmpty @InputFiles FileCollection brokenInputFilesWithSkip
@@ -269,6 +271,60 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         run 'inputBrokenLinkNameCollector'
         then:
         skipped ':inputBrokenLinkNameCollector'
+    }
+
+    // Validation fails with broken links assigned directly to `@InputFile`
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "unbreaking a symlink in InputFiles is detected incrementally"() {
+        def inputFileTarget = file("brokenInputFileTarget")
+        def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @Incremental @InputFiles FileCollection brokenInputFiles
+
+                @OutputFile File output
+
+                @TaskAction execute(InputChanges changes) {
+                    output.text = changes.getFileChanges(brokenInputFiles)*.changeType
+                }
+            }
+            task inputBrokenLinkNameCollector(type: CustomTask) {
+                brokenInputFiles = files '${brokenInputFile}'
+                output = file '${output}'
+            }
+        """
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "${[ADDED]}"
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+
+        when:
+        inputFileTarget.createFile()
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "${[MODIFIED]}"
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+
+        when:
+        inputFileTarget.delete()
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "${[MODIFIED]}"
     }
 
     void maybeDeprecated(String expression) {
