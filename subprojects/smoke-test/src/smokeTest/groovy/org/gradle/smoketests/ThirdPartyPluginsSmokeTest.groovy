@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,7 +26,8 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
-    @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
+    @Rule
+    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
@@ -349,7 +349,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         file('build/reports/spotbugs').isDirectory()
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
         given:
@@ -360,6 +359,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
             
             ${mavenCentralRepository()}
+            
+            if (JavaVersion.current().java8) {
+                dependencies {
+                    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+                }
+            }
             
             dependencies {
                 errorprone("com.google.errorprone:error_prone_core:2.3.3")
