@@ -22,10 +22,10 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -40,22 +40,19 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginManager;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.util.TextUtil;
 
 import java.util.List;
 
-import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
-import static org.gradle.api.attributes.Category.LIBRARY;
+import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
-import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
+import static org.gradle.api.attributes.Category.LIBRARY;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
@@ -147,9 +144,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
 
-        String javaCompileTaskName = sourceSet.getCompileJavaTaskName();
-        Provider<JavaCompile> javaCompile = tasks.named(javaCompileTaskName, JavaCompile.class);
-        registerClassesDirVariant(javaCompile, objectFactory, apiElements);
+        JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName);
 
         if (mainSourceSet) {
             // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured

@@ -41,7 +41,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
@@ -158,7 +158,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             @Override
             public void execute(ScalaCompile scalaCompile) {
                 scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
-                SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
+                JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
                 scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
                 scalaCompile.setSource(scalaSourceSet.getScala());
 
@@ -188,7 +188,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 }).getFiles());
             }
         });
-        SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
             @Override
             public CompileOptions transform(ScalaCompile scalaCompile) {
                 return scalaCompile.getOptions();

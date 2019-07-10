@@ -47,7 +47,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
-import org.gradle.api.plugins.internal.JavaPluginsHelper;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
@@ -376,7 +376,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         ConfigurationVariant classesVariant = runtimeVariants.create("classes");
         classesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         classesVariant.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
-        classesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
+        classesVariant.artifact(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.get().getDestinationDir();
@@ -385,7 +385,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         resourcesVariant.getAttributes().attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
-        resourcesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
+        resourcesVariant.artifact(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.get().getDestinationDir();
