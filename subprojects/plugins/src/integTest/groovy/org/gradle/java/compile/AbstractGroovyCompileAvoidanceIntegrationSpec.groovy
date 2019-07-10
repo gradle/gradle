@@ -96,7 +96,7 @@ public @interface MyAnnotation { }
 
     def 'always recompile if compilation avoidance is not enabled'() {
         given:
-        enableGroovyCompilationAvoidance = false
+        settingsFile.text = settingsFile.text.readLines().findAll { !it.contains("enableFeaturePreview") }.join('\n')
         buildFile << """
             project(':b') {
                 dependencies {
