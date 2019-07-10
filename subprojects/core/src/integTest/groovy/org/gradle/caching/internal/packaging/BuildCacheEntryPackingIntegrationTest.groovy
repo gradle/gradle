@@ -29,7 +29,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         def outputFile = file(fileName)
 
         buildFile << """
-            println "> File encoding: \${System.getProperty("file.encoding")}"
             println "> Default charset: \${java.nio.charset.Charset.defaultCharset()}"
 
             task createFile {
@@ -59,19 +58,15 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         where:
         [type, fileName, fileEncoding] << [
             [
-                "ascii-only": "input-file.txt",
-                "chinese-simplified": "敏捷的棕色狐狸跳过了懒狗.txt",
-                "chinese-traditional": "敏捷的棕色狐狸跳過了懶狗.txt",
-                "cyrillic": "АдрМНИн.txt",
-                "hungarian": "Dezső.txt",
-                "space": "input file.txt",
+                "ascii-only": "input file.txt",
+                "chinese": "敏捷的棕色狐狸跳过了懒狗.txt",
+                "cyrillic": "здравствуйте.txt",
+                "hungarian": "Árvíztűrő tükörfúrógép.txt",
                 "zwnj": "input\u200cfile.txt",
-                "url-quoted": "input%<file>#2.txt",
             ].entrySet(),
             [
                 "UTF-8",
                 "ISO-8859-1",
-                "ISO-8859-2",
                 "windows-1251",
             ]
         ].combinations { text, encoding -> [text.key, text.value, encoding] }
