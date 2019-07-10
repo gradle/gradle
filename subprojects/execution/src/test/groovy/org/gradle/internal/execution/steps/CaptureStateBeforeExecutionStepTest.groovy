@@ -22,7 +22,9 @@ import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
@@ -100,6 +102,29 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         0 * _
     }
 
+    def "uses previous input property snapshots"() {
+        def inputPropertyValue = 'myValue'
+        def valueSnapshot = Mock(ValueSnapshot)
+        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+
+        when:
+        step.execute(afterPreviousExecutionContext)
+        then:
+        afterPreviousExecutionContext.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of("inputString", valueSnapshot)
+        1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of()
+        1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
+            visitor.visitInputProperty("inputString", inputPropertyValue)
+        }
+        1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
+            state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
+        }
+        0 * _
+    }
+
     def "input file properties are fingerprinted"() {
         def fingerprint = Mock(CurrentFileCollectionFingerprint)
 
@@ -124,6 +149,54 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         step.execute(afterPreviousExecutionContext)
         then:
         1 * work.outputFileSnapshotsBeforeExecution >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
+            state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
+        }
+        0 * _
+    }
+
+    def "uses before output snapshot when there are no overlapping outputs"() {
+        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def afterPreviousOutputFingerprint = Mock(FileCollectionFingerprint)
+        def outputFileSnapshot = Mock(FileSystemSnapshot)
+
+        when:
+        step.execute(afterPreviousExecutionContext)
+        then:
+        afterPreviousExecutionContext.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of()
+        1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("outputDir", afterPreviousOutputFingerprint)
+
+        1 * work.outputFileSnapshotsBeforeExecution >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        1 * outputFileSnapshot.accept(_)
+
+        interaction { fingerprintInputs() }
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
+            state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
+        }
+        0 * _
+    }
+
+    def "filters before output snapshot when there are overlapping outputs"() {
+        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def afterPreviousOutputFingerprint = Mock(FileCollectionFingerprint)
+        def outputFileSnapshot = Mock(FileSystemSnapshot)
+
+        when:
+        step.execute(afterPreviousExecutionContext)
+        then:
+        afterPreviousExecutionContext.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of()
+        1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("outputDir", afterPreviousOutputFingerprint)
+        1 * work.hasOverlappingOutputs() >> true
+
+        1 * work.outputFileSnapshotsBeforeExecution >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        1 * outputFileSnapshot.accept(_)
+        1 * afterPreviousOutputFingerprint.fingerprints >> [:]
+
         interaction { fingerprintInputs() }
         1 * delegate.execute { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
