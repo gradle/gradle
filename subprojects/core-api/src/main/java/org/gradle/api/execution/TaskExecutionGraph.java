@@ -162,6 +162,9 @@ public interface TaskExecutionGraph {
      *
      * @param name the name of the shared resource.
      * @param leases number of concurrently available leases.
+     *
+     * @since 5.6
      */
+    @Incubating
     void sharedResource(String name, int leases);
 }

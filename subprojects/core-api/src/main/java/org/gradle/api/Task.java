@@ -759,11 +759,9 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Sets the shared resources required by this task.</p>
      *
      * @param sharedResources the shared resources.
+     *
+     * @since 5.6
      */
+    @Incubating
     void setSharedResources(Map<String, Integer> sharedResources);
-
-    /**
-     * <p>Gets the shared resources required by this task.</p>
-     */
-    Map<String, Integer> getSharedResources();
 }
