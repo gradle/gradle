@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -133,6 +134,11 @@ public class GroovyBasePlugin implements Plugin<Project> {
                         task.dependsOn(compileTask);
                     }
                 });
+
+                // Explain that Groovy, for compile, also needs the resources (#9872)
+                project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
+                    attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.getObjects().named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES))
+                );
             }
         });
     }
