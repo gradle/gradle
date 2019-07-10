@@ -31,15 +31,15 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import spock.lang.Specification
-import spock.lang.Subject
 
-@Subject(CaptureStateBeforeExecutionStep)
 class CaptureStateBeforeExecutionStepTest extends Specification {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def valueSnapshotter = Mock(ValueSnapshotter)
-    def context = Mock(AfterPreviousExecutionContext)
     def work = Mock(UnitOfWork)
+    def afterPreviousExecutionContext = Stub(AfterPreviousExecutionContext) {
+        getWork() >> this.work
+    }
     def result = Mock(CachingResult)
     Step<BeforeExecutionContext, CachingResult> delegate = Mock()
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
@@ -48,12 +48,11 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
 
     def "no state is captured when task history is not maintained"() {
         when:
-        step.execute(context)
+        step.execute(afterPreviousExecutionContext)
         then:
-        1 * context.work >> work
         1 * work.isTaskHistoryMaintained() >> false
-        1 * delegate.execute { BeforeExecutionContext context ->
-            context.beforeExecutionState.empty
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            beforeExecution.beforeExecutionState.empty
         } >> result
         0 * _
     }
@@ -65,7 +64,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         ]
 
         when:
-        step.execute(context)
+        step.execute(afterPreviousExecutionContext)
         then:
         1 * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
@@ -74,8 +73,8 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
             }
         }
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext context ->
-            def state = context.beforeExecutionState.get()
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
             state.implementation == implementationSnapshot
             state.additionalImplementations == additionalImplementations
         }
@@ -87,15 +86,15 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         def valueSnapshot = Mock(ValueSnapshot)
 
         when:
-        step.execute(context)
+        step.execute(afterPreviousExecutionContext)
         then:
         1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
             visitor.visitInputProperty("inputString", inputPropertyValue)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext context ->
-            def state = context.beforeExecutionState.get()
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
             state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
@@ -105,14 +104,14 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         def fingerprint = Mock(CurrentFileCollectionFingerprint)
 
         when:
-        step.execute(context)
+        step.execute(afterPreviousExecutionContext)
         then:
         1 * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
             visitor.visitInputFileProperty("inputFile", "ignored", false, { -> fingerprint })
         }
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext context ->
-            def state = context.beforeExecutionState.get()
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
             state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
         }
         0 * _
@@ -122,20 +121,19 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         def outputFileSnapshot = Mock(FileSystemSnapshot)
 
         when:
-        step.execute(context)
+        step.execute(afterPreviousExecutionContext)
         then:
         1 * work.outputFileSnapshotsBeforeExecution >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext context ->
-            def state = context.beforeExecutionState.get()
+        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+            def state = beforeExecution.beforeExecutionState.get()
             state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
     }
 
     void fingerprintInputs() {
-        _ * context.work >> work
-        _ * context.afterPreviousExecutionState >> Optional.empty()
+        _ * afterPreviousExecutionContext.afterPreviousExecutionState >> Optional.empty()
         _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
