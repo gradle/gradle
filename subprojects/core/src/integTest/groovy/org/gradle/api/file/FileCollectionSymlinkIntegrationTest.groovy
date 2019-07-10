@@ -223,23 +223,27 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     // Validation fails with broken links assigned directly to `@InputFile`
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "task with broken symlink in InputFilesis valid"() {
+    def "task with broken symlink in InputFiles is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
         def output = file("output.txt")
         def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
 
         buildFile << """
-            class CustomTask extends DefaultTask {                
+            class CustomTask extends DefaultTask {   
                 @InputFiles FileCollection brokenInputFiles
+
+                @SkipWhenEmpty @InputFiles FileCollection brokenInputFilesWithSkip
 
                 @OutputFile File output
 
                 @TaskAction execute() {
+                    assert brokenInputFilesWithSkip.files == brokenInputFiles.files
                     output.text = brokenInputFiles.files*.name
                 }
             }
             task inputBrokenLinkNameCollector(type: CustomTask) {
                 brokenInputFiles = files '${brokenInputFile}'
+                brokenInputFilesWithSkip = files '${brokenInputFile}'
                 output = file '${output}'
             }
         """
