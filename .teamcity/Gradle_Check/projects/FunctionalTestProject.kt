@@ -29,7 +29,9 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
 
     val projectNamesForMergedTestsBuild = model.subProjects
         .filter { it.includeInMergedTestBuild(testConfig.testType) }
-        .map { it.name }
+        .map {
+            it.name
+        }
 
     if (projectNamesForMergedTestsBuild.isNotEmpty()) {
         buildType(FunctionalTest(model, testConfig, projectNamesForMergedTestsBuild, stage, allUnitTestsBuildTypeName))
