@@ -114,6 +114,7 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0-rc-1"       | "1.0-release"
         "1.0-dev-1"      | "1.0-xx-1"
         "1.0-xx-1"       | "1.0-rc-1"
+        "1.0-xx-1"       | "1.0-snapshot-1"
         "1.0-release"    | "1.0"
         "1.0-final"      | "1.0"
         "1.0-dev-1"      | "1.0-rc-1"
@@ -134,6 +135,7 @@ class DefaultVersionComparatorTest extends Specification {
         where:
         smaller        | larger
         "1.0-dev"      | "1.0-a"
+        "1.0-a"        | "1.0-snapshot"
         "1.0-a"        | "1.0-rc"
         "1.0-a"        | "1.0-release"
         "1.0-a"        | "1.0-final"
