@@ -18,6 +18,7 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
@@ -49,7 +50,7 @@ include 'a', 'b'
 
         if (language == CompiledLanguage.GROOVY) {
             buildFile << language.projectGroovyDependencies()
-            settingsFile << "enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')\n"
+            FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
         }
 
         if (isUseJar()) {

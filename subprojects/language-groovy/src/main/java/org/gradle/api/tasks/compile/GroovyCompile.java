@@ -386,9 +386,6 @@ public class GroovyCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Injects and returns an instance of {@link FeaturePreviews}.
-     */
     @Inject
     protected FeaturePreviews getFeaturePreviews() {
         throw new UnsupportedOperationException();
