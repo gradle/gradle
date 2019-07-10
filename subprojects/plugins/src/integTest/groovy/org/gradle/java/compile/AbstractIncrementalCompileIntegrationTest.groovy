@@ -18,7 +18,6 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Unroll
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
@@ -26,7 +25,9 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
 
     def setup() {
         if (language == CompiledLanguage.GROOVY) {
-            FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
+            executer.beforeExecute {
+                executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=true")
+            }
         }
     }
 
