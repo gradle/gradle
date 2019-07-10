@@ -19,7 +19,6 @@ package org.gradle.java.compile.incremental
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 
 abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractIntegrationSpec {
     CompilationOutputsFixture outputs
@@ -47,6 +46,14 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
         """
     }
 
+    def enableCompilationAvoidance() {
+        if (language == CompiledLanguage.GROOVY) {
+            executer.beforeExecute {
+                executer.withArgument("-Dorg.gradle.groovy.compilation.avoidance=true")
+            }
+        }
+    }
+
     def configureGroovyIncrementalCompilation(String allprojectsOrSubprojects = 'allprojects') {
         if (language == CompiledLanguage.GROOVY) {
             buildFile << language.projectGroovyDependencies(allprojectsOrSubprojects)
@@ -57,7 +64,7 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
                     }
                 }
             """
-            FeaturePreviewsFixture.enableGroovyCompilationAvoidance(settingsFile)
+            enableCompilationAvoidance()
         }
     }
 }
