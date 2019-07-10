@@ -17,11 +17,11 @@
 package org.gradle.kotlin.dsl.provider.plugins
 
 import org.gradle.api.NamedDomainObjectCollectionSchema
+import org.gradle.api.NamedDomainObjectCollectionSchema.NamedDomainObjectSchema
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
@@ -33,6 +33,12 @@ import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
+
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+
+import kotlin.reflect.KClass
+import kotlin.reflect.KVisibility
+import kotlin.reflect.full.superclasses
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
@@ -69,13 +75,13 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
-            accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
+            accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
                 collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
             }
         }
         if (target is Project) {
-            accessibleConventionsSchema(target.convention.plugins).forEach { name, type ->
+            accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
             }
@@ -107,18 +113,49 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
 
 private
-fun accessibleExtensionsSchema(extensionsSchema: ExtensionsSchema) =
-    extensionsSchema.filter { isPublic(it.name) }
-
-
-private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
     plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
 
 
 private
 fun accessibleContainerSchema(collectionSchema: NamedDomainObjectCollectionSchema) =
-    collectionSchema.elements.filter { isPublic(it.name) }
+    collectionSchema.elements
+        .filter { isPublic(it.name) }
+        .map(NamedDomainObjectSchema::toFirstKotlinPublicOrSelf)
+
+
+private
+fun NamedDomainObjectSchema.toFirstKotlinPublicOrSelf() =
+    publicType.concreteClass.kotlin.let { kotlinPublicType ->
+        takeIf { kotlinPublicType.visibility == KVisibility.PUBLIC }
+            ?: ProjectSchemaNamedDomainObjectSchema(
+                name,
+                TypeOf.typeOf(kotlinPublicType.firstKotlinPublicOrSelf.java)
+            )
+    }
+
+
+private
+val KClass<*>.firstKotlinPublicOrSelf
+    get() = firstKotlinPublicOrNull ?: this
+
+
+private
+val KClass<*>.firstKotlinPublicOrNull: KClass<*>?
+    get() = takeIf { visibility == KVisibility.PUBLIC }
+        ?: superclasses.firstNotNullResult { it.firstKotlinPublicOrNull }
+
+
+private
+class ProjectSchemaNamedDomainObjectSchema(
+    private val objectName: String,
+    private val objectPublicType: TypeOf<*>
+) : NamedDomainObjectSchema {
+
+    override fun getName() = objectName
+
+    override fun getPublicType() = objectPublicType
+}
 
 
 private
