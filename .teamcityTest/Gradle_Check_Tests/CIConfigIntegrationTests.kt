@@ -5,7 +5,6 @@ import common.NoBuildCache
 import common.Os
 import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.GradleSubproject
 import model.SpecificBuild
@@ -72,9 +71,7 @@ class CIConfigIntegrationTests {
                         if (shouldBeSkipped(subProject, testCoverage)) {
                             return@forEach
                         }
-                        if (subProject.hasOnlyUnitTests()) {
-                            return@forEach
-                        } else if (subProject.unitTests && testCoverage.testType.unitTests) {
+                        if (subProject.unitTests && testCoverage.testType.unitTests) {
                             functionalTestCount++
                         } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
                             functionalTestCount++
@@ -82,16 +79,13 @@ class CIConfigIntegrationTests {
                             functionalTestCount++
                         }
                     }
-                    if (testCoverage.testType.unitTests) {
-                        functionalTestCount++ // All unit tests build type
-                    }
                     if (testCoverage.testType == TestType.soak) {
                         functionalTestCount++
                     }
                 }
 
                 // hacky way to consider deferred tests
-                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 4 else 0
+                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 10 else 0
                 assertEquals(
                stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
                        it.dependencies.items.size, stage.stageName.stageName)
@@ -209,28 +203,6 @@ class CIConfigIntegrationTests {
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
             assertTrue(projectsWithUnitTests.map { it.asDirectoryName() }.contains(it.name), "Contains unit tests: $it")
-        }
-    }
-
-    @Test
-    fun allSubprojectsWithOnlyUnitTestsAreInASingleProject() {
-        val model = CIBuildModel()
-        val unitTestBuildTypes = RootProject(model).subProjects
-            .flatMap { it.subProjects }
-            .flatMap { it.buildTypes.filter { it.name.contains("AllUnitTests") } }
-        val unitTestProjects = model.subProjects.filter { it.hasOnlyUnitTests() }
-
-        assertTrue(unitTestBuildTypes.isNotEmpty())
-        unitTestBuildTypes.forEach {
-            val gradleSteps = it.steps.items.filterIsInstance<GradleBuildStep>()
-            assertTrue(gradleSteps.isNotEmpty())
-            gradleSteps.forEach { step ->
-                unitTestProjects.forEach { project ->
-                    if (step.name !in listOf("VERIFY_TEST_FILES_CLEANUP", "KILL_PROCESSES_STARTED_BY_GRADLE", "KILL_PROCESSES_STARTED_BY_GRADLE_RERUN")) {
-                        assertTrue(step.tasks!!.contains(project.name), "Step $step")
-                    }
-                }
-            }
         }
     }
 
