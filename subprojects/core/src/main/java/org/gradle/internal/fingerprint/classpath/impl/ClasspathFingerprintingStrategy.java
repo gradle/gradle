@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.classpath.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
@@ -154,6 +155,8 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
+            } else if (!relativePathSegmentsTracker.isRoot()) {
+                throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", fileSnapshot.getAbsolutePath()));
             }
         }
 
