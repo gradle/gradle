@@ -24,16 +24,27 @@ import spock.lang.Unroll
 class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     @Issue("https://github.com/gradle/gradle/issues/9877")
     @Unroll
-    def "can store and load files having #type characters in name (default file encoding #fileEncoding)"() {
+    def "can store and load files having non-ascii characters in file name and property name using default file encoding #fileEncoding"() {
+        def name = [
+            "ascii-only": "ascii",
+            "zwnj": "\u200c",
+            "chinese": "敏捷的棕色狐狸跳过了懒狗",
+            "cyrillic": "здравствуйте",
+            "hungarian": "Árvíztűrő tükörfúrógép",
+        ].values().join("-")
+        def fileName = name + ".txt"
         def outputFile = file("dir", fileName)
 
         buildFile << """
             println "> Default charset: \${java.nio.charset.Charset.defaultCharset()}"
+            println "> Storing file in cache: $fileName"
 
             task createFile {
                 outputs.dir("dir")
+                    .withPropertyName("$name")
                 outputs.cacheIf { true }
                 doLast {
+        
                     file("dir/$fileName").text = "output"
                 }
             }
@@ -55,19 +66,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         outputFile.text == "output"
 
         where:
-        [type, fileName, fileEncoding] << [
-            [
-                "ascii-only": "input file.txt",
-                "chinese": "敏捷的棕色狐狸跳过了懒狗.txt",
-                "cyrillic": "здравствуйте.txt",
-                "hungarian": "Árvíztűrő tükörfúrógép.txt",
-                "zwnj": "input\u200cfile.txt",
-            ].entrySet(),
-            [
-                "windows-1250",
-                "UTF-8",
-                "ISO-8859-1"
-            ]
-        ].combinations { text, encoding -> [text.key, text.value, encoding] }
+        fileEncoding << ["UTF-8", "ISO-8859-1", "windows-1250"]
     }
 }
