@@ -16,6 +16,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -174,39 +175,18 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         outputDirectory.list() == [input.name]
     }
 
+    // Validation fails with broken links assigned directly to `@InputDirectory` or `@InputFile`
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "task with broken symlink in inputs are valid"() {
-        def inputDirectoryWithBrokenLink = file('inputDirectoryWithBrokenLink').createDir()
+    def "task with broken symlink in #type is valid"(type, Closure<String> createBuildFile) {
         def inputFileTarget = file("brokenInputFileTarget")
-        def inputFile = inputDirectoryWithBrokenLink.file('brokenInputFile').createLink(inputFileTarget)
-        def output = file("output.txt").createFile()
-
-        // Validation fails with broken links assigned directly to `@InputDirectory` or `@InputFile`
-        buildFile << """
-            class CustomTask extends DefaultTask {                
-                @InputFiles FileCollection brokenInputFile
-
-                @InputDirectory File inputDirectoryWithBrokenLink
-
-                @OutputFile File output
-
-                @TaskAction execute() {
-                    output.text = "\${brokenInputFile.files*.name} \${inputDirectoryWithBrokenLink.name} \${inputDirectoryWithBrokenLink.list()}"
-                }
-            }
-            task inputBrokenLinkNameCollector(type: CustomTask) {
-                inputDirectoryWithBrokenLink = file '${inputDirectoryWithBrokenLink}'
-                brokenInputFile = files '${inputFile}'
-                output = file '${output}'
-            }
-        """
-        assert inputDirectoryWithBrokenLink.exists() && !inputFile.exists() && output.text.empty
+        def output = file("output.txt")
+        buildFile << createBuildFile(this, inputFileTarget, output)
 
         when:
-        run 'inputBrokenLinkNameCollector', '--info'
+        run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "[brokenInputFile] inputDirectoryWithBrokenLink [brokenInputFile]"
+        output.text == "[brokenInputFile]"
 
         when:
         run 'inputBrokenLinkNameCollector'
@@ -223,6 +203,51 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         run 'inputBrokenLinkNameCollector'
         then:
         skipped ':inputBrokenLinkNameCollector'
+
+        where:
+        type             | createBuildFile
+        'InputDirectory' | taskWithInputFiles
+        'InputFiles'     | taskWithInputDirectory
+    }
+
+    static taskWithInputFiles = { AbstractIntegrationSpec context, TestFile inputFileTarget, TestFile output ->
+        def brokenInputFile = context.file('brokenInputFile').createLink(inputFileTarget)
+
+        """
+            class CustomTask extends DefaultTask {                
+                @InputFiles FileCollection brokenInputFiles
+
+                @OutputFile File output
+
+                @TaskAction execute() {
+                    output.text = brokenInputFiles.files*.name
+                }
+            }
+            task inputBrokenLinkNameCollector(type: CustomTask) {
+                brokenInputFiles = files '${brokenInputFile}'
+                output = file '${output}'
+            }
+        """
+    }
+
+    static taskWithInputDirectory = { AbstractIntegrationSpec context, TestFile inputFileTarget, TestFile output ->
+        def inputDirectoryWithBrokenLink = context.file('inputDirectoryWithBrokenLink')
+        inputDirectoryWithBrokenLink.file('brokenInputFile').createLink(inputFileTarget)
+        """
+            class CustomTask extends DefaultTask {                
+                @InputDirectory File inputDirectoryWithBrokenLink
+
+                @OutputFile File output
+
+                @TaskAction execute() {
+                    output.text = inputDirectoryWithBrokenLink.list()
+                }
+            }
+            task inputBrokenLinkNameCollector(type: CustomTask) {
+                inputDirectoryWithBrokenLink = file '${inputDirectoryWithBrokenLink}'
+                output = file '${output}'
+            }
+        """
     }
 
     void maybeDeprecated(String expression) {
