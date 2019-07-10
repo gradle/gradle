@@ -205,6 +205,12 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
     }
 
     fun hasTestsOf(type: TestType) = (unitTests && type.unitTests) || (functionalTests && type.functionalTests) || (crossVersionTests && type.crossVersionTests)
+
+    fun hasOnlyUnitTests() = unitTests && !functionalTests && !crossVersionTests
+
+    fun hasSeparateTestBuild(type: TestType) = hasTestsOf(type) && !hasOnlyUnitTests()
+
+    fun includeInMergedTestBuild(type: TestType) = hasTestsOf(type) && hasOnlyUnitTests()
 }
 
 interface StageName {
@@ -218,6 +224,8 @@ interface StageName {
 
 data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false, val dependsOnSanityCheck: Boolean = false) {
     val id = stageName.id
+
+    fun shouldOmitSlowProject(project: GradleSubproject) = project.containsSlowTests && omitsSlowProjects
 }
 
 data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
