@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.AfterPreviousExecutionContext
 import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.CachingResult
@@ -25,6 +24,7 @@ import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot

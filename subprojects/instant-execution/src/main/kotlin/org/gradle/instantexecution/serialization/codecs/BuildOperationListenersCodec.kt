@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.MutableReadContext
 import org.gradle.instantexecution.serialization.MutableWriteContext
 import org.gradle.instantexecution.serialization.beans.makeAccessible
@@ -52,18 +53,19 @@ class BuildOperationListenersCodec {
     }
 
     fun MutableReadContext.readBuildOperationListeners(): List<BuildOperationListener> =
-        readList() as List<BuildOperationListener>
+        readList().uncheckedCast()
 
     private
     val BuildOperationListenerManager.listeners: List<BuildOperationListener>
         get() = getListenersField().unwrapped().whiteListed()
 
     private
-    fun BuildOperationListenerManager.getListenersField() =
+    fun BuildOperationListenerManager.getListenersField(): List<BuildOperationListener> =
         DefaultBuildOperationListenerManager::class.java
             .getDeclaredField("listeners")
             .also(Field::makeAccessible)
-            .get(this) as List<BuildOperationListener>
+            .get(this)
+            .uncheckedCast()
 
     private
     fun List<BuildOperationListener>.unwrapped() =

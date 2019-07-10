@@ -19,22 +19,16 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.collect.ImmutableList;
 
 public class TaskClassInfo {
-    private final boolean incremental;
     private final ImmutableList<TaskActionFactory> taskActionFactories;
     private final boolean cacheable;
 
-    public TaskClassInfo(boolean incremental, ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable) {
-        this.incremental = incremental;
+    public TaskClassInfo(ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable) {
         this.taskActionFactories = taskActionFactories;
         this.cacheable = cacheable;
     }
 
     public ImmutableList<TaskActionFactory> getTaskActionFactories() {
         return taskActionFactories;
-    }
-
-    public boolean isIncremental() {
-        return incremental;
     }
 
     public boolean isCacheable() {

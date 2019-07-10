@@ -20,7 +20,7 @@ import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.CacheAccessSerializer;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.file.Chmod;
 
 import java.io.File;
 import java.util.HashMap;

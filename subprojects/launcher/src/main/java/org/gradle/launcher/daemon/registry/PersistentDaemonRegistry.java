@@ -24,7 +24,7 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.file.Chmod;
 import org.gradle.internal.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonContext;
 

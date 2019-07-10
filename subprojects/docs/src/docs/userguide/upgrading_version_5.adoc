@@ -52,6 +52,13 @@ Creating `SignOperation` instances directly is now deprecated. Instead, the meth
 
 This will become an error in Gradle 6.0.
 
+==== Declaring an incremental task without outputs
+
+Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now deprecated.
+Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+
+This will become an error in Gradle 6.0.
+
 === Potential breaking changes
 
 ==== Task dependencies are honored for task `@Input` properties whose value is a `Property`

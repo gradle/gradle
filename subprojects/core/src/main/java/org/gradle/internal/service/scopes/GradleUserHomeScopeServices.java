@@ -54,8 +54,6 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.classloader.ClassLoaderHasher;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -69,10 +67,12 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -82,7 +82,6 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -155,8 +154,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
-    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
-        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
+    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
+        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderFactory);
     }
 
     WellKnownFileLocations createFileCategorizer(List<CachedJarFileStore> fileStores) {

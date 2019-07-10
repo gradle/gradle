@@ -17,15 +17,17 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.gradle.api.internal.tasks.compile.reflect.SourcepathIgnoringProxy;
+import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import java.io.Serializable;
@@ -60,12 +62,11 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
+        Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, charset);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
-        StandardJavaFileManager fileManager = standardFileManager;
-        if (JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options)) {
-            fileManager = (StandardJavaFileManager) SourcepathIgnoringProxy.proxy(standardFileManager, StandardJavaFileManager.class);
-        }
+        boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
+        JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
 
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();

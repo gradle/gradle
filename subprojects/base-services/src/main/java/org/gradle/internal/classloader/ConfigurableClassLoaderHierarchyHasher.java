@@ -17,6 +17,7 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -27,10 +28,10 @@ import java.util.WeakHashMap;
 
 public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
     private final Map<ClassLoader, byte[]> knownClassLoaders;
-    private final ClassLoaderHasher classLoaderHasher;
+    private final HashingClassLoaderFactory classLoaderFactory;
 
-    public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, ClassLoaderHasher classLoaderHasher) {
-        this.classLoaderHasher = classLoaderHasher;
+    public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, HashingClassLoaderFactory classLoaderFactory) {
+        this.classLoaderFactory = classLoaderFactory;
         Map<ClassLoader, byte[]> hashes = new WeakHashMap<ClassLoader, byte[]>();
         for (Map.Entry<ClassLoader, String> entry : knownClassLoaders.entrySet()) {
             hashes.put(entry.getKey(), entry.getValue().getBytes(Charsets.UTF_8));
@@ -70,7 +71,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
             if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
                 return true;
             }
-            HashCode hash = classLoaderHasher.getHash(cl);
+            HashCode hash = classLoaderFactory.getClassLoaderClasspathHash(cl);
             if (hash != null) {
                 hasher.putHash(hash);
                 return true;

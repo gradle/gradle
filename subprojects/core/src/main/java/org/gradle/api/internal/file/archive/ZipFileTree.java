@@ -26,12 +26,12 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.ArchiveFileTree;
+import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
+import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;

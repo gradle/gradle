@@ -25,7 +25,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.nativeintegration.filesystem.Stat;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.util.GFileUtils;

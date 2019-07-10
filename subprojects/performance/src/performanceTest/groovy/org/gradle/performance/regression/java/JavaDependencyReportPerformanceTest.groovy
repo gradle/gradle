@@ -19,8 +19,8 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -30,7 +30,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ["${subProject}dependencyReport"]
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["5.6-20190709000031+0000"]
 
         when:
         def result = runner.run()

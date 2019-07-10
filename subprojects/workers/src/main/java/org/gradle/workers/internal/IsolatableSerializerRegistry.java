@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.Decoder;
