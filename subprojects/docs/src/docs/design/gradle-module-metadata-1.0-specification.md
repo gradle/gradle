@@ -91,6 +91,17 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 - `org.gradle.docstype` indicates the documentation type of a `org.gradle.category=documentation` variant, like `javadoc`, `sources` or `doxygen`. Value must be a string.
 - `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. Value must be a string.
 
+##### Deprecated attributes value
+
+The `org.gradle.usage` attribute has seen an evolution for its values.
+The values `java-api-*` and `java-runtime-*` are now deprecated and replaced by a new combination.
+
+The values for the Java ecosystem are now limited to `java-api` / `java-runtime` combined with the relevant value for `org.gradle.libraryelements`.
+
+Values for the native ecosystem remain unaffected.
+
+Existing metadata must remain compatible and thus tools supporting the Gradle Module Metadata format must support both old and new values, while no longer publishing the deprecated ones.
+
 #### Java Ecosystem specific attributes
 
 - `org.gradle.jvm.version` indicated the minimal target JVM version of a library. For example is built for java 8, its minimal target is `8`. If it's a multi-release jar for Java 9, 10 and 11, it's minimal target is `9`. Value must be an integer corresponding to the Java version.
