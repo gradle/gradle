@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.packaging
 
-
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
@@ -26,16 +25,16 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
     @Issue("https://github.com/gradle/gradle/issues/9877")
     @Unroll
     def "can store and load files having #type characters in name (default file encoding #fileEncoding)"() {
-        def outputFile = file(fileName)
+        def outputFile = file("dir", fileName)
 
         buildFile << """
             println "> Default charset: \${java.nio.charset.Charset.defaultCharset()}"
 
             task createFile {
-                outputs.file("$fileName")
+                outputs.dir("dir")
                 outputs.cacheIf { true }
                 doLast {
-                    file("$fileName").text = "output"
+                    file("dir/$fileName").text = "output"
                 }
             }
         """
@@ -65,9 +64,9 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
                 "zwnj": "input\u200cfile.txt",
             ].entrySet(),
             [
+                "windows-1250",
                 "UTF-8",
-                "ISO-8859-1",
-                "windows-1251",
+                "ISO-8859-1"
             ]
         ].combinations { text, encoding -> [text.key, text.value, encoding] }
     }
