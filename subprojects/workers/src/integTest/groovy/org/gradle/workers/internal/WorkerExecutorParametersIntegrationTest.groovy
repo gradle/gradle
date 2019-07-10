@@ -122,7 +122,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ext.testObject = ["foo", "bar"] as String[]
 
-            ${parameterRunnableWithType('String[]', 'println param.join(",")') }
+            ${parameterRunnableWithType('String[]', 'println "param = " + Arrays.asList(param)') }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -134,7 +134,29 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runWork")
 
         then:
-        outputContains("foo,bar")
+        outputContains("param = [foo, bar]")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    def "can provide zero-length array parameters with isolation mode #isolationMode"() {
+        buildFile << """
+            ext.testObject = [] as String[]
+
+            ${parameterRunnableWithType('String[]', 'println "param = " + Arrays.asList(param)') }
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                params = [testObject]
+            } 
+        """
+
+        when:
+        succeeds("runWork")
+
+        then:
+        outputContains("param = []")
 
         where:
         isolationMode << ISOLATION_MODES

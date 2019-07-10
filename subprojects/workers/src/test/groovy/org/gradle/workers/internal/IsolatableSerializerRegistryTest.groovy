@@ -283,6 +283,22 @@ class IsolatableSerializerRegistryTest extends Specification {
         newIsolatables[0].isolate().class == String[].class
     }
 
+    def "can serialize/deserialize isolated zero-length Array"() {
+        String[] array = []
+
+        when:
+        serialize(isolatableFactory.isolate(array))
+
+        and:
+        Isolatable<?>[] newIsolatables = deserialize()
+
+        then:
+        newIsolatables[0].isolate() == array
+
+        and:
+        newIsolatables[0].isolate().class == String[].class
+    }
+
     def "can serialize/deserialize isolated List"() {
         List<String> list = ["foo", "bar"]
 
