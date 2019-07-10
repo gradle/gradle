@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin
 public final class ExecuteTaskActionBuildOperationType implements BuildOperationType<ExecuteTaskActionBuildOperationType.Details, ExecuteTaskActionBuildOperationType.Result> {
 
     // Info about the owning task can be inferred, and we don't provide any further info at this point.
@@ -26,10 +28,8 @@ public final class ExecuteTaskActionBuildOperationType implements BuildOperation
     public interface Details {
     }
 
-
     public interface Result {
     }
-
 
     static final Details DETAILS_INSTANCE = new Details() {};
     static final Result RESULT_INSTANCE = new Result() {};
