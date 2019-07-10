@@ -886,5 +886,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         @Override
         String getDisplayName() { return "Mock worker lease" }
+
+        @Override
+        Thread getOwnerThread() {
+            return null
+        }
     }
 }
