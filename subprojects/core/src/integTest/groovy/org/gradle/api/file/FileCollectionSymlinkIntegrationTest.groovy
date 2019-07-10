@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.escapeString
@@ -330,24 +329,21 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         output.text == "${[MODIFIED]}"
     }
 
-    @PendingFeature
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "fails task with a #classpathType.simpleName FileCollection input"() {
+    def "task with a broken #classpathType.simpleName root input is accepted"() {
         def brokenInputFile = file('BrokenInputFile.class').createLink("BrokenInputFile.target")
         def output = file("output.txt")
 
         buildFile << """
             class CustomTask extends DefaultTask {
-                @${classpathType.name} FileCollection brokenInputFiles
+                @${classpathType.name} File brokenInputFiles
     
                 @OutputFile File output
     
-                @TaskAction execute() {
-                    output.text = "executed"
-                }
+                @TaskAction execute() {}
             }
             task brokenClasspathInput(type: CustomTask) {
-                brokenInputFiles = files '${brokenInputFile}'
+                brokenInputFiles = file '${brokenInputFile}'
                 output = file '${output}'
             }
         """
@@ -356,16 +352,16 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'brokenClasspathInput'
         then:
-        fails ':brokenClasspathInput'
+        executedAndNotSkipped ':brokenClasspathInput'
 
         where:
         classpathType << [Classpath, CompileClasspath]
     }
 
-    @PendingFeature
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "fails task with a #classpathType.simpleName File input"() {
-        def brokenInputFile = file('BrokenInputFile.class').createLink("BrokenInputFile.target")
+    def "task with a broken #classpathType.simpleName directory input is accepted"() {
+        def classes = file('classes').createDir()
+        def brokenInputFile = classes.file('BrokenInputFile.class').createLink("BrokenInputFile.target")
         def output = file("output.txt")
 
         buildFile << """
@@ -374,21 +370,19 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     
                 @OutputFile File output
     
-                @TaskAction execute() {
-                    output.text = "executed"
-                }
+                @TaskAction execute() {}
             }
             task brokenClasspathInput(type: CustomTask) {
-                brokenInputFile = file '${brokenInputFile}'
+                brokenInputFile = file '${classes}'
                 output = file '${output}'
             }
         """
         assert !brokenInputFile.exists()
 
         when:
-        run 'brokenClasspathInput'
-        then:
         fails ':brokenClasspathInput'
+        then:
+        failure.assertHasCause("Could not list contents of '${brokenInputFile}'. Couldn't follow symbolic link.")
 
         where:
         classpathType << [Classpath, CompileClasspath]
