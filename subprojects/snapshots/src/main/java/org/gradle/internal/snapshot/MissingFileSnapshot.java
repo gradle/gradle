@@ -20,11 +20,15 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 /**
- * A snapshot of a missing file.
+ * A snapshot of a missing file or a broken symbolic link or a named pipe.
  */
 public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
+    private Boolean isSymbolicLink;
 
     public MissingFileSnapshot(String absolutePath, String name) {
         super(absolutePath, name);
@@ -48,5 +52,12 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
         visitor.visitFile(this);
+    }
+
+    public boolean isSymbolicLink() {
+        if (isSymbolicLink == null) {
+            isSymbolicLink = Files.isSymbolicLink(Paths.get(getAbsolutePath()));
+        }
+        return isSymbolicLink;
     }
 }
