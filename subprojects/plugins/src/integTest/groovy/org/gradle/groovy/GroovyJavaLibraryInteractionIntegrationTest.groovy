@@ -24,20 +24,20 @@ import spock.lang.Unroll
 
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+    ResolveTestFixture resolve
 
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve.prepare()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7398")
     @Unroll
-    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib with compile-classpath-packaging=#compileClasspathPackaging"(
-            String consumerPlugin, String consumerConf, boolean groovyWithJavaLib, boolean compileClasspathPackaging, String expected) {
+    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (compileClasspath)"() {
         given:
+        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.prepare()
         if (compileClasspathPackaging) {
             propertiesFile << """
                 systemProp.org.gradle.java.compile-classpath-packaging=true
@@ -81,11 +81,11 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
             root(":javaLib", "org.test:javaLib:1.0") {
                 project(":groovyLib", "org.test:groovyLib:1.0") {
                     variant("apiElements", [
-                            'org.gradle.category': 'library',
-                            'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.libraryelements': 'jar'])
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': JavaVersion.current().majorVersion,
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar'])
                     switch (expected) {
                         case "jar":
                             artifact(name: "groovyLib")
@@ -126,5 +126,84 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         'java'         | 'compile'        | false             | true                      | "jar"
         'java'         | 'implementation' | true              | true                      | "jar"
         'java'         | 'implementation' | false             | true                      | "jar"
+    }
+
+    @Unroll
+    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
+        given:
+        resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
+        resolve.prepare()
+
+        multiProjectBuild('issue7398', ['groovyLib', 'javaLib']) {
+            file('groovyLib').with {
+                file('src/main/groovy/GroovyClass.groovy') << "public class GroovyClass {}"
+                file('build.gradle') << """
+                        ${groovyWithJavaLib ? "apply plugin: 'java-library'" : ''}
+                        apply plugin: 'groovy'
+                        dependencies {
+                            implementation localGroovy()
+                        }
+                """
+            }
+            file('javaLib').with {
+                file('src/main/java/JavaClass.java') << "public class JavaClass { GroovyClass reference; }"
+                file('build.gradle') << """
+                        apply plugin: '$consumerPlugin'
+                        dependencies {
+                          $consumerConf project(':groovyLib')
+                        }
+                """
+            }
+        }
+
+        buildFile << """
+            subprojects {
+                afterEvaluate {
+                configurations.runtimeClasspath.attributes {
+                    // make sure we explicitly require the "classes" variant
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                }
+                }
+            }
+        """
+
+        when:
+        succeeds 'javaLib:checkDeps'
+
+        executedAndNotSkipped(":groovyLib:compileJava", ":groovyLib:compileGroovy")
+        notExecuted(":groovyLib:classes", ":groovyLib:jar")
+
+        then:
+        resolve.expectGraph {
+            root(":javaLib", "org.test:javaLib:1.0") {
+                project(":groovyLib", "org.test:groovyLib:1.0") {
+                    variant("apiElements", [
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': JavaVersion.current().majorVersion,
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar'])
+
+                    // first one is "main" from Java sources
+                    artifact(name: 'main', noType: true)
+                    // second one is "main" from Groovy sources
+                    artifact(name: 'main', noType: true)
+                }
+            }
+        }
+
+        where:
+        consumerPlugin | consumerConf     | groovyWithJavaLib
+        'java-library' | 'api'            | true
+        'java-library' | 'api'            | false
+        'java-library' | 'compile'        | true
+        'java-library' | 'compile'        | false
+        'java-library' | 'implementation' | true
+        'java-library' | 'implementation' | false
+
+        'java'         | 'compile'        | true
+        'java'         | 'compile'        | false
+        'java'         | 'implementation' | true
+        'java'         | 'implementation' | false
     }
 }
