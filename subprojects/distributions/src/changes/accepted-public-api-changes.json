@@ -79,6 +79,12 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getFeaturePreviews()",
+            "acceptation": "Injected property",
+            "changes": []
         }
     ]
 }
