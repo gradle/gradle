@@ -59,4 +59,20 @@ class ExecuteTaskActionBuildOperationTypeIntegrationTest extends AbstractIntegra
         operations.first(ExecuteTaskActionBuildOperationType).failure == "java.lang.RuntimeException: fail"
     }
 
+    def "does not emit operation for non-executed task action"() {
+        when:
+        buildScript """
+            task t {
+                doLast {
+                    throw new RuntimeException("fail")
+                }
+                doLast {}
+            }
+        """
+        fails "t"
+
+        then:
+        operations.all(ExecuteTaskActionBuildOperationType).size() == 1
+    }
+
 }

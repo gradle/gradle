@@ -19,6 +19,11 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Executing a task action.
+ *
+ * @since 5.6
+ */
 @UsedByScanPlugin
 public final class ExecuteTaskActionBuildOperationType implements BuildOperationType<ExecuteTaskActionBuildOperationType.Details, ExecuteTaskActionBuildOperationType.Result> {
 
