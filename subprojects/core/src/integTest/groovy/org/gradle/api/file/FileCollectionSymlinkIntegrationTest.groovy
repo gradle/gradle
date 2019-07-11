@@ -350,7 +350,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "task with a broken #classpathType.simpleName root input is accepted"() {
-        def brokenInputFile = file('BrokenInput').createLink("BrokenInputFile.target")
+        def brokenClasspathEntry = file('broken.jar').createLink("broken.jar.target")
         def output = file("output.txt")
 
         buildFile << """
@@ -362,11 +362,11 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction execute() {}
             }
             task brokenClasspathInput(type: CustomTask) {
-                classpath = file '${brokenInputFile}'
+                classpath = file '${brokenClasspathEntry}'
                 output = file '${output}'
             }
         """
-        assert !brokenInputFile.exists()
+        assert !brokenClasspathEntry.exists()
 
         when:
         run 'brokenClasspathInput'
@@ -385,14 +385,14 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             class CustomTask extends DefaultTask {
-                @${classpathType.name} File brokenInputFile
+                @${classpathType.name} File classpath
     
                 @OutputFile File output
     
                 @TaskAction execute() {}
             }
             task brokenClasspathInput(type: CustomTask) {
-                brokenInputFile = file '${classes}'
+                classpath = file '${classes}'
                 output = file '${output}'
             }
         """
@@ -414,12 +414,12 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             class CustomTask extends DefaultTask {
-                @InputFiles @SkipWhenEmpty FileTree directoryWithBrokenLink
+                @InputDirectory @SkipWhenEmpty File directoryWithBrokenLink
     
                 @TaskAction execute() {}
             }
             task brokenDirectoryWithSkipWhenEmpty(type: CustomTask) {
-                directoryWithBrokenLink = fileTree '${root}'
+                directoryWithBrokenLink = file '${root}'
             }
         """
         assert !brokenInputFile.exists()
