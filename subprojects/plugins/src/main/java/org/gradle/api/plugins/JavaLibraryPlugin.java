@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
@@ -40,7 +41,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet sourceSet = sourceSets.getByName("main");
         addApiToSourceSet(sourceSet, configurations);
-        configureClassesDirectoryVariant(sourceSet, project, sourceSet.getApiElementsConfigurationName());
+        configureClassesDirectoryVariant(sourceSet, project, sourceSet.getApiElementsConfigurationName(), Usage.JAVA_API);
     }
 
 }
