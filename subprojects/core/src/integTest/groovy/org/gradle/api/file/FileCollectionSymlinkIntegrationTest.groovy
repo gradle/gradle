@@ -179,7 +179,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         outputDirectory.list() == [input.name]
     }
 
-    // Validation fails with broken links assigned directly to `@InputDirectory`
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "task with broken symlink in InputDirectory is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
@@ -400,12 +399,35 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         assert !brokenInputFile.exists()
 
         when:
-        fails ':brokenClasspathInput'
+        fails 'brokenClasspathInput'
         then:
         failure.assertHasCause("Couldn't read file content: '${brokenInputFile}'.")
 
         where:
         classpathType << [Classpath, CompileClasspath]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "directory with broken symlink and @SkipWhenEmpty fails"() {
+        def root = file('root').createDir()
+        def brokenInputFile = root.file('BrokenInputFile').createLink("BrokenInputFileTarget")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @InputFiles @SkipWhenEmpty FileTree directoryWithBrokenLink
+    
+                @TaskAction execute() {}
+            }
+            task brokenDirectoryWithSkipWhenEmpty(type: CustomTask) {
+                directoryWithBrokenLink = fileTree '${root}'
+            }
+        """
+        assert !brokenInputFile.exists()
+
+        when:
+        fails 'brokenDirectoryWithSkipWhenEmpty'
+        then:
+        failure.assertHasCause("Couldn't follow symbolic link '${brokenInputFile}'.")
     }
 
     void maybeDeprecated(String expression) {
