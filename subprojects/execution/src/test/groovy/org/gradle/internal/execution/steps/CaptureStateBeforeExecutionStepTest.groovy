@@ -53,7 +53,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         then:
         1 * work.isTaskHistoryMaintained() >> false
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
-            assert beforeExecution.beforeExecutionState.empty
+            assert !beforeExecution.beforeExecutionState.present
         }
         0 * _
     }
