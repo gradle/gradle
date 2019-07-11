@@ -39,7 +39,6 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
-import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -156,10 +155,8 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
-            } else if (fileSnapshot instanceof MissingFileSnapshot) {
-                if (!relativePathSegmentsTracker.isRoot() && ((MissingFileSnapshot) fileSnapshot).isSymbolicLink()) {
-                    throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", fileSnapshot.getAbsolutePath()));
-                }
+            } else if (!relativePathSegmentsTracker.isRoot()) {
+                throw new GradleException(String.format("Couldn't read file content: '%s'.", fileSnapshot.getAbsolutePath()));
             }
         }
 
