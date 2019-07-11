@@ -23,7 +23,16 @@ import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
+
 import java.io.File
+
+import java.util.ArrayDeque
+
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.startCoroutine
+import kotlin.coroutines.suspendCoroutine
 
 
 internal
@@ -61,6 +70,48 @@ fun <T> codec(
 private
 inline fun <reified T> ReadContext.readOwnerService() =
     isolate.owner.service<T>()
+
+
+internal
+fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
+
+    val stack = ArrayDeque<Frame>()
+
+    override suspend fun WriteContext.encode(value: T) {
+        if (stack.isEmpty()) {
+            stack.push(Frame(value, null))
+            encodeLoop(coroutineContext)
+        } else {
+            suspendCoroutine<Unit> { k ->
+                stack.push(Frame(value, k))
+            }
+        }
+    }
+
+    override fun ReadContext.decode(): T? {
+        return codec.run { decode() }
+    }
+
+    private
+    fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
+        do {
+            val frame = stack.peek()
+            suspend {
+                codec.run {
+                    encode(frame.value.uncheckedCast())
+                }
+            }.startCoroutine(Continuation(coroutineContext) {
+                require(stack.peek() === frame)
+                stack.pop()
+                frame.k?.resumeWith(it) ?: it.getOrThrow()
+            })
+        } while (stack.isNotEmpty())
+    }
+}
+
+
+private
+data class Frame(val value: Any, val k: Continuation<Unit>?)
 
 
 private

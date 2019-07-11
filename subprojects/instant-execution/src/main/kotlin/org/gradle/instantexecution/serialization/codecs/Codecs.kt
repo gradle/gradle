@@ -37,6 +37,7 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.ownerService
+import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -131,7 +132,7 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
 
-        bind(BeanCodec())
+        bind(reentrant(BeanCodec()))
     }
 
     private
