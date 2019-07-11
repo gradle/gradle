@@ -37,12 +37,12 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
             name = runnerName
             tasks = ""
             executionMode = runnerExecutionMode
-            gradleParams = (performanceTestCommandLine(task = runnerTasks, baselines = "%performance.baselines%", extraParameters = type.extraParameters)
-                    + buildToolGradleParameters(isContinue = false)
-                    + distributedPerformanceTestParameters(IndividualPerformanceScenarioWorkers(model).id.toString())
-                    + listOf(buildScanTag("PerformanceTest"))
-                    + model.parentBuildCache.gradleParameters(Os.linux)
-                    + extraParameters
+            gradleParams = (performanceTestCommandLine(task = runnerTasks, baselines = "%performance.baselines%", extraParameters = type.extraParameters) +
+                    buildToolGradleParameters(isContinue = false) +
+                    distributedPerformanceTestParameters(IndividualPerformanceScenarioWorkers(model).id.toString()) +
+                    listOf(buildScanTag("PerformanceTest")) +
+                    model.parentBuildCache.gradleParameters(Os.linux) +
+                    extraParameters
                     ).joinToString(separator = " ")
         }
     }
@@ -63,4 +63,3 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
 
     applyDefaultDependencies(model, this, true)
 })
-

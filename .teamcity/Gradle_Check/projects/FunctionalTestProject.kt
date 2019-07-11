@@ -36,8 +36,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
     if (projectNamesForMergedTestsBuild.isNotEmpty()) {
         buildType(FunctionalTest(model, testConfig, projectNamesForMergedTestsBuild, stage, allUnitTestsBuildTypeName))
     }
-
-}){
+}) {
     companion object {
         const val allUnitTestsBuildTypeName = "AllUnitTests"
 

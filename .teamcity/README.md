@@ -12,5 +12,6 @@
   - Open the `.teamcity` folder in IDEA
   - Revert the changes made by IDEA to  `Gradle_Check_dsl.iml`
   - The main pipeline configuration can be found and modified in [CIBuildModel.kt](https://github.com/gradle/gradle/blob/master/.teamcity/Gradle_Check/model/CIBuildModel.kt)
-  - After modifying, make sure that the configuration can be processed by running `CIConfigIntegrationTests`
+  - After modifying, make sure that the configuration can be processed by running `CIConfigIntegrationTests` and `mvn verify`
+  - If you have ktlint errors, you can automatically fix them by running `mvn com.github.gantsign.maven:ktlint-maven-plugin:1.1.1:format`
   - Commit and push the changes
