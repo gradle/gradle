@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.kotlin.dsl.integration
 
-class FeaturePreviewsFixture {
+import org.junit.Test
+import spock.lang.Issue
 
-    static void enableGradleMetadata(File settings) {
-        settings << """
-enableFeaturePreview("GRADLE_METADATA")
-"""
+
+class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/9919")
+    fun `gradleKotlinDsl dependency declaration does not throw`() {
+
+        withBuildScript("""
+            plugins { java }
+            dependencies {
+                compileOnly(gradleKotlinDsl())
+            }
+        """)
+
+        build("help")
     }
 }

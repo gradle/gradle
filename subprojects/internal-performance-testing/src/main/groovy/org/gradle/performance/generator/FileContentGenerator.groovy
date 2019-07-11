@@ -105,8 +105,6 @@ abstract class FileContentGenerator {
             }
             """ 
             ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
-
-            ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
             """
         }
     }

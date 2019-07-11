@@ -43,9 +43,9 @@ object AdHocPerformanceScenarioLinux : BuildType({
             name = "GRADLE_RUNNER"
             gradleParams = (
                 performanceTestCommandLine("clean %templates% performance:performanceAdHocTest", "%baselines%",
-                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""")
-                    + buildToolGradleParameters()
-                    + builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
+                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""") +
+                    buildToolGradleParameters() +
+                    builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
                 ).joinToString(separator = " ")
         }
         checkCleanM2()

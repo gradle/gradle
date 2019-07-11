@@ -475,14 +475,16 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         @Override
         public void write(Encoder encoder, IsolatedArray value) throws Exception {
             encoder.writeByte(ISOLATED_ARRAY);
+            encoder.writeString(value.getArrayType().getName());
             writeIsolatableSequence(encoder, value.getElements());
         }
 
         @Override
         public IsolatedArray read(Decoder decoder) throws Exception {
             ImmutableList.Builder<Isolatable<?>> builder = ImmutableList.builder();
+            Class<?> arrayType = fromClassName(decoder.readString());
             readIsolatableSequence(decoder, builder);
-            return new IsolatedArray(builder.build());
+            return new IsolatedArray(builder.build(), arrayType);
         }
 
         @Override
