@@ -144,7 +144,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
 
-        JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName);
+        JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName, Usage.JAVA_API);
 
         if (mainSourceSet) {
             // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured

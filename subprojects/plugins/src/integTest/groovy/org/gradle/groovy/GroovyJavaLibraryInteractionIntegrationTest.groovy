@@ -129,7 +129,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
     }
 
     @Unroll
-    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
+    def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
         given:
         resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
         resolve.prepare()
@@ -141,7 +141,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         ${groovyWithJavaLib ? "apply plugin: 'java-library'" : ''}
                         apply plugin: 'groovy'
                         dependencies {
-                            implementation localGroovy()
+                            implementation 'org.codehaus.groovy:groovy:2.5.4'
                         }
                 """
             }
@@ -158,11 +158,14 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
 
         buildFile << """
             subprojects {
+                
+                ${mavenCentralRepository()}
+                
                 afterEvaluate {
-                configurations.runtimeClasspath.attributes {
-                    // make sure we explicitly require the "classes" variant
-                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-                }
+                    configurations.runtimeClasspath.attributes {
+                        // make sure we explicitly require the "classes" variant
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                    }
                 }
             }
         """
@@ -177,13 +180,14 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         resolve.expectGraph {
             root(":javaLib", "org.test:javaLib:1.0") {
                 project(":groovyLib", "org.test:groovyLib:1.0") {
-                    variant("apiElements", [
+                    variant("runtimeElements", [
                         'org.gradle.category': 'library',
                         'org.gradle.dependency.bundling': 'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                        'org.gradle.usage': 'java-api',
+                        'org.gradle.usage': 'java-runtime',
                         'org.gradle.libraryelements': 'jar'])
 
+                    module('org.codehaus.groovy:groovy:2.5.4')
                     // first one is "main" from Java sources
                     artifact(name: 'main', noType: true)
                     // second one is "main" from Groovy sources
