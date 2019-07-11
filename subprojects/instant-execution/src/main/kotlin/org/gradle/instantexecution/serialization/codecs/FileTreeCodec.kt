@@ -36,7 +36,7 @@ class FileTreeCodec(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Codec<FileTreeInternal> {
 
-    override fun WriteContext.encode(value: FileTreeInternal) {
+    override suspend fun WriteContext.encode(value: FileTreeInternal) {
         fileSetSerializer.write(this, fileTreeRootsOf(value))
     }
 

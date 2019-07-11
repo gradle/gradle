@@ -50,10 +50,10 @@ inline fun <reified T : Any> unsupported(): Codec<T> = codec(
 
 internal
 fun <T> codec(
-    encode: WriteContext.(T) -> Unit,
+    encode: suspend WriteContext.(T) -> Unit,
     decode: ReadContext.() -> T?
 ): Codec<T> = object : Codec<T> {
-    override fun WriteContext.encode(value: T) = encode(value)
+    override suspend fun WriteContext.encode(value: T) = encode(value)
     override fun ReadContext.decode(): T? = decode()
 }
 
@@ -67,14 +67,14 @@ private
 data class SingletonCodec<T>(
     private val singleton: T
 ) : Codec<T> {
-    override fun WriteContext.encode(value: T) = Unit
+    override suspend fun WriteContext.encode(value: T) = Unit
     override fun ReadContext.decode(): T? = singleton
 }
 
 
 internal
 data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
-    override fun WriteContext.encode(value: T) = serializer.write(this, value)
+    override suspend fun WriteContext.encode(value: T) = serializer.write(this, value)
     override fun ReadContext.decode(): T = serializer.read(this)
 }
 
@@ -114,7 +114,7 @@ fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
 
 
 internal
-fun WriteContext.writeCollection(value: Collection<*>) {
+suspend fun WriteContext.writeCollection(value: Collection<*>) {
     writeCollection(value) { write(it) }
 }
 
@@ -125,7 +125,7 @@ fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) 
 
 
 internal
-fun WriteContext.writeMap(value: Map<*, *>) {
+suspend fun WriteContext.writeMap(value: Map<*, *>) {
     writeSmallInt(value.size)
     for (entry in value.entries) {
         write(entry.key)
@@ -191,7 +191,7 @@ fun Decoder.readStrings(): List<String> =
 
 
 internal
-fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
+inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
     writeSmallInt(collection.size)
     for (element in collection) {
         writeElement(element)
@@ -223,7 +223,7 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
 
 
 internal
-fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T) -> Unit) {
+inline fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T) -> Unit) {
     writeClass(array.javaClass.componentType)
     writeSmallInt(array.size)
     for (element in array) {

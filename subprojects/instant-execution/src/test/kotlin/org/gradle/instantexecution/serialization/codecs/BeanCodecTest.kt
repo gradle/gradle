@@ -17,8 +17,9 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
-import org.gradle.instantexecution.extensions.uncheckedCast
 
+import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -69,7 +70,9 @@ class BeanCodecTest {
         KryoBackedEncoder(outputStream).use { encoder ->
             writeContextFor(encoder).run {
                 withIsolate(IsolateOwner.OwnerGradle(mock())) {
-                    write(graph)
+                    runToCompletion {
+                        write(graph)
+                    }
                 }
             }
         }

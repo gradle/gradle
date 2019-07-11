@@ -27,7 +27,7 @@ import org.gradle.internal.event.ListenerManager
 
 internal
 class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Codec<AnonymousListenerBroadcast<*>> {
-    override fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
+    override suspend fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
         writeClass(value.type)
     }
 

@@ -46,7 +46,7 @@ class BuildOperationListenersCodec {
         )
     }
 
-    fun MutableWriteContext.writeBuildOperationListeners(manager: BuildOperationListenerManager) {
+    suspend fun MutableWriteContext.writeBuildOperationListeners(manager: BuildOperationListenerManager) {
         writeCollection(manager.listeners) { listener ->
             write(listener)
         }

@@ -31,7 +31,7 @@ class DefaultCopySpecCodec(
     private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
 
-    override fun WriteContext.encode(value: DefaultCopySpec) {
+    override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         val allSourcePaths = ArrayList<File>()
         collectSourcePathsFrom(value, allSourcePaths)
         write(allSourcePaths)

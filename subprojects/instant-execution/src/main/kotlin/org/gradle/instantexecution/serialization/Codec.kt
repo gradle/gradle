@@ -33,7 +33,7 @@ import kotlin.reflect.KClass
  */
 interface Codec<T> {
 
-    fun WriteContext.encode(value: T)
+    suspend fun WriteContext.encode(value: T)
 
     fun ReadContext.decode(): T?
 }
@@ -47,13 +47,13 @@ interface WriteContext : IsolateContext, Encoder {
 
     fun writeActionFor(value: Any?): Encoding?
 
-    fun write(value: Any?) {
+    suspend fun write(value: Any?) {
         writeActionFor(value)!!(value)
     }
 }
 
 
-typealias Encoding = WriteContext.(value: Any?) -> Unit
+typealias Encoding = suspend WriteContext.(value: Any?) -> Unit
 
 
 interface ReadContext : IsolateContext, Decoder {

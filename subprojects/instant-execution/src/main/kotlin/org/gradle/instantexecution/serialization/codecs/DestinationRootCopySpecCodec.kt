@@ -30,7 +30,7 @@ class DestinationRootCopySpecCodec(
     private val fileResolver: FileResolver
 ) : Codec<DestinationRootCopySpec> {
 
-    override fun WriteContext.encode(value: DestinationRootCopySpec) {
+    override suspend fun WriteContext.encode(value: DestinationRootCopySpec) {
         write(value.destinationDir)
         write(value.delegate)
     }

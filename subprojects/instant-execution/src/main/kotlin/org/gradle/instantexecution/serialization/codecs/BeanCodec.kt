@@ -30,7 +30,7 @@ import org.gradle.instantexecution.serialization.writeClass
 internal
 class BeanCodec : Codec<Any> {
 
-    override fun WriteContext.encode(value: Any) {
+    override suspend fun WriteContext.encode(value: Any) {
         val id = isolate.identities.getId(value)
         if (id != null) {
             writeSmallInt(id)

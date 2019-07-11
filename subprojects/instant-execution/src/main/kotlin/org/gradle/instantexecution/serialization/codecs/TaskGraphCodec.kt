@@ -57,12 +57,12 @@ import org.gradle.instantexecution.serialization.writeStrings
 internal
 class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
 
-    fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
+    suspend fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
-                projectStateRegistry.stateFor(task.project).withMutableState {
-                    writeTask(task, build.dependenciesOf(task))
-                }
+//                projectStateRegistry.stateFor(task.project).withMutableState {
+                writeTask(task, build.dependenciesOf(task))
+//                }
             } catch (e: Throwable) {
                 throw GradleException("Could not save state of $task.", e)
             }
@@ -92,7 +92,7 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
     }
 
     private
-    fun MutableWriteContext.writeTask(task: Task, dependencies: Set<Task>) {
+    suspend fun MutableWriteContext.writeTask(task: Task, dependencies: Set<Task>) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
         writeClass(taskType)
         writeString(task.project.path)
@@ -143,75 +143,152 @@ inline fun <T> T.withTaskOf(
 
 
 private
-fun WriteContext.writeRegisteredPropertiesOf(
+sealed class RegisteredProperty {
+
+    data class InputFile(
+        val propertyName: String,
+        val optional: Boolean,
+        val skipWhenEmpty: Boolean,
+        val incremental: Boolean,
+        val fileNormalizer: Class<out FileNormalizer>?,
+        val propertyValue: PropertyValue,
+        val filePropertyType: InputFilePropertyType
+    ) : RegisteredProperty()
+
+    data class Input(
+        val propertyName: String,
+        val propertyValue: PropertyValue,
+        val optional: Boolean
+    ) : RegisteredProperty()
+
+    data class OutputFile(
+        val propertyName: String,
+        val optional: Boolean,
+        val value: PropertyValue,
+        val filePropertyType: OutputFilePropertyType
+    ) : RegisteredProperty()
+}
+
+
+private
+suspend fun WriteContext.writeRegisteredPropertiesOf(
     task: Task,
     propertyWriter: BeanPropertyWriter
 ) = propertyWriter.run {
 
-    fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
+    suspend fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
         val value = unpack(propertyValue.call()) ?: return false
         return writeNextProperty(propertyName, value, kind)
     }
 
-    fun writeInputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
+    suspend fun writeInputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
         writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
 
-    fun writeOutputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
+    suspend fun writeOutputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
 
     writingProperties {
-        (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
-
-            override fun visitInputFileProperty(
-                propertyName: String,
-                optional: Boolean,
-                skipWhenEmpty: Boolean,
-                incremental: Boolean,
-                fileNormalizer: Class<out FileNormalizer>?,
-                propertyValue: PropertyValue,
-                filePropertyType: InputFilePropertyType
-            ) {
-                if (!writeInputProperty(propertyName, propertyValue)) {
-                    return
+        val properties = collectRegisteredInputsOf(task)
+        properties.forEach { property ->
+            property.run {
+                when (this) {
+                    is RegisteredProperty.InputFile -> {
+                        if (writeInputProperty(propertyName, propertyValue)) {
+                            writeBoolean(optional)
+                            writeBoolean(true)
+                            writeEnum(filePropertyType)
+                            writeBoolean(skipWhenEmpty)
+                            writeClass(fileNormalizer!!)
+                        }
+                    }
+                    is RegisteredProperty.Input -> {
+                        if (writeInputProperty(propertyName, propertyValue)) {
+                            writeBoolean(optional)
+                            writeBoolean(false)
+                        }
+                    }
                 }
-                writeBoolean(optional)
-                writeBoolean(true)
-                writeEnum(filePropertyType)
-                writeBoolean(skipWhenEmpty)
-                writeClass(fileNormalizer!!)
             }
-
-            override fun visitInputProperty(
-                propertyName: String,
-                propertyValue: PropertyValue,
-                optional: Boolean
-            ) {
-                if (!writeInputProperty(propertyName, propertyValue)) {
-                    return
-                }
-                writeBoolean(optional)
-                writeBoolean(false)
-            }
-        })
+        }
     }
 
     writingProperties {
-        (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
-
-            override fun visitOutputFileProperty(
-                propertyName: String,
-                optional: Boolean,
-                value: PropertyValue,
-                filePropertyType: OutputFilePropertyType
-            ) {
-                if (!writeOutputProperty(propertyName, value)) {
-                    return
+        val properties = collectRegisteredOutputsOf(task)
+        properties.forEach {
+            it.run {
+                if (writeOutputProperty(propertyName, value)) {
+                    writeBoolean(optional)
+                    writeEnum(filePropertyType)
                 }
-                writeBoolean(optional)
-                writeEnum(filePropertyType)
             }
-        })
+        }
     }
+}
+
+
+private
+fun collectRegisteredOutputsOf(task: Task): MutableList<RegisteredProperty.OutputFile> {
+    val properties = mutableListOf<RegisteredProperty.OutputFile>()
+    (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+
+        override fun visitOutputFileProperty(
+            propertyName: String,
+            optional: Boolean,
+            value: PropertyValue,
+            filePropertyType: OutputFilePropertyType
+        ) {
+            properties.add(
+                RegisteredProperty.OutputFile(propertyName, optional, value, filePropertyType)
+            )
+        }
+    })
+    return properties
+}
+
+
+private
+fun collectRegisteredInputsOf(task: Task): MutableList<RegisteredProperty> {
+    val properties = mutableListOf<RegisteredProperty>()
+
+    (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+
+        override fun visitInputFileProperty(
+            propertyName: String,
+            optional: Boolean,
+            skipWhenEmpty: Boolean,
+            incremental: Boolean,
+            fileNormalizer: Class<out FileNormalizer>?,
+            propertyValue: PropertyValue,
+            filePropertyType: InputFilePropertyType
+        ) {
+            properties.add(
+                RegisteredProperty.InputFile(
+                    propertyName,
+                    optional,
+                    skipWhenEmpty,
+                    incremental,
+                    fileNormalizer,
+                    propertyValue,
+                    filePropertyType
+                )
+            )
+        }
+
+        override fun visitInputProperty(
+            propertyName: String,
+            propertyValue: PropertyValue,
+            optional: Boolean
+        ) {
+            properties.add(
+                RegisteredProperty.Input(
+                    propertyName,
+                    propertyValue,
+                    optional
+                )
+            )
+        }
+    })
+    return properties
 }
 
 

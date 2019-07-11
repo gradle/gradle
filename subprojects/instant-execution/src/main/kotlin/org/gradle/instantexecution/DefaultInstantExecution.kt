@@ -58,6 +58,10 @@ import java.nio.file.Files
 import java.util.ArrayList
 import java.util.SortedSet
 
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
+
 
 class DefaultInstantExecution(
     private val host: Host
@@ -112,7 +116,9 @@ class DefaultInstantExecution(
             val instantExecutionException = report.withExceptionHandling {
                 KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
                     writeContextFor(encoder, report).run {
-                        encodeTaskGraph()
+                        runToCompletion {
+                            encodeTaskGraph()
+                        }
                     }
                 }
             }
@@ -139,7 +145,7 @@ class DefaultInstantExecution(
     }
 
     private
-    fun DefaultWriteContext.encodeTaskGraph() {
+    suspend fun DefaultWriteContext.encodeTaskGraph() {
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
@@ -220,7 +226,7 @@ class DefaultInstantExecution(
     )
 
     private
-    fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
+    suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradle(gradle) {
             BuildOperationListenersCodec().run {
                 writeBuildOperationListeners(service())
@@ -369,5 +375,20 @@ inline fun <T> T.withGradle(
         withPropertyTrace(PropertyTrace.Gradle) {
             action()
         }
+    }
+}
+
+
+internal
+fun runToCompletion(block: suspend () -> Unit) {
+    var completion: Result<Unit>? = null
+    block.startCoroutine(Continuation(EmptyCoroutineContext) {
+        completion = it
+    })
+    completion.let {
+        require(it != null) {
+            "Coroutine didn't run to completion."
+        }
+        it.getOrThrow()
     }
 }
