@@ -17,6 +17,8 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -224,7 +226,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         skipped ':inputBrokenLinkNameCollector'
     }
 
-    // Validation fails with broken links assigned directly to `@InputFile`
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "task with broken symlink in InputFiles is valid"() {
         def inputFileTarget = file("brokenInputFileTarget")
@@ -271,7 +272,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         skipped ':inputBrokenLinkNameCollector'
     }
 
-    // Validation fails with broken links assigned directly to `@InputFile`
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "unbreaking a symlink in InputFiles is detected incrementally"() {
         def inputFileTarget = file("brokenInputFileTarget")
@@ -325,21 +325,45 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         output.text == "${[MODIFIED]}"
     }
 
+    def "broken symlink in #inputType fails validation"() {
+        def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @${inputType.simpleName} File brokenInputFile
+
+                @TaskAction execute() {}
+            }
+            task brokenInput(type: CustomTask) {
+                brokenInputFile = file '${brokenInputFile}'
+            }
+        """
+
+        when:
+        fails 'brokenInput'
+        then:
+        failure.assertHasCause("${inputName} '${brokenInputFile}' specified for property 'brokenInputFile' does not exist.")
+
+        where:
+        inputName   | inputType
+        "File"      | InputFile
+        "Directory" | InputDirectory
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "task with a broken #classpathType.simpleName root input is accepted"() {
-        def brokenInputFile = file('BrokenInputFile.class').createLink("BrokenInputFile.target")
+        def brokenInputFile = file('BrokenInput').createLink("BrokenInputFile.target")
         def output = file("output.txt")
 
         buildFile << """
             class CustomTask extends DefaultTask {
-                @${classpathType.name} File brokenInputFiles
+                @${classpathType.name} File classpath
     
                 @OutputFile File output
     
                 @TaskAction execute() {}
             }
             task brokenClasspathInput(type: CustomTask) {
-                brokenInputFiles = file '${brokenInputFile}'
+                classpath = file '${brokenInputFile}'
                 output = file '${output}'
             }
         """
