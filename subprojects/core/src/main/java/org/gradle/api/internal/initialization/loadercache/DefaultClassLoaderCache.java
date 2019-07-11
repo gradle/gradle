@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.DefaultDeprecatedClassLoader;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -122,7 +123,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
                 classLoader = classLoaderFactory.createChildClassLoader(spec.name, spec.parent, classPath, spec.implementationHash);
             }
             if(classPath instanceof DeprecatedClasspath){
-                classLoader = new DeprecatingClassLoader(classPath, classLoader, spec.parent);
+                classLoader = new DefaultDeprecatedClassLoader(classLoader, spec.parent);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);

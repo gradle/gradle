@@ -234,7 +234,14 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return locked;
     }
 
-    public ClassPath getExport() {
-        return export;
+    @Override
+    public ClassLoaderScope deprecated() {
+        DefaultClassLoaderScope clonedScope = new DeprecatingClassLoaderScope(id, parent, classLoaderCache);
+        clonedScope.export(export);
+        if(isLocked()) {
+            clonedScope.lock();
+        }
+        return clonedScope;
     }
+
 }

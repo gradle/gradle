@@ -32,4 +32,9 @@ public class DeprecatingClassLoaderScope extends DefaultClassLoaderScope {
         return this;
     }
 
+    @Override
+    public ClassLoaderScope deprecated() {
+        return this;
+    }
+
 }

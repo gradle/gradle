@@ -46,11 +46,4 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
 
-    public ClassLoaderScopeIdentifier getId() {
-        return id;
-    }
-
-    public ClassLoaderCache getClassLoaderCache() {
-        return classLoaderCache;
-    }
 }

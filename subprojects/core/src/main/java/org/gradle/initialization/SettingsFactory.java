@@ -49,7 +49,7 @@ public class SettingsFactory {
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            ClassLoaderScope buildRootClassLoaderScope) {
 
-        ClassLoaderScope settingsClassLoaderScope = cloneScope(buildRootClassLoaderScope).createChild("settings");
+        ClassLoaderScope settingsClassLoaderScope = buildRootClassLoaderScope.deprecated().createChild("settings");
         ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, settingsClassLoaderScope);
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
             serviceRegistryFactory, gradle,
@@ -62,18 +62,4 @@ public class SettingsFactory {
         return settings;
     }
 
-
-    private ClassLoaderScope cloneScope(ClassLoaderScope originScope) {
-        if (originScope instanceof DefaultClassLoaderScope) {
-            DefaultClassLoaderScope origin = (DefaultClassLoaderScope) originScope;
-            DefaultClassLoaderScope clonedScope = new DeprecatingClassLoaderScope(origin.getId(), origin.getParent(), origin.getClassLoaderCache());
-            clonedScope.export(origin.getExport());
-            if(origin.isLocked()) {
-                clonedScope.lock();
-            }
-            return clonedScope;
-        } else {
-            return originScope;
-        }
-    }
 }

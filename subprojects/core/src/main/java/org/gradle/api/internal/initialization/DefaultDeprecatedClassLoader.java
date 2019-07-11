@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization.loadercache;
+package org.gradle.api.internal.initialization;
 
-import org.gradle.internal.classloader.ImplementationHashAware;
-import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classloader.DeprecatedClassloader;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.DeprecationLogger;
 
 import java.net.URL;
 
-public class DeprecatingClassLoader extends ClassLoader implements ImplementationHashAware {
+public class DefaultDeprecatedClassLoader extends ClassLoader implements DeprecatedClassloader {
 
     private final ClassLoader deprecatedUsageLoader;
     private final ClassLoader nonDeprecatedParent;
 
-    public DeprecatingClassLoader(ClassPath classPath, ClassLoader deprecatedUsageLoader, ClassLoader nonDeprecatedParent) {
+    public DefaultDeprecatedClassLoader(ClassLoader deprecatedUsageLoader, ClassLoader nonDeprecatedParent) {
         super(null);
         this.deprecatedUsageLoader = deprecatedUsageLoader;
         this.nonDeprecatedParent = nonDeprecatedParent;
@@ -45,8 +44,9 @@ public class DeprecatingClassLoader extends ClassLoader implements Implementatio
         if (resource != null) {
             return resource;
         }
+        // avoid duplicate deprecation when loading class as resource first by our url classloaders
         resource = deprecatedUsageLoader.getResource(name);
-        if (resource != null) {
+        if (resource != null && !name.endsWith(".class")) {
             DeprecationLogger.nagUserOfDeprecated("Using buildSrc resources in settings", "Do not use '" + name + "' in settings.");
         }
         return resource;
@@ -69,12 +69,6 @@ public class DeprecatingClassLoader extends ClassLoader implements Implementatio
         }
 
         throw new ClassNotFoundException(String.format("%s not found.", name));
-    }
-
-    @Override
-    public HashCode getImplementationHash() {
-        // HACK
-        return HashCode.fromInt(12345);
     }
 }
 
