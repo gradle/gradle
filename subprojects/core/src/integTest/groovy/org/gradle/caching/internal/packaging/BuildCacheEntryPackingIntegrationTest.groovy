@@ -22,18 +22,25 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
-    @Issue("https://github.com/gradle/gradle/issues/9877")
+
+    private static final NON_ASCII_NAME = [
+        "ascii-only": "ascii",
+        "space": " ",
+        "zwnj": "\u200c",
+        "chinese": "敏捷的棕色狐狸跳过了懒狗",
+        "cyrillic": "здравствуйте",
+        "hungarian": "Árvíztűrő tükörfúrógép",
+    ].values().join("-")
+
+    private static final DEFAULT_ENCODINGS = [
+        "UTF-8",
+        "ISO-8859-1",
+        "windows-1250",
+    ]
+
     @Unroll
-    def "can store and load files having non-ascii characters in file name and property name using default file encoding #fileEncoding"() {
-        def name = [
-            "ascii-only": "ascii",
-            "space": " ",
-            "zwnj": "\u200c",
-            "chinese": "敏捷的棕色狐狸跳过了懒狗",
-            "cyrillic": "здравствуйте",
-            "hungarian": "Árvíztűrő tükörfúrógép",
-        ].values().join("-")
-        def fileName = name + ".txt"
+    def "can store and load files having non-ascii characters in file name using default file encoding #fileEncoding"() {
+        def fileName = NON_ASCII_NAME + ".txt"
         def outputFile = file("dir", fileName)
 
         buildFile << """
@@ -42,7 +49,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
 
             task createFile {
                 outputs.dir("dir")
-                    .withPropertyName("$name")
                 outputs.cacheIf { true }
                 doLast {
                     file("dir/$fileName").text = "output"
@@ -51,14 +57,14 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         """
 
         when:
-        withBuildCache().run("createFile", "-Dfile.encoding=$fileEncoding", "--info")
+        withBuildCache().run("createFile", "-Dfile.encoding=$fileEncoding")
         then:
         output.contains("> Default charset: $fileEncoding")
         executedAndNotSkipped(":createFile")
 
         when:
         assert outputFile.delete()
-        withBuildCache().run("createFile", "-Dfile.encoding=$fileEncoding", "--info")
+        withBuildCache().run("createFile", "-Dfile.encoding=$fileEncoding")
         skipped(":createFile")
 
         then:
@@ -66,6 +72,44 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         outputFile.text == "output"
 
         where:
-        fileEncoding << ["UTF-8", "ISO-8859-1", "windows-1250"]
+        fileEncoding << DEFAULT_ENCODINGS
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9877")
+    @Unroll
+    def "can store and load files having non-ascii characters in property name using default file encoding #fileEncoding"() {
+        def outputFile = file("output.txt")
+
+        buildFile << """
+            println "> Default charset: \${java.nio.charset.Charset.defaultCharset()}"
+            println "> Storing with property name: $NON_ASCII_NAME"
+
+            task createFile {
+                outputs.file("output.txt")
+                    .withPropertyName("$NON_ASCII_NAME")
+                outputs.cacheIf { true }
+                doLast {
+                    file("output.txt").text = "output"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().run("createFile", "-Dfile.encoding=$fileEncoding")
+        then:
+        output.contains("> Default charset: $fileEncoding")
+        executedAndNotSkipped(":createFile")
+
+        when:
+        assert outputFile.delete()
+        withBuildCache().run("createFile", "-Dfile.encoding=$fileEncoding")
+        skipped(":createFile")
+
+        then:
+        output.contains("> Default charset: $fileEncoding")
+        outputFile.text == "output"
+
+        where:
+        fileEncoding << DEFAULT_ENCODINGS
     }
 }
