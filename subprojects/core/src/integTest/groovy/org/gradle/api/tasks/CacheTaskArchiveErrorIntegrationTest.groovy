@@ -383,13 +383,14 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/9906")
     def "don't cache if task produces broken symlink"() {
+        def link = file('root/link')
         buildFile << """
             import java.nio.file.*
             class ProducesLink extends DefaultTask {
                 @OutputDirectory File outputDirectory
 
                 @TaskAction execute() {
-                    Files.createSymbolicLink(Paths.get('root/link'), Paths.get('target'));
+                    Files.createSymbolicLink(Paths.get('${link}'), Paths.get('target'));
                 }
             }
 
@@ -404,7 +405,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         run "producesLink"
         then:
         executedAndNotSkipped ":producesLink"
-        outputContains "Couldn't read file content 'tree-outputDirectory/link'"
+        outputContains "Couldn't read file content '${link}'"
     }
 
     private TestFile cleanBuildDir() {

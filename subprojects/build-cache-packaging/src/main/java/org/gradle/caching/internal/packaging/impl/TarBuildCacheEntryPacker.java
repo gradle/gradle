@@ -381,7 +381,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             String targetPath = getTargetPath(isRoot);
             if (fileSnapshot.getType() == FileType.Missing) {
                 if (!isRoot) {
-                    throw new GradleException(String.format("Couldn't read file content '%s'", targetPath));
+                    throw new GradleException(String.format("Couldn't read file content '%s'", fileSnapshot.getAbsolutePath()));
                 }
                 storeMissingTree(targetPath, tarOutput);
             } else {
