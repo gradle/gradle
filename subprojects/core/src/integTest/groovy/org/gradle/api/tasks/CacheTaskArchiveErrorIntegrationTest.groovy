@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.util.function.Consumer
@@ -378,6 +379,32 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         where:
         useRuntimeApi << [true, false]
         api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9906")
+    def "don't cache if task produces broken symlink"() {
+        buildFile << """
+            import java.nio.file.*
+            class ProducesLink extends DefaultTask {
+                @OutputDirectory File outputDirectory
+
+                @TaskAction execute() {
+                    Files.createSymbolicLink(Paths.get('root/link'), Paths.get('target'));
+                }
+            }
+
+            task producesLink(type: ProducesLink) {
+                outputDirectory = file 'root'
+                outputs.cacheIf { true }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled().withBuildCacheEnabled()
+        run "producesLink"
+        then:
+        executedAndNotSkipped ":producesLink"
+        outputContains "Couldn't read file content 'tree-outputDirectory/link'"
     }
 
     private TestFile cleanBuildDir() {
