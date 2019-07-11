@@ -60,10 +60,10 @@ inline fun <reified T : Any> unsupported(): Codec<T> = codec(
 internal
 fun <T> codec(
     encode: suspend WriteContext.(T) -> Unit,
-    decode: ReadContext.() -> T?
+    decode: suspend ReadContext.() -> T?
 ): Codec<T> = object : Codec<T> {
     override suspend fun WriteContext.encode(value: T) = encode(value)
-    override fun ReadContext.decode(): T? = decode()
+    override suspend fun ReadContext.decode(): T? = decode()
 }
 
 
@@ -88,7 +88,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
         }
     }
 
-    override fun ReadContext.decode(): T? {
+    override suspend fun ReadContext.decode(): T? {
         return codec.run { decode() }
     }
 
@@ -119,14 +119,14 @@ data class SingletonCodec<T>(
     private val singleton: T
 ) : Codec<T> {
     override suspend fun WriteContext.encode(value: T) = Unit
-    override fun ReadContext.decode(): T? = singleton
+    override suspend fun ReadContext.decode(): T? = singleton
 }
 
 
 internal
 data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
     override suspend fun WriteContext.encode(value: T) = serializer.write(this, value)
-    override fun ReadContext.decode(): T = serializer.read(this)
+    override suspend fun ReadContext.decode(): T = serializer.read(this)
 }
 
 
@@ -153,12 +153,12 @@ fun ReadContext.readClassArray(): Array<Class<*>> =
 
 
 internal
-fun ReadContext.readList(): List<Any?> =
+suspend fun ReadContext.readList(): List<Any?> =
     readList { read() }
 
 
 internal
-fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
+inline fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
     readCollectionInto({ size -> ArrayList<T>(size) }) {
         readElement()
     }
@@ -171,7 +171,7 @@ suspend fun WriteContext.writeCollection(value: Collection<*>) {
 
 
 internal
-fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
+suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
     readCollectionInto(factory) { read() }
 
 
@@ -186,7 +186,7 @@ suspend fun WriteContext.writeMap(value: Map<*, *>) {
 
 
 internal
-fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
+suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
     val items = factory(size)
     for (i in 0 until size) {
@@ -284,7 +284,7 @@ inline fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T)
 
 
 internal
-fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
+inline fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
     val componentType = readClass()
     val size = readSmallInt()
     val array: Array<T> = java.lang.reflect.Array.newInstance(componentType, size).uncheckedCast()

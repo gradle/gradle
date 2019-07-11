@@ -87,7 +87,9 @@ class BeanCodecTest {
         readContextFor(inputStream).run {
             initClassLoader(javaClass.classLoader)
             withIsolate(IsolateOwner.OwnerGradle(mock())) {
-                read()
+                runToCompletion {
+                    read()
+                }
             }
         }
 

@@ -40,7 +40,7 @@ class FileTreeCodec(
         fileSetSerializer.write(this, fileTreeRootsOf(value))
     }
 
-    override fun ReadContext.decode(): FileTreeInternal? =
+    override suspend fun ReadContext.decode(): FileTreeInternal? =
         DefaultCompositeFileTree(
             fileSetSerializer.read(this).map {
                 FileTreeAdapter(directoryFileTreeFactory.create(it))

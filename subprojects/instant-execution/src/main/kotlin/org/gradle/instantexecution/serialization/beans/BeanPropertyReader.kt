@@ -37,6 +37,7 @@ import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
 import sun.reflect.ReflectionFactory
 import java.io.File
+import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.util.concurrent.Callable
@@ -76,7 +77,7 @@ class BeanPropertyReader(
     fun newBean(): Any =
         constructorForSerialization.newInstance()
 
-    fun ReadContext.readFieldsOf(bean: Any) {
+    suspend fun ReadContext.readFieldsOf(bean: Any) {
         readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)
@@ -154,7 +155,7 @@ class BeanPropertyReader(
 /**
  * Reads a sequence of properties written with [writingProperties].
  */
-fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> Unit) {
+suspend fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> Unit) {
     while (true) {
 
         val name = readString()

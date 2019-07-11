@@ -35,7 +35,7 @@ class DestinationRootCopySpecCodec(
         write(value.delegate)
     }
 
-    override fun ReadContext.decode(): DestinationRootCopySpec {
+    override suspend fun ReadContext.decode(): DestinationRootCopySpec {
         val destDir = read() as? File
         val delegate = read() as CopySpecInternal
         val spec = DestinationRootCopySpec(fileResolver, delegate)

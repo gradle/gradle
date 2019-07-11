@@ -148,7 +148,7 @@ class Codecs(
         else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
-    override fun ReadContext.decode(): Any? = when (val tag = readByte()) {
+    override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {
         NULL_VALUE -> null
         else -> bindings[tag.toInt()].codec.run { decode() }
     }

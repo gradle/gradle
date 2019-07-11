@@ -46,7 +46,7 @@ class BeanCodec : Codec<Any> {
         }
     }
 
-    override fun ReadContext.decode(): Any? {
+    override suspend fun ReadContext.decode(): Any? {
         val id = readSmallInt()
         val previousValue = isolate.identities.getInstance(id)
         if (previousValue != null) {

@@ -30,6 +30,6 @@ object ClassCodec : Codec<Class<*>> {
         writeClass(value)
     }
 
-    override fun ReadContext.decode(): Class<*>? =
+    override suspend fun ReadContext.decode(): Class<*>? =
         readClass()
 }

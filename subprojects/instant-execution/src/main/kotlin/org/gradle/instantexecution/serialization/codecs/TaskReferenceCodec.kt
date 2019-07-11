@@ -35,6 +35,6 @@ object TaskReferenceCodec : Codec<Task> {
         }
     }
 
-    override fun ReadContext.decode(): Task? =
+    override suspend fun ReadContext.decode(): Task? =
         isolate.owner.delegate.takeIf { readBoolean() } as Task?
 }

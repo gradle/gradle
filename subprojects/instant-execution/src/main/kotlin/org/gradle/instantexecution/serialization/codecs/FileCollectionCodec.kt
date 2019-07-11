@@ -55,7 +55,7 @@ class FileCollectionCodec(
         }
     }
 
-    override fun ReadContext.decode(): FileCollectionInternal =
+    override suspend fun ReadContext.decode(): FileCollectionInternal =
         if (readBoolean()) fileCollectionFactory.fixed(fileSetSerializer.read(this))
         else fileCollectionFactory.create(ErrorFileSet(readString()))
 }

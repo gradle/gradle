@@ -35,7 +35,7 @@ interface Codec<T> {
 
     suspend fun WriteContext.encode(value: T)
 
-    fun ReadContext.decode(): T?
+    suspend fun ReadContext.decode(): T?
 }
 
 
@@ -66,7 +66,7 @@ interface ReadContext : IsolateContext, Decoder {
 
     fun getProject(path: String): ProjectInternal
 
-    fun read(): Any?
+    suspend fun read(): Any?
 }
 
 

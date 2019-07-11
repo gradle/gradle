@@ -31,6 +31,6 @@ object LoggerCodec : Codec<Logger> {
         writeString(value.name)
     }
 
-    override fun ReadContext.decode(): Logger? =
+    override suspend fun ReadContext.decode(): Logger? =
         LoggerFactory.getLogger(readString())
 }

@@ -30,7 +30,7 @@ object ArtifactCollectionCodec : Codec<ArtifactCollection> {
 
     override suspend fun WriteContext.encode(value: ArtifactCollection) = Unit
 
-    override fun ReadContext.decode(): ArtifactCollection? =
+    override suspend fun ReadContext.decode(): ArtifactCollection? =
         EmptyArtifactCollection(ImmutableFileCollection.of())
 }
 

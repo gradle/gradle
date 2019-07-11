@@ -35,7 +35,7 @@ object MethodCodec : Codec<Method> {
         writeClassArray(value.parameterTypes)
     }
 
-    override fun ReadContext.decode(): Method? {
+    override suspend fun ReadContext.decode(): Method? {
         val declaringClass = readClass()
         val methodName = readString()
         val parameterTypes = readClassArray()

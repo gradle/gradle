@@ -52,7 +52,7 @@ class BuildOperationListenersCodec {
         }
     }
 
-    fun MutableReadContext.readBuildOperationListeners(): List<BuildOperationListener> =
+    suspend fun MutableReadContext.readBuildOperationListeners(): List<BuildOperationListener> =
         readList().uncheckedCast()
 
     private

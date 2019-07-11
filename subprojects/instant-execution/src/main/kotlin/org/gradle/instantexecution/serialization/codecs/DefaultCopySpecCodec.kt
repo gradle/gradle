@@ -37,7 +37,7 @@ class DefaultCopySpecCodec(
         write(allSourcePaths)
     }
 
-    override fun ReadContext.decode(): DefaultCopySpec {
+    override suspend fun ReadContext.decode(): DefaultCopySpec {
         @Suppress("unchecked_cast")
         val sourceFiles = read() as List<File>
         val copySpec = DefaultCopySpec(fileResolver, instantiator)

@@ -138,7 +138,9 @@ class DefaultInstantExecution(
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
                 readContextFor(decoder).run {
-                    decodeTaskGraph()
+                    runToCompletion {
+                        decodeTaskGraph()
+                    }
                 }
             }
         }
@@ -162,7 +164,7 @@ class DefaultInstantExecution(
     }
 
     private
-    fun DefaultReadContext.decodeTaskGraph() {
+    suspend fun DefaultReadContext.decodeTaskGraph() {
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
 
@@ -235,7 +237,7 @@ class DefaultInstantExecution(
     }
 
     private
-    fun DefaultReadContext.readGradleState(gradle: Gradle) {
+    suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
         withGradle(gradle) {
             val listeners = BuildOperationListenersCodec().run {
                 readBuildOperationListeners()
@@ -380,12 +382,12 @@ inline fun <T> T.withGradle(
 
 
 internal
-fun runToCompletion(block: suspend () -> Unit) {
-    var completion: Result<Unit>? = null
+fun <R> runToCompletion(block: suspend () -> R): R {
+    var completion: Result<R>? = null
     block.startCoroutine(Continuation(EmptyCoroutineContext) {
         completion = it
     })
-    completion.let {
+    return completion.let {
         require(it != null) {
             "Coroutine didn't run to completion."
         }

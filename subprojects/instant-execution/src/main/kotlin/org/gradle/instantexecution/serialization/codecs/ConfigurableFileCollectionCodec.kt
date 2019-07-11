@@ -34,7 +34,7 @@ class ConfigurableFileCollectionCodec(
     override suspend fun WriteContext.encode(value: ConfigurableFileCollection) =
         fileSetSerializer.write(this, value.files)
 
-    override fun ReadContext.decode(): ConfigurableFileCollection =
+    override suspend fun ReadContext.decode(): ConfigurableFileCollection =
         fileCollectionFactory.configurableFiles().also {
             it.setFrom(fileSetSerializer.read(this))
         }

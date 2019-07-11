@@ -69,14 +69,14 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
         }
     }
 
-    fun MutableReadContext.readTaskGraph(): List<Task> {
+    suspend fun MutableReadContext.readTaskGraph(): List<Task> {
         val tasksWithDependencies = readTasksWithDependencies()
         wireTaskDependencies(tasksWithDependencies)
         return tasksWithDependencies.map { (task, _) -> task }
     }
 
     private
-    fun MutableReadContext.readTasksWithDependencies(): List<Pair<Task, List<String>>> =
+    suspend fun MutableReadContext.readTasksWithDependencies(): List<Pair<Task, List<String>>> =
         readCollectionInto({ size -> ArrayList(size) }) {
             readTask()
         }
@@ -108,7 +108,7 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
     }
 
     private
-    fun MutableReadContext.readTask(): Pair<Task, List<String>> {
+    suspend fun MutableReadContext.readTask(): Pair<Task, List<String>> {
         val taskType = readClass().asSubclass(Task::class.java)
         val projectPath = readString()
         val taskName = readString()
@@ -293,14 +293,14 @@ fun collectRegisteredInputsOf(task: Task): MutableList<RegisteredProperty> {
 
 
 private
-fun ReadContext.readRegisteredPropertiesOf(task: Task) {
+suspend fun ReadContext.readRegisteredPropertiesOf(task: Task) {
     readInputPropertiesOf(task)
     readOutputPropertiesOf(task)
 }
 
 
 private
-fun ReadContext.readInputPropertiesOf(task: Task) =
+suspend fun ReadContext.readInputPropertiesOf(task: Task) =
     readEachProperty(PropertyKind.InputProperty) { propertyName, propertyValue ->
         val optional = readBoolean()
         val isFileInputProperty = readBoolean()
@@ -333,7 +333,7 @@ fun ReadContext.readInputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.readOutputPropertiesOf(task: Task) =
+suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
     readEachProperty(PropertyKind.OutputProperty) { propertyName, propertyValue ->
         val optional = readBoolean()
         val filePropertyType = readEnum<OutputFilePropertyType>()

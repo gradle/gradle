@@ -31,7 +31,7 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
         writeClass(value.type)
     }
 
-    override fun ReadContext.decode(): AnonymousListenerBroadcast<*> {
+    override suspend fun ReadContext.decode(): AnonymousListenerBroadcast<*> {
         val type = readClass()
         return listenerManager.createAnonymousBroadcaster(type)
     }
