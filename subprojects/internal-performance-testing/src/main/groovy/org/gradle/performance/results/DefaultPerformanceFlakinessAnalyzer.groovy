@@ -78,6 +78,7 @@ class DefaultPerformanceFlakinessAnalyzer implements PerformanceFlakinessAnalyze
 ${FROM_BOT_PREFIX}
 
 Coordinator url: https://builds.gradle.org/viewLog.html?buildId=${System.getenv("BUILD_ID")}
+Branch: ${System.getProperty('org.gradle.performance.execution.branch')}
 Worker url: ${scenario.webUrl}
 Agent: [${scenario.agentName}](${scenario.agentUrl})
 Details:
