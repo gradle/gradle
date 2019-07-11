@@ -17,7 +17,8 @@ val integTestRuntimeResourcesClasspath by configurations.creating {
     isCanBeConsumed = false
     attributes {
         // play test apps MUST be found as exploded directory
-        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME_RESOURCES))
+        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
     }
     isTransitive = false
 }
