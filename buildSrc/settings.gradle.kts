@@ -85,3 +85,4 @@ gradle.settingsEvaluated {
     }
 }
 
+enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
