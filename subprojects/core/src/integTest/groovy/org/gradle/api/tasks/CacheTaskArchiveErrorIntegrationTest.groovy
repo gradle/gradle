@@ -408,7 +408,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         run "producesLink"
         then:
         executedAndNotSkipped ":producesLink"
-        outputContains "Couldn't read file content '${link}'"
+        outputContains "Couldn't read content of file '${link}'"
     }
 
     private TestFile cleanBuildDir() {
