@@ -157,8 +157,9 @@ class Codecs(
     fun computeEncoding(type: Class<*>): Encoding? =
         bindings.find { it.type.isAssignableFrom(type) }?.run {
             encoding { value ->
+                require(value != null)
                 writeByte(tag)
-                codec.run { encode(value!!) }
+                codec.run { encode(value) }
             }
         }
 
