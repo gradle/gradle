@@ -380,6 +380,9 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(isRoot);
             if (fileSnapshot.getType() == FileType.Missing) {
+                if (!isRoot) {
+                    throw new GradleException(String.format("Could not pack snapshot '%s'", targetPath));
+                }
                 storeMissingTree(targetPath, tarOutput);
             } else {
                 assertCorrectType(isRoot, fileSnapshot);
