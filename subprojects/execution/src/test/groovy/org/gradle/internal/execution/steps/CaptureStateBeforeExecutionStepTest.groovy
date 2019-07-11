@@ -42,7 +42,6 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
     def afterPreviousExecutionContext = Stub(AfterPreviousExecutionContext) {
         getWork() >> this.work
     }
-    def result = Mock(CachingResult)
     Step<BeforeExecutionContext, CachingResult> delegate = Mock()
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
 
@@ -53,9 +52,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         step.execute(afterPreviousExecutionContext)
         then:
         1 * work.isTaskHistoryMaintained() >> false
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
-            beforeExecution.beforeExecutionState.empty
-        } >> result
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
+            assert beforeExecution.beforeExecutionState.empty
+        }
         0 * _
     }
 
@@ -75,10 +74,10 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
             }
         }
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.implementation == implementationSnapshot
-            state.additionalImplementations == additionalImplementations
+            assert state.implementation == implementationSnapshot
+            assert state.additionalImplementations == additionalImplementations
         }
         0 * _
     }
@@ -95,9 +94,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
+            assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
     }
@@ -118,9 +117,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
+            assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
     }
@@ -135,9 +134,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
             visitor.visitInputFileProperty("inputFile", "ignored", false, { -> fingerprint })
         }
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
+            assert state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
         }
         0 * _
     }
@@ -150,9 +149,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         then:
         1 * work.outputFileSnapshotsBeforeExecution >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
+            assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
     }
@@ -173,9 +172,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         1 * outputFileSnapshot.accept(_)
 
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
+            assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
     }
@@ -198,9 +197,9 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         1 * afterPreviousOutputFingerprint.fingerprints >> [:]
 
         interaction { fingerprintInputs() }
-        1 * delegate.execute { BeforeExecutionContext beforeExecution ->
+        1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
+            assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
     }
