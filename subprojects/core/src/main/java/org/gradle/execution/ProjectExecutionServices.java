@@ -30,7 +30,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.execution.DefaultTaskFingerprinter;
+import org.gradle.api.internal.tasks.execution.DefaultTaskSnapshotter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
@@ -42,7 +42,7 @@ import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.StartSnapshotTaskInputsBuildOperationTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
+import org.gradle.api.internal.tasks.execution.TaskSnapshotter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -70,7 +70,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
@@ -99,8 +98,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskActionListener actionListener,
                                     OutputChangeListener outputChangeListener,
                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                    ValueSnapshotter valueSnapshotter,
-                                    TaskFingerprinter taskFingerprinter,
+                                    TaskSnapshotter taskSnapshotter,
                                     FileCollectionFingerprinterRegistry fingerprinterRegistry,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
@@ -125,7 +123,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheEnabled,
             scanPluginApplied,
-            taskFingerprinter,
+            taskSnapshotter,
             executionHistoryStore,
             buildOperationExecutor,
             asyncWorkTracker,
@@ -138,7 +136,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
         executer = new ValidatingTaskExecuter(executer, reservedFileSystemLocationRegistry);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer);
-        executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, executer);
+        executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskSnapshotter, executer);
         // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
         if (buildCacheEnabled || scanPluginApplied) {
@@ -165,8 +163,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
     }
 
-    TaskFingerprinter createTaskFingerprinter(FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        return new DefaultTaskFingerprinter(fingerprinterRegistry, fileCollectionSnapshotter);
+    TaskSnapshotter createTaskFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new DefaultTaskSnapshotter(fileCollectionSnapshotter);
     }
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {

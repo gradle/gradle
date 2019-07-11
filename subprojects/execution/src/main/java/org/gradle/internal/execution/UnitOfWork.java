@@ -50,7 +50,6 @@ public interface UnitOfWork extends CacheableEntity {
     interface ImplementationVisitor {
         void visitImplementation(Class<?> implementation);
         void visitImplementation(ImplementationSnapshot implementation);
-        void visitAdditionalImplementation(Class<?> implementation);
         void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 

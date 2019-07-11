@@ -114,7 +114,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter
     }
-    def taskFingerprinter = Stub(TaskFingerprinter) {
+    def taskSnapshotter = Stub(TaskSnapshotter) {
         snapshotTaskFiles(task, _) >> ImmutableSortedMap.of()
     }
     def executionHistoryStore = Mock(ExecutionHistoryStore)
@@ -161,7 +161,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def executer = new ExecuteActionsTaskExecuter(
         false,
         false,
-        taskFingerprinter,
+        taskSnapshotter,
         executionHistoryStore,
         buildOperationExecutor,
         asyncWorkTracker,

@@ -19,9 +19,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.FilePropertySpec;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -31,27 +28,13 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.SortedSet;
 
-public class DefaultTaskFingerprinter implements TaskFingerprinter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskFingerprinter.class);
+public class DefaultTaskSnapshotter implements TaskSnapshotter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskSnapshotter.class);
 
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
 
-    public DefaultTaskFingerprinter(FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        this.fingerprinterRegistry = fingerprinterRegistry;
+    public DefaultTaskSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
-    }
-
-    @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintTaskFiles(TaskInternal task, SortedSet<? extends FilePropertySpec> fileProperties) {
-        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-        for (FilePropertySpec propertySpec : fileProperties) {
-            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(propertySpec.getNormalizer());
-            LOGGER.debug("Fingerprinting property {} for {}", propertySpec, task);
-            CurrentFileCollectionFingerprint result = fingerprinter.fingerprint(propertySpec.getPropertyFiles());
-            builder.put(propertySpec.getPropertyName(), result);
-        }
-        return builder.build();
     }
 
     @Override

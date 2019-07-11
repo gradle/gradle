@@ -204,11 +204,6 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
         }
 
         @Override
-        public void visitAdditionalImplementation(Class<?> implementation) {
-            visitAdditionalImplementation(ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher));
-        }
-
-        @Override
         public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
             additionalImplementations.add(implementation);
         }
