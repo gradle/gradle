@@ -101,5 +101,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
     /**
      * <p>Gets the shared resources required by this task.</p>
      */
+    @Internal
     Map<String, Integer> getSharedResources();
 }
