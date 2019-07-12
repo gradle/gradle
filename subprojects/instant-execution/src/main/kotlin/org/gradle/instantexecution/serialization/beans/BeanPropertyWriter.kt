@@ -40,7 +40,7 @@ class BeanPropertyWriter(
 ) {
 
     private
-    val relevantFields = relevantStateOf(beanType)
+    val relevantFields = relevantStateOf(beanType).toList()
 
     /**
      * Serializes a bean by serializing the value of each of its fields.
