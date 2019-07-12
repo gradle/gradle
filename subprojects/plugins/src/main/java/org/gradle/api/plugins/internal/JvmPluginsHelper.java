@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -54,11 +53,10 @@ import java.util.concurrent.Callable;
  * into the public API.
  */
 public class JvmPluginsHelper {
-    private static void registerClassesDirVariant(final SourceSet sourceSet, ObjectFactory objectFactory, Configuration configuration, String usage) {
+    private static void registerClassesDirVariant(final SourceSet sourceSet, ObjectFactory objectFactory, Configuration configuration) {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
-        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage));
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(new Factory<List<PublishArtifact>>() {
             @Nullable
@@ -178,7 +176,7 @@ public class JvmPluginsHelper {
             @Override
             public void execute(Configuration config) {
                 if (targetConfigName.equals(config.getName())) {
-                    registerClassesDirVariant(sourceSet, target.getObjects(), config, usage);
+                    registerClassesDirVariant(sourceSet, target.getObjects(), config);
                 }
             }
         });
