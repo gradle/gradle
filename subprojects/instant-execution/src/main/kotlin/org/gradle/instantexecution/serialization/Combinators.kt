@@ -75,43 +75,76 @@ inline fun <reified T> ReadContext.readOwnerService() =
 internal
 fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
-    val stack = ArrayDeque<Frame>()
+    val encodeStack = ArrayDeque<EncodeFrame<T>>()
+
+    val decodeStack = ArrayDeque<DecodeFrame<T?>>()
 
     override suspend fun WriteContext.encode(value: T) {
-        if (stack.isEmpty()) {
-            stack.push(Frame(value, null))
-            encodeLoop(coroutineContext)
-        } else {
-            suspendCoroutine<Unit> { k ->
-                stack.push(Frame(value, k))
+        when {
+            encodeStack.isEmpty() -> {
+                encodeStack.push(EncodeFrame(value, null))
+                encodeLoop(coroutineContext)
+            }
+            else -> suspendCoroutine<Unit> { k ->
+                encodeStack.push(EncodeFrame(value, k))
             }
         }
     }
 
-    override suspend fun ReadContext.decode(): T? {
-        return codec.run { decode() }
+    override suspend fun ReadContext.decode(): T? =
+        when {
+            decodeStack.isEmpty() -> {
+                decodeStack.push(DecodeFrame(null))
+                decodeLoop(coroutineContext)
+            }
+            else -> suspendCoroutine { k ->
+                decodeStack.push(DecodeFrame(k))
+            }
+        }
+
+    private
+    fun ReadContext.decodeLoop(coroutineContext: CoroutineContext): T? {
+        var result: T? = null
+        do {
+            suspend {
+                codec.run {
+                    decode()
+                }
+            }.startCoroutine(Continuation(coroutineContext) {
+                when (val k = decodeStack.pop().k) {
+                    null -> result = it.getOrThrow()
+                    else -> k.resumeWith(it)
+                }
+            })
+        } while (decodeStack.isNotEmpty())
+        return result
     }
 
     private
     fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
         do {
-            val frame = stack.peek()
+            val frame = encodeStack.peek()
             suspend {
                 codec.run {
-                    encode(frame.value.uncheckedCast())
+                    encode(frame.value)
                 }
             }.startCoroutine(Continuation(coroutineContext) {
-                require(stack.peek() === frame)
-                stack.pop()
+                require(encodeStack.peek() === frame)
+                encodeStack.pop()
                 frame.k?.resumeWith(it) ?: it.getOrThrow()
             })
-        } while (stack.isNotEmpty())
+        } while (encodeStack.isNotEmpty())
     }
 }
 
 
+@Suppress("experimental_feature_warning")
 private
-data class Frame(val value: Any, val k: Continuation<Unit>?)
+inline class DecodeFrame<T>(val k: Continuation<T>?)
+
+
+private
+data class EncodeFrame<T>(val value: T, val k: Continuation<Unit>?)
 
 
 private
