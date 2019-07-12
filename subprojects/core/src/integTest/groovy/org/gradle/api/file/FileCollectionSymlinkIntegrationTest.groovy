@@ -79,7 +79,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import java.nio.file.*
             class ProducesLink extends DefaultTask {
-                @OutputDirectory File outputDirectory
+                @OutputDirectory Path outputDirectory
 
                 @TaskAction execute() {
                     def link = Paths.get('${link}')
@@ -89,7 +89,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task producesLink(type: ProducesLink) {
-                outputDirectory = file '${root}'
+                outputDirectory =  Paths.get('${root}')
             }
         """
 

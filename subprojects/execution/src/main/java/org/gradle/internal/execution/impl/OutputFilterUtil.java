@@ -183,7 +183,6 @@ public class OutputFilterUtil {
             }
         }
 
-
         private boolean isRoot() {
             return treeDepth == 0;
         }
