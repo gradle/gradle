@@ -103,6 +103,24 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
         }
 
     private
+    fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
+        do {
+            suspend {
+                codec.run {
+                    encode(encodeStack.peek().value)
+                }
+            }.startCoroutine(
+                Continuation(coroutineContext) {
+                    when (val k = encodeStack.pop().k) {
+                        null -> it.getOrThrow()
+                        else -> k.resumeWith(it)
+                    }
+                }
+            )
+        } while (encodeStack.isNotEmpty())
+    }
+
+    private
     fun ReadContext.decodeLoop(coroutineContext: CoroutineContext): T? {
         var result: T? = null
         do {
@@ -110,28 +128,16 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
                 codec.run {
                     decode()
                 }
-            }.startCoroutine(Continuation(coroutineContext) {
-                when (val k = decodeStack.pop().k) {
-                    null -> result = it.getOrThrow()
-                    else -> k.resumeWith(it)
+            }.startCoroutine(
+                Continuation(coroutineContext) {
+                    when (val k = decodeStack.pop().k) {
+                        null -> result = it.getOrThrow()
+                        else -> k.resumeWith(it)
+                    }
                 }
-            })
+            )
         } while (decodeStack.isNotEmpty())
         return result
-    }
-
-    private
-    fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
-        do {
-            val frame = encodeStack.peek()
-            suspend {
-                codec.run {
-                    encode(frame.value)
-                }
-            }.startCoroutine(Continuation(coroutineContext) {
-                encodeStack.pop().k?.resumeWith(it) ?: it.getOrThrow()
-            })
-        } while (encodeStack.isNotEmpty())
     }
 }
 
