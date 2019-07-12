@@ -22,11 +22,6 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterReposito
 
 class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def setup() {
-        // TODO:kotlin-dsl
-        executer.noDeprecationChecks()
-    }
-
     def "build on Groovy build with JUnit tests"() {
 
         def instantExecution = newInstantExecutionFixture()

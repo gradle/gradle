@@ -26,9 +26,6 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
 
     def setup() {
         instantExecution = newInstantExecutionFixture()
-
-        // TODO:kotlin-dsl
-        executer.noDeprecationChecks()
     }
 
     def "build on Java build with a single source file and no dependencies"() {

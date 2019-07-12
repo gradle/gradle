@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.ClassicModeBuild
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
@@ -57,13 +59,13 @@ import org.gradle.instantexecution.serialization.writeStrings
 internal
 class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
 
-    suspend fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
+    fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
-//                projectStateRegistry.stateFor(task.project).withMutableState {
-                writeTask(task, build.dependenciesOf(task))
-//                }
-            } catch (e: Throwable) {
+                projectStateRegistry.stateFor(task.project).runToCompletionWithMutableState {
+                    writeTask(task, build.dependenciesOf(task))
+                }
+            } catch (e: Exception) {
                 throw GradleException("Could not save state of $task.", e)
             }
         }
@@ -355,3 +357,14 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 private
 fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
     getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass)
+
+
+/**
+ * Runs the suspending [block] to completion against [the public mutable state of the project][ProjectState.withMutableState].
+ */
+private
+fun ProjectState.runToCompletionWithMutableState(block: suspend () -> Unit) {
+    withMutableState {
+        runToCompletion(block)
+    }
+}
