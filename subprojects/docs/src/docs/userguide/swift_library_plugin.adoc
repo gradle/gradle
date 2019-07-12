@@ -31,7 +31,7 @@ include::sample[dir="userguide/swift/swiftLibrary/kotlin",files="build.gradle.kt
 == Build variants
 
 The Swift Library Plugin understands the following dimensions.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 
 Build types - always set to _debug_ and _release_::
 The build type controls the debuggability as well as the optimization of the generated binaries.
@@ -81,7 +81,7 @@ image::swift-static-library-task-graph.png[]
 === Variant-dependent Tasks
 
 The Swift Library Plugin creates tasks based on variants of the library component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following diagrams show the relationship between variant-dependent tasks.
 
 .Swift Library Plugin variant-dependent task graph
@@ -137,7 +137,7 @@ This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 == Dependency management
 
 Just like the tasks created by the Swift Library Plugin, multiple configurations are created based on the variants of the library component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following graph describes the configurations added by the Swift Library Plugin:
 
 .Swift Library Plugin configurations
@@ -225,16 +225,14 @@ The Swift Library Plugin will compile whatever it finds and ignore anything miss
 `src/main/swift`::
 Swift source with extension of `.swift`
 
-// TODO: Replace with next line when chapter is available
-// You <<building_swift_projects.adoc#sec:custom_swift_source_set_paths,configure the project layout>> by configuring the `source` on the `library` script block.
-You configure the project layout by configuring the `source` on the `library` script block.
+You <<building_swift_projects.adoc#sec:custom_swift_source_set_paths,configure the project layout>> by configuring the `source` on the `library` script block.
 
 
 [[sec:swift_library_compile_task]]
 === `compile__Variant__Swift` Task
 
 The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html[SwiftCompile] instance for each variant of the library component to build (e.g. `compileDebugSwift` and `compileReleaseSwift`).
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -254,13 +252,13 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:swift_library_link_task]]
 === `link__Variant__` Task
 
 The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -276,13 +274,13 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:swift_library_create_task]]
 === `create__Variant__` Task
 
 The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -294,4 +292,4 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#or
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
