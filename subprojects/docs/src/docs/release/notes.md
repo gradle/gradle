@@ -28,6 +28,7 @@ Include only their name, impactful features should be called out separately belo
 [Zemian Deng](https://github.com/zemian),
 [Robin Verduijn](https://github.com/robinverduijn),
 [Sandu Turcan](https://github.com/idlsoft),
+[Emmanuel Guérin](https://github.com/emmanuelguerin),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
