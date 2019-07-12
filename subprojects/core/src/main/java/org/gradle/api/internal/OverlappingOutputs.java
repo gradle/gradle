@@ -96,7 +96,7 @@ public class OverlappingOutputs {
 
     private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotVisitor {
         private final Map<String, FileSystemLocationFingerprint> previousFingerprints;
-
+        private int treeDepth = 0;
         private String overlappingPath;
 
         public OverlappingOutputsDetectingVisitor(Map<String, FileSystemLocationFingerprint> previousFingerprints) {
@@ -105,6 +105,7 @@ public class OverlappingOutputs {
 
         @Override
         public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            treeDepth++;
             if (overlappingPath == null) {
                 overlappingPath = detectOverlappingPath(directorySnapshot);
             }
@@ -120,6 +121,7 @@ public class OverlappingOutputs {
 
         @Override
         public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            treeDepth--;
         }
 
         @Nullable
@@ -129,7 +131,7 @@ public class OverlappingOutputs {
             FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
             HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
             // Missing files can be ignored
-            if (beforeSnapshot.getType() != FileType.Missing) {
+            if (!isRoot() || beforeSnapshot.getType() != FileType.Missing) {
                 if (createdSincePreviousExecution(previousContentHash)
                     || (beforeSnapshot.getType() != previousFingerprint.getType())
                     // The fingerprint hashes for non-regular files are slightly different to the snapshot hashes, we only need to compare them for regular files
@@ -138,6 +140,10 @@ public class OverlappingOutputs {
                 }
             }
             return null;
+        }
+
+        private boolean isRoot() {
+            return treeDepth == 0;
         }
 
         @Nullable
