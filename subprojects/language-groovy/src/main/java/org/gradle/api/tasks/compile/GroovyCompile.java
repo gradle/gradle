@@ -79,7 +79,6 @@ import java.util.concurrent.Callable;
 import java.util.stream.StreamSupport;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE;
-import static org.gradle.api.internal.tasks.compile.ApiGroovyCompiler.annotationProcessingConfigured;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.writeSourceClassesMappingFile;
 
@@ -275,10 +274,11 @@ public class GroovyCompile extends AbstractCompile {
         if (getOptions().isIncremental() && spec.getSourceRoots().isEmpty()) {
             DeprecationLogger.nagUserOfDeprecatedBehaviour("Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.");
         }
-        if (getOptions().isIncremental() && annotationProcessingConfigured(spec)) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Annotation processing is not supported when incremental Groovy compilation is enabled.");
+        if (getOptions().isIncremental() && spec.annotationProcessingConfigured()) {
+            DeprecationLogger.nagUserOfDeprecated("Incremental Groovy compilation has been disabled since Java annotation processors are configured. Enabling incremental compilation and configuring Java annotation processors for Groovy compilation",
+                "Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
         }
-        return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty() && !annotationProcessingConfigured(spec);
+        return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty() && !spec.annotationProcessingConfigured();
     }
 
     private DefaultGroovyJavaJointCompileSpec createSpec() {

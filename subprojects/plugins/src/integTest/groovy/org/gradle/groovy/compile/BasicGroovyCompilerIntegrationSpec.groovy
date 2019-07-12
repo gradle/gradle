@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -61,9 +62,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "compileWithAnnotationProcessor"() {
-        if (versionLowerThan("1.7")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("1.7"))
 
         when:
         writeAnnotationProcessingBuild(
@@ -82,9 +81,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "disableIncrementalCompilationWithAnnotationProcessor"() {
-        if (versionLowerThan("1.7")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("1.7"))
 
         when:
         writeAnnotationProcessingBuild(
@@ -101,7 +98,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy.class').exists()
         groovyGeneratedSourceFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
-        outputContains('Annotation processing is not supported when incremental Groovy compilation is enabled.')
+        outputContains(
+            ['Incremental Groovy compilation has been disabled since Java annotation processors are configured.',
+             ' Enabling incremental compilation and configuring Java annotation processors for Groovy compilation has been deprecated.',
+             ' This is scheduled to be removed in Gradle 6.0.',
+             ' Disable incremental Groovy compilation or remove the Java annotation processor configuration.'].join(''))
 
         when:
         writeAnnotationProcessingBuild(
@@ -112,13 +113,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         executer.expectDeprecationWarning()
         succeeds("compileGroovy")
-        outputContains('Annotation processing is not supported when incremental Groovy compilation is enabled.')
+        outputContains('Incremental Groovy compilation has been disabled since Java annotation processors are configured')
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
-        if (versionLowerThan("1.7")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("1.7"))
 
         when:
         writeAnnotationProcessingBuild(
@@ -209,9 +208,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "jointCompileWithAnnotationProcessor"() {
-        if (versionLowerThan("1.7")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("1.7"))
 
         when:
         writeAnnotationProcessingBuild(
@@ -250,9 +247,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "jointCompileBadCodeWithAnnotationProcessor"() {
-        if (versionLowerThan("1.7")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("1.7"))
 
         when:
         writeAnnotationProcessingBuild(
@@ -338,9 +333,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "groovyToolClassesAreNotVisible"() {
-        if (versionLowerThan("2.0")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("2.0"))
 
         groovyDependency = "org.codehaus.groovy:groovy:$version"
 
@@ -384,9 +377,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "configurationScriptNotSupported"() {
-        if (!versionLowerThan("2.1")) {
-            return
-        }
+        Assume.assumeTrue(versionLowerThan("2.1"))
 
         expect:
         fails("compileGroovy")
@@ -394,9 +385,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "useConfigurationScript"() {
-        if (versionLowerThan("2.1")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("2.1"))
 
         expect:
         fails("compileGroovy")
@@ -404,18 +393,15 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "failsBecauseOfMissingConfigFile"() {
-        if (versionLowerThan("2.1")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("2.1"))
+
         expect:
         fails("compileGroovy")
         failure.assertHasCause("File '${file('groovycompilerconfig.groovy')}' specified for property 'groovyOptions.configurationScript' does not exist.")
     }
 
     def "failsBecauseOfInvalidConfigFile"() {
-        if (versionLowerThan("2.1")) {
-            return
-        }
+        Assume.assumeFalse(versionLowerThan("2.1"))
         expect:
         fails("compileGroovy")
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")

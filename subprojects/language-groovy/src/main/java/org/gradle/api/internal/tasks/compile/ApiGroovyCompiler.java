@@ -284,14 +284,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         return WorkResults.didWork(true);
     }
 
-    public static boolean annotationProcessingConfigured(GroovyJavaJointCompileSpec spec) {
-        return !spec.getAnnotationProcessorPath().isEmpty()
-            && !spec.getCompileOptions().getCompilerArgs().contains("-proc:none");
-    }
-
     private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
-        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing()
-            && annotationProcessingConfigured(spec);
+        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing() && spec.annotationProcessingConfigured();
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
