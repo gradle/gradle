@@ -723,7 +723,7 @@
 
     <section>
         <title>Native tool chains model types</title>
-        <para>Used to configure tool chains for building C++ components.</para>
+        <para>Used to configure tool chains for building C++ and Swift components.</para>
         <table>
             <title>Native tool chain types</title>
             <tr>
@@ -734,6 +734,9 @@
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.toolchain.VisualCpp</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.toolchain.Swiftc</td>
             </tr>
         </table>
     </section>
@@ -866,12 +869,29 @@
     </section>
 
     <section>
-        <title>C++ binary task types</title>
-        <para>Tasks used to build C++ binaries.</para>
+        <title>Swift component model types</title>
+        <para>Used to configure Swift components.</para>
         <table>
-            <title>C++ component task types</title>
+            <title>Swift component types</title>
+            <tr>
+                <td>org.gradle.language.swift.SwiftApplication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.swift.SwiftLibrary</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Native binary task types</title>
+        <para>Tasks used to build native binaries.</para>
+        <table>
+            <title>Native component task types</title>
             <tr>
                 <td>org.gradle.language.cpp.tasks.CppCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.swift.tasks.SwiftCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.tasks.LinkExecutable</td>

@@ -266,7 +266,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 [[sec:cpp_library_link_task]]
 === `link__Variant__` Task
 
-The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
+The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
@@ -288,7 +288,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 [[sec:cpp_library_create_task]]
 === `create__Variant__` Task
 
-The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
+The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
