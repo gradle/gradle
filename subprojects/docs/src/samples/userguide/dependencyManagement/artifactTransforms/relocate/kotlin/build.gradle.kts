@@ -50,7 +50,7 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
     override
     fun transform(outputs: TransformOutputs) {
         val primaryInputFile = primaryInput.get().asFile
-        if (parameters.externalClasspath.contains(primaryInput)) {           // <6>
+        if (parameters.externalClasspath.contains(primaryInputFile)) {       // <6>
             outputs.file(primaryInput)
         } else {
             val baseName = primaryInputFile.name.substring(0, primaryInputFile.name.length - 4)

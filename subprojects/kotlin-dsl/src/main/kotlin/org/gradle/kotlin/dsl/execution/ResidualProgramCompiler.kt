@@ -66,7 +66,7 @@ import org.gradle.plugin.management.internal.DefaultPluginRequests
 
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
-import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.scripting.definitions.KotlinScriptDefinition
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter

@@ -159,9 +159,10 @@ object KotlinMetadataPrintingVisitor {
         override fun visitExtensions(type: KmExtensionType): KmPropertyExtensionVisitor? {
             println("visitExtensions($type")
             return object : JvmPropertyExtensionVisitor() {
-                override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
-                    println("visit($fieldDesc, $getterDesc, $setterDesc)")
-                    super.visit(fieldDesc, getterDesc, setterDesc)
+
+                override fun visit(jvmFlags: Flags, fieldSignature: JvmFieldSignature?, getterSignature: JvmMethodSignature?, setterSignature: JvmMethodSignature?) {
+                    println("visit($jvmFlags, $fieldSignature, $getterSignature, $setterSignature)")
+                    super.visit(jvmFlags, fieldSignature, getterSignature, setterSignature)
                 }
 
                 override fun visitSyntheticMethodForAnnotations(desc: JvmMethodSignature?) {

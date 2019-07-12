@@ -33,7 +33,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
     def "verify 3rd-party dependencies jar hashes"() {
         setup:
         // dependencies produced by Gradle and cannot be verified by this test
-        def excluded = ['gradle-', 'fastutil-8.2.1-min', 'kotlin-compiler-embeddable-1.3.31-patched']
+        def excluded = ['gradle-', 'fastutil-8.2.1-min', 'kotlin-compiler-embeddable-1.3.41-patched']
 
         def expectedHashes = [
             'annotations-13.0.jar' : 'ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
@@ -54,15 +54,16 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'jcl-over-slf4j-1.7.25.jar' : '5e938457e79efcbfb3ab64bc29c43ec6c3b95fffcda3c155f4a86cc320c11e14',
             'jsr305-3.0.2.jar' : '766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7',
             'jul-to-slf4j-1.7.25.jar' : '416c5a0c145ad19526e108d44b6bf77b75412d47982cce6ce8d43abdbdbb0fac',
-            'kotlin-reflect-1.3.31.jar' : 'a0172daf57e511e8e0df9251b508db8aa6b885cdf0c5849addc9b840db4814f0',
-            'kotlin-sam-with-receiver-compiler-plugin-1.3.31.jar' : '1c8903b06c079d47374473a302603734cd427f3c59309aefe05a8207d2be5884',
-            'kotlin-script-runtime-1.3.31.jar' : '633692186b292292e41ea60d5170e811845b78aba88e20260ba70f7ce3a3ef32',
-            'kotlin-scripting-compiler-embeddable-1.3.31.jar' : '4dff2f683f8ceee0e834aeb0ca2686774da6c010ad1faf671dcaf73f071de954',
-            'kotlin-stdlib-1.3.31.jar' : 'f38c84326543e66ed4895b20fb3ea0fca527fd5a040e1f49d0946ecf3d2b3b23',
-            'kotlin-stdlib-common-1.3.31.jar' : 'd6e9c54c1e6c4df21be9395de558665544c6bdc8f8076ea7518f089f82cd34fc',
-            'kotlin-stdlib-jdk7-1.3.31.jar' : 'dbf77e6a5626d941450fdc59cbfe24165858403c12789749a2497265269859a3',
-            'kotlin-stdlib-jdk8-1.3.31.jar' : 'ad6acd219b468a532ac3b3c5aacbfd5db02d0ffcf967e2113e4677e2429490f6',
-            'kotlinx-metadata-jvm-0.0.5.jar' : 'e49454af130e066a4e1c31255c5fd9a23f31105324f48e98406325b051638908',
+            'kotlin-reflect-1.3.41.jar': '01d469878c6853a607baaadf869c7474b971abe6dd2cb74f244bea0ffb453c76',
+            'kotlin-sam-with-receiver-compiler-plugin-1.3.41.jar': 'e568796401d39904aca06ea23127dd13b44fa124831c33c8595f883b0ec83413',
+            'kotlin-script-runtime-1.3.41.jar': 'ac184612f258b460b5af4ca47f6bee0bab20a46fa818b86697ba41ef29626a31',
+            'kotlin-scripting-compiler-embeddable-1.3.41.jar': 'c2da2d19f569e8369c2f55affa0dee5f50771bc3685697ee948ee29a16d0c3c1',
+            'kotlin-scripting-compiler-impl-embeddable-1.3.41.jar': '854c39cdd705be01956439ae70f44a785cd0ba66388299f98bc0af75db328f29',
+            'kotlin-stdlib-1.3.41.jar': '6ea3d0921b26919b286f05cbdb906266666a36f9a7c096197114f7495708ffbc',
+            'kotlin-stdlib-common-1.3.41.jar': '6c91dea17d7dce5f0b550c3de3305767e5fb46247b6d1eb7eca0ca1fe18458de',
+            'kotlin-stdlib-jdk7-1.3.41.jar': '25e2409aba0ec37d2fd7c77727d7835b511879de8d9bf4862af0b493aabbe39e',
+            'kotlin-stdlib-jdk8-1.3.41.jar': 'f7dbbaee3e0841758187a213c052388a4e619e11c87ab16f4bc229cfe7ce5fed',
+            'kotlinx-metadata-jvm-0.1.0.jar' : '9753bb39efef35957c5c15df9a3cb769aabf2cdfa74b47afcb7760e5146be3b5',
             'kryo-2.24.0.jar' : '7e56b32c635058f9aa2820f88919ab702d029cbcd15285da9992e36cc0ae52f2',
             'log4j-over-slf4j-1.7.25.jar' : 'c84c5ce4bbb661369ccd4c7b99682027598a0fb2e3d63a84259dbe5c0bf1f949',
             'minlog-1.2.jar' : 'a678cb1aa8f5d03d901c992c75741841d98a9bc3d55dad02e84d65315c4e60f2',
