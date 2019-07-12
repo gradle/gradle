@@ -32,8 +32,7 @@ library {
 
 // tag::configure-target-machines[]
 library {
-    targetMachines.set(listOf(machines.linux.x86, machines.linux.x86_64,
-        machines.macOS.x86_64))
+    targetMachines.set(listOf(machines.linux.x86_64, machines.macOS.x86_64))
 }
 // end::configure-target-machines[]
 
