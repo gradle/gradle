@@ -129,9 +129,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
                     encode(frame.value)
                 }
             }.startCoroutine(Continuation(coroutineContext) {
-                require(encodeStack.peek() === frame)
-                encodeStack.pop()
-                frame.k?.resumeWith(it) ?: it.getOrThrow()
+                encodeStack.pop().k?.resumeWith(it) ?: it.getOrThrow()
             })
         } while (encodeStack.isNotEmpty())
     }
