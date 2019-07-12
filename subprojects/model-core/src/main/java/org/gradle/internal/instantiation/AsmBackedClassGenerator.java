@@ -747,7 +747,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         /**
          * Adds a getter that returns the value of the given field, initializing it if null using the given code. The code should leave the value on the top of the stack.
          */
-        private void addLazyGetter(String methodName, Type returnType, String methodDescriptor, String signature, final String fieldName, final Type fieldType, final MethodCodeBody initializer) {
+        private void addLazyGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, final String fieldName, final Type fieldType, final MethodCodeBody initializer) {
             addGetter(methodName, returnType, methodDescriptor, signature, new MethodCodeBody() {
                 @Override
                 public void add(MethodVisitor visitor) {
@@ -774,7 +774,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         /**
          * Adds a getter that returns the value that the given code leaves on the top of the stack.
          */
-        private void addGetter(String methodName, Type returnType, String methodDescriptor, String signature, MethodCodeBody body) {
+        private void addGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, MethodCodeBody body) {
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, methodName, methodDescriptor, signature, EMPTY_STRINGS);
             methodVisitor.visitCode();
             body.add(methodVisitor);
@@ -922,7 +922,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
-        public void applyServiceInjectionToGetter(PropertyMetadata property, final Class<? extends Annotation> annotation, MethodMetadata getter) {
+        public void applyServiceInjectionToGetter(PropertyMetadata property, @Nullable final Class<? extends Annotation> annotation, MethodMetadata getter) {
             // GENERATE public <type> <getter>() { if (<field> == null) { <field> = <services>>.get(<service-type>>); } return <field> }
             final String getterName = getter.getName();
             Type returnType = Type.getType(getter.getReturnType());
