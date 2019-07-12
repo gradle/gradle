@@ -61,6 +61,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConventionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConventionExtensionsKt.findPlugin(org.gradle.api.plugins.Convention)",
+            "acceptation": "False positive on Kotlin upgrade to 1.3.41, baseline is effectively null returning",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExtensionContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ExtensionContainerExtensionsKt.findByType(org.gradle.api.plugins.ExtensionContainer)",
+            "acceptation": "False positive on Kotlin upgrade to 1.3.41, baseline is effectively null returning",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
         }
     ]
 }
