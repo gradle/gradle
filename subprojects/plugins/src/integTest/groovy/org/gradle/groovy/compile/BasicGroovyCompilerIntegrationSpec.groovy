@@ -77,7 +77,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile('Groovy.class').exists()
         groovyGeneratedSourceFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
-        outputDoesNotContain('Annotation processing is not supported when incremental Groovy compilation is enabled.')
     }
 
     def "disableIncrementalCompilationWithAnnotationProcessor"() {
@@ -99,21 +98,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyGeneratedSourceFile('Groovy$$Generated.java').exists()
         groovyClassFile('Groovy$$Generated.class').exists()
         outputContains(
-            ['Incremental Groovy compilation has been disabled since Java annotation processors are configured.',
-             ' Enabling incremental compilation and configuring Java annotation processors for Groovy compilation has been deprecated.',
-             ' This is scheduled to be removed in Gradle 6.0.',
-             ' Disable incremental Groovy compilation or remove the Java annotation processor configuration.'].join(''))
-
-        when:
-        writeAnnotationProcessingBuild(
-            "", // no Java
-            "$annotationText class Groovy { int i }"
-        )
-
-        then:
-        executer.expectDeprecationWarning()
-        succeeds("compileGroovy")
-        outputContains('Incremental Groovy compilation has been disabled since Java annotation processors are configured')
+            'Incremental Groovy compilation has been disabled since Java annotation processors are configured.' +
+                ' Enabling incremental compilation and configuring Java annotation processors for Groovy compilation has been deprecated.' +
+                ' This is scheduled to be removed in Gradle 6.0.' +
+                ' Disable incremental Groovy compilation or remove the Java annotation processor configuration.')
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
@@ -701,10 +689,10 @@ ${compilerConfiguration()}
         """
 
         if (java) {
-            file("src/main/groovy/Java.java").text = java
+            file("src/main/groovy/Java.java") << java
         }
         if (groovy) {
-            file("src/main/groovy/Groovy.groovy").text = groovy
+            file("src/main/groovy/Groovy.groovy") << groovy
         }
     }
 
