@@ -177,12 +177,46 @@ sealed class PropertyTrace {
         val trace: PropertyTrace
     ) : PropertyTrace()
 
-    override fun toString(): String = when (this) {
-        is Gradle -> "Gradle state"
-        is Property -> "$kind `$name` of $trace"
-        is Bean -> "`${type.name}` bean found in $trace"
-        is Task -> "task `$path` of type `${type.name}`"
-        is Unknown -> "unknown property"
+    override fun toString(): String =
+        StringBuilder().apply {
+            sequence.forEach {
+                appendStringOf(it)
+            }
+        }.toString()
+
+    private
+    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
+        when (trace) {
+            is Gradle -> {
+                append("Gradle state")
+            }
+            is Property -> {
+                append(trace.kind)
+                append(" ")
+                quoted(trace.name)
+                append(" of ")
+            }
+            is Bean -> {
+                quoted(trace.type.name)
+                append(" bean found in ")
+            }
+            is Task -> {
+                append("task ")
+                quoted(trace.path)
+                append(" of type ")
+                quoted(trace.type.name)
+            }
+            is Unknown -> {
+                append("unknown property")
+            }
+        }
+    }
+
+    private
+    fun StringBuilder.quoted(s: String) {
+        append('`')
+        append(s)
+        append('`')
     }
 
     val sequence: Sequence<PropertyTrace>
