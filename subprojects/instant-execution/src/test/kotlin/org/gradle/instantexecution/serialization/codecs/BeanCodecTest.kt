@@ -23,6 +23,7 @@ import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
+import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.withIsolate
 
@@ -56,7 +57,9 @@ class BeanCodecTest {
 
     private
     fun <T : Any> roundtrip(graph: T): T =
-        writeToByteArray(graph).let(::readFrom)!!.uncheckedCast()
+        writeToByteArray(graph)
+            .let(::readFromByteArray)!!
+            .uncheckedCast()
 
     private
     fun writeToByteArray(graph: Any): ByteArray {
@@ -69,7 +72,7 @@ class BeanCodecTest {
     fun writeTo(outputStream: OutputStream, graph: Any) {
         KryoBackedEncoder(outputStream).use { encoder ->
             writeContextFor(encoder).run {
-                withIsolate(IsolateOwner.OwnerGradle(mock())) {
+                withIsolateMock {
                     runToCompletion {
                         write(graph)
                     }
@@ -79,18 +82,24 @@ class BeanCodecTest {
     }
 
     private
-    fun readFrom(bytes: ByteArray) =
+    fun readFromByteArray(bytes: ByteArray) =
         readFrom(ByteArrayInputStream(bytes))
 
     private
     fun readFrom(inputStream: ByteArrayInputStream) =
         readContextFor(inputStream).run {
             initClassLoader(javaClass.classLoader)
-            withIsolate(IsolateOwner.OwnerGradle(mock())) {
+            withIsolateMock {
                 runToCompletion {
                     read()
                 }
             }
+        }
+
+    private
+    inline fun <R> MutableIsolateContext.withIsolateMock(block: () -> R): R =
+        withIsolate(IsolateOwner.OwnerGradle(mock())) {
+            block()
         }
 
     private

@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
@@ -62,7 +63,7 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
     fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
         writeCollection(tasks) { task ->
             try {
-                projectStateRegistry.stateFor(task.project).runToCompletionWithMutableState {
+                runToCompletionWithMutableStateOf(task.project) {
                     writeTask(task, build.dependenciesOf(task))
                 }
             } catch (e: Exception) {
@@ -126,6 +127,16 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
         }
 
         return task to taskDependencies
+    }
+
+    /**
+     * Runs the suspending [block] to completion against the [public mutable state][ProjectState.withMutableState] of [project].
+     */
+    private
+    fun runToCompletionWithMutableStateOf(project: Project, block: suspend () -> Unit) {
+        projectStateRegistry.stateFor(project).withMutableState {
+            runToCompletion(block)
+        }
     }
 }
 
@@ -357,14 +368,3 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 private
 fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
     getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass)
-
-
-/**
- * Runs the suspending [block] to completion against [the public mutable state of the project][ProjectState.withMutableState].
- */
-private
-fun ProjectState.runToCompletionWithMutableState(block: suspend () -> Unit) {
-    withMutableState {
-        runToCompletion(block)
-    }
-}

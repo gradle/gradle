@@ -381,6 +381,10 @@ inline fun <T> T.withGradle(
 }
 
 
+/**
+ * [Starts][startCoroutine] the suspending [block], asserts it runs
+ * to completion and returns its result.
+ */
 internal
 fun <R> runToCompletion(block: suspend () -> R): R {
     var completion: Result<R>? = null
