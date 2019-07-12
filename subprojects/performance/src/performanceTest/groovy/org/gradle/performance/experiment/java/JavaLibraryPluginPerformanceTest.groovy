@@ -16,6 +16,7 @@
 
 package org.gradle.performance.experiment.java
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.results.BaselineVersion
@@ -32,6 +33,7 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
     def "java-library vs java on #testProject"() {
         def javaLibraryRuns = "java-library-plugin"
         def javaRuns = "java-plugin"
+        def compileClasspathPackaging = OperatingSystem.current().windows
 
         given:
         runner.testGroup = "java plugins"
@@ -39,7 +41,7 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject.projectName).displayName(javaLibraryRuns).invocation {
-                tasksToRun("clean", "classes").args("-PcompileConfiguration").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
+                tasksToRun("clean", "classes").args("-PcompileConfiguration", "-Dorg.gradle.java.compile-classpath-packaging=$compileClasspathPackaging").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
         runner.baseline {

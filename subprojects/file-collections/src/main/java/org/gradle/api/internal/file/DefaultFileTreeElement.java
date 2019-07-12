@@ -16,9 +16,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.file.Chmod;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
+import org.gradle.internal.file.FileException;
+
 import java.io.File;
 
 public interface FileCanonicalizer {

@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.Decoder;
@@ -475,14 +475,16 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         @Override
         public void write(Encoder encoder, IsolatedArray value) throws Exception {
             encoder.writeByte(ISOLATED_ARRAY);
+            encoder.writeString(value.getArrayType().getName());
             writeIsolatableSequence(encoder, value.getElements());
         }
 
         @Override
         public IsolatedArray read(Decoder decoder) throws Exception {
             ImmutableList.Builder<Isolatable<?>> builder = ImmutableList.builder();
+            Class<?> arrayType = fromClassName(decoder.readString());
             readIsolatableSequence(decoder, builder);
-            return new IsolatedArray(builder.build());
+            return new IsolatedArray(builder.build(), arrayType);
         }
 
         @Override

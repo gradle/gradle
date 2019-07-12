@@ -224,19 +224,26 @@ The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.Groov
 
 _Caveat: Groovy compilation avoidance is an incubating feature since Gradle 5.6. There are known inaccuracies so please enable it at your own risk._
 
-To enable the incubating support for Groovy compilation avoidance, add a system property `org.gradle.groovy.compilation.avoidance` to your Gradle invocation, for example:
+To enable the incubating support for Groovy compilation avoidance, add a link:{javadocPath}/org/gradle/api/initialization/Settings.html#enableFeaturePreview-java.lang.String-[`enableFeaturePreview`] to your settings file:
 
-```
-./gradlew assemble -Dorg.gradle.groovy.compilation.avoidance=true
-```
-
-Or, add the system property to your `gradle.properties` file:
-
-
-```
-# gradle.properties file
-systemProp.org.gradle.groovy.compilation.avoidance=true
-```
+====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
+----
+=====
+====
 
 If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed), then Groovy compilation tasks will be up-to-date.
 This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.

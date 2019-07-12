@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.execution;
 
-import java.io.File;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 
-public interface Chmod {
+import java.util.Optional;
+
+public interface BeforeExecutionContext extends AfterPreviousExecutionContext {
     /**
-     * Changes the Unix permissions of a provided file. Implementations that don't
-     * support Unix permissions may choose to ignore this request.
-     *
-     * @param file the file to change permissions on
-     * @param mode the permissions, e.g. 0755
-     * @throws FileException if the permissions can't be changed for some reason.
+     * Returns the execution state before execution.
+     * Empty if execution state was not observed before execution.
      */
-    public void chmod(File file, int mode) throws FileException;
+    Optional<BeforeExecutionState> getBeforeExecutionState();
 }

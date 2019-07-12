@@ -37,18 +37,18 @@ import java.util.function.Consumer;
  * The data is required to determine overlapping outputs and to resolve the tasks full execution state before execution.
  */
 public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
-    private final TaskFingerprinter taskFingerprinter;
+    private final TaskSnapshotter taskSnapshotter;
     private final TaskExecuter delegate;
 
-    public ResolveBeforeExecutionOutputsTaskExecuter(TaskFingerprinter taskFingerprinter, TaskExecuter delegate) {
-        this.taskFingerprinter = taskFingerprinter;
+    public ResolveBeforeExecutionOutputsTaskExecuter(TaskSnapshotter taskSnapshotter, TaskExecuter delegate) {
+        this.taskSnapshotter = taskSnapshotter;
         this.delegate = delegate;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         ImmutableSortedSet<OutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
-        ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution = taskFingerprinter.snapshotTaskFiles(task, outputFilePropertySpecs);
+        ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution = taskSnapshotter.snapshotTaskFiles(task, outputFilePropertySpecs);
         context.setOutputFilesBeforeExecution(outputsBeforeExecution);
 
         AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();

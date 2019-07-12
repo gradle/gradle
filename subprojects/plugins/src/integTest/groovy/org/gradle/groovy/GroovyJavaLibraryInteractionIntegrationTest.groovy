@@ -35,9 +35,14 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
 
     @Issue("https://github.com/gradle/gradle/issues/7398")
     @Unroll
-    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib"(
-            String consumerPlugin, String consumerConf, boolean groovyWithJavaLib, String expected) {
+    def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib with compile-classpath-packaging=#compileClasspathPackaging"(
+            String consumerPlugin, String consumerConf, boolean groovyWithJavaLib, boolean compileClasspathPackaging, String expected) {
         given:
+        if (compileClasspathPackaging) {
+            propertiesFile << """
+                systemProp.org.gradle.java.compile-classpath-packaging=true
+            """.trim()
+        }
         multiProjectBuild('issue7398', ['groovyLib', 'javaLib']) {
             file('groovyLib').with {
                 file('src/main/groovy/GroovyClass.groovy') << "public class GroovyClass {}"
@@ -79,7 +84,8 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                             'org.gradle.category': 'library',
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                            'org.gradle.usage': "java-api-jars"]) // this is a bit curious, it's an artifact of how selection is done
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.libraryelements': 'jar'])
                     switch (expected) {
                         case "jar":
                             artifact(name: "groovyLib")
@@ -96,17 +102,29 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         }
 
         where:
-        consumerPlugin | consumerConf     | groovyWithJavaLib | expected
-        'java-library' | 'api'            | true              | "classes"
-        'java-library' | 'api'            | false             | "jar"
-        'java-library' | 'compile'        | true              | "classes"
-        'java-library' | 'compile'        | false             | "jar"
-        'java-library' | 'implementation' | true              | "classes"
-        'java-library' | 'implementation' | false             | "jar"
+        consumerPlugin | consumerConf     | groovyWithJavaLib | compileClasspathPackaging | expected
+        'java-library' | 'api'            | true              | false                     | "classes"
+        'java-library' | 'api'            | false             | false                     | "jar"
+        'java-library' | 'compile'        | true              | false                     | "classes"
+        'java-library' | 'compile'        | false             | false                     | "jar"
+        'java-library' | 'implementation' | true              | false                     | "classes"
+        'java-library' | 'implementation' | false             | false                     | "jar"
 
-        'java'         | 'compile'        | true              | "classes"
-        'java'         | 'compile'        | false             | "jar"
-        'java'         | 'implementation' | true              | "classes"
-        'java'         | 'implementation' | false             | "jar"
+        'java'         | 'compile'        | true              | false                     | "classes"
+        'java'         | 'compile'        | false             | false                     | "jar"
+        'java'         | 'implementation' | true              | false                     | "classes"
+        'java'         | 'implementation' | false             | false                     | "jar"
+
+        'java-library' | 'api'            | true              | true                      | "jar"
+        'java-library' | 'api'            | false             | true                      | "jar"
+        'java-library' | 'compile'        | true              | true                      | "jar"
+        'java-library' | 'compile'        | false             | true                      | "jar"
+        'java-library' | 'implementation' | true              | true                      | "jar"
+        'java-library' | 'implementation' | false             | true                      | "jar"
+
+        'java'         | 'compile'        | true              | true                      | "jar"
+        'java'         | 'compile'        | false             | true                      | "jar"
+        'java'         | 'implementation' | true              | true                      | "jar"
+        'java'         | 'implementation' | false             | true                      | "jar"
     }
 }

@@ -99,4 +99,6 @@ public interface MutableModuleComponentResolveMetadata {
 
     @Nullable
     Set<? extends ComponentIdentifier> getPlatformOwners();
+
+    List<? extends MutableComponentVariant> getMutableVariants();
 }

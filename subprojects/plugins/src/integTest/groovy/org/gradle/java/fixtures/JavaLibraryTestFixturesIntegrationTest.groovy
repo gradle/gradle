@@ -22,6 +22,11 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesInt
         'java-library'
     }
 
+    @Override
+    List getSkippedJars(boolean compileClasspathPackaging) {
+        compileClasspathPackaging ? [] : [':jar', ':testFixturesJar']
+    }
+
     def "can consume test fixtures of subproject written in Groovy"() {
         settingsFile << """
             include 'sub'

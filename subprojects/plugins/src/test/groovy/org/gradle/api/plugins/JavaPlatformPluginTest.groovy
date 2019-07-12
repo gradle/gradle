@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -94,9 +95,11 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         classpath.canBeResolved
         classpath.extendsFrom == [runtimeElements] as Set
         def attributes = classpath.attributes.keySet()
-        attributes.size() == 1
-        def usage = classpath.attributes.getAttribute(attributes[0])
+        attributes.size() == 2
+        def usage = classpath.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
         usage.name == Usage.JAVA_RUNTIME
+        def format = classpath.attributes.getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)
+        format.name == LibraryElements.JAR
 
     }
 

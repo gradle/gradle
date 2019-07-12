@@ -15,7 +15,7 @@
  */
 
 package org.gradle.internal.nativeintegration.filesystem.services
-import org.gradle.internal.nativeintegration.filesystem.FileException
+import org.gradle.internal.file.FileException
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator

@@ -53,7 +53,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         run language.compileTaskName, '-i'
 
         then:
-        outputContains('no source class mapping file found')
+        outputContains('unable to get source-classes mapping relationship')
     }
 
     def 'only recompile affected classes when multiple class in one groovy file'() {

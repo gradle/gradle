@@ -5,6 +5,14 @@ plugins {
     `kotlin-library`
 }
 
+tasks {
+    processResources {
+        from(project(":instantExecutionReport").tasks.processResources) {
+            into("org/gradle/instantexecution")
+        }
+    }
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -16,7 +24,9 @@ dependencies {
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
+
     implementation(futureKotlin("stdlib-jdk8"))
+    implementation(futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
 

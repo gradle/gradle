@@ -23,7 +23,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.file.Chmod;
 
 import javax.annotation.Nullable;
 import java.io.File;

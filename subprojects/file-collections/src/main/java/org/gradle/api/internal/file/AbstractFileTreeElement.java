@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.file.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
 

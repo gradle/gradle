@@ -174,7 +174,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     noArtifacts()
                 }
                 module("group:bom:1.0") {
-                    variant("runtime", ['org.gradle.category':'library', 'org.gradle.status':'release', 'org.gradle.usage':'java-runtime'])
+                    variant("runtime", ['org.gradle.category':'library', 'org.gradle.status':'release', 'org.gradle.usage':'java-runtime', 'org.gradle.libraryelements': 'jar'])
                     module("group:moduleC:1.0")
                     noArtifacts()
                 }

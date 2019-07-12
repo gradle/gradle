@@ -20,7 +20,6 @@ import model.CIBuildModel
 import model.GradleSubproject
 import model.TestCoverage
 
-
 fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
     // TODO: Hacky. We should really be running all the subprojects on macOS
     // But we're restricting this to just a subset of projects for now
@@ -189,7 +188,6 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
-
         }
     }
 

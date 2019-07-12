@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileMetadata;
-import org.gradle.internal.snapshot.FileSnapshottingException;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -190,10 +189,6 @@ public class DirectorySnapshotter {
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             String internedName = intern(file.getFileName().toString());
             if (shouldVisit(file, internedName, false, attrs, builder.getRelativePath())) {
-                if (attrs.isSymbolicLink()) {
-                    // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                    throw new FileSnapshottingException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
-                }
                 builder.visitFile(snapshotFile(file, internedName, attrs));
             }
             return FileVisitResult.CONTINUE;

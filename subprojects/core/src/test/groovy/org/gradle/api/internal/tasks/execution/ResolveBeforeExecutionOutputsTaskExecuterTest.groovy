@@ -33,8 +33,8 @@ import spock.lang.Specification
 
 class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
-    def taskFingerprinter = Mock(TaskFingerprinter)
-    def executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, delegate)
+    def taskSnapshotter = Mock(TaskSnapshotter)
+    def executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskSnapshotter, delegate)
 
     def taskProperties = Mock(TaskProperties)
     def outputFileProperties = ImmutableSortedSet.<OutputFilePropertySpec>of()
@@ -58,7 +58,7 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
         def outputFilesBeforeExecution = ImmutableSortedMap.of(
             "output", FileSystemSnapshot.EMPTY
         )
-        taskFingerprinter.snapshotTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
+        taskSnapshotter.snapshotTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
 
         when:
         executer.execute(task, state, context)
@@ -78,7 +78,7 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
             "output", Mock(FileSystemSnapshot)
         )
-        taskFingerprinter.snapshotTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
+        taskSnapshotter.snapshotTaskFiles(task, outputFileProperties) >> outputFilesBeforeExecution
 
         when:
         executer.execute(task, state, context)

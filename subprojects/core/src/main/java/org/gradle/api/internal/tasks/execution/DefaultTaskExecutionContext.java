@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
@@ -37,7 +36,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private AfterPreviousExecutionState afterPreviousExecution;
     private OverlappingOutputs overlappingOutputs;
     private ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution;
-    private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
     private Long executionTime;
@@ -84,16 +82,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setOverlappingOutputs(OverlappingOutputs overlappingOutputs) {
         this.overlappingOutputs = overlappingOutputs;
-    }
-
-    @Override
-    public Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return Optional.ofNullable(beforeExecutionState);
-    }
-
-    @Override
-    public void setBeforeExecutionState(BeforeExecutionState beforeExecutionState) {
-        this.beforeExecutionState = beforeExecutionState;
     }
 
     @Override

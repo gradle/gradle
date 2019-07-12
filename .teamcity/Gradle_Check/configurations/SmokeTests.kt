@@ -20,6 +20,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
             this,
             "smokeTest:smokeTest",
             notQuick = true,
-            extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=${smokeTestJavaHome}"
+            extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=$smokeTestJavaHome"
     )
 })

@@ -108,7 +108,7 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
             if (shouldVisit(details, spec)) {
                 if (attrs.isSymbolicLink()) {
                     // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                    throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
+                    throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", file));
                 }
                 visitor.visitFile(details);
             }

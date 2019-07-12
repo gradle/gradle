@@ -143,6 +143,13 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
+    private File[] getSortedSourceFiles(GroovyJavaJointCompileSpec spec) {
+        // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
+        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
+        Arrays.sort(sortedSourceFiles);
+        return sortedSourceFiles;
+    }
+
     @Override
     public WorkResult execute(final GroovyJavaJointCompileSpec spec) {
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
@@ -217,11 +224,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // to the sources won't cause any issues.
             unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
-
-        // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
-        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
-        Arrays.sort(sortedSourceFiles);
-        unit.addSources(sortedSourceFiles);
+        unit.addSources(getSortedSourceFiles(spec));
 
         unit.setCompilerFactory(new JavaCompilerFactory() {
             @Override

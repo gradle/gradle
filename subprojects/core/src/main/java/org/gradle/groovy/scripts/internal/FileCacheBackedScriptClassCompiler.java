@@ -26,7 +26,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.Hashing;
@@ -82,7 +82,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         HashCode sourceHashCode = source.getResource().getContentHash();
-        final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
+        final String sourceHash = HashUtil.compactStringFor(sourceHashCode.toByteArray());
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
         if (classLoaderHash == null) {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
@@ -53,7 +52,6 @@ import java.lang.annotation.Target;
  *
  * @since 5.3
  */
-@Incubating
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented

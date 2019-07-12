@@ -238,6 +238,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
+    public List<? extends MutableComponentVariant> getMutableVariants() {
+        return newVariants;
+    }
+
+    @Override
     public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
@@ -261,11 +266,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     protected static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;
-        private final ImmutableAttributes attributes;
         private final List<DependencyImpl> dependencies = Lists.newArrayList();
         private final List<DependencyConstraintImpl> dependencyConstraints = Lists.newArrayList();
         private final List<FileImpl> files = Lists.newArrayList();
         private final List<ImmutableCapability> capabilities = Lists.newArrayList();
+
+        private ImmutableAttributes attributes;
 
         MutableVariantImpl(String name, ImmutableAttributes attributes) {
             this.name = name;
@@ -294,6 +300,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         public String getName() {
             return name;
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public void setAttributes(ImmutableAttributes updatedAttributes) {
+            this.attributes = updatedAttributes;
         }
     }
 

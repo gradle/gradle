@@ -30,8 +30,8 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.service.ServiceRegistry

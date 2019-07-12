@@ -2,12 +2,6 @@
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
-            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenPublishers()",
-            "acceptation": "Injected Service",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
             "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenRepositoryLocator()",
             "acceptation": "Replaced by factory service: MavenPublishers",
             "changes": [
@@ -37,18 +31,6 @@
             "changes": [
                 "Method has been removed"
             ]
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
-            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getDuplicatePublicationTracker()",
-            "acceptation": "Injected service",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
-            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
-            "acceptation": "Injected service",
-            "changes": []
         },
         {
             "type": "org.gradle.api.plugins.JavaLibraryPlugin",

@@ -366,7 +366,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -388,7 +388,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
             alt.attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime-jars'))
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime'))
             }
             def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }

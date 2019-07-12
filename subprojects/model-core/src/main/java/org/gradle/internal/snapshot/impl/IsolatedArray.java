@@ -21,12 +21,15 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Array;
 
 public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implements Isolatable<Object[]> {
-    public static final IsolatedArray EMPTY = new IsolatedArray(ImmutableList.of());
+    public static final IsolatedArray EMPTY = empty(Object.class);
+    private final Class<?> arrayType;
 
-    public IsolatedArray(ImmutableList<Isolatable<?>> elements) {
+    public IsolatedArray(ImmutableList<Isolatable<?>> elements, Class<?> arrayType) {
         super(elements);
+        this.arrayType = arrayType;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implemen
 
     @Override
     public Object[] isolate() {
-        Object[] toReturn = new Object[elements.size()];
+        Object[] toReturn = (Object[]) Array.newInstance(arrayType, elements.size());
         for (int i = 0; i < elements.size(); i++) {
             Isolatable<?> element = elements.get(i);
             toReturn[i] = element.isolate();
@@ -55,5 +58,13 @@ public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implemen
     @Override
     public <S> S coerce(Class<S> type) {
         return null;
+    }
+
+    public Class<?> getArrayType() {
+        return arrayType;
+    }
+
+    public static IsolatedArray empty(Class<?> arrayType) {
+        return new IsolatedArray(ImmutableList.of(), arrayType);
     }
 }

@@ -78,9 +78,9 @@ class ForkingTestClassProcessorTest extends Specification {
         processor.forkProcess()
 
         then:
-        13 * moduleRegistry.getModule(_) >> { module(it[0]) }
+        14 * moduleRegistry.getModule(_) >> { module(it[0]) }
         9 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
-        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 22 }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 23 }
     }
 
     def "stopNow does nothing when no remote processor"() {

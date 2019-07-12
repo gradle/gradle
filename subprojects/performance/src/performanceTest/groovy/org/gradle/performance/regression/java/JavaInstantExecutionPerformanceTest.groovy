@@ -47,6 +47,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanc
 
         given:
         runner.targetVersions = ["5.6-20190625073933+0000"]
+        runner.minimumVersion = "5.6-20190625073933+0000"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = ["-Dorg.gradle.unsafe.instant-execution"]

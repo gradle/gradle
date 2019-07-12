@@ -27,6 +27,7 @@ Include only their name, impactful features should be called out separately belo
 [Stephan Windmüller](https://github.com/stovocor),
 [Zemian Deng](https://github.com/zemian),
 [Robin Verduijn](https://github.com/robinverduijn),
+[Sandu Turcan](https://github.com/idlsoft),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
@@ -69,6 +70,12 @@ pluginManagement {
 One benefit of managing plugin versions in this way is that the `pluginManagement.plugins {}` block does not have the same constrained syntax as a build script `plugins {}` block. Plugin versions may be loaded from `gradle.properties`, or defined programmatically.
 
 See [plugin version management](userguide/plugins.html#sec:plugin_version_management) for more details.
+
+## Performance fix for using the Java library plugin in very large projects on Windows
+
+Very large multi-projects can suffer from a significant performance decrease in Java compilation when switching from the `java` to the `java-library` plugin.
+This is caused by the large amount of class files on the classpath, which is only an issue on Windows systems.
+You can now tell the `java-library` plugin to [prefer jars over class folders on the compile classpath](userguide/java_library_plugin.html#sec:java_library_known_issues_windows_performance) by setting the `org.gradle.java.compile-classpath-packaging` system property to `true`.
 
 ## Improvements for plugin authors
 
@@ -169,6 +176,10 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
+
+### Transforming dependency artifacts on resolution
+
+The API around [artifact transforms](userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms) is not incubating any more.
 
 ## Fixed issues
 

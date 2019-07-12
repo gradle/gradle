@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,7 +26,8 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
-    @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
+    @Rule
+    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
@@ -258,41 +258,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         runner('integrationTest').build()
     }
 
-    @Issue('https://plugins.gradle.org/plugin/org.gosu-lang.gosu')
-    @Ignore("Relies on SourceTask.source - https://github.com/gosu-lang/gradle-gosu-plugin/issues/47")
-    def 'gosu plugin'() { // Requires JDK 8 or later
-        given:
-        buildFile << """
-            plugins {
-                id 'org.gosu-lang.gosu' version '${TestedVersions.gosu}'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.9'
-            }
-            """.stripIndent()
-
-        file('src/main/gosu/example/Foo.gs') << """
-            package example
-
-            public class Foo {
-
-              function doSomething(arg : String) : String {
-                return "Hello, got the argument '\${arg}'"
-              }
-            }
-            """.stripIndent()
-
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':compileGosu').outcome == SUCCESS
-    }
-
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     def 'org.ajoberstar.grgit plugin'() {
         given:
@@ -382,6 +347,49 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         file('build/reports/spotbugs').isDirectory()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9897")
+    def 'errorprone plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id('java')
+                id("net.ltgt.errorprone") version "${TestedVersions.errorProne}"
+            }
+            
+            ${mavenCentralRepository()}
+            
+            if (JavaVersion.current().java8) {
+                dependencies {
+                    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+                }
+            }
+            
+            dependencies {
+                errorprone("com.google.errorprone:error_prone_core:2.3.3")
+            }
+            
+            tasks.withType(JavaCompile).configureEach {
+                options.fork = true                
+                options.errorprone {
+                    check("DoubleBraceInitialization", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+                }
+            }
+        """
+        file("src/main/java/Test.java") << """
+            import java.util.HashSet;
+            import java.util.Set;
+            
+            public class Test {
+            
+                public static void main(String[] args) {
+                }
+            
+            }
+        """
+        expect:
+        runner('compileJava').forwardOutput().build()
     }
 
 }

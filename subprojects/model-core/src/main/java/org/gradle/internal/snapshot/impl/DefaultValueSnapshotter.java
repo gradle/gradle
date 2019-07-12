@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -128,14 +128,14 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         if (value.getClass().isArray()) {
             int length = Array.getLength(value);
             if (length == 0) {
-                return visitor.emptyArray();
+                return visitor.emptyArray(value.getClass().getComponentType());
             }
             ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(length);
             for (int i = 0; i < length; i++) {
                 Object element = Array.get(value, i);
                 builder.add(processValue(element, visitor));
             }
-            return visitor.array(builder.build());
+            return visitor.array(builder.build(), value.getClass().getComponentType());
         }
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
@@ -199,9 +199,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T fromIsolatable(Isolatable<?> value);
 
-        T emptyArray();
+        T emptyArray(Class<?> arrayType);
 
-        T array(ImmutableList<T> elements);
+        T array(ImmutableList<T> elements, Class<?> arrayType);
 
         T emptyList();
 
@@ -292,12 +292,12 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot emptyArray() {
+        public ValueSnapshot emptyArray(Class<?> arrayType) {
             return ArrayValueSnapshot.EMPTY;
         }
 
         @Override
-        public ValueSnapshot array(ImmutableList<ValueSnapshot> elements) {
+        public ValueSnapshot array(ImmutableList<ValueSnapshot> elements, Class<?> arrayType) {
             return new ArrayValueSnapshot(elements);
         }
 
@@ -402,13 +402,13 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> emptyArray() {
-            return IsolatedArray.EMPTY;
+        public Isolatable<?> emptyArray(Class<?> arrayType) {
+            return IsolatedArray.empty(arrayType);
         }
 
         @Override
-        public Isolatable<?> array(ImmutableList<Isolatable<?>> elements) {
-            return new IsolatedArray(elements);
+        public Isolatable<?> array(ImmutableList<Isolatable<?>> elements, Class<?> arrayType) {
+            return new IsolatedArray(elements, arrayType);
         }
 
         @Override
