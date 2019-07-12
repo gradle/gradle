@@ -169,7 +169,11 @@ suspend fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, An
                     read().also {
                         logPropertyInfo("deserialize", it)
                     }
-                } catch (e: Throwable) {
+                } catch (passThrough: IOException) {
+                    throw passThrough
+                } catch (passThrough: GradleException) {
+                    throw passThrough
+                } catch (e: Exception) {
                     throw GradleException("Could not load the value of $trace.", e)
                 }
             action(name, value)
