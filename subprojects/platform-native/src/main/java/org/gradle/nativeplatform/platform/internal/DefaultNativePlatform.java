@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.TargetMachine;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
     private final String name;
@@ -34,6 +35,19 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this.name = name;
         this.architecture = architecture;
         this.operatingSystem = operatingSystem;
+    }
+
+    public static DefaultNativePlatform fromTargetMachine(TargetMachine targetMachine) {
+
+        String osName = targetMachine.getOperatingSystemFamily().getName();
+        String archName = targetMachine.getArchitecture().getName();
+
+        OperatingSystemInternal os = new DefaultOperatingSystem(osName);
+        DefaultArchitecture arch = new DefaultArchitecture(archName);
+
+        String name = String.format("%s_%s", osName, archName);
+
+        return new DefaultNativePlatform(name, os, arch);
     }
 
     public static DefaultOperatingSystem getCurrentOperatingSystem() {

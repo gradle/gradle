@@ -37,8 +37,6 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
      */
     String getOutputType();
 
-    void assertSupported();
-
     class Identifier {
         public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {
             return toolChain.getOutputType() + ":" + platform.getArchitecture().getName() + ":" + platform.getOperatingSystem().getName();

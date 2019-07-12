@@ -16,12 +16,10 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -175,10 +173,6 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
             return "unavailable";
         }
 
-        @Override
-        public void assertSupported() {
-            // Supported, but unavailable. Nothing to do.
-        }
     }
 
     private static class UnsupportedToolChainDescription extends AbstractUnavailabilityToolChainSearchDescription{
@@ -224,11 +218,5 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
             return "unsupported";
         }
 
-        @Override
-        public void assertSupported() {
-            TreeFormatter formatter = new TreeFormatter();
-            failure.explain(formatter);
-            throw new GradleException(formatter.toString());
-        }
     }
 }

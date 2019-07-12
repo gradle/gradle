@@ -59,7 +59,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     }
 
     public Result<CppPlatform> select(CppPlatform requestPlatform) {
-        DefaultNativePlatform targetNativePlatform = newNativePlatform(requestPlatform.getTargetMachine());
+        DefaultNativePlatform targetNativePlatform = DefaultNativePlatform.fromTargetMachine(requestPlatform.getTargetMachine());
 
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
@@ -99,7 +99,6 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     private NativeToolChainInternal getToolChain(NativeLanguage sourceLanguage, NativePlatformInternal targetNativePlatform) {
         NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
         NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
-        toolChain.assertSupported();
 
         return toolChain;
     }

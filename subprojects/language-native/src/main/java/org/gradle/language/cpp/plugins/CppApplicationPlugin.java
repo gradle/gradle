@@ -16,12 +16,14 @@
 
 package org.gradle.language.cpp.plugins;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
@@ -30,13 +32,14 @@ import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
@@ -103,17 +106,37 @@ public class CppApplicationPlugin implements Plugin<Project> {
             Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+
+                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+                        PlatformToolProvider provider = result.getPlatformToolProvider();
+
+                        if (provider.isAvailable()) {
+                            project.getLogger().debug(String.format("using %s to build: %s", result.getToolChain().getDisplayName(), variantIdentity.getName()));
+
                             application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         } else {
                             // Known, but not buildable
+
+                            TreeFormatter formatter = new TreeFormatter();
+                            provider.explain(formatter);
+                            project.getLogger().debug(formatter.toString());
+
                             application.getMainPublication().addVariant(variantIdentity);
                         }
                     });
 
             // Configure the binaries
             application.getBinaries().realizeNow();
+            if(application.getTargetMachines().get().size() == 1 && application.getBinaries().get().isEmpty()) {
+                TargetMachine targetMachine = application.getTargetMachines().get().stream().findFirst().get();
+
+                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(targetMachine));
+                PlatformToolProvider provider = result.getPlatformToolProvider();
+                TreeFormatter formatter = new TreeFormatter();
+                provider.explain(formatter);
+
+                throw new GradleException(formatter.toString());
+            }
         });
     }
 }

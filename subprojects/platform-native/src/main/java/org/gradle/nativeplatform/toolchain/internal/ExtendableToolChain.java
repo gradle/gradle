@@ -69,8 +69,4 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
         return fileResolver.resolve(path);
     }
 
-    @Override
-    public void assertSupported() {
-        // Supported, nothing to do.
-    }
 }

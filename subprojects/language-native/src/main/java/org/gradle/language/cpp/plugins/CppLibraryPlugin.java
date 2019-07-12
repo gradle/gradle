@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,6 +30,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -40,9 +42,11 @@ import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -50,7 +54,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDefaultTargetMachine;
 
 /**
@@ -137,8 +140,12 @@ public class CppLibraryPlugin implements Plugin<Project> {
             Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+
+                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+                        PlatformToolProvider provider = result.getPlatformToolProvider();
+
+                        if (provider.isAvailable()) {
+                            project.getLogger().debug(String.format("using %s to build: %s", result.getToolChain().getDisplayName(), variantIdentity.getName()));
 
                             if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
                                 library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
@@ -147,9 +154,16 @@ public class CppLibraryPlugin implements Plugin<Project> {
                             }
                         } else {
                             // Known, but not buildable
+
+                            TreeFormatter formatter = new TreeFormatter();
+                            provider.explain(formatter);
+                            project.getLogger().debug(formatter.toString());
+
                             library.getMainPublication().addVariant(variantIdentity);
                         }
                     });
+
+
 
             // TODO - deal with more than one header dir, e.g. generated public headers
             final Configuration apiElements = library.getApiElements();
@@ -173,6 +187,16 @@ public class CppLibraryPlugin implements Plugin<Project> {
             });
 
             library.getBinaries().realizeNow();
+            if(library.getTargetMachines().get().size() == 1 && library.getBinaries().get().isEmpty()) {
+                TargetMachine targetMachine = library.getTargetMachines().get().stream().findFirst().get();
+
+                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(targetMachine));
+                PlatformToolProvider provider = result.getPlatformToolProvider();
+                TreeFormatter formatter = new TreeFormatter();
+                provider.explain(formatter);
+
+                throw new GradleException(formatter.toString());
+            }
         });
     }
 }

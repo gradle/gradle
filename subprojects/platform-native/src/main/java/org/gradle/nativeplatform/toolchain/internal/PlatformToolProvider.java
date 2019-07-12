@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -54,4 +55,9 @@ public interface PlatformToolProvider extends ToolProvider {
     CommandLineToolSearchResult locateTool(ToolType compilerType);
 
     boolean isSupported();
+
+    /**
+     * Writes some diagnostics about why the tool is not available.
+     */
+    void explain(DiagnosticsVisitor visitor);
 }

@@ -175,7 +175,10 @@ public class NativeBasePlugin implements Plugin<Project> {
                     // Determine which output to produce at development time.
                     final FileCollection outputs = binary.getOutputs();
                     Names names = ((ComponentWithNames) binary).getNames();
-                    tasks.register(names.getTaskName("assemble"), task -> task.dependsOn(outputs));
+                    tasks.register(names.getTaskName("assemble"), task -> {
+                        task.dependsOn(outputs);
+                        task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                    });
 
                     if (binary == ((ProductionComponent) component).getDevelopmentBinary().get()) {
                         tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> task.dependsOn(outputs));
