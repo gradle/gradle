@@ -39,7 +39,6 @@ import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerFactory;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 
