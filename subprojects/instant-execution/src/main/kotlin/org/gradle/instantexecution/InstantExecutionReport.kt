@@ -20,8 +20,8 @@ import groovy.json.JsonOutput
 
 import org.gradle.api.logging.Logger
 
-import org.gradle.instantexecution.serialization.PropertyProblem
 import org.gradle.instantexecution.serialization.PropertyKind
+import org.gradle.instantexecution.serialization.PropertyProblem
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.unknownPropertyError
 
@@ -191,57 +191,40 @@ class InstantExecutionReport(
         StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
 
     private
-    fun traceListOf(problem: PropertyProblem): List<Map<String, Any>> = mutableListOf<Map<String, Any>>().also { result ->
-        fun collectTrace(current: PropertyTrace): Unit = current.run {
-            when (this) {
-                is PropertyTrace.Property -> {
-                    result.add(
-                        when (kind) {
-                            PropertyKind.Field -> mapOf(
-                                "kind" to kind.name,
-                                "name" to name,
-                                "declaringType" to firstTypeFrom(trace).name
-                            )
-                            else -> mapOf(
-                                "kind" to kind.name,
-                                "name" to name,
-                                "task" to taskPathFrom(trace)
-                            )
-                        }
-                    )
-                    collectTrace(trace)
-                }
-                is PropertyTrace.Task -> {
-                    result.add(
-                        mapOf(
-                            "kind" to "Task",
-                            "path" to path,
-                            "type" to type.name
-                        )
-                    )
-                }
-                is PropertyTrace.Bean -> {
-                    result.add(
-                        mapOf(
-                            "kind" to "Bean",
-                            "type" to type.name
-                        )
-                    )
-                    collectTrace(trace)
-                }
-                PropertyTrace.Gradle -> {
-                    result.add(
-                        mapOf("kind" to "Gradle")
-                    )
-                }
-                PropertyTrace.Unknown -> {
-                    result.add(
-                        mapOf("kind" to "Unknown")
-                    )
-                }
+    fun traceListOf(problem: PropertyProblem): List<Map<String, Any>> =
+        problem.trace.sequence.map(::traceToMap).toList()
+
+    private
+    fun traceToMap(trace: PropertyTrace): Map<String, Any> = when (trace) {
+        is PropertyTrace.Property -> {
+            when (trace.kind) {
+                PropertyKind.Field -> mapOf(
+                    "kind" to trace.kind.name,
+                    "name" to trace.name,
+                    "declaringType" to firstTypeFrom(trace.trace).name
+                )
+                else -> mapOf(
+                    "kind" to trace.kind.name,
+                    "name" to trace.name,
+                    "task" to taskPathFrom(trace.trace)
+                )
             }
         }
-        collectTrace(problem.trace)
+        is PropertyTrace.Task -> mapOf(
+            "kind" to "Task",
+            "path" to trace.path,
+            "type" to trace.type.name
+        )
+        is PropertyTrace.Bean -> mapOf(
+            "kind" to "Bean",
+            "type" to trace.type.name
+        )
+        PropertyTrace.Gradle -> mapOf(
+            "kind" to "Gradle"
+        )
+        PropertyTrace.Unknown -> mapOf(
+            "kind" to "Unknown"
+        )
     }
 
     private
