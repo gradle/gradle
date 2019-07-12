@@ -78,13 +78,11 @@ class InstantExecutionReport(
         try {
             block()
         } catch (e: Throwable) {
-            when (e.cause) {
-                is TooManyInstantExecutionProblemsException -> {
-                    return e
-                }
-                else -> {
-                    add(e)
-                }
+            when (e.cause ?: e) {
+                is TooManyInstantExecutionProblemsException -> return e
+                is StackOverflowError -> add(e)
+                is Error -> throw e
+                else -> add(e)
             }
         }
         return null
