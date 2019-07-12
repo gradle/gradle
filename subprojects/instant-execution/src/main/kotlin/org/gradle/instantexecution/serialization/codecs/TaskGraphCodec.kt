@@ -158,26 +158,26 @@ inline fun <T> T.withTaskOf(
 private
 sealed class RegisteredProperty {
 
-    data class InputFile(
-        val propertyName: String,
-        val optional: Boolean,
-        val skipWhenEmpty: Boolean,
-        val incremental: Boolean,
-        val fileNormalizer: Class<out FileNormalizer>?,
-        val propertyValue: PropertyValue,
-        val filePropertyType: InputFilePropertyType
-    ) : RegisteredProperty()
-
     data class Input(
         val propertyName: String,
         val propertyValue: PropertyValue,
         val optional: Boolean
     ) : RegisteredProperty()
 
+    data class InputFile(
+        val propertyName: String,
+        val propertyValue: PropertyValue,
+        val optional: Boolean,
+        val filePropertyType: InputFilePropertyType,
+        val skipWhenEmpty: Boolean,
+        val incremental: Boolean,
+        val fileNormalizer: Class<out FileNormalizer>?
+    ) : RegisteredProperty()
+
     data class OutputFile(
         val propertyName: String,
+        val propertyValue: PropertyValue,
         val optional: Boolean,
-        val value: PropertyValue,
         val filePropertyType: OutputFilePropertyType
     ) : RegisteredProperty()
 }
@@ -229,7 +229,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
         val properties = collectRegisteredOutputsOf(task)
         properties.forEach {
             it.run {
-                if (writeOutputProperty(propertyName, value)) {
+                if (writeOutputProperty(propertyName, propertyValue)) {
                     writeBoolean(optional)
                     writeEnum(filePropertyType)
                 }
@@ -240,8 +240,10 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
 
 
 private
-fun collectRegisteredOutputsOf(task: Task): MutableList<RegisteredProperty.OutputFile> {
+fun collectRegisteredOutputsOf(task: Task): List<RegisteredProperty.OutputFile> {
+
     val properties = mutableListOf<RegisteredProperty.OutputFile>()
+
     (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
 
         override fun visitOutputFileProperty(
@@ -251,7 +253,12 @@ fun collectRegisteredOutputsOf(task: Task): MutableList<RegisteredProperty.Outpu
             filePropertyType: OutputFilePropertyType
         ) {
             properties.add(
-                RegisteredProperty.OutputFile(propertyName, optional, value, filePropertyType)
+                RegisteredProperty.OutputFile(
+                    propertyName,
+                    value,
+                    optional,
+                    filePropertyType
+                )
             )
         }
     })
@@ -260,7 +267,8 @@ fun collectRegisteredOutputsOf(task: Task): MutableList<RegisteredProperty.Outpu
 
 
 private
-fun collectRegisteredInputsOf(task: Task): MutableList<RegisteredProperty> {
+fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
+
     val properties = mutableListOf<RegisteredProperty>()
 
     (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
@@ -277,12 +285,12 @@ fun collectRegisteredInputsOf(task: Task): MutableList<RegisteredProperty> {
             properties.add(
                 RegisteredProperty.InputFile(
                     propertyName,
+                    propertyValue,
                     optional,
+                    filePropertyType,
                     skipWhenEmpty,
                     incremental,
-                    fileNormalizer,
-                    propertyValue,
-                    filePropertyType
+                    fileNormalizer
                 )
             )
         }
