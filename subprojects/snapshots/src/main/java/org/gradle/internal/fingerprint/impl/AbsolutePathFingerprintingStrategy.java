@@ -37,11 +37,11 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     public static final FingerprintingStrategy IGNORE_MISSING = new AbsolutePathFingerprintingStrategy(false);
     public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
-    private final boolean includeMissing;
+    private final boolean includeMissingRoots;
 
-    private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+    private AbsolutePathFingerprintingStrategy(boolean includeMissingRoots) {
         super(IDENTIFIER);
-        this.includeMissing = includeMissing;
+        this.includeMissingRoots = includeMissingRoots;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
                 @Override
                 public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
-                    if (!includeMissing && isRoot() && fileSnapshot.getType() == FileType.Missing) {
+                    if (!includeMissingRoots && isRoot() && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }
                     String absolutePath = fileSnapshot.getAbsolutePath();
