@@ -138,26 +138,21 @@ class BeanCodecTest {
 
         companion object {
 
-            fun fromInt(n: Int): Peano {
-                require(n >= 0)
-                tailrec fun build(n: Int, acc: Peano): Peano = when (n) {
-                    0 -> acc
-                    else -> build(n - 1, Succ(acc))
-                }
-                return build(n, Zero)
-            }
+            fun fromInt(n: Int): Peano = (0 until n).fold(Zero as Peano) { acc, _ -> Succ(acc) }
         }
 
-        fun toInt(): Int {
-            tailrec fun count(n: Peano, acc: Int): Int = when (n) {
-                is Zero -> acc
-                is Succ -> count(n.n, acc + 1)
-            }
-            return count(this, 0)
-        }
+        fun toInt(): Int = sequence().count() - 1
 
         object Zero : Peano()
 
         data class Succ(val n: Peano) : Peano()
+
+        private
+        fun sequence() = generateSequence(this) {
+            when (it) {
+                is Zero -> null
+                is Succ -> it.n
+            }
+        }
     }
 }
