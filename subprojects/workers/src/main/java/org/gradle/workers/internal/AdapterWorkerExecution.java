@@ -25,6 +25,11 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
+/**
+ * This is used to bridge between the "old" worker api with untyped parameters and the typed
+ * parameter api.  It allows us to maintain backwards compatibility at the api layer, but use
+ * only typed parameters under the covers.  This can be removed once the old api is retired.
+ */
 public abstract class AdapterWorkerExecution implements WorkerExecution<AdapterWorkerParameters>, ProvidesWorkResult {
     private final Instantiator instantiator;
     private DefaultWorkResult workResult;
