@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -48,6 +49,9 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
     def forkOptionsFactory = new TestForkOptionsFactory(TestFiles.execFactory())
+    def objectFactory = Stub(ObjectFactory) {
+        fileCollection() >> { TestFiles.fileCollectionFactory().configurableFiles() }
+    }
     def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
         getWorkingDirectory() >> { temporaryFolder.root }
     }
@@ -62,7 +66,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
         _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
-        _ * instantiator.newInstance(DefaultWorkerSpec, _) >> { args -> new DefaultWorkerSpec<>(args[1][0], args[1][1]) }
+        _ * instantiator.newInstance(DefaultWorkerSpec, _) >> { args -> new DefaultWorkerSpec<>(forkOptionsFactory, objectFactory, args[1][0]) }
         _ * parameters.implementationClassName >> TestRunnable.class.getName()
         _ * parameters.params >> []
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)

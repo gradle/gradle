@@ -119,9 +119,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
                 doLast {
-                    submitWorkItem("workItem0", ${parallelWorkerExecution.name}.class) { it.classpath([ new File("foo") ]) }
-                    submitWorkItem("workItem1", ${parallelWorkerExecution.name}.class) { it.classpath([ new File("bar") ]) }
-                    submitWorkItem("workItem2", ${parallelWorkerExecution.name}.class) { it.classpath([ new File("baz") ]) }
+                    submitWorkItem("workItem0", ${parallelWorkerExecution.name}.class) { it.classpath.from([ new File("foo") ]) }
+                    submitWorkItem("workItem1", ${parallelWorkerExecution.name}.class) { it.classpath.from([ new File("bar") ]) }
+                    submitWorkItem("workItem2", ${parallelWorkerExecution.name}.class) { it.classpath.from([ new File("baz") ]) }
                 }
             }
         """
@@ -904,7 +904,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                             config.forkOptions.maxHeapSize = "64m"
                         }
                         config.forkOptions(additionalForkOptions)
-                        config.classpath(additionalClasspath)
+                        config.classpath.from(additionalClasspath)
                         config.parameters {
                             itemName = item.toString() 
                         }

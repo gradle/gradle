@@ -263,7 +263,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                                         forkOptions.maxHeapSize = "64m"
                                     }
                                     config.forkOptions(additionalForkOptions)
-                                    config.classpath(additionalClasspath)
+                                    config.classpath.from(additionalClasspath)
                                     config.parameters {
                                         files = list.collect { it as String }
                                         outputDir = new File(outputFileDirPath)

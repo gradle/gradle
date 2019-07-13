@@ -17,6 +17,8 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.WorkerParameters;
 import org.gradle.workers.WorkerSpec;
@@ -25,11 +27,22 @@ import javax.inject.Inject;
 
 public class DefaultWorkerSpec<T extends WorkerParameters> extends DefaultBaseWorkerSpec implements WorkerSpec<T> {
     private final T parameters;
+    private final ConfigurableFileCollection classpath;
 
     @Inject
-    public DefaultWorkerSpec(JavaForkOptionsFactory forkOptionsFactory, T parameters) {
+    public DefaultWorkerSpec(JavaForkOptionsFactory forkOptionsFactory, ObjectFactory objectFactory, T parameters) {
         super(forkOptionsFactory);
-        this.parameters = parameters;
+
+        // We pass a value here so that the instantiator doesn't choke on a null value.  It's tricky to
+        // isolate/serialize a NONE parameter and there is no point to it since you can't do anything with
+        // it anyways, so we just set it to null here.
+        if (parameters == WorkerParameters.NONE) {
+            this.parameters = null;
+        } else {
+            this.parameters = parameters;
+        }
+
+        this.classpath = objectFactory.fileCollection();
     }
 
     @Override
@@ -40,5 +53,10 @@ public class DefaultWorkerSpec<T extends WorkerParameters> extends DefaultBaseWo
     @Override
     public void parameters(Action<T> action) {
         action.execute(parameters);
+    }
+
+    @Override
+    public ConfigurableFileCollection getClasspath() {
+        return classpath;
     }
 }

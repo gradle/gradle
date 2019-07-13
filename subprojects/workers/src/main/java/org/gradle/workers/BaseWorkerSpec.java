@@ -21,8 +21,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
-import java.io.File;
-
 /**
  * Represents the common configuration of a worker.  Used when submitting an item of work
  * to the {@link WorkerExecutor}.
@@ -31,27 +29,6 @@ import java.io.File;
  */
 @Incubating
 public interface BaseWorkerSpec extends Describable {
-    /**
-     * Adds a set of files to the classpath associated with the worker.
-     *
-     * @param files - the files to add to the classpath
-     */
-    void classpath(Iterable<File> files);
-
-    /**
-     * Sets the classpath associated with the worker.
-     *
-     * @param files - the files to set the classpath to
-     */
-    void setClasspath(Iterable<File> files);
-
-    /**
-     * Gets the classpath associated with the worker.
-     *
-     * @return the classpath associated with the worker
-     */
-    Iterable<File> getClasspath();
-
     /**
      * Gets the isolation mode for this worker, see {@link IsolationMode}.
      *

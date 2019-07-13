@@ -38,7 +38,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
-import org.gradle.workers.BaseWorkerSpec;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecution;
@@ -96,7 +95,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 parameters.setImplementationClassName(actionClass.getName());
                 parameters.setParams(configuration.getParams());
 
-                adapterWorkerParametersWorkerSpec.classpath(configuration.getClasspath());
+                adapterWorkerParametersWorkerSpec.getClasspath().from(configuration.getClasspath());
                 adapterWorkerParametersWorkerSpec.setIsolationMode(configuration.getIsolationMode());
                 adapterWorkerParametersWorkerSpec.setDisplayName(configuration.getDisplayName());
 
@@ -113,8 +112,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         if (parameterType == WorkerParameters.class) {
             throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkerParameters.class).getDisplayName(), ModelType.of(WorkerParameters.None.class).getDisplayName()));
         }
-        T parameters = (parameterType == WorkerParameters.None.class) ? null : instantiator.newInstance(parameterType);
-        WorkerSpec<T> workerSpec = Cast.uncheckedCast(instantiator.newInstance(DefaultWorkerSpec.class, forkOptionsFactory, parameters));
+        T parameters = (parameterType == WorkerParameters.None.class) ? Cast.uncheckedCast(WorkerParameters.NONE) : instantiator.newInstance(parameterType);
+        WorkerSpec<T> workerSpec = Cast.uncheckedCast(instantiator.newInstance(DefaultWorkerSpec.class, parameters));
         File defaultWorkingDir = workerSpec.getForkOptions().getWorkingDir();
         File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         configAction.execute(workerSpec);
@@ -234,9 +233,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return toDaemonOptions(getParamClasses(actionClass, params), configuration.getForkOptions(), configuration.getClasspath(), configuration.getIsolationMode());
     }
 
-    private void validateWorkerConfiguration(BaseWorkerSpec configuration) {
+    private void validateWorkerConfiguration(WorkerSpec configuration) {
         if (configuration.getIsolationMode() == IsolationMode.NONE) {
-            if (configuration.getClasspath().iterator().hasNext()) {
+            if (configuration.getClasspath().getFiles().iterator().hasNext()) {
                 throw unsupportedWorkerConfigurationException("classpath", configuration.getIsolationMode());
             }
         }

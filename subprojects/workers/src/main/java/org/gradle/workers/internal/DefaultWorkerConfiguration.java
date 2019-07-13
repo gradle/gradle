@@ -16,18 +16,39 @@
 
 package org.gradle.workers.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.util.GUtil;
 import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 
+import java.io.File;
+import java.util.List;
+
 public class DefaultWorkerConfiguration extends DefaultBaseWorkerSpec implements WorkerConfiguration {
     private final ActionConfiguration actionConfiguration = new DefaultActionConfiguration();
+    private List<File> classpath = Lists.newArrayList();
 
     public DefaultWorkerConfiguration(JavaForkOptionsFactory forkOptionsFactory) {
         super(forkOptionsFactory);
+    }
+
+    @Override
+    public Iterable<File> getClasspath() {
+        return classpath;
+    }
+
+    @Override
+    public void setClasspath(Iterable<File> classpath) {
+        this.classpath = Lists.newArrayList(classpath);
+    }
+
+    @Override
+    public void classpath(Iterable<File> files) {
+        GUtil.addToCollection(classpath, files);
     }
 
     @Override

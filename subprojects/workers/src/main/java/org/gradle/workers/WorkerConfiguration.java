@@ -18,6 +18,8 @@ package org.gradle.workers;
 
 import org.gradle.api.ActionConfiguration;
 
+import java.io.File;
+
 /**
  * Represents the configuration of a worker.  Used when submitting an item of work
  * to the {@link WorkerExecutor}.
@@ -41,6 +43,26 @@ import org.gradle.api.ActionConfiguration;
  * @since 3.5
  */
 public interface WorkerConfiguration extends ActionConfiguration, BaseWorkerSpec {
+    /**
+     * Adds a set of files to the classpath associated with the worker.
+     *
+     * @param files - the files to add to the classpath
+     */
+    void classpath(Iterable<File> files);
+
+    /**
+     * Sets the classpath associated with the worker.
+     *
+     * @param files - the files to set the classpath to
+     */
+    void setClasspath(Iterable<File> files);
+
+    /**
+     * Gets the classpath associated with the worker.
+     *
+     * @return the classpath associated with the worker
+     */
+    Iterable<File> getClasspath();
 
     /**
      * Gets the forking mode for this worker, see {@link ForkMode}.

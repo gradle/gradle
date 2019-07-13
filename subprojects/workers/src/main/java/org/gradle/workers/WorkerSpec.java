@@ -18,6 +18,7 @@ package org.gradle.workers;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 
 /**
  * Represents the configuration of a worker.  Used when submitting an item of work
@@ -48,6 +49,13 @@ import org.gradle.api.Incubating;
  **/
 @Incubating
 public interface WorkerSpec<T extends WorkerParameters> extends BaseWorkerSpec {
+    /**
+     * Gets the classpath associated with the worker.
+     *
+     * @return the classpath associated with the worker
+     */
+    ConfigurableFileCollection getClasspath();
+
     /**
      * Returns the parameters object to be used with this item of work.
      */

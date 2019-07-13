@@ -88,7 +88,7 @@ class WorkerExecutorFixture {
                             forkOptions.maxHeapSize = "64m"
                         }
                         forkOptions(additionalForkOptions)
-                        classpath(additionalClasspath)
+                        classpath.from(additionalClasspath)
                         parameters {
                             files = list.collect { it as String }
                             outputDir = new File(outputFileDirPath)
