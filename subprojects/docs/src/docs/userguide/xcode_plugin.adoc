@@ -32,6 +32,12 @@ What exactly the `xcode` plugin generates depends on which other plugins are use
 
 | <<cpp_library_plugin.adoc#,{cpp} Library>>
 | Adds a target for each specified linkage representing the shared and/or static library to the project file.
+
+| <<swift_application_plugin.adoc#,Swift Application>>
+| Adds a target representing the Swift application to the project file.
+
+| <<swift_library_plugin.adoc#,Swift Library>>
+| Adds a target for each specified linkage representing the shared and/or static library to the project file.
 |===
 
 [[sec:xcode_usage]]
