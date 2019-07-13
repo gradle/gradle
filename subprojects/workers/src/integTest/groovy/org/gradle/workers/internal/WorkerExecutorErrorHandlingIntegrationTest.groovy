@@ -309,6 +309,31 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         result.assertHasErrorOutput("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
+    def "produces a sensible error when the worker execution is not implemented properly"() {
+        fixture.withWorkerExecutionClassInBuildScript()
+
+        buildFile << """
+            abstract class BadWorkerExecution implements WorkerExecution<WorkerParameters> {
+                @Inject
+                BadWorkerExecution() { }
+                
+                void execute() { }
+            }
+            
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+                workerExecutionClass = BadWorkerExecution.class
+            }
+        """.stripIndent()
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails("runInWorker")
+
+        then:
+        failure.assertHasCause("Could not create worker parameters: must use a sub-type of WorkerParameters as parameter type. Use WorkerParameters.None for executions without parameters.")
+    }
+
     String getUnrecognizedOptionError() {
         def jvm = Jvm.current()
         if (jvm.ibmJvm) {
