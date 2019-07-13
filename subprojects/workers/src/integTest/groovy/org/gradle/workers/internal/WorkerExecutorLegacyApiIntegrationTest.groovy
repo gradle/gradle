@@ -94,6 +94,34 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         "ForkMode.ALWAYS" | ">"
     }
 
+    @Unroll
+    def "produces a sensible error when parameters are incorrect in #isolationMode"() {
+        buildFile << """
+            ${legacyWorkerTypeAndTask}
+            ${runnableWithDifferentConstructor}
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                runnableClass = RunnableWithDifferentConstructor.class
+
+                text = "foo"
+                arrayOfThings = ["foo", "bar", "baz"]
+                listOfThings = ["foo", "bar", "baz"]
+            }
+        """.stripIndent()
+
+        when:
+        fails("runInWorker")
+
+        then:
+        failureHasCause("A failure occurred while executing RunnableWithDifferentConstructor")
+        failureHasCause("Could not create an instance of type RunnableWithDifferentConstructor.")
+        failureHasCause("Too many parameters provided for constructor for class RunnableWithDifferentConstructor. Expected 2, received 3.")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
     String getLegacyWorkerTypeAndTask() {
         return """
             import javax.inject.Inject
@@ -123,6 +151,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 String[] arrayOfThings
                 ListProperty<String> listOfThings
                 IsolationMode isolationMode = IsolationMode.AUTO
+                Class<?> runnableClass = TestRunnable.class
                 Closure workerConfiguration
                 
                 @Inject
@@ -133,7 +162,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 
                 @TaskAction
                 void doWork() {
-                    workerExecutor.submit(TestRunnable.class) { config ->
+                    workerExecutor.submit(runnableClass) { config ->
                         config.isolationMode = this.isolationMode
                         config.params = [text, arrayOfThings, listOfThings]
                         if (workerConfiguration != null) {
@@ -145,4 +174,17 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
+    String getRunnableWithDifferentConstructor() {
+        return """
+            public class RunnableWithDifferentConstructor implements Runnable {
+                @javax.inject.Inject
+                public RunnableWithDifferentConstructor(List<String> files, File outputDir) { 
+                }
+                public void run() {
+                }
+            }
+        """
+    }
+
 }
