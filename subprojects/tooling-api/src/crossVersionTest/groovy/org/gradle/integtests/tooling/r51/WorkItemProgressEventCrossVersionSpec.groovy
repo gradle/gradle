@@ -25,7 +25,6 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor
-import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')

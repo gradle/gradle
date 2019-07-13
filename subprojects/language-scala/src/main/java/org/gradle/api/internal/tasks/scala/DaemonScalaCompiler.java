@@ -53,7 +53,6 @@ import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
-import java.io.Serializable;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Class<? extends Compiler<T>> compilerClass;
