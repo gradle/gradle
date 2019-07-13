@@ -20,6 +20,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -107,13 +108,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
         @Override
         public void execute() {
-            Class<? extends Compiler<?>> compilerClass;
-            try {
-                compilerClass = Cast.uncheckedCast(Thread.currentThread().getContextClassLoader().loadClass(getParameters().getCompilerClassName()));
-            } catch (ClassNotFoundException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-
+            Class<? extends Compiler<?>> compilerClass = Cast.uncheckedCast(ClassLoaderUtils.classFromContextLoader(getParameters().getCompilerClassName()));
             Compiler<?> compiler = instantiator.newInstance(compilerClass, getParameters().getCompilerInstanceParameters());
             setWorkResult(compiler.execute(Cast.uncheckedCast(getParameters().getCompileSpec())));
         }
