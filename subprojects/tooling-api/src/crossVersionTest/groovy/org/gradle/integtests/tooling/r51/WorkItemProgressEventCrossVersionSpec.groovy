@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r51
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
@@ -30,11 +31,9 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 @TargetGradleVersion('>=5.1')
 class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
-    def fixture = new WorkerExecutorFixture(temporaryFolder)
-
     void setup() {
-        fixture.prepareTaskTypeUsingWorker()
-        fixture.withWorkerExecutionClassInBuildSrc()
+        prepareTaskTypeUsingWorker()
+        withRunnableClassInBuildSrc()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 displayName = "Test Work"
@@ -91,7 +90,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def "includes failure in progress event"() {
         given:
         buildFile << """
-            ${fixture.getWorkerExecutionThatFails(IllegalStateException, "something went horribly wrong")}
+            ${getRunnableThatFails(IllegalStateException, "something went horribly wrong")}
             runInWorker {
                 displayName = null
                 runnableClass = RunnableThatFails
@@ -134,4 +133,163 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    def prepareTaskTypeUsingWorker() {
+        buildFile << """
+            import org.gradle.workers.*
+            $taskTypeUsingWorker
+        """
+    }
+
+    String getTaskTypeUsingWorker() {
+        withParameterClassInBuildSrc()
+        withFileHelperClassInBuildSrc()
+
+        def outputFileDir = temporaryFolder.file("build/workers")
+        def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
+
+        return """
+            import javax.inject.Inject
+            import org.gradle.other.Foo
+            class WorkerTask extends DefaultTask {
+                def list = [1, 2, 3]
+                def outputFileDirPath = "${outputFileDirPath}/\${name}"
+                def additionalForkOptions = {}
+                def runnableClass = TestRunnable.class
+                def additionalClasspath = project.layout.files()
+                def foo = new Foo()
+                def displayName = null
+                def isolationMode = IsolationMode.AUTO
+                def forkMode = null
+                @Inject
+                WorkerExecutor getWorkerExecutor() {
+                    throw new UnsupportedOperationException()
+                }
+                @TaskAction
+                void executeTask() {
+                    workerExecutor.submit(runnableClass) {
+                        isolationMode = this.isolationMode
+                        displayName = this.displayName
+                        if (isolationMode == IsolationMode.PROCESS) {
+                            forkOptions.maxHeapSize = "64m"
+                        }
+                        forkOptions(additionalForkOptions)
+                        classpath(additionalClasspath)
+                        params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
+                        if (this.forkMode != null) {
+                            forkMode = this.forkMode
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    String getRunnableThatCreatesFiles() {
+        return """
+            import java.io.File;
+            import java.util.List;
+            import org.gradle.other.Foo;
+            import org.gradle.test.FileHelper;
+            import java.util.UUID;
+            import javax.inject.Inject;
+            public class TestRunnable implements Runnable {
+                private final List<String> files;
+                protected final File outputDir;
+                private final Foo foo;
+                private static final String id = UUID.randomUUID().toString();
+                @Inject
+                public TestRunnable(List<String> files, File outputDir, Foo foo) {
+                    this.files = files;
+                    this.outputDir = outputDir;
+                    this.foo = foo;
+                }
+                public void run() {
+                    for (String name : files) {
+                        File outputFile = new File(outputDir, name);
+                        FileHelper.write(id, outputFile);
+                    }
+                }
+            }
+        """
+    }
+
+    void withRunnableClassInBuildSrc() {
+        file("buildSrc/src/main/java/org/gradle/test/TestRunnable.java") << """
+            package org.gradle.test;
+            $runnableThatCreatesFiles
+        """
+
+        addImportToBuildScript("org.gradle.test.TestRunnable")
+    }
+
+    void addImportToBuildScript(String className) {
+        buildFile.text = """
+            import ${className}
+            ${buildFile.text}
+        """
+    }
+
+    void withParameterClassInBuildSrc() {
+        file("buildSrc/src/main/java/org/gradle/other/Foo.java") << """
+            package org.gradle.other;
+            import java.io.Serializable;
+            public class Foo implements Serializable { }
+        """
+    }
+
+    void withFileHelperClassInBuildSrc() {
+        file("buildSrc/src/main/java/org/gradle/test/FileHelper.java") << """
+            $fileHelperClass
+        """
+    }
+
+    String getFileHelperClass() {
+        return """
+            package org.gradle.test;
+            
+            import java.io.File;
+            import java.io.PrintWriter;
+            import java.io.BufferedWriter;
+            import java.io.FileWriter;
+            
+            public class FileHelper {
+                static void write(String id, File outputFile) {
+                    PrintWriter out = null;
+                    try {
+                        outputFile.getParentFile().mkdirs();
+                        outputFile.createNewFile();
+                        out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+                        out.print(id);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        if (out != null) {
+                            out.close();
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    String getRunnableThatFails(Class<? extends RuntimeException> exceptionClass = RuntimeException.class, String message = "Failure from runnable") {
+        return """
+            public class RunnableThatFails implements Runnable {
+                private final File outputDir;
+                
+                @javax.inject.Inject
+                public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
+                    this.outputDir = outputDir;
+                }
+                public void run() {
+                    try {
+                        throw new ${exceptionClass.name}("$message");
+                    } finally {
+                        outputDir.mkdirs();
+                        new File(outputDir, "finished").createNewFile();
+                    }                    
+                }
+            }
+        """
+    }
 }
