@@ -164,6 +164,22 @@ On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename wher
 For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. 
 The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
 
+## Unavailable files are handled more gracefully
+Generally, broken symlinks (pointing to non-existent files or directories), named pipes and unreadable files (hereinafter referred to as unavailable files)
+found in inputs or outputs of tasks are handled similarly to missing files from now on.
+
+In incremental builds therefore, changing the availability of a file (e.g. modifying the target of a broken symlink to a valid file, or vice versa),
+instead of throwing an exception, they will be detected and handled gracefully by up-to-date check and cache.
+
+Since we wouldn't be able to restore unavailable files from the cache, if a task produces one, caching will be disabled for the whole build.
+
+If the output contains an unavailable file - not produced by the task -, it will be ignored.
+
+Direct input references to unavailable files (i.e. in a root position) will fail validation for `@InputFile` and `@InputDirectory`.
+
+Indirect references to unavailable files (e.g. not directly referenced by the task, inside `@InputDirectory`, `@InputFiles`, `@Classpath` or `@CompileClasspath`)
+will be marked as missing - unless they're annotated with `@SkipWhenEmpty`.
+
 ## Fail the build on deprecation warnings
 
 The `warning-mode` command line option now has a [new `fail` value](userguide/command_line_interface.html#sec:command_line_warnings) that will behave like `all` and in addition fail the build if any deprecation warning was reported during the execution.
