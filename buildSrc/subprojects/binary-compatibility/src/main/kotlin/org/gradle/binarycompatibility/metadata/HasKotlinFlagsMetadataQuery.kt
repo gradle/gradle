@@ -165,8 +165,8 @@ class ConstructorFlagsKmClassVisitor(
         else object : KmConstructorVisitor() {
             override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor =
                 object : JvmConstructorExtensionVisitor() {
-                    override fun visit(desc: JvmMethodSignature?) {
-                        if (jvmSignature == desc?.asString()) {
+                    override fun visit(signature: JvmMethodSignature?) {
+                        if (jvmSignature == signature?.asString()) {
                             isSatisfied = predicate(flags)
                             isDoneVisiting = true
                         }
@@ -292,11 +292,11 @@ class MemberFlagsKmPropertyExtensionVisitor(
 
     private
     val kmPropertyExtensionVisitor = object : JvmPropertyExtensionVisitor() {
-        override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
+        override fun visit(fieldSignature: JvmFieldSignature?, getterSignature: JvmMethodSignature?, setterSignature: JvmMethodSignature?) {
             when (jvmSignature) {
-                fieldDesc?.asString() -> onMatch(predicate(fieldFlags))
-                getterDesc?.asString() -> onMatch(predicate(getterFlags))
-                setterDesc?.asString() -> onMatch(predicate(setterFlags))
+                fieldSignature?.asString() -> onMatch(predicate(fieldFlags))
+                getterSignature?.asString() -> onMatch(predicate(getterFlags))
+                setterSignature?.asString() -> onMatch(predicate(setterFlags))
             }
         }
     }
@@ -316,8 +316,8 @@ class MethodFlagsKmFunctionVisitor(
 
     private
     val kmFunctionExtensionVisitor = object : JvmFunctionExtensionVisitor() {
-        override fun visit(desc: JvmMethodSignature?) {
-            if (jvmSignature == desc?.asString()) {
+        override fun visit(signature: JvmMethodSignature?) {
+            if (jvmSignature == signature?.asString()) {
                 onMatch(predicate(functionFlags))
             }
         }
