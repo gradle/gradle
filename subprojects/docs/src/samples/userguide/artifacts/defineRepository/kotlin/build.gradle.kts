@@ -247,6 +247,19 @@ repositories {
 }
 // end::maven-repo-with-metadata-sources[]
 
+// tag::maven-repo-with-ignore-gradle-metadata-redirection[]
+repositories {
+    maven {
+        url = uri("http://repo.mycompany.com/repo")
+        metadataSources {
+            mavenPom()
+            artifact()
+            ignoreGradleMetadataRedirection()
+        }
+    }
+}
+// end::maven-repo-with-ignore-gradle-metadata-redirection[]
+
 // tag::authenticated-ivy-repo[]
 repositories {
     ivy {

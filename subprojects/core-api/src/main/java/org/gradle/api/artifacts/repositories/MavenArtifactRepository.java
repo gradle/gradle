@@ -119,7 +119,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
          * Indicates that this repository will contain Maven POM files.
          * If the POM file contains a marker telling that Gradle metadata exists
          * for this component, Gradle will <i>also</i> look for the Gradle metadata
-         * file.
+         * file. Gradle module metadata redirection will not happen if {@code ignoreGradleMetadataRedirection()} has been used.
          */
         void mavenPom();
 
@@ -128,6 +128,14 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
          * but we can infer it from the presence of an artifact file.
          */
         void artifact();
+
+        /**
+         * Indicates that this repository will ignore Gradle module metadata redirection markers found in POM files.
+         *
+         * @since 5.6
+         *
+         */
+        void ignoreGradleMetadataRedirection();
     }
 
     /**
