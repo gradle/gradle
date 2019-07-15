@@ -17,7 +17,6 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -70,7 +69,7 @@ public interface UnitOfWork extends CacheableEntity {
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, FileCollection roots);
+        void visitOutputProperty(String propertyName, TreeType type, Iterable<File> roots);
     }
 
     void visitLocalState(LocalStateVisitor visitor);
@@ -194,6 +193,7 @@ public interface UnitOfWork extends CacheableEntity {
          *
          * @deprecated Only used for {@code IncrementalTaskInputs}. Should be removed once {@code IncrementalTaskInputs} is gone.
          */
+        @SuppressWarnings("DeprecatedIsStillUsed")
         @Deprecated
         ALL_PARAMETERS(true);
 

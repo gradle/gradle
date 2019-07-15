@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
@@ -659,12 +658,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     static class OutputPropertySpec {
-        FileCollection roots
+        Iterable<File> roots
         TreeType treeType
 
         OutputPropertySpec(Iterable<File> roots, TreeType treeType) {
             this.treeType = treeType
-            this.roots = ImmutableFileCollection.of(roots)
+            this.roots = ImmutableList.copyOf(roots)
         }
     }
 
@@ -895,7 +894,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(Map<String, OutputPropertySpec> outputs) {
             def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
             outputs.each { propertyName, spec ->
-                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(spec.roots)))
+                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(ImmutableFileCollection.of(spec.roots))))
             }
             return builder.build()
         }
