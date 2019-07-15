@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.file.FileCollection
+
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
@@ -37,7 +37,7 @@ class StepSpec extends Specification {
         return temporaryFolder.file(path)
     }
 
-    def outputFileProperty(String name, TreeType type, FileCollection roots) {
+    def outputFileProperty(String name, TreeType type, Iterable<File> roots) {
         return new UnitOfWork.OutputFileProperty() {
             @Override
             String getName() { name }
@@ -46,7 +46,7 @@ class StepSpec extends Specification {
             TreeType getType() { type }
 
             @Override
-            FileCollection getRoots() { roots }
+            Iterable<File> getRoots() { roots }
         }
     }
 }

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -431,10 +430,10 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
             visitor.visitOutputProperty(new TransformOutputFileProperty(
-                OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, fileCollectionFactory.fixed(workspace.getOutputDirectory())
+                OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableList.of(workspace.getOutputDirectory())
             ));
             visitor.visitOutputProperty(new TransformOutputFileProperty(
-                RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, fileCollectionFactory.fixed(workspace.getResultsFile())
+                RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableList.of(workspace.getResultsFile())
             ));
         }
 
@@ -678,12 +677,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private static class TransformOutputFileProperty extends TransformProperty implements UnitOfWork.OutputFileProperty {
         private final TreeType type;
-        private final FileCollection roots;
+        private final ImmutableList<File> roots;
 
-        public TransformOutputFileProperty(String name, TreeType type, FileCollection roots) {
+        public TransformOutputFileProperty(String name, TreeType type, Iterable<File> roots) {
             super(name);
             this.type = type;
-            this.roots = roots;
+            this.roots = ImmutableList.copyOf(roots);
         }
 
         @Override
@@ -692,7 +691,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public FileCollection getRoots() {
+        public Iterable<File> getRoots() {
             return roots;
         }
     }

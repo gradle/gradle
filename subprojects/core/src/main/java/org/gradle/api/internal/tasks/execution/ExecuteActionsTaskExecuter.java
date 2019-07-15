@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
@@ -328,7 +327,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     }
 
                     @Override
-                    public FileCollection getRoots() {
+                    public Iterable<File> getRoots() {
                         return property.getPropertyFiles();
                     }
                 });

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
@@ -194,8 +195,8 @@ class CleanupOutputsStepTest extends StepSpec implements FingerprinterFixture {
         1 * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         1 * work.hasOverlappingOutputs() >> false
         1 * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty(outputFileProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir)))
-            visitor.visitOutputProperty(outputFileProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file)))
+            visitor.visitOutputProperty(outputFileProperty("dir", TreeType.DIRECTORY, ImmutableList.of(outputs.dir)))
+            visitor.visitOutputProperty(outputFileProperty("file", TreeType.FILE, ImmutableList.of(outputs.file)))
         }
     }
 

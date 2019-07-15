@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
@@ -63,7 +62,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputProperties(property -> {
-                FileCollection roots = property.getRoots();
+                Iterable<File> roots = property.getRoots();
                 switch (property.getType()) {
                     case FILE:
                         for (File root : roots) {
