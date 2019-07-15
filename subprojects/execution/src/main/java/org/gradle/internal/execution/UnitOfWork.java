@@ -32,7 +32,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface UnitOfWork extends CacheableEntity {
 
@@ -55,20 +54,41 @@ public interface UnitOfWork extends CacheableEntity {
 
     void visitInputProperties(InputPropertyVisitor visitor);
 
+    interface Property {
+        String getName();
+    }
+
+    interface InputProperty extends Property {
+        @Nullable
+        Object getValue();
+    }
+
     interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, Object value);
+        void visitInputProperty(InputProperty property);
     }
 
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
+    interface InputFileProperty extends Property {
+        @Nullable
+        Object getValue();
+        boolean isIncremental();
+        CurrentFileCollectionFingerprint fingerprint();
+    }
+
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, @Nullable Object value, boolean incremental, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+        void visitInputFileProperty(InputFileProperty property);
     }
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
+    interface OutputFileProperty extends Property {
+        TreeType getType();
+        FileCollection getRoots();
+    }
+
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, FileCollection roots);
+        void visitOutputProperty(OutputFileProperty property);
     }
 
     void visitLocalState(LocalStateVisitor visitor);

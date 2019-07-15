@@ -85,12 +85,16 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
     def "input properties are snapshotted"() {
         def inputPropertyValue = 'myValue'
         def valueSnapshot = Mock(ValueSnapshot)
+        def inputProperty = Stub(UnitOfWork.InputProperty) {
+            getName() >> "inputString"
+            getValue() >> inputPropertyValue
+        }
 
         when:
         step.execute(afterPreviousExecutionContext)
         then:
         1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("inputString", inputPropertyValue)
+            visitor.visitInputProperty(inputProperty)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
         interaction { fingerprintInputs() }
@@ -105,6 +109,10 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         def inputPropertyValue = 'myValue'
         def valueSnapshot = Mock(ValueSnapshot)
         def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def inputProperty = Stub(UnitOfWork.InputProperty) {
+            getName() >> "inputString"
+            getValue() >> inputPropertyValue
+        }
 
         when:
         step.execute(afterPreviousExecutionContext)
@@ -113,7 +121,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of("inputString", valueSnapshot)
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of()
         1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("inputString", inputPropertyValue)
+            visitor.visitInputProperty(inputProperty)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
         interaction { fingerprintInputs() }
@@ -125,18 +133,22 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
     }
 
     def "input file properties are fingerprinted"() {
-        def fingerprint = Mock(CurrentFileCollectionFingerprint)
+        def propertyFingerprint = Mock(CurrentFileCollectionFingerprint)
+        def inputFileProperty = Stub(UnitOfWork.InputFileProperty) {
+            getName() >> "inputFile"
+            fingerprint() >> propertyFingerprint
+        }
 
         when:
         step.execute(afterPreviousExecutionContext)
         then:
         1 * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
-            visitor.visitInputFileProperty("inputFile", "ignored", false, { -> fingerprint })
+            visitor.visitInputFileProperty(inputFileProperty)
         }
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
+            assert state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', propertyFingerprint)
         }
         0 * _
     }

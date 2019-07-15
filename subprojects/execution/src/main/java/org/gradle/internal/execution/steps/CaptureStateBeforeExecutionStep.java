@@ -128,7 +128,9 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
 
     private static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(UnitOfWork work, ImmutableSortedMap<String, ValueSnapshot> previousSnapshots, ValueSnapshotter valueSnapshotter) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitInputProperties((propertyName, value) -> {
+        work.visitInputProperties(property -> {
+            String propertyName = property.getName();
+            Object value = property.getValue();
             try {
                 ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
                 if (previousSnapshot == null) {
@@ -147,11 +149,12 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
 
     private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(UnitOfWork work) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-        work.visitInputFileProperties((propertyName, value, incremental, fingerprinter) -> {
+        work.visitInputFileProperties(property -> {
+            String propertyName = property.getName();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Fingerprinting property {} for {}", propertyName, work.getDisplayName());
             }
-            CurrentFileCollectionFingerprint result = fingerprinter.get();
+            CurrentFileCollectionFingerprint result = property.fingerprint();
             builder.put(propertyName, result);
         });
         return builder.build();

@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.Iterables;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
@@ -61,8 +62,9 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties((name, type, roots) -> {
-                switch (type) {
+            work.visitOutputProperties(property -> {
+                FileCollection roots = property.getRoots();
+                switch (property.getType()) {
                     case FILE:
                         for (File root : roots) {
                             File parentFile = root.getParentFile();
@@ -90,10 +92,10 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     }
 
     private void cleanupExclusiveOutputs(UnitOfWork work) {
-        work.visitOutputProperties((name, type, roots) -> {
-            for (File root : roots) {
+        work.visitOutputProperties(property -> {
+            for (File root : property.getRoots()) {
                 if (root.exists()) {
-                    switch (type) {
+                    switch (property.getType()) {
                         case FILE:
                             GFileUtils.forceDelete(root);
                             break;

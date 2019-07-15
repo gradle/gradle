@@ -16,13 +16,14 @@
 
 package org.gradle.internal.execution.steps
 
-
+import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.file.TreeType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 class StepSpec extends Specification {
     @Rule
@@ -34,5 +35,18 @@ class StepSpec extends Specification {
 
     protected TestFile file(Object... path) {
         return temporaryFolder.file(path)
+    }
+
+    def outputFileProperty(String name, TreeType type, FileCollection roots) {
+        return new UnitOfWork.OutputFileProperty() {
+            @Override
+            String getName() { name }
+
+            @Override
+            TreeType getType() { type }
+
+            @Override
+            FileCollection getRoots() { roots }
+        }
     }
 }

@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
@@ -55,6 +56,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -261,9 +263,18 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public void visitInputProperties(InputPropertyVisitor visitor) {
             Map<String, Object> inputPropertyValues = context.getTaskProperties().getInputPropertyValues().get();
             for (Map.Entry<String, Object> entry : inputPropertyValues.entrySet()) {
-                String propertyName = entry.getKey();
-                Object value = entry.getValue();
-                visitor.visitInputProperty(propertyName, value);
+                visitor.visitInputProperty(new InputProperty() {
+                    @Override
+                    public String getName() {
+                        return entry.getKey();
+                    }
+
+                    @Nullable
+                    @Override
+                    public Object getValue() {
+                        return entry.getValue();
+                    }
+                });
             }
         }
 
@@ -271,16 +282,33 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
-                Object value = inputFileProperty.getValue();
                 boolean incremental = inputFileProperty.isIncremental()
                     // SkipWhenEmpty implies incremental.
                     // If this file property is empty, then we clean up the previously generated outputs.
                     // That means that there is a very close relation between the file property and the output.
                     || inputFileProperty.isSkipWhenEmpty();
-                String propertyName = inputFileProperty.getPropertyName();
-                visitor.visitInputFileProperty(propertyName, value, incremental, () -> {
-                    FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty.getNormalizer());
-                    return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
+                visitor.visitInputFileProperty(new InputFileProperty() {
+                    @Override
+                    public String getName() {
+                        return inputFileProperty.getPropertyName();
+                    }
+
+                    @Nullable
+                    @Override
+                    public Object getValue() {
+                        return inputFileProperty.getValue();
+                    }
+
+                    @Override
+                    public boolean isIncremental() {
+                        return incremental;
+                    }
+
+                    @Override
+                    public CurrentFileCollectionFingerprint fingerprint() {
+                        FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty.getNormalizer());
+                        return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
+                    }
                 });
             }
         }
@@ -288,7 +316,22 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
+                visitor.visitOutputProperty(new OutputFileProperty() {
+                    @Override
+                    public String getName() {
+                        return property.getPropertyName();
+                    }
+
+                    @Override
+                    public TreeType getType() {
+                        return property.getOutputType();
+                    }
+
+                    @Override
+                    public FileCollection getRoots() {
+                        return property.getPropertyFiles();
+                    }
+                });
             }
         }
 

@@ -655,22 +655,22 @@ class IncrementalExecutionIntegrationTest extends Specification {
         return temporaryFolder.file(path)
     }
 
-    static class OutputPropertySpec {
+    static class OutputFilePropertySpec {
         FileCollection roots
         TreeType treeType
 
-        OutputPropertySpec(Iterable<File> roots, TreeType treeType) {
+        OutputFilePropertySpec(Iterable<File> roots, TreeType treeType) {
             this.treeType = treeType
             this.roots = ImmutableFileCollection.of(roots)
         }
     }
 
-    static OutputPropertySpec outputDirectorySpec(File... dirs) {
-        return new OutputPropertySpec(ImmutableList.<File>copyOf(dirs), TreeType.DIRECTORY)
+    static OutputFilePropertySpec outputDirectorySpec(File... dirs) {
+        return new OutputFilePropertySpec(ImmutableList.<File>copyOf(dirs), TreeType.DIRECTORY)
     }
 
-    static OutputPropertySpec outputFileSpec(File... files) {
-        return new OutputPropertySpec(ImmutableList.<File>copyOf(files), TreeType.FILE)
+    static OutputFilePropertySpec outputFileSpec(File... files) {
+        return new OutputFilePropertySpec(ImmutableList.<File>copyOf(files), TreeType.FILE)
     }
 
     UnitOfWorkBuilder getBuilder() {
@@ -746,9 +746,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
         }
 
         UnitOfWork build() {
-            Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(*value) } )
-            Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(*value) } )
-            Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
+            Map<String, OutputFilePropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(*value) } )
+            Map<String, OutputFilePropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(*value) } )
+            Map<String, OutputFilePropertySpec> outputs = outputFileSpecs + outputDirSpecs
 
             return new UnitOfWork() {
                 boolean executed
@@ -782,23 +782,66 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 void visitInputProperties(UnitOfWork.InputPropertyVisitor visitor) {
                     inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName, value)
+                        visitor.visitInputProperty(new UnitOfWork.InputProperty() {
+                            @Override
+                            String getName() {
+                                propertyName
+                            }
+
+                            @Override
+                            Object getValue() {
+                                value
+                            }
+                        })
                     }
                 }
 
                 @Override
                 void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
-                        visitor.visitInputFileProperty(entry.key, entry.value, false,
-                            { -> fingerprinter.fingerprint(ImmutableFileCollection.of(entry.value)) }
-                        )
+                        visitor.visitInputFileProperty(new UnitOfWork.InputFileProperty() {
+                            @Override
+                            String getName() {
+                                entry.key
+                            }
+
+                            @Override
+                            Object getValue() {
+                                entry.value
+                            }
+
+                            @Override
+                            boolean isIncremental() {
+                                return false
+                            }
+
+                            @Override
+                            CurrentFileCollectionFingerprint fingerprint() {
+                                fingerprinter.fingerprint(ImmutableFileCollection.of(entry.value))
+                            }
+                        })
                     }
                 }
 
                 @Override
                 void visitOutputProperties(UnitOfWork.OutputPropertyVisitor visitor) {
                     outputs.forEach { name, spec ->
-                        visitor.visitOutputProperty(name, spec.treeType, spec.roots)
+                        visitor.visitOutputProperty(new UnitOfWork.OutputFileProperty() {
+                            @Override
+                            String getName() {
+                                name
+                            }
+
+                            @Override
+                            TreeType getType() {
+                                spec.treeType
+                            }
+
+                            @Override
+                            FileCollection getRoots() {
+                                spec.roots
+                            }
+                        })
                     }
                 }
 
@@ -864,7 +907,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             }
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(Map<String, OutputPropertySpec> outputs) {
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(Map<String, OutputFilePropertySpec> outputs) {
             def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
             outputs.each { propertyName, spec ->
                 builder.put(propertyName, outputFingerprinter.fingerprint(spec.roots))
@@ -872,7 +915,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return builder.build()
         }
 
-        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(Map<String, OutputPropertySpec> outputs) {
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(Map<String, OutputFilePropertySpec> outputs) {
             def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
             outputs.each { propertyName, spec ->
                 builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(spec.roots)))

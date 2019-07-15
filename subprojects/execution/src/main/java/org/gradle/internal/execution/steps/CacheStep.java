@@ -162,12 +162,13 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     }
 
     private static void cleanOutputsAfterLoadFailure(UnitOfWork work) {
-        work.visitOutputProperties((name, type, roots) -> {
-            for (File root : roots) {
+        work.visitOutputProperties(property -> {
+            for (File root : property.getRoots()) {
                 try {
                     remove(root);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", name, work.getDisplayName(), root), ex);
+                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s",
+                        property.getName(), work.getDisplayName(), root), ex);
                 }
             }
         });

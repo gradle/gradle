@@ -17,26 +17,19 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.Result
-import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.OutputPropertyVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Specification
 
-class CleanupOutputsStepTest extends Specification implements FingerprinterFixture {
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    def delegate = Mock(Step)
+class CleanupOutputsStepTest extends StepSpec implements FingerprinterFixture {
     def context = Mock(InputChangesContext)
-    def work = Mock(UnitOfWork)
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def delegateResult = Mock(Result)
     def incrementalInputChanges = Stub(InputChangesInternal) {
@@ -188,8 +181,8 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
         1 * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         1 * work.hasOverlappingOutputs() >> true
         1 * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file))
+            visitor.visitOutputProperty(outputFileProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir)))
+            visitor.visitOutputProperty(outputFileProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file)))
         }
         1 * context.getAfterPreviousExecutionState() >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
@@ -201,14 +194,22 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
         1 * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         1 * work.hasOverlappingOutputs() >> false
         1 * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file))
+            visitor.visitOutputProperty(outputFileProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir)))
+            visitor.visitOutputProperty(outputFileProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file)))
+        }
+    }
+
+    def outputFileProperty(String name, TreeType type, FileCollection roots) {
+        return Stub(UnitOfWork.OutputFileProperty) {
+            getName() >> name
+            getType() >> type
+            getRoots() >> roots
         }
     }
 
     class WorkOutputs {
-        def dir = temporaryFolder.file("build/outputs/dir")
-        def file = temporaryFolder.file("build/output-files/file.txt")
+        def dir = CleanupOutputsStepTest.this.file("build/outputs/dir")
+        def file = CleanupOutputsStepTest.this.file("build/output-files/file.txt")
         FileCollectionFingerprint dirFingerprint
         FileCollectionFingerprint fileFingerprint
 

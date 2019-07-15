@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -406,21 +407,35 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public void visitInputProperties(InputPropertyVisitor visitor) {
             // Emulate secondary inputs as a single property for now
-            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString());
+            visitor.visitInputProperty(new TransformInputProperty(
+                SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString()
+            ));
         }
 
         @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, true,
-                () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
-            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, false,
-                () -> dependenciesFingerprint);
+            visitor.visitInputFileProperty(new TransformInputFileProperty(
+                INPUT_ARTIFACT_PROPERTY_NAME,
+                inputArtifactProvider,
+                true,
+                () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot))
+            ));
+            visitor.visitInputFileProperty(new TransformInputFileProperty(
+                DEPENDENCIES_PROPERTY_NAME,
+                dependencies,
+                false,
+                () -> dependenciesFingerprint
+            ));
         }
 
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, fileCollectionFactory.fixed(workspace.getOutputDirectory()));
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, fileCollectionFactory.fixed(workspace.getResultsFile()));
+            visitor.visitOutputProperty(new TransformOutputFileProperty(
+                OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, fileCollectionFactory.fixed(workspace.getOutputDirectory())
+            ));
+            visitor.visitOutputProperty(new TransformOutputFileProperty(
+                RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, fileCollectionFactory.fixed(workspace.getResultsFile())
+            ));
         }
 
         @Override
@@ -601,6 +616,84 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             result = 31 * result + secondaryInputsHash.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
             return result;
+        }
+    }
+
+    private static abstract class TransformProperty implements UnitOfWork.Property {
+        private final String name;
+
+        public TransformProperty(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+    }
+
+    private static class TransformInputProperty extends TransformProperty implements UnitOfWork.InputProperty {
+        private final Object value;
+
+        public TransformInputProperty(String name, @Nullable Object value) {
+            super(name);
+            this.value = value;
+        }
+
+        @Nullable
+        @Override
+        public Object getValue() {
+            return value;
+        }
+    }
+
+    private static class TransformInputFileProperty extends TransformProperty implements UnitOfWork.InputFileProperty {
+        private final Object value;
+        private final boolean incremental;
+        private final Supplier<CurrentFileCollectionFingerprint> fingerprinter;
+
+        public TransformInputFileProperty(String name, Object value, boolean incremental, Supplier<CurrentFileCollectionFingerprint> fingerprinter) {
+            super(name);
+            this.value = value;
+            this.incremental = incremental;
+            this.fingerprinter = fingerprinter;
+        }
+
+        @Nullable
+        @Override
+        public Object getValue() {
+            return value;
+        }
+
+        @Override
+        public boolean isIncremental() {
+            return incremental;
+        }
+
+        @Override
+        public CurrentFileCollectionFingerprint fingerprint() {
+            return fingerprinter.get();
+        }
+    }
+
+    private static class TransformOutputFileProperty extends TransformProperty implements UnitOfWork.OutputFileProperty {
+        private final TreeType type;
+        private final FileCollection roots;
+
+        public TransformOutputFileProperty(String name, TreeType type, FileCollection roots) {
+            super(name);
+            this.type = type;
+            this.roots = roots;
+        }
+
+        @Override
+        public TreeType getType() {
+            return type;
+        }
+
+        @Override
+        public FileCollection getRoots() {
+            return roots;
         }
     }
 }

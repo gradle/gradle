@@ -130,10 +130,10 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * work.displayName >> "work"
         1 * work.visitOutputProperties(_) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("outputFile", TreeType.FILE, ImmutableFileCollection.of(loadedOutputFile))
-            visitor.visitOutputProperty("outputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(loadedOutputDir))
-            visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableFileCollection.of(file("missing.txt")))
-            visitor.visitOutputProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("missing")))
+            visitor.visitOutputProperty(outputFileProperty("outputFile", TreeType.FILE, ImmutableFileCollection.of(loadedOutputFile)))
+            visitor.visitOutputProperty(outputFileProperty("outputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(loadedOutputDir)))
+            visitor.visitOutputProperty(outputFileProperty("missingOutputFile", TreeType.FILE, ImmutableFileCollection.of(file("missing.txt"))))
+            visitor.visitOutputProperty(outputFileProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("missing"))))
         }
         loadedOutputFile.assertDoesNotExist()
         loadedOutputDir.assertIsEmptyDir()
