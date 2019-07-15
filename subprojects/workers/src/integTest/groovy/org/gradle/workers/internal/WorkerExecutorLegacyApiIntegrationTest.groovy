@@ -44,7 +44,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             text = foo
             array = [foo, bar, baz]
             list = [foo, bar, baz]
-         """.stripIndent().strip()
+         """.stripIndent().trim()
 
         where:
         isolationMode << ISOLATION_MODES
@@ -86,7 +86,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             text = foo
             array = [foo, bar, baz]
             list = [foo, bar, baz]
-         """.stripIndent().strip()
+         """.stripIndent().trim()
 
         where:
         forkMode          | operator
@@ -108,7 +108,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
             }
-        """.stripIndent()
+        """
 
         when:
         fails("runInWorker")
@@ -186,5 +186,4 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
-
 }

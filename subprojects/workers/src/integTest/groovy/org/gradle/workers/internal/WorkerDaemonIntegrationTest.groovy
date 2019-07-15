@@ -133,7 +133,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
 
             task runInDaemon(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
-                runnableClass = ${workerExecutionThatVerifiesOptions}.class
+                workerExecutionClass = ${workerExecutionThatVerifiesOptions.name}.class
                 additionalForkOptions = { options ->
                     options.with {
                         minHeapSize = "128m"
@@ -141,7 +141,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                         systemProperty("foo", "bar")
                         jvmArgs("-Dbar=baz")
                         bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
-                        bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath('foo'))}"))
+                        bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath(testDirectory.file("foo").absolutePath))}"))
                         defaultCharacterEncoding = "UTF-8"
                         enableAssertions = true
                         environment "foo", "bar"

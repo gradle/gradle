@@ -134,7 +134,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def "can add to classpath on executor"() {
         given:
         WorkerSpec configuration = new DefaultWorkerSpec<WorkerParameters.None>(forkOptionsFactory, objectFactory, null)
-        def foo = new File("/foo")
+        def foo = temporaryFolder.createFile("foo")
         configuration.classpath.from([foo])
 
         when:
@@ -224,7 +224,7 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
             configuration.isolationMode = IsolationMode.NONE
             configuration.params = []
-            configuration.classpath([new File("/foo")])
+            configuration.classpath([temporaryFolder.createFile("foo")])
         }
 
         then:
