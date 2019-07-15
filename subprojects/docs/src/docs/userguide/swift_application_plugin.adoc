@@ -102,8 +102,7 @@ This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 `check` - Task (lifecycle)::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
-// TODO: Add the following line when XCTest plugin chapter is added:
-// For example, the <<swift_unit_test_plugin.adoc#,Swift Unit Test Plugin>> attaches a task to this lifecycle task to run tests.
+ For example, the <<xctest_plugin.adoc#,XCTest Plugin>> attaches a task to this lifecycle task to run tests.
 This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 
 `build` - Task (lifecycle)::
