@@ -274,7 +274,12 @@ public class GroovyCompile extends AbstractCompile {
         if (getOptions().isIncremental() && spec.getSourceRoots().isEmpty()) {
             DeprecationLogger.nagUserOfDeprecatedBehaviour("Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.");
         }
-        return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty();
+        if (getOptions().isIncremental() && spec.annotationProcessingConfigured()) {
+            DeprecationLogger.nagUserOfDeprecated(
+                "Incremental Groovy compilation has been disabled since Java annotation processors are configured. Enabling incremental compilation and configuring Java annotation processors for Groovy compilation",
+                "Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
+        }
+        return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty() && !spec.annotationProcessingConfigured();
     }
 
     private DefaultGroovyJavaJointCompileSpec createSpec() {
