@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
-import spock.lang.Ignore
-import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.charset.Charset
@@ -41,8 +39,6 @@ class BuildProcessTest extends Specification {
     private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)
 
-    @Ignore
-    @Issue('https://github.com/gradle/gradle-private/issues/2463')
     def "current and requested build vm match if vm arguments match"() {
         given:
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
@@ -80,8 +76,6 @@ class BuildProcessTest extends Specification {
         !buildProcess.configureForBuild(buildParameters(Stub(JavaInfo)))
     }
 
-    @Ignore
-    @Issue('https://github.com/gradle/gradle-private/issues/2463')
     def "all requested immutable jvm arguments and all immutable system properties need to match"() {
         given:
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
@@ -156,8 +150,6 @@ class BuildProcessTest extends Specification {
         buildProcess.configureForBuild(requestWithMutableArgument)
     }
 
-    @Ignore
-    @Issue('https://github.com/gradle/gradle-private/issues/2463')
     def "current and requested build vm match if only mutable arguments vary"() {
         given:
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)

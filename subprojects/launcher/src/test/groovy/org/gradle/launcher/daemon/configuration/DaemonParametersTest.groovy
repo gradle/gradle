@@ -21,8 +21,6 @@ import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.UsesNativeServices
-import spock.lang.Ignore
-import spock.lang.Issue
 import spock.lang.Specification
 
 import static java.lang.Boolean.parseBoolean
@@ -35,8 +33,6 @@ class DaemonParametersTest extends Specification {
         new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory())
     }
 
-    @Ignore
-    @Issue('https://github.com/gradle/gradle-private/issues/2463')
     def "has reasonable default values"() {
         expect:
         parameters.enabled
