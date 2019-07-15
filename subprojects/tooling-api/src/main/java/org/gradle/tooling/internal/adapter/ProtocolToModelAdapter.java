@@ -42,6 +42,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -609,8 +610,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class PropertyCachingMethodInvoker implements MethodInvoker {
-        private final Map<String, Object> properties = new HashMap<String, Object>();
-        private final Set<String> unknown = new HashSet<String>();
+        private Map<String, Object> properties = Collections.emptyMap();
+        private Set<String> unknown = Collections.emptySet();
         private final MethodInvoker next;
 
         private PropertyCachingMethodInvoker(MethodInvoker next) {
@@ -631,15 +632,29 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 Object value;
                 next.invoke(method);
                 if (!method.found()) {
-                    unknown.add(method.getName());
+                    markUnknown(method.getName());
                     return;
                 }
                 value = method.getResult();
-                properties.put(method.getName(), value);
+                cachePropertyValue(method.getName(), value);
                 return;
             }
 
             next.invoke(method);
+        }
+
+        private void markUnknown(String methodName) {
+            if (unknown.isEmpty()) {
+                unknown = new HashSet<String>();
+            }
+            unknown.add(methodName);
+        }
+
+        private void cachePropertyValue(String methodName, Object value) {
+            if (properties.isEmpty()) {
+                properties = new HashMap<String, Object>();
+            }
+            properties.put(methodName, value);
         }
     }
 
