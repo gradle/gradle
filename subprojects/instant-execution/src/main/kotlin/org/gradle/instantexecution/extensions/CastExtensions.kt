@@ -20,5 +20,5 @@ import org.gradle.internal.Cast
 
 
 internal
-inline fun <reified T> Any.uncheckedCast(): T =
+fun <T> Any.uncheckedCast(): T =
     Cast.uncheckedNonnullCast(this)

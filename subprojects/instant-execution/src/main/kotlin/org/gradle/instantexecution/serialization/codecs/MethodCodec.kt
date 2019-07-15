@@ -29,13 +29,13 @@ import java.lang.reflect.Method
 internal
 object MethodCodec : Codec<Method> {
 
-    override fun WriteContext.encode(value: Method) {
+    override suspend fun WriteContext.encode(value: Method) {
         writeClass(value.declaringClass)
         writeString(value.name)
         writeClassArray(value.parameterTypes)
     }
 
-    override fun ReadContext.decode(): Method? {
+    override suspend fun ReadContext.decode(): Method? {
         val declaringClass = readClass()
         val methodName = readString()
         val parameterTypes = readClassArray()

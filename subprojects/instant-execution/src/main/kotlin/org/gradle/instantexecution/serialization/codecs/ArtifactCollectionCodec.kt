@@ -28,9 +28,9 @@ import org.gradle.instantexecution.serialization.WriteContext
 internal
 object ArtifactCollectionCodec : Codec<ArtifactCollection> {
 
-    override fun WriteContext.encode(value: ArtifactCollection) = Unit
+    override suspend fun WriteContext.encode(value: ArtifactCollection) = Unit
 
-    override fun ReadContext.decode(): ArtifactCollection? =
+    override suspend fun ReadContext.decode(): ArtifactCollection? =
         EmptyArtifactCollection(ImmutableFileCollection.of())
 }
 
