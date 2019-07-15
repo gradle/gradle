@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-if (project.hasProperty("teamcity")) {
-    println "Original teamcity.build.tempDir: ${project.teamcity["teamcity.build.tempDir"]}"
-    project.teamcity["teamcity.build.tempDir"] = ''
-    println "Patched teamcity.build.tempDir: ${project.teamcity["teamcity.build.tempDir"]}"
+subprojects { project ->
+    if (project.hasProperty("teamcity")) {
+        project.beforeEvaluate {
+            // See /home/tcagent1/agent/plugins/gradle-runner/scripts/init.gradle on build agent
+            println "Original project: ${project} teamcity.build.tempDir: ${project.teamcity["teamcity.build.tempDir"]}"
+            project.teamcity["teamcity.build.tempDir"] = ''
+            println "Patched project ${project} teamcity.build.tempDir: ${project.teamcity["teamcity.build.tempDir"]}"
+        }
+    }
 }
