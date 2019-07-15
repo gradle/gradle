@@ -236,7 +236,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     @Override
     public ClassLoaderScope deprecated() {
-        DefaultClassLoaderScope clonedScope = new DeprecatingClassLoaderScope(id, parent, classLoaderCache);
+        DefaultClassLoaderScope clonedScope = new DeprecatedClassLoaderScope(id, parent, classLoaderCache);
         clonedScope.export(export);
         if(isLocked()) {
             clonedScope.lock();

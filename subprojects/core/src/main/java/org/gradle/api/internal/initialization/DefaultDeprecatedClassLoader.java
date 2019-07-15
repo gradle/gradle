@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.internal.classloader.DeprecatedClassloader;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.util.DeprecationLogger;
 
 import java.net.URL;

@@ -18,8 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
-import org.gradle.api.internal.initialization.DeprecatingClassLoaderScope;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;

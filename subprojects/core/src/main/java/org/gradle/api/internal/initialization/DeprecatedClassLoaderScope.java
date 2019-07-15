@@ -20,9 +20,9 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DeprecatedClasspath;
 
-public class DeprecatingClassLoaderScope extends DefaultClassLoaderScope {
+public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
 
-    public DeprecatingClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
+    public DeprecatedClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
         super(id, parent, classLoaderCache);
     }
 
