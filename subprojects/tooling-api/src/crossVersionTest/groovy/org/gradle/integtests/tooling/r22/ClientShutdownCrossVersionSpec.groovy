@@ -21,9 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("until CI tmpdir problems are resolved")
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
