@@ -67,7 +67,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -82,8 +81,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
@@ -155,18 +152,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
         });
         result.getOutcome().ifSuccessfulOrElse(
-            new Consumer<ExecutionOutcome>() {
-                @Override
-                public void accept(ExecutionOutcome outcome) {
-                    state.setOutcome(TaskExecutionOutcome.valueOf(outcome));
-                }
-            },
-            new Consumer<Throwable>() {
-                @Override
-                public void accept(Throwable failure) {
-                    state.setOutcome(new TaskExecutionException(task, failure));
-                }
-            }
+            outcome -> state.setOutcome(TaskExecutionOutcome.valueOf(outcome)),
+            failure -> state.setOutcome(new TaskExecutionException(task, failure))
         );
         return new TaskExecuterResult() {
             @Override
@@ -179,17 +166,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             @Override
             public boolean executedIncrementally() {
                 return result.getOutcome()
-                    .map(new Function<ExecutionOutcome, Boolean>() {
-                        @Override
-                        public Boolean apply(ExecutionOutcome executionOutcome) {
-                            return executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY;
-                        }
-                    }).orElseMapFailure(new Function<Throwable, Boolean>() {
-                        @Override
-                        public Boolean apply(Throwable throwable) {
-                            return false;
-                        }
-                    });
+                    .map(outcome -> outcome == ExecutionOutcome.EXECUTED_INCREMENTALLY)
+                    .orElseMapFailure(throwable -> false);
             }
 
             @Override
@@ -459,12 +437,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)
             if (buildCacheEnabled || scanPluginApplied) {
                 context.removeSnapshotTaskInputsBuildOperation()
-                    .ifPresent(new Consumer<ExecutingBuildOperation>() {
-                        @Override
-                        public void accept(ExecutingBuildOperation operation) {
-                            operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState));
-                        }
-                    });
+                    .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState)));
             }
         }
 

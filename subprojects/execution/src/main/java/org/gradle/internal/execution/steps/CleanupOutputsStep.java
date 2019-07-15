@@ -25,6 +25,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.GFileUtils;
+import org.gradle.work.InputChanges;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     @Override
     public R execute(C context) {
         boolean incremental = context.getInputChanges()
-            .map(inputChanges -> inputChanges.isIncremental())
+            .map(InputChanges::isIncremental)
             .orElse(false);
         if (!incremental) {
             UnitOfWork work = context.getWork();

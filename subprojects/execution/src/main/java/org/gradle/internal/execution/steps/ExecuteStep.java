@@ -31,12 +31,7 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
         ExecutionOutcome outcome = context.getInputChanges()
             .map(inputChanges -> determineOutcome(work.execute(inputChanges), inputChanges.isIncremental()))
             .orElseGet(() -> determineOutcome(work.execute(null), false));
-        return new Result() {
-            @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return Try.successful(outcome);
-            }
-        };
+        return () -> Try.successful(outcome);
     }
 
     private ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {

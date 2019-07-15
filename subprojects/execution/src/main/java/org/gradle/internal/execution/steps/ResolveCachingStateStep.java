@@ -74,7 +74,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
                 .orElseGet(() -> (buildCache.isEnabled() ? work.shouldDisableCaching() : Optional.of(BUILD_CACHE_DISABLED_REASON))
-                    .map(disabledReason -> CachingState.disabledWithoutInputs(disabledReason))
+                    .map(CachingState::disabledWithoutInputs)
                     .orElse(CachingState.NOT_DETERMINED)
                 );
         }
@@ -154,9 +154,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         if (!buildCache.isEnabled()) {
             builder.markNotCacheable(BUILD_CACHE_DISABLED_REASON);
         }
-        work.shouldDisableCaching().ifPresent(noCacheReason -> {
-            builder.markNotCacheable(noCacheReason);
-        });
+        work.shouldDisableCaching().ifPresent(builder::markNotCacheable);
 
         builder.withImplementation(executionState.getImplementation());
         builder.withAdditionalImplementations(executionState.getAdditionalImplementations());

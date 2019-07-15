@@ -27,6 +27,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -104,10 +105,10 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
         }
 
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState
-            .map(state -> state.getInputProperties())
+            .map(ExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
         ImmutableSortedMap<String, FileCollectionFingerprint> previousOutputFiles = afterPreviousExecutionState
-            .map(state -> state.getOutputFileProperties())
+            .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = fingerprintInputProperties(work, previousInputProperties, valueSnapshotter);

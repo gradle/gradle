@@ -42,7 +42,7 @@ public class BroadcastChangingOutputsStep<C extends Context, R extends Result> i
         UnitOfWork work = context.getWork();
 
         Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
-        changingOutputs.ifPresent(outputs -> outputChangeListener.beforeOutputChange(outputs));
+        changingOutputs.ifPresent(outputChangeListener::beforeOutputChange);
         if (!changingOutputs.isPresent()) {
             outputChangeListener.beforeOutputChange();
         }
