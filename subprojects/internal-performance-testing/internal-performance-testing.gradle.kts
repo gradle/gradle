@@ -86,6 +86,9 @@ java.sourceSets.main { output.dir(mapOf("builtBy" to reportResources), generated
 
 tasks.jar {
     inputs.files(flamegraph)
+        .withPropertyName("flamegraph")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 

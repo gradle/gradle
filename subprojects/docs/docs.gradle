@@ -310,7 +310,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     options.addStringOption "source", "8"
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
-    destinationDir = new File(docsDir, 'javadoc') 
+    destinationDir = new File(docsDir, 'javadoc')
     classpath = configurations.gradleApiRuntime
 
     PublicApi.includes.each {
@@ -334,7 +334,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
 
             // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856) fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
             // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
-            project.copy { 
+            project.copy {
             	from(new File(srcDocsDir, "js/javadoc"))
                 into(destinationDir)
             }
@@ -367,11 +367,17 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
     separateOutputDirs = false
     options doctype: 'book'
 
-    inputs.file("$srcDocsDir/css/manual.css").withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.dir(file("src/main/resources")).withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.dir(samplesSrcDir).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file("$srcDocsDir/css/manual.css")
+        .withPropertyName("manual")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(file("src/main/resources"))
+        .withPropertyName("resources")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(samplesSrcDir)
+        .withPropertyName("samples")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    attributes stylesdir           : '../css/',
+    attributes stylesdir    : '../css/',
         stylesheet          : 'manual.css',
         imagesdir           : 'img',
         nofooter            : true,
