@@ -62,8 +62,11 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
             task consumer {
                 dependsOn producer
                 outputs.cacheIf { true }
-                inputs.file("outputs/producer.txt").withPathSensitivity(PathSensitivity.$pathSensitivity)
+                inputs.file("outputs/producer.txt")
+                    .withPropertyName("producer")
+                    .withPathSensitivity(PathSensitivity.$pathSensitivity)
                 outputs.file("outputs/consumer.txt")
+                    .withPropertyName("consumer")
                 doLast {
                     file("outputs/consumer.txt").text = file("outputs/producer.txt").text
                 }
