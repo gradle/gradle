@@ -123,7 +123,7 @@ configurations.all {
 }
 ```
 
-See <<managing_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
+See <<controlling_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
@@ -325,7 +325,9 @@ The incubating `operatingSystems` property on native components has been replace
 
 ==== Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
 
-The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#provider-files-api-reference,Provider API>>. Plugins that extend these types and override methods from the base class may no longer behave the same way. Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
+The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#sec:lazy_configuration_reference,Provider API>>.
+Plugins that extend these types and override methods from the base class may no longer behave the same way.
+Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
 

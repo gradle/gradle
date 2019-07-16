@@ -15,16 +15,16 @@ It's quite common that issues with dependency management are about _transitive d
 Often developers incorrectly fix transitive dependency issues by adding _direct dependencies_.
 To avoid this, Gradle provides the concept of _dependency constraints_.
 
-[[adding-constraints-transitive-deps]]
+[[sec:adding-constraints-transitive-deps]]
 == Adding constraints on transitive dependencies
 
 Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies.
 It is the preferred method to express constraints that should be applied to all dependencies of a configuration.
-When Gradle attempts to resolve a dependency to a module version, all <<declaring_dependencies.adoc#sub:declaring_dependency_with_version,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration.
+When Gradle attempts to resolve a dependency to a module version, all <<rich_versions.adoc#,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration.
 The highest version that matches all conditions is selected.
 If no such version is found, Gradle fails with an error showing the conflicting declarations.
 If this happens you can adjust your dependencies or dependency constraints declarations, or <<#managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed.
-Similar to dependency declarations, dependency constraint declarations are <<declaring_dependencies.adoc#what-are-dependency-configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build.
+Similar to dependency declarations, dependency constraint declarations are <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build.
 If a dependency constraint influenced the resolution result, any type of <<customizing_dependency_resolution_behavior.adoc#sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
 .Define dependency constraints
@@ -474,6 +474,7 @@ If there is no conflict (e.g. only `google-collections` or only `guava` in the g
 Currently it is not possible to declare that a given module is replaced by a set of modules.
 However, it is possible to declare that multiple modules are replaced by a single module.
 
+[[sec:dependency_substitution_rules]]
 ==== Using dependency substitution rules
 
 Dependency substitution rules work similarly to dependency resolve rules.

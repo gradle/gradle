@@ -30,7 +30,7 @@ import java.io.File
 @CacheableTask
 open class FindBrokenInternalLinks : DefaultTask() {
     companion object {
-        val linkPattern = Regex("<<([a-zA-Z_0-9-]+[.]adoc)#[^>]+>")
+        val linkPattern = Regex("<<([a-zA-Z_0-9-]+[.]adoc)#([^,>]*),[^>]+>")
     }
 
     @get:InputDirectory
@@ -66,7 +66,7 @@ open class FindBrokenInternalLinks : DefaultTask() {
             return
         }
         val messageBuilder = StringBuilder()
-        errors.forEach { file, errorsForFile ->
+        errors.toSortedMap().forEach { (file, errorsForFile) ->
             messageBuilder.append("In $file:\n")
             errorsForFile.forEach {
                 messageBuilder.append("   - At line ${it.line}, invalid include ${it.missingFile}\n")
@@ -79,18 +79,26 @@ open class FindBrokenInternalLinks : DefaultTask() {
     private
     fun hasDeadLink(baseDir: File, sourceFile: File, errors: MutableMap<String, List<Error>>) {
         var lineNumber = 0
+        val errorsForFile = mutableListOf<Error>()
         sourceFile.forEachLine { line ->
             lineNumber++
-            val errorsForFile = mutableListOf<Error>()
             linkPattern.findAll(line).forEach {
                 val fileName = it.groupValues[1]
-                if (!File(baseDir, fileName).exists()) {
+                val referencedFile = File(baseDir, fileName)
+                if (!referencedFile.exists()) {
                     errorsForFile.add(Error(lineNumber, fileName))
+                } else {
+                    val idName = it.groupValues[2]
+                    if (idName.isNotEmpty()) {
+                        if (!referencedFile.readText().contains("[[" + idName + "]]")) {
+                            errorsForFile.add(Error(lineNumber, fileName + " " + idName))
+                        }
+                    }
                 }
             }
-            if (errorsForFile.isNotEmpty()) {
-                errors.put(sourceFile.name, errorsForFile)
-            }
+        }
+        if (errorsForFile.isNotEmpty()) {
+            errors.put(sourceFile.name, errorsForFile)
         }
     }
 

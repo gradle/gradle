@@ -6,7 +6,8 @@ include::rich_versions.adoc[]
 [[sub::declaring_without_version]]
 == Declaring a dependency without version
 
-A recommended practice for larger projects is to declare dependencies without versions and use <<controlling_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place.
+A recommended practice for larger projects is to declare dependencies without versions and use <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> for version declaration.
+The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place.
 
 .Declaring a dependency without version
 ====
@@ -41,7 +42,7 @@ A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic d
 image::dependency-management-dynamic-dependency-build-scan.png[]
 
 By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories.
-The <<viewing_debugging_dependencies.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
+The <<viewing_debugging_dependencies.adoc#sec:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
 [[sub:declaring_dependency_with_changing_version]]
 === Declaring a changing version
@@ -60,7 +61,7 @@ include::sample[dir="userguide/dependencyManagement/declaringDependencies/changi
 ====
 
 By default, Gradle caches changing versions of dependencies for 24 hours.
-Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<viewing_debugging_dependencies.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<viewing_debugging_dependencies.adoc#sec:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
 
 Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module.
 All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.

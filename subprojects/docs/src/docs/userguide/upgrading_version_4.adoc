@@ -288,7 +288,7 @@ They should be added to the `annotationProcessor` configuration instead. If you 
 == Upgrading from 4.4 and earlier
 
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name.
- * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
+ * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#,composite builds>>) and instead uses the root build's configuration for all the builds.
 
 === Potential breaking changes
 

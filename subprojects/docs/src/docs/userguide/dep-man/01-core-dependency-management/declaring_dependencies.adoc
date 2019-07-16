@@ -1,7 +1,7 @@
-[[sec:declaring-dependencies]]
+[[declaring-dependencies]]
 = Declaring dependencies
 
-[[what-are-dependency-configurations]]
+[[sec:what-are-dependency-configurations]]
 == What are dependency configurations
 
 Every dependency declared for a Gradle project applies to a specific scope.
@@ -12,14 +12,13 @@ Every configuration can be identified by a unique name.
 Many Gradle plugins add pre-defined configurations to your project.
 The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like.
 See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example.
-The sections above demonstrate how to <<declaring_dependencies.adoc#declaring_dependencies,declare dependencies>> for different use cases.
 
 .Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
 For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies.adoc#working_with_dependencies,Working with Dependencies>>.
 
-[[config-inheritance-composition]]
+[[sub:config-inheritance-composition]]
 === Configuration inheritance and composition
 
 A configuration can extend other configurations to form an inheritance hierarchy.
@@ -47,10 +46,10 @@ include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/
 include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
 ====
 
-[[resolvable-consumable-configs]]
+[[sub:resolvable-consumable-configs]]
 === Resolvable and consumable configurations
 
-Historically, <<declaring_dependencies.adoc#sub:what_is_a_configuration,configurations>>  have been at the root of dependency resolution in Gradle.
+Historically, configurations have been at the root of dependency resolution in Gradle.
 In the end, what we want to make a difference is between a _consumer_ and a _producer_. For this purpose, configurations are used for at least 3 different aspects:
 
 1. to declare dependencies
@@ -146,12 +145,12 @@ Now Gradle has a way to _automatically select the appropriate variant_ by lookin
 In other words: attributes are used to perform the selection based on the values of the attributes.
 It doesn't matter what the names of the configurations are: only the attributes matter.
 
-[[choosing-configuration]]
+[[sec:choosing-configuration]]
 == Choosing the right configuration for dependencies
 
 TODO
 
-[[defining-custom-configurations]]
+[[sec:defining-custom-configurations]]
 == Defining custom configurations
 
 You can define configurations yourself, so-called _custom configurations_.
@@ -170,7 +169,7 @@ A project's configurations are managed by a `configurations` object.
 Configurations have a name and can extend each other.
 To learn more about this API have a look at link:{groovyDslPath}/org.gradle.api.artifacts.ConfigurationContainer.html[ConfigurationContainer].
 
-[[project-vs-module-deps]]
+[[sec:dependency-types]]
 == Different kinds of dependencies
 
 [[sub:module_dependencies]]
@@ -190,7 +189,7 @@ Gradle provides different notations for module dependencies. There is a string n
 
 [NOTE]
 ====
-If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories. If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module metadata file exists, Gradle may look, depending on the <<declaring_repositories.adoc#sub:supported_metadata_sources,metadata sources definitions>>, for an artifact file called `hibernate-3.0.5.jar` directly. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
+If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories. If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module metadata file exists, Gradle may look, depending on the <<#sec:supported_metadata_sources,metadata sources definitions>>, for an artifact file called `hibernate-3.0.5.jar` directly. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
 ====
 
 [[sub:file_dependencies]]
@@ -216,7 +215,7 @@ The most prominent methods for creating a file reference are
 link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)],
 link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)]
 and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
-Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<declaring_repositories.adoc#sec:flat_dir_resolver,flat directory repository>>.
+Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<declaring_repositories.adoc#sub:flat_dir_resolver,flat directory repository>>.
 
 File dependencies allow you to directly add a set of files to a configuration, without first adding them to a repository. This can be useful if you cannot, or do not want to, place certain files in a repository. Or if you do not want to use any repositories at all for storing your dependencies.
 
@@ -316,10 +315,11 @@ include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=local-
 include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=local-groovy-dependencies]"]
 ====
 
-[[documenting-dependencies]]
+[[sec:documenting-dependencies]]
 == Documenting dependencies
 
-When you declare a <<declaring_dependencies.adoc#declaring_dependencies,dependency>> or a <<controlling_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
+When you declare a dependency or a <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraint>>, you can provide a custom reason for the declaration.
+This makes the dependency declarations in your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> easier to interpret.
 
 .Giving a reason for choosing a certain module version in a dependency declaration
 ====
@@ -335,7 +335,7 @@ include::sample[dir="userguide/dependencyManagement/inspectingDependencies/depen
 include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyReason/dependencyReasonReport.out[]
 ----
 
-[[sub:resolve_specific_artifacts_from_dependency]]
+[[sec:resolve_specific_artifacts_from_dependency]]
 == Resolving specific artifacts from a module dependency
 
 Whenever Gradle tries to resolve a module from a Maven or Ivy repository, it looks for a metadata file and the default artifact file, a JAR. The build fails if none of these artifact files can be resolved. Under certain conditions, you might want to tweak the way Gradle resolves artifacts for a dependency.
@@ -366,32 +366,32 @@ include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifa
 include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
 ====
 
-[[supported-metadata-formats]]
+[[sec:supported-metadata-formats]]
 == Supported Metadata formats
 
 External module dependencies require module metadata (so that, typically, Gradle can figure out the transitive dependencies of a module).
 To do so, Gradle supports different metadata formats.
 
-[[sec:supported-md-pom]]
+[[sub:supported-md-pom]]
 === POM files
 
 Gradle natively supports https://maven.apache.org/pom.html[Maven POM files].
-It's worth noting that by default Gradle will first look for a POM file, but if this file contains a special marker, Gradle will use <<sec:supported-md-gradle, Gradle Module Metadata>> instead.
+It's worth noting that by default Gradle will first look for a POM file, but if this file contains a special marker, Gradle will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
 
-[[sec:supported-md-ivy]]
+[[sub:supported-md-ivy]]
 === Ivy files
 
 Similarly, Gradle supports http://ant.apache.org/ivy/[Apache Ivy metadata files].
-Again, Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, Gradle will use <<sec:supported-md-gradle, Gradle Module Metadata>> instead.
+Again, Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, Gradle will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
 
-[[sec:supported-md-gradle]]
+[[sub:supported-md-gradle]]
 === Gradle Module Metadata files
 
 Gradle Module metadata is the last supported format for module metadata.
 This format has specifically been designed for Gradle.
 You can find its https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md[specification] here.
 
-[[sub:supported_metadata_sources]]
+[[sec:supported_metadata_sources]]
 == Supported metadata sources
 
 When searching for a module in a repository, Gradle, by default, checks for supported metadata file formats in that repository. In a Maven repository, Gradle looks for a `.pom` file, in an ivy repository it looks for an `ivy.xml` file and in a flat directory repository it looks directly for `.jar` files as it does not expect any metadata. Starting with 5.0, Gradle also looks for `.module` (Gradle module metadata) files.

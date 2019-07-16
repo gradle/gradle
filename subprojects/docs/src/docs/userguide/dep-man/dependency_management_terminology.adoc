@@ -20,7 +20,9 @@ Dependency management comes with a wealth of terminology. Here you can find the 
 [[sub:terminology_configuration]]
 == Configuration
 
-A configuration is a named set of <<#sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the `implementation` configuration represents the set of dependencies required to compile a project. Configurations provide access to the underlying, resolved <<#sub:terminology_module,modules>> and their artifacts. For more information, see <<declaring_dependencies.adoc#what-are-dependency-configurations,Managing Dependency Configurations>>.
+A configuration is a named set of <<#sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the `implementation` configuration represents the set of dependencies required to compile a project.
+Configurations provide access to the underlying, resolved <<#sub:terminology_module,modules>> and their artifacts.
+For more information, see <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,What are dependency configurations>>.
 
 [NOTE]
 ====
@@ -30,12 +32,16 @@ The word "configuration" is an overloaded term and has a different meaning outsi
 [[sub:terminology_dependency]]
 == Dependency
 
-A dependency is a pointer to another piece of software required to build, test or run a <<#sub:terminology_module,module>>. For more information, see <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>.
+A dependency is a pointer to another piece of software required to build, test or run a <<#sub:terminology_module,module>>.
+For more information, see <<declaring_dependencies.adoc#,Declaring Dependencies>>.
 
 [[sub:terminology_dependency_constraint]]
 == Dependency constraint
 
-A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency. For example, a dependency constraint can narrow down the set of supported module versions. Dependency constraints can be used to express such requirements for transitive dependencies. For more information, see <<controlling_transitive_dependencies.adoc#sec:dependency_constraints,Dependency Constraints>>.
+A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency.
+For example, a dependency constraint can narrow down the set of supported module versions.
+Dependency constraints can be used to express such requirements for transitive dependencies.
+For more information, see <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,Adding constraints on transitive dependencies>>.
 
 [[sub:terminology_module]]
 == Module
@@ -71,7 +77,9 @@ Maven's BOM (bill-of-material) is a popular kind of platform that <<sec:bom_impo
 [[sub:terminology_repository]]
 == Repository
 
-A repository hosts a set of <<#sub:terminology_module,modules>>, each of which may provide one or many releases indicated by a <<#sub:terminology_module_version,module version>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. For more information, see <<declaring_repositories.adoc#declaring_repositories,Declaring Repositories>>.
+A repository hosts a set of <<#sub:terminology_module,modules>>, each of which may provide one or many releases indicated by a <<#sub:terminology_module_version,module version>>.
+The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem.
+For more information, see <<declaring_repositories.adoc#,Declaring Repositories>>.
 
 [[sub:resolution_rule]]
 == Resolution rule
@@ -81,4 +89,7 @@ A resolution rule influences the behavior of how a <<#sub:terminology_dependency
 [[sub:terminology_transitive_dependency]]
 == Transitive dependency
 
-A <<#sub:terminology_module,module>> can have dependencies on other modules to work properly, so-called transitive dependencies. Releases of a module hosted on a <<#sub:terminology_repository,repository>> can provide <<#sub:terminology_module_metadata,metadata>> to declare those transitive dependencies. By default, Gradle resolves transitive dependencies automatically. However, the behavior is highly customizable. For more information, see <<controlling_transitive_dependencies.adoc#managing_transitive_dependencies,Managing Transitive Dependencies>>.
+A <<#sub:terminology_module,module>> can have dependencies on other modules to work properly, so-called transitive dependencies.
+Releases of a module hosted on a <<#sub:terminology_repository,repository>> can provide <<#sub:terminology_module_metadata,metadata>> to declare those transitive dependencies.
+By default, Gradle resolves transitive dependencies automatically. However, the behavior is highly customizable.
+For more information, see <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies>>.

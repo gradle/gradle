@@ -14,7 +14,7 @@ Composite builds allow you to:
 
 A build that is included in a composite build is referred to, naturally enough, as an "included build". Included builds do not share any configuration with the composite build, or the other included builds. Each included build is configured and executed in isolation.
 
-Included builds interact with other builds via <<customizing_dependency_resolution_behavior.adoc#sec:dependency_substitution_rules,_dependency substitution_>>.
+Included builds interact with other builds via <<controlling_transitive_dependencies.adoc#sec:dependency_substitution_rules,_dependency substitution_>>.
 If any build in the composite has a dependency that can be satisfied by the included build, then that dependency will be replaced by a project dependency on the included build.
 _Because of the reliance on dependency substitution, composite builds may force configurations to be resolved earlier, when composing the task execution graph.
 This can have a negative impact on overall build performance, because these configurations are not resolved in parallel._
