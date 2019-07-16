@@ -64,7 +64,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             param("revisionRule", "lastFinished")
             param("branchFilter", masterReleaseFilter)
         }
-
     }
 
     params {
@@ -117,9 +116,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
                 model.subProjects.forEach { subProject ->
-                    if (shouldBeSkipped(subProject, testCoverage)
-                        || stage.shouldOmitSlowProject(subProject)
-                        || !subProject.hasSeparateTestBuild(testCoverage.testType)) {
+                    if (shouldBeSkipped(subProject, testCoverage) ||
+                        stage.shouldOmitSlowProject(subProject) ||
+                        !subProject.hasSeparateTestBuild(testCoverage.testType)) {
                         return@forEach
                     }
                     if (subProject.unitTests && testCoverage.testType.unitTests) {

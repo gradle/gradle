@@ -15,6 +15,10 @@
  */
 package org.gradle.api.file
 
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CompileClasspath
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -22,6 +26,8 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.escapeString
+import static org.gradle.work.ChangeType.ADDED
+import static org.gradle.work.ChangeType.MODIFIED
 
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
@@ -34,7 +40,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         def symlinked = baseDir.file('symlinked')
         symlinked.text = 'target of symlink'
         baseDir.file('symlink').createLink(symlinked)
-
 
         buildScript << """
             def baseDir = new File("${escapeString(baseDir)}")
@@ -67,11 +72,26 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1365")
-    def "detect changes to broken symlink outputs in #outputType"() {
+    def "detect changes to broken symlink outputs in OutputDirectory"() {
         def root = file("root").createDir()
         def target = file("target")
         def link = root.file("link")
-        buildFile << script(target, link)
+        buildFile << """
+            import java.nio.file.*
+            class ProducesLink extends DefaultTask {
+                @OutputDirectory Path outputDirectory
+
+                @TaskAction execute() {
+                    def link = Paths.get('${link}')
+                    Files.deleteIfExists(link);
+                    Files.createSymbolicLink(link, Paths.get('${target}'));
+                }
+            }
+
+            task producesLink(type: ProducesLink) {
+                outputDirectory =  Paths.get('${root}')
+            }
+        """
 
         when:
         target.createFile()
@@ -95,47 +115,68 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped ':producesLink'
 
-        where:
-        outputType        | script
-        'OutputDirectory' | { targetParam, linkParam -> symbolicLinkOutputDirectory(targetParam, linkParam) }
-        'OutputFile'      | { targetParam, linkParam -> symbolicLinkOutputFile(targetParam, linkParam) }
+        when:
+        target.createFile()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        target.delete()
+        target.createDir()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
     }
 
-    def symbolicLinkOutputDirectory(target, link) {
-        """
+    @Issue("https://github.com/gradle/gradle/issues/1365")
+    def "detect changes to broken symlink outputs in OutputFile"() {
+        def root = file("root").createDir()
+        def target = file("target")
+        def link = root.file("link")
+        buildFile << """
             import java.nio.file.*
             class ProducesLink extends DefaultTask {
-                @OutputDirectory File outputDirectory 
-    
-                @TaskAction execute() {
-                    def link = Paths.get('${link}')
-                    Files.deleteIfExists(link);
-                    Files.createSymbolicLink(link, Paths.get('${target}'));
-                }
-            }
-            
-            task producesLink(type: ProducesLink) {
-                outputDirectory = file '${link.parentFile}'
-            }
-        """
-    }
+                @OutputFile Path outputFileLink
 
-    def symbolicLinkOutputFile(target, link) {
-        """
-            import java.nio.file.*
-            class ProducesLink extends DefaultTask {
-                @OutputFile Path outputFile
-    
                 @TaskAction execute() {
-                    Files.deleteIfExists(outputFile);
-                    Files.createSymbolicLink(outputFile, Paths.get('${target}'));
+                    Files.deleteIfExists(outputFileLink);
+                    Files.createSymbolicLink(outputFileLink, Paths.get('${target}'));
                 }
             }
-            
+
             task producesLink(type: ProducesLink) {
-                outputFile = Paths.get('${link}')
+                outputFileLink = Paths.get('${link}')
             }
         """
+
+        when:
+        target.createFile()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
+
+        when:
+        target.delete()
+        run 'producesLink'
+        then:
+        executedAndNotSkipped ':producesLink'
+
+        when:
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
+
+        when:
+        target.createFile()
+        run 'producesLink'
+        then:
+        skipped ':producesLink'
     }
 
     @Issue('https://github.com/gradle/gradle/issues/1365')
@@ -157,14 +198,14 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'copy'
         then:
-        executedAndNotSkipped ':copy'
         outputDirectory.list().sort() == [input.name, brokenLink.name].sort()
+        executedAndNotSkipped ':copy'
 
         when:
         run 'copy'
         then:
-        skipped ':copy'
         outputDirectory.list().sort() == [input.name, brokenLink.name].sort()
+        skipped ':copy'
 
         when:
         brokenLink.delete()
@@ -172,6 +213,257 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped ':copy'
         outputDirectory.list() == [input.name]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "task with broken symlink in InputDirectory is valid"() {
+        def inputFileTarget = file("brokenInputFileTarget")
+        def inputDirectoryWithBrokenLink = file('inputDirectoryWithBrokenLink')
+        inputDirectoryWithBrokenLink.file('brokenInputFile').createLink(inputFileTarget)
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @InputDirectory File inputDirectoryWithBrokenLink
+
+                @OutputFile File output
+
+                @TaskAction execute() {
+                    output.text = inputDirectoryWithBrokenLink.list()
+                }
+            }
+            task inputBrokenLinkNameCollector(type: CustomTask) {
+                inputDirectoryWithBrokenLink = file '${inputDirectoryWithBrokenLink}'
+                output = file '${output}'
+            }
+        """
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "[brokenInputFile]"
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+
+        when:
+        inputFileTarget.createFile()
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "task with broken symlink in InputFiles is valid"() {
+        def inputFileTarget = file("brokenInputFileTarget")
+        def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+
+                @InputFiles FileCollection brokenInputFiles
+
+                @OutputFile File output
+
+                @TaskAction execute() {
+                    output.text = brokenInputFiles.files*.name
+                }
+            }
+            task inputBrokenLinkNameCollector(type: CustomTask) {
+                brokenInputFiles = files '${brokenInputFile}'
+                output = file '${output}'
+            }
+        """
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "[brokenInputFile]"
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+
+        when:
+        inputFileTarget.createFile()
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "unbreaking a symlink in InputFiles is detected incrementally"() {
+        def inputFileTarget = file("brokenInputFileTarget")
+        def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @Incremental @InputFiles FileCollection brokenInputFiles
+
+                @OutputFile File output
+
+                @TaskAction execute(InputChanges changes) {
+                    output.text = changes.getFileChanges(brokenInputFiles)*.changeType
+                }
+            }
+            task inputBrokenLinkNameCollector(type: CustomTask) {
+                brokenInputFiles = files '${brokenInputFile}'
+                output = file '${output}'
+            }
+        """
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "${[ADDED]}"
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+
+        when:
+        inputFileTarget.createFile()
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "${[MODIFIED]}"
+
+        when:
+        run 'inputBrokenLinkNameCollector'
+        then:
+        skipped ':inputBrokenLinkNameCollector'
+
+        when:
+        inputFileTarget.delete()
+        run 'inputBrokenLinkNameCollector'
+        then:
+        executedAndNotSkipped ':inputBrokenLinkNameCollector'
+        output.text == "${[MODIFIED]}"
+    }
+
+    def "broken symlink in #inputType fails validation"() {
+        def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @${inputType.simpleName} File brokenInputFile
+
+                @TaskAction execute() {}
+            }
+            task brokenInput(type: CustomTask) {
+                brokenInputFile = file '${brokenInputFile}'
+            }
+        """
+
+        when:
+        fails 'brokenInput'
+        then:
+        failure.assertHasCause("${inputName} '${brokenInputFile}' specified for property 'brokenInputFile' does not exist.")
+
+        where:
+        inputName   | inputType
+        "File"      | InputFile
+        "Directory" | InputDirectory
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "task with a broken #classpathType.simpleName root input is accepted"() {
+        def brokenClasspathEntry = file('broken.jar').createLink("broken.jar.target")
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @${classpathType.name} File classpath
+    
+                @OutputFile File output
+    
+                @TaskAction execute() {}
+            }
+            task brokenClasspathInput(type: CustomTask) {
+                classpath = file '${brokenClasspathEntry}'
+                output = file '${output}'
+            }
+        """
+        assert !brokenClasspathEntry.exists()
+
+        when:
+        run 'brokenClasspathInput'
+        then:
+        executedAndNotSkipped ':brokenClasspathInput'
+
+        where:
+        classpathType << [Classpath, CompileClasspath]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "task with a broken #classpathType.simpleName directory input is accepted"() {
+        def classes = file('classes').createDir()
+        def brokenInputFile = classes.file('BrokenInputFile.class').createLink("BrokenInputFile.target")
+        def output = file("output.txt")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @${classpathType.name} File classpath
+    
+                @OutputFile File output
+    
+                @TaskAction execute() {}
+            }
+            task brokenClasspathInput(type: CustomTask) {
+                classpath = file '${classes}'
+                output = file '${output}'
+            }
+        """
+        assert !brokenInputFile.exists()
+
+        when:
+        fails 'brokenClasspathInput'
+        then:
+        failure.assertHasCause("Couldn't read file content: '${brokenInputFile}'.")
+
+        where:
+        classpathType << [Classpath, CompileClasspath]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/9904')
+    def "directory with broken symlink and @SkipWhenEmpty fails"() {
+        def root = file('root').createDir()
+        def brokenInputFile = root.file('BrokenInputFile').createLink("BrokenInputFileTarget")
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @InputDirectory @SkipWhenEmpty File directoryWithBrokenLink
+    
+                @TaskAction execute() {}
+            }
+            task brokenDirectoryWithSkipWhenEmpty(type: CustomTask) {
+                directoryWithBrokenLink = file '${root}'
+            }
+        """
+        assert !brokenInputFile.exists()
+
+        when:
+        fails 'brokenDirectoryWithSkipWhenEmpty'
+        then:
+        failure.assertHasCause("Couldn't follow symbolic link '${brokenInputFile}'.")
     }
 
     void maybeDeprecated(String expression) {

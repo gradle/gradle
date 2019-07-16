@@ -40,12 +40,12 @@ class BeanPropertyWriter(
 ) {
 
     private
-    val relevantFields = relevantStateOf(beanType)
+    val relevantFields = relevantStateOf(beanType).toList()
 
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
-    fun WriteContext.writeFieldsOf(bean: Any) {
+    suspend fun WriteContext.writeFieldsOf(bean: Any) {
         writingProperties {
             for (field in relevantFields) {
                 val fieldName = field.name
@@ -79,7 +79,7 @@ class BeanPropertyWriter(
  * Returns whether the given property could be written. A property can only be written when there's
  * a suitable [Codec] for its [value].
  */
-fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
+suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
     withPropertyTrace(kind, name) {
         val writeValue = writeActionFor(value)
         if (writeValue == null) {

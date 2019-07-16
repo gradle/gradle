@@ -29,10 +29,10 @@ object AdHocPerformanceTestCoordinatorLinux : BuildType({
             name = "GRADLE_RUNNER"
             tasks = ""
             gradleParams = (
-                buildToolGradleParameters(isContinue = false)
-                    + performanceTestCommandLine(task = "clean distributedPerformanceTests", baselines = "%performance.baselines%")
-                    + distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkersLinux")
-                    + builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
+                buildToolGradleParameters(isContinue = false) +
+                    performanceTestCommandLine(task = "clean distributedPerformanceTests", baselines = "%performance.baselines%") +
+                    distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkersLinux") +
+                    builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
                 ).joinToString(separator = " ")
         }
         checkCleanM2(Os.linux)

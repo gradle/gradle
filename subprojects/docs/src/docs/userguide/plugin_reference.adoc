@@ -51,6 +51,12 @@ Provides support for building C++ libraries on Windows, Linux, and macOS.
 <<cpp_unit_test_plugin.adoc#,C++ Unit Test>>::
 Provides support for building and running C++ executable-based tests on Windows, Linux, and macOS.
 
+<<swift_application_plugin.adoc#,Swift Application>>::
+Provides support for building Swift applications on Linux and macOS.
+
+<<swift_library_plugin.adoc#,Swift Library>>::
+Provides support for building Swift libraries on Linux and macOS.
+
 == Packaging and distribution
 
 <<application_plugin.adoc#,Application>>::

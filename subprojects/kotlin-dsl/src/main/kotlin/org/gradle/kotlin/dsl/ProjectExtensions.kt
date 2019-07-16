@@ -225,7 +225,7 @@ inline fun <reified T> Project.container(noinline factory: (String) -> T): Named
  */
 fun Project.gradleKotlinDsl(): Dependency =
     DefaultSelfResolvingDependency(
-        fileCollectionOf(
+        project.fileCollectionOf(
             gradleKotlinDslOf(project),
             "gradleKotlinDsl"
         ) as FileCollectionInternal

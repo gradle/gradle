@@ -58,9 +58,6 @@ import java.util.zip.ZipInputStream
 @CompileStatic
 @CacheableTask
 class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
-    @Internal
-    String branchName
-
     @Input
     String buildTypeId
 
