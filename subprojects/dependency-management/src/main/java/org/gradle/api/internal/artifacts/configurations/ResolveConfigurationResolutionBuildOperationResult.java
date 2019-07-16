@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
@@ -29,9 +33,11 @@ import java.util.Map;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
     private final ResolutionResult resolutionResult;
+    private final AttributeContainer requestedAttributes;
 
-    ResolveConfigurationResolutionBuildOperationResult(ResolutionResult resolutionResult) {
+    ResolveConfigurationResolutionBuildOperationResult(ResolutionResult resolutionResult, AttributeContainer requestedAttributes) {
         this.resolutionResult = resolutionResult;
+        this.requestedAttributes = requestedAttributes;
     }
 
     @Override
@@ -59,6 +65,17 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
             }
         });
         model.put("components", components);
+        ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<Object>();
+        for (Attribute<?> att : requestedAttributes.keySet()) {
+            requestedAttributesBuilder.add(ImmutableMap.of("name", att.getName(), "value", requestedAttributes.getAttribute(att).toString()));
+        }
+        model.put("requestedAttributes", requestedAttributesBuilder.build());
         return model;
     }
+
+    @Override
+    public AttributeContainer getRequestedAttributes() {
+        return requestedAttributes;
+    }
+
 }

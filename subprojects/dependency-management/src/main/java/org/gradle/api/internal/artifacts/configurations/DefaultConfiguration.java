@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
@@ -634,7 +635,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(cachedResolverResults.getResolutionResult()));
+                ResolutionResult resolutionResult = cachedResolverResults.getResolutionResult();
+                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(resolutionResult, desugarAttributes(resolutionResult)));
             }
 
             @Override
@@ -1746,5 +1748,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public PublishArtifactSet getPublishArtifactSet() {
             return getAllArtifacts();
         }
+    }
+
+    // this does the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer
+    @SuppressWarnings("unchecked")
+    private AttributeContainer desugarAttributes(ResolutionResult resolutionResult) {
+        AttributeContainer requestedAttributes = resolutionResult.getRequestedAttributes();
+        AttributeContainerInternal result = attributesFactory.mutable();
+        for (Attribute<?> attribute : requestedAttributes.keySet()) {
+            String name = attribute.getName();
+            Class<?> type = attribute.getType();
+            if (type.equals(Boolean.class)) {
+                result.attribute((Attribute<Boolean>) attribute, (Boolean) requestedAttributes.getAttribute(attribute));
+            } else if (type.equals(String.class)) {
+                result.attribute((Attribute<String>) attribute, (String) requestedAttributes.getAttribute(attribute));
+            } else if (type.equals(Integer.class)) {
+                result.attribute((Attribute<Integer>) attribute, (Integer) requestedAttributes.getAttribute(attribute));
+            } else {
+                assert Named.class.isAssignableFrom(type);
+                Named attributeValue = (Named) requestedAttributes.getAttribute(attribute);
+                result.attribute(Attribute.of(name, String.class), attributeValue.getName());
+            }
+        }
+        return result.asImmutable();
     }
 }
