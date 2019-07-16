@@ -23,8 +23,11 @@ import java.net.URL;
 
 public class DefaultDeprecatedClassLoader extends ClassLoader implements DeprecatedClassloader {
 
+    private static final String BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING = "Access to the buildSrc project and its dependencies in settings script";
     private final ClassLoader deprecatedUsageLoader;
     private final ClassLoader nonDeprecatedParent;
+
+    boolean deprecationFired;
 
     public DefaultDeprecatedClassLoader(ClassLoader deprecatedUsageLoader, ClassLoader nonDeprecatedParent) {
         super(null);
@@ -39,35 +42,45 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
 
     @Override
     public URL getResource(String name) {
-        URL resource = nonDeprecatedParent.getResource(name);
-        if (resource != null) {
-            return resource;
+        URL resource;
+        if(!deprecationFired) {
+            resource = nonDeprecatedParent.getResource(name);
+            if (resource != null) {
+                return resource;
+            }
         }
-        // avoid duplicate deprecation when loading class as resource first by our url classloaders
+
         resource = deprecatedUsageLoader.getResource(name);
-        if (resource != null && !name.endsWith(".class")) {
-            DeprecationLogger.nagUserOfDeprecated("Using buildSrc resources in settings", "Do not use '" + name + "' in settings.");
+        if (resource != null) {
+            maybeEmitDeprecationWarning();
         }
         return resource;
     }
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        try {
-            return nonDeprecatedParent.loadClass(name);
-        } catch (ClassNotFoundException e) {
-            // Expected
+        if(!deprecationFired) {
+            try {
+                return nonDeprecatedParent.loadClass(name);
+            } catch (ClassNotFoundException e) {
+                // Expected
+            }
         }
-
         try {
             Class<?> deprecatedUsageClass = deprecatedUsageLoader.loadClass(name);
-            DeprecationLogger.nagUserOfDeprecated("Using buildSrc classes in settings", "Do not use '" + name + "' in settings.");
+            maybeEmitDeprecationWarning();
             return deprecatedUsageClass;
         } catch (ClassNotFoundException e) {
-            // Expected
+                // Expected
         }
-
         throw new ClassNotFoundException(String.format("%s not found.", name));
+    }
+
+    private void maybeEmitDeprecationWarning() {
+        if (!deprecationFired) {
+            DeprecationLogger.nagUserOfDeprecated(BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING);
+            deprecationFired = true;
+        }
     }
 }
 

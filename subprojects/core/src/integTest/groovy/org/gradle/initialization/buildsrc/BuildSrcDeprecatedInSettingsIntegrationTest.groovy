@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins
+package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpec {
 
-    def "buildSrc classes used in settings is deprecated"() {
+    def "Using buildSrc classes in settings is deprecated"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
             
@@ -56,7 +56,7 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
                 repositories {
                     mavenCentral()
                 }
-
+                
                 dependencies {  
                     classpath 'org.apache.commons:commons-lang3:3.9'                
                 }
@@ -73,11 +73,51 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
             org.acme.build.SomeOtherBuildSrcClass.foo("from build.gradle")
         """
         when:
-        executer.expectDeprecationWarnings(2)
+        executer.expectDeprecationWarnings(1)
         succeeds("tasks")
         then:
-        outputContains("Using buildSrc classes in settings has been deprecated. This is scheduled to be removed in Gradle 6.0. Do not use 'org.acme.build.SomeBuildSrcClass' in settings")
-        outputContains("Using buildSrc classes in settings has been deprecated. This is scheduled to be removed in Gradle 6.0. Do not use 'org.apache.commons.math3.util.FastMath' in settings")
+        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+//        outputContains("Using buildSrc classes in settings has been deprecated. This is scheduled to be removed in Gradle 6.0. Do not use 'org.apache.commons.math3.util.FastMath' in settings")
+    }
+
+    def "Using buildSrc resources in settings is deprecated"() {
+        file('buildSrc/src/main/resources/org/acme/build/SomeResource.txt') << """
+        // some resource content
+        """
+        settingsFile << """
+            println 'settings resource loading'
+            getClass().getClassLoader().getResource("org/acme/build/SomeResource.txt");
+        """
+
+        when:
+        executer.expectDeprecationWarnings(1)
+        succeeds("tasks")
+        then:
+        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+    }
+
+    def "Using buildSrc dependencies in settings is deprecated"() {
+        file('buildSrc/build.gradle') << """
+            apply plugin: 'groovy'
+            
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {  
+                compile 'org.apache.commons:commons-math3:3.6.1'                
+            }
+        """
+
+        settingsFile << """
+            org.apache.commons.math3.util.FastMath.nextUp(0.2)
+        """
+
+        when:
+        executer.expectDeprecationWarnings(1)
+        succeeds("tasks")
+        then:
+        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
     }
 
 }
