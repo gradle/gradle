@@ -307,6 +307,26 @@ public interface ResolutionStrategy {
     void sortArtifacts(SortOrder sortOrder);
 
     /**
+     * Configures the capabilities resolution strategy.
+     *
+     * @param action the configuration action.
+     *
+     * @return this resolution strategy
+     *
+     * @since 6.0
+     */
+    @Incubating
+    ResolutionStrategy capabilitiesResolution(Action<? super CapabilitiesResolution> action);
+
+    /**
+     * Returns the capabilities resolution strategy.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    CapabilitiesResolution getCapabilitiesResolution();
+
+    /**
      * Defines the sort order for components and artifacts produced by the configuration.
      *
      * @see #sortArtifacts(SortOrder)
