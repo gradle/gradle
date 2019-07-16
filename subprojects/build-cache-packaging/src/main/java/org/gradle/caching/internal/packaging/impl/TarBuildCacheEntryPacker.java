@@ -61,6 +61,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +76,7 @@ import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.mak
  */
 public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
-    private static final String UTF_8 = StandardCharsets.UTF_8.name();
+    public static final Charset ENCODING = StandardCharsets.UTF_8;
 
     @SuppressWarnings("OctalInteger")
     private interface UnixPermissions {
@@ -114,7 +115,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         } else {
             bufferedOutput = new BufferedOutputStream(output);
         }
-        try (TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(bufferedOutput, UTF_8)) {
+        try (TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(bufferedOutput, ENCODING.name())) {
             tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
@@ -160,7 +161,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     @Override
     public UnpackResult unpack(CacheableEntity entity, InputStream input, OriginReader readOrigin) throws IOException {
-        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(input, UTF_8)) {
+        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(input, ENCODING.name())) {
             return unpack(entity, tarInput, readOrigin);
         }
     }
@@ -333,7 +334,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private static String escape(String name) {
         try {
-            return URLEncoder.encode(name, UTF_8);
+            return URLEncoder.encode(name, ENCODING.name());
         } catch (UnsupportedEncodingException ignored) {
             throw new AssertionError();
         }
@@ -341,7 +342,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private static String unescape(String name) {
         try {
-            return URLDecoder.decode(name, UTF_8);
+            return URLDecoder.decode(name, ENCODING.name());
         } catch (UnsupportedEncodingException e) {
             throw new AssertionError(e);
         }

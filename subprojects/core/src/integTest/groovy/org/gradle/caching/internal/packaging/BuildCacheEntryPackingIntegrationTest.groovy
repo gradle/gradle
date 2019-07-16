@@ -38,6 +38,7 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         "windows-1250",
     ]
 
+    @Issue("https://github.com/gradle/gradle/issues/9877")
     @Unroll
     def "can store and load files having non-ascii characters in file name using default file encoding #fileEncoding"() {
         def fileName = NON_ASCII_NAME + ".txt"
@@ -75,7 +76,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         fileEncoding << DEFAULT_ENCODINGS
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/9877")
     @Unroll
     def "can store and load files having non-ascii characters in property name using default file encoding #fileEncoding"() {
         def outputFile = file("output.txt")
