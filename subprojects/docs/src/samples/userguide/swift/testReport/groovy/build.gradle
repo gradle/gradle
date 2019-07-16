@@ -1,0 +1,17 @@
+// tag::test-report[]
+subprojects {
+    apply plugin: 'xctest'
+
+    // Disable the test report for the individual test task
+    tasks.named('xcTest') {
+        reports.html.enabled = false
+    }
+}
+
+tasks.register('testReport', TestReport) {
+    destinationDir = file("$buildDir/reports/allTests")
+
+    // Include the results from the `xcTest` task in all subprojects
+    reportOn subprojects*.xcTest
+}
+// end::test-report[]
