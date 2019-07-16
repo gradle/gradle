@@ -15,9 +15,12 @@ val processTemplates by tasks.registering(ProcessTemplates::class) {
 tasks.register("processTemplatesAdHoc") {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
     inputs.files(fileTree("src/templates"))
+        .withPropertyName("sourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.property("templateData.name", "docs")
     inputs.property("templateData.variables", mapOf("year" to "2013"))
     outputs.dir("$buildDir/genOutput2")
+        .withPropertyName("outputDir")
 
     doLast {
         // Process the templates here
@@ -42,9 +45,12 @@ tasks.register<ProcessTemplatesNoAnnotations>("processTemplatesRuntime") {
 
     inputs.property("engine", templateEngine)
     inputs.files(sourceFiles)
+        .withPropertyName("sourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.property("templateData.name", templateData.name)
     inputs.property("templateData.variables", templateData.variables)
     outputs.dir(outputDir)
+        .withPropertyName("outputDir")
 }
 // end::custom-class-runtime-api[]
 
@@ -60,13 +66,17 @@ tasks.register<ProcessTemplatesNoAnnotations>("processTemplatesRuntimeConf") {
         include("**/*.fm")
     }
 
-    inputs.files(sourceFiles).skipWhenEmpty()
+    inputs.files(sourceFiles)
+        .skipWhenEmpty()
+        .withPropertyName("sourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     // ...
 // end::runtime-api-conf[]
     inputs.property("engine", templateEngine)
     inputs.property("templateData.name", templateData.name)
     inputs.property("templateData.variables", templateData.variables)
     outputs.dir(outputDir)
+        .withPropertyName("outputDir")
 // tag::runtime-api-conf[]
 }
 // end::runtime-api-conf[]
