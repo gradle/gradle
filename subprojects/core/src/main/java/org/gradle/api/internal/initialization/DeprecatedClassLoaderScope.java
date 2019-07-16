@@ -33,6 +33,11 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     }
 
     @Override
+    public ClassLoaderScope createChild(String name) {
+        return super.createChild(name).deprecated();
+    }
+
+    @Override
     public ClassLoaderScope deprecated() {
         return this;
     }

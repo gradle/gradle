@@ -411,6 +411,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             println(org.apache.commons.lang3.StringUtils.reverse("Gradle"))
         """)
 
+        executer.expectDeprecationWarnings(1)
+
         assertThat(
             build("help").output,
             containsString("eldarG"))
@@ -468,9 +470,14 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             apply<my.SettingsPlugin>()
         """)
 
+        executer.expectDeprecationWarnings(1)
+        val output = build("help").output
         assertThat(
-            build("help").output,
+            output,
             containsString("Settings plugin applied!"))
+        assertThat(
+            output,
+            containsString("Access to the buildSrc project and its dependencies in settings script has been deprecated."))
     }
 
     @Test

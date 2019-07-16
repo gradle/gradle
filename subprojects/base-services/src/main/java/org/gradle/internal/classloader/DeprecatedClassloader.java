@@ -16,5 +16,5 @@
 
 package org.gradle.internal.classloader;
 
-public interface DeprecatedClassloader {
+public interface DeprecatedClassloader extends ClassLoaderHierarchy {
 }

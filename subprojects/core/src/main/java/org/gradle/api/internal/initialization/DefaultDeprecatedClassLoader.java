@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.DeprecatedClassloader;
 import org.gradle.util.DeprecationLogger;
 
@@ -81,6 +82,12 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
             DeprecationLogger.nagUserOfDeprecated(BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING);
             deprecationFired = true;
         }
+    }
+
+    @Override
+    public void visit(ClassLoaderVisitor visitor) {
+        visitor.visit(deprecatedUsageLoader);
+        visitor.visit(nonDeprecatedParent);
     }
 }
 

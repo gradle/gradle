@@ -77,7 +77,6 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
         succeeds("tasks")
         then:
         outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
-//        outputContains("Using buildSrc classes in settings has been deprecated. This is scheduled to be removed in Gradle 6.0. Do not use 'org.apache.commons.math3.util.FastMath' in settings")
     }
 
     def "Using buildSrc resources in settings is deprecated"() {
