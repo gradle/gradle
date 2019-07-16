@@ -59,7 +59,7 @@ class DefaultResolutionStrategySpec extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null)
 
     def "allows setting forced modules"() {
         expect:
