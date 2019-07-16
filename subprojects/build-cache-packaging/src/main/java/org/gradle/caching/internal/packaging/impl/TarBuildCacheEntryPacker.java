@@ -76,8 +76,6 @@ import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.mak
  */
 public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
-    public static final Charset ENCODING = StandardCharsets.UTF_8;
-
     @SuppressWarnings("OctalInteger")
     private interface UnixPermissions {
         int FILE_FLAG =         0100000;
@@ -87,6 +85,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         int PERM_MASK           = 07777;
     }
 
+    private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
     private static final int BUFFER_SIZE = 64 * 1024;
