@@ -40,7 +40,6 @@ import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovySourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.model.ObjectFactory;
@@ -153,7 +152,7 @@ public class GroovyCompile extends AbstractCompile {
         if (inputChanges != null && getOptions().isIncremental()) {
             doIncrementalCompile(inputChanges);
         } else {
-            doCompile(inputChanges, null);
+            doCompile(createSpec(), inputChanges, null);
         }
     }
 
@@ -174,17 +173,22 @@ public class GroovyCompile extends AbstractCompile {
 
     private void doIncrementalCompile(InputChanges inputChanges) {
         Multimap<String, String> oldMappings = readSourceClassesMappingFile(getSourceClassesMappingFile());
-        doCompile(inputChanges, oldMappings);
-        updateSourceClassesMappingFile(inputChanges, oldMappings);
+
+        DefaultGroovyJavaJointCompileSpec spec = createSpec();
+        doCompile(spec, inputChanges, oldMappings);
+
+        if (enableIncrementalCompilation(spec)) {
+            // Only merge old mapping on incremental compilation
+            mergeIncrementalMappingsIntoOldMappings(inputChanges, oldMappings);
+        }
     }
 
-    private void doCompile(InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
-        DefaultGroovyJavaJointCompileSpec spec = createSpec();
+    private void doCompile(DefaultGroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         WorkResult result = getCompiler(spec, inputChanges, sourceClassesMapping).execute(spec);
         setDidWork(result.getDidWork());
     }
 
-    private void updateSourceClassesMappingFile(InputChanges inputChanges, Multimap<String, String> oldMappings) {
+    private void mergeIncrementalMappingsIntoOldMappings(InputChanges inputChanges, Multimap<String, String> oldMappings) {
         Multimap<String, String> mappingsDuringIncrementalCompilation = readSourceClassesMappingFile(getSourceClassesMappingFile());
 
         StreamSupport.stream(inputChanges.getFileChanges(getStableSources()).spliterator(), false)
@@ -223,20 +227,20 @@ public class GroovyCompile extends AbstractCompile {
                 cleaningGroovyCompiler,
                 getPath(),
                 getStableSources().getAsFileTree(),
-                createRecompilationSpecProvider(inputChanges, spec, sourceClassesMapping)
+                createRecompilationSpecProvider(inputChanges, sourceClassesMapping)
             );
         } else {
             return cleaningGroovyCompiler;
         }
     }
 
-    private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, GroovyJavaJointCompileSpec spec, Multimap<String, String> sourceClassesMapping) {
+    private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         return new GroovyRecompilationSpecProvider(
             ((ProjectInternal) getProject()).getFileOperations(),
             getSource(),
             inputChanges,
             inputChanges.getFileChanges(getStableSources()),
-            new GroovySourceFileClassNameConverter(sourceClassesMapping));
+            sourceClassesMapping);
     }
 
     /**

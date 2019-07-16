@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import com.google.common.collect.Multimap;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
@@ -35,17 +36,27 @@ import java.util.Set;
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final InputChanges inputChanges;
     private final Iterable<FileChange> sourceChanges;
+    private final Multimap<String, String> sourceClassesMapping;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
                                            FileTree sources,
                                            InputChanges inputChanges,
                                            Iterable<FileChange> sourceChanges,
-                                           GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
+                                           Multimap<String, String> sourceClassesMapping) {
         super(fileOperations, sources);
         this.inputChanges = inputChanges;
         this.sourceChanges = sourceChanges;
-        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
+        this.sourceClassesMapping = sourceClassesMapping;
+        this.sourceFileClassNameConverter = new GroovySourceFileClassNameConverter(sourceClassesMapping);
+    }
+
+    private RecompilationSpec clearMappingOnFullRecompilation(RecompilationSpec spec) {
+        if (spec.isFullRebuildNeeded()) {
+            // Clear the mapping to prevent it being merged into the new mapping file
+            sourceClassesMapping.clear();
+        }
+        return spec;
     }
 
     @Override
@@ -58,14 +69,14 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
             spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
-            return spec;
+            return clearMappingOnFullRecompilation(spec);
         }
 
         processClasspathChanges(current, previous, spec);
         processOtherChanges(previous, spec);
 
         spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
-        return spec;
+        return clearMappingOnFullRecompilation(spec);
     }
 
     @Override
@@ -101,13 +112,13 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     private void processOtherChanges(PreviousCompilation previous, RecompilationSpec spec) {
-        if (spec.getFullRebuildCause() != null) {
+        if (spec.isFullRebuildNeeded()) {
             return;
         }
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
 
         for (FileChange fileChange : sourceChanges) {
-            if (spec.getFullRebuildCause() != null) {
+            if (spec.isFullRebuildNeeded()) {
                 return;
             }
 
@@ -125,7 +136,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
 
         for (String className : spec.getClassesToCompile()) {
-            if (spec.getFullRebuildCause() != null) {
+            if (spec.isFullRebuildNeeded()) {
                 return;
             }
 
