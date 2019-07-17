@@ -554,7 +554,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 // TODO: convert output file checks to a resource lock
                 if (!tryLockProjectFor(node)
-                    || !tryLockSharedResourceFor(node, workerLease)
+                    || !tryLockSharedResourceFor(node)
                     || !workerLease.tryLock()
                     || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
                     resourceLockState.releaseLocks();
@@ -593,7 +593,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return projectLocks.get(project);
     }
 
-    private boolean tryLockSharedResourceFor(Node node, WorkerLeaseRegistry.WorkerLease workerLease) {
+    private boolean tryLockSharedResourceFor(Node node) {
         if (node instanceof TaskNode) {
             Map<String, Integer> sharedResources = ((TaskNode) node).getTask().getSharedResources();
             if (sharedResources == null || sharedResources.isEmpty()) {
@@ -601,7 +601,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             } else {
                 List<ResourceLock> locks = Lists.newArrayList();
                 for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
-                    locks.add(sharedResourceLeaseLockRegistry.getResourceLock(entry.getKey(), entry.getValue(), workerLease.getOwnerThread()));
+                    locks.add(sharedResourceLeaseLockRegistry.getResourceLock(entry.getKey(), entry.getValue(), Thread.currentThread()));
                 }
                 sharedResourceLocks.put(node, locks);
                 return locks.stream().allMatch(ResourceLock::tryLock);

@@ -61,8 +61,6 @@ public interface WorkerLeaseRegistry {
          * <p>Note that the caller must call {@link WorkerLeaseCompletion#leaseFinish()} to mark the completion of the lease and to release the lease for other threads to use.
          */
         WorkerLeaseCompletion startChild();
-
-        Thread getOwnerThread();
     }
 
     interface WorkerLeaseCompletion {
