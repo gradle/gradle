@@ -42,8 +42,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GFileUtils.moveFile
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.internal.initialization.DeprecatedClassLoaderScope
-import org.gradle.internal.classpath.DeprecatedClasspath
 
 import java.io.File
 
@@ -145,7 +143,7 @@ class KotlinScriptClassPathProvider(
 
     private
     fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath {
-        return if (scope is DeprecatedClassLoaderScope) DeprecatedClasspath.of(gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)) else gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
+        return gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
     }
 
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
