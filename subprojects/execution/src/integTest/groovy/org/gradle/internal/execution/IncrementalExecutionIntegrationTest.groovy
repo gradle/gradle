@@ -874,7 +874,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution) {
                     fingerprintOutputs(outputs)
                 }
             }

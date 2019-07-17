@@ -469,7 +469,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution) {
             //noinspection ConstantConditions
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(

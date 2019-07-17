@@ -381,13 +381,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution) {
             AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
             ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
-            return createFilteredOutputFingerprints(afterPreviousExecutionState, context.getOutputFilesBeforeExecution(), outputsAfterExecution, context.getOverlappingOutputs().isPresent());
+            return createFilteredOutputFingerprints(afterPreviousExecutionState, outputFilesBeforeExecution, outputsAfterExecution, context.getOverlappingOutputs().isPresent());
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots, ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots, boolean hasOverlappingOutputs) {
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots, ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots, boolean hasOverlappingOutputs) {
             ImmutableSortedMap<String, FileCollectionFingerprint> afterLastExecutionFingerprints = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
 
             return ImmutableSortedMap.copyOfSorted(

@@ -19,16 +19,17 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
-public class SnapshotOutputsStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
+public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final Step<? super C, ? extends Result> delegate;
 
@@ -45,7 +46,8 @@ public class SnapshotOutputsStep<C extends Context> implements Step<C, CurrentSn
         Result result = delegate.execute(context);
 
         UnitOfWork work = context.getWork();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
+        BeforeExecutionState beforeExecutionState = context.getBeforeExecutionState().get();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated(beforeExecutionState.getOutputFileProperties());
         OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
         return new CurrentSnapshotResult() {
             @Override

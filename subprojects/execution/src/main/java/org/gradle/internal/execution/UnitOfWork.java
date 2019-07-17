@@ -180,5 +180,5 @@ public interface UnitOfWork extends CacheableEntity {
 
     ExecutionHistoryStore getExecutionHistoryStore();
 
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution);
 }
