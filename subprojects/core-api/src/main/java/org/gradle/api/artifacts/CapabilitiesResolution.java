@@ -28,7 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
  * or it can be specific to a capability by calling one of the {@link #withCapability(Object, Action)},
  * {@link #withCapability(Capability, Action)} or {@link #withCapability(String, String, Action)} methods.
  *
- * @since 6.0
+ * @since 5.6
  */
 @Incubating
 @HasInternalProtocol
