@@ -21,6 +21,6 @@ class UtilTest: XCTestCase {
         ("testOk", testOk)
     ]
     func testOk() {
-        println("hello from UtilTest.")
+        print("hello from UtilTest.")
     }
 }

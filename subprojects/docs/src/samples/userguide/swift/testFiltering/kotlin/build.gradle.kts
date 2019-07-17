@@ -21,10 +21,7 @@ plugins {
 // tag::test-filtering[]
 xctest {
     binaries.configureEach {
-        runTask.get().configure {
-            // include all tests from test class
-            includeTestsMatching("SomeIntegTest.*") // or `"Testing.SomeIntegTest.*"` on macOS
-        }
+        runTask.get().filter.includeTestsMatching("SomeIntegTest.*") // or `"Testing.SomeIntegTest.*"` on macOS
     }
 }
 // end::test-filtering[]

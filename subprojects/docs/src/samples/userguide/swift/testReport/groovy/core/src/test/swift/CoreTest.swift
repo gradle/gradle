@@ -22,6 +22,6 @@ class CoreTest: XCTestCase {
     ]
 
     func testOk() {
-        println("hello from CoreTest.")
+        print("hello from CoreTest.")
     }
 }
