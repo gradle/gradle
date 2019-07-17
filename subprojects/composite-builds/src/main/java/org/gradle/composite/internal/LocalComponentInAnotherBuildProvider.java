@@ -56,9 +56,7 @@ public class LocalComponentInAnotherBuildProvider implements LocalComponentProvi
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
         try {
             return projectMetadata.get(project);
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (UncheckedExecutionException e) {
+        } catch (ExecutionException | UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
     }

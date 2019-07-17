@@ -1494,9 +1494,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         private Object getAnnotationParameterValue(Annotation annotation, Method method) {
             try {
                 return method.invoke(annotation);
-            } catch (IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } catch (InvocationTargetException e) {
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }

@@ -806,9 +806,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         try {
             try {
                 cn = (ClassNode) ClassNodeResolver.class.getDeclaredField("NO_CLASS").get(null);
-            } catch (IllegalAccessException e) {
-                cn = null;
-            } catch (NoSuchFieldException e) {
+            } catch (IllegalAccessException | NoSuchFieldException e) {
                 cn = null;
             }
         } finally {

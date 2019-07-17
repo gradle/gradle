@@ -61,9 +61,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                     return out == null ? NULL : out;
                 }
             });
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (ExecutionException e) {
+        } catch (UncheckedExecutionException | ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
         if (value == NULL) {
@@ -100,9 +98,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                     return value;
                 }
             });
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (ExecutionException e) {
+        } catch (UncheckedExecutionException | ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } finally {
             completionRef.get().run();
