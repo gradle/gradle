@@ -197,15 +197,19 @@ public class JvmOptions {
         boolean xagentlibJdwpFound = false;
         Set<Object> matches = new HashSet<Object>();
         for (Object extraJvmArg : extraJvmArgs) {
-            if (extraJvmArg.toString().equals("-Xdebug")) {
-                xdebugFound = true;
-                matches.add(extraJvmArg);
-            } else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
-                xrunjdwpFound = true;
-                matches.add(extraJvmArg);
-            } else if (extraJvmArg.toString().equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) {
-                xagentlibJdwpFound = true;
-                matches.add(extraJvmArg);
+            switch (extraJvmArg.toString()) {
+                case "-Xdebug":
+                    xdebugFound = true;
+                    matches.add(extraJvmArg);
+                    break;
+                case "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005":
+                    xrunjdwpFound = true;
+                    matches.add(extraJvmArg);
+                    break;
+                case "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005":
+                    xagentlibJdwpFound = true;
+                    matches.add(extraJvmArg);
+                    break;
             }
         }
         if (xdebugFound && xrunjdwpFound || xagentlibJdwpFound) {
