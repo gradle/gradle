@@ -92,6 +92,26 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds('run')
     }
 
+    def "If custom debug argument is passed to the build then debug options is ignored"() {
+        setup:
+        sampleProject"""    
+            debugOptions {
+                enabled = true
+                server = false
+                suspend = false
+            }
+            
+            jvmArgs "-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$jdwpClient.port"
+        """
+
+        jdwpClient.listen()
+
+        expect:
+        succeeds('run')
+        output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$jdwpClient.port]"
+    }
+
+
     private void sampleProject(String runConfig) {
         file('src/main/java/Driver.java')
         file("src/main/java/Driver.java").text = mainClass("""

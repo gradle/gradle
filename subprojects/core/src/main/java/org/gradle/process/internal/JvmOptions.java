@@ -26,31 +26,24 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
     private static final String XMX_PREFIX = "-Xmx";
     private static final String BOOTCLASSPATH_PREFIX = "-Xbootclasspath:";
-
-    private static final Pattern PATTERN_XRUNJDWP = Pattern.compile("-Xrunjdwp:.*transport=dt_socket.*");
-    private static final Pattern PATTERN_JDWP = Pattern.compile("-agentlib:jdwp=.*transport=dt_socket.*");
-    private static final Pattern PATTERN_SERVER = Pattern.compile(".*server=y.*");
-    private static final Pattern PATTERN_SUSPEND = Pattern.compile(".*suspend=n.*");
-    private static final Pattern PATTERN_PORT = Pattern.compile(".*address=(?:localhost:)?(\\d+)");
 
     public static final String FILE_ENCODING_KEY = "file.encoding";
     public static final String USER_LANGUAGE_KEY = "user.language";
@@ -58,6 +51,8 @@ public class JvmOptions {
     public static final String USER_VARIANT_KEY = "user.variant";
     public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY
@@ -204,46 +199,17 @@ public class JvmOptions {
             }
         }
 
-        boolean xdebugFound = false;
-        boolean xrunjdwpFound = false;
-        boolean xagentlibJdwpFound = false;
-
-        Set<Object> matches = new HashSet<Object>();
+        List<String> debugArgs = new ArrayList<>();
         for (Object extraJvmArg : extraJvmArgs) {
             String extraJvmArgString = extraJvmArg.toString();
-            if (extraJvmArgString.equals("-Xdebug")) {
-                xdebugFound = true;
-                matches.add(extraJvmArg);
-            } else if (PATTERN_XRUNJDWP.matcher(extraJvmArgString).matches()) {
-                xrunjdwpFound = true;
-                extractDebugOptions(extraJvmArgString);
-                matches.add(extraJvmArg);
-            } else if (PATTERN_JDWP.matcher(extraJvmArgString).matches()) {
-                xagentlibJdwpFound = true;
-                extractDebugOptions(extraJvmArgString);
-                matches.add(extraJvmArg);
+            if (extraJvmArgString.equals("-Xdebug") || extraJvmArgString.startsWith("-Xrunjdwp") || extraJvmArgString.startsWith("-agentlib:jdwp")) {
+                debugArgs.add(extraJvmArgString);
             }
         }
-        if (xdebugFound && xrunjdwpFound || xagentlibJdwpFound) {
-            debugOptions.setEnabled(true);
-            extraJvmArgs.removeAll(matches);
+        if (!debugArgs.isEmpty() && getDebugOptions().isEnabled()) {
+            LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
+            debugOptions.setEnabled(false);
         }
-    }
-
-    private void extractDebugOptions(String extraJvmArgString) {
-        // TODO delete the entire method
-        if (debugOptions == null) {
-            return;
-        }
-
-        Matcher serverMatcher = PATTERN_SERVER.matcher(extraJvmArgString);
-        debugOptions.setServer(serverMatcher.matches()); // 'n' is the default for server
-
-        Matcher suspendMatcher = PATTERN_SUSPEND.matcher(extraJvmArgString);
-        debugOptions.setSuspend(!suspendMatcher.matches()); // 'y' is the default for suspend
-
-        Matcher portMatcher = PATTERN_PORT.matcher(extraJvmArgString);
-        debugOptions.setPort(portMatcher.matches() ? Integer.valueOf(portMatcher.group(1)) : 5005);
     }
 
     public void jvmArgs(Object... arguments) {
