@@ -48,7 +48,7 @@ public class CollectingMacroLookup implements MacroLookup {
             return;
         }
         if (visible == null) {
-            visible = new LinkedHashMap<File, IncludeDirectives>();
+            visible = new LinkedHashMap<>();
             visible.put(file, includeDirectives);
         } else if (!visible.containsKey(file)) {
             visible.put(file, includeDirectives);

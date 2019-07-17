@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultProjectConfigurationActionContainer implements ProjectConfigurationActionContainer {
-    private final List<Action<? super ProjectInternal>> actions = new ArrayList<Action<? super ProjectInternal>>();
+    private final List<Action<? super ProjectInternal>> actions = new ArrayList<>();
 
     @Override
     public void finished() {

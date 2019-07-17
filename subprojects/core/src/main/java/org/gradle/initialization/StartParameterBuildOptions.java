@@ -38,7 +38,7 @@ public class StartParameterBuildOptions {
     private static List<BuildOption<StartParameterInternal>> options;
 
     static {
-        List<BuildOption<StartParameterInternal>> options = new ArrayList<BuildOption<StartParameterInternal>>();
+        List<BuildOption<StartParameterInternal>> options = new ArrayList<>();
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
         options.add(new ProfileOption());

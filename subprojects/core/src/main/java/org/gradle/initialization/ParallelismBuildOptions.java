@@ -33,7 +33,7 @@ public class ParallelismBuildOptions {
     private static List<BuildOption<ParallelismConfiguration>> options;
 
     static {
-        List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
+        List<BuildOption<ParallelismConfiguration>> options = new ArrayList<>();
         options.add(new ParallelOption());
         options.add(new MaxWorkersOption());
         ParallelismBuildOptions.options = Collections.unmodifiableList(options);

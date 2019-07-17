@@ -68,7 +68,7 @@ public class ComponentSelectionReasons {
         private final ArrayDeque<ComponentSelectionDescriptorInternal> descriptions;
 
         private DefaultComponentSelectionReason(ComponentSelectionDescriptor... descriptors) {
-            descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
+            descriptions = new ArrayDeque<>(1);
             for (ComponentSelectionDescriptor descriptor : descriptors) {
                 descriptions.add((ComponentSelectionDescriptorInternal) descriptor);
             }

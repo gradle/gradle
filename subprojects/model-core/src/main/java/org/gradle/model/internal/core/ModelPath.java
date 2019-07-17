@@ -21,11 +21,11 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -324,7 +324,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     private static class Cache {
-        private final WeakHashMap<String, ModelPath> cache = new WeakHashMap<String, ModelPath>();
+        private final WeakHashMap<String, ModelPath> cache = new WeakHashMap<>();
 
         public Cache(ModelPath root) {
             cache.put(root.path, root);

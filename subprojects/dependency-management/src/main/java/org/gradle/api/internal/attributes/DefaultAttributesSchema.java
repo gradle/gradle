@@ -181,7 +181,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
             if (rules.doesSomething()) {
-                result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                result = new DefaultMultipleCandidateResult<>(requested, candidates);
                 rules.execute(result);
                 if (result.hasResult()) {
                     return result.getMatches();
@@ -191,7 +191,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             rules = producerSchema.disambiguationRules(attribute);
             if (rules.doesSomething()) {
                 if (result == null) {
-                    result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                    result = new DefaultMultipleCandidateResult<>(requested, candidates);
                 }
                 rules.execute(result);
                 if (result.hasResult()) {
@@ -216,7 +216,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
             CompatibilityRule<Object> rules = compatibilityRules(attribute);
             if (rules.doesSomething()) {
-                result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                result = new DefaultCompatibilityCheckResult<>(requested, candidate);
                 rules.execute(result);
                 if (result.hasResult()) {
                     return result.isCompatible();
@@ -226,7 +226,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             rules = producerSchema.compatibilityRules(attribute);
             if (rules.doesSomething()) {
                 if (result == null) {
-                    result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                    result = new DefaultCompatibilityCheckResult<>(requested, candidate);
                 }
                 rules.execute(result);
                 if (result.hasResult()) {

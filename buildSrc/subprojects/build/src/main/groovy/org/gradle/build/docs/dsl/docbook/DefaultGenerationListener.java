@@ -22,7 +22,7 @@ import java.util.LinkedList;
 
 public class DefaultGenerationListener implements GenerationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGenerationListener.class);
-    private final LinkedList<String> contextStack = new LinkedList<String>();
+    private final LinkedList<String> contextStack = new LinkedList<>();
 
     @Override
     public void warning(String message) {

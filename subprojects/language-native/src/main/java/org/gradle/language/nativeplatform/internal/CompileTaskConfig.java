@@ -98,7 +98,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
                 ToolType toolType = languageTransform.getToolType();
-                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(toolType).getIncludeDirs());
+                return new LinkedHashSet<>(platformToolProvider.getSystemLibraries(toolType).getIncludeDirs());
             }
 
             @Override

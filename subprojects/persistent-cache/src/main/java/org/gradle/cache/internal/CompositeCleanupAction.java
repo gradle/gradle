@@ -47,7 +47,7 @@ public class CompositeCleanupAction implements CleanupAction {
     }
 
     public static class Builder {
-        private List<CleanupAction> cleanups = new ArrayList<CleanupAction>();
+        private List<CleanupAction> cleanups = new ArrayList<>();
 
         private Builder() {
         }

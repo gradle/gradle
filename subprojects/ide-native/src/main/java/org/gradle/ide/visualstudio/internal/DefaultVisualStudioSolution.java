@@ -127,7 +127,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     }
 
     public static class SolutionFile implements TextConfigFile {
-        private final List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
+        private final List<Action<? super TextProvider>> actions = new ArrayList<>();
         private final PathToFileResolver fileResolver;
         private Object location;
 

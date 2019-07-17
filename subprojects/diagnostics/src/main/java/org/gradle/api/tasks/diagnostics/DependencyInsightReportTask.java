@@ -258,7 +258,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
         ResolutionResult result = incoming.getResolutionResult(errorHandler);
 
-        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
+        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
         result.allDependencies(new Action<DependencyResult>() {
             @Override
             public void execute(DependencyResult dependencyResult) {

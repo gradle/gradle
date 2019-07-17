@@ -40,7 +40,7 @@ import java.util.Set;
  * {@link #getSupportedOptions()} is called.
  */
 public class SupportedOptionsCollectingProcessor extends AbstractProcessor {
-    private final List<Processor> processors = new ArrayList<Processor>();
+    private final List<Processor> processors = new ArrayList<>();
 
     public void addProcessor(Processor processor) {
         processors.add(processor);
@@ -53,7 +53,7 @@ public class SupportedOptionsCollectingProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedOptions() {
-        Set<String> supportedOptions = new HashSet<String>();
+        Set<String> supportedOptions = new HashSet<>();
         for (Processor processor : processors) {
             supportedOptions.addAll(processor.getSupportedOptions());
         }

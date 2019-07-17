@@ -35,7 +35,7 @@ import java.util.List;
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry {
     private final ToolingModelBuilderRegistry parent;
 
-    private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
+    private final List<ToolingModelBuilder> builders = new ArrayList<>();
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectStateRegistry projectStateRegistry;
 

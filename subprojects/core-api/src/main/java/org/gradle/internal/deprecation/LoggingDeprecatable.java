@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class LoggingDeprecatable implements Deprecatable {
 
-    private final Set<String> deprecations = new HashSet<String>();
+    private final Set<String> deprecations = new HashSet<>();
 
     @Override
     public void addDeprecation(String deprecation) {

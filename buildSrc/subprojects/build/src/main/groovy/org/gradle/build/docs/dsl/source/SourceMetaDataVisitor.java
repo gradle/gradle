@@ -54,8 +54,8 @@ import java.util.regex.Pattern;
 public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepository<ClassMetaData>> {
     private static final Pattern GETTER_METHOD_NAME = Pattern.compile("(get|is)(.+)");
     private static final Pattern SETTER_METHOD_NAME = Pattern.compile("set(.+)");
-    private final List<ClassMetaData> allClasses = new ArrayList<ClassMetaData>();
-    private final Deque<ClassMetaData> classStack = new LinkedList<ClassMetaData>();
+    private final List<ClassMetaData> allClasses = new ArrayList<>();
+    private final Deque<ClassMetaData> classStack = new LinkedList<>();
     private String packageName;
 
     @Override

@@ -54,7 +54,7 @@ public abstract class AbstractExpression implements Expression {
             return new ComplexExpression(IncludeType.EXPAND_TOKEN_CONCATENATION, expression.getValue(), expression.getArguments());
         }
         if (expression.getType() == IncludeType.ARGS_LIST && !expression.getArguments().isEmpty()) {
-            List<Expression> mapped = new ArrayList<Expression>(expression.getArguments().size());
+            List<Expression> mapped = new ArrayList<>(expression.getArguments().size());
             for (Expression arg : expression.getArguments()) {
                 mapped.add(arg.asMacroExpansion());
             }

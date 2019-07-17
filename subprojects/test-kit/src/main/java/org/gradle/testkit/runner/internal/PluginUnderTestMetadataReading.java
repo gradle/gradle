@@ -66,7 +66,7 @@ public abstract class PluginUnderTestMetadataReading {
         }
 
         String[] parsedImplementationClasspath = value.trim().split(File.pathSeparator);
-        List<File> files = new ArrayList<File>(parsedImplementationClasspath.length);
+        List<File> files = new ArrayList<>(parsedImplementationClasspath.length);
         for (String path : parsedImplementationClasspath) {
             files.add(new File(path));
         }

@@ -41,8 +41,8 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
     public DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {
         this.pollingExecutor = pollingExecutor;
         this.gcStrategy = gcStrategy;
-        this.heapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
-        this.nonHeapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
+        this.heapEvents = new DefaultSlidingWindow<>(EVENT_WINDOW);
+        this.nonHeapEvents = new DefaultSlidingWindow<>(EVENT_WINDOW);
         if (gcStrategy != GarbageCollectorMonitoringStrategy.UNKNOWN && !Boolean.getBoolean(DISABLE_POLLING_SYSTEM_PROPERTY)) {
             pollForValues();
         }

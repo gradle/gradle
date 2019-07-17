@@ -25,7 +25,7 @@ import java.util.List;
 
 public class ModelBuilderSupport {
     protected List<Element> children(Element element, String childName) {
-        List<Element> matches = new ArrayList<Element>();
+        List<Element> matches = new ArrayList<>();
         NodeList childNodes = element.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node node = childNodes.item(i);

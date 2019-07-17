@@ -46,7 +46,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     @Override
     public T get() throws GradleConnectionException {
-        BlockingResultHandler<T> handler = new BlockingResultHandler<T>(modelType);
+        BlockingResultHandler<T> handler = new BlockingResultHandler<>(modelType);
         get(handler);
         return handler.getResult();
     }
@@ -64,7 +64,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
                 T model = connection.run(modelType, operationParameters);
                 return model;
             }
-        }, new ResultHandlerAdapter<T>(handler));
+        }, new ResultHandlerAdapter<>(handler));
     }
 
     @Override

@@ -15,18 +15,22 @@
  */
 package org.gradle.util;
 
-import java.util.*;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Selects a single item from a list of candidates based on a camel-case pattern.
  */
 public class NameMatcher {
-    private final SortedSet<String> matches = new TreeSet<String>();
-    private final Set<String> candidates = new TreeSet<String>();
+    private final SortedSet<String> matches = new TreeSet<>();
+    private final Set<String> candidates = new TreeSet<>();
     private String pattern;
 
     /**
@@ -65,9 +69,9 @@ public class NameMatcher {
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
         String normalisedPattern = pattern.toUpperCase();
 
-        Set<String> caseInsensitiveMatches = new TreeSet<String>();
-        Set<String> caseSensitiveCamelCaseMatches = new TreeSet<String>();
-        Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<String>();
+        Set<String> caseInsensitiveMatches = new TreeSet<>();
+        Set<String> caseSensitiveCamelCaseMatches = new TreeSet<>();
+        Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<>();
 
         for (String candidate : items) {
             if (candidate.equalsIgnoreCase(pattern)) {

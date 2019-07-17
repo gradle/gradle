@@ -66,14 +66,14 @@ public class MultithreadedTestRule extends ExternalResource {
     private ExecutorImpl executor;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final Set<Thread> active = new HashSet<Thread>();
-    private final Set<Thread> synching = new HashSet<Thread>();
-    private final List<Throwable> failures = new ArrayList<Throwable>();
-    private final Map<Integer, ClockTickImpl> ticks = new HashMap<Integer, ClockTickImpl>();
+    private final Set<Thread> active = new HashSet<>();
+    private final Set<Thread> synching = new HashSet<>();
+    private final List<Throwable> failures = new ArrayList<>();
+    private final Map<Integer, ClockTickImpl> ticks = new HashMap<>();
     private ClockTickImpl currentTick = getTick(0);
     private boolean stopped;
     private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
-            = new ThreadLocal<Matcher<? extends Throwable>>();
+            = new ThreadLocal<>();
     private final SyncPoint syncPoint = new SyncPoint();
 
     /**
@@ -443,7 +443,7 @@ public class MultithreadedTestRule extends ExternalResource {
     }
 
     private class ExecutorImpl extends AbstractExecutorService {
-        private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
+        private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<>();
 
         @Override
         public void execute(Runnable command) {
@@ -467,7 +467,7 @@ public class MultithreadedTestRule extends ExternalResource {
 
         @Override
         public List<Runnable> shutdownNow() {
-            return new ArrayList<Runnable>();
+            return new ArrayList<>();
         }
 
         @Override

@@ -16,15 +16,15 @@
 
 package org.gradle.platform.base.component.internal;
 
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public class DefaultComponentSpec extends AbstractComponentSpec {
-    private static final ThreadLocal<ComponentInfo> NEXT_COMPONENT_INFO = new ThreadLocal<ComponentInfo>();
+    private static final ThreadLocal<ComponentInfo> NEXT_COMPONENT_INFO = new ThreadLocal<>();
 
     public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
         NEXT_COMPONENT_INFO.set(new ComponentInfo(identifier, modelNode, publicType));

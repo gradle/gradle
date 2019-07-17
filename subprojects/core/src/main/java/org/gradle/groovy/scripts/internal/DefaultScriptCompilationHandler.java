@@ -216,7 +216,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 } else {
                     data = null;
                 }
-                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, sourceHashCode, data);
+                return new ClassesDirCompiledScript<>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, sourceHashCode, data);
             } finally {
                 decoder.close();
             }

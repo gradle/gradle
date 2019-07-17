@@ -48,7 +48,7 @@ public final class TaskIdentity<T extends Task> {
     }
 
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
-        return new TaskIdentity<T>(
+        return new TaskIdentity<>(
             type,
             name,
             project.projectPath(name),

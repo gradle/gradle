@@ -73,7 +73,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     private static final String UNBUILDABLE_BUILD_CONFIGURATION_NAME = "unbuildable";
     private final GidGenerator gidGenerator;
     private DefaultXcodeProject xcodeProject;
-    private Map<String, PBXFileReference> pathToFileReference = new HashMap<String, PBXFileReference>();
+    private Map<String, PBXFileReference> pathToFileReference = new HashMap<>();
 
     @Inject
     public GenerateXcodeProjectFileTask(GidGenerator gidGenerator) {
@@ -297,7 +297,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     }
 
     private static Iterable<File> parentDirs(Iterable<File> files) {
-        List<File> parents = new ArrayList<File>();
+        List<File> parents = new ArrayList<>();
         for (File file : files) {
             if (file.isDirectory()) {
                 parents.add(file);

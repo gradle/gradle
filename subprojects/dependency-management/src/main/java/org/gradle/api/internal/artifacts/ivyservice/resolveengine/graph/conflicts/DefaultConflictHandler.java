@@ -39,7 +39,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
-    private final ConflictContainer<ModuleIdentifier, Object> conflicts = new ConflictContainer<ModuleIdentifier, Object>();
+    private final ConflictContainer<ModuleIdentifier, Object> conflicts = new ConflictContainer<>();
     private final ModuleReplacementsData moduleReplacements;
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
@@ -79,7 +79,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ?>.Conflict conflict = conflicts.popConflict();
-        ConflictResolverDetails<Object> details = new DefaultConflictResolverDetails<Object>(conflict.candidates);
+        ConflictResolverDetails<Object> details = new DefaultConflictResolverDetails<>(conflict.candidates);
         compositeResolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());

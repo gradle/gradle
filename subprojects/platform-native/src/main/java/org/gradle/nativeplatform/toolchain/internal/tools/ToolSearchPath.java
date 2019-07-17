@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ToolSearchPath {
-    private final Map<String, File> executables = new HashMap<String, File>();
-    private final List<File> pathEntries = new ArrayList<File>();
+    private final Map<String, File> executables = new HashMap<>();
+    private final List<File> pathEntries = new ArrayList<>();
 
     private final OperatingSystem operatingSystem;
 

@@ -85,7 +85,7 @@ public class ZipFileTree implements MinimalFileTree, ArchiveFileTree {
             try {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
                 // to us. So, collect the entries in a map and iterate over them in alphabetical order.
-                Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
+                Map<String, ZipEntry> entriesByName = new TreeMap<>();
                 Enumeration entries = zip.getEntries();
                 while (entries.hasMoreElements()) {
                     ZipEntry entry = (ZipEntry) entries.nextElement();

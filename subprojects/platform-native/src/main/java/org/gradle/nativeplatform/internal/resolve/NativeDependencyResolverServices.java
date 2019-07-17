@@ -25,7 +25,7 @@ import java.util.List;
 
 public class NativeDependencyResolverServices {
     public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
+        List<LibraryBinaryLocator> locators = new ArrayList<>();
         locators.add(new ProjectLibraryBinaryLocator(projectModelResolver, domainObjectCollectionFactory));
         locators.add(new PrebuiltLibraryBinaryLocator(projectModelResolver));
         return new CachingLibraryBinaryLocator(new ChainedLibraryBinaryLocator(locators), domainObjectCollectionFactory);

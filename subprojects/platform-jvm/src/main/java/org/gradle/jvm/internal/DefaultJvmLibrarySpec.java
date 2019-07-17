@@ -35,7 +35,7 @@ import java.util.Set;
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
 
     public static Set<Class<? extends TransformationFileType>> defaultJvmComponentInputTypes() {
-        final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
+        final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<>();
         inputTypes.add(JvmResources.class);
         inputTypes.add(JvmByteCode.class);
         return inputTypes;

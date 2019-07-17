@@ -52,7 +52,7 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
 
             @Override
             public Set<File> getFiles() {
-                Set<File> result = new LinkedHashSet<File>();
+                Set<File> result = new LinkedHashSet<>();
                 for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
                     result.add(artifact.getFile());
                 }

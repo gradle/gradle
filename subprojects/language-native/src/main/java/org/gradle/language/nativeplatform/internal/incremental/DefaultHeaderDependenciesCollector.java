@@ -40,7 +40,7 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
 
     @Override
     public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
-        final Set<File> headerDependencies = new HashSet<File>();
+        final Set<File> headerDependencies = new HashSet<>();
         if (incrementalCompilation.isUnresolvedHeaders()) {
             logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.", taskPath);
             addIncludeRoots(taskPath, includeRoots, headerDependencies);

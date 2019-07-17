@@ -29,8 +29,8 @@ import java.util.Properties;
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
-    private Map<String, String> defaultProperties = new HashMap<String, String>();
-    private Map<String, String> overrideProperties = new HashMap<String, String>();
+    private Map<String, String> defaultProperties = new HashMap<>();
+    private Map<String, String> overrideProperties = new HashMap<>();
     private final StartParameterInternal startParameter;
 
     public DefaultGradlePropertiesLoader(StartParameterInternal startParameter) {
@@ -73,7 +73,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     @Override
     public Map<String, String> mergeProperties(Map<String, String> properties) {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
         result.putAll(defaultProperties);
         result.putAll(properties);
         result.putAll(overrideProperties);
@@ -81,7 +81,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     private Map<String, String> getSystemProjectProperties(Map<String, String> systemProperties) {
-        Map<String, String> systemProjectProperties = new HashMap<String, String>();
+        Map<String, String> systemProjectProperties = new HashMap<>();
         for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
             if (entry.getKey().startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > SYSTEM_PROJECT_PROPERTIES_PREFIX.length()) {
                 systemProjectProperties.put(entry.getKey().substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
@@ -92,7 +92,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     private Map<String, String> getEnvProjectProperties(Map<String, String> envProperties) {
-        Map<String, String> envProjectProperties = new HashMap<String, String>();
+        Map<String, String> envProjectProperties = new HashMap<>();
         for (Map.Entry<String, String> entry : envProperties.entrySet()) {
             if (entry.getKey().startsWith(ENV_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > ENV_PROJECT_PROPERTIES_PREFIX.length()) {
                 envProjectProperties.put(entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());

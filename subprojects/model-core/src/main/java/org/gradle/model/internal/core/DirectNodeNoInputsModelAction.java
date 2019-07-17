@@ -42,7 +42,7 @@ public class DirectNodeNoInputsModelAction<T> extends AbstractModelActionWithVie
     }
 
     public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
-        return new DirectNodeNoInputsModelAction<T>(reference, descriptor, action);
+        return new DirectNodeNoInputsModelAction<>(reference, descriptor, action);
     }
 
     @Override

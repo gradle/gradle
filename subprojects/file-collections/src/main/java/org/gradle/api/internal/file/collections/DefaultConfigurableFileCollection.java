@@ -29,7 +29,6 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.AbstractSet;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,7 +71,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
-        this.files = new LinkedHashSet<Object>();
+        this.files = new LinkedHashSet<>();
         if (files != null) {
             this.files.addAll(files);
         }

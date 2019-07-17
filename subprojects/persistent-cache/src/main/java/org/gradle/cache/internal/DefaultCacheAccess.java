@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
@@ -43,6 +42,7 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,7 +70,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final CacheCleanupAction cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
-    private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
+    private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
@@ -292,7 +292,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                     }
                 };
 
-                MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+                MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
@@ -300,7 +300,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                         useCache(NO_OP);
                     }
                 }
-                entry = new IndexedCacheEntry<K, V>(parameters, indexedCache);
+                entry = new IndexedCacheEntry<>(parameters, indexedCache);
                 caches.put(parameters.getCacheName(), entry);
                 if (fileLock != null) {
                     indexedCache.afterLockAcquire(stateAtOpen);
@@ -315,7 +315,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
+        return new BTreePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**
@@ -443,7 +443,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         void assertCompatibleCacheParameters(PersistentIndexedCacheParameters<K, V> parameters) {
-            List<String> faultMessages = new ArrayList<String>();
+            List<String> faultMessages = new ArrayList<>();
 
             checkCacheNameMatch(faultMessages, parameters.getCacheName());
             checkCompatibleKeySerializer(faultMessages, parameters.getKeySerializer());

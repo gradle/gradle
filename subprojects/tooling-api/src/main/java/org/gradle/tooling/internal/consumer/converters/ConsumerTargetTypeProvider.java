@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConsumerTargetTypeProvider implements TargetTypeProvider {
-    private final Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
+    private final Map<String, Class<?>> configuredTargetTypes = new HashMap<>();
 
     public ConsumerTargetTypeProvider() {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);

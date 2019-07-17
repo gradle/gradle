@@ -29,8 +29,8 @@ public class DefaultTarget implements Serializable {
     private final String name;
     private final File path;
     private final Collection<File> sourceFiles;
-    private final List<String> requiredTargets = new ArrayList<String>();
-    private final List<String> requiredProducts = new ArrayList<String>();
+    private final List<String> requiredTargets = new ArrayList<>();
+    private final List<String> requiredProducts = new ArrayList<>();
     private File publicHeaderDir;
 
     public DefaultTarget(String name, File path, Iterable<File> sourceFiles) {

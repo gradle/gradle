@@ -25,7 +25,7 @@ import java.util.List;
  * A tool that is part of a tool chain (compiler, linker, assembler, etc).
  */
 public class DefaultTool implements Tool {
-    private final ArrayList<String> args = new ArrayList<String>();
+    private final ArrayList<String> args = new ArrayList<>();
 
     @Override
     public List<String> getArgs() {

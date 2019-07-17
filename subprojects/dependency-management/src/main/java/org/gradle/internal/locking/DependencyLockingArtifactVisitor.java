@@ -115,7 +115,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
 
     private void addChangingModule(ModuleComponentIdentifier id) {
         if (changingResolvedModules == null) {
-            changingResolvedModules = new HashSet<ModuleComponentIdentifier>();
+            changingResolvedModules = new HashSet<>();
         }
         changingResolvedModules.add(id);
     }

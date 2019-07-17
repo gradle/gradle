@@ -93,8 +93,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private boolean inPropertyExpression;
     private boolean inClosure;
 
-    private Map<String, GenericsType> genericParameterNames = new HashMap<String, GenericsType>();
-    private Set<FieldNode> fieldTypesChecked = new HashSet<FieldNode>();
+    private Map<String, GenericsType> genericParameterNames = new HashMap<>();
+    private Set<FieldNode> fieldTypesChecked = new HashSet<>();
     private boolean checkingVariableTypeInDeclaration;
     private ImportNode currImportNode;
     private MethodNode currentMethod;
@@ -234,7 +234,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         VariableScope oldScope = currentScope;
         currentScope = node.getVariableScope();
         Map<String, GenericsType> oldPNames = genericParameterNames;
-        genericParameterNames = new HashMap<String, GenericsType>(genericParameterNames);
+        genericParameterNames = new HashMap<>(genericParameterNames);
 
         resolveGenericsHeader(node.getGenericsTypes());
 
@@ -416,7 +416,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         // to access that class directly, so A becomes a valid
         // name in X.
         // GROOVY-4043: Do this check up the hierarchy, if needed
-        Map<String, ClassNode> classHierarchy = new LinkedHashMap<String, ClassNode>();
+        Map<String, ClassNode> classHierarchy = new LinkedHashMap<>();
         ClassNode val;
         for (ClassNode classToCheck = currentClass;
             /*
@@ -469,7 +469,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         // A.B.C.D.E.F and accessing E from F we test A$E=failed,
         // A$B$E=failed, A$B$C$E=fail, A$B$C$D$E=success
 
-        LinkedList<ClassNode> outerClasses = new LinkedList<ClassNode>();
+        LinkedList<ClassNode> outerClasses = new LinkedList<>();
         ClassNode outer = currentClass.getOuterClass();
         while (outer != null) {
             outerClasses.addFirst(outer);
@@ -950,7 +950,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
     // a PropertyExpression with the ClassExpression of Integer as objectExpression
     // and class as property
     private Expression correctClassClassChain(PropertyExpression pe) {
-        LinkedList<Expression> stack = new LinkedList<Expression>();
+        LinkedList<Expression> stack = new LinkedList<>();
         ClassExpression found = null;
         for (Expression it = pe; it != null; it = ((PropertyExpression) it).getObjectExpression()) {
             if (it instanceof ClassExpression) {
@@ -1346,7 +1346,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         if (annotations.isEmpty()) {
             return;
         }
-        Map<String, AnnotationNode> tmpAnnotations = new HashMap<String, AnnotationNode>();
+        Map<String, AnnotationNode> tmpAnnotations = new HashMap<>();
         ClassNode annType;
         for (AnnotationNode an : annotations) {
             // skip built-in properties
@@ -1434,10 +1434,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
         if (node instanceof InnerClassNode) {
             if (Modifier.isStatic(node.getModifiers())) {
-                genericParameterNames = new HashMap<String, GenericsType>();
+                genericParameterNames = new HashMap<>();
             }
         } else {
-            genericParameterNames = new HashMap<String, GenericsType>();
+            genericParameterNames = new HashMap<>();
         }
         currentClass = node;
         resolveGenericsHeader(node.getGenericsTypes());

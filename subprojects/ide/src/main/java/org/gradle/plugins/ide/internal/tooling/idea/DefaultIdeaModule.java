@@ -30,10 +30,10 @@ import java.util.List;
 
 public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private String name;
-    private List<DefaultIdeaContentRoot> contentRoots = new LinkedList<DefaultIdeaContentRoot>();
+    private List<DefaultIdeaContentRoot> contentRoots = new LinkedList<>();
     private DefaultIdeaProject parent;
 
-    private List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
+    private List<DefaultIdeaDependency> dependencies = new LinkedList<>();
     private DefaultGradleProject gradleProject;
 
     private IdeaCompilerOutput compilerOutput;

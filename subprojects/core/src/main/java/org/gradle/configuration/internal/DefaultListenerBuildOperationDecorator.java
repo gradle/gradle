@@ -69,7 +69,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         if (applicationId == null || action instanceof InternalListener) {
             return action;
         }
-        return new BuildOperationEmittingAction<T>(applicationId, registrationPoint, action);
+        return new BuildOperationEmittingAction<>(applicationId, registrationPoint, action);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         if (applicationId == null) {
             return closure;
         }
-        return new BuildOperationEmittingClosure<T>(applicationId, registrationPoint, closure);
+        return new BuildOperationEmittingClosure<>(applicationId, registrationPoint, closure);
     }
 
     @Override

@@ -104,7 +104,7 @@ public class TaskDetailPrinter {
     }
 
     private ListMultimap<Class, Task> groupTasksByType(List<Task> tasks) {
-        final Set<Class> taskTypes = new TreeSet<Class>(new Comparator<Class>() {
+        final Set<Class> taskTypes = new TreeSet<>(new Comparator<Class>() {
             @Override
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
@@ -157,7 +157,7 @@ public class TaskDetailPrinter {
     }
 
     private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<Task> tasks, Transformer<String, Task> transformer) {
-        int count = collect(tasks, new HashSet<String>(), transformer).size();
+        int count = collect(tasks, new HashSet<>(), transformer).size();
         final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {
             // all tasks have the same value
@@ -176,7 +176,7 @@ public class TaskDetailPrinter {
     }
 
     private void printlnCommandlineOptions(StyledTextOutput output, List<Task> tasks) {
-        List<OptionDescriptor> allOptions = new ArrayList<OptionDescriptor>();
+        List<OptionDescriptor> allOptions = new ArrayList<>();
         for (Task task : tasks) {
             allOptions.addAll(optionReader.getOptions(task));
         }
@@ -213,11 +213,11 @@ public class TaskDetailPrinter {
 
     @SuppressWarnings("unchecked")
     private Map<String, Set<String>> optionToAvailableValues(List<OptionDescriptor> allOptions) {
-        Map<String, Set<String>> result = new LinkedHashMap<String, Set<String>>();
+        Map<String, Set<String>> result = new LinkedHashMap<>();
         for (OptionDescriptor optionDescriptor : allOptions) {
             if (result.containsKey(optionDescriptor.getName())) {
                 Collection<String> commonValues = Sets.intersection(optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
-                result.put(optionDescriptor.getName(), new TreeSet<String>(commonValues));
+                result.put(optionDescriptor.getName(), new TreeSet<>(commonValues));
             } else {
                 result.put(optionDescriptor.getName(), optionDescriptor.getAvailableValues());
             }
@@ -226,7 +226,7 @@ public class TaskDetailPrinter {
     }
 
     private Map<String, String> optionToDescription(List<OptionDescriptor> allOptions) {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
         for (OptionDescriptor optionDescriptor : allOptions) {
             result.put(optionDescriptor.getName(), optionDescriptor.getDescription());
         }

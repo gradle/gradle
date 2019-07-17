@@ -25,7 +25,7 @@ public class SpecializedMapSchema<T, E> extends ModelMapSchema<T, E> {
 
     public SpecializedMapSchema(ModelType<T> type, ModelType<E> elementType, Class<?> implementationType) {
         super(type, elementType);
-        this.implementationType = new WeakReference<Class<?>>(implementationType);
+        this.implementationType = new WeakReference<>(implementationType);
     }
 
     public Class<?> getImplementationType() {

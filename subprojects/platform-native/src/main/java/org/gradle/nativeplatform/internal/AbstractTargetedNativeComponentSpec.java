@@ -23,13 +23,17 @@ import org.gradle.nativeplatform.Flavor;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
 
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
-    private final Set<String> buildTypes = new HashSet<String>();
-    private final Set<String> flavors = new HashSet<String>();
+    private final Set<String> buildTypes = new HashSet<>();
+    private final Set<String> flavors = new HashSet<>();
 
     @Override
     public List<PlatformRequirement> getTargetPlatforms() {
@@ -63,11 +67,11 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
 
     protected <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, Set<String> names) {
         if (names.isEmpty()) {
-            return new LinkedHashSet<T>(candidates);
+            return new LinkedHashSet<>(candidates);
         }
 
-        Set<String> unusedNames = new HashSet<String>(names);
-        Set<T> chosen = new LinkedHashSet<T>();
+        Set<String> unusedNames = new HashSet<>(names);
+        Set<T> chosen = new LinkedHashSet<>();
         for (T candidate : candidates) {
             if (unusedNames.remove(candidate.getName())) {
                 chosen.add(candidate);

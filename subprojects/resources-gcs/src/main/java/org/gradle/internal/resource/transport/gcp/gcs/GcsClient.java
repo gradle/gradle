@@ -121,7 +121,7 @@ public class GcsClient {
 
     @Nullable
     public List<String> list(URI uri) throws ResourceException {
-        List<StorageObject> results = new ArrayList<StorageObject>();
+        List<StorageObject> results = new ArrayList<>();
 
         String path = cleanResourcePath(uri);
         try {
@@ -141,7 +141,7 @@ public class GcsClient {
             throw ResourceExceptions.getFailed(uri, e);
         }
 
-        List<String> resultStrings = new ArrayList<String>();
+        List<String> resultStrings = new ArrayList<>();
         for (StorageObject result : results) {
             resultStrings.add(result.getName());
         }

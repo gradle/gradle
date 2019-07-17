@@ -173,7 +173,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     }
 
     private static class OutputFileMap {
-        private Map<String, Entry> entries = new HashMap<String, Entry>();
+        private Map<String, Entry> entries = new HashMap<>();
 
         public Builder root() {
             return newEntry("");

@@ -48,7 +48,7 @@ public class DaemonCommandExecution {
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
 
-        this.actions = new LinkedList<DaemonCommandAction>(actions);
+        this.actions = new LinkedList<>(actions);
     }
 
     public DaemonConnection getConnection() {

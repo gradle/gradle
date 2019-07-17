@@ -30,7 +30,7 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
-    private final Set<String> filesWithCurrentTimestamp = new HashSet<String>();
+    private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
 
     public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
         super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));

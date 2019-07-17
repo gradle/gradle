@@ -36,13 +36,13 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
     // Also available via play.japi.twirl.compiler.TwirlCompiler.DEFAULT_IMPORTS but we would have to grab it via reflection
     private static final List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
         Arrays.asList(
-            // Based on https://github.com/playframework/twirl/blob/1.3.13/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L156    
-            "_root_.play.twirl.api.TwirlFeatureImports._", 
-            "_root_.play.twirl.api.TwirlHelperImports._",  
-            "_root_.play.twirl.api.Html",  
-            "_root_.play.twirl.api.JavaScript",    
-            "_root_.play.twirl.api.Txt",   
-            "_root_.play.twirl.api.Xml"    
+            // Based on https://github.com/playframework/twirl/blob/1.3.13/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L156
+            "_root_.play.twirl.api.TwirlFeatureImports._",
+            "_root_.play.twirl.api.TwirlHelperImports._",
+            "_root_.play.twirl.api.Html",
+            "_root_.play.twirl.api.JavaScript",
+            "_root_.play.twirl.api.Txt",
+            "_root_.play.twirl.api.Xml"
         ));
 
     public TwirlCompilerAdapterV13X(String twirlVersion, String scalaVersion, VersionedPlayTwirlAdapter playTwirlAdapter) {
@@ -71,7 +71,7 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
     @Override
     public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultPlayImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        final List<String> defaultImports = new ArrayList<String>(DEFAULT_TEMPLATE_IMPORTS);
+        final List<String> defaultImports = new ArrayList<>(DEFAULT_TEMPLATE_IMPORTS);
         defaultImports.addAll(playTwirlAdapter.getDefaultImports(defaultPlayImports));
         return new Object[]{
             file,
@@ -92,7 +92,7 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getDependencyNotation() { 
+    public List<String> getDependencyNotation() {
         if (scalaVersion.startsWith("2.12")) {
             // We need scala.util.parsing.input.Positional
             return (List<String>) CollectionUtils.flattenCollections(super.getDependencyNotation(), "org.scala-lang.modules:scala-parser-combinators_2.12:1.0.6");

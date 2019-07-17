@@ -53,7 +53,7 @@ public class DefaultTypeConverter implements TypeConverter {
     }
 
     private <T> void registerStringConverter(NotationConverter<String, T> converter, Class<T> type) {
-        parsers.put(type, build(new CharSequenceNotationConverter<Object, T>(converter), type));
+        parsers.put(type, build(new CharSequenceNotationConverter<>(converter), type));
     }
 
     private void registerConverters() {
@@ -168,7 +168,7 @@ public class DefaultTypeConverter implements TypeConverter {
     }
 
     public DefaultTypeConverter(final PathToFileResolver fileResolver) {
-        registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
+        registerConverter(new CharSequenceNotationConverter<>(new CharSequenceConverter<File>(File.class) {
             @Override
             public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
                 result.converted(fileResolver.resolve(notation));
@@ -204,7 +204,7 @@ public class DefaultTypeConverter implements TypeConverter {
         return NotationParserBuilder
                 .toType(type)
                 .noImplicitConverters()
-                .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(type))
+                .fromCharSequence(new EnumFromCharSequenceNotationParser<>(type))
                 .toComposite()
                 .parseNotation(notation);
     }

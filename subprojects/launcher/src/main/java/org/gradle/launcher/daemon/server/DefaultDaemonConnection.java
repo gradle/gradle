@@ -19,13 +19,22 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.launcher.daemon.protocol.*;
-import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.launcher.daemon.server.api.StdinHandler;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.remote.internal.RemoteConnection;
+import org.gradle.launcher.daemon.protocol.BuildEvent;
+import org.gradle.launcher.daemon.protocol.BuildStarted;
+import org.gradle.launcher.daemon.protocol.Cancel;
+import org.gradle.launcher.daemon.protocol.CloseInput;
+import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
+import org.gradle.launcher.daemon.protocol.ForwardInput;
+import org.gradle.launcher.daemon.protocol.InputMessage;
+import org.gradle.launcher.daemon.protocol.Message;
+import org.gradle.launcher.daemon.protocol.OutputMessage;
+import org.gradle.launcher.daemon.protocol.Result;
+import org.gradle.launcher.daemon.server.api.DaemonConnection;
+import org.gradle.launcher.daemon.server.api.StdinHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,7 +175,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
-        protected final LinkedList<C> queue = new LinkedList<C>();
+        protected final LinkedList<C> queue = new LinkedList<>();
         private final String name;
         private ManagedExecutor executor;
         private boolean removed;
@@ -423,7 +432,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
 
     private static class ReceiveQueue implements Stoppable {
         private static final Object END = new Object();
-        private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+        private final BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
 
         @Override
         public void stop() {

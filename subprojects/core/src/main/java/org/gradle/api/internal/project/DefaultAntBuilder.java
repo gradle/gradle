@@ -25,7 +25,12 @@ import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.tasks.TaskContainer;
@@ -36,7 +41,11 @@ import org.gradle.internal.Transformers;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
@@ -103,7 +112,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         File file = gradleProject.file(antBuildFile);
         final File baseDir = file.getParentFile();
 
-        Set<String> existingAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
+        Set<String> existingAntTargets = new HashSet<>(getAntProject().getTargets().keySet());
         File oldBaseDir = getAntProject().getBaseDir();
         getAntProject().setBaseDir(baseDir);
         try {
@@ -119,7 +128,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         getAntProject().getTargets().remove("");
 
         // Add an adapter for each newly added target
-        Set<String> newAntTargets = new HashSet<String>(getAntProject().getTargets().keySet());
+        Set<String> newAntTargets = new HashSet<>(getAntProject().getTargets().keySet());
         newAntTargets.removeAll(existingAntTargets);
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);

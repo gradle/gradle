@@ -24,11 +24,11 @@ import java.util.Set;
 public class DefaultIdeaContentRoot implements Serializable {
 
     File rootDirectory;
-    Set<DefaultIdeaSourceDirectory> sourceDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-    Set<DefaultIdeaSourceDirectory> testDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-    Set<DefaultIdeaSourceDirectory> resourceDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-    Set<DefaultIdeaSourceDirectory> testResourceDirectories = new LinkedHashSet<DefaultIdeaSourceDirectory>();
-    Set<File> excludeDirectories = new LinkedHashSet<File>();
+    Set<DefaultIdeaSourceDirectory> sourceDirectories = new LinkedHashSet<>();
+    Set<DefaultIdeaSourceDirectory> testDirectories = new LinkedHashSet<>();
+    Set<DefaultIdeaSourceDirectory> resourceDirectories = new LinkedHashSet<>();
+    Set<DefaultIdeaSourceDirectory> testResourceDirectories = new LinkedHashSet<>();
+    Set<File> excludeDirectories = new LinkedHashSet<>();
 
     public File getRootDirectory() {
         return rootDirectory;
@@ -53,7 +53,7 @@ public class DefaultIdeaContentRoot implements Serializable {
     }
 
     private Set<DefaultIdeaSourceDirectory> generated(Set<DefaultIdeaSourceDirectory> directories) {
-        Set<DefaultIdeaSourceDirectory> generated = new LinkedHashSet<DefaultIdeaSourceDirectory>();
+        Set<DefaultIdeaSourceDirectory> generated = new LinkedHashSet<>();
         for (DefaultIdeaSourceDirectory sourceDirectory : directories) {
             if (sourceDirectory.isGenerated()) {
                 generated.add(sourceDirectory);

@@ -120,7 +120,7 @@ public class PlayRoutesPlugin extends RuleSource {
 
                     routesCompile.setDescription("Generates routes for the '" + routesSourceSet.getName() + "' source set.");
                     routesCompile.setPlatform(binary.getTargetPlatform());
-                    routesCompile.setAdditionalImports(new ArrayList<String>());
+                    routesCompile.setAdditionalImports(new ArrayList<>());
                     routesCompile.setSource(routesSourceSet.getSource());
                     routesCompile.setOutputDirectory(routesCompileOutputDirectory);
                     routesCompile.setInjectedRoutesGenerator(binary.getApplication().getInjectedRoutesGenerator());

@@ -85,7 +85,7 @@ public class ProjectStateInternal implements ProjectState {
         if (this.failure == null) {
             this.failure = failure;
         } else {
-            List<Throwable> causes = new ArrayList<Throwable>(this.failure.getCauses());
+            List<Throwable> causes = new ArrayList<>(this.failure.getCauses());
             CollectionUtils.addAll(causes, failure.getCauses());
             this.failure.initCauses(causes);
         }

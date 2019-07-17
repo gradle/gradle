@@ -100,7 +100,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
         CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.CPP_COMPILER);
     }
 
@@ -108,13 +108,13 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<?> createCppPCHCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
         CppPCHCompiler cppPCHCompiler = new CppPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getPCHFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<CppPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppPCHCompileSpec>(cppPCHCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
+        OutputCleaningCompiler<CppPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(cppPCHCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.CPP_COMPILER);
     }
 
     private <T extends BinaryToolSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, ToolType toolType) {
         SearchResult<GccMetadata> gccMetadata = getGccMetadata(toolType);
-        return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(
+        return new VersionAwareCompiler<>(compiler, new DefaultCompilerVersion(
             metadataProvider.getCompilerType().getIdentifier(),
             gccMetadata.getComponent().getVendor(),
             gccMetadata.getComponent().getVersion())
@@ -125,7 +125,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
         CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.C_COMPILER);
     }
 
@@ -133,7 +133,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<?> createCPCHCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
         CPCHCompiler cpchCompiler = new CPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cCompilerTool), context(cCompilerTool), getPCHFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<CPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CPCHCompileSpec>(cpchCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
+        OutputCleaningCompiler<CPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(cpchCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.C_COMPILER);
     }
 
@@ -141,7 +141,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
         ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<ObjectiveCppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        OutputCleaningCompiler<ObjectiveCppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(objectiveCppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.OBJECTIVECPP_COMPILER);
     }
 
@@ -149,7 +149,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<?> createObjectiveCppPCHCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
         ObjectiveCppPCHCompiler objectiveCppPCHCompiler = new ObjectiveCppPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), getPCHFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<ObjectiveCppPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<ObjectiveCppPCHCompileSpec>(objectiveCppPCHCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
+        OutputCleaningCompiler<ObjectiveCppPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(objectiveCppPCHCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.OBJECTIVECPP_COMPILER);
     }
 
@@ -157,7 +157,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
         ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<ObjectiveCCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        OutputCleaningCompiler<ObjectiveCCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(objectiveCCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.OBJECTIVEC_COMPILER);
     }
 
@@ -165,7 +165,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<?> createObjectiveCPCHCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
         ObjectiveCPCHCompiler objectiveCPCHCompiler = new ObjectiveCPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), getPCHFileExtension(), useCommandFile, workerLeaseService);
-        OutputCleaningCompiler<ObjectiveCPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<ObjectiveCPCHCompileSpec>(objectiveCPCHCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
+        OutputCleaningCompiler<ObjectiveCPCHCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<>(objectiveCPCHCompiler, compilerOutputFileNamingSchemeFactory, getPCHFileExtension());
         return versionAwareCompiler(outputCleaningCompiler, ToolType.OBJECTIVEC_COMPILER);
     }
 
@@ -228,7 +228,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     private SearchResult<GccMetadata> getGccMetadata(ToolType compilerType) {
         GccCommandLineToolConfigurationInternal compiler = toolRegistry.getTool(compilerType);
         if (compiler == null) {
-            return new ComponentNotFound<GccMetadata>("Tool " + compilerType.getToolName() + " is not available");
+            return new ComponentNotFound<>("Tool " + compilerType.getToolName() + " is not available");
         }
         CommandLineToolSearchResult searchResult = toolSearchPath.locate(compiler.getToolType(), compiler.getExecutable());
         String language = LANGUAGE_FOR_COMPILER.get(compilerType);

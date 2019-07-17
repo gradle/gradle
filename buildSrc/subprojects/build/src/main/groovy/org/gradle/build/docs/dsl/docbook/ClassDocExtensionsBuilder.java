@@ -17,7 +17,14 @@
 package org.gradle.build.docs.dsl.docbook;
 
 import groovy.lang.Closure;
-import org.gradle.build.docs.dsl.docbook.model.*;
+import org.gradle.build.docs.dsl.docbook.model.BlockDoc;
+import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
+import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc;
+import org.gradle.build.docs.dsl.docbook.model.ExtensionMetaData;
+import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc;
+import org.gradle.build.docs.dsl.docbook.model.MethodDoc;
+import org.gradle.build.docs.dsl.docbook.model.MixinMetaData;
+import org.gradle.build.docs.dsl.docbook.model.PropertyDoc;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.dsl.source.model.PropertyMetaData;
 import org.gradle.build.docs.dsl.source.model.TypeMetaData;
@@ -44,7 +51,7 @@ public class ClassDocExtensionsBuilder {
      * Builds the extension meta-data for the given class.
      */
     public void build(ClassDoc classDoc) {
-        Map<String, ClassExtensionDoc> plugins = new HashMap<String, ClassExtensionDoc>();
+        Map<String, ClassExtensionDoc> plugins = new HashMap<>();
         for (MixinMetaData mixin : classDoc.getExtensionMetaData().getMixinClasses()) {
             String pluginId = mixin.getPluginId();
             ClassExtensionDoc classExtensionDoc = plugins.get(pluginId);

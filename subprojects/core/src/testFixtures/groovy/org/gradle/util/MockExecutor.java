@@ -29,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class MockExecutor implements ScheduledExecutorService {
-    private final List<Runnable> singleScheduledActions = new CopyOnWriteArrayList<Runnable>();
-    private final List<Runnable> fixedScheduledActions = new CopyOnWriteArrayList<Runnable>();
+    private final List<Runnable> singleScheduledActions = new CopyOnWriteArrayList<>();
+    private final List<Runnable> fixedScheduledActions = new CopyOnWriteArrayList<>();
     private boolean shutdownInitiated;
 
     public void runSingleScheduledActionsNow() {
@@ -83,7 +83,7 @@ public class MockExecutor implements ScheduledExecutorService {
     @Override
     public List<Runnable> shutdownNow() {
         shutdownInitiated = true;
-        List<Runnable> allActions = new ArrayList<Runnable>();
+        List<Runnable> allActions = new ArrayList<>();
         allActions.addAll(singleScheduledActions);
         allActions.addAll(fixedScheduledActions);
         return allActions;

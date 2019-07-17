@@ -70,10 +70,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parallelConfigurationCommandLineConverter.convert(options, startParameter);
         Transformer<File, String> resolver = new BasicFileResolver(startParameter.getCurrentDir());
 
-        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
+        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<>());
         convertCommandLineSystemProperties(systemProperties, startParameter, resolver);
 
-        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
+        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options, new HashMap<>());
         startParameter.getProjectProperties().putAll(projectProperties);
 
         BuildLayoutParameters layout = new BuildLayoutParameters()

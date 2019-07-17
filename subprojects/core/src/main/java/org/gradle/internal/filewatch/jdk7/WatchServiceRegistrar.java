@@ -57,7 +57,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private final FileWatcherListener delegate;
     private final Lock lock = new ReentrantLock(true);
     private final WatchPointsRegistry watchPointsRegistry;
-    private final HashMap<Path, WatchKey> watchKeys = new HashMap<Path, WatchKey>();
+    private final HashMap<Path, WatchKey> watchKeys = new HashMap<>();
 
     WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;
@@ -126,7 +126,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
     }
 
     private Iterable<File> getCurrentWatchPoints() {
-        List<File> currentWatchPoints = new LinkedList<File>();
+        List<File> currentWatchPoints = new LinkedList<>();
         for (Map.Entry<Path, WatchKey> entry : watchKeys.entrySet()) {
             if (entry.getValue().isValid()) {
                 currentWatchPoints.add(entry.getKey().toFile());

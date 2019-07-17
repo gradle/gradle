@@ -201,7 +201,7 @@ class ModelElementNode extends ModelNodeInternal {
         // This shouldn't be needed, but if there's no actual value referenced, model report can only
         // show the type of the node if we do this for now. It should use the schema instead to find
         // the type of the property node instead.
-        ModelProjection projection = new EmptyReferenceProjection<T>(type);
+        ModelProjection projection = new EmptyReferenceProjection<>(type);
         ModelRegistration registration = ModelRegistrations.of(getPath().child(name))
             .withProjection(projection)
             .descriptor(descriptor).build();

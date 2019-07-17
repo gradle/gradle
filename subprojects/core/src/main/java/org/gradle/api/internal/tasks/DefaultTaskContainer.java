@@ -213,7 +213,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private static void validateArgs(Map<String, ?> args) {
         if (!VALID_TASK_ARGUMENTS.containsAll(args.keySet())) {
-            Map<String, Object> unknownArguments = new HashMap<String, Object>(args);
+            Map<String, Object> unknownArguments = new HashMap<>(args);
             unknownArguments.keySet().removeAll(VALID_TASK_ARGUMENTS);
             throw new InvalidUserDataException(String.format("Could not create task '%s': Unknown argument(s) in task definition: %s",
                 args.get(Task.TASK_NAME), unknownArguments.keySet()));
@@ -525,7 +525,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (modelNode == null) {
             return names;
         } else {
-            TreeSet<String> allNames = new TreeSet<String>(names);
+            TreeSet<String> allNames = new TreeSet<>(names);
             allNames.addAll(modelNode.getLinkNames());
             return allNames;
         }

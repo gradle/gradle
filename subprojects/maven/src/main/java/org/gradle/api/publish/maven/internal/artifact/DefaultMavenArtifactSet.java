@@ -71,7 +71,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
 
         @Override
         public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<File>();
+            Set<File> files = new LinkedHashSet<>();
             for (MavenArtifact artifact : DefaultMavenArtifactSet.this) {
                 files.add(artifact.getFile());
             }

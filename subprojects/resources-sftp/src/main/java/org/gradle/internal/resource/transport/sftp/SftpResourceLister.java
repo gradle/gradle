@@ -42,7 +42,7 @@ public class SftpResourceLister implements ExternalResourceLister {
         try {
             @SuppressWarnings("unchecked")
             Vector<ChannelSftp.LsEntry> entries = client.getSftpClient().ls(directory.getPath());
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             for (ChannelSftp.LsEntry entry : entries) {
                 list.add(entry.getFilename());
             }

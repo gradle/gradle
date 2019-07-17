@@ -29,7 +29,7 @@ public class ArgumentsSplitter {
      * @return separate command line arguments.
      */
     public static List<String> split(String arguments) {
-        List<String> commandLineArguments = new ArrayList<String>();
+        List<String> commandLineArguments = new ArrayList<>();
 
         Character currentQuote = null;
         StringBuilder currentOption = new StringBuilder();

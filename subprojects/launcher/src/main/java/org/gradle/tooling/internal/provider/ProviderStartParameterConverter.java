@@ -35,7 +35,7 @@ class ProviderStartParameterConverter {
     private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables, File projectDir) {
         // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
         // the launchable may hold onto. For example, GradleTask implementations hold onto every task for every project in the build
-        List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
+        List<TaskExecutionRequest> requests = new ArrayList<>(launchables.size());
         for (InternalLaunchable launchable : launchables) {
             if (launchable instanceof TaskExecutionRequest) {
 

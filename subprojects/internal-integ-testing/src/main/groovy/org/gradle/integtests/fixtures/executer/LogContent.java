@@ -61,7 +61,7 @@ public class LogContent {
     }
 
     private static ImmutableList<String> toLines(String chars) {
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         int pos = 0;
         while (pos < chars.length()) {
             int next = chars.indexOf('\n', pos);
@@ -176,7 +176,7 @@ public class LogContent {
         if (definitelyNoDebugPrefix) {
             return this;
         }
-        List<String> result = new ArrayList<String>(lines.size());
+        List<String> result = new ArrayList<>(lines.size());
         for (String line : lines) {
             java.util.regex.Matcher matcher = DEBUG_PREFIX.matcher(line);
             if (matcher.lookingAt()) {

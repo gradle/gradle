@@ -68,7 +68,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
 
-    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
+    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, ScriptHandler settingsScriptHandler,

@@ -201,7 +201,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<Object>(result);
+        return new ProviderBuildResult<>(result);
     }
 
     /**
@@ -221,7 +221,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.run(action, buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<T>((T) results);
+        return new ProviderBuildResult<>((T) results);
     }
 
     /**
@@ -233,7 +233,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.run(action, buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<T>((T) results);
+        return new ProviderBuildResult<>((T) results);
     }
 
     /**
@@ -244,7 +244,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.runPhasedAction(phasedAction, listener, buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<Object>(results);
+        return new ProviderBuildResult<>(results);
     }
 
     /**
@@ -257,7 +257,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = adapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.runTests(testExecutionRequestVersion2, buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<Object>(results);
+        return new ProviderBuildResult<>(results);
     }
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {

@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.*;
+import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.getFilteredClassLoader;
 
 /**
  * Wraps another {@link JavaCompiler.CompilationTask} and sets up its annotation processors
@@ -98,7 +98,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
 
     private void setupProcessors() {
         processorClassloader = createProcessorClassLoader();
-        List<Processor> processors = new ArrayList<Processor>(processorDeclarations.size());
+        List<Processor> processors = new ArrayList<>(processorDeclarations.size());
         if (!processorDeclarations.isEmpty()) {
             SupportedOptionsCollectingProcessor supportedOptionsCollectingProcessor = new SupportedOptionsCollectingProcessor();
             for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {

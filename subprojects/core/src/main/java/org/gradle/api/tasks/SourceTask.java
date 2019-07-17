@@ -37,7 +37,7 @@ import java.util.Set;
  */
 @NonNullApi
 public class SourceTask extends ConventionTask implements PatternFilterable {
-    private final List<Object> source = new ArrayList<Object>();
+    private final List<Object> source = new ArrayList<>();
     private final PatternFilterable patternSet;
 
     public SourceTask() {
@@ -63,7 +63,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.ABSOLUTE)
     public FileTree getSource() {
-        ArrayList<Object> copy = new ArrayList<Object>(this.source);
+        ArrayList<Object> copy = new ArrayList<>(this.source);
         FileTree src = getProject().files(copy).getAsFileTree();
         return src.matching(patternSet);
     }

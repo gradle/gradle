@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class TaskNodeFactory {
-    private final Map<Task, TaskNode> nodes = new HashMap<Task, TaskNode>();
+    private final Map<Task, TaskNode> nodes = new HashMap<>();
     private final IncludedBuildTaskGraph taskGraph;
     private final GradleInternal thisBuild;
     private final BuildIdentifier currentBuildId;

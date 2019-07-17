@@ -32,11 +32,11 @@ public class ExternalResourceReadResult<T> {
     }
 
     public static ExternalResourceReadResult<Void> of(long bytesRead) {
-        return new ExternalResourceReadResult<Void>(bytesRead, null);
+        return new ExternalResourceReadResult<>(bytesRead, null);
     }
 
     public static <T> ExternalResourceReadResult<T> of(long bytesRead, T t) {
-        return new ExternalResourceReadResult<T>(bytesRead, t);
+        return new ExternalResourceReadResult<>(bytesRead, t);
     }
 
     /**

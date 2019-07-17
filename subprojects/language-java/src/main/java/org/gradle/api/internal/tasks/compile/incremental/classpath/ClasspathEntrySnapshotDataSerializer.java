@@ -38,7 +38,7 @@ public class ClasspathEntrySnapshotDataSerializer extends AbstractSerializer<Cla
 
     public ClasspathEntrySnapshotDataSerializer(StringInterner interner) {
         hashCodeSerializer = new HashCodeSerializer();
-        mapSerializer = new MapSerializer<String, HashCode>(new InterningStringSerializer(interner), hashCodeSerializer);
+        mapSerializer = new MapSerializer<>(new InterningStringSerializer(interner), hashCodeSerializer);
         analysisSerializer = new ClassSetAnalysisData.Serializer(interner);
     }
 

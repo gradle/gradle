@@ -76,8 +76,8 @@ public class GroupedOutputFixture {
     }
 
     private String parse(LogContent output) {
-        tasks = new HashMap<String, GroupedTaskFixture>();
-        transformations = new HashMap<String, GroupedTransformationFixture>();
+        tasks = new HashMap<>();
+        transformations = new HashMap<>();
 
         String strippedOutput = output.ansiCharsToPlainText().withNormalizedEol();
         findOutputs(strippedOutput, TASK_OUTPUT_PATTERN, this::consumeTaskOutput);

@@ -30,7 +30,7 @@ public class GetModel implements BuildAction<Map<String, AndroidProject>> {
         System.out.println("* Building models");
         Timer timer = new Timer();
         GradleBuild build = controller.getBuildModel();
-        Map<String, AndroidProject> result = new TreeMap<String, AndroidProject>();
+        Map<String, AndroidProject> result = new TreeMap<>();
         for (BasicGradleProject project : build.getProjects()) {
             AndroidProject androidProject = controller.findModel(project, AndroidProject.class);
             result.put(project.getPath(), androidProject);

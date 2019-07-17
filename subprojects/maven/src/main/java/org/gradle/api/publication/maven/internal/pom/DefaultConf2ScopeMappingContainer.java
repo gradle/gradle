@@ -21,10 +21,16 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.util.WrapUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingContainer {
-    private Map<Configuration, Conf2ScopeMapping> mappings = new HashMap<Configuration, Conf2ScopeMapping>();
+    private Map<Configuration, Conf2ScopeMapping> mappings = new HashMap<>();
 
     private boolean skipUnmappedConfs = true;
 
@@ -48,7 +54,7 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
 
     private Set<Conf2ScopeMapping> getMappingsWithHighestPriority(Collection<Configuration> configurations) {
         Integer lastPriority = null;
-        Set<Conf2ScopeMapping> result = new HashSet<Conf2ScopeMapping>();
+        Set<Conf2ScopeMapping> result = new HashSet<>();
         for (Conf2ScopeMapping conf2ScopeMapping : getMappingsForConfigurations(configurations)) {
             Integer thisPriority = conf2ScopeMapping.getPriority();
             if (lastPriority != null && lastPriority.equals(thisPriority)) {
@@ -62,7 +68,7 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
     }
 
     private List<Conf2ScopeMapping> getMappingsForConfigurations(Collection<Configuration> configurations) {
-        List<Conf2ScopeMapping> existingMappings = new ArrayList<Conf2ScopeMapping>();
+        List<Conf2ScopeMapping> existingMappings = new ArrayList<>();
         for (Configuration configuration : configurations) {
             if (mappings.get(configuration) != null) {
                 existingMappings.add(mappings.get(configuration));

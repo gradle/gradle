@@ -57,8 +57,8 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final String componentName;
     private final Property<VersionNumber> visualStudioVersion;
     private final Property<VersionNumber> sdkVersion;
-    private final List<File> additionalFiles = new ArrayList<File>();
-    private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
+    private final List<File> additionalFiles = new ArrayList<>();
+    private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<>();
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private final ConfigurableFileCollection sourceFiles;
     private final ConfigurableFileCollection headerFiles;
@@ -71,14 +71,14 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         this.projectFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
         this.filtersFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
         this.sourceFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
-            Set<File> allSourcesFromBinaries = new LinkedHashSet<File>();
+            Set<File> allSourcesFromBinaries = new LinkedHashSet<>();
             for (VisualStudioTargetBinary binary : configurations.keySet()) {
                 allSourcesFromBinaries.addAll(binary.getSourceFiles().getFiles());
             }
             return allSourcesFromBinaries;
         }), providerFactory.provider(() -> additionalFiles));
         this.headerFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
-            Set<File> allHeadersFromBinaries = new LinkedHashSet<File>();
+            Set<File> allHeadersFromBinaries = new LinkedHashSet<>();
             for (VisualStudioTargetBinary binary : configurations.keySet()) {
                 allHeadersFromBinaries.addAll(binary.getHeaderFiles().getFiles());
             }
@@ -127,7 +127,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     @Internal
     public Set<File> getResourceFiles() {
-        Set<File> allResources = new LinkedHashSet<File>();
+        Set<File> allResources = new LinkedHashSet<>();
         for (VisualStudioTargetBinary binary : configurations.keySet()) {
             allResources.addAll(binary.getResourceFiles().getFiles());
         }
@@ -219,7 +219,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {
-        private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
+        private final List<Action<? super XmlProvider>> actions = new ArrayList<>();
         private final PathToFileResolver fileResolver;
         private Object location;
 

@@ -92,7 +92,7 @@ public class Providers {
     }
 
     public static <T> ProviderInternal<T> of(T value) {
-        return new FixedValueProvider<T>(value);
+        return new FixedValueProvider<>(value);
     }
 
     public static <T> ProviderInternal<T> internal(final Provider<T> value) {
@@ -124,7 +124,7 @@ public class Providers {
 
         @Override
         public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-            return new MappedFixedValueProvider<S, T>(transformer, this);
+            return new MappedFixedValueProvider<>(transformer, this);
         }
 
         @Override
@@ -181,7 +181,7 @@ public class Providers {
 
         @Override
         public <U> ProviderInternal<U> map(Transformer<? extends U, ? super S> transformer) {
-            return new MappedFixedValueProvider<U, S>(transformer, this);
+            return new MappedFixedValueProvider<>(transformer, this);
         }
 
         @Override

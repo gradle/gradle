@@ -58,7 +58,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
 
     @Override
     public Set<BuildOutcome> transform(ProjectOutcomes rootProject) {
-        Set<BuildOutcome> keyedOutcomes = new HashSet<BuildOutcome>();
+        Set<BuildOutcome> keyedOutcomes = new HashSet<>();
         addBuildOutcomes(rootProject, rootProject, keyedOutcomes);
         return keyedOutcomes;
     }

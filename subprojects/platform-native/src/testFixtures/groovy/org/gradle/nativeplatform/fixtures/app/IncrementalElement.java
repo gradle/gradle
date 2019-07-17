@@ -212,7 +212,7 @@ public abstract class IncrementalElement {
     private class OriginalElement extends SourceElement {
         @Override
         public List<SourceFile> getFiles() {
-            List<SourceFile> result = new ArrayList<SourceFile>();
+            List<SourceFile> result = new ArrayList<>();
             for (Transform transform : getIncrementalChanges()) {
                 result.addAll(transform.getBeforeFiles());
             }
@@ -228,7 +228,7 @@ public abstract class IncrementalElement {
     private class AlternateElement extends SourceElement {
         @Override
         public List<SourceFile> getFiles() {
-            List<SourceFile> result = new ArrayList<SourceFile>();
+            List<SourceFile> result = new ArrayList<>();
             for (Transform transform : getIncrementalChanges()) {
                 result.addAll(transform.getAfterFiles());
             }

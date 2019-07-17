@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class ClassFoldersCreator {
     public List<Library> create(EclipseClasspath classpath) {
-        List<Library> out = new LinkedList<Library>();
+        List<Library> out = new LinkedList<>();
         FileReferenceFactory fileReferenceFactory = classpath.getFileReferenceFactory();
 
         if(classpath.getClassFolders() != null) {

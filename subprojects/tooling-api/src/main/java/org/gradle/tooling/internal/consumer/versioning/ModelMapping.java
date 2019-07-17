@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModelMapping {
-    private static final Map<Class<?>, String> MODEL_VERSIONS = new HashMap<Class<?>, String>();
+    private static final Map<Class<?>, String> MODEL_VERSIONS = new HashMap<>();
 
     static {
         addModelVersions(MODEL_VERSIONS);

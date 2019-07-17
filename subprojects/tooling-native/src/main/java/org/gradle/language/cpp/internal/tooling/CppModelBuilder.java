@@ -82,7 +82,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
 
     private List<DefaultCppBinaryModel> binariesFor(CppComponent component, Iterable<File> headerDirs, DefaultProjectIdentifier projectIdentifier, CompilerOutputFileNamingSchemeFactory namingSchemeFactory) {
         List<File> headerDirsCopy = ImmutableList.copyOf(headerDirs);
-        List<DefaultCppBinaryModel> binaries = new ArrayList<DefaultCppBinaryModel>();
+        List<DefaultCppBinaryModel> binaries = new ArrayList<>();
         for (CppBinary binary : component.getBinaries().get()) {
             DefaultCppBinary cppBinary = (DefaultCppBinary) binary;
             PlatformToolProvider platformToolProvider = cppBinary.getPlatformToolProvider();
@@ -120,7 +120,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
 
     private List<DefaultSourceFile> sourceFiles(CompilerOutputFileNamingSchemeFactory namingSchemeFactory, PlatformToolProvider platformToolProvider, File objDir, Set<File> files) {
         CompilerOutputFileNamingScheme namingScheme = namingSchemeFactory.create().withObjectFileNameSuffix(platformToolProvider.getObjectFileExtension()).withOutputBaseFolder(objDir);
-        List<DefaultSourceFile> result = new ArrayList<DefaultSourceFile>(files.size());
+        List<DefaultSourceFile> result = new ArrayList<>(files.size());
         for (File file : files) {
             result.add(new DefaultSourceFile(file, namingScheme.map(file)));
         }
@@ -135,7 +135,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
         if (compileTask.getMacros().isEmpty()) {
             return Collections.emptyList();
         }
-        List<DefaultMacroDirective> macros = new ArrayList<DefaultMacroDirective>(compileTask.getMacros().size());
+        List<DefaultMacroDirective> macros = new ArrayList<>(compileTask.getMacros().size());
         for (Map.Entry<String, String> entry : compileTask.getMacros().entrySet()) {
             macros.add(new DefaultMacroDirective(entry.getKey(), entry.getValue()));
         }

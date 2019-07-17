@@ -33,8 +33,8 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZE
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ClasspathSnapshotDataSerializer extends AbstractSerializer<ClasspathSnapshotData> {
-    private final MapSerializer<File, HashCode> mapSerializer = new MapSerializer<File, HashCode>(FILE_SERIALIZER, new HashCodeSerializer());
-    private final SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
+    private final MapSerializer<File, HashCode> mapSerializer = new MapSerializer<>(FILE_SERIALIZER, new HashCodeSerializer());
+    private final SetSerializer<String> setSerializer = new SetSerializer<>(STRING_SERIALIZER, false);
 
     @Override
     public ClasspathSnapshotData read(Decoder decoder) throws Exception {

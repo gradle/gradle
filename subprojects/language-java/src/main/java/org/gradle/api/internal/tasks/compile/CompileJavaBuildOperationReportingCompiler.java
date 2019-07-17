@@ -64,7 +64,7 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
             private Result toBuildOperationResult(WorkResult result) {
                 if (result instanceof JdkJavaCompilerResult) {
                     AnnotationProcessingResult annotationProcessingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
-                    List<AnnotationProcessorDetails> details = new ArrayList<AnnotationProcessorDetails>();
+                    List<AnnotationProcessorDetails> details = new ArrayList<>();
                     for (AnnotationProcessorResult processorResult : annotationProcessingResult.getAnnotationProcessorResults()) {
                         details.add(toAnnotationProcessorDetails(processorResult));
                     }

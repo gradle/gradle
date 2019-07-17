@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.Lists;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 import org.gradle.internal.process.ArgWriter;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ class GccOptionsFileArgsWriter extends OptionsFileArgsWriter {
     }
 
     private List<String> getCommandLineOnlyArgs(List<String> allArgs) {
-        List<String> commandLineOnlyArgs = new ArrayList<String>(allArgs);
+        List<String> commandLineOnlyArgs = new ArrayList<>(allArgs);
         commandLineOnlyArgs.retainAll(CLI_ONLY_ARGS);
         return commandLineOnlyArgs;
     }

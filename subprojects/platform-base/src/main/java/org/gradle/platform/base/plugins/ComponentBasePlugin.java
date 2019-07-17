@@ -78,7 +78,7 @@ public class ComponentBasePlugin implements Plugin<Project> {
 
         @Mutate
         void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, bindingsStore));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<>(componentSpecFactory, bindingsStore));
         }
 
         @Validate

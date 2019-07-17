@@ -107,7 +107,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     @Override
     public Set<File> getFiles() {
         ensureResolved(true);
-        final Set<File> result = new LinkedHashSet<File>();
+        final Set<File> result = new LinkedHashSet<>();
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);
         artifacts.visit(new ArtifactVisitor() {
             @Override
@@ -190,7 +190,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
-        public final List<Throwable> notFound = new LinkedList<Throwable>();
+        public final List<Throwable> notFound = new LinkedList<>();
         public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(thisBuild, true, ResolutionStrategy.SortOrder.DEFAULT);
         public SelectedArtifactResults artifactsResults;
 

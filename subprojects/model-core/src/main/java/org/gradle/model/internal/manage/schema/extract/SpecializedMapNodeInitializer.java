@@ -58,7 +58,7 @@ public class SpecializedMapNodeInitializer<T, E> implements NodeInitializer {
                     public void execute(MutableModelNode modelNode) {
                         ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
                         Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
-                        modelNode.addProjection(new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor));
+                        modelNode.addProjection(new SpecializedModelMapProjection<>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor));
                         modelNode.addProjection(ModelMapModelProjection.managed(schema.getType(), schema.getElementType(), strategyAccessor));
                     }
                 }

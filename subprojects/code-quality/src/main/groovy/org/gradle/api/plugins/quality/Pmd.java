@@ -105,7 +105,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      */
     @Override
     public PmdReports reports(@DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return reports(new ClosureBackedAction<PmdReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**

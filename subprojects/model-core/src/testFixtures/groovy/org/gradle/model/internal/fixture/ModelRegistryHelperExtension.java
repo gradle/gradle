@@ -247,7 +247,7 @@ public class ModelRegistryHelperExtension {
                 }
             }
         )
-            .withProjection(new UnmanagedModelProjection<C>(modelType))
+            .withProjection(new UnmanagedModelProjection<>(modelType))
             .build();
     }
 
@@ -265,7 +265,7 @@ public class ModelRegistryHelperExtension {
                     mutableModelNode.setPrivateData(modelType, action.transform(input));
                 }
             })
-            .withProjection(new UnmanagedModelProjection<C>(modelType))
+            .withProjection(new UnmanagedModelProjection<>(modelType))
             .build();
     }
 
@@ -295,7 +295,7 @@ public class ModelRegistryHelperExtension {
 
     public static <C> ModelRegistration unmanagedNode(ModelRegistrations.Builder builder, ModelType<C> modelType, Action<? super MutableModelNode> action) {
         return builder.action(ModelActionRole.Create, action)
-            .withProjection(new UnmanagedModelProjection<C>(modelType))
+            .withProjection(new UnmanagedModelProjection<>(modelType))
             .build();
     }
 
@@ -325,8 +325,8 @@ public class ModelRegistryHelperExtension {
             new Action<MutableModelNode>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode) {
-                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
-                        new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
+                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<>(
+                        new DefaultPolymorphicNamedEntityInstantiator<>(itemType, "this collection")
                     );
                     mutableModelNode.setPrivateData(instantiatorType, instantiator);
                 }

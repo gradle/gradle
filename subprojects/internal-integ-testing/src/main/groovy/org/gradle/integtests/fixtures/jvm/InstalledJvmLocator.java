@@ -24,7 +24,13 @@ import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InstalledJvmLocator {
 
@@ -48,7 +54,7 @@ public class InstalledJvmLocator {
      * @return The JVMs, ordered from highest to lowest Java version. Will include the current JVM.
      */
     public List<JvmInstallation> findJvms() {
-        Map<File, JvmInstallation> installs = new HashMap<File, JvmInstallation>();
+        Map<File, JvmInstallation> installs = new HashMap<>();
         Collection<JvmInstallation> jvms;
         if (operatingSystem.isMacOsX()) {
             jvms = new OsXInstalledJvmLocator(TestFiles.execHandleFactory()).findJvms();
@@ -70,7 +76,7 @@ public class InstalledJvmLocator {
             installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), isJdk, toArch(System.getProperty("os.arch"))));
         }
 
-        List<JvmInstallation> result = new ArrayList<JvmInstallation>(installs.values());
+        List<JvmInstallation> result = new ArrayList<>(installs.values());
         Collections.sort(result, new Comparator<JvmInstallation>() {
             @Override
             public int compare(JvmInstallation o1, JvmInstallation o2) {

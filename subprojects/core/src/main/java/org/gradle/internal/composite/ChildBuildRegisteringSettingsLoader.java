@@ -49,7 +49,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
-            Set<IncludedBuild> children = new LinkedHashSet<IncludedBuild>(includedBuilds.size());
+            Set<IncludedBuild> children = new LinkedHashSet<>(includedBuilds.size());
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 gradle.getOwner().assertCanAdd(includedBuildSpec);
                 BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), null, includedBuildSpec.rootDir, publicBuildPath);

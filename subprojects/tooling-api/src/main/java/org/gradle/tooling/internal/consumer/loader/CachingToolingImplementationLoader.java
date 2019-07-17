@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader, Closeable {
     private final ToolingImplementationLoader loader;
-    private final Map<ClassPath, ConsumerConnection> connections = new HashMap<ClassPath, ConsumerConnection>();
+    private final Map<ClassPath, ConsumerConnection> connections = new HashMap<>();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;

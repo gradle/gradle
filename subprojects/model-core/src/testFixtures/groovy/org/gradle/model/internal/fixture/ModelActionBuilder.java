@@ -19,7 +19,14 @@ package org.gradle.model.internal.fixture;
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.TriAction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DirectNodeInputUsingModelAction;
+import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.ModelViews;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -42,11 +49,11 @@ public class ModelActionBuilder<T> {
     }
 
     public static ModelActionBuilder<Object> of() {
-        return new ModelActionBuilder<Object>(null, ModelType.UNTYPED, new SimpleModelRuleDescriptor("testrule"));
+        return new ModelActionBuilder<>(null, ModelType.UNTYPED, new SimpleModelRuleDescriptor("testrule"));
     }
 
     private <N> ModelActionBuilder<N> copy(ModelType<N> type) {
-        return new ModelActionBuilder<N>(path, type, descriptor);
+        return new ModelActionBuilder<>(path, type, descriptor);
     }
 
     public ModelActionBuilder<T> path(String path) {

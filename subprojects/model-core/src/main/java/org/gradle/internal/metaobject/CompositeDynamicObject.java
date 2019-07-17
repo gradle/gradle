@@ -73,7 +73,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
 
     @Override
     public Map<String, Object> getProperties() {
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
         for (int i = objects.length - 1; i >= 0; i--) {
             DynamicObject object = objects[i];
             properties.putAll(object.getProperties());

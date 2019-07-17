@@ -34,7 +34,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
     @Override
     public <T extends Script, M> ScriptRunner<T, M> create(CompiledScript<T, M> script, ScriptSource source, ClassLoader contextClassLoader) {
-        return new ScriptRunnerImpl<T, M>(script, source, contextClassLoader);
+        return new ScriptRunnerImpl<>(script, source, contextClassLoader);
     }
 
     private class ScriptRunnerImpl<T extends Script, M> implements ScriptRunner<T, M> {

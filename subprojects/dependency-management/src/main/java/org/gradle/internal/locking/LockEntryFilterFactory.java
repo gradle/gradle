@@ -46,7 +46,7 @@ class LockEntryFilterFactory {
         if (lockedDependenciesToUpdate.isEmpty()) {
             return FILTERS_NONE;
         }
-        HashSet<LockEntryFilter> lockEntryFilters = new HashSet<LockEntryFilter>();
+        HashSet<LockEntryFilter> lockEntryFilters = new HashSet<>();
         for (String lockExcludes : lockedDependenciesToUpdate) {
             for (String lockExclude : lockExcludes.split(",")) {
                 String[] split = lockExclude.split(MODULE_SEPARATOR);

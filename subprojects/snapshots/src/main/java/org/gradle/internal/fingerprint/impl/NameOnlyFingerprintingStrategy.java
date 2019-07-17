@@ -49,7 +49,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        final HashSet<String> processedEntries = new HashSet<String>();
+        final HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new FileSystemSnapshotVisitor() {
                 private boolean root = true;

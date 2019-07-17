@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class CachingBlockStore implements BlockStore {
     private final BlockStore store;
-    private final Map<BlockPointer, BlockPayload> dirty = new LinkedHashMap<BlockPointer, BlockPayload>();
+    private final Map<BlockPointer, BlockPayload> dirty = new LinkedHashMap<>();
     private final Cache<BlockPointer, BlockPayload> indexBlockCache = CacheBuilder.newBuilder().maximumSize(100).concurrencyLevel(1).build();
     private final ImmutableSet<Class<? extends BlockPayload>> cacheableBlockTypes;
 

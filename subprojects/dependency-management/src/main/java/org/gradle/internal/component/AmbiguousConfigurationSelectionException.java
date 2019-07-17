@@ -40,7 +40,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
     }
 
     private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
+        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
         }
@@ -139,7 +139,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
     }
 
     private static Map<String, Attribute<?>> collectAttributes(ImmutableAttributes consumerAttributes, ImmutableAttributes producerAttributes) {
-        Map<String, Attribute<?>> allAttributes = new TreeMap<String, Attribute<?>>();
+        Map<String, Attribute<?>> allAttributes = new TreeMap<>();
         for (Attribute<?> attribute : producerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
         }

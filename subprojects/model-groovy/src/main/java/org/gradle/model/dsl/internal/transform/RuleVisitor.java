@@ -17,8 +17,26 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.base.Joiner;
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.ast.expr.*;
+import org.codehaus.groovy.ast.ASTNode;
+import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.FieldNode;
+import org.codehaus.groovy.ast.MethodNode;
+import org.codehaus.groovy.ast.Parameter;
+import org.codehaus.groovy.ast.VariableScope;
+import org.codehaus.groovy.ast.expr.ArgumentListExpression;
+import org.codehaus.groovy.ast.expr.BinaryExpression;
+import org.codehaus.groovy.ast.expr.ClosureExpression;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
+import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
+import org.codehaus.groovy.ast.expr.DeclarationExpression;
+import org.codehaus.groovy.ast.expr.ElvisOperatorExpression;
+import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.ast.expr.FieldExpression;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.PropertyExpression;
+import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
+import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
@@ -90,7 +108,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             node.addField(ruleFactoryField);
 
             // Generate makeRule() method
-            List<Statement> statements = new ArrayList<Statement>();
+            List<Statement> statements = new ArrayList<>();
             statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(inputsField), ASSIGN, new VariableExpression("inputs"))));
             statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(ruleFactoryField), ASSIGN, new VariableExpression("ruleFactory"))));
             node.addMethod(new MethodNode("makeRule",
@@ -104,7 +122,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             VariableExpression inputsVar = new VariableExpression("inputs", INPUT_REFERENCES);
             VariableScope methodVarScope = new VariableScope();
             methodVarScope.putDeclaredVariable(inputsVar);
-            statements = new ArrayList<Statement>();
+            statements = new ArrayList<>();
             statements.add(new ExpressionStatement(new DeclarationExpression(inputsVar, ASSIGN, new ConstructorCallExpression(INPUT_REFERENCES, new ArgumentListExpression()))));
             for (InputReference inputReference : inputs.getOwnReferences()) {
                 statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
@@ -129,7 +147,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                                 new BlockStatement(statements, methodVarScope)));
 
             // Generate sourceLocation() method
-            statements = new ArrayList<Statement>();
+            statements = new ArrayList<>();
             statements.add(new ReturnStatement(new ConstructorCallExpression(SOURCE_LOCATION,
                     new ArgumentListExpression(Arrays.<Expression>asList(
                             new ConstantExpression(SOURCE_URI_TOKEN),

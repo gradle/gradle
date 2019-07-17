@@ -30,12 +30,12 @@ import javax.annotation.Nullable;
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<S, T>(transformer, this);
+        return new TransformBackedProvider<>(transformer, this);
     }
 
     @Override
     public <S> Provider<S> flatMap(final Transformer<? extends Provider<? extends S>, ? super T> transformer) {
-        return new FlatMapProvider<S, T>(this, transformer);
+        return new FlatMapProvider<>(this, transformer);
     }
 
     @Override
@@ -54,12 +54,12 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> orElse(T value) {
-        return new OrElseFixedValueProvider<T>(this, value);
+        return new OrElseFixedValueProvider<>(this, value);
     }
 
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
-        return new OrElseProvider<T>(this, Providers.internal(provider));
+        return new OrElseProvider<>(this, Providers.internal(provider));
     }
 
     @Override

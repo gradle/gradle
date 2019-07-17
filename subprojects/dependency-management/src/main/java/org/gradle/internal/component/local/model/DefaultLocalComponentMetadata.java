@@ -95,7 +95,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         // Artifacts
         // Keep track of transformed artifacts as a given artifact may appear in multiple variants
-        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>();
+        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<>();
         for (Map.Entry<String, LocalComponentArtifactMetadata> entry : allArtifacts.entries()) {
             LocalComponentArtifactMetadata oldArtifact = entry.getValue();
             LocalComponentArtifactMetadata newArtifact = copyArtifact(oldArtifact, artifacts, transformedArtifacts);
@@ -105,7 +105,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         // Variants
         for (Map.Entry<String, DefaultVariantMetadata> entry : allVariants.entries()) {
             DefaultVariantMetadata oldVariant = entry.getValue();
-            List<LocalComponentArtifactMetadata> newArtifacts = new ArrayList<LocalComponentArtifactMetadata>(oldVariant.getArtifacts().size());
+            List<LocalComponentArtifactMetadata> newArtifacts = new ArrayList<>(oldVariant.getArtifacts().size());
             for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
                 newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
             }
@@ -229,7 +229,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public synchronized Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
-            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<ConfigurationMetadata>();
+            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
             boolean hasAtLeastOneConsumableConfiguration = false;
             for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
                 if (configuration.isCanBeConsumed() && !configuration.getAttributes().isEmpty()) {

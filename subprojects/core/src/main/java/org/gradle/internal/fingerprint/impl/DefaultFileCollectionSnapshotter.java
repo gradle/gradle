@@ -53,7 +53,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
 
     private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
-        private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+        private final List<FileSystemSnapshot> roots = new ArrayList<>();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {

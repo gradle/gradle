@@ -36,7 +36,7 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     public CalculatedTaskInputFileCollection(String taskPath, MinimalFileSet calculatedFiles, Object[] inputs) {
         this.taskPath = taskPath;
         this.calculatedFiles = calculatedFiles;
-        targets = new ArrayList<LifecycleAwareValue>(1 + inputs.length);
+        targets = new ArrayList<>(1 + inputs.length);
         for (Object input : inputs) {
             if (input instanceof LifecycleAwareValue) {
                 targets.add((LifecycleAwareValue) input);

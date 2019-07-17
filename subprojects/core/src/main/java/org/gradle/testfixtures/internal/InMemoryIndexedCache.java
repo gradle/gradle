@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * A simple in-memory cache, used by the testing fixtures.
  */
 public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
-    private final Map<Object, byte[]> entries = new ConcurrentHashMap<Object, byte[]>();
+    private final Map<Object, byte[]> entries = new ConcurrentHashMap<>();
     private final ProducerGuard<K> producerGuard = ProducerGuard.serial();
     private final Serializer<V> valueSerializer;
 

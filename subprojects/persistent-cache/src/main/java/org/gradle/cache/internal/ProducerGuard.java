@@ -44,7 +44,7 @@ public abstract class ProducerGuard<T> {
      * guard instead.
      */
     public static <T> ProducerGuard<T> adaptive() {
-        return new AdaptiveProducerGuard<T>();
+        return new AdaptiveProducerGuard<>();
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class ProducerGuard<T> {
      * different keys always getting different locks, use a {@link #adaptive()} guard instead.
      */
     public static <T> ProducerGuard<T> striped() {
-        return new StripedProducerGuard<T>();
+        return new StripedProducerGuard<>();
     }
 
     /**
@@ -62,7 +62,7 @@ public abstract class ProducerGuard<T> {
      * ignoring the key. This is mainly useful for testing.
      */
     public static <T> ProducerGuard<T> serial() {
-        return new SerialProducerGuard<T>();
+        return new SerialProducerGuard<>();
     }
 
     private ProducerGuard() {

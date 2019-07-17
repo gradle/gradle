@@ -83,12 +83,12 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     @Nullable
     @Override
     public T get(String name) {
-        return Iterables.find(collection, new HasNamePredicate<T>(name, namer), null);
+        return Iterables.find(collection, new HasNamePredicate<>(name, namer), null);
     }
 
     @Override
     public Set<String> keySet() {
-        return Sets.newHashSet(Iterables.transform(collection, new ToName<T>(namer)));
+        return Sets.newHashSet(Iterables.transform(collection, new ToName<>(namer)));
     }
 
     @Override
@@ -125,7 +125,7 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     }
 
     public static <T> DomainObjectCollectionBackedModelMap<T> wrap(String name, Class<T> elementType, DomainObjectCollection<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, org.gradle.api.Namer<? super T> namer, Action<? super T> onCreate) {
-        return new DomainObjectCollectionBackedModelMap<T>(name, elementType, domainObjectSet, instantiator, namer, onCreate);
+        return new DomainObjectCollectionBackedModelMap<>(name, elementType, domainObjectSet, instantiator, namer, onCreate);
     }
 
     @Override

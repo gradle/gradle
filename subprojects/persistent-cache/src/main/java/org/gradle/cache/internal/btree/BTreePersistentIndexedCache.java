@@ -64,7 +64,7 @@ public class BTreePersistentIndexedCache<K, V> {
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
-        this.keyHasher = new KeyHasher<K>(keySerializer);
+        this.keyHasher = new KeyHasher<>(keySerializer);
         this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
@@ -223,7 +223,7 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private void doVerify() throws Exception {
-        List<BlockPayload> blocks = new ArrayList<BlockPayload>();
+        List<BlockPayload> blocks = new ArrayList<>();
 
         HeaderBlock header = store.readFirst(HeaderBlock.class);
         blocks.add(header);
@@ -359,7 +359,7 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class IndexBlock extends BlockPayload {
-        private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
+        private final List<IndexEntry> entries = new ArrayList<>();
         private BlockPointer tailPos = BlockPointer.start();
         // Transient fields
         private IndexBlock parent;

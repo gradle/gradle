@@ -31,9 +31,9 @@ import java.util.Set;
  * Resolves partial type names into fully qualified type names.
  */
 public class TypeNameResolver {
-    private final Set<String> primitiveTypes = new HashSet<String>();
-    private final List<String> groovyImplicitImportPackages = new ArrayList<String>();
-    private final List<String> groovyImplicitTypes = new ArrayList<String>();
+    private final Set<String> primitiveTypes = new HashSet<>();
+    private final List<String> groovyImplicitImportPackages = new ArrayList<>();
+    private final List<String> groovyImplicitTypes = new ArrayList<>();
     private final ClassMetaDataRepository<ClassMetaData> metaDataRepository;
 
     public TypeNameResolver(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {

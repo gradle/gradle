@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
@@ -29,14 +30,18 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
     private final AsyncConsumerActionExecutor connection;
-    private final Set<TestOperationDescriptor> operationDescriptors = new LinkedHashSet<TestOperationDescriptor>();
-    private final Set<String> testClassNames = new LinkedHashSet<String>();
-    private final Set<InternalJvmTestRequest> internalJvmTestRequests = new LinkedHashSet<InternalJvmTestRequest>();
+    private final Set<TestOperationDescriptor> operationDescriptors = new LinkedHashSet<>();
+    private final Set<String> testClassNames = new LinkedHashSet<>();
+    private final Set<InternalJvmTestRequest> internalJvmTestRequests = new LinkedHashSet<>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -102,7 +107,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public void run() {
-        BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
+        BlockingResultHandler<Void> handler = new BlockingResultHandler<>(Void.class);
         run(handler);
         handler.getResult();
     }

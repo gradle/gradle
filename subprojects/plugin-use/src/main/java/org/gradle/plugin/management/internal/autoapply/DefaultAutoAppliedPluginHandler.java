@@ -68,7 +68,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
 
     PluginRequests mergePluginRequests(PluginRequests autoAppliedPlugins, PluginRequests initialRequests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
         List<PluginRequestInternal> filteredAutoAppliedPlugins = filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, pluginContainer, scriptHandler);
-        List<PluginRequestInternal> merged = new ArrayList<PluginRequestInternal>(initialRequests.size() + autoAppliedPlugins.size());
+        List<PluginRequestInternal> merged = new ArrayList<>(initialRequests.size() + autoAppliedPlugins.size());
         merged.addAll(filteredAutoAppliedPlugins);
         merged.addAll(ImmutableList.copyOf(initialRequests));
         return new DefaultPluginRequests(merged);

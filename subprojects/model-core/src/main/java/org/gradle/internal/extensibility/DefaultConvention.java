@@ -84,7 +84,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (plugins == null) {
             return null;
         }
-        List<T> values = new ArrayList<T>();
+        List<T> values = new ArrayList<>();
         for (Object object : plugins.values()) {
             if (type.isInstance(object)) {
                 values.add(type.cast(object));
@@ -145,7 +145,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, TypeOf<?>> getSchema() {
-        Map<String, TypeOf<?>> map = new HashMap<String, TypeOf<?>>();
+        Map<String, TypeOf<?>> map = new HashMap<>();
         for (ExtensionsSchema.ExtensionSchema schema : getExtensionsSchema()) {
             map.put(schema.getName(), schema.getPublicType());
         }
@@ -248,9 +248,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
         @Override
         public Map<String, Object> getProperties() {
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
             if (plugins != null) {
-                List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
+                List<Object> reverseOrder = new ArrayList<>(plugins.values());
                 Collections.reverse(reverseOrder);
                 for (Object object : reverseOrder) {
                     properties.putAll(asDynamicObject(object).getProperties());

@@ -51,7 +51,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
     private final long ignoreV17Before;
     private final PerformanceDatabase db;
-    private final Map<String, GradleVersion> gradleVersionCache = new HashMap<String, GradleVersion>();
+    private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
         this("results");
@@ -151,7 +151,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             return db.withConnection(new ConnectionAction<List<String>>() {
                 @Override
                 public List<String> execute(Connection connection) throws SQLException {
-                    List<String> testNames = new ArrayList<String>();
+                    List<String> testNames = new ArrayList<>();
                     Statement statement = null;
                     ResultSet testExecutions = null;
 
@@ -187,13 +187,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 @Override
                 public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
                     Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
-                    Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
+                    Set<String> allVersions = new TreeSet<>(new Comparator<String>() {
                         @Override
                         public int compare(String o1, String o2) {
                             return resolveGradleVersion(o1).compareTo(resolveGradleVersion(o2));
                         }
                     });
-                    Set<String> allBranches = new TreeSet<String>();
+                    Set<String> allBranches = new TreeSet<>();
 
                     PreparedStatement executionsForName = null;
                     PreparedStatement operationsForExecution = null;
@@ -273,7 +273,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         closeStatement(executionsForName);
                     }
 
-                    return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), Lists.newArrayList(results.values()));
+                    return new CrossVersionPerformanceTestHistory(testName, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
                 }
             });
         } catch (Exception e) {

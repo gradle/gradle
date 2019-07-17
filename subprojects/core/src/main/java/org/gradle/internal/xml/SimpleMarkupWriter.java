@@ -38,7 +38,7 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     private final Writer output;
-    private final Deque<String> elements = new ArrayDeque<String>();
+    private final Deque<String> elements = new ArrayDeque<>();
     private Context context = Context.Outside;
     private int squareBrackets;
     private final String indent;

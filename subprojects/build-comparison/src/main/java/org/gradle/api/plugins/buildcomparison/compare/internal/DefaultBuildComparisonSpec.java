@@ -16,10 +16,14 @@
 
 package org.gradle.api.plugins.buildcomparison.compare.internal;
 
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultBuildComparisonSpec implements BuildComparisonSpec {
 
@@ -28,9 +32,9 @@ public class DefaultBuildComparisonSpec implements BuildComparisonSpec {
     private final List<BuildOutcomeAssociation<?>> outcomeAssociations;
 
     public DefaultBuildComparisonSpec(Set<BuildOutcome> source, Set<BuildOutcome> target, List<BuildOutcomeAssociation<?>> outcomeAssociations) {
-        this.source = Collections.unmodifiableSet(new HashSet<BuildOutcome>(source));
-        this.target = Collections.unmodifiableSet(new HashSet<BuildOutcome>(target));
-        this.outcomeAssociations = Collections.unmodifiableList(new ArrayList<BuildOutcomeAssociation<?>>(outcomeAssociations));
+        this.source = Collections.unmodifiableSet(new HashSet<>(source));
+        this.target = Collections.unmodifiableSet(new HashSet<>(target));
+        this.outcomeAssociations = Collections.unmodifiableList(new ArrayList<>(outcomeAssociations));
     }
 
     @Override

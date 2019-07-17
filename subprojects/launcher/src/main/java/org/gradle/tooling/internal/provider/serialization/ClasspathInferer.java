@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -27,6 +26,7 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.InputStream;
 import java.net.JarURLConnection;
@@ -55,8 +55,8 @@ public class ClasspathInferer {
         try {
             Collection<URL> classPath = classPathCache.get(targetClass);
             if (classPath == null) {
-                Set<Class<?>> visited = new HashSet<Class<?>>();
-                classPath = new LinkedHashSet<URL>();
+                Set<Class<?>> visited = new HashSet<>();
+                classPath = new LinkedHashSet<>();
                 find(targetClass, visited, classPath);
                 classPathCache.put(targetClass, classPath);
             }

@@ -312,7 +312,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Override
     public AbstractCopyTask from(Object sourcePath, final Closure c) {
-        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
+        getMainSpec().from(sourcePath, new ClosureBackedAction<>(c));
         return this;
     }
 

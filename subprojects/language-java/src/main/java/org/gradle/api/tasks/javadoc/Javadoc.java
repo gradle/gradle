@@ -112,7 +112,7 @@ public class Javadoc extends SourceTask {
             options.destinationDirectory(destinationDir);
         }
 
-        options.classpath(new ArrayList<File>(getClasspath().getFiles()));
+        options.classpath(new ArrayList<>(getClasspath().getFiles()));
 
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
@@ -137,7 +137,7 @@ public class Javadoc extends SourceTask {
             }
         }
 
-        List<String> sourceNames = new ArrayList<String>();
+        List<String> sourceNames = new ArrayList<>();
         for (File sourceFile : getSource()) {
             sourceNames.add(sourceFile.getAbsolutePath());
         }

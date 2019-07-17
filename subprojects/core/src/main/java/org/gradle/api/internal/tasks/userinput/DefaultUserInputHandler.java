@@ -70,7 +70,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     @Override
     public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
-        final List<T> values = new ArrayList<T>(options);
+        final List<T> values = new ArrayList<>(options);
         StringBuilder builder = new StringBuilder();
         builder.append(question);
         builder.append(":");

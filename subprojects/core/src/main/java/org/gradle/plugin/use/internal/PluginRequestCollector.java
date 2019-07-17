@@ -55,7 +55,7 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private final List<PluginDependencySpecImpl> specs = new LinkedList<PluginDependencySpecImpl>();
+    private final List<PluginDependencySpecImpl> specs = new LinkedList<>();
 
     public PluginDependenciesSpec createSpec(final int pluginsBlockLineNumber) {
         return new PluginDependenciesSpecImpl(pluginsBlockLineNumber);

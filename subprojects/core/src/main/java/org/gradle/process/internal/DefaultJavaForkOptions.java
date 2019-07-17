@@ -114,7 +114,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         if (jvmArgumentProviders == null) {
-            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+            jvmArgumentProviders = new ArrayList<>();
         }
         return jvmArgumentProviders;
     }

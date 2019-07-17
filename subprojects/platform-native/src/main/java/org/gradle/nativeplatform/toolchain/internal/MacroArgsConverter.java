@@ -25,7 +25,7 @@ import java.util.Map;
 public class MacroArgsConverter implements Transformer<List<String>, Map<String, String>> {
     @Override
     public List<String> transform(Map<String, String> original) {
-        List<String> macroList = new ArrayList<String>(original.size());
+        List<String> macroList = new ArrayList<>(original.size());
         for (String macroName : original.keySet()) {
             String macroDef = original.get(macroName);
             String arg = macroDef == null ? macroName : (macroName + "=" + macroDef);

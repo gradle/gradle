@@ -137,7 +137,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.buildCancellationToken = buildCancellationToken;
         processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
-        broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
+        broadcast = new ListenerBroadcast<>(ExecHandleListener.class);
         broadcast.addAll(listeners);
     }
 

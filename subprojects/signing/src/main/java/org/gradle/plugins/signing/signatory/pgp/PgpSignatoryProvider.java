@@ -34,7 +34,7 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
 
     private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
 
-    private final Map<String, PgpSignatory> signatories = new LinkedHashMap<String, PgpSignatory>();
+    private final Map<String, PgpSignatory> signatories = new LinkedHashMap<>();
 
     @Override
     public void configure(final SigningExtension settings, Closure closure) {

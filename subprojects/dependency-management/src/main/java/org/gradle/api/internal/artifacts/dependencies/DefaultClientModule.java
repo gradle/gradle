@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class DefaultClientModule extends AbstractExternalModuleDependency implements ClientModule {
 
-    private Set<ModuleDependency> dependencies = new LinkedHashSet<ModuleDependency>();
+    private Set<ModuleDependency> dependencies = new LinkedHashSet<>();
 
     public DefaultClientModule(String group, String name, String version) {
         this(group, name, version, null);

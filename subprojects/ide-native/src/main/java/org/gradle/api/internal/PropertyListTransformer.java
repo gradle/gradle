@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class PropertyListTransformer<T extends NSObject> implements Transformer<T, T> {
-    private final MutableActionSet<T> actions = new MutableActionSet<T>();
+    private final MutableActionSet<T> actions = new MutableActionSet<>();
 
     /**
      * Adds an action to be executed when property lists are transformed.

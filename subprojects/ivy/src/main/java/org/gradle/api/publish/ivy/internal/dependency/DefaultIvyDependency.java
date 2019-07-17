@@ -32,8 +32,8 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     private final String revision;
     private final String confMapping;
     private final boolean transitive;
-    private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
-    private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
+    private final List<DependencyArtifact> artifacts = new ArrayList<>();
+    private final List<ExcludeRule> excludeRules = new ArrayList<>();
     private final ImmutableAttributes attributes;
 
     public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive) {

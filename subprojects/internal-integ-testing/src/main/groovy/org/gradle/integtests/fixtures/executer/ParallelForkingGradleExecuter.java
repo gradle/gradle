@@ -32,7 +32,7 @@ class ParallelForkingGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         args.addAll(super.getAllArgs());
         if (getDistribution().getVersion().compareTo(GradleVersion.version("2.3")) <= 0) {
             args.add("--parallel-threads=4");

@@ -39,9 +39,9 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
     private final Serializer<Expression> expressionSerializer = new ExpressionSerializer(enumSerializer);
-    private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer, expressionSerializer));
-    private final CollectionSerializer<Macro> macroListSerializer = new CollectionSerializer<Macro>(new MacroSerializer(enumSerializer, expressionSerializer));
-    private final CollectionSerializer<MacroFunction> macroFunctionListSerializer = new CollectionSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
+    private final ListSerializer<Include> includeListSerializer = new ListSerializer<>(new IncludeSerializer(enumSerializer, expressionSerializer));
+    private final CollectionSerializer<Macro> macroListSerializer = new CollectionSerializer<>(new MacroSerializer(enumSerializer, expressionSerializer));
+    private final CollectionSerializer<MacroFunction> macroFunctionListSerializer = new CollectionSerializer<>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
 
     private IncludeDirectivesSerializer() {
     }
@@ -72,7 +72,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
         ExpressionSerializer(Serializer<IncludeType> enumSerializer) {
             this.enumSerializer = enumSerializer;
-            this.argsSerializer = new ListSerializer<Expression>(this);
+            this.argsSerializer = new ListSerializer<>(this);
         }
 
         @Override
@@ -161,7 +161,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             if (argsCount == 0) {
                 return IncludeWithSimpleExpression.create(value, isImport, type);
             }
-            List<Expression> args = new ArrayList<Expression>(argsCount);
+            List<Expression> args = new ArrayList<>(argsCount);
             for (int i = 0; i < argsCount; i++) {
                 args.add(expressionSerializer.read(decoder));
             }
@@ -195,7 +195,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
         MacroSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
             this.enumSerializer = enumSerializer;
-            this.expressionSerializer = new ListSerializer<Expression>(expressionSerializer);
+            this.expressionSerializer = new ListSerializer<>(expressionSerializer);
         }
 
         @Override
@@ -252,7 +252,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
         MacroFunctionSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
             this.enumSerializer = enumSerializer;
-            this.expressionSerializer = new ListSerializer<Expression>(expressionSerializer);
+            this.expressionSerializer = new ListSerializer<>(expressionSerializer);
         }
 
         @Override
@@ -337,7 +337,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
         @Override
         protected Collection<T> createCollection(int size) {
-            return new ArrayList<T>(size);
+            return new ArrayList<>(size);
         }
     }
 }

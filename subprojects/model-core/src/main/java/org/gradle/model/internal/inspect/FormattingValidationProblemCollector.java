@@ -28,7 +28,7 @@ import java.util.List;
 public class FormattingValidationProblemCollector implements ValidationProblemCollector {
     private final String role;
     private final ModelType<?> source;
-    private final List<String> problems = new ArrayList<String>();
+    private final List<String> problems = new ArrayList<>();
 
     public FormattingValidationProblemCollector(String role, ModelType<?> source) {
         this.role = role;

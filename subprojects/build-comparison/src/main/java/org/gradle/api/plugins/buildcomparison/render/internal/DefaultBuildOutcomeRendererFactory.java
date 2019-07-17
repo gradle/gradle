@@ -26,7 +26,7 @@ public class DefaultBuildOutcomeRendererFactory<C> implements BuildOutcomeRender
     private final Class<C> contextType;
 
     private final Map<Class<? extends BuildOutcome>, BuildOutcomeRenderer<?, C>> renderers =
-            new HashMap<Class<? extends BuildOutcome>, BuildOutcomeRenderer<?, C>>();
+        new HashMap<>();
 
     public DefaultBuildOutcomeRendererFactory(Class<C> contextType) {
         this.contextType = contextType;

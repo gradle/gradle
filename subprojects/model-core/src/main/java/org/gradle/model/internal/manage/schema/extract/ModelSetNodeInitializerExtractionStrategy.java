@@ -22,7 +22,22 @@ import com.google.common.collect.Multimap;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelSet;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.AddProjectionsAction;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
+import org.gradle.model.internal.core.DefaultModelViewState;
+import org.gradle.model.internal.core.DirectNodeInputUsingModelAction;
+import org.gradle.model.internal.core.InstanceModelView;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.ModelViewFactory;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeBackedModelSet;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerContext;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.core.TypedModelProjection;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
@@ -36,7 +51,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
     @Override
     protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (MODEL_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
-            return new ModelSetNodeInitializer<T, E>(schema);
+            return new ModelSetNodeInitializer<>(schema);
         }
         return null;
     }
@@ -58,7 +73,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
             ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), setType, ruleDescriptor, mutable, !mutable);
             ChildNodeInitializerStrategy<T> childStrategy = Cast.uncheckedCast(modelNode.getPrivateData(ChildNodeInitializerStrategy.class));
-            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType, elementType, ruleDescriptor, modelNode, state, childStrategy);
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<>(setType, elementType, ruleDescriptor, modelNode, state, childStrategy);
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
@@ -95,7 +110,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
                 .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
                     TypedModelProjection.of(
                         ModelTypes.modelSet(schema.getElementType()),
-                        new ModelSetModelViewFactory<E>(schema.getElementType())
+                        new ModelSetModelViewFactory<>(schema.getElementType())
                     )
                 ))
                 .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
@@ -103,7 +118,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
                     new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                         @Override
                         public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+                            ChildNodeInitializerStrategy<T> childStrategy = new ManagedChildNodeCreatorStrategy<>(nodeInitializerRegistry);
                             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
                         }
                     }

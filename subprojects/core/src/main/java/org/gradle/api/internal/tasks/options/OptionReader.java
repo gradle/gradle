@@ -36,12 +36,12 @@ import java.util.Set;
 
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
-    private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
+    private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
     public List<OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
-        Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
+        Map<String, OptionDescriptor> options = new HashMap<>();
         if (!cachedOptionElements.containsKey(targetClass)) {
             loadClassDescriptorInCache(target);
         }
@@ -55,7 +55,7 @@ public class OptionReader {
     private void loadClassDescriptorInCache(Object target) {
         final Collection<OptionElement> optionElements = getOptionElements(target);
         List<JavaMethod<Object, Collection>> optionValueMethods = loadValueMethodForOption(target.getClass());
-        Set<String> processedOptionElements = new HashSet<String>();
+        Set<String> processedOptionElements = new HashSet<>();
         for (OptionElement optionElement : optionElements) {
             if (processedOptionElements.contains(optionElement.getOptionName())) {
                 throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
@@ -93,7 +93,7 @@ public class OptionReader {
     }
 
     private Collection<OptionElement> getOptionElements(Object target) {
-        List<OptionElement> allOptionElements = new ArrayList<OptionElement>();
+        List<OptionElement> allOptionElements = new ArrayList<>();
         for (Class<?> type = target.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
             allOptionElements.addAll(getMethodAnnotations(type));
             allOptionElements.addAll(getFieldAnnotations(type));
@@ -103,7 +103,7 @@ public class OptionReader {
     }
 
     private List<OptionElement> getFieldAnnotations(Class<?> type) {
-        List<OptionElement> fieldOptionElements = new ArrayList<OptionElement>();
+        List<OptionElement> fieldOptionElements = new ArrayList<>();
         for (Field field : type.getDeclaredFields()) {
             Option option = findOption(field);
             if (option != null) {
@@ -125,7 +125,7 @@ public class OptionReader {
     }
 
     private List<OptionElement> getMethodAnnotations(Class<?> type) {
-        List<OptionElement> methodOptionElements = new ArrayList<OptionElement>();
+        List<OptionElement> methodOptionElements = new ArrayList<>();
         for (Method method : type.getDeclaredMethods()) {
             Option option = findOption(method);
             if (option != null) {
@@ -149,7 +149,7 @@ public class OptionReader {
     }
 
     private static List<JavaMethod<Object, Collection>> loadValueMethodForOption(Class<?> declaredClass) {
-        List<JavaMethod<Object, Collection>> methods = new ArrayList<JavaMethod<Object, Collection>>();
+        List<JavaMethod<Object, Collection>> methods = new ArrayList<>();
         for (Class<?> type = declaredClass; type != Object.class && type != null; type = type.getSuperclass()) {
             for (Method method : type.getDeclaredMethods()) {
                 JavaMethod<Object, Collection> optionValuesMethod = getAsOptionValuesMethod(type, method);

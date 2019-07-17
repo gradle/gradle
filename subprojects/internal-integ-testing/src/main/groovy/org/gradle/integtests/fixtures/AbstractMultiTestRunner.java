@@ -53,7 +53,7 @@ import java.util.Set;
  */
 public abstract class AbstractMultiTestRunner extends Runner implements Filterable {
     protected final Class<?> target;
-    private final List<Execution> executions = new ArrayList<Execution>();
+    private final List<Execution> executions = new ArrayList<>();
     private final boolean runAllExecutions;
     private Description description;
     private Description templateDescription;
@@ -220,10 +220,10 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     protected static abstract class Execution implements Filterable {
         protected Class<?> target;
         private Description templateDescription;
-        private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
-        private final Set<Description> enabledTests = new LinkedHashSet<Description>();
-        private final Set<Description> disabledTests = new LinkedHashSet<Description>();
-        private final List<Filter> filters = new LinkedList<Filter>();
+        private final Map<Description, Description> descriptionTranslations = new HashMap<>();
+        private final Set<Description> enabledTests = new LinkedHashSet<>();
+        private final Set<Description> disabledTests = new LinkedHashSet<>();
+        private final List<Filter> filters = new LinkedList<>();
 
         final boolean hasAnyEnabledTests() {
             return !enabledTests.isEmpty();

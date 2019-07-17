@@ -29,7 +29,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 public class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
     private String applicationName;
     private String mainClassName;
-    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
+    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<>();
     private String executableDir = "bin";
     private CopySpec applicationDistribution;
 

@@ -98,7 +98,7 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
 
         // Remove all the methods from the main class
         if (scriptClass != null) {
-            for (MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
+            for (MethodNode methodNode : new ArrayList<>(scriptClass.getMethods())) {
                 if (!methodNode.getName().equals("run")) {
                     AstUtils.removeMethod(scriptClass, methodNode);
                 }

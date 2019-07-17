@@ -73,7 +73,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
         private final Object lock = new Object();
-        private final Map<K, V> valuesForThisSession = new HashMap<K, V>();
+        private final Map<K, V> valuesForThisSession = new HashMap<>();
 
         @Override
         public void afterStart() {
@@ -160,7 +160,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
         // This is used only to retain strong references to the values
-        private final Set<V> valuesForPreviousSession = new HashSet<V>();
+        private final Set<V> valuesForPreviousSession = new HashSet<>();
         private final Map<K, SoftReference<V>> allValues;
 
         public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
@@ -182,7 +182,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Override
         protected void retainValue(K key, V v) {
-            allValues.put(key, new SoftReference<V>(v));
+            allValues.put(key, new SoftReference<>(v));
         }
 
         @Nullable

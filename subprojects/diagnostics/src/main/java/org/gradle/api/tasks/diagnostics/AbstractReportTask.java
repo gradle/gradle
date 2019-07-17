@@ -54,7 +54,7 @@ public abstract class AbstractReportTask extends ConventionTask {
                 return false;
             }
         });
-        projects = new HashSet<Project>();
+        projects = new HashSet<>();
         projects.add(getProject());
     }
 
@@ -83,7 +83,7 @@ public abstract class AbstractReportTask extends ConventionTask {
 
         ReportGenerator reportGenerator = new ReportGenerator(getRenderer(), getClientMetaData(), getOutputFile(),
                 getTextOutputFactory(), projectReportGenerator);
-        reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
+        reportGenerator.generateReport(new TreeSet<>(getProjects()));
     }
 
     private boolean shouldCreateReportFile() {

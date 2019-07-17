@@ -145,16 +145,16 @@ public class TwirlCompile extends SourceTask {
         getSource().visit(relativeFileCollector);
         TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports);
         if (!inputs.isIncremental()) {
-            new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
+            new CleaningPlayToolCompiler<>(getCompiler(), getOutputs()).execute(spec);
         } else {
-            final Set<File> sourcesToCompile = new HashSet<File>();
+            final Set<File> sourcesToCompile = new HashSet<>();
             inputs.outOfDate(new Action<InputFileDetails>() {
                 @Override
                 public void execute(InputFileDetails inputFileDetails) {
                     sourcesToCompile.add(inputFileDetails.getFile());
                 }
             });
-            final Set<File> staleOutputFiles = new HashSet<File>();
+            final Set<File> staleOutputFiles = new HashSet<>();
             inputs.removed(new Action<InputFileDetails>() {
                 @Override
                 public void execute(InputFileDetails inputFileDetails) {

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -47,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +65,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.gradle.model.internal.core.ModelNode.State.*;
+import static org.gradle.model.internal.core.ModelNode.State.Created;
+import static org.gradle.model.internal.core.ModelNode.State.Discovered;
+import static org.gradle.model.internal.core.ModelNode.State.GraphClosed;
+import static org.gradle.model.internal.core.ModelNode.State.Registered;
+import static org.gradle.model.internal.core.ModelNode.State.SelfClosed;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistryInternal {
@@ -77,7 +81,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     private final ModelRuleExtractor ruleExtractor;
     // Use of a LinkedList for 2 reasons: `Set` proved to have a significant negative impact on performance
     // And list will see a lot of removals, which ArrayList isn't very well suited for.
-    private final List<RuleBinder> unboundRules = new LinkedList<RuleBinder>();
+    private final List<RuleBinder> unboundRules = new LinkedList<>();
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath) {
         this.ruleExtractor = ruleExtractor;
@@ -319,7 +323,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         }
 
         if (!unboundRules.isEmpty()) {
-            SortedSet<RuleBinder> sortedBinders = new TreeSet<RuleBinder>(new Comparator<RuleBinder>() {
+            SortedSet<RuleBinder> sortedBinders = new TreeSet<>(new Comparator<RuleBinder>() {
                 @Override
                 public int compare(RuleBinder o1, RuleBinder o2) {
                     return String.valueOf(o1.getDescriptor()).compareTo(String.valueOf(o2.getDescriptor()));
@@ -366,9 +370,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
      */
     // TODO - reuse graph, discard state once not required
     private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
-        Deque<ModelGoal> queue = new ArrayDeque<ModelGoal>();
+        Deque<ModelGoal> queue = new ArrayDeque<>();
         queue.add(targetGoal);
-        List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
+        List<ModelGoal> newDependencies = new ArrayList<>();
         while (!queue.isEmpty()) {
             ModelGoal goal = queue.getFirst();
 
@@ -415,7 +419,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     private ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, List<ModelGoal> queue) {
-        List<String> path = new ArrayList<String>();
+        List<String> path = new ArrayList<>();
         int pos = queue.indexOf(brokenGoal);
         ListIterator<ModelGoal> iterator = queue.listIterator(pos + 1);
         while (iterator.hasPrevious()) {
@@ -525,7 +529,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         if (inputs.isEmpty()) {
             return Collections.emptyList();
         }
-        ArrayList<BindingPredicate> result = new ArrayList<BindingPredicate>(inputs.size());
+        ArrayList<BindingPredicate> result = new ArrayList<>(inputs.size());
         for (ModelReference<?> input : inputs) {
             if (input.getPath() == null && input.getScope() == null) {
                 result.add(new BindingPredicate(input.inScope(ModelPath.ROOT)));
@@ -537,7 +541,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     private class GoalGraph {
-        private final Map<NodeAtState, ModelGoal> nodeStates = new HashMap<NodeAtState, ModelGoal>();
+        private final Map<NodeAtState, ModelGoal> nodeStates = new HashMap<>();
 
         public ModelGoal nodeAtState(NodeAtState goal) {
             ModelGoal node = nodeStates.get(goal);
@@ -830,7 +834,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     private class ApplyActions extends TransitionNodeToState {
-        private final Set<RuleBinder> seenRules = new HashSet<RuleBinder>();
+        private final Set<RuleBinder> seenRules = new HashSet<>();
 
         public ApplyActions(NodeAtState target) {
             super(target);

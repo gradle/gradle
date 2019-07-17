@@ -25,7 +25,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -154,11 +160,11 @@ public class JavadocConverter {
 
     private static class HtmlGeneratingTokenHandler extends JavadocLexer.TokenVisitor {
         final DocBookBuilder nodes;
-        final List<HtmlElementHandler> elementHandlers = new ArrayList<HtmlElementHandler>();
-        final List<JavadocTagHandler> tagHandlers = new ArrayList<JavadocTagHandler>();
-        final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<HtmlElementHandler>();
-        final LinkedList<String> tagStack = new LinkedList<String>();
-        final Map<String, String> attributes = new HashMap<String, String>();
+        final List<HtmlElementHandler> elementHandlers = new ArrayList<>();
+        final List<JavadocTagHandler> tagHandlers = new ArrayList<>();
+        final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<>();
+        final LinkedList<String> tagStack = new LinkedList<>();
+        final Map<String, String> attributes = new HashMap<>();
         StringBuilder tagValue;
         final Document document;
 
@@ -305,7 +311,7 @@ public class JavadocConverter {
     private static class JavadocTagToElementTranslatingHandler implements JavadocTagHandler {
         private final DocBookBuilder nodes;
         private final Document document;
-        private final Map<String, String> tagToElementMap = new HashMap<String, String>();
+        private final Map<String, String> tagToElementMap = new HashMap<>();
 
         private JavadocTagToElementTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
@@ -329,7 +335,7 @@ public class JavadocConverter {
     private static class HtmlElementTranslatingHandler implements HtmlElementHandler {
         private final DocBookBuilder nodes;
         private final Document document;
-        private final Map<String, String> elementToElementMap = new HashMap<String, String>();
+        private final Map<String, String> elementToElementMap = new HashMap<>();
 
         private HtmlElementTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;

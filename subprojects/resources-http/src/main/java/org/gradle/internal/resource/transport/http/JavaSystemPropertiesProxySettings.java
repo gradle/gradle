@@ -73,7 +73,7 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         }
 
         LOGGER.debug("Found java system property 'http.nonProxyHosts': {}. Will ignore proxy settings for these hosts.", nonProxyHostsString);
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
         for (String nonProxyHost : nonProxyHostsString.split("\\|")) {
             patterns.add(createHostMatcher(nonProxyHost));
         }

@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultAttributes implements Attributes {
-    protected Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+    protected Map<String, Object> attributes = new LinkedHashMap<>();
 
     @Override
     public int size() {

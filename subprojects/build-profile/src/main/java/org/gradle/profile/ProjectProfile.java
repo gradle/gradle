@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ProjectProfile extends Operation {
-    private HashMap<String, TaskExecution> tasks = new HashMap<String, TaskExecution>();
+    private HashMap<String, TaskExecution> tasks = new HashMap<>();
     private final ContinuousOperation configurationOperation;
     private String projectPath;
 
@@ -47,7 +47,7 @@ public class ProjectProfile extends Operation {
      */
     public CompositeOperation<TaskExecution> getTasks() {
         List<TaskExecution> taskExecutions = CollectionUtils.sort(tasks.values(), slowestFirst());
-        return new CompositeOperation<TaskExecution>(taskExecutions);
+        return new CompositeOperation<>(taskExecutions);
     }
 
     /**

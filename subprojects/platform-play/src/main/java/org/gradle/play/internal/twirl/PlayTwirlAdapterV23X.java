@@ -37,7 +37,7 @@ class PlayTwirlAdapterV23X implements VersionedPlayTwirlAdapter {
     private static final List<String> DEFAULT_JAVA_IMPORTS;
     private static final List<String> DEFAULT_SCALA_IMPORTS;
     static {
-        List<String> javaImports = new ArrayList<String>();
+        List<String> javaImports = new ArrayList<>();
         javaImports.addAll(defaultTemplateImports);
         javaImports.add("java.lang._");
         javaImports.add("java.util._");
@@ -50,7 +50,7 @@ class PlayTwirlAdapterV23X implements VersionedPlayTwirlAdapter {
         javaImports.add("play.mvc.Http.Context.Implicit._");
         DEFAULT_JAVA_IMPORTS = Collections.unmodifiableList(javaImports);
 
-        List<String> scalaImports = new ArrayList<String>();
+        List<String> scalaImports = new ArrayList<>();
         scalaImports.addAll(defaultTemplateImports);
         scalaImports.add("play.api.mvc._");
         scalaImports.add("play.api.data._");

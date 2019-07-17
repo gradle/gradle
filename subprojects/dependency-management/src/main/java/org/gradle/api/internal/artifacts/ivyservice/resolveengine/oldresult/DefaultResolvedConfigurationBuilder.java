@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
-    private final Map<Long, Dependency> modulesMap = new HashMap<Long, Dependency>();
+    private final Map<Long, Dependency> modulesMap = new HashMap<>();
     private final TransientConfigurationResultsBuilder builder;
 
     public DefaultResolvedConfigurationBuilder(TransientConfigurationResultsBuilder builder) {

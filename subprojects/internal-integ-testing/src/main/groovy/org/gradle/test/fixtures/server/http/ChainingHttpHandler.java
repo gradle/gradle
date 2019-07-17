@@ -37,8 +37,8 @@ import java.util.concurrent.locks.Lock;
 class ChainingHttpHandler implements HttpHandler {
     private final int timeoutMs;
     private final AtomicInteger counter;
-    private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
-    private final List<RequestOutcome> outcomes = new ArrayList<RequestOutcome>();
+    private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<>();
+    private final List<RequestOutcome> outcomes = new ArrayList<>();
     private final Clock clock = Time.clock();
     private final Lock lock;
     private WaitPrecondition last;
@@ -75,7 +75,7 @@ class ChainingHttpHandler implements HttpHandler {
 
         lock.lock();
         try {
-            List<Throwable> failures = new ArrayList<Throwable>();
+            List<Throwable> failures = new ArrayList<>();
             for (RequestOutcome outcome : outcomes) {
                 outcome.collectFailure(failures);
             }

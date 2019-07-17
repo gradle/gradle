@@ -33,7 +33,7 @@ public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolC
 
     public DefaultVisualCppPlatformToolChain(NativePlatform platform, Instantiator instantiator) {
         this.platform = platform;
-        tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
+        tools = new HashMap<>();
         tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.C_COMPILER));
         tools.put(ToolType.CPP_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.CPP_COMPILER));
         tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));

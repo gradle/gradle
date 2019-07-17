@@ -95,7 +95,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
         }
 
         private static class AnnotationTransformingVisitor extends AnnotationVisitor {
-            private final List<String> names = new ArrayList<String>();
+            private final List<String> names = new ArrayList<>();
 
             public AnnotationTransformingVisitor(AnnotationVisitor annotationVisitor) {
                 super(AsmConstants.ASM_LEVEL, annotationVisitor);

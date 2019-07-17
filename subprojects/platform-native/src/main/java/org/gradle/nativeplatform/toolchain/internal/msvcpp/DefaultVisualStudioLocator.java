@@ -43,7 +43,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.X86_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.X86_ON_X86;
 
 public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
@@ -52,8 +64,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String LEGACY_COMPILER_FILENAME = "cl.exe";
     private static final String VS2017_COMPILER_FILENAME = "HostX86/x86/cl.exe";
 
-    private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
-    private final Set<File> brokenInstalls = new LinkedHashSet<File>();
+    private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<>();
+    private final Set<File> brokenInstalls = new LinkedHashSet<>();
     private final VisualStudioVersionLocator commandLineLocator;
     private final VisualStudioVersionLocator windowsRegistryLocator;
     private final VisualStudioVersionLocator systemPathLocator;
@@ -142,10 +154,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         VisualStudioInstallCandidate install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
 
         if (install != null && addInstallIfValid(install, "user provided path")) {
-            return new ComponentFound<VisualStudioInstall>(foundInstalls.get(install.getInstallDir()));
+            return new ComponentFound<>(foundInstalls.get(install.getInstallDir()));
         } else {
             LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
-            return new ComponentNotFound<VisualStudioInstall>(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
+            return new ComponentNotFound<>(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
         }
     }
 
@@ -227,13 +239,13 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         if (candidate != null) {
-            return new ComponentFound<VisualStudioInstall>(candidate);
+            return new ComponentFound<>(candidate);
         }
         if (brokenInstalls.isEmpty()) {
-            return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.");
+            return new ComponentNotFound<>("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.");
         }
-        return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
-            CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), new Transformer<String, File>() {
+        return new ComponentNotFound<>("Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
+            CollectionUtils.collect(brokenInstalls, new ArrayList<>(), new Transformer<String, File>() {
                 @Override
                 public String transform(File file) {
                     return file.getAbsolutePath();

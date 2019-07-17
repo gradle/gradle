@@ -73,7 +73,7 @@ public class DependencyInsightReporter {
     }
 
     public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
-        LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
+        LinkedList<RenderableDependency> out = new LinkedList<>();
         Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
         //remember if module id was annotated

@@ -26,7 +26,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class BlockingResultHandler<T> implements ResultHandler<T> {
-    private final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(1);
+    private final BlockingQueue<Object> queue = new ArrayBlockingQueue<>(1);
     private final Class<T> resultType;
     private static final Object NULL = new Object();
 
@@ -52,7 +52,7 @@ public class BlockingResultHandler<T> implements ResultHandler<T> {
     }
 
     public static Throwable attachCallerThreadStackTrace(Throwable failure) {
-        List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
+        List<StackTraceElement> adjusted = new ArrayList<>();
         adjusted.addAll(Arrays.asList(failure.getStackTrace()));
         List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
         if (!currentThreadStack.isEmpty()) {

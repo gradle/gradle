@@ -124,10 +124,10 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
          * We only add getters for `public static final String` constants. This is because in
          * the converted classes only contain these kinds of constants.
          */
-        private Map<String, String> missingStaticStringConstantGetters = new HashMap<String, String>();
-        private Set<String> booleanGetGetters = new HashSet<String>();
-        private Set<String> booleanFields = new HashSet<String>();
-        private Set<String> booleanIsGetters = new HashSet<String>();
+        private Map<String, String> missingStaticStringConstantGetters = new HashMap<>();
+        private Set<String> booleanGetGetters = new HashSet<>();
+        private Set<String> booleanFields = new HashSet<>();
+        private Set<String> booleanIsGetters = new HashSet<>();
 
         TransformingAdapter(ClassVisitor cv) {
             super(AsmConstants.ASM_LEVEL, cv);
@@ -137,7 +137,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             this.className = name;
 
-            Set<String> interfaceNames = new LinkedHashSet<String>(Arrays.asList(interfaces));
+            Set<String> interfaceNames = new LinkedHashSet<>(Arrays.asList(interfaces));
             interfaceNames.add(GROOVY_OBJECT_TYPE.getInternalName());
             cv.visit(version, access, name, signature, superName, interfaceNames.toArray(new String[0]));
         }
@@ -318,7 +318,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         }
 
         private void addBooleanGetGetters() {
-            Collection<String> accessibleBooleanFieldsWithoutGetGetters = new HashSet<String>();
+            Collection<String> accessibleBooleanFieldsWithoutGetGetters = new HashSet<>();
             accessibleBooleanFieldsWithoutGetGetters.addAll(booleanFields);
             accessibleBooleanFieldsWithoutGetGetters.retainAll(booleanIsGetters);
             accessibleBooleanFieldsWithoutGetGetters.removeAll(booleanGetGetters);

@@ -59,13 +59,13 @@ import java.util.regex.Pattern;
 public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final FileResolver fileResolver;
-    private final Set<Object> sourcePaths = new LinkedHashSet<Object>();
+    private final Set<Object> sourcePaths = new LinkedHashSet<>();
     private Object destDir;
     private final PatternSet patternSet;
-    private final List<CopySpecInternal> childSpecs = new LinkedList<CopySpecInternal>();
-    private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<CopySpecInternal>();
+    private final List<CopySpecInternal> childSpecs = new LinkedList<>();
+    private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<>();
     protected final Instantiator instantiator;
-    private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<Action<? super FileCopyDetails>>();
+    private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private boolean hasCustomActions;
     private Integer dirMode;
     private Integer fileMode;
@@ -124,7 +124,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec from(Object sourcePath, Closure c) {
-        return from(sourcePath, new ClosureBackedAction<CopySpec>(c));
+        return from(sourcePath, new ClosureBackedAction<>(c));
     }
 
     @Override
@@ -226,7 +226,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec into(Object destPath, Closure configureClosure) {
-        return into(destPath, new ClosureBackedAction<CopySpec>(configureClosure));
+        return into(destPath, new ClosureBackedAction<>(configureClosure));
     }
 
     @Override
@@ -437,7 +437,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec rename(Transformer<String, String> renamer) {
-        ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
+        ChainingTransformer<String> transformer = new ChainingTransformer<>(String.class);
         transformer.add(renamer);
         appendCopyAction(new RenamingCopyAction(transformer));
         return this;
@@ -582,7 +582,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver == null) {
                 return copyActions;
             }
-            List<Action<? super FileCopyDetails>> allActions = new ArrayList<Action<? super FileCopyDetails>>();
+            List<Action<? super FileCopyDetails>> allActions = new ArrayList<>();
             allActions.addAll(parentResolver.getAllCopyActions());
             allActions.addAll(copyActions);
             return allActions;
@@ -590,7 +590,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public List<String> getAllIncludes() {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludes());
             }
@@ -600,7 +600,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public List<String> getAllExcludes() {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludes());
             }
@@ -611,7 +611,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public List<Spec<FileTreeElement>> getAllExcludeSpecs() {
-            List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
+            List<Spec<FileTreeElement>> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludeSpecs());
             }
@@ -676,7 +676,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public List<Spec<FileTreeElement>> getAllIncludeSpecs() {
-            List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
+            List<Spec<FileTreeElement>> result = new ArrayList<>();
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludeSpecs());
             }

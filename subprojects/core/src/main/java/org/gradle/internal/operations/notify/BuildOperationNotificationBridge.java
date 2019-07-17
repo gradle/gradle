@@ -157,8 +157,8 @@ public class BuildOperationNotificationBridge {
 
         private final BuildOperationNotificationListener notificationListener;
 
-        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
-        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<OperationIdentifier, Object>();
+        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
+        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<>();
 
         private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
@@ -247,7 +247,7 @@ public class BuildOperationNotificationBridge {
 
     private static class RecordingListener implements BuildOperationNotificationListener {
 
-        private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
+        private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<>();
 
         @Override
         public void started(BuildOperationStartedNotification notification) {

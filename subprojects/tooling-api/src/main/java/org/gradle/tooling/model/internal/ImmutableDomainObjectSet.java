@@ -18,10 +18,15 @@ package org.gradle.tooling.model.internal;
 import org.gradle.tooling.model.DomainObjectSet;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ImmutableDomainObjectSet<T> extends AbstractSet<T> implements DomainObjectSet<T>, Serializable {
-    private final Set<T> elements = new LinkedHashSet<T>();
+    private final Set<T> elements = new LinkedHashSet<>();
 
     public ImmutableDomainObjectSet(Iterable<? extends T> elements) {
         for (T element : elements) {
@@ -46,10 +51,10 @@ public class ImmutableDomainObjectSet<T> extends AbstractSet<T> implements Domai
 
     @Override
     public List<T> getAll() {
-        return new ArrayList<T>(elements);
+        return new ArrayList<>(elements);
     }
 
     public static <T> ImmutableDomainObjectSet<T> of(Iterable<? extends T> elements) {
-        return new ImmutableDomainObjectSet<T>(elements);
+        return new ImmutableDomainObjectSet<>(elements);
     }
 }

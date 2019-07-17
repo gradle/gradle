@@ -31,7 +31,7 @@ import java.util.Set;
 public class ClassDependentsAccumulator {
 
     private final Set<String> dependenciesToAll = Sets.newHashSet();
-    private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
+    private final Map<String, Set<String>> dependents = new HashMap<>();
     private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
     private final Set<String> seenClasses = Sets.newHashSet();
     private String fullRebuildCause;

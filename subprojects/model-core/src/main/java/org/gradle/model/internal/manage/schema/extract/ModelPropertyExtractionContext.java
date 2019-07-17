@@ -82,7 +82,7 @@ public class ModelPropertyExtractionContext {
     }
 
     public Set<ModelType<?>> getDeclaredBy() {
-        ImmutableSortedSet.Builder<ModelType<?>> declaredBy = new ImmutableSortedSet.Builder<ModelType<?>>(Ordering.usingToString());
+        ImmutableSortedSet.Builder<ModelType<?>> declaredBy = new ImmutableSortedSet.Builder<>(Ordering.usingToString());
         for (PropertyAccessorExtractionContext accessor : accessors.values()) {
             for (Method method : accessor.getDeclaringMethods()) {
                 declaredBy.add(ModelType.declaringType(method));

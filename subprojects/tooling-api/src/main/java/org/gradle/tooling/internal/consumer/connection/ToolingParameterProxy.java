@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>These proxies do not support any kind of nesting.
  */
 public class ToolingParameterProxy implements InvocationHandler {
-    private final Map<String, Object> properties = new HashMap<String, Object>();
+    private final Map<String, Object> properties = new HashMap<>();
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -47,8 +47,8 @@ public class ToolingParameterProxy implements InvocationHandler {
             throwParameterValidationError(clazz, "It must be an interface.");
         }
 
-        Map<String, Class<?>> setters = new HashMap<String, Class<?>>();
-        Map<String, Class<?>> getters = new HashMap<String, Class<?>>();
+        Map<String, Class<?>> setters = new HashMap<>();
+        Map<String, Class<?>> getters = new HashMap<>();
 
         for (Method method : clazz.getDeclaredMethods()) {
             if (isGetter(method)) {

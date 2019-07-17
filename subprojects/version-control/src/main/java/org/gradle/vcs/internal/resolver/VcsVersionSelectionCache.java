@@ -28,9 +28,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class VcsVersionSelectionCache {
-    private final Map<String, File> resolvedVersions = new ConcurrentHashMap<String, File>();
-    private final Map<String, Set<VersionRef>> repositoryVersions = new ConcurrentHashMap<String, Set<VersionRef>>();
-    private final Map<String, File> checkoutDirs = new ConcurrentHashMap<String, File>();
+    private final Map<String, File> resolvedVersions = new ConcurrentHashMap<>();
+    private final Map<String, Set<VersionRef>> repositoryVersions = new ConcurrentHashMap<>();
+    private final Map<String, File> checkoutDirs = new ConcurrentHashMap<>();
 
     @Nullable
     public Set<VersionRef> getVersionsForRepo(VersionControlRepositoryConnection repository) {

@@ -29,12 +29,12 @@ import java.util.List;
 
 public class EffectiveClassPath extends DefaultClassPath {
     public EffectiveClassPath(ClassLoader classLoader) {
-        super(new ImmutableUniqueList<File>(findAvailableClasspathFiles(classLoader)));
+        super(new ImmutableUniqueList<>(findAvailableClasspathFiles(classLoader)));
     }
 
     private static List<File> findAvailableClasspathFiles(ClassLoader classLoader) {
         List<URL> rawClasspath = ClasspathUtil.getClasspath(classLoader).getAsURLs();
-        List<File> classpathFiles = new ArrayList<File>();
+        List<File> classpathFiles = new ArrayList<>();
         for (URL url : rawClasspath) {
             if (url.getProtocol().equals("file")) {
                 try {

@@ -56,8 +56,8 @@ import java.io.File;
 public class GeneratorTask<T> extends ConventionTask {
     private File inputFile;
     private File outputFile;
-    protected final MutableActionSet<T> beforeConfigured = new MutableActionSet<T>();
-    protected final MutableActionSet<T> afterConfigured = new MutableActionSet<T>();
+    protected final MutableActionSet<T> beforeConfigured = new MutableActionSet<>();
+    protected final MutableActionSet<T> afterConfigured = new MutableActionSet<>();
     protected Generator<T> generator;
 
     protected T domainObject;

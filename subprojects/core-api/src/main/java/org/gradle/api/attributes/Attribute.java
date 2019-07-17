@@ -45,7 +45,7 @@ public class Attribute<T> implements Named {
      * @return an attribute with the given name and type
      */
     public static <T> Attribute<T> of(String name, Class<T> type) {
-        return new Attribute<T>(name, type);
+        return new Attribute<>(name, type);
     }
 
     /**

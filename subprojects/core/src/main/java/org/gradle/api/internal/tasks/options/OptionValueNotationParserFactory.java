@@ -30,7 +30,7 @@ public class OptionValueNotationParserFactory {
         } else if (targetType.isEnum()) {
             @SuppressWarnings({"rawtypes", "unchecked"})
             NotationConverter<CharSequence, T> converter = new EnumFromCharSequenceNotationParser(targetType.asSubclass(Enum.class));
-            return new NotationConverterToNotationParserAdapter<CharSequence, T>(converter);
+            return new NotationConverterToNotationParserAdapter<>(converter);
         }
 
         throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));

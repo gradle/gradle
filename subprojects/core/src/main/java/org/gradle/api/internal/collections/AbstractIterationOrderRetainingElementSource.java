@@ -44,7 +44,7 @@ import java.util.Set;
 abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
-    private final List<Element<T>> inserted = new ArrayList<Element<T>>();
+    private final List<Element<T>> inserted = new ArrayList<>();
 
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
@@ -146,7 +146,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), realizeAction);
         if (provider instanceof ChangingValue) {
             ((ChangingValue<T>) provider).onValueChange(new Action<T>() {
                 @Override
@@ -159,7 +159,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), realizeAction);
         if (provider instanceof ChangingValue) {
             ((ChangingValue<Iterable<T>>)provider).onValueChange(new Action<Iterable<T>>() {
                 @Override
@@ -238,7 +238,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                     int j = nextSubIndex + 1;
                     while (j < collected.size()) {
                         T value = collected.get(j);
-                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<>(candidate, j))) {
                             nextIndex = i;
                             nextSubIndex = j;
                             next = value;
@@ -308,7 +308,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         Element(T value) {
-            super(null, new SingleElement<T>(value));
+            super(null, new SingleElement<>(value));
             this.realizeAction = null;
             realize();
         }
@@ -319,7 +319,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public void realize() {
             if (cache == null) {
-                cache = new ArrayList<T>(delegate.size());
+                cache = new ArrayList<>(delegate.size());
                 super.collectInto(cache);
                 cache.removeAll(removedValues);
                 realized = true;

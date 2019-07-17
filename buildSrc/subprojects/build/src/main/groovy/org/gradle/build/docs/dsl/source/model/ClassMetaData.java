@@ -40,15 +40,15 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     private final String packageName;
     private final MetaType metaType;
     private final boolean isGroovy;
-    private final List<String> imports = new ArrayList<String>();
-    private final List<String> interfaceNames = new ArrayList<String>();
-    private final Map<String, PropertyMetaData> declaredProperties = new HashMap<String, PropertyMetaData>();
-    private final Set<MethodMetaData> declaredMethods = new HashSet<MethodMetaData>();
-    private final List<String> innerClassNames = new ArrayList<String>();
+    private final List<String> imports = new ArrayList<>();
+    private final List<String> interfaceNames = new ArrayList<>();
+    private final Map<String, PropertyMetaData> declaredProperties = new HashMap<>();
+    private final Set<MethodMetaData> declaredMethods = new HashSet<>();
+    private final List<String> innerClassNames = new ArrayList<>();
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
-    public final HashMap<String, String> constants = new HashMap<String, String>();
-    private final List<EnumConstantMetaData> enumConstants = new ArrayList<EnumConstantMetaData>();
+    public final HashMap<String, String> constants = new HashMap<>();
+    private final List<EnumConstantMetaData> enumConstants = new ArrayList<>();
 
     public ClassMetaData(String className, String packageName, MetaType metaType, boolean isGroovy, String rawClassComment) {
         super(rawClassComment);
@@ -112,7 +112,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     }
 
     public List<ClassMetaData> getInterfaces() {
-        List<ClassMetaData> interfaces = new ArrayList<ClassMetaData>();
+        List<ClassMetaData> interfaces = new ArrayList<>();
         for (String interfaceName : interfaceNames) {
             ClassMetaData interfaceMetaData = metaDataRepository.find(interfaceName);
             if (interfaceMetaData != null) {
@@ -175,7 +175,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     }
 
     public Set<PropertyMetaData> getDeclaredProperties() {
-        return new HashSet<PropertyMetaData>(declaredProperties.values());
+        return new HashSet<>(declaredProperties.values());
     }
 
     public Set<MethodMetaData> getDeclaredMethods() {
@@ -183,7 +183,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     }
 
     public Set<String> getDeclaredMethodNames() {
-        Set<String> names = new HashSet<String>();
+        Set<String> names = new HashSet<>();
         for (MethodMetaData declaredMethod : declaredMethods) {
             names.add(declaredMethod.getName());
         }
@@ -200,7 +200,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     }
 
     public List<MethodMetaData> findDeclaredMethods(String name) {
-        List<MethodMetaData> methods = new ArrayList<MethodMetaData>();
+        List<MethodMetaData> methods = new ArrayList<>();
         for (MethodMetaData method : declaredMethods) {
             if (method.getName().equals(name)) {
                 methods.add(method);
@@ -233,7 +233,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
      * @return The set of property names.
      */
     public Set<String> getPropertyNames() {
-        Set<String> propertyNames = new TreeSet<String>();
+        Set<String> propertyNames = new TreeSet<>();
         propertyNames.addAll(declaredProperties.keySet());
         ClassMetaData superClass = getSuperClass();
         if (superClass != null) {

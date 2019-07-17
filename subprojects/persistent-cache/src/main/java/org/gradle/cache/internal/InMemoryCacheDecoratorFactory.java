@@ -58,7 +58,7 @@ public class InMemoryCacheDecoratorFactory {
         }
         int targetSize = cacheSizer.scaleCacheSize(maxEntriesToKeepInMemory);
         CacheDetails cacheDetails = getCache(cacheId, targetSize);
-        return new InMemoryDecoratedCache<K, V>(backingCache, cacheDetails.entries, cacheId, cacheDetails.lockState);
+        return new InMemoryDecoratedCache<>(backingCache, cacheDetails.entries, cacheId, cacheDetails.lockState);
     }
 
     private CacheDetails getCache(final String cacheId, final int maxSize) {
@@ -66,7 +66,7 @@ public class InMemoryCacheDecoratorFactory {
             @Override
             public CacheDetails transform(String cacheId) {
                 Cache<Object, Object> entries = createInMemoryCache(cacheId, maxSize);
-                CacheDetails cacheDetails = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<FileLock.State>(null));
+                CacheDetails cacheDetails = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<>(null));
                 LOG.debug("Creating in-memory store for cache {} (max size: {})", cacheId, maxSize);
                 return cacheDetails;
             }
@@ -113,9 +113,9 @@ public class InMemoryCacheDecoratorFactory {
 
         @Override
         public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-            MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, persistentCache);
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<>(asyncCacheAccess, persistentCache);
             MultiProcessSafeAsyncPersistentIndexedCache<K, V> memCache = applyInMemoryCaching(cacheId, asyncCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
-            return new CrossProcessSynchronizingCache<K, V>(memCache, crossProcessCacheAccess);
+            return new CrossProcessSynchronizingCache<>(memCache, crossProcessCacheAccess);
         }
     }
 

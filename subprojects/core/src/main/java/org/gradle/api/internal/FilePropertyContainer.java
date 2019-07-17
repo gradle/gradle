@@ -36,7 +36,7 @@ public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPrope
     }
 
     public static <T extends TaskFilePropertyBuilder & TaskPropertyRegistration> FilePropertyContainer<T> create() {
-        return new FilePropertyContainer<T>();
+        return new FilePropertyContainer<>();
     }
 
     public void add(T property) {

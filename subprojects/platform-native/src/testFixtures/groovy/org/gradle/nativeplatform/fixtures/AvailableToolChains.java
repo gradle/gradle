@@ -114,7 +114,7 @@ public class AvailableToolChains {
      */
     public static List<ToolChainCandidate> getToolChains() {
         if (toolChains == null) {
-            List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
+            List<ToolChainCandidate> compilers = new ArrayList<>();
             if (OperatingSystem.current().isWindows()) {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
@@ -344,7 +344,7 @@ public class AvailableToolChains {
 
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
-        protected final List<File> pathEntries = new ArrayList<File>();
+        protected final List<File> pathEntries = new ArrayList<>();
         private final ToolFamily family;
         private final VersionNumber version;
         protected final String pathVarName;

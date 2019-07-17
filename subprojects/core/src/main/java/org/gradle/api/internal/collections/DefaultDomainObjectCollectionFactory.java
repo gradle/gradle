@@ -49,7 +49,7 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     @Override
     public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType) {
         // TODO - this should also be using the decorating instantiator but cannot for backwards compatibility
-        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(elementType, instantiatorFactory.injectLenient(servicesToInject));
+        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<>(elementType, instantiatorFactory.injectLenient(servicesToInject));
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), objectFactory, mutationGuard, collectionCallbackActionDecorator));
     }

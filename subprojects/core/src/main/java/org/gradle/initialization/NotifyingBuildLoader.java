@@ -101,7 +101,7 @@ public class NotifyingBuildLoader implements BuildLoader {
     }
 
     private Set<LoadProjectsBuildOperationType.Result.Project> convert(Iterable<Project> children) {
-        ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project> builder = new ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project>(PROJECT_COMPARATOR);
+        ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project> builder = new ImmutableSortedSet.Builder<>(PROJECT_COMPARATOR);
         for (org.gradle.api.Project child : children) {
             builder.add(convert(child));
         }

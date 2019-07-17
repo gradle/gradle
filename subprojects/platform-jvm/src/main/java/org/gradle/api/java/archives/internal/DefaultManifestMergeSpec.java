@@ -37,8 +37,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
-    List<Object> mergePaths = new ArrayList<Object>();
-    private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
+    List<Object> mergePaths = new ArrayList<>();
+    private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<>();
     private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
 
     @Override
@@ -99,8 +99,8 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     }
 
     private void mergeSection(String section, DefaultManifest mergedManifest, Attributes baseAttributes, Attributes mergeAttributes) {
-        Map<String, Object> mergeOnlyAttributes = new LinkedHashMap<String, Object>(mergeAttributes);
-        Set<DefaultManifestMergeDetails> mergeDetailsSet = new LinkedHashSet<DefaultManifestMergeDetails>();
+        Map<String, Object> mergeOnlyAttributes = new LinkedHashMap<>(mergeAttributes);
+        Set<DefaultManifestMergeDetails> mergeDetailsSet = new LinkedHashSet<>();
 
         for (Map.Entry<String, Object> baseEntry : baseAttributes.entrySet()) {
             Object mergeValue = mergeAttributes.get(baseEntry.getKey());

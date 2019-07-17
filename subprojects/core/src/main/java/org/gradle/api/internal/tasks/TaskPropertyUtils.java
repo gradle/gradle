@@ -109,7 +109,7 @@ public class TaskPropertyUtils {
         @Override
         public void visitErrorStrict(String message) {
             if (problems == null) {
-                problems = new ArrayList<String>();
+                problems = new ArrayList<>();
             }
             problems.add(message);
         }

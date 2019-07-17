@@ -33,7 +33,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     private final MutationGuard parentMutationGuard;
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
-        super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer, decorator);
+        super(type, new SortedSetElementSource<>(new Namer.Comparator<>(namer)), instantiator, namer, decorator);
         this.parentMutationGuard = MutationGuards.identity();
     }
 
@@ -82,7 +82,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
 
     @Override
     public Set<T> findAll(Closure cl) {
-        return findAll(cl, new LinkedHashSet<T>());
+        return findAll(cl, new LinkedHashSet<>());
     }
 
     @Override

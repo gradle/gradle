@@ -45,7 +45,7 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
 
     @Override
     public List<Object> isolate() {
-        List<Object> list = new ArrayList<Object>(elements.size());
+        List<Object> list = new ArrayList<>(elements.size());
         for (Isolatable<?> element : elements) {
             list.add(element.isolate());
         }

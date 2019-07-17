@@ -73,8 +73,8 @@ import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDat
 public class DynamicVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicVersionResolver.class);
 
-    private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
-    private final List<String> repositoryNames = new ArrayList<String>();
+    private final List<ModuleComponentRepository> repositories = new ArrayList<>();
+    private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final VersionParser versionParser;
     private final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory;
@@ -101,7 +101,7 @@ public class DynamicVersionResolver {
     public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, AttributeContainer consumerAttributes, BuildableComponentIdResolveResult result) {
         ModuleComponentSelector requested = dependency.getSelector();
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
-        List<Throwable> errors = new ArrayList<Throwable>();
+        List<Throwable> errors = new ArrayList<>();
 
         List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
         for (ModuleComponentRepository repository : repositories) {
@@ -145,10 +145,10 @@ public class DynamicVersionResolver {
     }
 
     private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
-        LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
+        LinkedList<RepositoryResolveState> queue = new LinkedList<>();
         queue.addAll(resolveStates);
 
-        LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
+        LinkedList<RepositoryResolveState> missing = new LinkedList<>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findLatestModule(queue, failures, missing);
@@ -214,7 +214,7 @@ public class DynamicVersionResolver {
     }
 
     private static class AttemptCollector implements Action<ResourceAwareResolveResult> {
-        private final List<String> attempts = new ArrayList<String>();
+        private final List<String> attempts = new ArrayList<>();
 
         @Override
         public void execute(ResourceAwareResolveResult resourceAwareResolveResult) {
@@ -238,7 +238,7 @@ public class DynamicVersionResolver {
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
         private final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
-        private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
+        private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<>();
         private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
         private final Set<RejectedVersion> rejectedVersions = Sets.newLinkedHashSet();
         private final VersionListResult versionListingResult;
@@ -365,7 +365,7 @@ public class DynamicVersionResolver {
         }
 
         private List<CandidateResult> candidates() {
-            List<CandidateResult> candidates = new ArrayList<CandidateResult>();
+            List<CandidateResult> candidates = new ArrayList<>();
             for (String version : versionListingResult.result.getVersions()) {
                 CandidateResult candidateResult = candidateComponents.get(version);
                 if (candidateResult == null) {

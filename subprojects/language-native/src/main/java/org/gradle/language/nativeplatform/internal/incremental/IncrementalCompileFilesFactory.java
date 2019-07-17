@@ -63,9 +63,9 @@ public class IncrementalCompileFilesFactory {
     private class DefaultIncrementalCompileSourceProcessor implements IncrementalCompileSourceProcessor {
         private final CompilationState previous;
         private final BuildableCompilationState current = new BuildableCompilationState();
-        private final List<File> toRecompile = new ArrayList<File>();
-        private final Set<File> existingHeaders = new HashSet<File>();
-        private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
+        private final List<File> toRecompile = new ArrayList<>();
+        private final Set<File> existingHeaders = new HashSet<>();
+        private final Map<File, FileDetails> visitedFiles = new HashMap<>();
         private boolean hasUnresolvedHeaders;
 
         DefaultIncrementalCompileSourceProcessor(CompilationState previousCompileState) {
@@ -114,9 +114,9 @@ public class IncrementalCompileFilesFactory {
             // Calculate the include file graph for the source file and mark for recompilation
 
             CollectingMacroLookup visibleMacros = new CollectingMacroLookup(initialIncludeDirectives);
-            FileVisitResult result = visitFile(sourceFile, fileContent, visibleMacros, new HashSet<HashCode>(), existingHeaders);
-            Set<IncludeFileEdge> includedFiles = new LinkedHashSet<IncludeFileEdge>();
-            result.collectFilesInto(includedFiles, new HashSet<File>());
+            FileVisitResult result = visitFile(sourceFile, fileContent, visibleMacros, new HashSet<>(), existingHeaders);
+            Set<IncludeFileEdge> includedFiles = new LinkedHashSet<>();
+            result.collectFilesInto(includedFiles, new HashSet<>());
             SourceFileState newState = new SourceFileState(fileContent, result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes, ImmutableSet.copyOf(includedFiles));
             current.setState(sourceFile, newState);
             if (newState.isHasUnresolved()) {
@@ -136,8 +136,8 @@ public class IncrementalCompileFilesFactory {
             }
 
             // Check each unique edge in the include file graph
-            Map<HashCode, File> includes = new HashMap<HashCode, File>(previousState.getEdges().size());
-            Set<File> headers = new HashSet<File>();
+            Map<HashCode, File> includes = new HashMap<>(previousState.getEdges().size());
+            Set<File> headers = new HashSet<>();
             includes.put(fileHash, sourceFile);
             for (IncludeFileEdge includeFileEdge : previousState.getEdges()) {
                 File includedFrom = includeFileEdge.getIncludedBy() != null ? includes.get(includeFileEdge.getIncludedBy()) : null;
@@ -184,8 +184,8 @@ public class IncrementalCompileFilesFactory {
             visibleMacros.append(file, fileDetails.directives);
 
             List<Include> allIncludes = fileDetails.directives.getAll();
-            List<FileVisitResult> included = allIncludes.isEmpty() ? Collections.<FileVisitResult>emptyList() : new ArrayList<FileVisitResult>(allIncludes.size());
-            List<IncludeFileEdge> edges = allIncludes.isEmpty() ? Collections.<IncludeFileEdge>emptyList() : new ArrayList<IncludeFileEdge>(allIncludes.size());
+            List<FileVisitResult> included = allIncludes.isEmpty() ? Collections.<FileVisitResult>emptyList() : new ArrayList<>(allIncludes.size());
+            List<IncludeFileEdge> edges = allIncludes.isEmpty() ? Collections.<IncludeFileEdge>emptyList() : new ArrayList<>(allIncludes.size());
             IncludeFileResolutionResult result = IncludeFileResolutionResult.NoMacroIncludes;
             for (Include include : allIncludes) {
                 if (include.getType() == IncludeType.MACRO && result == IncludeFileResolutionResult.NoMacroIncludes) {
@@ -219,7 +219,7 @@ public class IncrementalCompileFilesFactory {
         }
 
         private List<File> getRemovedSources() {
-            List<File> removed = new ArrayList<File>();
+            List<File> removed = new ArrayList<>();
             for (File previousSource : previous.getSourceInputs()) {
                 if (!current.getSourceInputs().contains(previousSource)) {
                     removed.add(previousSource);

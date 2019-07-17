@@ -62,7 +62,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
     }
 
     private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints, boolean force) {
-        List<GradleDependencyMetadata> result = new ArrayList<GradleDependencyMetadata>(dependencies.size());
+        List<GradleDependencyMetadata> result = new ArrayList<>(dependencies.size());
         for (ComponentVariant.Dependency dependency : dependencies) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
@@ -84,7 +84,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
             return ImmutableSet.of(descriptorConfiguration.getName());
         }
-        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<String>();
+        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<>();
         populateHierarchy(descriptorConfiguration, configurationDefinitions, accumulator);
         return accumulator.build();
     }

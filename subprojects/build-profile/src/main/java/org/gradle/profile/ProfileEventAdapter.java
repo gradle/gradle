@@ -40,7 +40,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final ProfileListener listener;
-    private final ThreadLocal<ContinuousOperation> currentTransformation = new ThreadLocal<ContinuousOperation>();
+    private final ThreadLocal<ContinuousOperation> currentTransformation = new ThreadLocal<>();
     private BuildProfile buildProfile;
 
     public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener) {

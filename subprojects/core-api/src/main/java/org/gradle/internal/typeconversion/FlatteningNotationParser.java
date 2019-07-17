@@ -51,7 +51,7 @@ public class FlatteningNotationParser<N, T> implements NotationParser<N, Set<T>>
         if (notations.size() == 1) {
             return Collections.singleton(delegate.parseNotation(notations.iterator().next()));
         }
-        Set<T> out = new LinkedHashSet<T>();
+        Set<T> out = new LinkedHashSet<>();
         for (N n : notations) {
             out.add(delegate.parseNotation(n));
         }

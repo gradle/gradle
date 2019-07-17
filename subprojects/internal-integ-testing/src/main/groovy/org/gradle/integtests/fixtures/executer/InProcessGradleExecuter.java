@@ -242,7 +242,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private Collection<File> cleanup(List<File> files) {
-        List<File> result = new LinkedList<File>();
+        List<File> result = new LinkedList<>();
         String prefix = Jvm.current().getJavaHome().getPath() + File.separator;
         for (File file : files) {
             if (file.getPath().startsWith(prefix)) {
@@ -286,10 +286,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
         File originalUserDir = new File(originalSysProperties.getProperty("user.dir")).getAbsoluteFile();
-        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
+        Map<String, String> originalEnv = new HashMap<>(System.getenv());
 
         GradleInvocation invocation = buildInvocation();
-        Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
+        Set<String> changedEnvVars = new HashSet<>(invocation.environmentVars.keySet());
 
         try {
             return executeBuild(invocation, outputStream, errorStream, listener);
@@ -434,12 +434,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private static class BuildListenerImpl implements TaskExecutionGraphListener, InternalListener {
-        private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
-        private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
+        private final List<String> executedTasks = new CopyOnWriteArrayList<>();
+        private final Set<String> skippedTasks = new CopyOnWriteArraySet<>();
 
         @Override
         public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
+            List<Task> planned = new ArrayList<>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
         }
     }
@@ -579,8 +579,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            Set<String> flattenedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
-            assertEquals(new TreeSet<String>(executedTasks), new TreeSet<String>(flattenedTasks));
+            Set<String> flattenedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
+            assertEquals(new TreeSet<>(executedTasks), new TreeSet<>(flattenedTasks));
             outputResult.assertTasksExecuted(flattenedTasks);
             return this;
         }
@@ -615,7 +615,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-            Set<String> expected = new TreeSet<String>(flattenTaskPaths(taskPaths));
+            Set<String> expected = new TreeSet<>(flattenTaskPaths(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             outputResult.assertTasksSkipped(expected);
             return this;
@@ -630,7 +630,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-            Set<String> expected = new TreeSet<String>(flattenTaskPaths(taskPaths));
+            Set<String> expected = new TreeSet<>(flattenTaskPaths(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
             outputResult.assertTasksNotSkipped(expected);
@@ -645,7 +645,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private Set<String> getNotSkippedTasks() {
-            Set<String> notSkipped = new TreeSet<String>(executedTasks);
+            Set<String> notSkipped = new TreeSet<>(executedTasks);
             notSkipped.removeAll(skippedTasks);
             return notSkipped;
         }
@@ -655,9 +655,9 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private static final Pattern LOCATION_PATTERN = Pattern.compile("(?m)^((\\w+ )+'.+') line: (\\d+)$");
         private final ExecutionFailure outputFailure;
         private final Throwable failure;
-        private final List<String> fileNames = new ArrayList<String>();
-        private final List<String> lineNumbers = new ArrayList<String>();
-        private final List<String> descriptions = new ArrayList<String>();
+        private final List<String> fileNames = new ArrayList<>();
+        private final List<String> lineNumbers = new ArrayList<>();
+        private final List<String> descriptions = new ArrayList<>();
 
         InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, ExecutionFailure outputFailure, Throwable failure) {
             super(tasks, skippedTasks, outputFailure);
@@ -732,7 +732,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
             outputFailure.assertThatCause(matcher);
-            List<Throwable> causes = new ArrayList<Throwable>();
+            List<Throwable> causes = new ArrayList<>();
             extractCauses(failure, causes);
             Matcher<Throwable> messageMatcher = hasMessage(normalizedLineSeparators(matcher));
             for (Throwable cause : causes) {
@@ -761,7 +761,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         public ExecutionFailure assertHasNoCause(String description) {
             outputFailure.assertHasNoCause(description);
             Matcher<Throwable> matcher = hasMessage(containsString(description));
-            List<Throwable> causes = new ArrayList<Throwable>();
+            List<Throwable> causes = new ArrayList<>();
             extractCauses(failure, causes);
             for (Throwable cause : causes) {
                 if (matcher.matches(cause)) {

@@ -27,7 +27,7 @@ import java.util.Map;
 public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
     private static DomainObjectSet<NativeLibraryBinary> nullResult;
     private final LibraryBinaryLocator delegate;
-    private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
+    private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<>();
 
     public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.delegate = delegate;

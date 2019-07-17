@@ -65,7 +65,7 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
 
     @Override
     public Expression evaluate(List<Expression> arguments) {
-        List<Expression> mapped = new ArrayList<Expression>(this.arguments.size());
+        List<Expression> mapped = new ArrayList<>(this.arguments.size());
         int currentMapPos = 0;
         for (Expression argument : this.arguments) {
             currentMapPos = mapInto(argument, arguments, currentMapPos, mapped);
@@ -81,7 +81,7 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
             mapped.add(expression);
         } else if (replaceWith == REPLACE_ARGS) {
             // Map the arguments of this expression
-            List<Expression> mappedArgs = new ArrayList<Expression>(expression.getArguments().size());
+            List<Expression> mappedArgs = new ArrayList<>(expression.getArguments().size());
             for (Expression arg : expression.getArguments()) {
                 currentMapPos = mapInto(arg, arguments, currentMapPos, mappedArgs);
             }

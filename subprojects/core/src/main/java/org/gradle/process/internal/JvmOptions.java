@@ -57,8 +57,8 @@ public class JvmOptions {
     // We are assuming this class will be initialized before any code has a chance to change the default
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
-    private final List<Object> extraJvmArgs = new ArrayList<Object>();
-    private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
+    private final List<Object> extraJvmArgs = new ArrayList<>();
+    private final Map<String, Object> mutableSystemProperties = new TreeMap<>();
     private final FileCollectionFactory fileCollectionFactory;
 
     private ConfigurableFileCollection bootstrapClasspath;
@@ -67,7 +67,7 @@ public class JvmOptions {
     private boolean assertionsEnabled;
     private boolean debug;
 
-    protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
+    protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
@@ -81,7 +81,7 @@ public class JvmOptions {
      * @return all jvm args including system properties
      */
     public List<String> getAllJvmArgs() {
-        List<String> args = new LinkedList<String>();
+        List<String> args = new LinkedList<>();
         formatSystemProperties(getMutableSystemProperties(), args);
 
         // We have to add these after the system properties so they can override any system properties
@@ -107,7 +107,7 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        List<String> args = new ArrayList<String>(getJvmArgs());
+        List<String> args = new ArrayList<>(getJvmArgs());
         args.addAll(getManagedJvmArgs());
         return args;
     }
@@ -117,7 +117,7 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllImmutableJvmArgs()}
      */
     public List<String> getManagedJvmArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         if (minHeapSize != null) {
             args.add(XMS_PREFIX + minHeapSize);
         }
@@ -152,7 +152,7 @@ public class JvmOptions {
     }
 
     public List<String> getJvmArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         for (Object extraJvmArg : extraJvmArgs) {
             args.add(extraJvmArg.toString());
         }
@@ -195,7 +195,7 @@ public class JvmOptions {
         boolean xdebugFound = false;
         boolean xrunjdwpFound = false;
         boolean xagentlibJdwpFound = false;
-        Set<Object> matches = new HashSet<Object>();
+        Set<Object> matches = new HashSet<>();
         for (Object extraJvmArg : extraJvmArgs) {
             if (extraJvmArg.toString().equals("-Xdebug")) {
                 xdebugFound = true;

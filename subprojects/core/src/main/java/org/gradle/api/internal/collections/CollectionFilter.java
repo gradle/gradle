@@ -69,6 +69,6 @@ public class CollectionFilter<T> implements Spec<Object> {
 
     @SuppressWarnings("unchecked")
     public <S extends T> CollectionFilter<S> and(CollectionFilter<S> other) {
-        return new CollectionFilter<S>(other.type, Specs.intersect(spec, other.spec));
+        return new CollectionFilter<>(other.type, Specs.intersect(spec, other.spec));
     }
 }

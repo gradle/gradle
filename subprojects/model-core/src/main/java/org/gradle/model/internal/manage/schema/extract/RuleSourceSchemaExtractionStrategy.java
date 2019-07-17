@@ -40,6 +40,6 @@ public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionSt
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
-        return new RuleSourceSchema<R>(extractionContext.getType(), properties, nonPropertyMethods, aspects);
+        return new RuleSourceSchema<>(extractionContext.getType(), properties, nonPropertyMethods, aspects);
     }
 }

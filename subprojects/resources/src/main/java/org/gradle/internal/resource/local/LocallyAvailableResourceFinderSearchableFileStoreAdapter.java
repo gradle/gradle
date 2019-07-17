@@ -39,7 +39,7 @@ public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends
                     @Override
                     public List<File> create() {
                         Set<? extends LocallyAvailableResource> entries = fileStore.search(criterion);
-                        return CollectionUtils.collect(entries, new ArrayList<File>(entries.size()), new Transformer<File, LocallyAvailableResource>() {
+                        return CollectionUtils.collect(entries, new ArrayList<>(entries.size()), new Transformer<File, LocallyAvailableResource>() {
                             @Override
                             public File transform(LocallyAvailableResource original) {
                                 return original.getFile();

@@ -35,7 +35,7 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
     @Override
     public Object buildAll(String modelName, Project project) {
         StartParameter startParameter = project.getGradle().getStartParameter();
-        List<String> taskPaths = new ArrayList<String>();
+        List<String> taskPaths = new ArrayList<>();
         taskPaths.addAll(startParameter.getTaskNames());
 
         boolean isSyncModel = isSyncModel(modelName);

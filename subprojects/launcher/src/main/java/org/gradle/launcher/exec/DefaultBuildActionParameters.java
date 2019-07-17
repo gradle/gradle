@@ -41,9 +41,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.continuous = continuous;
         assert systemProperties != null;
         assert envVariables != null;
-        this.systemProperties = new HashMap<String, String>();
+        this.systemProperties = new HashMap<>();
         GUtil.addToMap(this.systemProperties, systemProperties);
-        this.envVariables = new HashMap<String, String>(envVariables);
+        this.envVariables = new HashMap<>(envVariables);
         this.injectedPluginClasspath = injectedPluginClasspath;
     }
 

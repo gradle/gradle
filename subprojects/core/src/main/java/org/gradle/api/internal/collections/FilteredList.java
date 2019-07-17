@@ -88,7 +88,7 @@ public class FilteredList<T, S extends T> extends FilteredCollection<T, S> imple
 
     @Override
     public ListIterator<S> listIterator() {
-        return new FilteredListIterator<S>(iterator());
+        return new FilteredListIterator<>(iterator());
     }
 
     @Override

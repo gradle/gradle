@@ -146,7 +146,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         @Override
         public void processTestClass(TestClassRunInfo testClass) {
-            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
+            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
 

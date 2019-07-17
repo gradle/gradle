@@ -65,7 +65,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
     }
 
     public static <T, R> WeaklyTypeReferencingMethod<T, R> of(ModelType<T> target, ModelType<R> returnType, Method method) {
-        return new WeaklyTypeReferencingMethod<T, R>(target, returnType, method);
+        return new WeaklyTypeReferencingMethod<>(target, returnType, method);
     }
 
     public ModelType<T> getDeclaringType() {

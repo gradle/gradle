@@ -75,15 +75,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
-    private final List<Rule> rules = new ArrayList<Rule>();
-    private final Set<String> applyingRulesFor = new HashSet<String>();
+    private final List<Rule> rules = new ArrayList<>();
+    private final Set<String> applyingRulesFor = new HashSet<>();
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, store, callbackActionDecorator);
         this.instantiator = instantiator;
         this.namer = namer;
-        this.index = new UnfilteredIndex<T>();
+        this.index = new UnfilteredIndex<>();
         index();
     }
 
@@ -111,7 +111,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (index.get(name) == null) {
             boolean added = super.doAdd(toAdd, notification);
             if (added) {
-                whenKnown.execute(new ObjectBackedElementInfo<T>(name, toAdd));
+                whenKnown.execute(new ObjectBackedElementInfo<>(name, toAdd));
             }
             return added;
         } else {
@@ -133,7 +133,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (changed) {
             for (T t : c) {
                 String name = namer.determineName(t);
-                whenKnown.execute(new ObjectBackedElementInfo<T>(name, t));
+                whenKnown.execute(new ObjectBackedElementInfo<>(name, t));
             }
         }
         return changed;
@@ -155,7 +155,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
             T next = iterator.next();
-            whenKnown.execute(new ObjectBackedElementInfo<T>(namer.determineName(next), next));
+            whenKnown.execute(new ObjectBackedElementInfo<>(namer.determineName(next), next));
         }
 
         for (Map.Entry<String, ProviderInternal<? extends T>> entry : index.getPendingAsMap().entrySet()) {
@@ -164,7 +164,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected final void deferredElementKnown(String name, Provider<? extends T> provider) {
-        whenKnown.execute(new ProviderBackedElementInfo<T>(name, Providers.internal(provider)));
+        whenKnown.execute(new ProviderBackedElementInfo<>(name, Providers.internal(provider)));
     }
 
     @Override
@@ -262,7 +262,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (pendingNames.isEmpty()) {
             return realizedNames;
         }
-        TreeSet<String> allNames = new TreeSet<String>(realizedNames);
+        TreeSet<String> allNames = new TreeSet<>(realizedNames);
         allNames.addAll(pendingNames);
         return allNames;
     }
@@ -576,7 +576,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected static class UnfilteredIndex<T> implements Index<T> {
         private final Map<String, ProviderInternal<? extends T>> pendingMap = Maps.newLinkedHashMap();
-        private final NavigableMap<String, T> map = new TreeMap<String, T>();
+        private final NavigableMap<String, T> map = new TreeMap<>();
 
         @Override
         public NavigableMap<String, T> asMap() {
@@ -606,7 +606,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
-            return new FilteredIndex<S>(this, filter);
+            return new FilteredIndex<>(this, filter);
         }
 
         @Nullable
@@ -670,7 +670,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public NavigableMap<String, T> asMap() {
             NavigableMap<String, ? super T> delegateMap = delegate.asMap();
 
-            NavigableMap<String, T> filtered = new TreeMap<String, T>();
+            NavigableMap<String, T> filtered = new TreeMap<>();
             for (Map.Entry<String, ? super T> entry : delegateMap.entrySet()) {
                 T obj = filter.filter(entry.getValue());
                 if (obj != null) {
@@ -683,7 +683,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
-            return new FilteredIndex<S>(delegate, this.filter.and(filter));
+            return new FilteredIndex<>(delegate, this.filter.and(filter));
         }
 
         @Nullable

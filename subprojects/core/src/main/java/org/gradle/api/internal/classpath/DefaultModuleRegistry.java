@@ -55,10 +55,10 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
 
     @Nullable
     private final GradleInstallation gradleInstallation;
-    private final Map<String, Module> modules = new HashMap<String, Module>();
-    private final Map<String, Module> externalModules = new HashMap<String, Module>();
-    private final List<File> classpath = new ArrayList<File>();
-    private final Map<String, File> classpathJars = new LinkedHashMap<String, File>();
+    private final Map<String, Module> modules = new HashMap<>();
+    private final Map<String, Module> externalModules = new HashMap<>();
+    private final List<File> classpath = new ArrayList<>();
+    private final Map<String, File> classpathJars = new LinkedHashMap<>();
 
     public DefaultModuleRegistry(@Nullable GradleInstallation gradleInstallation) {
         this(ClassPath.EMPTY, gradleInstallation);
@@ -157,14 +157,14 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             }
         });
         if (jarFile != null) {
-            Set<File> implementationClasspath = new LinkedHashSet<File>();
+            Set<File> implementationClasspath = new LinkedHashSet<>();
             implementationClasspath.add(jarFile);
             Properties properties = loadModuleProperties(moduleName, jarFile);
             return module(moduleName, properties, implementationClasspath);
         }
 
         String resourceName = getClasspathManifestName(moduleName);
-        Set<File> implementationClasspath = new LinkedHashSet<File>();
+        Set<File> implementationClasspath = new LinkedHashSet<>();
         findImplementationClasspath(moduleName, implementationClasspath);
         for (File file : implementationClasspath) {
             if (file.isDirectory()) {
@@ -188,7 +188,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private Set<File> findDependencyJars(String moduleName, String[] jarNames) {
-        Set<File> runtimeClasspath = new LinkedHashSet<File>();
+        Set<File> runtimeClasspath = new LinkedHashSet<>();
         for (String jarName : jarNames) {
             runtimeClasspath.add(findDependencyJar(moduleName, jarName));
         }
@@ -196,7 +196,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private Set<Module> getModules(String[] projectNames) {
-        Set<Module> modules = new LinkedHashSet<Module>();
+        Set<Module> modules = new LinkedHashSet<>();
         for (String project : projectNames) {
             modules.add(getModule(project));
         }
@@ -248,7 +248,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
      * <li>In both cases we also include the static and generated resources of the project.</li>
      */
     private List<String> getClasspathSuffixesForProjectDir(String projectDirName) {
-        List<String> suffixes = new ArrayList<String>();
+        List<String> suffixes = new ArrayList<>();
 
         suffixes.add(("/" + projectDirName + "/out/production/classes").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/out/production/resources").replace('/', File.separatorChar));
@@ -362,7 +362,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             this.optionalProjects = optionalProjects;
             this.implementationClasspath = DefaultClassPath.of(implementationClasspath);
             this.runtimeClasspath = DefaultClassPath.of(runtimeClasspath);
-            Set<File> classpath = new LinkedHashSet<File>();
+            Set<File> classpath = new LinkedHashSet<>();
             classpath.addAll(implementationClasspath);
             classpath.addAll(runtimeClasspath);
             this.classpath = DefaultClassPath.of(classpath);
@@ -399,7 +399,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
 
         @Override
         public Set<Module> getAllRequiredModules() {
-            Set<Module> modules = new LinkedHashSet<Module>();
+            Set<Module> modules = new LinkedHashSet<>();
             collectRequiredModules(modules);
             return modules;
         }

@@ -26,7 +26,10 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.*;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.DefaultScopeOperation;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.childScope;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.readFile;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.toMap;
 
 public class JsHintWorker implements JsHintProtocol {
 
@@ -38,7 +41,7 @@ public class JsHintWorker implements JsHintProtocol {
 
         String encoding = spec.getEncoding();
 
-        Map<File, Map<String, Object>> results = new LinkedHashMap<File, Map<String, Object>>();
+        Map<File, Map<String, Object>> results = new LinkedHashMap<>();
 
         for (File target : spec.getSource()) {
             LOGGER.info("Reading file: {}", target.getAbsolutePath());

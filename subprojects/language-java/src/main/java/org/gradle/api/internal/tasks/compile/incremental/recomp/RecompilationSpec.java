@@ -26,7 +26,7 @@ import java.util.Set;
 public class RecompilationSpec {
     private final Collection<String> classesToCompile = new NormalizingClassNamesSet();
     private final Collection<String> classesToProcess = new NormalizingClassNamesSet();
-    private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<GeneratedResource>();
+    private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
     private final Set<String> relativeSourcePathsToCompile = new LinkedHashSet<>();
     private String fullRebuildCause;
 

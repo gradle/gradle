@@ -70,7 +70,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetNativePlatform);
 
         CppPlatform targetPlatform = new DefaultCppPlatform(requestPlatform.getTargetMachine(), targetNativePlatform);
-        return new DefaultResult<CppPlatform>(toolChain, toolProvider, targetPlatform);
+        return new DefaultResult<>(toolChain, toolProvider, targetPlatform);
     }
 
     public Result<SwiftPlatform> select(SwiftPlatform requestPlatform) {
@@ -89,7 +89,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
             sourceCompatibility = toSwiftVersion(toolProvider.getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
         }
         SwiftPlatform targetPlatform = new DefaultSwiftPlatform(requestPlatform.getTargetMachine(), sourceCompatibility, targetNativePlatform);
-        return new DefaultResult<SwiftPlatform>(toolChain, toolProvider, targetPlatform);
+        return new DefaultResult<>(toolChain, toolProvider, targetPlatform);
     }
 
     private DefaultNativePlatform newNativePlatform(TargetMachine targetMachine) {

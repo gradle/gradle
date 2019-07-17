@@ -34,7 +34,7 @@ public class AddProjectionsAction<T> extends AbstractModelAction<T> {
     }
 
     public static <T> AddProjectionsAction<T> of(ModelReference<T> subject, ModelRuleDescriptor descriptor, Iterable<ModelProjection> projections) {
-        return new AddProjectionsAction<T>(subject, descriptor, projections);
+        return new AddProjectionsAction<>(subject, descriptor, projections);
     }
 
     @Override

@@ -27,7 +27,7 @@ public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (isPrimitiveType(type)) {
-            extractionContext.found(new ScalarValueSchema<T>(type));
+            extractionContext.found(new ScalarValueSchema<>(type));
         }
     }
 }

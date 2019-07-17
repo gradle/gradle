@@ -36,7 +36,7 @@ class BasicJavadocLexer implements JavadocLexer {
     private static final Pattern WHITESPACE_WITH_EOL = Pattern.compile("(?s)\\s+");
     private static final String START_HTML_COMMENT = "<!--";
     private static final String END_HTML_COMMENT = "-->";
-    private static final Map<String, String> ENTITIES = new HashMap<String, String>();
+    private static final Map<String, String> ENTITIES = new HashMap<>();
 
     static {
         ENTITIES.put("amp", "&");

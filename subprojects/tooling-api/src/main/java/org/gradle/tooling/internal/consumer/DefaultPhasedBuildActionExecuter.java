@@ -58,7 +58,7 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
 
     @Override
     public Void run() throws GradleConnectionException, IllegalStateException {
-        BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
+        BlockingResultHandler<Void> handler = new BlockingResultHandler<>(Void.class);
         run(handler);
         handler.getResult();
         return null;
@@ -78,7 +78,7 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
                 connection.run(phasedBuildAction, operationParameters);
                 return null;
             }
-        }, new ResultHandlerAdapter<Void>(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+        }, new ResultHandlerAdapter<>(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
             @Override
             public String transform(Throwable throwable) {
                 return String.format("Could not run phased build action using %s.", connection.getDisplayName());

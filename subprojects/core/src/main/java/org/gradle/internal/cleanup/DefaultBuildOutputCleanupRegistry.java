@@ -64,7 +64,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     private synchronized void doResolvePaths() {
         if (resolvedPaths == null) {
-            Set<String> result = new LinkedHashSet<String>();
+            Set<String> result = new LinkedHashSet<>();
             for (FileCollection output : outputs) {
                 for (File file : output) {
                     result.add(file.getAbsolutePath());

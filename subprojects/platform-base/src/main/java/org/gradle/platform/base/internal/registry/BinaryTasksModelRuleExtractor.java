@@ -71,7 +71,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
 
         ModelType<S> binaryType = dataCollector.getParameterType(BINARY_SPEC);
-        return new ExtractedBinaryTasksRule<S>(ruleDefinition, binaryType);
+        return new ExtractedBinaryTasksRule<>(ruleDefinition, binaryType);
     }
 
     private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
@@ -103,7 +103,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                         }
                     });
 
-            List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size());
+            List<ModelView<?>> inputsWithBinary = new ArrayList<>(inputs.size());
             inputsWithBinary.addAll(inputs.subList(1, inputs.size()));
             inputsWithBinary.add(InstanceModelView.of(getSubject().getPath(), getSubject().getType(), binary));
 
@@ -122,7 +122,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
-            final BinaryTaskRule<T> binaryTaskRule = new BinaryTaskRule<T>(binaryType, ruleDefinition);
+            final BinaryTaskRule<T> binaryTaskRule = new BinaryTaskRule<>(binaryType, ruleDefinition);
             final ModelAction binaryTaskAction = context.contextualize(binaryTaskRule);
             context.getRegistry().configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(
                     BINARIES_CONTAINER,

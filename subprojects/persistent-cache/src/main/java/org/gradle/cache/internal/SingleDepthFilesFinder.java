@@ -49,7 +49,7 @@ public class SingleDepthFilesFinder implements FilesFinder {
 
     private class SingleDepthFileIterator extends AbstractIterator<File> {
 
-        private final Deque<Iterator<File>> stack = new ArrayDeque<Iterator<File>>();
+        private final Deque<Iterator<File>> stack = new ArrayDeque<>();
         private final int targetSize;
         private final FileFilter filter;
 

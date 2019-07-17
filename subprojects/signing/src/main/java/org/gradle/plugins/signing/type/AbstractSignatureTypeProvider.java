@@ -26,7 +26,7 @@ import java.util.Map;
 public abstract class AbstractSignatureTypeProvider implements SignatureTypeProvider {
 
     private String defaultTypeExtension;
-    private final Map<String, SignatureType> types = new LinkedHashMap<String, SignatureType>();
+    private final Map<String, SignatureType> types = new LinkedHashMap<>();
 
     @Override
     public SignatureType getDefaultType() {

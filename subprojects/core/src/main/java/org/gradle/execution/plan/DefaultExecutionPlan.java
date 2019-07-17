@@ -88,7 +88,7 @@ import java.util.function.Consumer;
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
-    private final Set<TaskNode> entryTasks = new LinkedHashSet<TaskNode>();
+    private final Set<TaskNode> entryTasks = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
@@ -132,10 +132,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public void addEntryTasks(Collection<? extends Task> tasks) {
-        final Deque<Node> queue = new ArrayDeque<Node>();
+        final Deque<Node> queue = new ArrayDeque<>();
         Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
 
-        List<Task> sortedTasks = new ArrayList<Task>(tasks);
+        List<Task> sortedTasks = new ArrayList<>(tasks);
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
@@ -261,8 +261,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         int visitingSegmentCounter = nodeQueue.size();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
-        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
-        Deque<Node> path = new ArrayDeque<Node>();
+        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
+        Deque<Node> path = new ArrayDeque<>();
         Map<Node, Integer> planBeforeVisiting = Maps.newHashMap();
 
         while (!nodeQueue.isEmpty()) {
@@ -435,7 +435,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private Set<Node> getAllPrecedingNodes(Node finalizer) {
         Set<Node> precedingNodes = Sets.newHashSet();
-        Deque<Node> candidateNodes = new ArrayDeque<Node>();
+        Deque<Node> candidateNodes = new ArrayDeque<>();
 
         // Consider every node that must run before the finalizer
         Iterables.addAll(candidateNodes, finalizer.getAllSuccessors());
@@ -454,7 +454,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void onOrderingCycle(Node successor, Node node) {
-        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<Node, Void>(new DirectedGraph<Node, Void>() {
+        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>(new DirectedGraph<Node, Void>() {
             @Override
             public void getNodeValues(Node node, Collection<? super Void> values, Collection<? super Node> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
@@ -473,10 +473,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             // https://github.com/gradle/gradle/issues/2293
             throw new GradleException("Misdetected cycle between " + node + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
         }
-        final List<Node> firstCycle = new ArrayList<Node>(cycles.get(0));
+        final List<Node> firstCycle = new ArrayList<>(cycles.get(0));
         Collections.sort(firstCycle);
 
-        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<Node>(new GraphNodeRenderer<Node>() {
+        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(new GraphNodeRenderer<Node>() {
             @Override
             public void renderTo(Node node, StyledTextOutput output) {
                 output.withStyle(StyledTextOutput.Style.Identifier).text(node);
@@ -897,7 +897,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private static void enforceWithDependencies(Node nodeInfo, Set<Node> enforcedNodes) {
-        Deque<Node> candidateNodes = new ArrayDeque<Node>();
+        Deque<Node> candidateNodes = new ArrayDeque<>();
         candidateNodes.add(nodeInfo);
 
         while (!candidateNodes.isEmpty()) {

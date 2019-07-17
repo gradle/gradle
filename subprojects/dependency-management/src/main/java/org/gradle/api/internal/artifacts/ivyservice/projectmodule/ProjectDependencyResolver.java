@@ -61,7 +61,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     private final ProjectStateRegistry projectStateRegistry;
     private final ArtifactResolver self;
     // This should live closer to the project itself
-    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allProjectArtifacts = new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>();
+    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allProjectArtifacts = new ConcurrentHashMap<>();
 
     public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory, ProjectStateRegistry projectStateRegistry) {
         this.localComponentRegistry = localComponentRegistry;

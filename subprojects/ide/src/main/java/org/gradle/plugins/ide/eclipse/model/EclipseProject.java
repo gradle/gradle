@@ -321,7 +321,7 @@ public class EclipseProject {
      * @since 3.5
      */
     public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
+        return resourceFilter(new ClosureBackedAction<>(configureClosure));
     }
 
     /**

@@ -141,7 +141,7 @@ public class PropertyValidationAccess {
             mapErrorsToWarnings = false;
         }
 
-        Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
+        Queue<BeanTypeNode<?>> queue = new ArrayDeque<>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
         boolean stricterValidation = enableStricterValidation || cacheable;

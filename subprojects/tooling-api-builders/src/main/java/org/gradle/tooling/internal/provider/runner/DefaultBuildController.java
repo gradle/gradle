@@ -87,7 +87,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
                 new UnknownModelException(String.format("No parameterized builders are available to build a model of type '%s'.", modelName)));
         }
 
-        return new ProviderBuildResult<Object>(model);
+        return new ProviderBuildResult<>(model);
     }
 
     private <T> Object getParameterizedModel(ProjectInternal project,

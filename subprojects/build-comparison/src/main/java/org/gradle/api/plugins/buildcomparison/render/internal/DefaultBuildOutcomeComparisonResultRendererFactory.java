@@ -26,7 +26,7 @@ public class DefaultBuildOutcomeComparisonResultRendererFactory<C> implements Bu
     private final Class<C> contextType;
 
     private final Map<Class<? extends BuildOutcomeComparisonResult>, BuildOutcomeComparisonResultRenderer<?, C>> renderers =
-            new HashMap<Class<? extends BuildOutcomeComparisonResult>, BuildOutcomeComparisonResultRenderer<?, C>>();
+        new HashMap<>();
 
     public DefaultBuildOutcomeComparisonResultRendererFactory(Class<C> contextType) {
         this.contextType = contextType;

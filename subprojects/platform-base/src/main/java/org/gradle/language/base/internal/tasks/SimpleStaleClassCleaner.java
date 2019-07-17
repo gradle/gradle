@@ -33,7 +33,7 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
     private final Set<File> filesToDelete;
     private final Set<File> toClean = Sets.newHashSet();
     private final Set<String> prefixes = Sets.newHashSet();
-    private final Queue<File> directoriesToDelete = new PriorityQueue<File>(10, Ordering.natural().reverse());
+    private final Queue<File> directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
     private boolean didWork;
 
     public SimpleStaleClassCleaner(TaskOutputsInternal taskOutputs) {

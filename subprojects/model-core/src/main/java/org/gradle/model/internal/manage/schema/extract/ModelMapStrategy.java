@@ -57,7 +57,7 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <T, E> ModelSchema<T> getModelSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType) {
-        final ModelMapSchema<T, E> schema = new ModelMapSchema<T, E>(extractionContext.getType(), elementType);
+        final ModelMapSchema<T, E> schema = new ModelMapSchema<>(extractionContext.getType(), elementType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override
             public void execute(ModelSchema<E> elementTypeSchema) {

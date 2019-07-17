@@ -17,14 +17,14 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.publish.maven.MavenArtifact;
 
 import java.io.File;
@@ -108,7 +108,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void checkNoDuplicateArtifacts(MavenNormalizedPublication publication) {
-        Set<MavenArtifact> verified = new HashSet<MavenArtifact>();
+        Set<MavenArtifact> verified = new HashSet<>();
         for (MavenArtifact artifact : publication.getAllArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getExtension(), artifact.getClassifier());
             verified.add(artifact);

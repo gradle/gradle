@@ -65,9 +65,9 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private String description;
     private String displayName;
     private String libraryDirectory;
-    private Set<EarModule> modules = new LinkedHashSet<EarModule>();
-    private Set<EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>();
-    private Map<String, String> moduleTypeMappings = new LinkedHashMap<String, String>();
+    private Set<EarModule> modules = new LinkedHashSet<>();
+    private Set<EarSecurityRole> securityRoles = new LinkedHashSet<>();
+    private Map<String, String> moduleTypeMappings = new LinkedHashMap<>();
 
     @Inject
     public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, ObjectFactory objectFactory) {

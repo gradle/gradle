@@ -144,13 +144,13 @@ import java.util.Set;
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
-    private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
+    private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
         List<ProgressListener> noListeners = Collections.emptyList();
@@ -164,7 +164,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     @Override
     public List<String> getSubscribedOperations() {
-        List<String> operations = new ArrayList<String>();
+        List<String> operations = new ArrayList<>();
         if (!testProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TEST_EXECUTION);
         }
@@ -471,7 +471,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {
-        Set<OperationDescriptor> result = new LinkedHashSet<OperationDescriptor>();
+        Set<OperationDescriptor> result = new LinkedHashSet<>();
         for (InternalOperationDescriptor dependency : dependencies) {
             OperationDescriptor dependencyDescriptor = descriptorCache.get(dependency.getId());
             if (dependencyDescriptor != null) {
@@ -564,7 +564,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static List<? extends PluginApplicationResult> toPluginApplicationResults(List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
-        List<PluginApplicationResult> results = new ArrayList<PluginApplicationResult>();
+        List<PluginApplicationResult> results = new ArrayList<>();
         for (InternalPluginApplicationResult result : pluginApplicationResults) {
             PluginIdentifier plugin = toPluginIdentifier(result.getPlugin());
             if (plugin != null) {
@@ -610,7 +610,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (causes == null) {
             return null;
         }
-        List<Failure> failures = new ArrayList<Failure>();
+        List<Failure> failures = new ArrayList<>();
         for (InternalFailure cause : causes) {
             failures.add(toFailure(cause));
         }
@@ -628,7 +628,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (protocolResults == null) {
             return null;
         }
-        List<AnnotationProcessorResult> results = new ArrayList<AnnotationProcessorResult>();
+        List<AnnotationProcessorResult> results = new ArrayList<>();
         for (InternalAnnotationProcessorResult result : protocolResults) {
             results.add(toAnnotationProcessorResult(result));
         }

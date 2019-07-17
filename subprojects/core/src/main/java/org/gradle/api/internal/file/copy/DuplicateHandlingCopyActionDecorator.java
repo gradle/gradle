@@ -38,7 +38,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
+        final Set<RelativePath> visitedFiles = new HashSet<>();
 
         return delegate.execute(new CopyActionProcessingStream() {
             @Override

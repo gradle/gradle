@@ -182,10 +182,10 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
     }
 
     private static class MemoizingStats extends CountingStats {
-        private final Map<URI, Integer> resources = new HashMap<URI, Integer>();
-        private final Map<URI, Integer> metadata = new HashMap<URI, Integer>();
-        private final Map<URI, Integer> lists = new HashMap<URI, Integer>();
-        private final Map<URI, Integer> uploads = new HashMap<URI, Integer>();
+        private final Map<URI, Integer> resources = new HashMap<>();
+        private final Map<URI, Integer> metadata = new HashMap<>();
+        private final Map<URI, Integer> lists = new HashMap<>();
+        private final Map<URI, Integer> uploads = new HashMap<>();
 
         private synchronized void record(Map<URI, Integer> container, URI uri) {
             Integer count = container.get(uri);
@@ -243,7 +243,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
             if (stats.isEmpty()) {
                 return;
             }
-            List<Map.Entry<URI, Integer>> entries = new ArrayList<Map.Entry<URI, Integer>>(stats.entrySet());
+            List<Map.Entry<URI, Integer>> entries = new ArrayList<>(stats.entrySet());
             Collections.sort(entries, new Comparator<Map.Entry<URI, Integer>>() {
                 @Override
                 public int compare(Map.Entry<URI, Integer> o1, Map.Entry<URI, Integer> o2) {

@@ -42,7 +42,7 @@ public class SftpConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
-        Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
+        Set<Class<? extends Authentication>> supported = new HashSet<>();
         supported.add(AllSchemesAuthentication.class);
         return supported;
     }

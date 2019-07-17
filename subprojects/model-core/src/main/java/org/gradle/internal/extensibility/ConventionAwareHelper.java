@@ -38,7 +38,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     private final Convention _convention;
     private final IConventionAware _source;
     private final Set<String> _propertyNames;
-    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
+    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;

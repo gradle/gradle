@@ -200,7 +200,7 @@ public class GenerateModuleMetadata extends DefaultTask {
             if (component == null) {
                 return ImmutableSet.of();
             }
-            Set<File> files = new LinkedHashSet<File>();
+            Set<File> files = new LinkedHashSet<>();
             for (UsageContext usageContext : component.getUsages()) {
                 for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
                     files.add(publishArtifact.getFile());

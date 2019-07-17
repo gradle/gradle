@@ -53,7 +53,7 @@ public class SignOperation implements SignatureSpec {
      */
     private boolean required;
 
-    private final List<Signature> signatures = new ArrayList<Signature>();
+    private final List<Signature> signatures = new ArrayList<>();
 
     /**
      * Creates a new {@code SignOperation}
@@ -187,7 +187,7 @@ public class SignOperation implements SignatureSpec {
      * The registered signatures.
      */
     public List<Signature> getSignatures() {
-        return new ArrayList<Signature>(signatures);
+        return new ArrayList<>(signatures);
     }
 
     /**
@@ -237,7 +237,7 @@ public class SignOperation implements SignatureSpec {
     }
 
     private ArrayList<File> collectSignatureFiles(Function<Signature, File> getFile) {
-        ArrayList<File> files = new ArrayList<File>(signatures.size());
+        ArrayList<File> files = new ArrayList<>(signatures.size());
         for (Signature signature : signatures) {
             File file = getFile.apply(signature);
             if (file != null) {

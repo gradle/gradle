@@ -100,7 +100,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             if (incrementalCompilation == null) {
                 throw new IllegalStateException("Header files should be calculated before compiler is created.");
             }
-            return new IncrementalNativeCompiler<T>(taskOutputs, compiler, compileStateCache, incrementalCompilation);
+            return new IncrementalNativeCompiler<>(taskOutputs, compiler, compileStateCache, incrementalCompilation);
         }
 
         @Override

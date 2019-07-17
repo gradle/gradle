@@ -77,7 +77,7 @@ public abstract class SourceElement extends Element {
         return new SourceElement() {
             @Override
             public List<SourceFile> getFiles() {
-                List<SourceFile> files = new ArrayList<SourceFile>();
+                List<SourceFile> files = new ArrayList<>();
                 for (SourceElement element : elements) {
                     files.addAll(element.getFiles());
                 }

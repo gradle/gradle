@@ -40,8 +40,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final FileResolver resolver;
     private final ScriptPluginFactory configurerFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final Set<Object> targets = new LinkedHashSet<Object>();
-    private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
+    private final Set<Object> targets = new LinkedHashSet<>();
+    private final Set<Runnable> actions = new LinkedHashSet<>();
     private final ClassLoaderScope classLoaderScope;
     private final TextResourceLoader resourceLoader;
     private final Object defaultTarget;

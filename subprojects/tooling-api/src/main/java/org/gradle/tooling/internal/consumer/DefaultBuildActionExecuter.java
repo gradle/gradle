@@ -61,7 +61,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
     @Override
     public T run() throws GradleConnectionException {
-        BlockingResultHandler<Object> handler = new BlockingResultHandler<Object>(Object.class);
+        BlockingResultHandler<Object> handler = new BlockingResultHandler<>(Object.class);
         run(handler);
         return (T) handler.getResult();
     }
@@ -80,7 +80,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
                 T result = connection.run(buildAction, operationParameters);
                 return result;
             }
-        }, new ResultHandlerAdapter<T>(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+        }, new ResultHandlerAdapter<>(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
             @Override
             public String transform(Throwable throwable) {
                 return String.format("Could not run build action using %s.", connection.getDisplayName());
@@ -107,7 +107,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
             if (projectsLoadedAction != null) {
                 throw getException("ProjectsLoadedAction");
             }
-            projectsLoadedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
+            projectsLoadedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<>(action, handler);
             return Builder.this;
         }
 
@@ -116,7 +116,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
             if (buildFinishedAction != null) {
                 throw getException("BuildFinishedAction");
             }
-            buildFinishedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
+            buildFinishedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<>(action, handler);
             return Builder.this;
         }
 

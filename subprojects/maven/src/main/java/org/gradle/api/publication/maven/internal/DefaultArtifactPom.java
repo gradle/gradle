@@ -25,16 +25,21 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultArtifactPom implements ArtifactPom {
     private static final Set<String> PACKAGING_TYPES = Sets.newHashSet("war", "jar", "ear");
     private final MavenPom pom;
-    private final Map<ArtifactKey, PublishArtifact> artifacts = new HashMap<ArtifactKey, PublishArtifact>();
+    private final Map<ArtifactKey, PublishArtifact> artifacts = new HashMap<>();
 
     private PublishArtifact artifact;
 
-    private final Set<PublishArtifact> classifiers = new HashSet<PublishArtifact>();
+    private final Set<PublishArtifact> classifiers = new HashSet<>();
 
     public DefaultArtifactPom(MavenPom pom) {
         this.pom = pom;

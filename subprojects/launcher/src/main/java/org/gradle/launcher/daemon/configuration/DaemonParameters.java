@@ -70,7 +70,7 @@ public class DaemonParameters {
         }
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
-        envVariables = new HashMap<String, String>(System.getenv());
+        envVariables = new HashMap<>(System.getenv());
     }
 
     public boolean isEnabled() {
@@ -139,13 +139,13 @@ public class DaemonParameters {
     }
 
     public Map<String, String> getSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         return systemProperties;
     }
 
     public Map<String, String> getEffectiveSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
         GUtil.addToMap(systemProperties, System.getProperties());
@@ -165,7 +165,7 @@ public class DaemonParameters {
     }
 
     public void setEnvironmentVariables(Map<String, String> envVariables) {
-        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
+        this.envVariables = envVariables == null ? new HashMap<>(System.getenv()) : envVariables;
     }
 
     public void setDebug(boolean debug) {

@@ -50,7 +50,7 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
     @Override
     public Map<String, FileSystemLocationFingerprint> read(Decoder decoder) throws IOException {
         int fingerprintCount = decoder.readSmallInt();
-        Map<String, FileSystemLocationFingerprint> fingerprints = new LinkedHashMap<String, FileSystemLocationFingerprint>(fingerprintCount);
+        Map<String, FileSystemLocationFingerprint> fingerprints = new LinkedHashMap<>(fingerprintCount);
         for (int i = 0; i < fingerprintCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
             FileSystemLocationFingerprint fingerprint = readFingerprint(decoder);

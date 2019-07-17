@@ -21,7 +21,19 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.AddProjectionsAction;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.internal.core.DirectNodeInputUsingModelAction;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelMapModelProjection;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeBackedModelMap;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerContext;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -33,7 +45,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     @Override
     protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
-            return new ModelMapNodeInitializer<T, E>(schema);
+            return new ModelMapNodeInitializer<>(schema);
         }
         return null;
     }

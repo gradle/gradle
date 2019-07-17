@@ -45,7 +45,7 @@ public class MultipleValueOptionElement extends AbstractOptionElement {
 
     @Override
     public void apply(Object object, List<String> parameterValues) throws TypeConversionException {
-        List<Object> values = new ArrayList<Object>(parameterValues.size());
+        List<Object> values = new ArrayList<>(parameterValues.size());
         for (String parameterValue : parameterValues) {
             values.add(notationParser.parseNotation(parameterValue));
         }

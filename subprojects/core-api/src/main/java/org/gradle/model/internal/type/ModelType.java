@@ -18,10 +18,10 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -59,22 +59,22 @@ public abstract class ModelType<T> {
     }
 
     public static <T> ModelType<T> of(Class<T> clazz) {
-        return new Simple<T>(clazz);
+        return new Simple<>(clazz);
     }
 
     public static <T> ModelType<T> returnType(Method method) {
-        return new Simple<T>(method.getGenericReturnType());
+        return new Simple<>(method.getGenericReturnType());
     }
 
     public static <T> ModelType<T> declaringType(Method method) {
-        return new Simple<T>(method.getDeclaringClass());
+        return new Simple<>(method.getDeclaringClass());
     }
 
     @Nullable
     public static <T> ModelType<T> paramType(Method method, int i) {
         Type[] parameterTypes = method.getGenericParameterTypes();
         if (i < parameterTypes.length) {
-            return new Simple<T>(parameterTypes[i]);
+            return new Simple<>(parameterTypes[i]);
         } else {
             return null;
         }
@@ -371,11 +371,11 @@ public abstract class ModelType<T> {
 
     private static class Simple<T> extends ModelType<T> {
         public static <T> ModelType<T> typed(Type type) {
-            return new Simple<T>(type);
+            return new Simple<>(type);
         }
 
         public static <T> ModelType<T> typed(TypeWrapper wrapper) {
-            return new Simple<T>(wrapper);
+            return new Simple<>(wrapper);
         }
 
         public Simple(Type type) {

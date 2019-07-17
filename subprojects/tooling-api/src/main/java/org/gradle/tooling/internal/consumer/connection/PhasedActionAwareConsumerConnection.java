@@ -71,6 +71,6 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
 
     @Nullable
     private static <T> InternalBuildActionVersion2<T> getAction(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper, File rootDir, VersionDetails versionDetails) {
-        return wrapper == null ? null : new InternalBuildActionAdapter<T>(wrapper.getAction(), rootDir, versionDetails);
+        return wrapper == null ? null : new InternalBuildActionAdapter<>(wrapper.getAction(), rootDir, versionDetails);
     }
 }

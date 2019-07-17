@@ -75,7 +75,7 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     public List<String> build() {
-        args = new ArrayList<String>();
+        args = new ArrayList<>();
         // Take a deep copy of the compilerArgs because the following methods mutate it.
         List<String> compArgs = Lists.newArrayList(spec.getCompileOptions().getCompilerArgs());
 

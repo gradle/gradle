@@ -217,7 +217,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetLocalStateVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
-        private List<Object> localState = new ArrayList<Object>();
+        private List<Object> localState = new ArrayList<>();
 
         public GetLocalStateVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
@@ -237,7 +237,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
-        private List<Object> destroyables = new ArrayList<Object>();
+        private List<Object> destroyables = new ArrayList<>();
 
         public GetDestroyablesVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
@@ -255,7 +255,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     private static class ValidationVisitor extends PropertyVisitor.Adapter {
-        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<ValidatingProperty>();
+        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
 
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {

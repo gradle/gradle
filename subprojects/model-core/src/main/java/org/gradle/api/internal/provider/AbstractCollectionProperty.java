@@ -47,7 +47,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         applyDefaultValue();
         this.collectionType = collectionType;
         this.elementType = elementType;
-        valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
+        valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
     }
 
     /**
@@ -61,7 +61,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new SingleElement<T>(element));
+        addCollector(new SingleElement<>(element));
     }
 
     @Override
@@ -69,7 +69,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
+        addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
     }
 
     @Override
@@ -77,7 +77,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new ElementsFromArray<T>(elements));
+        addCollector(new ElementsFromArray<>(elements));
     }
 
     @Override
@@ -85,7 +85,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new ElementsFromCollection<T>(elements));
+        addCollector(new ElementsFromCollection<>(elements));
     }
 
     @Override
@@ -93,7 +93,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+        addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
     }
 
     private void addCollector(Collector<T> collector) {
@@ -128,7 +128,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public C get() {
         beforeRead();
-        List<T> values = new ArrayList<T>();
+        List<T> values = new ArrayList<>();
         value.collectInto(valueCollector, values);
         return fromValue(values);
     }
@@ -142,7 +142,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Nullable
     private C doGetOrNull() {
-        List<T> values = new ArrayList<T>();
+        List<T> values = new ArrayList<>();
         if (!value.maybeCollectInto(valueCollector, values)) {
             return null;
         }
@@ -171,7 +171,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return;
         }
         if (beforeMutate()) {
-            set(new ElementsFromCollection<T>(elements));
+            set(new ElementsFromCollection<>(elements));
         }
     }
 
@@ -193,7 +193,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
-        set(new ElementsFromCollectionProvider<T>(p));
+        set(new ElementsFromCollectionProvider<>(p));
     }
 
     @Override
@@ -226,7 +226,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     protected void makeFinal() {
         C collection = doGetOrNull();
         if (collection != null) {
-            set(new ElementsFromCollection<T>(collection));
+            set(new ElementsFromCollection<>(collection));
         } else {
             set((Collector<T>) NO_VALUE_COLLECTOR);
         }
@@ -239,13 +239,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public HasMultipleValues<T> convention(Iterable<? extends T> elements) {
-        convention(new ElementsFromCollection<T>(elements));
+        convention(new ElementsFromCollection<>(elements));
         return this;
     }
 
     @Override
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
-        convention(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+        convention(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
         return this;
     }
 

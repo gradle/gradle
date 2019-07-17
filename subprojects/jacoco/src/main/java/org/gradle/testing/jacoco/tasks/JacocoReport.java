@@ -55,7 +55,7 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
      */
     @Override
     public JacocoReportsContainer reports(Closure closure) {
-        return reports(new ClosureBackedAction<JacocoReportsContainer>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     @Override

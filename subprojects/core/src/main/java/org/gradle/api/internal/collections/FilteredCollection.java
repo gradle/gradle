@@ -158,7 +158,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public Iterator<S> iterator() {
         collection.realizePending(filter.getType());
-        return new FilteringIterator<T, S>(collection, filter);
+        return new FilteringIterator<>(collection, filter);
     }
 
     @Override
@@ -180,7 +180,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public Iterator<S> iteratorNoFlush() {
-        return new FilteringIterator<T, S>(collection, filter);
+        return new FilteringIterator<>(collection, filter);
     }
 
     @Override

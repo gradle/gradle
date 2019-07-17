@@ -28,7 +28,7 @@ public class GroupedTransformationFixture {
     private final String initialSubjectType;
     private final String subject;
     private final String transformer;
-    private final List<String> outputs = new ArrayList<String>(1);
+    private final List<String> outputs = new ArrayList<>(1);
 
     public GroupedTransformationFixture(String initialSubjectType, String subject, String transformer) {
         this.initialSubjectType = initialSubjectType;

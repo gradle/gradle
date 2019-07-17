@@ -105,7 +105,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
             @Override
             public <T> ViewBuilder<T> builder(Class<T> viewType) {
-                return new DefaultViewBuilder<T>(viewType, graphDetails);
+                return new DefaultViewBuilder<>(viewType, graphDetails);
             }
         };
     }
@@ -126,7 +126,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
      */
     @Override
     public <T> ViewBuilder<T> builder(final Class<T> viewType) {
-        return new DefaultViewBuilder<T>(viewType);
+        return new DefaultViewBuilder<>(viewType);
     }
 
     private static <T> T createView(Class<T> targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
@@ -251,7 +251,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient Map<ViewKey, Object> views = new HashMap<ViewKey, Object>();
+        private transient Map<ViewKey, Object> views = new HashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
@@ -260,7 +260,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
-            views = new HashMap<ViewKey, Object>();
+            views = new HashMap<>();
         }
     }
 
@@ -311,7 +311,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         private void setup() {
-            List<MethodInvoker> invokers = new ArrayList<MethodInvoker>();
+            List<MethodInvoker> invokers = new ArrayList<>();
             invokers.add(REFLECTION_METHOD_INVOKER);
             decoration.collectInvokers(sourceObject, targetType, invokers);
 
@@ -407,7 +407,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class MethodInvocationCache {
-        private final Map<MethodInvocationKey, Optional<Method>> store = new HashMap<MethodInvocationKey, Optional<Method>>();
+        private final Map<MethodInvocationKey, Optional<Method>> store = new HashMap<>();
         private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         private final static long MINIMAL_CLEANUP_INTERVAL = 30000;
 
@@ -425,9 +425,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             private final int hashCode;
 
             private MethodInvocationKey(Class<?> lookupClass, String methodName, Class<?>[] parameterTypes) {
-                this.lookupClass = new SoftReference<Class<?>>(lookupClass);
+                this.lookupClass = new SoftReference<>(lookupClass);
                 this.methodName = methodName;
-                this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);
+                this.parameterTypes = new SoftReference<>(parameterTypes);
                 // hashcode will always be used, so we precompute it in order to make sure we
                 // won't compute it multiple times during comparisons
                 int result = lookupClass != null ? lookupClass.hashCode() : 0;
@@ -537,7 +537,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
             lock.writeLock().lock();
             try {
-                for (MethodInvocationKey key : new LinkedList<MethodInvocationKey>(store.keySet())) {
+                for (MethodInvocationKey key : new LinkedList<>(store.keySet())) {
                     if (key.isDirty()) {
                         evict++;
                         store.remove(key);
@@ -557,7 +557,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return Optional.absent();
             }
 
-            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+            LinkedList<Class<?>> queue = new LinkedList<>();
             queue.add(sourceClass);
             while (!queue.isEmpty()) {
                 Class<?> c = queue.removeFirst();
@@ -609,8 +609,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class PropertyCachingMethodInvoker implements MethodInvoker {
-        private final Map<String, Object> properties = new HashMap<String, Object>();
-        private final Set<String> unknown = new HashSet<String>();
+        private final Map<String, Object> properties = new HashMap<>();
+        private final Set<String> unknown = new HashSet<>();
         private final MethodInvoker next;
 
         private PropertyCachingMethodInvoker(MethodInvoker next) {
@@ -727,7 +727,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
-        private final ThreadLocal<MethodInvocation> current = new ThreadLocal<MethodInvocation>();
+        private final ThreadLocal<MethodInvocation> current = new ThreadLocal<>();
 
         ClassMixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
             this.mixInClass = mixInClass;
@@ -842,7 +842,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public ViewDecoration restrictTo(Set<Class<?>> viewTypes) {
-            List<ViewDecoration> filtered = new ArrayList<ViewDecoration>();
+            List<ViewDecoration> filtered = new ArrayList<>();
             for (ViewDecoration viewDecoration : decorations) {
                 ViewDecoration filteredDecoration = viewDecoration.restrictTo(viewTypes);
                 if (!filteredDecoration.isNoOp()) {
@@ -959,7 +959,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private final Class<T> viewType;
         @Nullable
         private final ViewGraphDetails graphDetails;
-        List<ViewDecoration> viewDecorations = new ArrayList<ViewDecoration>();
+        List<ViewDecoration> viewDecorations = new ArrayList<>();
 
         DefaultViewBuilder(Class<T> viewType) {
             this.viewType = viewType;

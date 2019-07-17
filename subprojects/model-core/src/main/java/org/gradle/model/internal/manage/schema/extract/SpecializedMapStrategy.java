@@ -77,7 +77,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <T, E> SpecializedMapSchema<T, E> getModelSchema(ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType, Class<?> implementationType) {
-        final SpecializedMapSchema<T, E> schema = new SpecializedMapSchema<T, E>(extractionContext.getType(), elementType, implementationType);
+        final SpecializedMapSchema<T, E> schema = new SpecializedMapSchema<>(extractionContext.getType(), elementType, implementationType);
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             @Override
             public void execute(ModelSchema<E> elementTypeSchema) {

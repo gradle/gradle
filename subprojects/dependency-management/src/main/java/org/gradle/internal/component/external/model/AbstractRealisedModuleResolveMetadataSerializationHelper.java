@@ -219,7 +219,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
 
     protected Set<String> readStringSet(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
-        Set<String> set = new LinkedHashSet<String>(3 * size / 2, 0.9f);
+        Set<String> set = new LinkedHashSet<>(3 * size / 2, 0.9f);
         for (int i = 0; i < size; i++) {
             set.add(decoder.readString());
         }

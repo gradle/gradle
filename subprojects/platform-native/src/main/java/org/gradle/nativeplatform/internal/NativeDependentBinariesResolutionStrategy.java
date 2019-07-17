@@ -201,7 +201,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private List<DependentBinariesResolvedResult> buildResolvedResult(final NativeBinarySpecInternal target, State state) {
-        Deque<NativeBinarySpecInternal> stack = new ArrayDeque<NativeBinarySpecInternal>();
+        Deque<NativeBinarySpecInternal> stack = new ArrayDeque<>();
         return doBuildResolvedResult(target, state, stack);
     }
 
@@ -243,7 +243,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 }
             }
         };
-        DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer = new DirectedGraphRenderer<NativeBinarySpecInternal>(nodeRenderer, directedGraph);
+        DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer = new DirectedGraphRenderer<>(nodeRenderer, directedGraph);
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(target, writer);
         throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s", writer.toString()));

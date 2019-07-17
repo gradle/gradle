@@ -91,7 +91,7 @@ public class ModelReferenceNode extends ModelNodeInternal {
         if (target == null) {
             return InstanceModelView.of(getPath(), type, null);
         } else {
-            return new ModelViewWrapper<T>(getPath(), target.asMutable(type, ruleDescriptor));
+            return new ModelViewWrapper<>(getPath(), target.asMutable(type, ruleDescriptor));
         }
     }
 
@@ -100,7 +100,7 @@ public class ModelReferenceNode extends ModelNodeInternal {
         if (target == null) {
             return InstanceModelView.of(getPath(), type, null);
         } else {
-            return new ModelViewWrapper<T>(getPath(), target.asImmutable(type, ruleDescriptor));
+            return new ModelViewWrapper<>(getPath(), target.asImmutable(type, ruleDescriptor));
         }
     }
 

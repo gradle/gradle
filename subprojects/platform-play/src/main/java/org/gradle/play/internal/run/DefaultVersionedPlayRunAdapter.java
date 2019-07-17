@@ -49,8 +49,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final String PLAY_EXCEPTION_CLASSNAME = "play.api.PlayException";
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
-    private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
-    private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
+    private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<>();
+    private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<>();
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -108,7 +108,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private void storeClassLoader(ClassLoader classLoader) {
         final ClassLoader previous = currentClassloader.getAndSet(classLoader);
         if (previous != null && previous instanceof Closeable) {
-            loadersToClose.add(new SoftReference<Closeable>(Cast.cast(Closeable.class, previous)));
+            loadersToClose.add(new SoftReference<>(Cast.cast(Closeable.class, previous)));
         }
     }
 

@@ -22,7 +22,7 @@ import java.util.List;
 
 public class DefaultStaticLibraryArchiverSpec extends AbstractBinaryToolSpec implements StaticLibraryArchiverSpec {
 
-    private final List<File> objectFiles = new ArrayList<File>();
+    private final List<File> objectFiles = new ArrayList<>();
     private File outputFile;
 
     @Override

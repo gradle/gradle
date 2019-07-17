@@ -18,7 +18,16 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.ModelTypeInitializationException;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -63,7 +72,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     protected <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition) {
         ModelType<S> modelType = ruleDefinition.getSubjectReference().getType();
         final ModelSchema<S> modelSchema = getModelSchema(modelType, ruleDefinition);
-        return new ExtractedManagedCreationRule<R, S>(modelPath, ruleDefinition, modelSchema);
+        return new ExtractedManagedCreationRule<>(modelPath, ruleDefinition, modelSchema);
     }
 
     private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
@@ -115,7 +124,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             }
 
             registration.action(ModelActionRole.Initialize,
-                    context.contextualize(new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
+                    context.contextualize(new MethodBackedModelAction<>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
         }
 
     }

@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CachingJvmVersionDetector implements JvmVersionDetector {
-    private final Map<JavaInfo, JavaVersion> javaHomeResults = new ConcurrentHashMap<JavaInfo, JavaVersion>();
-    private final Map<String, JavaVersion> javaCmdResults = new ConcurrentHashMap<String, JavaVersion>();
+    private final Map<JavaInfo, JavaVersion> javaHomeResults = new ConcurrentHashMap<>();
+    private final Map<String, JavaVersion> javaCmdResults = new ConcurrentHashMap<>();
     private final JvmVersionDetector delegate;
 
     public CachingJvmVersionDetector(JvmVersionDetector delegate) {

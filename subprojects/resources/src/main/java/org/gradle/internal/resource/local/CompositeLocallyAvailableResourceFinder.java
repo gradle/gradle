@@ -31,14 +31,14 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
 
     @Override
     public LocallyAvailableResourceCandidates findCandidates(C criterion) {
-        List<LocallyAvailableResourceCandidates> allCandidates = new LinkedList<LocallyAvailableResourceCandidates>();
+        List<LocallyAvailableResourceCandidates> allCandidates = new LinkedList<>();
         for (LocallyAvailableResourceFinder<C> finder : composites) {
             allCandidates.add(finder.findCandidates(criterion));
         }
 
         return new CompositeLocallyAvailableResourceCandidates(allCandidates);
     }
-    
+
     private static class CompositeLocallyAvailableResourceCandidates implements LocallyAvailableResourceCandidates {
         private final List<LocallyAvailableResourceCandidates> allCandidates;
 

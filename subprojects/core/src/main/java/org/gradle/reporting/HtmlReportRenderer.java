@@ -17,9 +17,9 @@ package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -87,7 +87,7 @@ public class HtmlReportRenderer {
 
     private static class DefaultHtmlReportContext implements HtmlReportBuilder {
         private final File outputDirectory;
-        private final Map<String, Resource> resources = new HashMap<String, Resource>();
+        private final Map<String, Resource> resources = new HashMap<>();
 
         public DefaultHtmlReportContext(File outputDirectory) {
             this.outputDirectory = outputDirectory;
@@ -122,7 +122,7 @@ public class HtmlReportRenderer {
                 protected void doExecute(Writer writer) throws Exception {
                     SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
                     htmlWriter.startElement("html");
-                    renderer.render(model, new DefaultHtmlPageBuilder<SimpleHtmlWriter>(prefix(name), htmlWriter));
+                    renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), htmlWriter));
                     htmlWriter.endElement();
                 }
             });
@@ -134,7 +134,7 @@ public class HtmlReportRenderer {
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
                 protected void doExecute(Writer writer) throws Exception {
-                    renderer.render(model, new DefaultHtmlPageBuilder<Writer>(prefix(name), writer));
+                    renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), writer));
                 }
             });
         }

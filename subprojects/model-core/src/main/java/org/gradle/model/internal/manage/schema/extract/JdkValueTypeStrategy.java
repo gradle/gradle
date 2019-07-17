@@ -25,7 +25,7 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
     public <R> void extract(ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
         if (ScalarTypes.isScalarType(type)) {
-            extractionContext.found(new ScalarValueSchema<R>(type));
+            extractionContext.found(new ScalarValueSchema<>(type));
         }
     }
 }

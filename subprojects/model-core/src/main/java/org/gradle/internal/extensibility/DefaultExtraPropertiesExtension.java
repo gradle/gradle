@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtension {
 
-    private final Map<String, Object> storage = new HashMap<String, Object>();
+    private final Map<String, Object> storage = new HashMap<>();
 
     @Override
     public boolean has(String name) {
@@ -79,7 +79,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Override
     public Map<String, Object> getProperties() {
-        return new HashMap<String, Object>(storage);
+        return new HashMap<>(storage);
     }
 
     public Object methodMissing(String name, Object args) {

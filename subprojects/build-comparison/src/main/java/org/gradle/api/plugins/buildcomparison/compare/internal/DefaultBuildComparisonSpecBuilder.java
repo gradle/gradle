@@ -16,9 +16,9 @@
 
 package org.gradle.api.plugins.buildcomparison.compare.internal;
 
+import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -27,16 +27,16 @@ import java.util.Set;
 
 public class DefaultBuildComparisonSpecBuilder implements BuildComparisonSpecBuilder {
 
-    private final Set<BuildOutcome> source = new HashSet<BuildOutcome>();
-    private final Set<BuildOutcome> target = new HashSet<BuildOutcome>();
-    private final List<BuildOutcomeAssociation<?>> outcomeAssociations = new LinkedList<BuildOutcomeAssociation<?>>();
+    private final Set<BuildOutcome> source = new HashSet<>();
+    private final Set<BuildOutcome> target = new HashSet<>();
+    private final List<BuildOutcomeAssociation<?>> outcomeAssociations = new LinkedList<>();
 
     @Override
     public <A extends BuildOutcome, F extends A, T extends A> BuildOutcomeAssociation<A> associate(F from, T to, Class<A> type) {
         this.source.add(from);
         this.target.add(to);
 
-        BuildOutcomeAssociation<A> outcomeAssociation = new DefaultBuildOutcomeAssociation<A>(from, to, type);
+        BuildOutcomeAssociation<A> outcomeAssociation = new DefaultBuildOutcomeAssociation<>(from, to, type);
         outcomeAssociations.add(outcomeAssociation);
 
         return outcomeAssociation;

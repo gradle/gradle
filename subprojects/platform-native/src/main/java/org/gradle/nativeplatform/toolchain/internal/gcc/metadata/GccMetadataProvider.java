@@ -182,7 +182,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     private Map<String, String> parseDefines(String output, File gccBinary) {
         BufferedReader reader = new BufferedReader(new StringReader(output));
         String line;
-        Map<String, String> defines = new HashMap<String, String>();
+        Map<String, String> defines = new HashMap<>();
         try {
             while ((line = reader.readLine()) != null) {
                 Matcher matcher = DEFINE_PATTERN.matcher(line);

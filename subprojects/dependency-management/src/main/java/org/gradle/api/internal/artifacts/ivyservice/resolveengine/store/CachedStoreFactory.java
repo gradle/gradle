@@ -47,7 +47,7 @@ public class CachedStoreFactory<T> implements Closeable {
     }
 
     public Store<T> createCachedStore(final Object id) {
-        return new SimpleStore<T>(cache, id, stats);
+        return new SimpleStore<>(cache, id, stats);
     }
 
     @Override

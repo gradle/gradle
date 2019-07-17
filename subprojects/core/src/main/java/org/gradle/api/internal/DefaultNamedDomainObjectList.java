@@ -42,11 +42,11 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
      * only left here to not break `nebula.dependency-recommender` plugin.
      */
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ListElementSource<T>(), instantiator, namer, CollectionCallbackActionDecorator.NOOP);
+        super(type, new ListElementSource<>(), instantiator, namer, CollectionCallbackActionDecorator.NOOP);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
-        super(type, new ListElementSource<T>(), instantiator, namer, decorator);
+        super(type, new ListElementSource<>(), instantiator, namer, decorator);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     protected <S extends T> IndexedElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredList<T, S>(elementSource, filter);
+        return new FilteredList<>(elementSource, filter);
     }
 
     @Override
@@ -147,17 +147,17 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public NamedDomainObjectList<T> matching(Spec<? super T> spec) {
-        return new DefaultNamedDomainObjectList<T>(this, createFilter(spec), getInstantiator(), getNamer());
+        return new DefaultNamedDomainObjectList<>(this, createFilter(spec), getInstantiator(), getNamer());
     }
 
     @Override
     public <S extends T> NamedDomainObjectList<S> withType(Class<S> type) {
-        return new DefaultNamedDomainObjectList<S>(this, createFilter(type), getInstantiator(), getNamer());
+        return new DefaultNamedDomainObjectList<>(this, createFilter(type), getInstantiator(), getNamer());
     }
 
     @Override
     public List<T> findAll(Closure cl) {
-        return findAll(cl, new ArrayList<T>());
+        return findAll(cl, new ArrayList<>());
     }
 
     private class ListIteratorImpl implements ListIterator<T> {

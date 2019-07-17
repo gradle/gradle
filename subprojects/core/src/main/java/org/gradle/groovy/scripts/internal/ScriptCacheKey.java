@@ -24,7 +24,7 @@ public class ScriptCacheKey {
 
     ScriptCacheKey(String className, ClassLoader classLoader, String dslId) {
         this.className = className;
-        this.classLoader = new WeakReference<ClassLoader>(classLoader);
+        this.classLoader = new WeakReference<>(classLoader);
         this.dslId = dslId;
     }
 

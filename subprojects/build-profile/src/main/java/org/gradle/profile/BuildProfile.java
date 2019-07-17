@@ -45,8 +45,8 @@ public class BuildProfile {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
-    private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
-    private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<String, ContinuousOperation>();
+    private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
+    private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
     private final Map<String, FragmentedOperation> transformations = Maps.newLinkedHashMap();
     private long profilingStarted;
     private long buildStarted;
@@ -116,12 +116,12 @@ public class BuildProfile {
     }
 
     public CompositeOperation<Operation> getProjectConfiguration() {
-        List<Operation> operations = new ArrayList<Operation>();
+        List<Operation> operations = new ArrayList<>();
         for (ProjectProfile projectProfile : projects.values()) {
             operations.add(projectProfile.getConfigurationOperation());
         }
         operations = CollectionUtils.sort(operations, Operation.slowestFirst());
-        return new CompositeOperation<Operation>(operations);
+        return new CompositeOperation<>(operations);
     }
 
     public ContinuousOperation getDependencySetProfile(String dependencySetDescription) {
@@ -135,7 +135,7 @@ public class BuildProfile {
 
     public CompositeOperation<ContinuousOperation> getDependencySets() {
         final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.slowestFirst());
-        return new CompositeOperation<ContinuousOperation>(profiles);
+        return new CompositeOperation<>(profiles);
     }
 
     public FragmentedOperation getTransformationProfile(String transformationDescription) {
@@ -149,7 +149,7 @@ public class BuildProfile {
 
     public CompositeOperation<FragmentedOperation> getTransformations() {
         final List<FragmentedOperation> profiles = CollectionUtils.sort(transformations.values(), Operation.slowestFirst());
-        return new CompositeOperation<FragmentedOperation>(profiles);
+        return new CompositeOperation<>(profiles);
     }
 
     /**

@@ -31,7 +31,7 @@ public class ClosureBackedAction<T> implements Action<T> {
     private final boolean configurableAware;
 
     public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
-        return new ClosureBackedAction<T>(closure);
+        return new ClosureBackedAction<>(closure);
     }
 
     public ClosureBackedAction(Closure closure) {

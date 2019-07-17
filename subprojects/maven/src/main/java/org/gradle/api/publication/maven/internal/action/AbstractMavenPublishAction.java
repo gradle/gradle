@@ -53,7 +53,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
     private final DefaultRepositorySystemSession session;
     private final MavenProjectIdentity projectIdentity;
 
-    private final List<Artifact> attached = new ArrayList<Artifact>();
+    private final List<Artifact> attached = new ArrayList<>();
     private Artifact pomArtifact;
     private Artifact mainArtifact;
 
@@ -91,7 +91,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
     @Override
     public void publish() {
-        List<Artifact> artifacts = new ArrayList<Artifact>();
+        List<Artifact> artifacts = new ArrayList<>();
         if (mainArtifact.getFile() != null) {
             artifacts.add(mainArtifact);
         }

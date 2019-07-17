@@ -28,7 +28,7 @@ public class DefaultRuleAwarePolymorphicNamedEntityInstantiator<T> implements Ru
     private final RuleAwareNamedDomainObjectFactoryRegistry<T> registry;
 
     public DefaultRuleAwarePolymorphicNamedEntityInstantiator(PolymorphicNamedEntityInstantiator<T> instantiator) {
-        this(instantiator, new DefaultRuleAwareNamedDomainObjectFactoryRegistry<T>(instantiator));
+        this(instantiator, new DefaultRuleAwareNamedDomainObjectFactoryRegistry<>(instantiator));
     }
 
     public DefaultRuleAwarePolymorphicNamedEntityInstantiator(PolymorphicNamedEntityInstantiator<T> instantiator, RuleAwareNamedDomainObjectFactoryRegistry<T> registry) {

@@ -47,7 +47,7 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             found |= build(currentBuild, componentArtifactIdentifier);
         }
         if (found) {
-            List<Throwable> taskFailures = new ArrayList<Throwable>();
+            List<Throwable> taskFailures = new ArrayList<>();
             includedBuildTaskGraph.awaitTaskCompletion(taskFailures);
             if (!taskFailures.isEmpty()) {
                 throw new MultipleBuildFailures(taskFailures);

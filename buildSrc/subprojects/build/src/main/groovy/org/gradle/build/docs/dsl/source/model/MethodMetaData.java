@@ -29,7 +29,7 @@ import java.util.Objects;
 public class MethodMetaData extends AbstractLanguageElement implements Serializable, TypeContainer {
     private final String name;
     private final ClassMetaData ownerClass;
-    private final List<ParameterMetaData> parameters = new ArrayList<ParameterMetaData>();
+    private final List<ParameterMetaData> parameters = new ArrayList<>();
     private TypeMetaData returnType;
 
     public MethodMetaData(String name, ClassMetaData ownerClass) {
@@ -82,7 +82,7 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
     }
 
     public MethodMetaData getOverriddenMethod() {
-        LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
+        LinkedList<ClassMetaData> queue = new LinkedList<>();
         queue.add(ownerClass.getSuperClass());
         queue.addAll(ownerClass.getInterfaces());
 

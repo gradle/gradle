@@ -70,12 +70,12 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     @Override
     public <P> SingleRequestWorkerProcessBuilder<P> singleRequestWorker(Class<P> protocolType, Class<? extends P> workerImplementation) {
-        return new DefaultSingleRequestWorkerProcessBuilder<P>(protocolType, workerImplementation, newWorkerProcessBuilder());
+        return new DefaultSingleRequestWorkerProcessBuilder<>(protocolType, workerImplementation, newWorkerProcessBuilder());
     }
 
     @Override
     public <P, W extends P> MultiRequestWorkerProcessBuilder<W> multiRequestWorker(Class<W> workerType, Class<P> protocolType, Class<? extends P> workerImplementation) {
-        return new DefaultMultiRequestWorkerProcessBuilder<W>(workerType, workerImplementation, newWorkerProcessBuilder());
+        return new DefaultMultiRequestWorkerProcessBuilder<>(workerType, workerImplementation, newWorkerProcessBuilder());
     }
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {

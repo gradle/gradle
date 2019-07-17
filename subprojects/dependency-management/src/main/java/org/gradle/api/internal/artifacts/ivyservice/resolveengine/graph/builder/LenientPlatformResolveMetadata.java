@@ -99,7 +99,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ConfigurationMetadata getConfiguration(String name) {
         if ("default".equals(name)) {
-            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>();
+            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
             Set<ModuleResolveState> participatingModules = platformState.getParticipatingModules();
             for (ModuleResolveState module : participatingModules) {
                 dependencies.add(new LenientPlatformDependencyMetadata(

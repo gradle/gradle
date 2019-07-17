@@ -35,9 +35,9 @@ public class CompilerMetaDataProviderFactory {
     private final CachingCompilerMetaDataProvider<SwiftcMetadata> swiftc;
 
     public CompilerMetaDataProviderFactory(ExecActionFactory execActionFactory) {
-        gcc = new CachingCompilerMetaDataProvider<GccMetadata>(GccMetadataProvider.forGcc(execActionFactory));
-        clang = new CachingCompilerMetaDataProvider<GccMetadata>(GccMetadataProvider.forClang(execActionFactory));
-        swiftc = new CachingCompilerMetaDataProvider<SwiftcMetadata>(new SwiftcMetadataProvider(execActionFactory));
+        gcc = new CachingCompilerMetaDataProvider<>(GccMetadataProvider.forGcc(execActionFactory));
+        clang = new CachingCompilerMetaDataProvider<>(GccMetadataProvider.forClang(execActionFactory));
+        swiftc = new CachingCompilerMetaDataProvider<>(new SwiftcMetadataProvider(execActionFactory));
     }
 
     public CompilerMetaDataProvider<GccMetadata> gcc() {
@@ -54,7 +54,7 @@ public class CompilerMetaDataProviderFactory {
 
     private static class CachingCompilerMetaDataProvider<T extends CompilerMetadata> implements CompilerMetaDataProvider<T> {
         private final CompilerMetaDataProvider<T> delegate;
-        private final Map<Key, SearchResult<T>> resultMap = new HashMap<Key, SearchResult<T>>();
+        private final Map<Key, SearchResult<T>> resultMap = new HashMap<>();
 
         private CachingCompilerMetaDataProvider(CompilerMetaDataProvider<T> delegate) {
             this.delegate = delegate;

@@ -92,8 +92,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
     private final String name;
-    private final List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
-    private final List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
+    private final List<ResourcePattern> ivyPatterns = new ArrayList<>();
+    private final List<ResourcePattern> artifactPatterns = new ArrayList<>();
     private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;

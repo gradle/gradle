@@ -31,7 +31,7 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     private String scope = "BUNDLE";
     private List<String> includes = ImmutableList.of("*");
     private List<String> excludes = ImmutableList.of();
-    private final List<JacocoLimit> limits = new ArrayList<JacocoLimit>();
+    private final List<JacocoLimit> limits = new ArrayList<>();
 
     @Override
     public boolean isEnabled() {

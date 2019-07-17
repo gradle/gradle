@@ -52,7 +52,7 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
 
         @Override
         public void run(BuildOperationContext context) {
-            List<Throwable> failures = new ArrayList<Throwable>();
+            List<Throwable> failures = new ArrayList<>();
             delegate.execute(gradle, failures);
             if (!failures.isEmpty()) {
                 context.failed(failures.get(0));

@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ShutdownHooks {
-    private static final Map<Runnable, Thread> HOOKS = new ConcurrentHashMap<Runnable, Thread>();
+    private static final Map<Runnable, Thread> HOOKS = new ConcurrentHashMap<>();
 
     public static void addShutdownHook(Runnable shutdownHook) {
         Thread thread = new Thread(shutdownHook, "gradle-shutdown-hook");

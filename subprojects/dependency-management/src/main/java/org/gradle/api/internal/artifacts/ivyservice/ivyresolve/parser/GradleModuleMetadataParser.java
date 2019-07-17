@@ -266,7 +266,7 @@ public class GradleModuleMetadataParser {
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
-        List<ModuleDependency> dependencies = new ArrayList<ModuleDependency>();
+        List<ModuleDependency> dependencies = new ArrayList<>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String group = null;
@@ -352,7 +352,7 @@ public class GradleModuleMetadataParser {
     }
 
     private List<ModuleDependencyConstraint> consumeDependencyConstraints(JsonReader reader) throws IOException {
-        List<ModuleDependencyConstraint> dependencies = new ArrayList<ModuleDependencyConstraint>();
+        List<ModuleDependencyConstraint> dependencies = new ArrayList<>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String group = null;
@@ -433,7 +433,7 @@ public class GradleModuleMetadataParser {
     }
 
     private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {
-        ImmutableList.Builder<ExcludeMetadata> builder = new ImmutableList.Builder<ExcludeMetadata>();
+        ImmutableList.Builder<ExcludeMetadata> builder = new ImmutableList.Builder<>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String group = null;
@@ -464,7 +464,7 @@ public class GradleModuleMetadataParser {
     }
 
     private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {
-        List<ModuleFile> files = new ArrayList<ModuleFile>();
+        List<ModuleFile> files = new ArrayList<>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String fileName = null;

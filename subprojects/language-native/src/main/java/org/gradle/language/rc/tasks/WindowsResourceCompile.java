@@ -67,7 +67,7 @@ public class WindowsResourceCompile extends DefaultTask {
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;
-    private Map<String, String> macros = new LinkedHashMap<String, String>();
+    private Map<String, String> macros = new LinkedHashMap<>();
     private final ListProperty<String> compilerArgs;
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChainingTransformer<T> implements Transformer<T, T> {
-    private final List<Transformer<T, T>> transformers = new ArrayList<Transformer<T, T>>();
+    private final List<Transformer<T, T>> transformers = new ArrayList<>();
     private final Class<T> type;
 
     public ChainingTransformer(Class<T> type) {

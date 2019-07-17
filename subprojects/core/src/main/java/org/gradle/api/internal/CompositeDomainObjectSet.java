@@ -50,8 +50,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     @SafeVarargs
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, CollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
-        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet, callbackActionDecorator);
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<>(type, new DomainObjectCompositeCollection<>(), callbackActionDecorator);
+        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<>(backingSet, callbackActionDecorator);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
         }

@@ -51,7 +51,7 @@ public class DefaultIdeDependencyResolver {
             }
         }).getArtifacts().getArtifacts();
 
-        List<IdeExtendedRepoFileDependency> externalDependencies = new ArrayList<IdeExtendedRepoFileDependency>(artifacts.size());
+        List<IdeExtendedRepoFileDependency> externalDependencies = new ArrayList<>(artifacts.size());
         for (ResolvedArtifactResult artifact : artifacts) {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency();

@@ -34,7 +34,7 @@ public class DefaultXcodeProject implements XcodeProject {
     public static final String TEST_DEBUG = "__GradleTestRunner_Debug";
 
     private final Groups groups;
-    private List<XcodeTarget> targets = new ArrayList<XcodeTarget>();
+    private List<XcodeTarget> targets = new ArrayList<>();
     private File locationDir;
 
     @Inject

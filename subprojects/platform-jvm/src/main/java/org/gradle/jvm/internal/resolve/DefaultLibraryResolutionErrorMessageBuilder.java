@@ -44,7 +44,7 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
 
     @Override
     public String multipleCompatibleVariantsErrorMessage(String libraryName, Iterable<? extends Binary> binaries) {
-        List<String> variantDescriptors = new ArrayList<String>();
+        List<String> variantDescriptors = new ArrayList<>();
         StringBuilder variantDescriptor = new StringBuilder();
         for (Binary binary : binaries) {
             BinarySpec variant = (BinarySpec) binary;
@@ -95,7 +95,7 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
         for (String variantAxis : variantAxesToResolve) {
             String axisName = renderAxisName(variantAxis);
             error.append("    Required ").append(axisName).append(" '").append(variantsMetaData.getValueAsString(variantAxis)).append("'");
-            Set<String> available = new TreeSet<String>(variantAxisMessages.get(variantAxis));
+            Set<String> available = new TreeSet<>(variantAxisMessages.get(variantAxis));
             if (!available.isEmpty()) {
                 error.append(", available: ").append(joiner.join(available)).append("\n");
             } else {

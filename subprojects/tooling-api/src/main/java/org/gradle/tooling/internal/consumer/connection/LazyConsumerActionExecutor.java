@@ -41,7 +41,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final Set<Thread> executing = new HashSet<Thread>();
+    private final Set<Thread> executing = new HashSet<>();
     private boolean stopped;
     private ConsumerConnection connection;
 

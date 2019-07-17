@@ -59,7 +59,7 @@ public class ConsumerProvidedVariantFinder {
 
     private ConsumerVariantMatchResult findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
-        List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
+        List<ArtifactTransformRegistration> candidates = new ArrayList<>();
         List<ArtifactTransformRegistration> transforms = variantTransforms.getTransforms();
         int nbOfTransforms = transforms.size();
         ConsumerVariantMatchResult result = new ConsumerVariantMatchResult(nbOfTransforms * nbOfTransforms);

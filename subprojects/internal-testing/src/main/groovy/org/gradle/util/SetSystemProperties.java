@@ -29,7 +29,7 @@ import java.util.Properties;
  */
 public class SetSystemProperties implements TestRule {
     private final Properties properties;
-    private final Map<String, Object> customProperties = new HashMap<String, Object>();
+    private final Map<String, Object> customProperties = new HashMap<>();
     private static final String[] IMMUTABLE_SYSTEM_PROPERTIES = new String[] {"java.io.tmpdir"};
 
     public SetSystemProperties() {

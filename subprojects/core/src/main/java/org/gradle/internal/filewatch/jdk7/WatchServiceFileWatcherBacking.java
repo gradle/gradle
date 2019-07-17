@@ -45,7 +45,7 @@ public class WatchServiceFileWatcherBacking {
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
-    private final AtomicReference<SoftReference<Thread>> pollerThreadReference = new AtomicReference<SoftReference<Thread>>();
+    private final AtomicReference<SoftReference<Thread>> pollerThreadReference = new AtomicReference<>();
 
     private final Action<? super Throwable> onError;
     private final WatchServiceRegistrar watchServiceRegistrar;
@@ -86,7 +86,7 @@ public class WatchServiceFileWatcherBacking {
                 @Override
                 public void run() {
                     if (!stopped.get()) {
-                        pollerThreadReference.set(new SoftReference<Thread>(Thread.currentThread()));
+                        pollerThreadReference.set(new SoftReference<>(Thread.currentThread()));
                         running.set(true);
                         try {
                             try {

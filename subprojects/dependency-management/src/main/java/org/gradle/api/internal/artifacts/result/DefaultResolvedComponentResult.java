@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
     private final ModuleVersionIdentifier moduleVersion;
-    private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
-    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
+    private final Set<DependencyResult> dependencies = new LinkedHashSet<>();
+    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> variants;

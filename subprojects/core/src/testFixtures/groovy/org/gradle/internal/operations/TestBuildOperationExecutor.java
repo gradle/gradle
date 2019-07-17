@@ -74,7 +74,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> generator) {
-        generator.execute(new TestBuildOperationQueue<O>(log));
+        generator.execute(new TestBuildOperationQueue<>(log));
     }
 
     @Override
@@ -140,10 +140,10 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     public static class Log {
-        public final Deque<Record> records = new LinkedBlockingDeque<Record>();
+        public final Deque<Record> records = new LinkedBlockingDeque<>();
 
         public List<BuildOperationDescriptor> getDescriptors() {
-            return Lists.transform(new ArrayList<Record>(records), new Function<Record, BuildOperationDescriptor>() {
+            return Lists.transform(new ArrayList<>(records), new Function<Record, BuildOperationDescriptor>() {
                 @Override
                 public BuildOperationDescriptor apply(Record input) {
                     return input.descriptor;
@@ -216,7 +216,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                     throw new IllegalStateException("operation has null details");
                 }
 
-                return new TypedRecord<D, R>(
+                return new TypedRecord<>(
                     descriptor,
                     BuildOperationTypes.detailsType(buildOperationType).cast(descriptor.getDetails()),
                     BuildOperationTypes.resultType(buildOperationType).cast(result),

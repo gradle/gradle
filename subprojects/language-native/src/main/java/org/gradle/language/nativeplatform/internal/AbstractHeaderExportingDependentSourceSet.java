@@ -30,7 +30,7 @@ import java.util.List;
 public abstract class AbstractHeaderExportingDependentSourceSet extends AbstractHeaderExportingSourceSet
         implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSetInternal {
 
-    private final List<Object> libs = new ArrayList<Object>();
+    private final List<Object> libs = new ArrayList<>();
     private String preCompiledHeader;
     private File prefixHeaderFile;
 

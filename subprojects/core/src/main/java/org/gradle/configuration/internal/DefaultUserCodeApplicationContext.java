@@ -31,7 +31,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     private final ThreadLocal<Deque<UserCodeApplicationId>> stackThreadLocal = new ThreadLocal<Deque<UserCodeApplicationId>>() {
         @Override
         protected Deque<UserCodeApplicationId> initialValue() {
-            return new ArrayDeque<UserCodeApplicationId>();
+            return new ArrayDeque<>();
         }
     };
 

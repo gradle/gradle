@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
-    private Map<String, T> projects = new HashMap<String, T>();
-    private Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
+    private Map<String, T> projects = new HashMap<>();
+    private Map<String, Set<T>> subProjects = new HashMap<>();
 
     @Override
     public void addProject(T project) {
         projects.put(project.getPath(), project);
-        subProjects.put(project.getPath(), new HashSet<T>());
+        subProjects.put(project.getPath(), new HashSet<>());
         addProjectToParentSubProjects(project);
     }
 
@@ -64,7 +64,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public Set<T> getAllProjects() {
-        return new HashSet<T>(projects.values());
+        return new HashSet<>(projects.values());
     }
 
     @Override
@@ -94,7 +94,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public Set<T> getAllProjects(String path) {
-        Set<T> result = new HashSet<T>(getSubProjects(path));
+        Set<T> result = new HashSet<>(getSubProjects(path));
         if (projects.get(path) != null) {
             result.add(projects.get(path));
         }
@@ -103,12 +103,12 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public Set<T> getSubProjects(String path) {
-        return GUtil.elvis(subProjects.get(path), new HashSet<T>());
+        return GUtil.elvis(subProjects.get(path), new HashSet<>());
     }
 
     @Override
     public Set<T> findAll(Spec<? super T> constraint) {
-        Set<T> matches = new HashSet<T>();
+        Set<T> matches = new HashSet<>();
         for (T project : projects.values()) {
             if (constraint.isSatisfiedBy(project)) {
                 matches.add(project);

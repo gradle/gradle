@@ -36,10 +36,10 @@ import java.util.Set;
 public class XCTestSelection {
     public static final String INCLUDE_ALL_TESTS = "All";
     private static final String WILDCARD = "*";
-    private final Set<String> includedTests = new LinkedHashSet<String>();
+    private final Set<String> includedTests = new LinkedHashSet<>();
 
     public XCTestSelection(Collection<String> includedTests, Collection<String> includedTestsCommandLine) {
-        Set<String> testSuiteCache = new HashSet<String>();
+        Set<String> testSuiteCache = new HashSet<>();
 
         prepareIncludedTestList(includedTests, testSuiteCache);
         prepareIncludedTestList(includedTestsCommandLine, testSuiteCache);

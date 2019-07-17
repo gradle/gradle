@@ -69,7 +69,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         final DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), getType(), ruleDescriptor, writable, true);
         return new ModelView<M>() {
-            private final Map<String, Object> propertyViews = new HashMap<String, Object>();
+            private final Map<String, Object> propertyViews = new HashMap<>();
 
             @Override
             public ModelPath getPath() {

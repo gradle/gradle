@@ -39,7 +39,7 @@ public class ClasspathEntrySnapshot {
     }
 
     public DependentsSet getAllClasses() {
-        final Set<String> result = new HashSet<String>();
+        final Set<String> result = new HashSet<>();
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
             DependentsSet dependents = getClassAnalysis().getRelevantDependents(className, IntSets.EMPTY_SET);
@@ -76,7 +76,7 @@ public class ClasspathEntrySnapshot {
     }
 
     private Set<String> modifiedSince(ClasspathEntrySnapshot other) {
-        final Set<String> modified = new HashSet<String>();
+        final Set<String> modified = new HashSet<>();
         for (Map.Entry<String, HashCode> otherClass : other.getHashes().entrySet()) {
             String otherClassName = otherClass.getKey();
             HashCode otherClassBytes = otherClass.getValue();
@@ -89,7 +89,7 @@ public class ClasspathEntrySnapshot {
     }
 
     private Set<String> addedSince(ClasspathEntrySnapshot other) {
-        Set<String> addedClasses = new HashSet<String>(getClasses());
+        Set<String> addedClasses = new HashSet<>(getClasses());
         addedClasses.removeAll(other.getClasses());
         return addedClasses;
     }

@@ -38,11 +38,11 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
      * */
     @Deprecated
     public DefaultDomainObjectSet(Class<? extends T> type) {
-        super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
+        super(type, new IterationOrderRetainingSetElementSource<>(), CollectionCallbackActionDecorator.NOOP);
     }
 
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {
-        super(type, new IterationOrderRetainingSetElementSource<T>(), decorator);
+        super(type, new IterationOrderRetainingSetElementSource<>(), decorator);
     }
 
     /**
@@ -79,7 +79,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
 
     @Override
     protected <S extends T> DefaultDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectSet<S>(this, filter);
+        return new DefaultDomainObjectSet<>(this, filter);
     }
 
     @Override
@@ -99,6 +99,6 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
 
     @Override
     public Set<T> findAll(Closure cl) {
-        return findAll(cl, new LinkedHashSet<T>());
+        return findAll(cl, new LinkedHashSet<>());
     }
 }

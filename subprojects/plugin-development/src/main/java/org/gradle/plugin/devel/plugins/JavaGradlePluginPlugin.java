@@ -154,8 +154,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getTasks().named(JAR_TASK, Jar.class, new Action<Jar>() {
             @Override
             public void execute(Jar jarTask) {
-                List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>();
-                Set<String> classList = new HashSet<String>();
+                List<PluginDescriptor> descriptors = new ArrayList<>();
+                Set<String> classList = new HashSet<>();
                 PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(descriptors);
                 ClassManifestCollectorAction classManifestCollector = new ClassManifestCollectorAction(classList);
                 PluginValidationAction pluginValidationAction = new PluginValidationAction(extension.getPlugins(), descriptors, classList);

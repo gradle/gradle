@@ -28,7 +28,7 @@ public class PartialBasicGradleProject implements Serializable, GradleProjectIde
     private String name;
     private DefaultProjectIdentifier projectIdentifier;
     private PartialBasicGradleProject parent;
-    private Set<PartialBasicGradleProject> children = new LinkedHashSet<PartialBasicGradleProject>();
+    private Set<PartialBasicGradleProject> children = new LinkedHashSet<>();
 
     @Override
     public String toString() {

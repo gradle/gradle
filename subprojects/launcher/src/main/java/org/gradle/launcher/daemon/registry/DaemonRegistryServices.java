@@ -34,9 +34,9 @@ public class DaemonRegistryServices {
     private final File daemonBaseDir;
     private final Cache<File, DaemonRegistry> daemonRegistryCache;
 
-    private static final Map<File, DaemonRegistry> REGISTRY_STORAGE = new HashMap<File, DaemonRegistry>();
-    private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<File, DaemonRegistry>(
-            new MapBackedCache<File, DaemonRegistry>(REGISTRY_STORAGE)
+    private static final Map<File, DaemonRegistry> REGISTRY_STORAGE = new HashMap<>();
+    private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<>(
+        new MapBackedCache<>(REGISTRY_STORAGE)
     );
 
     public DaemonRegistryServices(File daemonBaseDir) {

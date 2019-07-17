@@ -49,7 +49,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
 
     @Override
     public Map<String, String> transform(JavaAppStartScriptGenerationDetails details) {
-        Map<String, String> binding = new HashMap<String, String>();
+        Map<String, String> binding = new HashMap<>();
         binding.put(ScriptBindingParameter.APP_NAME.getKey(), details.getApplicationName());
         binding.put(ScriptBindingParameter.OPTS_ENV_VAR.getKey(), details.getOptsEnvironmentVar());
         binding.put(ScriptBindingParameter.EXIT_ENV_VAR.getKey(), details.getExitEnvironmentVar());
@@ -177,7 +177,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
             return "";
         }
 
-        List<String> appHomeRelativePath = new ArrayList<String>(depth);
+        List<String> appHomeRelativePath = new ArrayList<>(depth);
         for (int i = 0; i < depth; i++) {
             appHomeRelativePath.add("..");
         }

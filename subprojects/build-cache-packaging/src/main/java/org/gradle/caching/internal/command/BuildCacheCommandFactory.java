@@ -118,7 +118,7 @@ public class BuildCacheCommandFactory {
             entity.visitOutputTrees((treeName, type, root) -> {
                 FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+                List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
                     fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());

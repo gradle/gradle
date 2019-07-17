@@ -47,7 +47,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
             return action;
         }
 
-        return new BuildOperationEmittingAction<T>(applicationId, action);
+        return new BuildOperationEmittingAction<>(applicationId, action);
     }
 
     private static abstract class Operation implements RunnableBuildOperation {

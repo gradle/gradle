@@ -54,8 +54,8 @@ class ModuleResolveState implements CandidateModule {
     private final ComponentMetaDataResolver metaDataResolver;
     private final IdGenerator<Long> idGenerator;
     private final ModuleIdentifier id;
-    private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
-    private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
+    private final List<EdgeState> unattachedDependencies = new LinkedList<>();
+    private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors = new ModuleSelectors<>();
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
@@ -243,7 +243,7 @@ class ModuleResolveState implements CandidateModule {
             EdgeState singleDependency = unattachedDependencies.get(0);
             singleDependency.restart();
         } else {
-            for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
+            for (EdgeState dependency : new ArrayList<>(unattachedDependencies)) {
                 dependency.restart();
             }
         }

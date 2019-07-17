@@ -77,7 +77,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
             throw new RuleActionValidationException(problemsFormatter.format());
         }
 
-        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(subjectType.getConcreteClass(), mutateMethods.get(0)));
+        return new RuleSourceBackedRuleAction<>(ruleSourceInstance, new JavaMethod<>(subjectType.getConcreteClass(), mutateMethods.get(0)));
     }
 
     public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {
@@ -101,7 +101,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     }
 
     private static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
-        return findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(), false);
+        return findAllMethodsInternal(target, predicate, new MultiMap<>(), new ArrayList<>(), false);
     }
 
     private static class MultiMap<K, V> extends HashMap<K, List<V>> {
@@ -109,7 +109,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         public List<V> get(Object key) {
             if (!containsKey(key)) {
                 @SuppressWarnings("unchecked") K keyCast = (K) key;
-                put(keyCast, new LinkedList<V>());
+                put(keyCast, new LinkedList<>());
             }
 
             return super.get(key);

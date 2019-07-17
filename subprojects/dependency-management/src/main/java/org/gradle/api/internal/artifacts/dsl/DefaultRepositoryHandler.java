@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -64,18 +64,18 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     @Override
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
+        Map<String, Object> modifiedArgs = new HashMap<>(args);
         if (modifiedArgs.containsKey("dirs")) {
             modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
         }
-        return flatDir(new ConfigureByMapAction<FlatDirectoryArtifactRepository>(modifiedArgs));
+        return flatDir(new ConfigureByMapAction<>(modifiedArgs));
     }
 
     @Override
     public ArtifactRepository gradlePluginPortal() {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME);
     }
-    
+
     @Override
     public ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action) {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME, action);
@@ -103,8 +103,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     @Override
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
-        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
+        Map<String, Object> modifiedArgs = new HashMap<>(args);
+        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<>(modifiedArgs));
     }
 
     @Override

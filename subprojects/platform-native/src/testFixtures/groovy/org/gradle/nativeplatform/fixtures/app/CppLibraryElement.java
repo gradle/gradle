@@ -44,7 +44,7 @@ public abstract class CppLibraryElement extends CppSourceElement {
         return new CppLibraryElement() {
             @Override
             public SourceElement getPublicHeaders() {
-                List<SourceFile> headers = new ArrayList<SourceFile>();
+                List<SourceFile> headers = new ArrayList<>();
                 for (SourceFile sourceFile : delegate.getPublicHeaders().getFiles()) {
                     headers.add(sourceFile("public", sourceFile.getName(), sourceFile.getContent()));
                 }

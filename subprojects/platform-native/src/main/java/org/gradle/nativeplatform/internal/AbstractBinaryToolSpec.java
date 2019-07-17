@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AbstractBinaryToolSpec implements BinaryToolSpec {
-    private List<String> args = new ArrayList<String>();
-    private List<String> systemArgs = new ArrayList<String>();
+    private List<String> args = new ArrayList<>();
+    private List<String> systemArgs = new ArrayList<>();
     private File tempDir;
     private NativePlatform platform;
     private BuildOperationLogger oplogger;
@@ -73,7 +73,7 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
 
     @Override
     public List<String> getAllArgs() {
-        List<String> allArgs = new ArrayList<String>(systemArgs.size() + args.size());
+        List<String> allArgs = new ArrayList<>(systemArgs.size() + args.size());
         allArgs.addAll(systemArgs);
         allArgs.addAll(args);
         return allArgs;

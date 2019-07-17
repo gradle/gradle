@@ -256,7 +256,7 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public Node toXml() {
-            Map<String, String> attributes = new HashMap<String, String>();
+            Map<String, String> attributes = new HashMap<>();
             attributes.put("BuildableIdentifier", getBuildableIdentifier());
             attributes.put("BlueprintIdentifier", getBlueprintIdentifier());
             attributes.put("BuildableName", getBuildableName());

@@ -41,7 +41,7 @@ class ModelGraph {
     private final SetMultimap<ModelPath, ModelListener> pathListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelListener> parentListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelListener> ancestorListeners = LinkedHashMultimap.create();
-    private final Set<ModelListener> listeners = new LinkedHashSet<ModelListener>();
+    private final Set<ModelListener> listeners = new LinkedHashSet<>();
     private boolean notifying;
     private final Deque<ModelListener> pendingListeners = new ArrayDeque<>();
     private final Map<ModelNodeInternal, PendingState> pendingNodes = Maps.newLinkedHashMap();
@@ -158,7 +158,7 @@ class ModelGraph {
 
         ModelNodeInternal ancestor = flattened.get(listener.getAncestor());
         if (ancestor != null) {
-            Deque<ModelNodeInternal> queue = new ArrayDeque<ModelNodeInternal>();
+            Deque<ModelNodeInternal> queue = new ArrayDeque<>();
             queue.add(ancestor);
             while (!queue.isEmpty()) {
                 ModelNodeInternal parent = queue.removeFirst();

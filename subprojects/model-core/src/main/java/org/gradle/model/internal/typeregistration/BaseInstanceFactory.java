@@ -71,10 +71,10 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     public <S extends PUBLIC> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor source) {
         TypeRegistration<S> registration = Cast.uncheckedCast(registrations.get(publicType));
         if (registration == null) {
-            registration = new TypeRegistration<S>(publicType);
+            registration = new TypeRegistration<>(publicType);
             registrations.put(publicType, registration);
         }
-        return new TypeRegistrationBuilderImpl<S>(source, registration);
+        return new TypeRegistrationBuilderImpl<>(source, registration);
     }
 
     @Override @Nullable
@@ -83,7 +83,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         if (implementationRegistration == null) {
             return null;
         }
-        return new ImplementationInfoImpl<S>(publicType, implementationRegistration, getInternalViews(publicType));
+        return new ImplementationInfoImpl<>(publicType, implementationRegistration, getInternalViews(publicType));
     }
 
     @Override
@@ -100,7 +100,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
                 }
                 ImplementationInfoImpl<S> currentImplementationInfo = implementationInfo.get();
                 if (currentImplementationInfo == null || currentImplementationInfo.implementationRegistration.implementationType.isAssignableFrom(registration.implementationRegistration.implementationType)) {
-                    implementationInfo.set(new ImplementationInfoImpl<S>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
+                    implementationInfo.set(new ImplementationInfoImpl<>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
                 }
             }
         });
@@ -225,7 +225,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             if (factory == null) {
                 throw new IllegalArgumentException(String.format("No factory registered to create an instance of implementation class '%s'.", implementationType));
             }
-            this.implementationRegistration = new ImplementationRegistration<S>(source, implementationType, factory);
+            this.implementationRegistration = new ImplementationRegistration<>(source, implementationType, factory);
         }
 
         public <V> void addInternalView(ModelType<V> internalView, ModelRuleDescriptor source) {
@@ -236,7 +236,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             if (managedPublicType && !isManaged(internalView)) {
                 throw new IllegalArgumentException(String.format("Internal view '%s' registered for managed type '%s' must be managed", internalView, publicType));
             }
-            internalViewRegistrations.add(new InternalViewRegistration<V>(source, internalView));
+            internalViewRegistrations.add(new InternalViewRegistration<>(source, internalView));
         }
 
         public void validate() {

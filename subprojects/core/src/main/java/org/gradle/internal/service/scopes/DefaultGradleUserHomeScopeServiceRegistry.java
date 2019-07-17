@@ -36,7 +36,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
     private final ServiceRegistry sharedServices;
     private final Object provider;
     private final Lock lock = new ReentrantLock();
-    private final Map<File, Services> servicesForHomeDir = new HashMap<File, Services>();
+    private final Map<File, Services> servicesForHomeDir = new HashMap<>();
 
     public DefaultGradleUserHomeScopeServiceRegistry(ServiceRegistry sharedServices, Object provider) {
         this.sharedServices = sharedServices;

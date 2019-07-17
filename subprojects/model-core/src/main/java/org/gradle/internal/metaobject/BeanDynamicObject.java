@@ -419,7 +419,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return Collections.emptyMap();
             }
 
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
             List<MetaProperty> classProperties = getMetaClass().getProperties();
             for (MetaProperty metaProperty : classProperties) {
                 if (metaProperty.getName().equals("properties")) {

@@ -25,7 +25,7 @@ public class EnumStrategy implements ModelSchemaExtractionStrategy {
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (type.getRawClass().isEnum()) {
-            extractionContext.found(new ScalarValueSchema<T>(type));
+            extractionContext.found(new ScalarValueSchema<>(type));
         }
     }
 

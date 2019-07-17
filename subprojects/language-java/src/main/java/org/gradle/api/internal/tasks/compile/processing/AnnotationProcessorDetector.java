@@ -57,7 +57,7 @@ public class AnnotationProcessorDetector {
     private final boolean logStackTraces;
 
     public AnnotationProcessorDetector(FileContentCacheFactory cacheFactory, Logger logger, boolean logStackTraces) {
-        this.cache = cacheFactory.newCache("annotation-processors", 20000, new ProcessorServiceLocator(), new ListSerializer<AnnotationProcessorDeclaration>(AnnotationProcessorDeclarationSerializer.INSTANCE));
+        this.cache = cacheFactory.newCache("annotation-processors", 20000, new ProcessorServiceLocator(), new ListSerializer<>(AnnotationProcessorDeclarationSerializer.INSTANCE));
         this.logger = logger;
         this.logStackTraces = logStackTraces;
     }

@@ -27,7 +27,7 @@ public class DefaultSlidingWindow<T> implements SlidingWindow<T> {
     final ReentrantLock lock = new ReentrantLock();
 
     public DefaultSlidingWindow(int capacity) {
-        this.deque = new LinkedBlockingDeque<T>(capacity);
+        this.deque = new LinkedBlockingDeque<>(capacity);
     }
 
     @Override

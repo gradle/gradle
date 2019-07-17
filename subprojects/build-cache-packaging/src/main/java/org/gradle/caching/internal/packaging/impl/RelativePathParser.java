@@ -28,7 +28,7 @@ public class RelativePathParser {
     private String currentName;
     private int sizeOfCommonPrefix;
     private int rootLength;
-    private Deque<String> directoryPaths = new LinkedList<String>();
+    private Deque<String> directoryPaths = new LinkedList<>();
 
     public String getRelativePath() {
         return currentName.substring(rootLength);

@@ -145,7 +145,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type RegularFile", "ObjectFactory.fileProperty()");
         }
 
-        return new DefaultProperty<T>(valueType);
+        return new DefaultProperty<>(valueType);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
         }
-        return new DefaultListProperty<T>(elementType);
+        return new DefaultListProperty<>(elementType);
     }
 
     @Override
@@ -163,7 +163,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
         }
-        return new DefaultSetProperty<T>(elementType);
+        return new DefaultSetProperty<>(elementType);
     }
 
     @Override
@@ -176,6 +176,6 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
-        return new DefaultMapProperty<K, V>(keyType, valueType);
+        return new DefaultMapProperty<>(keyType, valueType);
     }
 }

@@ -50,7 +50,7 @@ public class DefaultArtifactPublicationSet {
         private Set<PublishArtifact> defaultArtifacts;
         private Set<PublishArtifact> artifacts;
         private PublishArtifact currentDefault;
-        private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<Set<PublishArtifact>>();
+        private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<>();
 
         void addArtifact(PublishArtifact artifact) {
             if (artifacts == null) {

@@ -36,7 +36,7 @@ class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T
 
     @Override
     protected <S extends T> DefaultPluginCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultPluginCollection<S>(this, filter);
+        return new DefaultPluginCollection<>(this, filter);
     }
 
     @Override

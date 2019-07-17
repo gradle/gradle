@@ -30,7 +30,7 @@ public abstract class CppSourceElement extends SourceElement {
 
     @Override
     public List<SourceFile> getFiles() {
-        List<SourceFile> files = new ArrayList<SourceFile>();
+        List<SourceFile> files = new ArrayList<>();
         files.addAll(getSources().getFiles());
         files.addAll(getHeaders().getFiles());
         return files;

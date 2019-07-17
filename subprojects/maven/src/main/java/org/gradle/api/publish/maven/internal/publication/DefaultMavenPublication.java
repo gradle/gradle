@@ -133,12 +133,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final PublicationArtifactSet<MavenArtifact> metadataArtifacts;
     private final PublicationArtifactSet<MavenArtifact> derivedArtifacts;
     private final PublicationArtifactSet<MavenArtifact> publishableArtifacts;
-    private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
-    private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
-    private final Set<MavenDependencyInternal> optionalDependencies = new LinkedHashSet<MavenDependencyInternal>();
-    private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
-    private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
-    private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<MavenDependency>();
+    private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependencyInternal> optionalDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<>();
+    private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<>();
+    private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;

@@ -177,7 +177,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final Map<String, Project> childProjects = Maps.newTreeMap();
 
-    private List<String> defaultTasks = new ArrayList<String>();
+    private List<String> defaultTasks = new ArrayList<>();
 
     private ProjectStateInternal state;
 
@@ -199,7 +199,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
-    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
+    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -311,7 +311,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
-        return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+        return new ListenerBroadcast<>(ProjectEvaluationListener.class);
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
@@ -641,12 +641,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Set<Project> getAllprojects() {
-        return new TreeSet<Project>(getProjectRegistry().getAllProjects(getPath()));
+        return new TreeSet<>(getProjectRegistry().getAllProjects(getPath()));
     }
 
     @Override
     public Set<Project> getSubprojects() {
-        return new TreeSet<Project>(getProjectRegistry().getSubProjects(getPath()));
+        return new TreeSet<>(getProjectRegistry().getSubProjects(getPath()));
     }
 
     @Override
@@ -714,7 +714,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         if (defaultTasks == null) {
             throw new InvalidUserDataException("Default tasks must not be null!");
         }
-        this.defaultTasks = new ArrayList<String>();
+        this.defaultTasks = new ArrayList<>();
         for (String defaultTask : defaultTasks) {
             if (defaultTask == null) {
                 throw new InvalidUserDataException("Default tasks must not be null!");
@@ -795,11 +795,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
-        final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
+        final Map<Project, Set<Task>> foundTargets = new TreeMap<>();
         Action<Project> action = new Action<Project>() {
             @Override
             public void execute(Project project) {
-                foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
+                foundTargets.put(project, new TreeSet<>(project.getTasks()));
             }
         };
         if (recursive) {
@@ -815,7 +815,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         if (isNullOrEmpty(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
-        final Set<Task> foundTasks = new HashSet<Task>();
+        final Set<Task> foundTasks = new HashSet<>();
         Action<Project> action = new Action<Project>() {
             @Override
             public void execute(Project project) {

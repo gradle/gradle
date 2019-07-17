@@ -176,7 +176,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private DefaultEclipseProject buildHierarchy(Project project) {
-        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
+        List<DefaultEclipseProject> children = new ArrayList<>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
@@ -294,7 +294,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private static void populateEclipseProjectTasks(DefaultEclipseProject eclipseProject, Iterable<Task> projectTasks) {
-        List<DefaultEclipseTask> tasks = new ArrayList<DefaultEclipseTask>();
+        List<DefaultEclipseTask> tasks = new ArrayList<>();
         for (Task t : projectTasks) {
             tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }
@@ -302,19 +302,19 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private static void populateEclipseProject(DefaultEclipseProject eclipseProject, org.gradle.plugins.ide.eclipse.model.Project xmlProject) {
-        List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
+        List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<>();
         for (Link r : xmlProject.getLinkedResources()) {
             linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
         eclipseProject.setLinkedResources(linkedResources);
 
-        List<DefaultEclipseProjectNature> natures = new ArrayList<DefaultEclipseProjectNature>();
+        List<DefaultEclipseProjectNature> natures = new ArrayList<>();
         for (String n : xmlProject.getNatures()) {
             natures.add(new DefaultEclipseProjectNature(n));
         }
         eclipseProject.setProjectNatures(natures);
 
-        List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
+        List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<>();
         for (BuildCommand b : xmlProject.getBuildCommands()) {
             Map<String, String> arguments = Maps.newLinkedHashMap();
             for (Map.Entry<String, String> entry : b.getArguments().entrySet()) {

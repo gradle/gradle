@@ -318,7 +318,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> model = new TreeMap<String, Object>();
+        Map<String, Object> model = new TreeMap<>();
 
         final Function<byte[], String> bytesToString = new Function<byte[], String>() {
             @Nullable
@@ -381,15 +381,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     }
 
     protected Map<String, Object> fileProperties() {
-        final Map<String, Object> fileProperties = new TreeMap<String, Object>();
+        final Map<String, Object> fileProperties = new TreeMap<>();
         visitInputFileProperties(new InputFilePropertyVisitor() {
             Property property;
-            Deque<DirEntry> dirStack = new ArrayDeque<DirEntry>();
+            Deque<DirEntry> dirStack = new ArrayDeque<>();
 
             class Property {
                 private final String hash;
                 private final String normalization;
-                private final List<Entry> roots = new ArrayList<Entry>();
+                private final List<Entry> roots = new ArrayList<>();
 
                 public Property(String hash, String normalization) {
                     this.hash = hash;
@@ -436,7 +436,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             }
 
             class DirEntry extends Entry {
-                private final List<Entry> children = new ArrayList<Entry>();
+                private final List<Entry> children = new ArrayList<>();
 
                 DirEntry(String path) {
                     super(path);

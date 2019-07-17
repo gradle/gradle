@@ -164,7 +164,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     private DynamicObject snapshotInheritable() {
-        final List<DynamicObject> delegates = new ArrayList<DynamicObject>(4);
+        final List<DynamicObject> delegates = new ArrayList<>(4);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);

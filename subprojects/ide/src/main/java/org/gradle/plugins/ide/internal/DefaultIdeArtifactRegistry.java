@@ -79,7 +79,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
             for (IdeProjectMetadata ideProjectMetadata : store.get(projectId)) {
                 if (type.isInstance(ideProjectMetadata)) {
                     T metadata = type.cast(ideProjectMetadata);
-                    result.add(new MetadataReference<T>(metadata, projectId));
+                    result.add(new MetadataReference<>(metadata, projectId));
                 }
             }
         }

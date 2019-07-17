@@ -68,7 +68,7 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
 
     @Override
     public Set<BuildInitDsl> getDsls() {
-        return new TreeSet<BuildInitDsl>(Arrays.asList(BuildInitDsl.values()));
+        return new TreeSet<>(Arrays.asList(BuildInitDsl.values()));
     }
 
     @Override

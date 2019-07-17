@@ -76,7 +76,7 @@ public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher
     }
 
     public ResourceFilterMatcher matcher(@DelegatesTo(value = ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return matcher(new ClosureBackedAction<ResourceFilterMatcher>(configureClosure));
+        return matcher(new ClosureBackedAction<>(configureClosure));
     }
 
     @Override

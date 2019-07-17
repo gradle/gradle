@@ -88,7 +88,7 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
     }
 
     private List<String> findPossibleMatches(String fullyQualifiedClassName) {
-        List<String> candidates = new ArrayList<String>();
+        List<String> candidates = new ArrayList<>();
         for (String className : classes.keySet()) {
             if (getLevenshteinDistance(fullyQualifiedClassName, className) < 8) {
                 candidates.add(className);

@@ -36,7 +36,7 @@ public abstract class IncrementalCppElement extends IncrementalElement {
         return new AbstractRenameTransform(beforeFile, afterFile, beforeElement) {
             @Override
             public List<SourceFile> getAfterFiles() {
-                List<SourceFile> result = new ArrayList<SourceFile>();
+                List<SourceFile> result = new ArrayList<>();
                 result.addAll(beforeElement.getHeaders().getFiles());
                 result.add(afterFile);
                 return result;

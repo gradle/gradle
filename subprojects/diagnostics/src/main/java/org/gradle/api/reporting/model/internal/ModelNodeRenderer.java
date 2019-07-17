@@ -34,7 +34,9 @@ import org.gradle.reporting.ReportRenderer;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
@@ -72,7 +74,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             return;
         }
 
-        Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
+        Map<String, ModelNode> links = new TreeMap<>();
         for (ModelNode node : model.getLinks(ModelType.untyped())) {
             links.put(node.getPath().getName(), node);
         }

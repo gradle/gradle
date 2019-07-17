@@ -67,20 +67,20 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
-    private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
-    private Set<String> excludedTaskNames = new LinkedHashSet<String>();
+    private List<TaskExecutionRequest> taskRequests = new ArrayList<>();
+    private Set<String> excludedTaskNames = new LinkedHashSet<>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
     private boolean searchUpwards;
-    private Map<String, String> projectProperties = new HashMap<String, String>();
-    private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
+    private Map<String, String> projectProperties = new HashMap<>();
+    private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
     protected File gradleHomeDir;
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
-    private List<File> initScripts = new ArrayList<File>();
+    private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
     private boolean rerunTasks;
     private boolean profile;
@@ -93,7 +93,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
     private boolean continuous;
-    private List<File> includedBuilds = new ArrayList<File>();
+    private List<File> includedBuilds = new ArrayList<>();
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
@@ -209,15 +209,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
-        p.taskRequests = new ArrayList<TaskExecutionRequest>(taskRequests);
-        p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
+        p.taskRequests = new ArrayList<>(taskRequests);
+        p.excludedTaskNames = new LinkedHashSet<>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
         p.searchUpwards = searchUpwards;
-        p.projectProperties = new HashMap<String, String>(projectProperties);
-        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        p.initScripts = new ArrayList<File>(initScripts);
-        p.includedBuilds = new ArrayList<File>(includedBuilds);
+        p.projectProperties = new HashMap<>(projectProperties);
+        p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
+        p.initScripts = new ArrayList<>(initScripts);
+        p.includedBuilds = new ArrayList<>(includedBuilds);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
         return p;
@@ -250,10 +250,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.buildCacheEnabled = buildCacheEnabled;
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
-        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.interactive = interactive;
         p.writeDependencyLocks = writeDependencyLocks;
-        p.lockedDependenciesToUpdate = new ArrayList<String>(lockedDependenciesToUpdate);
+        p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
         return p;
     }
 
@@ -534,7 +534,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
         );
 
-        List<File> scripts = new ArrayList<File>(getInitScripts());
+        List<File> scripts = new ArrayList<>(getInitScripts());
         initScriptFinder.findScripts(scripts);
         return Collections.unmodifiableList(scripts);
     }

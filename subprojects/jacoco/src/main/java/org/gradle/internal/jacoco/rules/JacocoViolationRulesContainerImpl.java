@@ -29,7 +29,7 @@ public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesCo
 
     private final Instantiator instantiator;
     private boolean failOnViolation = true;
-    private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
+    private final List<JacocoViolationRule> rules = new ArrayList<>();
 
     public JacocoViolationRulesContainerImpl(Instantiator instantiator) {
         this.instantiator = instantiator;

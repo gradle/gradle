@@ -46,7 +46,7 @@ import java.util.Set;
  * Generates build dashboard report.
  */
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
-    private final Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
+    private final Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<>();
 
     private final BuildDashboardReports reports;
 
@@ -67,7 +67,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
     @Input
     public Set<ReportState> getInputReports() {
-        Set<ReportState> inputs = new LinkedHashSet<ReportState>();
+        Set<ReportState> inputs = new LinkedHashSet<>();
         for (Report report : getEnabledInputReports()) {
             if (getReports().contains(report)) {
                 // A report to be generated, ignore
@@ -89,7 +89,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
                 return reporting.getReports().getEnabled();
             }
         });
-        return new LinkedHashSet<Report>(CollectionUtils.flattenCollections(Report.class, enabledReportSets));
+        return new LinkedHashSet<>(CollectionUtils.flattenCollections(Report.class, enabledReportSets));
     }
 
     private Set<Reporting<? extends ReportContainer<?>>> getAggregatedTasks() {
@@ -157,7 +157,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      */
     @Override
     public BuildDashboardReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<BuildDashboardReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**

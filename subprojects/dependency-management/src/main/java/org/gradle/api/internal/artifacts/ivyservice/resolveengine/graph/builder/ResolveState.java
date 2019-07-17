@@ -102,10 +102,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-        this.modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>(graphSize);
-        this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3 * graphSize / 2);
-        this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5 * graphSize / 2);
-        this.queue = new ArrayDeque<NodeState>(graphSize);
+        this.modules = new LinkedHashMap<>(graphSize);
+        this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
+        this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
+        this.queue = new ArrayDeque<>(graphSize);
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
@@ -115,7 +115,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
-        selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion, resolveOptimizations);
+        selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootVersion, resolveOptimizations);
         getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
     }
 

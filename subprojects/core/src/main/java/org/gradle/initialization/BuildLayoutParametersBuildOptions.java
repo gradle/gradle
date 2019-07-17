@@ -33,7 +33,7 @@ public class BuildLayoutParametersBuildOptions {
     private static List<BuildOption<BuildLayoutParameters>> options;
 
     static {
-        List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
+        List<BuildOption<BuildLayoutParameters>> options = new ArrayList<>();
         options.add(new GradleUserHomeOption());
         options.add(new ProjectDirOption());
         BuildLayoutParametersBuildOptions.options = Collections.unmodifiableList(options);

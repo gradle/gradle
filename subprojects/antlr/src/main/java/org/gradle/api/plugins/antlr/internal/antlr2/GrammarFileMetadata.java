@@ -27,7 +27,7 @@ public class GrammarFileMetadata {
     private final File filePath;
     private final antlr.preprocessor.GrammarFile antlrGrammarFile;
     private final String packageName;
-    private List<GrammarMetadata> grammarMetadatas = new ArrayList<GrammarMetadata>();
+    private List<GrammarMetadata> grammarMetadatas = new ArrayList<>();
 
     public GrammarFileMetadata(File filePath, antlr.preprocessor.GrammarFile antlrGrammarFile, String packageName) {
         this.filePath = filePath;

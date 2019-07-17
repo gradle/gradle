@@ -17,12 +17,12 @@ package org.gradle.execution;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.util.NameMatcher;
 
 import javax.annotation.Nullable;
@@ -83,7 +83,7 @@ public class TaskSelector {
     }
 
     private void ensureNotFromIncludedBuild(File root) {
-        Set<File> includedRoots = new HashSet<File>();
+        Set<File> includedRoots = new HashSet<>();
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
             includedRoots.add(includedBuild.getProjectDir());
         }
@@ -137,7 +137,7 @@ public class TaskSelector {
         }
 
         public Set<Task> getTasks() {
-            LinkedHashSet<Task> result = new LinkedHashSet<Task>();
+            LinkedHashSet<Task> result = new LinkedHashSet<>();
             taskSelectionResult.collectTasks(result);
             return result;
         }

@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class BasicGradleProject extends PartialBasicGradleProject {
     private File projectDirectory;
-    private Set<BasicGradleProject> children = new LinkedHashSet<BasicGradleProject>();
+    private Set<BasicGradleProject> children = new LinkedHashSet<>();
 
 
     public File getProjectDirectory() {

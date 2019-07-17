@@ -47,7 +47,7 @@ public class Types {
      */
     public static <T> void walkTypeHierarchy(Class<T> clazz, Collection<Class<?>> excludedTypes, TypeVisitor<? extends T> visitor) {
         Set<Class<?>> seenInterfaces = Sets.newHashSet();
-        Queue<Class<? super T>> queue = new ArrayDeque<Class<? super T>>();
+        Queue<Class<? super T>> queue = new ArrayDeque<>();
         queue.add(clazz);
         Class<? super T> type;
         while ((type = queue.poll()) != null) {

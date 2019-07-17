@@ -88,7 +88,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param factoryClosure The factory responsible for creating new instances on demand
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, final Closure factoryClosure, MutationGuard mutationGuard, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this(type, instantiator, namer, new ClosureObjectFactory<T>(type, factoryClosure), mutationGuard, collectionCallbackActionDecorator);
+        this(type, instantiator, namer, new ClosureObjectFactory<>(type, factoryClosure), mutationGuard, collectionCallbackActionDecorator);
     }
 
     @Override

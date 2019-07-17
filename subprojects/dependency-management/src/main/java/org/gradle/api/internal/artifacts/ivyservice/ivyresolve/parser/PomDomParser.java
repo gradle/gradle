@@ -20,7 +20,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,7 +76,7 @@ public final class PomDomParser {
     }
 
     public static List<Element> getAllChilds(Element parent) {
-        List<Element> r = new LinkedList<Element>();
+        List<Element> r = new LinkedList<>();
         if (parent != null) {
             NodeList childs = parent.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {

@@ -113,7 +113,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         CachedJarFileTransformer(JarCache jarCache, List<CachedJarFileStore> fileStores) {
             this.jarCache = jarCache;
             baseDir = Factories.constant(cache.getBaseDir());
-            prefixes = new ArrayList<String>(fileStores.size() + 1);
+            prefixes = new ArrayList<>(fileStores.size() + 1);
             prefixes.add(directoryPrefix(cache.getBaseDir()));
             for (CachedJarFileStore fileStore : fileStores) {
                 for (File rootDir : fileStore.getFileStoreRoots()) {

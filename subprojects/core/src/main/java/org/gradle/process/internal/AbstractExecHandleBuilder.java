@@ -21,8 +21,8 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
-import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
+import org.gradle.process.internal.streams.SafeStreams;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,7 +33,7 @@ import java.util.concurrent.Executor;
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
     private final BuildCancellationToken buildCancellationToken;
-    private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
+    private final List<ExecHandleListener> listeners = new ArrayList<>();
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input;
@@ -59,7 +59,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     @Override
     public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<String>();
+        List<String> commandLine = new ArrayList<>();
         commandLine.add(getExecutable());
         commandLine.addAll(getAllArguments());
         return commandLine;

@@ -50,7 +50,7 @@ public class FileCollectionMatchers {
             private List<? extends FileCollection> unpack(FileCollection expected) {
                 if (expected instanceof UnionFileCollection) {
                     UnionFileCollection collection = (UnionFileCollection) expected;
-                    return new ArrayList<FileCollection>(collection.getSources());
+                    return new ArrayList<>(collection.getSources());
                 }
                 if (expected instanceof DefaultConfigurableFileCollection) {
                     DefaultConfigurableFileCollection collection = (DefaultConfigurableFileCollection) expected;

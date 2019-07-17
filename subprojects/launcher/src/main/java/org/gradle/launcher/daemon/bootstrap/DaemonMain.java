@@ -93,12 +93,12 @@ public class DaemonMain extends EntryPoint {
             daemonUid = decoder.readString();
             priority = DaemonParameters.Priority.values()[decoder.readSmallInt()];
             int argCount = decoder.readSmallInt();
-            startupOpts = new ArrayList<String>(argCount);
+            startupOpts = new ArrayList<>(argCount);
             for (int i = 0; i < argCount; i++) {
                 startupOpts.add(decoder.readString());
             }
             int additionalClassPathLength = decoder.readSmallInt();
-            additionalClassPath = new ArrayList<File>(additionalClassPathLength);
+            additionalClassPath = new ArrayList<>(additionalClassPathLength);
             for (int i = 0; i < additionalClassPathLength; i++) {
                 additionalClassPath.add(new File(decoder.readString()));
             }

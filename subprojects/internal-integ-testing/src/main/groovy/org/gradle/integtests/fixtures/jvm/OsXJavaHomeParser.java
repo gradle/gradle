@@ -35,7 +35,7 @@ class OsXJavaHomeParser {
     private static final Pattern OLD_FORMAT_PATTERN = Pattern.compile("\\s+(\\S+)\\s+\\((.*?)\\):\\s+(.+)");
 
     public List<JvmInstallation> parse(Reader output) throws IOException {
-        ArrayList<JvmInstallation> result = new ArrayList<JvmInstallation>();
+        ArrayList<JvmInstallation> result = new ArrayList<>();
         BufferedReader reader = new BufferedReader(output);
         for (String line = reader.readLine(); line != null; line = reader.readLine()) {
             Matcher matcher = NEW_FORMAT_PATTERN.matcher(line);

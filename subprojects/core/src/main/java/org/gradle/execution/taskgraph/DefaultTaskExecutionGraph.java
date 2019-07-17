@@ -130,7 +130,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         final Timer clock = Time.startTimer();
 
-        Set<Task> taskSet = new LinkedHashSet<Task>();
+        Set<Task> taskSet = new LinkedHashSet<>();
         for (Task task : tasks) {
             taskSet.add(task);
             requestedTasks.add(task);

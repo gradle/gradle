@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
@@ -44,6 +43,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -343,7 +343,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         @Override
         public Object getCustomOperationTraceSerializableModel() {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             map.put("pluginId", getPluginId());
             map.put("pluginClass", getPluginClass().getName());
             map.put("targetType", getTargetType());

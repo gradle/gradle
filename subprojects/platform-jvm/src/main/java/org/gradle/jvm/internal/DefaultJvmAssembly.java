@@ -27,8 +27,8 @@ import java.util.Set;
 
 public class DefaultJvmAssembly extends AbstractBuildableComponentSpec implements JvmAssembly {
 
-    private LinkedHashSet<File> classDirectories = new LinkedHashSet<File>();
-    private LinkedHashSet<File> resourceDirectories = new LinkedHashSet<File>();
+    private LinkedHashSet<File> classDirectories = new LinkedHashSet<>();
+    private LinkedHashSet<File> resourceDirectories = new LinkedHashSet<>();
     private JavaToolChain toolChain;
     private JavaPlatform targetPlatform;
 

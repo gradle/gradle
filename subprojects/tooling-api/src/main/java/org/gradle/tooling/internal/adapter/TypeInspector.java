@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.adapter;
 
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -33,8 +32,8 @@ import java.util.Set;
 
 @ThreadSafe
 class TypeInspector {
-    private final Set<Class<?>> stopAt = new HashSet<Class<?>>();
-    private final Map<Class<?>, Set<Class<?>>> inspected = new HashMap<Class<?>, Set<Class<?>>>();
+    private final Set<Class<?>> stopAt = new HashSet<>();
+    private final Map<Class<?>, Set<Class<?>>> inspected = new HashMap<>();
 
     public TypeInspector() {
         stopAt.add(List.class);
@@ -49,7 +48,7 @@ class TypeInspector {
     public Set<Class<?>> getReachableTypes(Class<?> type) {
         Set<Class<?>> types = inspected.get(type);
         if (types == null) {
-            types = new HashSet<Class<?>>();
+            types = new HashSet<>();
             visit(type, types);
             inspected.put(type, types);
         }

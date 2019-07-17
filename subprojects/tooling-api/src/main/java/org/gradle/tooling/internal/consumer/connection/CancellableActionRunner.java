@@ -49,7 +49,7 @@ class CancellableActionRunner implements ActionRunner {
         BuildResult<T> result;
         try {
             try {
-                result = execute(new InternalBuildActionAdapter<T>(action, rootDir, versionDetails), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+                result = execute(new InternalBuildActionAdapter<>(action, rootDir, versionDetails), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
             } catch (RuntimeException e) {
                 throw exceptionTransformer.transform(e);
             }

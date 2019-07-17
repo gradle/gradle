@@ -95,7 +95,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
-        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<ConfigurationMetadata>();
+        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new RealisedVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory()));
         }
@@ -200,7 +200,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            List<ComponentArtifactMetadata> artifacts = new ArrayList<ComponentArtifactMetadata>(files.size());
+            List<ComponentArtifactMetadata> artifacts = new ArrayList<>(files.size());
             for (ComponentVariant.File file : files) {
                 artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
             }

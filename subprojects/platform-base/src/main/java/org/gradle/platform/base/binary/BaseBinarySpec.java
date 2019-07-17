@@ -62,7 +62,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
 
-    private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<BinaryInfo>();
+    private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets;
     private final BinaryTasksCollection tasks;
     private final MutableModelNode componentNode;
@@ -112,7 +112,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
                     modelNode.setPrivateData(BINARY_TASKS_COLLECTION, tasks);
                 }
             })
-            .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(BINARY_TASKS_COLLECTION))
+            .withProjection(new UnmanagedModelProjection<>(BINARY_TASKS_COLLECTION))
             .descriptor(modelNode.getDescriptor())
             .build();
         modelNode.addLink(itemRegistration);

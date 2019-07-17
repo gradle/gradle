@@ -30,7 +30,7 @@ import java.util.Set;
 public class LinkRenderer {
     private final Document document;
     private final DslDocModel model;
-    private final Set<String> primitiveTypes = new HashSet<String>();
+    private final Set<String> primitiveTypes = new HashSet<>();
     private final String groovyVersion;
     private final String javaVersion;
 

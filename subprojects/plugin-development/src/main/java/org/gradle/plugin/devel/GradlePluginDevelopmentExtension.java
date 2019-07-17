@@ -84,7 +84,7 @@ public class GradlePluginDevelopmentExtension {
      * @param testSourceSets the test source sets
      */
     public void testSourceSets(SourceSet... testSourceSets) {
-        this.testSourceSets = Collections.unmodifiableSet(new HashSet<SourceSet>(Arrays.asList(testSourceSets)));
+        this.testSourceSets = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(testSourceSets)));
     }
 
     /**

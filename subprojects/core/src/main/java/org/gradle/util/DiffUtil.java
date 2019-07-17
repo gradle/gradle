@@ -25,13 +25,13 @@ import java.util.Set;
 
 public class DiffUtil {
     public static <T> void diff(Set<? extends T> newSet, Set<? extends T> oldSet, ChangeListener<T> changeListener) {
-        Set<T> added = new HashSet<T>(newSet);
+        Set<T> added = new HashSet<>(newSet);
         added.removeAll(oldSet);
         for (T t : added) {
             changeListener.added(t);
         }
 
-        Set<T> removed = new HashSet<T>(oldSet);
+        Set<T> removed = new HashSet<>(oldSet);
         removed.removeAll(newSet);
         for (T t : removed) {
             changeListener.removed(t);
@@ -39,19 +39,19 @@ public class DiffUtil {
     }
 
     public static <K, V> void diff(Map<? extends K, ? extends V> newMap, Map<? extends K, ? extends V> oldMap, ChangeListener<? super Map.Entry<K, V>> changeListener) {
-        Map<K, V> added = new HashMap<K, V>(newMap);
+        Map<K, V> added = new HashMap<>(newMap);
         added.keySet().removeAll(oldMap.keySet());
         for (Map.Entry<K, V> entry : added.entrySet()) {
             changeListener.added(entry);
         }
 
-        Map<K, V> removed = new HashMap<K, V>(oldMap);
+        Map<K, V> removed = new HashMap<>(oldMap);
         removed.keySet().removeAll(newMap.keySet());
         for (Map.Entry<K, V> entry : removed.entrySet()) {
             changeListener.removed(entry);
         }
 
-        Map<K, V> same = new HashMap<K, V>(newMap);
+        Map<K, V> same = new HashMap<>(newMap);
         same.keySet().retainAll(oldMap.keySet());
         for (Map.Entry<K, V> entry : same.entrySet()) {
             if (!checkEquality(entry.getValue(), oldMap.get(entry.getKey()))) {

@@ -301,7 +301,7 @@ public class SigningExtension {
      * @return the created tasks.
      */
     public List<Sign> sign(Task... tasks) {
-        List<Sign> result = new ArrayList<Sign>(tasks.length);
+        List<Sign> result = new ArrayList<>(tasks.length);
         for (final Task taskToSign : tasks) {
             result.add(
                 createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
@@ -327,7 +327,7 @@ public class SigningExtension {
      * @return the created tasks.
      */
     public List<Sign> sign(Configuration... configurations) {
-        List<Sign> result = new ArrayList<Sign>(configurations.length);
+        List<Sign> result = new ArrayList<>(configurations.length);
         for (final Configuration configurationToSign : configurations) {
             result.add(
                 createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
@@ -356,7 +356,7 @@ public class SigningExtension {
      */
     @Incubating
     public List<Sign> sign(Publication... publications) {
-        List<Sign> result = new ArrayList<Sign>(publications.length);
+        List<Sign> result = new ArrayList<>(publications.length);
         for (final Publication publication : publications) {
             result.add(createSignTaskFor((PublicationInternal<?>) publication));
         }
@@ -377,7 +377,7 @@ public class SigningExtension {
      */
     @Incubating
     public List<Sign> sign(DomainObjectCollection<Publication> publications) {
-        final List<Sign> result = new ArrayList<Sign>();
+        final List<Sign> result = new ArrayList<>();
         publications.all(new Action<Publication>() {
             @Override
             public void execute(Publication publication) {
@@ -404,7 +404,7 @@ public class SigningExtension {
                 task.sign(publicationToSign);
             }
         });
-        final Map<Signature, T> artifacts = new HashMap<Signature, T>();
+        final Map<Signature, T> artifacts = new HashMap<>();
         signTask.getSignatures().all(new Action<Signature>() {
             @Override
             public void execute(final Signature signature) {

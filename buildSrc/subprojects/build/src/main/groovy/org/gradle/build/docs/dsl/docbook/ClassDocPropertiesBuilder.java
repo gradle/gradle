@@ -16,6 +16,8 @@
 
 package org.gradle.build.docs.dsl.docbook;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
 import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc;
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc;
@@ -23,10 +25,13 @@ import org.gradle.build.docs.dsl.source.model.PropertyMetaData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
     private final JavadocConverter javadocConverter;
@@ -48,8 +53,8 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
         if (header.size() < 1) {
             throw new RuntimeException(String.format("Expected at least 1 <td> in <thead>/<tr>, found: %s", header));
         }
-        Map<String, Element> inheritedValueTitleMapping = new HashMap<String, Element>();
-        List<Element> valueTitles = new ArrayList<Element>();
+        Map<String, Element> inheritedValueTitleMapping = new HashMap<>();
+        List<Element> valueTitles = new ArrayList<>();
         for (int i = 1; i < header.size(); i++) {
             Element element = header.get(i);
             Element override = findChild(element, "overrides");
@@ -69,12 +74,12 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
         }
 
         //adding the properties from the super class onto the inheriting class
-        Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();
+        Map<String, PropertyDoc> props = new TreeMap<>();
         List<ClassDoc> superTypes = classDoc.getSuperTypes();
         for (ClassDoc superType : superTypes) {
             LOG.info("Getting properties for {}", superType.getName());
             for (PropertyDoc propertyDoc : superType.getClassProperties()) {
-                Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
+                Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<>();
                 for (ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
                     String key = attributeDoc.getKey();
                     if (inheritedValueTitleMapping.get(key) != null) {
@@ -100,7 +105,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                 throw new RuntimeException(String.format("No metadata for property '%s.%s'. Available properties: %s", classDoc.getName(), propName, classDoc.getClassMetaData().getPropertyNames()));
             }
 
-            Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
+            Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<>();
 
             if (!superTypes.isEmpty()) {
                 PropertyDoc overriddenProp = props.get(propName);
@@ -118,7 +123,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                 ExtraAttributeDoc attributeDoc = new ExtraAttributeDoc(valueTitles.get(i - 1), cells.get(i));
                 additionalValues.put(attributeDoc.getKey(), attributeDoc);
             }
-            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property, listener).getDocbook(), new ArrayList<ExtraAttributeDoc>(additionalValues.values()));
+            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property, listener).getDocbook(), new ArrayList<>(additionalValues.values()));
             if (propertyDoc.getDescription() == null) {
                 throw new RuntimeException(String.format("Docbook content for '%s.%s' does not contain a description paragraph.", classDoc.getName(), propName));
             }

@@ -32,7 +32,7 @@ public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextRepo
             return binary1.getName().compareTo(binary2.getName());
         }
     };
-    private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>>();
+    private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<>();
 
     public void register(AbstractBinaryRenderer<?> renderer) {
         renderers.put(renderer.getTargetType(), renderer);

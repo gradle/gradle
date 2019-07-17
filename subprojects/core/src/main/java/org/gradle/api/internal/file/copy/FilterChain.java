@@ -39,7 +39,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 public class FilterChain implements Transformer<InputStream, InputStream> {
-    private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
+    private final ChainingTransformer<Reader> transformers = new ChainingTransformer<>(Reader.class);
     private final String charset;
 
     public FilterChain() {

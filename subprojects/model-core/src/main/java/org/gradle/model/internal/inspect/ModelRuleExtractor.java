@@ -23,7 +23,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -56,6 +55,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -131,7 +131,7 @@ public class ModelRuleExtractor {
         }
 
         // sort for determinism
-        Set<Method> methods = new TreeSet<Method>(Ordering.usingToString());
+        Set<Method> methods = new TreeSet<>(Ordering.usingToString());
         methods.addAll(Arrays.asList(source.getDeclaredMethods()));
 
         ImmutableList.Builder<ModelProperty<?>> implicitInputs = ImmutableList.builder();
@@ -163,7 +163,7 @@ public class ModelRuleExtractor {
         StructBindings<T> bindings = structBindingsStore.getBindings(schema.getType());
 
         if (schema.getProperties().isEmpty()) {
-            return new StatelessRuleSource(rules.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<T>(schema, bindings, proxyFactory) : new ConcreteRuleSourceFactory<T>(type));
+            return new StatelessRuleSource(rules.build(), Modifier.isAbstract(source.getModifiers()) ? new AbstractRuleSourceFactory<>(schema, bindings, proxyFactory) : new ConcreteRuleSourceFactory<>(type));
         } else {
             return new ParameterizedRuleSource(rules.build(), target, implicitInputs.build(), schema, bindings, proxyFactory);
         }
@@ -342,7 +342,7 @@ public class ModelRuleExtractor {
         private final DefaultExtractedRuleSource<?> ruleSource;
 
         public <T> StatelessRuleSource(List<ExtractedRuleDetails> rules, Factory<T> factory) {
-            this.ruleSource = new StatelessExtractedRuleSource<T>(rules, factory);
+            this.ruleSource = new StatelessExtractedRuleSource<>(rules, factory);
         }
 
         @Override
@@ -372,7 +372,7 @@ public class ModelRuleExtractor {
         @Override
         public <T> ExtractedRuleSource<T> newInstance(Class<T> source) {
             StructSchema<T> schema = Cast.uncheckedCast(this.schema);
-            return new ParameterizedExtractedRuleSource<T>(rules, target, implicitInputs, schema, bindings, proxyFactory);
+            return new ParameterizedExtractedRuleSource<>(rules, target, implicitInputs, schema, bindings, proxyFactory);
         }
     }
 
@@ -454,12 +454,12 @@ public class ModelRuleExtractor {
         }
 
         protected List<ModelReference<?>> withImplicitInputs(List<? extends ModelReference<?>> inputs) {
-            return new ArrayList<ModelReference<?>>(inputs);
+            return new ArrayList<>(inputs);
         }
 
         @Override
         public List<? extends Class<?>> getRequiredPlugins() {
-            List<Class<?>> plugins = new ArrayList<Class<?>>();
+            List<Class<?>> plugins = new ArrayList<>();
             for (ExtractedRuleDetails details : rules) {
                 plugins.addAll(details.rule.getRuleDependencies());
             }
@@ -513,7 +513,7 @@ public class ModelRuleExtractor {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 WeaklyTypeReferencingMethod<Object, Object> method = Cast.uncheckedCast(methodRuleDefinition.getMethod());
-                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, factory);
+                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<>(method, factory);
                 action.execute(invoker, modelNode, inputs.subList(0, action.getInputs().size()));
             }
         }
@@ -540,7 +540,7 @@ public class ModelRuleExtractor {
         private final StructSchema<T> schema;
         private final StructBindings<?> bindings;
         private final ManagedProxyFactory proxyFactory;
-        private final Map<String, Object> values = new HashMap<String, Object>();
+        private final Map<String, Object> values = new HashMap<>();
 
         public ParameterizedExtractedRuleSource(List<ExtractedRuleDetails> rules, @Nullable ModelProperty<?> targetProperty, List<ModelProperty<?>> implicitInputs, StructSchema<T> schema, StructBindings<?> bindings, ManagedProxyFactory proxyFactory) {
             super(rules);
@@ -601,7 +601,7 @@ public class ModelRuleExtractor {
 
         @Override
         protected List<ModelReference<?>> withImplicitInputs(List<? extends ModelReference<?>> inputs) {
-            List<ModelReference<?>> allInputs = new ArrayList<ModelReference<?>>(inputs.size() + implicitInputs.size());
+            List<ModelReference<?>> allInputs = new ArrayList<>(inputs.size() + implicitInputs.size());
             allInputs.addAll(inputs);
             for (ModelProperty<?> property : implicitInputs) {
                 MutableModelNode backingNode = (MutableModelNode) values.get(property.getName());

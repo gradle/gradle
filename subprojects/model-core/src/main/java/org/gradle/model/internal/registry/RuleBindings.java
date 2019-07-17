@@ -22,7 +22,12 @@ import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class RuleBindings {
     private final NodeAtStateIndex rulesBySubject;
@@ -126,7 +131,7 @@ class RuleBindings {
     }
 
     private class PredicateMatches {
-        final List<Reference> references = new ArrayList<Reference>();
+        final List<Reference> references = new ArrayList<>();
         ModelNodeInternal match;
 
         void match(ModelNodeInternal node) {
@@ -253,7 +258,7 @@ class RuleBindings {
         private Map<String, List<RuleBinder>> getByState(ModelNode.State state) {
             Map<String, List<RuleBinder>> map = boundAtState.get(state);
             if (map == null) {
-                map = new HashMap<String, List<RuleBinder>>(64);
+                map = new HashMap<>(64);
                 boundAtState.put(state, map);
             }
             return map;

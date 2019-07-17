@@ -118,7 +118,7 @@ public class CopySpecWrapper implements CopySpec {
 
     @Override
     public CopySpec from(Object sourcePath, final Closure c) {
-        return delegate.from(sourcePath, new ClosureBackedAction<CopySpec>(c));
+        return delegate.from(sourcePath, new ClosureBackedAction<>(c));
     }
 
     @Override

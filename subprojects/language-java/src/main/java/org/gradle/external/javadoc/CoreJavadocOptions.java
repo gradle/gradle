@@ -49,8 +49,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<String> locale;
     private final JavadocOptionFileOption<String> encoding;
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
-    private List<String> jFlags = new ArrayList<String>();
-    private List<File> optionFiles = new ArrayList<File>();
+    private List<String> jFlags = new ArrayList<>();
+    private List<File> optionFiles = new ArrayList<>();
 
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
@@ -586,7 +586,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         if (option instanceof JavadocOptionFileOptionInternal) {
             return optionFile.addOption(Cast.<JavadocOptionFileOptionInternal<T>>uncheckedCast(option));
         }
-        return optionFile.addOption(new JavadocOptionFileOptionInternalAdapter<T>(option));
+        return optionFile.addOption(new JavadocOptionFileOptionInternalAdapter<>(option));
     }
 
     public JavadocOptionFileOption<String> addStringOption(String option) {

@@ -174,7 +174,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private <E> void mutateChildren(ModelActionRole role, ModelType<E> filterType, DeferredModelAction configAction) {
         viewState.assertCanMutate();
         ModelReference<E> subject = ModelReference.of(filterType);
-        modelNode.defineRulesFor(allLinks(elementFilter.withType(filterType)), role, new DeferredActionWrapper<E>(subject, role, configAction));
+        modelNode.defineRulesFor(allLinks(elementFilter.withType(filterType)), role, new DeferredActionWrapper<>(subject, role, configAction));
     }
 
     @Override
@@ -376,7 +376,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, new FilteringActionWrapper<T>(elementFilter, subject, NoInputsModelAction.of(subject, descriptor, configAction)));
+        modelNode.applyToLink(ModelActionRole.Mutate, new FilteringActionWrapper<>(elementFilter, subject, NoInputsModelAction.of(subject, descriptor, configAction)));
     }
 
     @Override
@@ -384,14 +384,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s, %s)", name, ruleSource.getName());
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.defineRulesForLink(ModelActionRole.Defaults, new FilteringActionWrapper<T>(elementFilter, subject, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
+        modelNode.defineRulesForLink(ModelActionRole.Defaults, new FilteringActionWrapper<>(elementFilter, subject, DirectNodeNoInputsModelAction.of(subject, descriptor, new ApplyRuleSource(ruleSource))));
     }
 
     // Called from transformed DSL rules
     public void named(String name, final DeferredModelAction action) {
         viewState.assertCanMutate();
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Initialize, new FilteringActionWrapper<T>(elementFilter, subject, new DeferredActionWrapper<T>(subject, ModelActionRole.Mutate, action)));
+        modelNode.applyToLink(ModelActionRole.Initialize, new FilteringActionWrapper<>(elementFilter, subject, new DeferredActionWrapper<>(subject, ModelActionRole.Mutate, action)));
     }
 
     @Override
@@ -449,7 +449,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
 
         ChildNodeInitializerStrategy<S> creatorStrategy1 = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(publicType, type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
+        return new NodeBackedModelMap<>(publicType, type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
     }
 
     @Override

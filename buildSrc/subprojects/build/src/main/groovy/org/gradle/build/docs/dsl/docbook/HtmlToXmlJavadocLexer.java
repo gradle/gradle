@@ -15,15 +15,21 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Normalises and cleans up HTML to convert it to XML semantics.
  */
 public class HtmlToXmlJavadocLexer implements JavadocLexer {
     private final JavadocLexer lexer;
-    private final Set<String> blockElements = new HashSet<String>();
-    private final Set<String> blockContent = new HashSet<String>();
+    private final Set<String> blockElements = new HashSet<>();
+    private final Set<String> blockContent = new HashSet<>();
 
     public HtmlToXmlJavadocLexer(JavadocLexer lexer) {
         this.lexer = lexer;
@@ -62,8 +68,8 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
 
     private class VisitorImpl extends TokenVisitor {
         private final TokenVisitor visitor;
-        private final LinkedList<String> elementStack = new LinkedList<String>();
-        private final Map<String, String> attributes = new HashMap<String, String>();
+        private final LinkedList<String> elementStack = new LinkedList<>();
+        private final Map<String, String> attributes = new HashMap<>();
 
         public VisitorImpl(TokenVisitor visitor) {
             this.visitor = visitor;

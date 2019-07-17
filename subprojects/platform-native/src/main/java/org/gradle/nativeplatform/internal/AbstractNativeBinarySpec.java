@@ -22,7 +22,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.BuildType;
+import org.gradle.nativeplatform.Flavor;
+import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.NativeDependencySet;
+import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.nativeplatform.PreprocessingTool;
+import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryRequirementResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -38,10 +44,14 @@ import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
-    private final Set<? super Object> libs = new LinkedHashSet<Object>();
+    private final Set<? super Object> libs = new LinkedHashSet<>();
     private final Tool linker = new DefaultTool();
     private final Tool staticLibArchiver = new DefaultTool();
 
@@ -203,7 +213,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
-        Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
+        Set<? super Object> allLibs = new LinkedHashSet<>(libs);
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }

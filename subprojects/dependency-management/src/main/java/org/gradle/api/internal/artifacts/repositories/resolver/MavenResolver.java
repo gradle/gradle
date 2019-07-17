@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
 
 public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata> {
     private final URI root;
-    private final List<URI> artifactRoots = new ArrayList<URI>();
+    private final List<URI> artifactRoots = new ArrayList<>();
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
@@ -158,7 +158,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private void updatePatterns() {
         setIvyPatterns(Collections.singletonList(getWholePattern()));
 
-        List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
+        List<ResourcePattern> artifactPatterns = new ArrayList<>();
         artifactPatterns.add(getWholePattern());
         for (URI artifactRoot : artifactRoots) {
             artifactPatterns.add(new M2ResourcePattern(artifactRoot, MavenPattern.M2_PATTERN));

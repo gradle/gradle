@@ -117,7 +117,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private <U> SpecRuleAction<? super U> createAllSpecRuleAction(RuleAction<? super U> ruleAction) {
-        return new SpecRuleAction<U>(ruleAction, Specs.<U>satisfyAll());
+        return new SpecRuleAction<>(ruleAction, Specs.<U>satisfyAll());
     }
 
     private SpecRuleAction<? super ComponentMetadataDetails> createSpecRuleActionForModule(Object id, RuleAction<? super ComponentMetadataDetails> ruleAction) {
@@ -130,7 +130,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
 
         Spec<ComponentMetadataDetails> spec = new ComponentMetadataDetailsMatchingSpec(moduleIdentifier);
-        return new SpecRuleAction<ComponentMetadataDetails>(ruleAction, spec);
+        return new SpecRuleAction<>(ruleAction, spec);
     }
 
     @Override

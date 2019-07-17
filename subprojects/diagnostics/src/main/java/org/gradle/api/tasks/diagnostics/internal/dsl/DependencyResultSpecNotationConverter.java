@@ -20,7 +20,13 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.*;
+import org.gradle.internal.typeconversion.ClosureToSpecNotationConverter;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.internal.typeconversion.TypeInfo;
 
 public class DependencyResultSpecNotationConverter implements NotationConverter<String, Spec<DependencyResult>> {
     @Override
@@ -40,7 +46,7 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
         return NotationParserBuilder
                 .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
-                .fromType(Closure.class, new ClosureToSpecNotationConverter<DependencyResult>(DependencyResult.class))
+                .fromType(Closure.class, new ClosureToSpecNotationConverter<>(DependencyResult.class))
                 .fromCharSequence(new DependencyResultSpecNotationConverter())
                 .toComposite();
     }

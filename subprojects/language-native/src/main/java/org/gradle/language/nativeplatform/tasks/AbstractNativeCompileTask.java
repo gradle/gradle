@@ -71,7 +71,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection systemIncludes;
     private final ConfigurableFileCollection source;
-    private final Map<String, String> macros = new LinkedHashMap<String, String>();
+    private final Map<String, String> macros = new LinkedHashMap<>();
     private final ListProperty<String> compilerArgs;
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 

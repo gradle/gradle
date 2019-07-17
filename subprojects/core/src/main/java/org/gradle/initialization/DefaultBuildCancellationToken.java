@@ -26,7 +26,7 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
 
     private final Object lock = new Object();
     private boolean cancelled;
-    private List<Runnable> callbacks = new LinkedList<Runnable>();
+    private List<Runnable> callbacks = new LinkedList<>();
 
     @Override
     public boolean isCancellationRequested() {
@@ -59,7 +59,7 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
 
     @Override
     public void cancel() {
-        List<Runnable> toCall = new ArrayList<Runnable>();
+        List<Runnable> toCall = new ArrayList<>();
         synchronized (lock) {
             if (cancelled) {
                 return;
@@ -69,7 +69,7 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
             callbacks.clear();
         }
 
-        List<Throwable> failures = new ArrayList<Throwable>();
+        List<Throwable> failures = new ArrayList<>();
         for (Runnable callback : toCall) {
             try {
                 callback.run();

@@ -29,7 +29,14 @@ import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 @SuppressWarnings("deprecation")
@@ -54,7 +61,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     private Factory<ContainedVersionAnalyzer> analyzerFactory = new DefaultAnalyzerFactory();
 
-    private Map<String, List<String>> unmodelledInstructions = new HashMap<String, List<String>>();
+    private Map<String, List<String>> unmodelledInstructions = new HashMap<>();
 
     private FileCollection classpath;
 
@@ -153,7 +160,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     public OsgiManifest instruction(String name, String... values) {
         if (!maybeAppendModelledInstruction(name, values)) {
             if (unmodelledInstructions.get(name) == null) {
-                unmodelledInstructions.put(name, new ArrayList<String>());
+                unmodelledInstructions.put(name, new ArrayList<>());
             }
             unmodelledInstructions.get(name).addAll(Arrays.asList(values));
         }
@@ -202,7 +209,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     public OsgiManifest instructionFirst(String name, String... values) {
         if (!maybePrependModelledInstruction(name, values)) {
             if (unmodelledInstructions.get(name) == null) {
-                unmodelledInstructions.put(name, new ArrayList<String>());
+                unmodelledInstructions.put(name, new ArrayList<>());
             }
             unmodelledInstructions.get(name).addAll(0, Arrays.asList(values));
         }
@@ -253,7 +260,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
                 unmodelledInstructions.remove(name);
             } else {
                 if (unmodelledInstructions.get(name) == null) {
-                    unmodelledInstructions.put(name, new ArrayList<String>());
+                    unmodelledInstructions.put(name, new ArrayList<>());
                 }
                 List<String> instructionsForName = unmodelledInstructions.get(name);
                 instructionsForName.clear();
@@ -293,7 +300,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     @Override
     public Map<String, List<String>> getInstructions() {
-        Map<String, List<String>> instructions = new HashMap<String, List<String>>();
+        Map<String, List<String>> instructions = new HashMap<>();
         instructions.putAll(unmodelledInstructions);
         instructions.putAll(getModelledInstructions());
         return instructions;
@@ -308,11 +315,11 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private List<String> createListFromPropertyString(String propertyString) {
-        return propertyString == null || propertyString.length() == 0 ? null : new LinkedList<String>(Arrays.asList(propertyString.split(",")));
+        return propertyString == null || propertyString.length() == 0 ? null : new LinkedList<>(Arrays.asList(propertyString.split(",")));
     }
 
     private Map<String, List<String>> getModelledInstructions() {
-        Map<String, List<String>> modelledInstructions = new HashMap<String, List<String>>();
+        Map<String, List<String>> modelledInstructions = new HashMap<>();
         modelledInstructions.put(Analyzer.BUNDLE_SYMBOLICNAME, createListFromPropertyString(symbolicName));
         modelledInstructions.put(Analyzer.BUNDLE_NAME, createListFromPropertyString(name));
         modelledInstructions.put(Analyzer.BUNDLE_VERSION, createListFromPropertyString(version));

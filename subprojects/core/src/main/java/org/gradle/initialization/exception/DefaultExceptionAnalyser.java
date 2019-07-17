@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecutionListener {
-    private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
+    private final Map<String, ScriptSource> scripts = new HashMap<>();
 
     public DefaultExceptionAnalyser(ListenerManager listenerManager) {
         listenerManager.addListener(this);
@@ -48,7 +48,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecu
     public void collectFailures(Throwable exception, Collection<? super Throwable> failures) {
         if (exception instanceof ProjectConfigurationException) {
             ProjectConfigurationException projectConfigurationException = (ProjectConfigurationException) exception;
-            List<Throwable> additionalFailures = new ArrayList<Throwable>();
+            List<Throwable> additionalFailures = new ArrayList<>();
             for (Throwable cause : projectConfigurationException.getCauses()) {
                 // TODO: remove this special case
                 if (cause instanceof GradleScriptException) {

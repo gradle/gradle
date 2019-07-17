@@ -24,8 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 class ProgressListenerAdapter implements ProgressListenerVersion1 {
-    private final ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final LinkedList<String> stack = new LinkedList<String>();
+    private final ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final LinkedList<String> stack = new LinkedList<>();
 
     ProgressListenerAdapter(List<ProgressListener> listeners) {
         this.listeners.addAll(listeners);

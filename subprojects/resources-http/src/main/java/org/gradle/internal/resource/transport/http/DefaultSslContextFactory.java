@@ -65,7 +65,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
         return SystemProperties.getInstance().withSystemProperties(new Factory<Map<String, String>>() {
             @Override
             public Map<String, String> create() {
-                Map<String, String> currentProperties = new TreeMap<String, String>();
+                Map<String, String> currentProperties = new TreeMap<>();
                 for (String prop : SSL_SYSTEM_PROPERTIES) {
                     currentProperties.put(prop, System.getProperty(prop));
                 }

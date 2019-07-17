@@ -33,7 +33,7 @@ public class IsolatedMap extends AbstractMapSnapshot<Isolatable<?>> implements I
     public ValueSnapshot asSnapshot() {
         ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> builder = ImmutableList.builderWithExpectedSize(entries.size());
         for (MapEntrySnapshot<Isolatable<?>> entry : entries) {
-            builder.add(new MapEntrySnapshot<ValueSnapshot>(entry.getKey().asSnapshot(), entry.getValue().asSnapshot()));
+            builder.add(new MapEntrySnapshot<>(entry.getKey().asSnapshot(), entry.getValue().asSnapshot()));
         }
         return new MapValueSnapshot(builder.build());
     }

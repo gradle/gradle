@@ -47,8 +47,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
 
     private final Object lock = new Object();
-    private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
-    private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
+    private final List<WorkerDaemonClient> allClients = new ArrayList<>();
+    private final List<WorkerDaemonClient> idleClients = new ArrayList<>();
     private final Action<WorkerProcess> workerProcessCleanupAction = new WorkerProcessCleanupAction();
 
     private final WorkerDaemonStarter workerDaemonStarter;
@@ -152,7 +152,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
                     return Integer.compare(o1.getUses(), o2.getUses());
                 }
             });
-            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
+            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<>(sortedClients));
             if (!clientsToStop.isEmpty()) {
                 stopWorkers(clientsToStop);
             }

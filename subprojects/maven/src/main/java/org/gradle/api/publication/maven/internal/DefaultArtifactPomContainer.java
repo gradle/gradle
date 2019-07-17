@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultArtifactPomContainer implements ArtifactPomContainer {
-    private Map<String, ArtifactPom> artifactPoms = new HashMap<String, ArtifactPom>();
+    private Map<String, ArtifactPom> artifactPoms = new HashMap<>();
     private final MavenPomMetaInfoProvider pomMetaInfoProvider;
     private PomFilterContainer pomFilterContainer;
     private ArtifactPomFactory artifactPomFactory;
@@ -60,7 +60,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
 
     @Override
     public Set<MavenDeployment> createDeployableFilesInfos() {
-        Set<MavenDeployment> mavenDeployments = new HashSet<MavenDeployment>();
+        Set<MavenDeployment> mavenDeployments = new HashSet<>();
         for (String activeArtifactPomName : artifactPoms.keySet()) {
             ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
             File pomFile = createPomFile(activeArtifactPomName);

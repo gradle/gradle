@@ -16,10 +16,11 @@
 
 package org.gradle.model.internal.core;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.type.ModelType;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public class InstanceModelView<T> implements ModelView<T> {
@@ -41,7 +42,7 @@ public class InstanceModelView<T> implements ModelView<T> {
     }
 
     public static <T> ModelView<T> of(ModelPath path, ModelType<T> type, T instance, Action<? super T> onClose) {
-        return new InstanceModelView<T>(path, type, instance, onClose);
+        return new InstanceModelView<>(path, type, instance, onClose);
     }
 
     @Override

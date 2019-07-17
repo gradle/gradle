@@ -87,7 +87,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     @Override
     public DependencyReportContainer reports(Closure closure) {
-        return reports(new ClosureBackedAction<DependencyReportContainer>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     @Override

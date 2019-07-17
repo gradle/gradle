@@ -30,7 +30,7 @@ import static java.lang.String.format;
 
 public class DefaultJvmApiSpec implements JvmApiSpec {
 
-    private final Set<String> exports = new HashSet<String>();
+    private final Set<String> exports = new HashSet<>();
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     @Override

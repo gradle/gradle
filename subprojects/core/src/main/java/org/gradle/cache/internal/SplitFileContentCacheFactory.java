@@ -48,7 +48,7 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer) {
         FileContentCache<V> globalCache = globalFactory.newCache(name, normalizedCacheSize, calculator, serializer);
         FileContentCache<V> localCache = localFactory.newCache(name, normalizedCacheSize, calculator, serializer);
-        return new SplitFileContentCache<V>(globalCache, localCache, wellKnownFileLocations);
+        return new SplitFileContentCache<>(globalCache, localCache, wellKnownFileLocations);
     }
 
     private static final class SplitFileContentCache<V> implements FileContentCache<V> {

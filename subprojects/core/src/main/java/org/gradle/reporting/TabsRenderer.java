@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
-    private final List<TabDefinition> tabs = new ArrayList<TabDefinition>();
+    private final List<TabDefinition> tabs = new ArrayList<>();
 
     public void add(String title, ReportRenderer<T, SimpleHtmlWriter> contentRenderer) {
         tabs.add(new TabDefinition(title, contentRenderer));

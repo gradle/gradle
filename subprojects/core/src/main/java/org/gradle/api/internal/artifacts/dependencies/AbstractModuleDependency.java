@@ -48,7 +48,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private ImmutableAttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-    private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    private Set<DependencyArtifact> artifacts = new HashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private AttributeContainerInternal attributes;
     private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
@@ -132,7 +132,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     protected void copyTo(AbstractModuleDependency target) {
         super.copyTo(target);
-        target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
+        target.setArtifacts(new HashSet<>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
         if (attributes != null) {

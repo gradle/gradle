@@ -205,7 +205,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ProjectRegistry<ProjectInternal> createProjectRegistry() {
-        return new DefaultProjectRegistry<ProjectInternal>();
+        return new DefaultProjectRegistry<>();
     }
 
     protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {

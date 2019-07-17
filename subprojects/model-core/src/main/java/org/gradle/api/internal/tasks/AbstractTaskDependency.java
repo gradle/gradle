@@ -21,9 +21,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 @NonNullApi
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
@@ -42,7 +42,7 @@ public abstract class AbstractTaskDependency implements TaskDependencyInternal {
 
     @Override
     public Set<? extends Task> getDependencies(@Nullable Task task) {
-        CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(
+        CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<>(
             Arrays.asList(WorkDependencyResolver.TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER));
         return context.getDependencies(task, this);
     }

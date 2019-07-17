@@ -38,8 +38,8 @@ public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
     public String resolveAsRelativePath(Object path) {
         List<String> basePath = Arrays.asList(StringUtils.split(getBaseDir().getAbsolutePath(), "/" + File.separator));
         File targetFile = resolve(path);
-        List<String> targetPath = new ArrayList<String>(Arrays.asList(StringUtils.split(targetFile.getAbsolutePath(),
-                "/" + File.separator)));
+        List<String> targetPath = new ArrayList<>(Arrays.asList(StringUtils.split(targetFile.getAbsolutePath(),
+            "/" + File.separator)));
 
         // Find and remove common prefix
         int maxDepth = Math.min(basePath.size(), targetPath.size());

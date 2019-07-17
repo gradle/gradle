@@ -131,9 +131,9 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
 
         @Override
         public Package call() {
-            Set<AbstractProduct> products = new LinkedHashSet<AbstractProduct>();
-            List<DefaultTarget> targets = new ArrayList<DefaultTarget>();
-            List<Dependency> dependencies = new ArrayList<Dependency>();
+            Set<AbstractProduct> products = new LinkedHashSet<>();
+            List<DefaultTarget> targets = new ArrayList<>();
+            List<Dependency> dependencies = new ArrayList<>();
             SwiftVersion swiftLanguageVersion = null;
             for (Project p : project.getAllprojects()) {
                 for (CppApplication application : p.getComponents().withType(CppApplication.class)) {

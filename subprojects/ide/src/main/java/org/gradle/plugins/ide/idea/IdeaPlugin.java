@@ -396,7 +396,7 @@ public class IdeaPlugin extends IdePlugin {
             @Override
             public Map<String, FileCollection> call() {
                 SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                LinkedHashMap<String, FileCollection> map = new LinkedHashMap<String, FileCollection>(2);
+                LinkedHashMap<String, FileCollection> map = new LinkedHashMap<>(2);
                 map.put("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
                 map.put("TEST", sourceSets.getByName("test").getOutput().getDirs());
                 return map;

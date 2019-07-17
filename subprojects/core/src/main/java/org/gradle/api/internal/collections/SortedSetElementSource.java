@@ -30,11 +30,11 @@ import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
+    private final PendingSource<T> pending = new DefaultPendingSource<>();
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
-        this.values = new TreeSet<T>(comparator);
+        this.values = new TreeSet<>(comparator);
     }
 
     @Override

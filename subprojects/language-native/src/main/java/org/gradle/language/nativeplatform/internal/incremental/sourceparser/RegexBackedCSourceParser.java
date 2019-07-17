@@ -153,7 +153,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
      */
     private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Collection<MacroFunction> macroFunctions) {
         buffer.consumeWhitespace();
-        List<String> paramNames = new ArrayList<String>();
+        List<String> paramNames = new ArrayList<>();
         consumeParameterList(buffer, paramNames);
         if (!buffer.consume(')')) {
             // Badly form args list
@@ -188,7 +188,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
                 return;
             }
-            List<Integer> argsMap = new ArrayList<Integer>(expression.getArguments().size());
+            List<Integer> argsMap = new ArrayList<>(expression.getArguments().size());
             boolean usesArgs = mapArgs(paramNames, expression, argsMap);
             if (!usesArgs) {
                 // Don't need to do parameter substitution, return the value of the expression after macro expanding it
@@ -234,7 +234,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 argsMap.add(ArgsMappingMacroFunction.KEEP);
                 continue;
             }
-            List<Integer> nestedMap = new ArrayList<Integer>(argument.getArguments().size());
+            List<Integer> nestedMap = new ArrayList<>(argument.getArguments().size());
             boolean argUsesParameters = mapArgs(paramNames, argument, nestedMap);
             if (argUsesParameters) {
                 argsMap.add(ArgsMappingMacroFunction.REPLACE_ARGS);
@@ -402,7 +402,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         if (!buffer.consume('(')) {
             return null;
         }
-        List<Expression> argumentExpressions = new ArrayList<Expression>();
+        List<Expression> argumentExpressions = new ArrayList<>();
         buffer.consumeWhitespace();
         consumeArgumentList(buffer, argumentExpressions);
         if (!buffer.consume(')')) {
@@ -448,7 +448,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         if (buffer.hasAny(",)")) {
             return expression;
         }
-        List<Expression> expressions = new ArrayList<Expression>();
+        List<Expression> expressions = new ArrayList<>();
         expressions.add(expression);
         do {
             expression = parseExpression(buffer);

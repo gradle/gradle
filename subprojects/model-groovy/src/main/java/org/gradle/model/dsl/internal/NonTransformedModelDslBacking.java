@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Actions;
@@ -37,6 +36,8 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ClosureBackedAction;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
@@ -68,14 +69,14 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private void registerConfigurationAction(final Closure<?> action) {
         modelRegistry.configure(ModelActionRole.Mutate,
-            new NoInputsModelAction<Object>(
+            new NoInputsModelAction<>(
                 ModelReference.untyped(modelPath),
-                new SimpleModelRuleDescriptor("model." + modelPath), new ClosureBackedAction<Object>(action)
+                new SimpleModelRuleDescriptor("model." + modelPath), new ClosureBackedAction<>(action)
             ));
     }
 
     private <T> void register(Class<T> type, Closure<?> closure) {
-        register(type, new ClosureBackedAction<T>(closure));
+        register(type, new ClosureBackedAction<>(closure));
     }
 
     private <T> void register(Class<T> type, Action<? super T> action) {

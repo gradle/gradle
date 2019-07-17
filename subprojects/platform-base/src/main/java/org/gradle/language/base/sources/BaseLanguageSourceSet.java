@@ -38,7 +38,7 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
      */
     protected final ObjectFactory objectFactory;
 
-    private static final ThreadLocal<SourceSetInfo> NEXT_SOURCE_SET_INFO = new ThreadLocal<SourceSetInfo>();
+    private static final ThreadLocal<SourceSetInfo> NEXT_SOURCE_SET_INFO = new ThreadLocal<>();
 
     /**
      * Create a source set instance.

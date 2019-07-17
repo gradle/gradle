@@ -16,10 +16,14 @@
 package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
@@ -39,7 +43,7 @@ public class DirectedGraphRenderer<N> {
 
     public void renderTo(N root, StyledTextOutput output) {
         GraphRenderer renderer = new GraphRenderer(output);
-        Set<N> rendered = new HashSet<N>();
+        Set<N> rendered = new HashSet<>();
         omittedDetails = false;
         renderTo(root, renderer, rendered, false);
         if (omittedDetails) {
@@ -66,7 +70,7 @@ public class DirectedGraphRenderer<N> {
             return;
         }
 
-        List<N> children = new ArrayList<N>();
+        List<N> children = new ArrayList<>();
         graph.getNodeValues(node, new HashSet<Object>(), children);
         if (children.isEmpty()) {
             return;

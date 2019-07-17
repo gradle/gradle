@@ -109,7 +109,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private void checkNoDuplicateArtifacts(IvyNormalizedPublication publication) {
-        Set<IvyArtifact> verified = new HashSet<IvyArtifact>();
+        Set<IvyArtifact> verified = new HashSet<>();
 
         for (final IvyArtifact artifact : publication.getAllArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getName(), artifact.getExtension(), artifact.getType(), artifact.getClassifier());

@@ -43,8 +43,8 @@ public class DaemonRegistryContent implements Serializable {
     private final List<DaemonStopEvent> stopEvents;
 
     public DaemonRegistryContent() {
-        infosMap = new HashMap<Address, DaemonInfo>();
-        stopEvents = new ArrayList<DaemonStopEvent>();
+        infosMap = new HashMap<>();
+        stopEvents = new ArrayList<>();
     }
 
     private DaemonRegistryContent(Map<Address, DaemonInfo> infosMap, List<DaemonStopEvent> stopEvents) {
@@ -56,7 +56,7 @@ public class DaemonRegistryContent implements Serializable {
      * returns all statuses. May be empty.
      */
     public List<DaemonInfo> getInfos() {
-        return new LinkedList<DaemonInfo>(infosMap.values());
+        return new LinkedList<>(infosMap.values());
     }
 
     /**
@@ -124,7 +124,7 @@ public class DaemonRegistryContent implements Serializable {
 
         private List<DaemonStopEvent> readStopEvents(Decoder decoder) throws Exception {
             int len = decoder.readInt();
-            List<DaemonStopEvent> out = new ArrayList<DaemonStopEvent>(len);
+            List<DaemonStopEvent> out = new ArrayList<>(len);
             for (int i=0; i<len; i++) {
                 out.add(DaemonStopEvent.SERIALIZER.read(decoder));
             }
@@ -132,7 +132,7 @@ public class DaemonRegistryContent implements Serializable {
         }
 
         private Map<Address, DaemonInfo> readInfosMap(Decoder decoder, List<Address> addresses) throws Exception {
-            Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>(addresses.size());
+            Map<Address, DaemonInfo> infosMap = new HashMap<>(addresses.size());
             DaemonInfo.Serializer daemonInfoSerializer = new DaemonInfo.Serializer(addresses);
             for (Address address : addresses) {
                 infosMap.put(address, daemonInfoSerializer.read(decoder));
@@ -147,7 +147,7 @@ public class DaemonRegistryContent implements Serializable {
                 Map<Address, DaemonInfo> infosMap = registry.infosMap;
                 int infosSize = infosMap.size();
                 // make sure we can store it in order or we'll have surprises on deserialization
-                List<Address> addresses = new ArrayList<Address>(infosMap.keySet());
+                List<Address> addresses = new ArrayList<>(infosMap.keySet());
                 writeAddresses(encoder, infosSize, addresses);
                 writeDaemonInfos(encoder, infosMap, addresses);
                 writeStopEvents(encoder, registry);
@@ -196,7 +196,7 @@ public class DaemonRegistryContent implements Serializable {
 
         private List<Address> readAddresses(Decoder decoder) throws Exception {
             int infosSize = decoder.readInt();
-            List<Address> out = new ArrayList<Address>();
+            List<Address> out = new ArrayList<>();
             for (int i=0; i<infosSize; i++) {
                 byte type = decoder.readByte();
                 switch (type) {

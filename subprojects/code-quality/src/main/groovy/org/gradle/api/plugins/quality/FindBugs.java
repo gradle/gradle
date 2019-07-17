@@ -88,9 +88,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private String maxHeapSize;
 
-    private Collection<String> visitors = new ArrayList<String>();
+    private Collection<String> visitors = new ArrayList<>();
 
-    private Collection<String> omitVisitors = new ArrayList<String>();
+    private Collection<String> omitVisitors = new ArrayList<>();
 
     private TextResource includeFilterConfig;
 
@@ -98,9 +98,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private TextResource excludeBugsFilterConfig;
 
-    private Collection<String> extraArgs = new ArrayList<String>();
+    private Collection<String> extraArgs = new ArrayList<>();
 
-    private Collection<String> jvmArgs = new ArrayList<String>();
+    private Collection<String> jvmArgs = new ArrayList<>();
 
     private boolean showProgress;
 
@@ -151,7 +151,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      */
     @Override
     public FindBugsReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<FindBugsReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**

@@ -55,12 +55,12 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
     @Override
     public LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> create() {
-        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>>();
+        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<>();
 
         // Order is important here, because they will be searched in that order
 
         // The current filestore
-        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ModuleComponentArtifactMetadata>(new FileStoreSearcher<ModuleComponentArtifactMetadata>() {
+        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<>(new FileStoreSearcher<ModuleComponentArtifactMetadata>() {
             @Override
             public Set<? extends LocallyAvailableResource> search(ModuleComponentArtifactMetadata key) {
                 return fileStore.search(key.getId());
@@ -107,7 +107,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         } catch (CannotLocateLocalMavenRepositoryException ex) {
             finders.add(new NoMavenLocalRepositoryResourceFinder(ex));
         }
-        return new CompositeLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>(finders);
+        return new CompositeLocallyAvailableResourceFinder<>(finders);
     }
 
     private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, String pattern) {

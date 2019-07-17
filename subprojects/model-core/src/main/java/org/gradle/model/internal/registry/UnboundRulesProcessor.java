@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
@@ -25,6 +24,7 @@ import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.report.unbound.UnboundRuleInput;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +41,7 @@ class UnboundRulesProcessor {
     }
 
     public List<? extends UnboundRule> process() {
-        List<UnboundRule> unboundRules = new ArrayList<UnboundRule>();
+        List<UnboundRule> unboundRules = new ArrayList<>();
         for (RuleBinder binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(String.valueOf(binder.getDescriptor()));
 

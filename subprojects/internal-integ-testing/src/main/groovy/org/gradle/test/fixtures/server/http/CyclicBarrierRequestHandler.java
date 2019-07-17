@@ -34,8 +34,8 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
     private final Timer timer = Time.startTimer();
     private final Lock lock;
     private final Condition condition;
-    private final List<String> received = new ArrayList<String>();
-    private final List<ResourceHandler> pending = new ArrayList<ResourceHandler>();
+    private final List<String> received = new ArrayList<>();
+    private final List<ResourceHandler> pending = new ArrayList<>();
     private final int timeoutMs;
     private final WaitPrecondition previous;
     private long mostRecentEvent;

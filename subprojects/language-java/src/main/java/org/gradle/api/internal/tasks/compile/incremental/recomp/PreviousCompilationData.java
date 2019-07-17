@@ -65,7 +65,7 @@ public class PreviousCompilationData {
 
         public Serializer(StringInterner interner) {
             classpathSnapshotDataSerializer = new ClasspathSnapshotDataSerializer();
-            processorPathSerializer = new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER);
+            processorPathSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
             annotationProcessingDataSerializer = new AnnotationProcessingData.Serializer(interner);
         }
 

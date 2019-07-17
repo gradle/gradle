@@ -34,7 +34,7 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
 
     public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
                                                       TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
-        return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
+        return new DirectNodeInputUsingModelAction<>(modelReference, descriptor, inputs, action);
     }
 
     public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> input, final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {

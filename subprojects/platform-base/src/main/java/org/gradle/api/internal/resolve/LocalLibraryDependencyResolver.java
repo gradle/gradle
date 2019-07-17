@@ -18,14 +18,12 @@ package org.gradle.api.internal.resolve;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -209,7 +207,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ComponentIdentifier componentId = component.getId();
         if (isLibrary(componentId)) {
-            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, exclusions, overriddenAttributes);
+            return new MetadataSourcedComponentArtifacts().getArtifactsFor(component, configuration, this, new ConcurrentHashMap<>(), artifactTypeRegistry, exclusions, overriddenAttributes);
         }
         return null;
     }

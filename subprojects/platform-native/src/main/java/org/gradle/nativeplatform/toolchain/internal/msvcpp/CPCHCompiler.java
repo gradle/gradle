@@ -30,7 +30,7 @@ import java.util.List;
 
 public class CPCHCompiler extends VisualCppNativeCompiler<CPCHCompileSpec> {
     CPCHCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<CPCHCompileSpec, CPCHCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
-        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new VisualCppPCHCompilerArgsTransformer<CPCHCompileSpec>(), specTransformer, objectFileExtension, useCommandFile, workerLeaseService);
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new VisualCppPCHCompilerArgsTransformer<>(), specTransformer, objectFileExtension, useCommandFile, workerLeaseService);
     }
 
     @Override

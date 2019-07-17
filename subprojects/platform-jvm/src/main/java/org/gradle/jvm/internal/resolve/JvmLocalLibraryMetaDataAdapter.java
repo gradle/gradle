@@ -25,8 +25,8 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JarFile;
@@ -56,8 +56,8 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     @Override
     @SuppressWarnings("unchecked")
     public DefaultLibraryLocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly) {
-        EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<UsageKind, Iterable<DependencySpec>>(UsageKind.class);
-        EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<UsageKind, List<PublishArtifact>>(UsageKind.class);
+        EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<>(UsageKind.class);
+        EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<>(UsageKind.class);
         initializeUsages(dependenciesPerUsage, artifacts);
         if (selectedBinary instanceof JarBinarySpecInternal) {
             JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
@@ -91,7 +91,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
 
                 @Override
                 public Set<? extends PublishArtifact> getArtifacts() {
-                    return new LinkedHashSet<PublishArtifact>(publishArtifacts);
+                    return new LinkedHashSet<>(publishArtifacts);
                 }
 
                 @Override
@@ -104,7 +104,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     }
 
     private <T> Map<String, T> toStringMap(EnumMap<? extends Enum<UsageKind>, T> enumMap) {
-        Map<String, T> map = new HashMap<String, T>(enumMap.size());
+        Map<String, T> map = new HashMap<>(enumMap.size());
         for (Map.Entry<? extends Enum<UsageKind>, T> tEntry : enumMap.entrySet()) {
             UsageKind usageKind = UsageKind.valueOf(tEntry.getKey().name());
             map.put(usageKind.getConfigurationName(), tEntry.getValue());
@@ -115,7 +115,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
     private void initializeUsages(EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
         for (UsageKind usageKind : UsageKind.values()) {
             dependenciesPerUsage.put(usageKind, Collections.<DependencySpec>emptyList());
-            artifacts.put(usageKind, new LinkedList<PublishArtifact>());
+            artifacts.put(usageKind, new LinkedList<>());
         }
     }
 

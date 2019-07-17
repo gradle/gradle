@@ -92,8 +92,8 @@ public class FileSystemSnapshotBuilder {
     }
 
     private class DirectoryBuilder {
-        private final Map<String, DirectoryBuilder> subDirs = new HashMap<String, DirectoryBuilder>();
-        private final Map<String, RegularFileSnapshot> files = new HashMap<String, RegularFileSnapshot>();
+        private final Map<String, DirectoryBuilder> subDirs = new HashMap<>();
+        private final Map<String, RegularFileSnapshot> files = new HashMap<>();
 
         public void addFile(String[] segments, int offset, RegularFileSnapshot fileSnapshot) {
             if (segments.length == offset) {

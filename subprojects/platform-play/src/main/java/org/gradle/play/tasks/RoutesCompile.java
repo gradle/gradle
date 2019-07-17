@@ -61,7 +61,7 @@ public class RoutesCompile extends SourceTask {
     /**
      * Additional imports used for by generated files.
      */
-    private List<String> additionalImports = new ArrayList<String>();
+    private List<String> additionalImports = new ArrayList<>();
 
     private boolean namespaceReverseRouter;
     private boolean generateReverseRoutes = true;
@@ -117,7 +117,7 @@ public class RoutesCompile extends SourceTask {
     @TaskAction
     void compile() {
         RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getInjectedRoutesGenerator(), getAdditionalImports());
-        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
+        new CleaningPlayToolCompiler<>(getCompiler(), getOutputs()).execute(spec);
     }
 
     private Compiler<RoutesCompileSpec> getCompiler() {

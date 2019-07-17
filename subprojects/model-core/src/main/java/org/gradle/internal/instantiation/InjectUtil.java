@@ -58,7 +58,7 @@ class InjectUtil {
             }
         }
 
-        List<ClassGenerator.GeneratedConstructor<T>> injectConstructors = new ArrayList<ClassGenerator.GeneratedConstructor<T>>();
+        List<ClassGenerator.GeneratedConstructor<T>> injectConstructors = new ArrayList<>();
         for (ClassGenerator.GeneratedConstructor<T> constructor : constructors) {
             if (constructor.getAnnotation(Inject.class) != null) {
                 injectConstructors.add(constructor);

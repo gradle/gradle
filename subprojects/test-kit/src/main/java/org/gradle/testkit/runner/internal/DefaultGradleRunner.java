@@ -117,7 +117,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
-        this.jvmArguments = Collections.unmodifiableList(new ArrayList<String>(jvmArguments));
+        this.jvmArguments = Collections.unmodifiableList(new ArrayList<>(jvmArguments));
         return this;
     }
 
@@ -143,7 +143,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public DefaultGradleRunner withArguments(List<String> arguments) {
-        this.arguments = Collections.unmodifiableList(new ArrayList<String>(arguments));
+        this.arguments = Collections.unmodifiableList(new ArrayList<>(arguments));
         return this;
     }
 
@@ -165,7 +165,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public GradleRunner withPluginClasspath(Iterable<? extends File> classpath) {
-        List<File> f = new ArrayList<File>();
+        List<File> f = new ArrayList<>();
         for (File file : classpath) {
             // These objects are going across the wire.
             // 1. Convert any subclasses back to File in case the subclass isn't available in Gradle.

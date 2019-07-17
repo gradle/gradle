@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class DefaultIvyConfiguration implements IvyConfiguration {
     private final String name;
-    private final Set<String> extendsFrom = new LinkedHashSet<String>();
+    private final Set<String> extendsFrom = new LinkedHashSet<>();
 
     public DefaultIvyConfiguration(String name) {
         this.name = name;

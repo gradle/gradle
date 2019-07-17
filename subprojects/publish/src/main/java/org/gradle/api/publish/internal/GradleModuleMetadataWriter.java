@@ -86,11 +86,11 @@ public class GradleModuleMetadataWriter {
 
     public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, ComponentData> coordinates = new HashMap<SoftwareComponent, ComponentData>();
+        Map<SoftwareComponent, ComponentData> coordinates = new HashMap<>();
         collectCoordinates(publications, coordinates);
 
         // Collect a map from component to its owning component. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<SoftwareComponent, SoftwareComponent>();
+        Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<>();
         collectOwners(publications, owners);
 
         // Write the output
@@ -318,7 +318,7 @@ public class GradleModuleMetadataWriter {
         }
         jsonWriter.name("attributes");
         jsonWriter.beginObject();
-        Map<String, Attribute<?>> sortedAttributes = new TreeMap<String, Attribute<?>>();
+        Map<String, Attribute<?>> sortedAttributes = new TreeMap<>();
         for (Attribute<?> attribute : attributes.keySet()) {
             sortedAttributes.put(attribute.getName(), attribute);
         }

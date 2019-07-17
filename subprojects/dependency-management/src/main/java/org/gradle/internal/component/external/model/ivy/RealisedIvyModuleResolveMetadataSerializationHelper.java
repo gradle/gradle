@@ -96,7 +96,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
     }
 
     private Map<String, ConfigurationMetadata> readIvyConfigurations(Decoder decoder, DefaultIvyModuleResolveMetadata metadata) throws IOException {
-        Map<Artifact, ModuleComponentArtifactMetadata> artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
+        Map<Artifact, ModuleComponentArtifactMetadata> artifacts = new IdentityHashMap<>();
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), artifacts, metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
 
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();

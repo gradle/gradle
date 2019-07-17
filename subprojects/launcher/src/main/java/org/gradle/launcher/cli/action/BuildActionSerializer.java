@@ -55,9 +55,9 @@ public class BuildActionSerializer {
         private final Serializer<ConsoleOutput> consoleOutputSerializer;
         private final Serializer<WarningMode> warningModeSerializer;
         private final Serializer<File> nullableFileSerializer = new NullableFileSerializer();
-        private final Serializer<List<String>> stringListSerializer = new ListSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
-        private final Serializer<List<File>> fileListSerializer = new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER);
-        private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
+        private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
+        private final Serializer<List<File>> fileListSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
+        private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
 
         ExecuteBuildActionSerializer() {
             BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
@@ -198,7 +198,7 @@ public class BuildActionSerializer {
 
         private List<TaskExecutionRequest> readTaskRequests(Decoder decoder) throws Exception {
             int requestCount = decoder.readSmallInt();
-            List<TaskExecutionRequest> taskExecutionRequests = new ArrayList<TaskExecutionRequest>(requestCount);
+            List<TaskExecutionRequest> taskExecutionRequests = new ArrayList<>(requestCount);
             for (int i = 0; i < requestCount; i++) {
                 taskExecutionRequests.add(new DefaultTaskExecutionRequest(stringListSerializer.read(decoder)));
             }

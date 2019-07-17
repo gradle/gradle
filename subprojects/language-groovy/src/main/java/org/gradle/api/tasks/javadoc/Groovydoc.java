@@ -85,7 +85,7 @@ public class Groovydoc extends SourceTask {
 
     private TextResource overview;
 
-    private Set<Link> links = new LinkedHashSet<Link>();
+    private Set<Link> links = new LinkedHashSet<>();
 
     boolean includePrivate;
 
@@ -378,7 +378,7 @@ public class Groovydoc extends SourceTask {
      * A Link class represent a link between groovydoc/javadoc output and url.
      */
     public static class Link implements Serializable {
-        private List<String> packages = new ArrayList<String>();
+        private List<String> packages = new ArrayList<>();
         private String url;
 
         /**

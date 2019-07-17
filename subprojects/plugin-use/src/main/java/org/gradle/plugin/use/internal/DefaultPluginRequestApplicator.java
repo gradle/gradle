@@ -304,7 +304,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private static class Result implements PluginResolutionResult {
-        private final List<NotFound> notFoundList = new LinkedList<NotFound>();
+        private final List<NotFound> notFoundList = new LinkedList<>();
         private final PluginRequestInternal request;
         private PluginResolution found;
 

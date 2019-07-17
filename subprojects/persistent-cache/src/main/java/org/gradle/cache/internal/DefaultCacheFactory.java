@@ -43,7 +43,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
-    private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
+    private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -114,7 +114,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         private final CacheBuilder.LockTarget lockTarget;
         private final LockOptions lockOptions;
         private final ReferencablePersistentCache cache;
-        private final Set<ReferenceTrackingCache> references = new HashSet<ReferenceTrackingCache>();
+        private final Set<ReferenceTrackingCache> references = new HashSet<>();
 
         DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions) {
             this.cache = cache;

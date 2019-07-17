@@ -54,7 +54,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public Set<File> getFiles() {
-        final Set<File> files = new LinkedHashSet<File>();
+        final Set<File> files = new LinkedHashSet<>();
         visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
@@ -96,7 +96,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public Map<String, File> getAsMap() {
-        final Map<String, File> map = new LinkedHashMap<String, File>();
+        final Map<String, File> map = new LinkedHashMap<>();
         visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {

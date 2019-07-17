@@ -49,7 +49,7 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Set<? extends DependencyResult> getAllDependencies() {
-        final Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
+        final Set<DependencyResult> out = new LinkedHashSet<>();
         allDependencies(new Action<DependencyResult>() {
             @Override
             public void execute(DependencyResult dep) {
@@ -61,7 +61,7 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public void allDependencies(Action<? super DependencyResult> action) {
-        eachElement(getRoot(), Actions.doNothing(), action, new HashSet<ResolvedComponentResult>());
+        eachElement(getRoot(), Actions.doNothing(), action, new HashSet<>());
     }
 
     @Override
@@ -86,14 +86,14 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Set<ResolvedComponentResult> getAllComponents() {
-        final Set<ResolvedComponentResult> out = new LinkedHashSet<ResolvedComponentResult>();
+        final Set<ResolvedComponentResult> out = new LinkedHashSet<>();
         eachElement(getRoot(), Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }
 
     @Override
     public void allComponents(final Action<? super ResolvedComponentResult> action) {
-        eachElement(getRoot(), action, Actions.doNothing(), new HashSet<ResolvedComponentResult>());
+        eachElement(getRoot(), action, Actions.doNothing(), new HashSet<>());
     }
 
     @Override

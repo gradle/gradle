@@ -91,7 +91,7 @@ public abstract class ModelTypes {
      * Collect all types that make up the type hierarchy of the given types.
      */
     public static Set<ModelType<?>> collectHierarchy(Iterable<? extends ModelType<?>> types) {
-        Queue<ModelType<?>> queue = new ArrayDeque<ModelType<?>>(Iterables.size(types) * 2);
+        Queue<ModelType<?>> queue = new ArrayDeque<>(Iterables.size(types) * 2);
         Iterables.addAll(queue, types);
         Set<ModelType<?>> seenTypes = Sets.newLinkedHashSet();
         ModelType<?> type;

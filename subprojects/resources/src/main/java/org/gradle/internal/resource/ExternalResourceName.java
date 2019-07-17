@@ -191,7 +191,7 @@ public class ExternalResourceName {
      * Resolves the given path relative to this name. The path can be a relative path or an absolute path. The '/' character is used to separate the elements of the path.
      */
     public ExternalResourceName resolve(String path) {
-        List<String> parts = new ArrayList<String>();
+        List<String> parts = new ArrayList<>();
         boolean leadingSlash;
         boolean trailingSlash = path.endsWith("/");
         if (path.startsWith("/")) {

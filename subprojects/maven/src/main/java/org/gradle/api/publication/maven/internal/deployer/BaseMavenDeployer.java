@@ -41,7 +41,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     private Configuration configuration;
 
     // todo remove this property once configuration can handle normal file system dependencies
-    private List<File> protocolProviderJars = new ArrayList<File>();
+    private List<File> protocolProviderJars = new ArrayList<>();
 
     public BaseMavenDeployer(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager,
                              MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator, ObjectFactory objectFactory) {
@@ -57,7 +57,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     private List<File> getJars() {
-        return configuration != null ? new ArrayList<File>(configuration.resolve()) : protocolProviderJars;
+        return configuration != null ? new ArrayList<>(configuration.resolve()) : protocolProviderJars;
     }
 
     @Override

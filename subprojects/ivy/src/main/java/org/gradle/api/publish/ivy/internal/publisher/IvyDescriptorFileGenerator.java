@@ -68,15 +68,15 @@ public class IvyDescriptorFileGenerator {
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private String branch;
     private String status;
-    private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
-    private List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
+    private List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
+    private List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
     private IvyModuleDescriptorDescription description;
     private Map<QName, String> extraInfo;
     private XmlTransformer xmlTransformer = new XmlTransformer();
-    private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
-    private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
-    private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
-    private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
+    private List<IvyConfiguration> configurations = new ArrayList<>();
+    private List<IvyArtifact> artifacts = new ArrayList<>();
+    private List<IvyDependencyInternal> dependencies = new ArrayList<>();
+    private List<IvyExcludeRule> globalExcludes = new ArrayList<>();
 
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker, VersionMappingStrategyInternal versionMappingStrategy) {
         this.projectIdentity = projectIdentity;

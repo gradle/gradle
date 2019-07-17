@@ -40,12 +40,12 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
     @Override
     public DefaultGradleBuild buildAll(String modelName, Project target) {
         Gradle gradle = target.getGradle();
-        return convert(gradle, new ArrayList<DefaultGradleBuild>());
+        return convert(gradle, new ArrayList<>());
     }
 
     private DefaultGradleBuild convert(Gradle gradle, Collection<DefaultGradleBuild> all) {
         DefaultGradleBuild model = new DefaultGradleBuild();
-        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
+        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
         Project rootProject = gradle.getRootProject();
         BasicGradleProject convertedRootProject = convert(rootProject, convertedProjects);

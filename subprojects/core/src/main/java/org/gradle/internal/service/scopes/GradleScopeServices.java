@@ -162,7 +162,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
-        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<BuildConfigurationAction>();
+        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
@@ -267,7 +267,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<GradleInternal>(gradleInternal);
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 

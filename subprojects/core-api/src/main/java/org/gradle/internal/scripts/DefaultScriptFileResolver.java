@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
@@ -46,7 +45,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
         if (candidates == null || candidates.length == 0) {
             return emptyList();
         }
-        List<File> found = new ArrayList<File>(candidates.length);
+        List<File> found = new ArrayList<>(candidates.length);
         for (File candidate : candidates) {
             if (candidate.isFile() && hasScriptExtension(candidate)) {
                 found.add(candidate);

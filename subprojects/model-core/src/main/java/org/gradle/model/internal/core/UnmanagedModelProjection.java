@@ -17,10 +17,11 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.hasDefaultToString;
 import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.defaultValueOf;
@@ -31,7 +32,7 @@ import static org.gradle.model.internal.manage.schema.extract.ScalarTypes.isScal
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
     public static <M> ModelProjection of(ModelType<M> type) {
-        return new UnmanagedModelProjection<M>(type);
+        return new UnmanagedModelProjection<>(type);
     }
 
     public static <M> ModelProjection of(Class<M> type) {

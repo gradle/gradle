@@ -35,15 +35,15 @@ public class NodeInitializerContext<T> {
     }
 
     public static <T> NodeInitializerContext<T> forType(ModelType<T> type) {
-        return new NodeInitializerContext<T>(type, Specs.<ModelType<?>>satisfyAll(), Optional.<PropertyContext>absent());
+        return new NodeInitializerContext<>(type, Specs.<ModelType<?>>satisfyAll(), Optional.<PropertyContext>absent());
     }
 
     public static <T> NodeInitializerContext<T> forExtensibleType(ModelType<T> type, Spec<ModelType<?>> constraints) {
-        return new NodeInitializerContext<T>(type, constraints, Optional.<PropertyContext>absent());
+        return new NodeInitializerContext<>(type, constraints, Optional.<PropertyContext>absent());
     }
 
     public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
-        return new NodeInitializerContext<T>(type, Specs.<ModelType<?>>satisfyAll(), Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
+        return new NodeInitializerContext<>(type, Specs.<ModelType<?>>satisfyAll(), Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
     }
 
     public ModelType<T> getModelType() {

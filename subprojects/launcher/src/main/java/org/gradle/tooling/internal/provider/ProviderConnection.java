@@ -247,7 +247,7 @@ public class ProviderConnection {
         layout.setSearchUpwards(operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true);
         layout.setProjectDir(operationParameters.getProjectDir());
 
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         new LayoutToPropertiesConverter(buildLayoutFactory).convert(layout, properties);
 
         DaemonParameters daemonParams = new DaemonParameters(layout, fileCollectionFactory);

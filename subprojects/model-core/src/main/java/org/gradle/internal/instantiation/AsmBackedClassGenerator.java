@@ -110,7 +110,7 @@ import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator implements ManagedFactory {
-    private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
+    private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<>();
     private static final AtomicReference<CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
     private final boolean decorate;
     private final String suffix;
@@ -414,7 +414,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         public void startClass() {
-            List<String> interfaceTypes = new ArrayList<String>();
+            List<String> interfaceTypes = new ArrayList<>();
 
             Type superclass = superclassType;
             if (type.isInterface()) {
@@ -470,7 +470,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
 
         @Override
         public void addConstructor(Constructor<?> constructor) {
-            List<Type> paramTypes = new ArrayList<Type>();
+            List<Type> paramTypes = new ArrayList<>();
             for (Class<?> paramType : constructor.getParameterTypes()) {
                 paramTypes.add(Type.getType(paramType));
             }

@@ -52,8 +52,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
-    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
+    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
+    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private FileCollection previousOutputFiles;
     private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
@@ -109,7 +109,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
+                cacheIfSpecs.add(new SelfDescribingSpec<>(spec, cachingEnabledReason));
             }
         });
     }
@@ -119,7 +119,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         taskMutator.mutate("TaskOutputs.doNotCacheIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                doNotCacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingDisabledReason));
+                doNotCacheIfSpecs.add(new SelfDescribingSpec<>(spec, cachingDisabledReason));
             }
         });
     }

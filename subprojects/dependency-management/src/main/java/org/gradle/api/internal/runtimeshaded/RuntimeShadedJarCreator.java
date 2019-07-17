@@ -26,10 +26,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -107,7 +107,7 @@ class RuntimeShadedJarCreator {
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
+                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<>(), new LinkedHashMap<>(), progressLogger);
                 jarOutputStream.finish();
             }
         });
@@ -170,7 +170,7 @@ class RuntimeShadedJarCreator {
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
-        final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
+        final List<FileVisitDetails> fileVisitDetails = new ArrayList<>();
         directoryFileTreeFactory.create(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
@@ -395,7 +395,7 @@ class RuntimeShadedJarCreator {
         public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator remapper) {
             super(classWriter, remapper);
             this.remapper = remapper;
-            remappedClassLiterals = new HashMap<String, String>();
+            remappedClassLiterals = new HashMap<>();
         }
 
         @Override

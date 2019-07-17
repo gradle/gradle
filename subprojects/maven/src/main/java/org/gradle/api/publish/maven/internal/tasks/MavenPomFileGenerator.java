@@ -182,7 +182,7 @@ public class MavenPomFileGenerator {
         target.setUrl(source.getUrl().getOrNull());
         target.setOrganization(source.getOrganization().getOrNull());
         target.setOrganizationUrl(source.getOrganizationUrl().getOrNull());
-        target.setRoles(new ArrayList<String>(source.getRoles().get()));
+        target.setRoles(new ArrayList<>(source.getRoles().get()));
         target.setTimezone(source.getTimezone().getOrNull());
         target.setProperties(convertProperties(source.getProperties()));
         return target;
@@ -195,7 +195,7 @@ public class MavenPomFileGenerator {
         target.setUrl(source.getUrl().getOrNull());
         target.setOrganization(source.getOrganization().getOrNull());
         target.setOrganizationUrl(source.getOrganizationUrl().getOrNull());
-        target.setRoles(new ArrayList<String>(source.getRoles().get()));
+        target.setRoles(new ArrayList<>(source.getRoles().get()));
         target.setTimezone(source.getTimezone().getOrNull());
         target.setProperties(convertProperties(source.getProperties()));
         return target;
@@ -255,7 +255,7 @@ public class MavenPomFileGenerator {
         target.setUnsubscribe(source.getUnsubscribe().getOrNull());
         target.setPost(source.getPost().getOrNull());
         target.setArchive(source.getArchive().getOrNull());
-        target.setOtherArchives(new ArrayList<String>(source.getOtherArchives().get()));
+        target.setOtherArchives(new ArrayList<>(source.getOtherArchives().get()));
         return target;
     }
 

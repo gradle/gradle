@@ -207,7 +207,7 @@ public class GradlePomModuleDescriptorBuilder {
         private static final Map<String, JarDependencyType> TYPES;
 
         static {
-            TYPES = new HashMap<String, JarDependencyType>();
+            TYPES = new HashMap<>();
 
             for(JarDependencyType type : values()) {
                 TYPES.put(type.name, type);

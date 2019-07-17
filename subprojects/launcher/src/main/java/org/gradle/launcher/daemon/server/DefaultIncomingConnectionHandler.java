@@ -20,8 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.internal.Connection;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -51,7 +51,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     private final ExecutorFactory executorFactory;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final Set<Connection<?>> inProgress = new HashSet<Connection<?>>();
+    private final Set<Connection<?>> inProgress = new HashSet<>();
 
     public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory, byte[] token) {
         this.commandExecuter = commandExecuter;

@@ -39,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.FailOnVersionConflictArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolutionFailureCollector;
@@ -57,6 +56,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -157,7 +157,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(newModelBuilder, localComponentsVisitor, failureCollector);
 
-        ImmutableList.Builder<DependencyArtifactsVisitor> visitors = new ImmutableList.Builder<DependencyArtifactsVisitor>();
+        ImmutableList.Builder<DependencyArtifactsVisitor> visitors = new ImmutableList.Builder<>();
         visitors.add(oldModelVisitor);
         visitors.add(fileDependencyVisitor);
         visitors.add(artifactsBuilder);

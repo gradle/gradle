@@ -174,7 +174,7 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                     writer.print(relPath.isEmpty() ? "." : relPath);
                     writer.println("\",");
                     writer.println("            sources: [");
-                    Set<String> sorted = new TreeSet<String>();
+                    Set<String> sorted = new TreeSet<>();
                     for (File sourceFile : target.getSourceFiles()) {
                         sorted.add(productPath.relativize(sourceFile.toPath()).toString());
                     }

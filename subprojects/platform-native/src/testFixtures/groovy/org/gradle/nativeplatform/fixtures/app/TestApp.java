@@ -58,7 +58,7 @@ public abstract class TestApp extends TestNativeComponent {
 
     @Override
     public List<SourceFile> getHeaderFiles() {
-        ArrayList<SourceFile> headerFiles = new ArrayList<SourceFile>();
+        ArrayList<SourceFile> headerFiles = new ArrayList<>();
         headerFiles.addAll(getExecutable().getHeaderFiles());
         headerFiles.addAll(getLibrary().getHeaderFiles());
         return headerFiles;
@@ -66,7 +66,7 @@ public abstract class TestApp extends TestNativeComponent {
 
     @Override
     public List<SourceFile> getSourceFiles() {
-        ArrayList<SourceFile> sourceFiles = new ArrayList<SourceFile>();
+        ArrayList<SourceFile> sourceFiles = new ArrayList<>();
         sourceFiles.addAll(getExecutable().getSourceFiles());
         sourceFiles.addAll(getLibrary().getSourceFiles());
         return sourceFiles;

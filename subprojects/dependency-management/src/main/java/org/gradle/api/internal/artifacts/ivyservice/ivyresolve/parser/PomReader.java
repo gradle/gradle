@@ -52,7 +52,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.AddDTDFilterInputStream;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getAllChilds;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildElement;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildText;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getTextContent;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
@@ -121,12 +125,12 @@ public class PomReader implements PomParent {
     };
 
     private PomParent pomParent = new RootPomParent();
-    private final Map<String, String> pomProperties = new HashMap<String, String>();
-    private final Map<String, String> effectiveProperties = new HashMap<String, String>();
+    private final Map<String, String> pomProperties = new HashMap<>();
+    private final Map<String, String> effectiveProperties = new HashMap<>();
     private List<PomDependencyMgt> declaredDependencyMgts;
     private List<PomProfile> declaredActivePomProfiles;
     private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
-    private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
+    private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<>();
     private Map<MavenDependencyKey, PomDependencyData> resolvedDependencies;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
@@ -390,7 +394,7 @@ public class PomReader implements PomParent {
     }
 
     private Map<MavenDependencyKey, PomDependencyData> resolveDependencies() {
-        Map<MavenDependencyKey, PomDependencyData> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyData>();
+        Map<MavenDependencyKey, PomDependencyData> dependencies = new LinkedHashMap<>();
 
         for (PomDependencyData dependency : getDependencyData(projectElement)) {
             dependencies.put(dependency.getId(), dependency);
@@ -413,7 +417,7 @@ public class PomReader implements PomParent {
     }
 
     private List<PomDependencyData> getDependencyData(Element parentElement) {
-        List<PomDependencyData> depElements = new ArrayList<PomDependencyData>();
+        List<PomDependencyData> depElements = new ArrayList<>();
         Element dependenciesElement = getFirstChildElement(parentElement, DEPENDENCIES);
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
@@ -440,7 +444,7 @@ public class PomReader implements PomParent {
     }
 
     private Map<MavenDependencyKey, PomDependencyMgt> resolveDependencyMgt() {
-        Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
+        Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<>();
         dependencies.putAll(pomParent.getDependencyMgt());
         dependencies.putAll(importedDependencyMgts);
         for (PomDependencyMgt dependencyMgt : parseDependencyMgt()) {
@@ -471,7 +475,7 @@ public class PomReader implements PomParent {
     }
 
     private List<PomDependencyMgt> getDependencyMgt(Element parentElement) {
-        List<PomDependencyMgt> depMgmtElements = new ArrayList<PomDependencyMgt>();
+        List<PomDependencyMgt> depMgmtElements = new ArrayList<>();
         Element dependenciesElement = getFirstChildElement(parentElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
 
@@ -651,8 +655,8 @@ public class PomReader implements PomParent {
      */
     private List<PomProfile> parseActivePomProfiles() {
         if (declaredActivePomProfiles == null) {
-            List<PomProfile> activeByDefaultPomProfiles = new ArrayList<PomProfile>();
-            List<PomProfile> activeByAbsenceOfPropertyPomProfiles = new ArrayList<PomProfile>();
+            List<PomProfile> activeByDefaultPomProfiles = new ArrayList<>();
+            List<PomProfile> activeByAbsenceOfPropertyPomProfiles = new ArrayList<>();
             Element profilesElement = getFirstChildElement(projectElement, PROFILES);
 
             if (profilesElement != null) {
@@ -717,7 +721,7 @@ public class PomReader implements PomParent {
     }
 
     private Map<String, String> parseProperties(Element parentElement) {
-        Map<String, String> pomProperties = new HashMap<String, String>();
+        Map<String, String> pomProperties = new HashMap<>();
         Element propsEl = getFirstChildElement(parentElement, PROPERTIES);
         if (propsEl != null) {
             propsEl.normalize();

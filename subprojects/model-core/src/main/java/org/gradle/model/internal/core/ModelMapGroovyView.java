@@ -37,7 +37,7 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
     }
 
     public void create(String name, Closure<? super I> configAction) {
-        create(name, new ClosureBackedAction<I>(configAction));
+        create(name, new ClosureBackedAction<>(configAction));
     }
 
     public <S extends I> void create(String name, Class<S> type, Closure<? super S> configAction) {
@@ -45,31 +45,31 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
     }
 
     public void named(String name, Closure<? super I> configAction) {
-        named(name, new ClosureBackedAction<I>(configAction));
+        named(name, new ClosureBackedAction<>(configAction));
     }
 
     public void all(Closure<? super I> configAction) {
-        all(new ClosureBackedAction<I>(configAction));
+        all(new ClosureBackedAction<>(configAction));
     }
 
     public <S> void withType(Class<S> type, Closure<? super S> configAction) {
-        withType(type, new ClosureBackedAction<S>(configAction));
+        withType(type, new ClosureBackedAction<>(configAction));
     }
 
     public void beforeEach(Closure<? super I> configAction) {
-        beforeEach(new ClosureBackedAction<I>(configAction));
+        beforeEach(new ClosureBackedAction<>(configAction));
     }
 
     public <S> void beforeEach(Class<S> type, Closure<? super S> configAction) {
-        beforeEach(type, new ClosureBackedAction<S>(configAction));
+        beforeEach(type, new ClosureBackedAction<>(configAction));
     }
 
     public void afterEach(Closure<? super I> configAction) {
-        afterEach(new ClosureBackedAction<I>(configAction));
+        afterEach(new ClosureBackedAction<>(configAction));
     }
 
     public <S> void afterEach(Class<S> type, Closure<? super S> configAction) {
-        afterEach(type, new ClosureBackedAction<S>(configAction));
+        afterEach(type, new ClosureBackedAction<>(configAction));
     }
 
     @Override

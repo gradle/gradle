@@ -25,7 +25,7 @@ import java.util.List;
 public class ClassDocRenderer {
     private final GenerationListener listener = new DefaultGenerationListener();
     private final ClassDescriptionRenderer descriptionRenderer = new ClassDescriptionRenderer();
-    private final List<ClassDocMemberRenderer> memberRenderers = new ArrayList<ClassDocMemberRenderer>();
+    private final List<ClassDocMemberRenderer> memberRenderers = new ArrayList<>();
 
     public ClassDocRenderer(LinkRenderer linkRenderer) {
         memberRenderers.add(new PropertiesRenderer(linkRenderer, listener));

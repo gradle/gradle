@@ -36,10 +36,10 @@ import static org.gradle.test.fixtures.server.http.CyclicBarrierRequestHandler.s
 class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPrecondition, BlockingHttpServer.BlockingHandler {
     private final Lock lock;
     private final Condition condition;
-    private final List<String> received = new ArrayList<String>();
-    private final List<String> released = new ArrayList<String>();
+    private final List<String> received = new ArrayList<>();
+    private final List<String> released = new ArrayList<>();
     private final LinkedList<ResourceHandlerWrapper> notReleased = new LinkedList<>();
-    private final List<ResourceHandlerWrapper> notReceived = new ArrayList<ResourceHandlerWrapper>();
+    private final List<ResourceHandlerWrapper> notReceived = new ArrayList<>();
     private final int testId;
     private final int timeoutMs;
     private final Clock clock = Time.clock();

@@ -42,7 +42,7 @@ import java.util.TreeSet;
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(3);
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = Maps.newHashMap();
-    private final Deque<CapabilityConflict> conflicts = new ArrayDeque<CapabilityConflict>();
+    private final Deque<CapabilityConflict> conflicts = new ArrayDeque<>();
 
     @Override
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
@@ -183,7 +183,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         @Override
         public Collection<? extends CandidateDetails> getCandidates(Capability capability) {
-            ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<CandidateDetails>();
+            ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<>();
             String group = capability.getGroup();
             String name = capability.getName();
             String version = capability.getVersion();
@@ -256,7 +256,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         private CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
             this.nodes = nodes;
-            final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<Capability>();
+            final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<>();
             for (final NodeState node : nodes) {
                 Capability capability = node.findCapability(group, name);
                 if (capability != null) {

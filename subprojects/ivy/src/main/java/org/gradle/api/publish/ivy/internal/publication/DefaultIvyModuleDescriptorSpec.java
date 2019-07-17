@@ -24,10 +24,10 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
@@ -41,15 +41,15 @@ import java.util.Set;
 
 public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
 
-    private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<XmlProvider>();
+    private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<>();
     private final IvyPublicationInternal ivyPublication;
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
     private String status = Module.DEFAULT_STATUS;
     private String branch;
     private IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
-    private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
-    private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
+    private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
+    private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
     private IvyModuleDescriptorDescription description;
 
     public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication, Instantiator instantiator, ObjectFactory objectFactory) {
@@ -101,7 +101,7 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
 
     @Override
     public void withXml(Action<? super XmlProvider> action) {
-        xmlActions.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to Ivy module descriptor", action));
+        xmlActions.add(new UserCodeAction<>("Could not apply withXml() to Ivy module descriptor", action));
     }
 
     @Override

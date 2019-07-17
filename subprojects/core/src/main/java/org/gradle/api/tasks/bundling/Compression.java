@@ -28,7 +28,7 @@ public enum Compression {
     BZIP2("tbz2", "bz2");
 
     private final String defaultExtension;
-    private final List<String> supportedExtensions = new ArrayList<String>(2);
+    private final List<String> supportedExtensions = new ArrayList<>(2);
 
     private Compression(String defaultExtension, String... additionalSupportedExtensions) {
         this.defaultExtension = defaultExtension;

@@ -18,7 +18,11 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
-import org.hamcrest.*;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,7 +33,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 public class TaskDependencyMatchers {
     @Factory
     public static Matcher<Task> dependsOn(final String... tasks) {
-        return dependsOn(equalTo(new HashSet<String>(Arrays.asList(tasks))));
+        return dependsOn(equalTo(new HashSet<>(Arrays.asList(tasks))));
     }
 
     @Factory
@@ -47,7 +51,7 @@ public class TaskDependencyMatchers {
             @Override
             public boolean matches(Object o) {
                 Task task = (Task) o;
-                Set<String> names = new HashSet<String>();
+                Set<String> names = new HashSet<>();
                 Set<? extends Task> depTasks = task.getTaskDependencies().getDependencies(task);
                 for (Task depTask : depTasks) {
                     names.add(matchOnPaths ? depTask.getPath() : depTask.getName());
@@ -70,7 +74,7 @@ public class TaskDependencyMatchers {
 
     @Factory
     public static <T extends Buildable> Matcher<T> builtBy(String... tasks) {
-        return builtBy(equalTo(new HashSet<String>(Arrays.asList(tasks))));
+        return builtBy(equalTo(new HashSet<>(Arrays.asList(tasks))));
     }
 
     @Factory
@@ -79,7 +83,7 @@ public class TaskDependencyMatchers {
             @Override
             public boolean matches(Object o) {
                 Buildable task = (Buildable) o;
-                Set<String> names = new HashSet<String>();
+                Set<String> names = new HashSet<>();
                 Set<? extends Task> depTasks = task.getBuildDependencies().getDependencies(null);
                 for (Task depTask : depTasks) {
                     names.add(depTask.getName());

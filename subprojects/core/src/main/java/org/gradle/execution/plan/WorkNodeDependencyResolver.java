@@ -24,7 +24,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class WorkNodeDependencyResolver implements DependencyResolver {
-    private final Map<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<WorkNodeAction, ActionNode>();
+    private final Map<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<>();
 
     @Override
     public boolean resolve(Task task, final Object node, Action<? super Node> resolveAction) {

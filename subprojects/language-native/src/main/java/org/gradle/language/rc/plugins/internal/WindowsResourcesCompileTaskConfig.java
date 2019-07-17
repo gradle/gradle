@@ -71,7 +71,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
             @Override
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.WINDOW_RESOURCES_COMPILER).getIncludeDirs());
+                return new LinkedHashSet<>(platformToolProvider.getSystemLibraries(ToolType.WINDOW_RESOURCES_COMPILER).getIncludeDirs());
             }
 
             @Override

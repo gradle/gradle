@@ -74,7 +74,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             }
             if (!optional && value == null) {
                 if (missing == null) {
-                    missing = new TreeSet<String>();
+                    missing = new TreeSet<>();
                 }
                 missing.add(keyName);
             }

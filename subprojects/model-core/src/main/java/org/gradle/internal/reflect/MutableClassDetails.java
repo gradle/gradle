@@ -30,9 +30,9 @@ import java.util.TreeMap;
 class MutableClassDetails implements ClassDetails {
     private final Class<?> type;
     private final MethodSet instanceMethods = new MethodSet();
-    private final Map<String, MutablePropertyDetails> properties = new TreeMap<String, MutablePropertyDetails>();
-    private final List<Method> methods = new ArrayList<Method>();
-    private final Set<Class<?>> superTypes = new LinkedHashSet<Class<?>>();
+    private final Map<String, MutablePropertyDetails> properties = new TreeMap<>();
+    private final List<Method> methods = new ArrayList<>();
+    private final Set<Class<?>> superTypes = new LinkedHashSet<>();
 
     MutableClassDetails(Class<?> type) {
         this.type = type;

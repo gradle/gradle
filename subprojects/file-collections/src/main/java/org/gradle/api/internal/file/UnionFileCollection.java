@@ -31,7 +31,7 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     public UnionFileCollection(Iterable<? extends FileCollection> source) {
-        this.source = GUtil.addToCollection(new LinkedHashSet<FileCollection>(), source);
+        this.source = GUtil.addToCollection(new LinkedHashSet<>(), source);
     }
 
     @Override

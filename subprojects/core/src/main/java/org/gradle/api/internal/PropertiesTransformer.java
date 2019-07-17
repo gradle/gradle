@@ -28,7 +28,7 @@ import java.util.Properties;
  * Transformer implementation to support modification of Properties objects.
  */
 public class PropertiesTransformer implements Transformer<Properties, Properties> {
-    private final MutableActionSet<Properties> actions = new MutableActionSet<Properties>();
+    private final MutableActionSet<Properties> actions = new MutableActionSet<>();
 
     /**
      * Adds an action to be executed when properties are transformed.

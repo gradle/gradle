@@ -54,8 +54,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public static class Builder {
-        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<org.gradle.tooling.ProgressListener>();
-        private final Map<OperationType, List<ProgressListener>> progressListeners = new EnumMap<OperationType, List<ProgressListener>>(OperationType.class);
+        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<>();
+        private final Map<OperationType, List<ProgressListener>> progressListeners = new EnumMap<>(OperationType.class);
         private String entryPoint;
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
@@ -131,7 +131,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         private static List<String> concat(List<String> first, List<String> second) {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             if (first  != null) {
                 result.addAll(first);
             }
@@ -152,7 +152,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
-            Set<String> taskPaths = new LinkedHashSet<String>();
+            Set<String> taskPaths = new LinkedHashSet<>();
             List<InternalLaunchable> launchablesParams = Lists.newArrayList();
             for (Launchable launchable : launchables) {
                 Object original = new ProtocolToModelAdapter().unpack(launchable);
@@ -190,7 +190,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                 List<ProgressListener> listeners = this.progressListeners.computeIfAbsent(type, new Function<OperationType, List<ProgressListener>>() {
                     @Override
                     public List<ProgressListener> apply(OperationType operationType) {
-                        return new ArrayList<ProgressListener>();
+                        return new ArrayList<>();
                     }
                 });
                 listeners.add(listener);

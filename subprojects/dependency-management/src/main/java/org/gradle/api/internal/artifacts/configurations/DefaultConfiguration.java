@@ -195,9 +195,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean visible = true;
     private boolean transitive = true;
-    private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
+    private Set<Configuration> extendsFrom = new LinkedHashSet<>();
     private String description;
-    private final Set<Object> excludeRules = new LinkedHashSet<Object>();
+    private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
 
     private final ProjectStateRegistry.SafeExclusiveLock resolutionLock;
@@ -360,7 +360,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
         }
-        this.extendsFrom = new LinkedHashSet<Configuration>();
+        this.extendsFrom = new LinkedHashSet<>();
         for (Configuration configuration : extendsFrom) {
             extendsFrom(configuration);
         }

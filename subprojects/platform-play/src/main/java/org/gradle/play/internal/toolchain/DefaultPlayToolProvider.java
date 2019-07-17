@@ -84,12 +84,12 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
             VersionedTwirlCompilerAdapter adapter = TwirlCompilerAdapterFactory.createAdapter(targetPlatform);
-            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(daemonWorkingDir, TwirlCompiler.class, new Object[] {adapter}, workerDaemonFactory, twirlClasspath, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory));
+            return cast(new DaemonPlayCompiler<>(daemonWorkingDir, TwirlCompiler.class, new Object[]{adapter}, workerDaemonFactory, twirlClasspath, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory));
         } else if (RoutesCompileSpec.class.isAssignableFrom(spec)) {
             VersionedRoutesCompilerAdapter adapter = RoutesCompilerAdapterFactory.createAdapter(targetPlatform);
-            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(daemonWorkingDir, RoutesCompiler.class, new Object[] {adapter}, workerDaemonFactory, routesClasspath, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory));
+            return cast(new DaemonPlayCompiler<>(daemonWorkingDir, RoutesCompiler.class, new Object[]{adapter}, workerDaemonFactory, routesClasspath, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory));
         } else if (JavaScriptCompileSpec.class.isAssignableFrom(spec)) {
-            return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(daemonWorkingDir, GoogleClosureCompiler.class, new Object[] {}, workerDaemonFactory, javaScriptClasspath, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory));
+            return cast(new DaemonPlayCompiler<>(daemonWorkingDir, GoogleClosureCompiler.class, new Object[]{}, workerDaemonFactory, javaScriptClasspath, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

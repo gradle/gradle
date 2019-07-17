@@ -39,7 +39,7 @@ public class DaemonBuildOptions {
     private static List<BuildOption<DaemonParameters>> options;
 
     static {
-        List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
+        List<BuildOption<DaemonParameters>> options = new ArrayList<>();
         options.add(new IdleTimeoutOption());
         options.add(new HealthCheckOption());
         options.add(new BaseDirOption());

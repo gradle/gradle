@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class BuildableCompilationState {
-    private final Map<File, SourceFileState> sourceFileStates = new HashMap<File, SourceFileState>();
+    private final Map<File, SourceFileState> sourceFileStates = new HashMap<>();
 
     public Set<File> getSourceInputs() {
         return sourceFileStates.keySet();

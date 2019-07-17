@@ -85,7 +85,7 @@ public class DaemonStopClient {
      */
     public void stop() {
         CountdownTimer timer = Time.startCountdownTimer(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        final Set<String> seen = new HashSet<String>();
+        final Set<String> seen = new HashSet<>();
 
         ExplainingSpec<DaemonContext> spec = new ExplainingSpec<DaemonContext>() {
             @Override

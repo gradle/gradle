@@ -57,7 +57,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         this.maxSize = maxSize;
     }
 
-    private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
+    private final Map<String, DefaultBinaryStore> stores = new HashMap<>();
     private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
     private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
@@ -74,7 +74,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private synchronized CachedStoreFactory<TransientConfigurationResults> getOldModelCache() {
         if (oldModelCache == null) {
-            oldModelCache = new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
+            oldModelCache = new CachedStoreFactory<>("Resolution result");
             cleanUpLater.add(oldModelCache);
         }
         return oldModelCache;
@@ -82,7 +82,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private synchronized CachedStoreFactory<ResolvedComponentResult> getNewModelCache() {
         if (newModelCache == null) {
-            newModelCache = new CachedStoreFactory<ResolvedComponentResult>("Resolution result");
+            newModelCache = new CachedStoreFactory<>("Resolution result");
             cleanUpLater.add(newModelCache);
         }
         return newModelCache;

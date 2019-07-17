@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Plugin;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public class PluginInspector {
@@ -38,17 +39,17 @@ public class PluginInspector {
             @SuppressWarnings("unchecked") Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;
             return Cast.uncheckedCast(toImperative(cast, hasRules));
         } else if (hasRules) {
-            return new PotentialPureRuleSourceClassPlugin<T>(type);
+            return new PotentialPureRuleSourceClassPlugin<>(type);
         } else {
-            return new PotentialUnknownTypePlugin<T>(type);
+            return new PotentialUnknownTypePlugin<>(type);
         }
     }
 
     private <T extends Plugin<?>> PotentialPlugin<T> toImperative(Class<T> type, boolean hasRules) {
         if (hasRules) {
-            return new PotentialHybridImperativeAndRulesPlugin<T>(type);
+            return new PotentialHybridImperativeAndRulesPlugin<>(type);
         } else {
-            return new PotentialImperativeClassPlugin<T>(type);
+            return new PotentialImperativeClassPlugin<>(type);
         }
     }
 

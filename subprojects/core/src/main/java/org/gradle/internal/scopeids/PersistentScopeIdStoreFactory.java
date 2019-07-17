@@ -37,8 +37,8 @@ class PersistentScopeIdStoreFactory {
     }
 
     PersistentStateCache<UniqueId> create(File file, String description) {
-        return new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<UniqueId>(
-            new SimpleStateCache<UniqueId>(
+        return new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<>(
+            new SimpleStateCache<>(
                 file,
                 new OnDemandFileAccess(file, description, fileLockManager),
                 UniqueIdSerializer.INSTANCE,

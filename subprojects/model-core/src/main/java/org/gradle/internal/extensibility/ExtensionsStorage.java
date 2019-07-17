@@ -32,14 +32,14 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ExtensionsStorage {
 
-    private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
+    private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<>();
 
     public <T> void add(TypeOf<T> publicType, String name, T extension) {
         if (hasExtension(name)) {
             throw new IllegalArgumentException(
                 format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, new ExtensionHolder<T>(name, publicType, extension));
+        extensions.put(name, new ExtensionHolder<>(name, publicType, extension));
     }
 
     public boolean hasExtension(String name) {
@@ -47,7 +47,7 @@ public class ExtensionsStorage {
     }
 
     public Map<String, Object> getAsMap() {
-        Map<String, Object> rawExtensions = new LinkedHashMap<String, Object>(extensions.size());
+        Map<String, Object> rawExtensions = new LinkedHashMap<>(extensions.size());
         for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
             rawExtensions.put(entry.getKey(), entry.getValue().get());
         }
@@ -129,7 +129,7 @@ public class ExtensionsStorage {
     }
 
     private List<String> registeredExtensionTypeNames() {
-        List<String> types = new ArrayList<String>(extensions.size());
+        List<String> types = new ArrayList<>(extensions.size());
         for (ExtensionHolder holder : extensions.values()) {
             types.add(holder.getPublicType().getSimpleName());
         }

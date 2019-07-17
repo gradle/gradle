@@ -33,7 +33,7 @@ public class XcodeWorkspaceFile extends XmlPersistableConfigurationObject {
     }
 
     public void addLocation(String location) {
-        Map<String, Object> attributes = new HashMap<String, Object>();
+        Map<String, Object> attributes = new HashMap<>();
         attributes.put("location", "absolute:" + location);
         getXml().appendNode("FileRef", attributes);
     }

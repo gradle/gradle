@@ -28,7 +28,7 @@ import org.gradle.internal.time.Clock;
  * Provides logging services per thread.
  */
 public class SynchronizedLogging implements LoggingProvider {
-    private final ThreadLocal<ThreadLoggingServices> services = new ThreadLocal<ThreadLoggingServices>();
+    private final ThreadLocal<ThreadLoggingServices> services = new ThreadLocal<>();
     private final Clock clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
 

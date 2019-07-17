@@ -78,10 +78,10 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private static final int PING_DELAY = 1000;
     private final Lock lock = new ReentrantLock();
 
-    private final Map<Long, ContendedAction> contendedActions = new HashMap<Long, ContendedAction>();
-    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<Long, FileLockReleasedSignal>();
-    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<Long, Integer>();
-    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
+    private final Map<Long, ContendedAction> contendedActions = new HashMap<>();
+    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<>();
+    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<>();
+    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<>();
 
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
@@ -272,7 +272,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         private final Lock lock = new ReentrantLock();
         private final long lockId;
         private final Action<FileLockReleasedSignal> action;
-        private Set<SocketAddress> requesters = new LinkedHashSet<SocketAddress>();
+        private Set<SocketAddress> requesters = new LinkedHashSet<>();
         private boolean running;
 
         private ContendedAction(long lockId, Action<FileLockReleasedSignal> action) {

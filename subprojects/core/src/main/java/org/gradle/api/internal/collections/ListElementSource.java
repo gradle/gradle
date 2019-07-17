@@ -83,7 +83,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
     @Override
     public boolean add(T element) {
         modCount++;
-        return getInserted().add(new Element<T>(element));
+        return getInserted().add(new Element<>(element));
     }
 
     @Override
@@ -172,7 +172,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
                     int j = previousSubIndex - 1;
                     while (j >= 0) {
                         T value = collected.get(j);
-                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<>(candidate, j))) {
                             previousIndex = i;
                             previousSubIndex = j;
                             previous = value;
@@ -228,13 +228,13 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
                 throw new IllegalStateException();
             }
             checkForComodification();
-            backingList.set(previousIndex, new Element<T>(t));
+            backingList.set(previousIndex, new Element<>(t));
         }
 
         @Override
         public void add(T t) {
             checkForComodification();
-            Element<T> element = new Element<T>(t);
+            Element<T> element = new Element<>(t);
             backingList.add(nextIndex, element);
             nextIndex++;
             previous = element.getValues().get(0);

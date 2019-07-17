@@ -102,14 +102,14 @@ public class Alignment<T> {
                 T a = current[--i];
                 T b = previous[--j];
                 if (a.equals(b)) {
-                    result.add(0, new Alignment<T>(b, a));
+                    result.add(0, new Alignment<>(b, a));
                 } else {
-                    result.add(0, new Alignment<T>(b, a));
+                    result.add(0, new Alignment<>(b, a));
                 }
             } else if (i > 0 && cost == 1 + costs[i - 1][j]) {
-                result.add(0, new Alignment<T>(null, current[--i]));
+                result.add(0, new Alignment<>(null, current[--i]));
             } else if (j > 0 && cost == 1 + costs[i][j - 1]) {
-                result.add(0, new Alignment<T>(previous[--j], null));
+                result.add(0, new Alignment<>(previous[--j], null));
             } else {
                 throw new IllegalStateException("Unexpected cost matrix");
             }

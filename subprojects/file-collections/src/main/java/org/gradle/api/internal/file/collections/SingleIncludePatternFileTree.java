@@ -65,7 +65,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
-        doVisit(visitor, baseDir, new LinkedList<String>(), 0, new AtomicBoolean());
+        doVisit(visitor, baseDir, new LinkedList<>(), 0, new AtomicBoolean());
     }
 
     private void doVisit(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {

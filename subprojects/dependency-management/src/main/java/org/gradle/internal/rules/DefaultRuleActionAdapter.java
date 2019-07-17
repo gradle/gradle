@@ -37,7 +37,7 @@ public class DefaultRuleActionAdapter implements RuleActionAdapter {
     @Override
     public <T> RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure) {
         try {
-            return ruleActionValidator.validate(new ClosureBackedRuleAction<T>(subjectType, closure));
+            return ruleActionValidator.validate(new ClosureBackedRuleAction<>(subjectType, closure));
         } catch (RuleActionValidationException e) {
             throw new InvalidUserCodeException(String.format(INVALID_CLOSURE_ERROR, context), e);
         }
@@ -46,7 +46,7 @@ public class DefaultRuleActionAdapter implements RuleActionAdapter {
     @Override
     public <T> RuleAction<? super T> createFromAction(Action<? super T> action) {
         try {
-            return ruleActionValidator.validate(new NoInputsRuleAction<T>(action));
+            return ruleActionValidator.validate(new NoInputsRuleAction<>(action));
         } catch (RuleActionValidationException e) {
             throw new InvalidUserCodeException(String.format(INVALID_ACTION_ERROR, context), e);
         }

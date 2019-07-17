@@ -136,7 +136,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private ResolveException getFailure() {
-        List<Throwable> failures = new ArrayList<Throwable>();
+        List<Throwable> failures = new ArrayList<>();
         for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
             failures.add(unresolvedDependency.getProblem());
         }
@@ -164,7 +164,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-        Set<ResolvedDependency> matches = new LinkedHashSet<ResolvedDependency>();
+        Set<ResolvedDependency> matches = new LinkedHashSet<>();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             matches.add(node.getPublicView());
         }
@@ -172,7 +172,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private Set<DependencyGraphNodeResult> getFirstLevelNodes(Spec<? super Dependency> dependencySpec) {
-        Set<DependencyGraphNodeResult> matches = new LinkedHashSet<DependencyGraphNodeResult>();
+        Set<DependencyGraphNodeResult> matches = new LinkedHashSet<>();
         TransientConfigurationResults graphResults = loadTransientGraphResults(getSelectedArtifacts());
         for (Map.Entry<Dependency, DependencyGraphNodeResult> entry : graphResults.getFirstLevelDependencies().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
@@ -184,8 +184,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public Set<ResolvedDependency> getAllModuleDependencies() {
-        Set<ResolvedDependency> resolvedElements = new LinkedHashSet<ResolvedDependency>();
-        Deque<ResolvedDependency> workQueue = new LinkedList<ResolvedDependency>();
+        Set<ResolvedDependency> resolvedElements = new LinkedHashSet<>();
+        Deque<ResolvedDependency> workQueue = new LinkedList<>();
         workQueue.addAll(loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren());
         while (!workQueue.isEmpty()) {
             ResolvedDependency item = workQueue.removeFirst();
@@ -262,7 +262,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             return;
         }
 
-        List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>();
+        List<ResolvedArtifactSet> artifactSets = new ArrayList<>();
 
         if (visitor.includeFiles()) {
             for (Map.Entry<FileCollectionDependency, Integer> entry : fileDependencyResults.getFirstLevelFiles().entrySet()) {
@@ -272,7 +272,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             }
         }
 
-        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(artifactSets));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<>(new ResolvedDependencyArtifactsGraph(artifactSets));
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             walker.add(node);
         }

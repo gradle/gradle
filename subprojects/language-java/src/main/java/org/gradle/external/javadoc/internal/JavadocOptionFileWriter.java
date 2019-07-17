@@ -16,9 +16,9 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.gradle.external.javadoc.JavadocOptionFileOption;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-import org.gradle.external.javadoc.JavadocOptionFileOption;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,7 +40,7 @@ public class JavadocOptionFileWriter {
         IoActions.writeTextFile(outputFile, new ErroringAction<BufferedWriter>() {
             @Override
             protected void doExecute(BufferedWriter writer) throws Exception {
-                final Map<String, JavadocOptionFileOption<?>> options = new TreeMap<String, JavadocOptionFileOption<?>>(optionFile.getOptions());
+                final Map<String, JavadocOptionFileOption<?>> options = new TreeMap<>(optionFile.getOptions());
                 JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
                 JavadocOptionFileOption<?> localeOption = options.remove("locale");

@@ -43,7 +43,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             return NoArtifactResults.INSTANCE;
         }
 
-        List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<ResolvedArtifactSet>(artifactsById.size());
+        List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
             ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, selector);
             resolvedArtifactSets.add(resolvedArtifacts);

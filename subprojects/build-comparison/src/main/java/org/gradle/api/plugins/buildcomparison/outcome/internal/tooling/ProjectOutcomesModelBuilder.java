@@ -54,7 +54,7 @@ public class ProjectOutcomesModelBuilder implements ToolingModelBuilder {
     private DomainObjectSet<GradleFileBuildOutcome> getFileOutcomes(Project project) {
         List<GradleFileBuildOutcome> fileBuildOutcomes = Lists.newArrayList();
         addArtifacts(project, fileBuildOutcomes);
-        return new ImmutableDomainObjectSet<GradleFileBuildOutcome>(fileBuildOutcomes);
+        return new ImmutableDomainObjectSet<>(fileBuildOutcomes);
     }
 
     private void addArtifacts(Project project, List<GradleFileBuildOutcome> outcomes) {

@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
@@ -61,13 +61,13 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final static byte SELECTOR = 4;
     private final static byte DEPENDENCY = 5;
 
-    private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
+    private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<>();
     private final BinaryStore store;
     private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
     private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer;
-    private final Set<Long> visitedComponents = new HashSet<Long>();
+    private final Set<Long> visitedComponents = new HashSet<>();
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final AttributeDesugaring desugaring;
 
@@ -225,7 +225,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             Timer clock = Time.startTimer();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-                Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
+                Map<Long, ComponentSelector> selectors = new HashMap<>();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;

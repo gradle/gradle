@@ -34,7 +34,7 @@ import java.util.Set;
 public class DefaultVersionControlRepository implements VersionControlRepository, Action<VcsMapping> {
     private final NotationParser<String, ModuleIdentifier> notationParser;
     private final VersionControlSpec spec;
-    private final Set<ModuleIdentifier> modules = new HashSet<ModuleIdentifier>();
+    private final Set<ModuleIdentifier> modules = new HashSet<>();
 
     @Inject
     public DefaultVersionControlRepository(URI url, NotationParser<String, ModuleIdentifier> notationParser, GitVersionControlSpec spec) {

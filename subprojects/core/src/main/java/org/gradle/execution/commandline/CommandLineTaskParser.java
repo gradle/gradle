@@ -36,7 +36,7 @@ public class CommandLineTaskParser {
 
     public List<TaskSelector.TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
         List<TaskSelector.TaskSelection> out = Lists.newArrayList();
-        List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
+        List<String> remainingPaths = new LinkedList<>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);
             TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), taskExecutionRequest.getRootDir(), path);

@@ -76,7 +76,7 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
     static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
         @Override
         public List<String> transform(LinkerSpec spec) {
-            List<String> args = new ArrayList<String>();
+            List<String> args = new ArrayList<>();
             if (spec.isDebuggable()) {
                 args.add("/DEBUG");
             }

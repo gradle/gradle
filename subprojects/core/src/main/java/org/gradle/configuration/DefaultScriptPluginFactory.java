@@ -37,13 +37,13 @@ import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
+import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
@@ -211,7 +211,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
             String operationId = scriptTarget.getId();
-            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
+            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
             final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {

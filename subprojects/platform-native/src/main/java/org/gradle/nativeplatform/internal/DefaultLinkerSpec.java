@@ -23,9 +23,9 @@ import java.util.List;
 
 public class DefaultLinkerSpec extends AbstractBinaryToolSpec implements LinkerSpec {
 
-    private final List<File> objectFiles = new ArrayList<File>();
-    private final List<File> libraries = new ArrayList<File>();
-    private final List<File> libraryPath = new ArrayList<File>();
+    private final List<File> objectFiles = new ArrayList<>();
+    private final List<File> libraries = new ArrayList<>();
+    private final List<File> libraryPath = new ArrayList<>();
     private File outputFile;
     private boolean debuggable;
 

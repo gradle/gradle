@@ -60,7 +60,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final Condition stateChange = lock.newCondition();
     private final Map<String, TaskState> tasks = Maps.newLinkedHashMap();
     private final Set<String> tasksAdded = Sets.newHashSet();
-    private final List<Throwable> taskFailures = new ArrayList<Throwable>();
+    private final List<Throwable> taskFailures = new ArrayList<>();
     private State state = State.CollectingTasks;
     private boolean stopRequested;
 
@@ -145,7 +145,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     @Override
     public void stop() {
-        ArrayList<Throwable> failures = new ArrayList<Throwable>();
+        ArrayList<Throwable> failures = new ArrayList<>();
         awaitTaskCompletion(failures);
         if (!failures.isEmpty()) {
             throw new MultipleBuildFailures(failures);

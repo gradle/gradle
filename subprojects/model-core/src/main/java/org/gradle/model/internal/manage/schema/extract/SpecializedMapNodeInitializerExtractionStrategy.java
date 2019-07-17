@@ -18,7 +18,8 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
@@ -36,7 +37,7 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
     @Override
     protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (schema instanceof SpecializedMapSchema) {
-            return new SpecializedMapNodeInitializer<T, E>((SpecializedMapSchema<T, E>) schema);
+            return new SpecializedMapNodeInitializer<>((SpecializedMapSchema<T, E>) schema);
         }
         return null;
     }

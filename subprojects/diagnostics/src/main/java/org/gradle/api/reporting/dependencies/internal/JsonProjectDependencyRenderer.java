@@ -149,7 +149,7 @@ public class JsonProjectDependencyRenderer {
         return CollectionUtils.collect(configurations, new Transformer<Map, Configuration>() {
             @Override
             public Map transform(Configuration configuration) {
-                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(4);
+                LinkedHashMap<String, Object> map = new LinkedHashMap<>(4);
                 map.put("name", configuration.getName());
                 map.put("description", configuration.getDescription());
                 map.put("dependencies", createDependencies(configuration));
@@ -164,9 +164,9 @@ public class JsonProjectDependencyRenderer {
         if (configuration.isCanBeResolved()) {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
-            return createDependencyChildren(root, new HashSet<Object>());
+            return createDependencyChildren(root, new HashSet<>());
         } else {
-            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<Object>());
+            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<>());
         }
     }
 
@@ -179,7 +179,7 @@ public class JsonProjectDependencyRenderer {
                 boolean alreadyRendered = alreadyVisited && !childDependency.getChildren().isEmpty();
                 String name = replaceArrow(childDependency.getName());
                 boolean hasConflict = !name.equals(childDependency.getName());
-                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(6);
+                LinkedHashMap<String, Object> map = new LinkedHashMap<>(6);
                 ModuleIdentifier moduleIdentifier = getModuleIdentifier(childDependency);
                 map.put("module", moduleIdentifier == null ? null : moduleIdentifier.toString());
                 map.put("name", name);
@@ -242,7 +242,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private Map createModuleInsight(ModuleIdentifier module, Configuration configuration) {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(2);
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>(2);
         map.put("module", module.toString());
         map.put("insight", createInsight(module, configuration));
         return map;
@@ -252,7 +252,7 @@ public class JsonProjectDependencyRenderer {
         final Spec<DependencyResult> dependencySpec = new StrictDependencyResultSpec(module);
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
+        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
 
         result.allDependencies(new Action<DependencyResult>() {
             @Override
@@ -268,12 +268,12 @@ public class JsonProjectDependencyRenderer {
             @Override
             public Object transform(RenderableDependency dependency) {
                 String name = replaceArrow(dependency.getName());
-                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(5);
+                LinkedHashMap<String, Object> map = new LinkedHashMap<>(5);
                 map.put("name", replaceArrow(dependency.getName()));
                 map.put("description", dependency.getDescription());
                 map.put("resolvable", dependency.getResolutionState());
                 map.put("hasConflict", !name.equals(dependency.getName()));
-                map.put("children", createInsightDependencyChildren(dependency, new HashSet<Object>(), configuration));
+                map.put("children", createInsightDependencyChildren(dependency, new HashSet<>(), configuration));
                 return map;
             }
         });
@@ -291,7 +291,7 @@ public class JsonProjectDependencyRenderer {
                 boolean hasConflict = !childName.equals(childDependency.getName());
                 String name = leaf ? configuration.getName() : childName;
 
-                LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(6);
+                LinkedHashMap<String, Object> map = new LinkedHashMap<>(6);
                 map.put("name", name);
                 map.put("resolvable", childDependency.getResolutionState());
                 map.put("hasConflict", hasConflict);

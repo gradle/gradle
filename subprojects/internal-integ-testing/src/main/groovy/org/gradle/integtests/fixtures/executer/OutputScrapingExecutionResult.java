@@ -138,7 +138,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private String normalize(LogContent output) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         List<String> lines = output.getLines();
         int i = 0;
         while (i < lines.size()) {
@@ -223,7 +223,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private Set<String> findExecutedTasksInOrderStarted() {
         if (tasks == null) {
-            tasks = new LinkedHashSet<String>(grepTasks(TASK_PATTERN));
+            tasks = new LinkedHashSet<>(grepTasks(TASK_PATTERN));
         }
         return tasks;
     }
@@ -238,7 +238,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!expectedTasks.equals(actualTasks)) {
             failOnDifferentSets("Build output does not contain the expected tasks.", expectedTasks, actualTasks);
@@ -277,12 +277,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public Set<String> getSkippedTasks() {
-        return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
+        return new TreeSet<>(grepTasks(SKIPPED_TASK_PATTERN));
     }
 
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> skippedTasks = getSkippedTasks();
         if (!expectedTasks.equals(skippedTasks)) {
             failOnDifferentSets("Build output does not contain the expected skipped tasks.", expectedTasks, skippedTasks);
@@ -292,7 +292,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTaskSkipped(String taskPath) {
-        Set<String> tasks = new TreeSet<String>(getSkippedTasks());
+        Set<String> tasks = new TreeSet<>(getSkippedTasks());
         if (!tasks.contains(taskPath)) {
             failOnMissingElement("Build output does not contain the expected skipped task.", taskPath, tasks);
         }
@@ -300,7 +300,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private Collection<String> getNotSkippedTasks() {
-        Set<String> all = new TreeSet<String>(getExecutedTasks());
+        Set<String> all = new TreeSet<>(getExecutedTasks());
         Set<String> skipped = getSkippedTasks();
         all.removeAll(skipped);
         return all;
@@ -308,8 +308,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
-        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
+        Set<String> tasks = new TreeSet<>(getNotSkippedTasks());
         if (!expectedTasks.equals(tasks)) {
             failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, tasks);
         }
@@ -318,7 +318,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        Set<String> tasks = new TreeSet<>(getNotSkippedTasks());
         if (!tasks.contains(taskPath)) {
             failOnMissingElement("Build output does not contain the expected non skipped task.", taskPath, tasks);
         }

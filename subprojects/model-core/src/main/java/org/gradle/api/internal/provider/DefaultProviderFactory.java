@@ -28,6 +28,6 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");
         }
-        return new DefaultProvider<T>(value);
+        return new DefaultProvider<>(value);
     }
 }

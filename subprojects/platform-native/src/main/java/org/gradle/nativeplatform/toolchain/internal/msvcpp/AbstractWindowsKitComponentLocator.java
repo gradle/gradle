@@ -52,7 +52,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
     private final SetMultimap<File, T> foundComponents = HashMultimap.create();
-    private final Set<File> brokenComponents = new LinkedHashSet<File>();
+    private final Set<File> brokenComponents = new LinkedHashSet<>();
     private final WindowsRegistry windowsRegistry;
     private boolean initialised;
 
@@ -106,12 +106,12 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     private SearchResult<T> locateDefaultComponent() {
         T selected = getBestComponent();
         if (selected != null) {
-            return new ComponentFound<T>(selected);
+            return new ComponentFound<>(selected);
         }
         if (brokenComponents.isEmpty()) {
-            return new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation using the Windows registry.");
+            return new ComponentNotFound<>("Could not locate a " + getDisplayName() + " installation using the Windows registry.");
         }
-        return new ComponentNotFound<T>("Could not locate a " + getDisplayName() + " installation. None of the following locations contain a valid installation",
+        return new ComponentNotFound<>("Could not locate a " + getDisplayName() + " installation. None of the following locations contain a valid installation",
             CollectionUtils.collect(brokenComponents, new Transformer<String, File>() {
                 @Override
                 public String transform(File file) {
@@ -121,7 +121,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     }
 
     private T getBestComponent() {
-        final SortedSet<T> candidates = new TreeSet<T>(new DescendingComponentVersionComparator());
+        final SortedSet<T> candidates = new TreeSet<>(new DescendingComponentVersionComparator());
         candidates.addAll(foundComponents.values());
         return candidates.isEmpty() ? null : candidates.iterator().next();
     }
@@ -148,7 +148,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     }
 
     private Set<T> findIn(File windowsKitDir, DiscoveryType discoveryType) {
-        Set<T> found = new LinkedHashSet<T>();
+        Set<T> found = new LinkedHashSet<>();
         String[] versionDirs = getComponentVersionDirs(windowsKitDir);
         for (String versionDir : versionDirs) {
             VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
@@ -176,12 +176,12 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             candidates = findIn(windowsKitDir, DiscoveryType.USER);
         }
         if (candidates.isEmpty()) {
-            return new ComponentNotFound<T>(String.format("The specified installation directory '%s' does not appear to contain a %s installation.", candidate, getDisplayName()));
+            return new ComponentNotFound<>(String.format("The specified installation directory '%s' does not appear to contain a %s installation.", candidate, getDisplayName()));
         }
 
-        Set<T> found = new TreeSet<T>(new DescendingComponentVersionComparator());
+        Set<T> found = new TreeSet<>(new DescendingComponentVersionComparator());
         found.addAll(candidates);
-        return new ComponentFound<T>(found.iterator().next());
+        return new ComponentFound<>(found.iterator().next());
     }
 
     private String[] getComponentVersionDirs(File candidate) {
@@ -191,19 +191,19 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             return new String[0];
         }
 
-        Map<String, File> includeDirs = new HashMap<String, File>();
+        Map<String, File> includeDirs = new HashMap<>();
         for (File dir : includeDir.listFiles(windowsKitVersionFilter)) {
             includeDirs.put(dir.getName(), dir);
         }
-        Map<String, File> libDirs = new HashMap<String, File>();
+        Map<String, File> libDirs = new HashMap<>();
         for (File dir : libDir.listFiles(windowsKitVersionFilter)) {
             libDirs.put(dir.getName(), dir);
         }
-        Set<String> kitVersions = new HashSet<String>();
+        Set<String> kitVersions = new HashSet<>();
         kitVersions.addAll(includeDirs.keySet());
         kitVersions.addAll(libDirs.keySet());
 
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (String version : kitVersions) {
             File inc = includeDirs.get(version);
             File lib = libDirs.get(version);

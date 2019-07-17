@@ -49,13 +49,13 @@ import java.util.Set;
  */
 @NonNullApi
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
-    private final Deque<Object> queue = new ArrayDeque<Object>();
+    private final Deque<Object> queue = new ArrayDeque<>();
     private final CachingDirectedGraphWalker<Object, T> walker;
     private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
     private Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
-        this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
+        this.walker = new CachingDirectedGraphWalker<>(new TaskGraphImpl(workResolvers));
         this.workResolvers = workResolvers;
     }
 
@@ -116,7 +116,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             } else if (node instanceof FinalizeAction) {
                 FinalizeAction finalizeAction = (FinalizeAction) node;
                 TaskDependencyContainer dependencies = finalizeAction.getDependencies();
-                Set<T> deps = new CachingTaskDependencyResolveContext<T>(workResolvers).getDependencies(task, dependencies);
+                Set<T> deps = new CachingTaskDependencyResolveContext<>(workResolvers).getDependencies(task, dependencies);
                 for (T dep : deps) {
                     attachFinalizerTo(dep, finalizeAction);
                     values.add(dep);

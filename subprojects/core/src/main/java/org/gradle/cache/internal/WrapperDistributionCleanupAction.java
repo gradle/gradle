@@ -147,7 +147,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
 
     @VisibleForTesting
     protected GradleVersion determineGradleVersionFromDistribution(File distributionHomeDir) throws Exception {
-        List<File> checkedJarFiles = new ArrayList<File>();
+        List<File> checkedJarFiles = new ArrayList<>();
         for (Map.Entry<String, Pattern> entry : JAR_FILE_PATTERNS_BY_PREFIX.entrySet()) {
             List<File> jarFiles = listFiles(new File(distributionHomeDir, "lib"), new RegexFileFilter(entry.getValue()));
             if (!jarFiles.isEmpty()) {

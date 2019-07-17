@@ -108,7 +108,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     @Override
     public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
-        return new FilteredEventRegister<S>(filter, this);
+        return new FilteredEventRegister<>(filter, this);
     }
 
     private void subscribe(Class<? extends T> type) {
@@ -120,7 +120,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
             subscribedTypes = null;
         } else {
             if (subscribedTypes == null) {
-                subscribedTypes = new HashSet<Class<?>>();
+                subscribedTypes = new HashSet<>();
             }
             subscribedTypes.add(type);
         }
@@ -177,7 +177,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
         @Override
         public <N extends S> CollectionEventRegister<N> filtered(CollectionFilter<N> filter) {
-            return new FilteredEventRegister<N>(filter, (CollectionEventRegister<T>) this);
+            return new FilteredEventRegister<>(filter, (CollectionEventRegister<T>) this);
         }
     }
 

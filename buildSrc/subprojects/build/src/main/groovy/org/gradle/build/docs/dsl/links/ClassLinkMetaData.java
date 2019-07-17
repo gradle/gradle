@@ -33,7 +33,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     private final String simpleName;
     private final String packageName;
     private LinkMetaData.Style style;
-    private final Map<String, MethodLinkMetaData> methods = new HashMap<String, MethodLinkMetaData>();
+    private final Map<String, MethodLinkMetaData> methods = new HashMap<>();
 
     public ClassLinkMetaData(ClassMetaData classMetaData) {
         this.className = classMetaData.getClassName();
@@ -74,7 +74,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
             return metaData;
         }
 
-        List<MethodLinkMetaData> candidates = new ArrayList<MethodLinkMetaData>();
+        List<MethodLinkMetaData> candidates = new ArrayList<>();
         for (MethodLinkMetaData methodLinkMetaData : methods.values()) {
             if (methodLinkMetaData.name.equals(method)) {
                 candidates.add(methodLinkMetaData);

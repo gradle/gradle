@@ -32,7 +32,7 @@ public class DefaultSourceControl implements SourceControl {
     private final FileResolver fileResolver;
     private final VcsMappings vcsMappings;
     private final VersionControlSpecFactory specFactory;
-    private final Map<URI, DefaultVersionControlRepository> repos = new HashMap<URI, DefaultVersionControlRepository>();
+    private final Map<URI, DefaultVersionControlRepository> repos = new HashMap<>();
 
     @Inject
     public DefaultSourceControl(FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {

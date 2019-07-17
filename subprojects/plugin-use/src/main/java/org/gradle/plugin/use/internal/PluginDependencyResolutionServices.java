@@ -102,7 +102,7 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
             @Override
             public List<ArtifactRepository> getPluginRepositories() {
                 RepositoryHandler repositories = getResolveRepositoryHandler();
-                List<ArtifactRepository> list = new ArrayList<ArtifactRepository>(repositories.size());
+                List<ArtifactRepository> list = new ArrayList<>(repositories.size());
                 for (ArtifactRepository repository : repositories) {
                     list.add(new PluginArtifactRepository(repository));
                 }

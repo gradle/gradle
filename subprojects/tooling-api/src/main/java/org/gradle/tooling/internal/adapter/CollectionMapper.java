@@ -29,26 +29,26 @@ import java.util.TreeSet;
 class CollectionMapper {
     Collection<Object> createEmptyCollection(Class<?> collectionType) {
         if (collectionType.equals(DomainObjectSet.class)) {
-            return new ArrayList<Object>();
+            return new ArrayList<>();
         }
         if (collectionType.isAssignableFrom(ArrayList.class)) {
-            return new ArrayList<Object>();
+            return new ArrayList<>();
         }
         if (collectionType.isAssignableFrom(LinkedHashSet.class)) {
-            return new LinkedHashSet<Object>();
+            return new LinkedHashSet<>();
         }
         if (collectionType.isAssignableFrom(TreeSet.class)) {
-            return new TreeSet<Object>();
+            return new TreeSet<>();
         }
         throw new UnsupportedOperationException(String.format("Cannot convert a Collection to type %s.", collectionType.getName()));
     }
 
     Map<Object, Object> createEmptyMap(Class<?> mapType) {
         if (mapType.isAssignableFrom(LinkedHashMap.class)) {
-            return new LinkedHashMap<Object, Object>();
+            return new LinkedHashMap<>();
         }
         if (mapType.isAssignableFrom(TreeMap.class)) {
-            return new TreeMap<Object, Object>();
+            return new TreeMap<>();
         }
         throw new UnsupportedOperationException(String.format("Cannot convert a Map to type %s.", mapType.getName()));
     }

@@ -23,9 +23,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class FailureCollectingTaskDependencyResolveContext implements TaskDependencyResolveContext {
-    private final Set<Object> seen = new HashSet<Object>();
+    private final Set<Object> seen = new HashSet<>();
     private final TaskDependencyResolveContext context;
-    private final Set<Throwable> failures = new LinkedHashSet<Throwable>();
+    private final Set<Throwable> failures = new LinkedHashSet<>();
 
     public FailureCollectingTaskDependencyResolveContext(TaskDependencyResolveContext context) {
         this.context = context;

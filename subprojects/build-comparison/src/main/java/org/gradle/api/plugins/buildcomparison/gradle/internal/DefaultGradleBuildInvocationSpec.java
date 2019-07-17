@@ -32,8 +32,8 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
     private PathToFileResolver fileResolver;
     private Object projectDir;
     private String gradleVersion = GradleVersion.current().getVersion();
-    private List<String> tasks = new LinkedList<String>();
-    private List<String> arguments = new LinkedList<String>();
+    private List<String> tasks = new LinkedList<>();
+    private List<String> arguments = new LinkedList<>();
 
     @Inject
     public DefaultGradleBuildInvocationSpec(PathToFileResolver fileResolver, Object projectDir) {
@@ -75,7 +75,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
 
     @Override
     public void setTasks(Iterable<String> tasks) {
-        this.tasks = tasks == null ? new LinkedList<String>() : Lists.newLinkedList(tasks);
+        this.tasks = tasks == null ? new LinkedList<>() : Lists.newLinkedList(tasks);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
 
     @Override
     public void setArguments(Iterable<String> arguments) {
-        this.arguments = arguments == null ? new LinkedList<String>() : Lists.newLinkedList(arguments);
+        this.arguments = arguments == null ? new LinkedList<>() : Lists.newLinkedList(arguments);
     }
 
     @Override

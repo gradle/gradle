@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DefaultPreprocessingTool extends DefaultTool implements PreprocessingTool {
-    private final Map<String, String> definitions = new LinkedHashMap<String, String>();
+    private final Map<String, String> definitions = new LinkedHashMap<>();
 
     @Override
     public Map<String, String> getMacros() {

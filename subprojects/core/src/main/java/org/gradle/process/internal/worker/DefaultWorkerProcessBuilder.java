@@ -54,8 +54,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
     private final OutputEventListener outputEventListener;
     private final JavaExecHandleBuilder javaCommand;
-    private final Set<String> packages = new HashSet<String>();
-    private final Set<File> applicationClasspath = new LinkedHashSet<File>();
+    private final Set<String> packages = new HashSet<>();
+    private final Set<File> applicationClasspath = new LinkedHashSet<>();
     private final MemoryManager memoryManager;
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;

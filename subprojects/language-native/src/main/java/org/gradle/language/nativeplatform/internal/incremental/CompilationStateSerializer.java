@@ -39,7 +39,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     @Override
     public CompilationState read(Decoder decoder) throws Exception {
         // Deduplicates the include file states, as these are often shared between source files
-        Map<Integer, IncludeFileEdge> ids = new HashMap<Integer, IncludeFileEdge>();
+        Map<Integer, IncludeFileEdge> ids = new HashMap<>();
         int sourceFileCount = decoder.readSmallInt();
         ImmutableMap.Builder<File, SourceFileState> builder = ImmutableMap.builder();
         for (int i = 0; i < sourceFileCount; i++) {
@@ -71,7 +71,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     @Override
     public void write(Encoder encoder, CompilationState value) throws Exception {
         // Deduplicates the include file states, as these are often shared between source files
-        Map<IncludeFileEdge, Integer> ids = new HashMap<IncludeFileEdge, Integer>();
+        Map<IncludeFileEdge, Integer> ids = new HashMap<>();
         encoder.writeSmallInt(value.getFileStates().size());
         for (Map.Entry<File, SourceFileState> entry : value.getFileStates().entrySet()) {
             SourceFileState sourceFileState = entry.getValue();

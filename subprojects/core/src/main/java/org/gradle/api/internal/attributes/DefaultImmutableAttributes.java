@@ -224,7 +224,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public String toString() {
-        Map<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
+        Map<Attribute<?>, Object> sorted = new TreeMap<>(ATTRIBUTE_NAME_COMPARATOR);
         for (Map.Entry<Attribute<?>, DefaultImmutableAttributes> entry : hierarchy.entrySet()) {
             sorted.put(entry.getKey(), entry.getValue().value.isolate());
         }

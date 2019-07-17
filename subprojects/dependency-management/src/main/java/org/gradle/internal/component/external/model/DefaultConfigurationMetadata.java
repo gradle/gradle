@@ -172,7 +172,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     }
 
     private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {
-        ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>();
+        ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
         for (ModuleDependencyMetadata configDependency : configDependencies) {
             if (configDependency instanceof ForcingDependencyMetadata) {
                 dependencies.add((ModuleDependencyMetadata) ((ForcingDependencyMetadata) configDependency).forced());
@@ -192,7 +192,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         for (ModuleDependencyMetadata configDependency : configDependencies) {
             if (configDependency.isConstraint() == constraint) {
                 if (filtered == null) {
-                    filtered = new ImmutableList.Builder<ModuleDependencyMetadata>();
+                    filtered = new ImmutableList.Builder<>();
                 }
                 filtered.add(configDependency);
                 count++;

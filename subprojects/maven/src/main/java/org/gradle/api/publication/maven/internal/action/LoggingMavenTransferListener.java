@@ -32,7 +32,7 @@ class LoggingMavenTransferListener extends AbstractTransferListener {
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final BuildOperationRef buildOperationRef;
-    private final ThreadLocal<BuildOperationRef> previousBuildOperationRef = new ThreadLocal<BuildOperationRef>();
+    private final ThreadLocal<BuildOperationRef> previousBuildOperationRef = new ThreadLocal<>();
 
     /*
         Note: Aether implicitly uses a thread pool and tasks to perform transfers,

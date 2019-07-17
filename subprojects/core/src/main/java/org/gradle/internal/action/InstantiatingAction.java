@@ -38,7 +38,7 @@ public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
     }
 
     public InstantiatingAction<DETAILS> withInstantiator(Instantiator instantiator) {
-        return new InstantiatingAction<DETAILS>(rules, instantiator, exceptionHandler);
+        return new InstantiatingAction<>(rules, instantiator, exceptionHandler);
     }
 
     @Override

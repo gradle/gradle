@@ -54,7 +54,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     public List<String> getKnownVersions() {
         if (knownVersions == null) {
-            ArrayList<String> result = new ArrayList<String>();
+            ArrayList<String> result = new ArrayList<>();
             result.addAll(versions);
             result.addAll(branches);
             knownVersions = result;
@@ -74,7 +74,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
      */
     public List<CrossVersionPerformanceResults> getResultsOldestFirst() {
         if (oldestFirst == null) {
-            oldestFirst = new ArrayList<CrossVersionPerformanceResults>(newestFirst);
+            oldestFirst = new ArrayList<>(newestFirst);
             Collections.reverse(oldestFirst);
         }
         return oldestFirst;

@@ -63,7 +63,7 @@ public class BuildExperimentRunner {
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             final List<String> additionalJvmOpts = profiler.getAdditionalJvmOpts(experiment);
-            final List<String> additionalArgs = new ArrayList<String>(profiler.getAdditionalGradleArgs(experiment));
+            final List<String> additionalArgs = new ArrayList<>(profiler.getAdditionalGradleArgs(experiment));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
@@ -222,7 +222,7 @@ public class BuildExperimentRunner {
     }
 
     protected List<String> createIterationInfoArguments(Phase phase, int iterationNumber, int iterationMax) {
-        List<String> args = new ArrayList<String>(3);
+        List<String> args = new ArrayList<>(3);
         args.add("-PbuildExperimentPhase=" + phase.toString().toLowerCase());
         args.add("-PbuildExperimentIterationNumber=" + iterationNumber);
         args.add("-PbuildExperimentIterationMax=" + iterationMax);

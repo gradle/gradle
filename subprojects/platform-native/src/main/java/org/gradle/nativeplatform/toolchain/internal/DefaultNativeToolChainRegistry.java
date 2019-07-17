@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<NativeToolChain> implements NativeToolChainRegistryInternal {
-    private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
-    private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
+    private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<>();
+    private final List<NativeToolChainInternal> searchOrder = new ArrayList<>();
 
     public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(NativeToolChain.class, instantiator, collectionCallbackActionDecorator);
@@ -84,7 +84,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         }
 
         // No tool chains can build for this platform. Assemble a description of why
-        Map<String, PlatformToolProvider> candidates = new LinkedHashMap<String, PlatformToolProvider>();
+        Map<String, PlatformToolProvider> candidates = new LinkedHashMap<>();
         for (NativeToolChainInternal toolChain : searchOrder) {
             candidates.put(toolChain.getDisplayName(), toolChain.select(sourceLanguage, targetMachine));
         }

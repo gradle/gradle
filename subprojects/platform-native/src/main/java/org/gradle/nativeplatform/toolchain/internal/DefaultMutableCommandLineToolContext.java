@@ -28,8 +28,8 @@ import java.util.Map;
 
 public class DefaultMutableCommandLineToolContext implements MutableCommandLineToolContext {
     private Action<List<String>> postArgsAction = Actions.doNothing();
-    private final Map<String, String> environment = new HashMap<String, String>();
-    private final List<File> path = new ArrayList<File>();
+    private final Map<String, String> environment = new HashMap<>();
+    private final List<File> path = new ArrayList<>();
 
     @Override
     public void setArgAction(Action<List<String>> argAction) {

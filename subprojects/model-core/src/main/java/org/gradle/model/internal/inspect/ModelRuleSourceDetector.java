@@ -25,11 +25,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.RuleSource;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -55,7 +55,7 @@ public class ModelRuleSourceDetector {
                 public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) throws Exception {
                     if (isRuleSource(container)) {
                         Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
-                        return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<Class<? extends RuleSource>>(castClass));
+                        return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<>(castClass));
                     }
 
                     Class<?>[] declaredClasses = container.getDeclaredClasses();
@@ -71,7 +71,7 @@ public class ModelRuleSourceDetector {
                         for (Class<?> declaredClass : sortedDeclaredClasses) {
                             if (isRuleSource(declaredClass)) {
                                 Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
-                                found.add(new WeakReference<Class<? extends RuleSource>>(castClass));
+                                found.add(new WeakReference<>(castClass));
                             }
                         }
 

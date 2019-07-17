@@ -41,10 +41,10 @@ import java.util.concurrent.Executor;
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private final FileCollectionFactory fileCollectionFactory;
     private String mainClass;
-    private final List<Object> applicationArgs = new ArrayList<Object>();
+    private final List<Object> applicationArgs = new ArrayList<>();
     private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
 
     public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver, executor, buildCancellationToken);
@@ -55,7 +55,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<String> getAllJvmArgs() {
-        List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
+        List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
         if (mainClass == null) {
             if (classpath != null && classpath.getFiles().size() == 1) {
                 allArgs.add("-jar");
@@ -212,7 +212,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     @Nonnull
     public List<String> getArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         for (Object applicationArg : applicationArgs) {
             args.add(applicationArg.toString());
         }
@@ -278,7 +278,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<String> getAllArguments() {
-        List<String> arguments = new ArrayList<String>(getAllJvmArgs());
+        List<String> arguments = new ArrayList<>(getAllJvmArgs());
         arguments.addAll(getArgs());
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(arguments, argumentProvider.asArguments());

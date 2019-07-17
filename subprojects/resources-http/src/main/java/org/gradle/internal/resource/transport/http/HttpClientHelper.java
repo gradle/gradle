@@ -58,7 +58,7 @@ public class HttpClientHelper implements Closeable {
     public HttpClientHelper(HttpSettings settings) {
         this.settings = settings;
         if (!settings.getAuthenticationSettings().isEmpty()) {
-            sharedContext = new ConcurrentLinkedQueue<HttpContext>();
+            sharedContext = new ConcurrentLinkedQueue<>();
         } else {
             sharedContext = null;
         }

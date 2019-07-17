@@ -53,6 +53,6 @@ public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOpt
 
     @Override
     public EnumJavadocOptionFileOption<T> duplicate() {
-        return new EnumJavadocOptionFileOption<T>(option, value);
+        return new EnumJavadocOptionFileOption<>(option, value);
     }
 }

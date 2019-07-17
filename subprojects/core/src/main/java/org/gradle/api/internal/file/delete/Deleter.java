@@ -82,7 +82,7 @@ public class Deleter {
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
         long startTime = clock.getCurrentTime();
-        Collection<String> failedPaths = new ArrayList<String>();
+        Collection<String> failedPaths = new ArrayList<>();
         deleteRecursively(startTime, file, file, deleteSpec, failedPaths);
         if (!failedPaths.isEmpty()) {
             throwWithHelpMessage(startTime, file, deleteSpec, failedPaths, false);
@@ -190,8 +190,8 @@ public class Deleter {
     }
 
     private Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
-        List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
-        Deque<File> stack = new ArrayDeque<File>();
+        List<String> paths = new ArrayList<>(MAX_REPORTED_PATHS);
+        Deque<File> stack = new ArrayDeque<>();
         stack.push(directory);
         while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
             File current = stack.pop();

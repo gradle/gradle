@@ -24,7 +24,7 @@ import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
-    private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
+    private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<>(ModuleSource.class.getClassLoader());
 
     @Override
     public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {

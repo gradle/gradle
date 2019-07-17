@@ -24,7 +24,7 @@ class SingleWeakClassSet extends WeakClassSet {
     private final int hash;
 
     SingleWeakClassSet(Class<?> clazz) {
-        this.reference = new WeakReference<Class<?>>(clazz);
+        this.reference = new WeakReference<>(clazz);
         this.hash = clazz.hashCode();
     }
 

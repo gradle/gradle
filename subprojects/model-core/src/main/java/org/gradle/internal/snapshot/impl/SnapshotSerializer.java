@@ -95,7 +95,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 size = decoder.readSmallInt();
                 ImmutableList.Builder<MapEntrySnapshot<ValueSnapshot>> mapBuilder = ImmutableList.builderWithExpectedSize(size);
                 for (int i = 0; i < size; i++) {
-                    mapBuilder.add(new MapEntrySnapshot<ValueSnapshot>(read(decoder), read(decoder)));
+                    mapBuilder.add(new MapEntrySnapshot<>(read(decoder), read(decoder)));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
             case MANAGED_SNAPSHOT:

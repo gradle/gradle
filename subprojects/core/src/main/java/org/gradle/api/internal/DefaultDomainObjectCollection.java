@@ -47,7 +47,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final ElementSource<T> store;
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
-        this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
+        this(type, store, new DefaultCollectionEventRegister<>(type, callbackActionDecorator));
     }
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
@@ -87,15 +87,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> CollectionFilter<S> createFilter(Class<S> type) {
-        return new CollectionFilter<S>(type);
+        return new CollectionFilter<>(type);
     }
 
     protected <S extends T> CollectionFilter<S> createFilter(Class<? extends S> type, Spec<? super S> spec) {
-        return new CollectionFilter<S>(type, spec);
+        return new CollectionFilter<>(type, spec);
     }
 
     protected <S extends T> DefaultDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectCollection<S>(this, filter);
+        return new DefaultDomainObjectCollection<>(this, filter);
     }
 
     protected <S extends T> ElementSource<S> filteredStore(final CollectionFilter<S> filter) {
@@ -103,7 +103,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> ElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredCollection<T, S>(elementSource, filter);
+        return new FilteredCollection<>(elementSource, filter);
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
@@ -432,7 +432,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public Collection<T> findAll(Closure cl) {
-        return findAll(cl, new ArrayList<T>());
+        return findAll(cl, new ArrayList<>());
     }
 
     protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {

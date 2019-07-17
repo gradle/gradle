@@ -92,7 +92,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         final StreamByteBuffer outputBuffer = new StreamByteBuffer();
         final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer.getOutputStream());
 
-        final List<BuildTask> tasks = new ArrayList<BuildTask>();
+        final List<BuildTask> tasks = new ArrayList<>();
 
         maybeRegisterCleanup();
 
@@ -196,7 +196,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     private class TaskExecutionProgressListener implements ProgressListener {
         private final List<BuildTask> tasks;
-        private final Map<String, Integer> order = new HashMap<String, Integer>();
+        private final Map<String, Integer> order = new HashMap<>();
 
         public TaskExecutionProgressListener(List<BuildTask> tasks) {
             this.tasks = tasks;

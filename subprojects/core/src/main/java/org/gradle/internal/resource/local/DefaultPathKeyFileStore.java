@@ -154,7 +154,7 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
             return Collections.emptySet();
         }
 
-        final Set<LocallyAvailableResource> entries = new HashSet<LocallyAvailableResource>();
+        final Set<LocallyAvailableResource> entries = new HashSet<>();
         findFiles(pattern).visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(FileVisitDetails fileDetails) {

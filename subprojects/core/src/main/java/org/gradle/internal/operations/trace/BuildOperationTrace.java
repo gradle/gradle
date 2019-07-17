@@ -173,7 +173,7 @@ public class BuildOperationTrace implements Stoppable {
             @Nonnull
             public Iterator<String> iterator() {
 
-                final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<Queue<BuildOperationRecord>>(Collections.singleton(new ArrayDeque<BuildOperationRecord>(roots)));
+                final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<>(roots)));
                 final StringBuilder stringBuilder = new StringBuilder();
 
                 return new Iterator<String>() {
@@ -203,7 +203,7 @@ public class BuildOperationTrace implements Stoppable {
                         }
 
                         if (!record.children.isEmpty()) {
-                            stack.addFirst(new ArrayDeque<BuildOperationRecord>(record.children));
+                            stack.addFirst(new ArrayDeque<>(record.children));
                         }
 
                         stringBuilder.append(record.displayName);
@@ -261,9 +261,9 @@ public class BuildOperationTrace implements Stoppable {
         try {
             final JsonSlurper slurper = new JsonSlurper();
 
-            final List<BuildOperationRecord> roots = new ArrayList<BuildOperationRecord>();
-            final Map<Object, PendingOperation> pendings = new HashMap<Object, PendingOperation>();
-            final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<Object, List<BuildOperationRecord>>();
+            final List<BuildOperationRecord> roots = new ArrayList<>();
+            final Map<Object, PendingOperation> pendings = new HashMap<>();
+            final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<>();
 
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
                 @Override
@@ -272,7 +272,7 @@ public class BuildOperationTrace implements Stoppable {
                     if (map.containsKey("startTime")) {
                         SerializedOperationStart serialized = new SerializedOperationStart(map);
                         pendings.put(serialized.id, new PendingOperation(serialized));
-                        childrens.put(serialized.id, new LinkedList<BuildOperationRecord>());
+                        childrens.put(serialized.id, new LinkedList<>());
                     } else if (map.containsKey("time")) {
                         SerializedOperationProgress serialized = new SerializedOperationProgress(map);
                         PendingOperation pending = pendings.get(serialized.id);
@@ -292,7 +292,7 @@ public class BuildOperationTrace implements Stoppable {
                         Map<String, ?> detailsMap = uncheckedCast(start.details);
                         Map<String, ?> resultMap = uncheckedCast(finish.result);
 
-                        List<BuildOperationRecord.Progress> progresses = new ArrayList<BuildOperationRecord.Progress>();
+                        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
                         for (SerializedOperationProgress progress : pending.progress) {
                             Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
                             progresses.add(new BuildOperationRecord.Progress(
@@ -355,7 +355,7 @@ public class BuildOperationTrace implements Stoppable {
     static class PendingOperation {
 
         final SerializedOperationStart start;
-        final List<SerializedOperationProgress> progress = new ArrayList<SerializedOperationProgress>();
+        final List<SerializedOperationProgress> progress = new ArrayList<>();
 
         PendingOperation(SerializedOperationStart start) {
             this.start = start;
@@ -377,7 +377,7 @@ public class BuildOperationTrace implements Stoppable {
         // truly immutable and convey values known at the time.
         private boolean buffering = true;
         private final Lock bufferLock = new ReentrantLock();
-        private final Queue<Entry> buffer = new ConcurrentLinkedQueue<Entry>();
+        private final Queue<Entry> buffer = new ConcurrentLinkedQueue<>();
 
         @Override
         public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {

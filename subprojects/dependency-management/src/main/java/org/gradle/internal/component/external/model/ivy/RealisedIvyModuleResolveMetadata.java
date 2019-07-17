@@ -67,7 +67,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     private static Map<String, ConfigurationMetadata> realiseConfigurations(DefaultIvyModuleResolveMetadata metadata, VariantMetadataRules variantMetadataRules) {
-        Map<Artifact, ModuleComponentArtifactMetadata> artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
+        Map<Artifact, ModuleComponentArtifactMetadata> artifacts = new IdentityHashMap<>();
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), artifacts, metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
 
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());

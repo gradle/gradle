@@ -81,7 +81,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason, NotationParser<Object, ComponentSelector> projectSelectorNotationParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this(reason, new LinkedHashSet<Action<? super DependencySubstitution>>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser);
+        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser);
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
@@ -184,7 +184,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     public DependencySubstitutionsInternal copy() {
         return new DefaultDependencySubstitutions(
             reason,
-            new LinkedHashSet<Action<? super DependencySubstitution>>(substitutionRules),
+            new LinkedHashSet<>(substitutionRules),
             moduleSelectorNotationParser,
             projectSelectorNotationParser);
     }

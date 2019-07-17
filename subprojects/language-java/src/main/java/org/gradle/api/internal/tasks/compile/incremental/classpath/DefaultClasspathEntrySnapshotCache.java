@@ -30,7 +30,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     public DefaultClasspathEntrySnapshotCache(FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-        cache = new MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData>(persistentCache);
+        cache = new MinimalPersistentCache<>(persistentCache);
     }
 
     @Override

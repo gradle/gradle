@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultClassPathRegistry implements ClassPathRegistry {
-    private final List<ClassPathProvider> providers = new ArrayList<ClassPathProvider>();
+    private final List<ClassPathProvider> providers = new ArrayList<>();
 
     public DefaultClassPathRegistry(ClassPathProvider... providers) {
         this.providers.addAll(Arrays.asList(providers));

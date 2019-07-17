@@ -42,7 +42,7 @@ class FinalizerThread extends Thread {
     public FinalizerThread(Map<ClassPath, CacheEntry> cacheEntries, Lock lock) {
         this.setName("Classloader cache reference queue poller");
         this.setDaemon(true);
-        this.referenceQueue = new ReferenceQueue<CachedClassLoader>();
+        this.referenceQueue = new ReferenceQueue<>();
         this.cacheEntries = cacheEntries;
         this.cleanups = Maps.newConcurrentMap();
         this.lock = lock;

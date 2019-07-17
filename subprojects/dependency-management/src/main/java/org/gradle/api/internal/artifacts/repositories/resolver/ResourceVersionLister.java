@@ -156,7 +156,7 @@ public class ResourceVersionLister implements VersionLister {
     }
 
     private List<String> filterMatchedValues(List<String> all, final Pattern p) {
-        List<String> ret = new ArrayList<String>(all.size());
+        List<String> ret = new ArrayList<>(all.size());
         for (String path : all) {
             Matcher m = p.matcher(path);
             if (m.matches()) {

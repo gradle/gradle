@@ -44,7 +44,7 @@ public class UbuntuJvmLocator {
     }
 
     public Collection<JvmInstallation> findJvms() {
-        List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+        List<JvmInstallation> jvms = new ArrayList<>();
         if (libDir.isDirectory()) {
             for (File javaHome : libDir.listFiles()) {
                 Matcher matcher = JAVA_HOME_DIR_PATTERN.matcher(javaHome.getName());

@@ -49,7 +49,7 @@ public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeI
         }
 
         StructBindings<T> bindings = bindingsStore.getBindings(schema.getType());
-        return new StructNodeInitializer<T>(bindings);
+        return new StructNodeInitializer<>(bindings);
     }
 
     @Override

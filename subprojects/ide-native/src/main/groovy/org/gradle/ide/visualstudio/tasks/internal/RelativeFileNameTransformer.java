@@ -78,7 +78,7 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
     private String findRelativePath(String from, String to) {
         LinkedList<String> fromPath = splitPath(from);
         LinkedList<String> toPath = splitPath(to);
-        List<String> relativePath = new ArrayList<String>();
+        List<String> relativePath = new ArrayList<>();
 
         while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.get(0).equals(toPath.get(0))) {
             fromPath.removeFirst();
@@ -93,7 +93,7 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
 
     private LinkedList<String> splitPath(String path) {
         File pathFile = new File(path);
-        LinkedList<String> split = new LinkedList<String>();
+        LinkedList<String> split = new LinkedList<>();
         while (pathFile != null) {
             split.add(0, pathFile.getName());
             pathFile = pathFile.getParentFile();

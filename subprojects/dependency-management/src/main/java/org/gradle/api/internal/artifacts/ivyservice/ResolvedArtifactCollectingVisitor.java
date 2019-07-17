@@ -33,7 +33,7 @@ import java.util.Set;
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifactResult> artifacts = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
-    private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
+    private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<>();
 
     @Override
     public void visitFailure(Throwable failure) {

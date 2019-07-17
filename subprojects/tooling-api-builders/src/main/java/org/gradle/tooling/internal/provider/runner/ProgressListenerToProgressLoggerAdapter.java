@@ -32,8 +32,8 @@ class ProgressListenerToProgressLoggerAdapter implements ProgressListener {
 
     public ProgressListenerToProgressLoggerAdapter(ProgressLoggerFactory progressLoggerFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
-        stack = new LinkedList<String>();
-        loggerStack = new ArrayDeque<ProgressLogger>();
+        stack = new LinkedList<>();
+        loggerStack = new ArrayDeque<>();
     }
 
     @Override

@@ -49,14 +49,14 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         List<String> allArgs = ImmutableList.<String>builder().addAll(execSpec.args).addAll(compilerArgs()).build();
         Pair<String, String> transform = runCompiler(execSpec.executable, allArgs, execSpec.environments);
         if (transform == null) {
-            return new ComponentNotFound<T>(String.format("Could not determine %s metadata: failed to execute %s %s.", getCompilerType().getDescription(), execSpec.executable.getName(), Joiner.on(' ').join(allArgs)));
+            return new ComponentNotFound<>(String.format("Could not determine %s metadata: failed to execute %s %s.", getCompilerType().getDescription(), execSpec.executable.getName(), Joiner.on(' ').join(allArgs)));
         }
         String output = transform.getLeft();
         String error = transform.getRight();
         try {
-            return new ComponentFound<T>(parseCompilerOutput(output, error, execSpec.executable, path));
+            return new ComponentFound<>(parseCompilerOutput(output, error, execSpec.executable, path));
         } catch (BrokenResultException e) {
-            return new ComponentNotFound<T>(e.getMessage());
+            return new ComponentNotFound<>(e.getMessage());
         }
     }
 

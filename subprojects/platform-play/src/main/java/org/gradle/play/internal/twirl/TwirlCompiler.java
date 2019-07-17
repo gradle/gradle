@@ -57,7 +57,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             TwirlTemplateFormat format = findTemplateFormat(spec, sourceFile.getFile());
             try {
                 Object result = compile.invoke(buildCompileArguments(spec, cl, sourceFile, format));
-                ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
+                ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<>(result);
                 if (maybeFile.isDefined()) {
                     File outputFile = maybeFile.get();
                     outputFiles.add(outputFile);

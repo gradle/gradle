@@ -44,7 +44,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
-    private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<String, DefaultFileContentCache<?>>();
+    private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 
     public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
         this.listenerManager = listenerManager;
@@ -70,7 +70,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
         DefaultFileContentCache<V> cache = (DefaultFileContentCache<V>) caches.get(name);
         if (cache == null) {
-            cache = new DefaultFileContentCache<V>(name, fileSystemSnapshotter, store, calculator);
+            cache = new DefaultFileContentCache<>(name, fileSystemSnapshotter, store, calculator);
             DefaultFileContentCache<V> existing = (DefaultFileContentCache<V>) caches.putIfAbsent(name, cache);
             if (existing == null) {
                 listenerManager.addListener(cache);
@@ -89,7 +89,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
      * The second level indexes on the hash of file content and contains the value that was calculated from a file with the given hash.
      */
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, OutputChangeListener {
-        private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
+        private final Map<File, V> cache = new ConcurrentHashMap<>();
         private final String name;
         private final FileSystemSnapshotter fileSystemSnapshotter;
         private final PersistentIndexedCache<HashCode, V> contentCache;

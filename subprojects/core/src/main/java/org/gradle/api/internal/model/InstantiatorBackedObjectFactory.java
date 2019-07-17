@@ -71,7 +71,7 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        return new DefaultProperty<T>(valueType);
+        return new DefaultProperty<>(valueType);
     }
 
     @Override

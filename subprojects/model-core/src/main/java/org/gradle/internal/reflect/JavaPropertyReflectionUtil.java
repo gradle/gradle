@@ -39,7 +39,7 @@ import java.util.WeakHashMap;
 
 public class JavaPropertyReflectionUtil {
 
-    private static final WeakHashMap<Class<?>, Set<String>> PROPERTY_CACHE = new WeakHashMap<Class<?>, Set<String>>();
+    private static final WeakHashMap<Class<?>, Set<String>> PROPERTY_CACHE = new WeakHashMap<>();
 
     /**
      * Locates the property with the given name as a readable property. Searches only public properties.
@@ -51,7 +51,7 @@ public class JavaPropertyReflectionUtil {
         if (getterMethod == null) {
             throw new NoSuchPropertyException(String.format("Could not find getter method for property '%s' on class %s.", property, target.getSimpleName()));
         }
-        return new GetterMethodBackedPropertyAccessor<T, F>(property, returnType, getterMethod);
+        return new GetterMethodBackedPropertyAccessor<>(property, returnType, getterMethod);
     }
 
     /**
@@ -216,7 +216,7 @@ public class JavaPropertyReflectionUtil {
         }
 
         // Type is more complicated, need to check everything.
-        Queue<Type> typesToInspect = new ArrayDeque<Type>();
+        Queue<Type> typesToInspect = new ArrayDeque<>();
         typesToInspect.add(type);
         while (!typesToInspect.isEmpty()) {
             Type typeToInspect = typesToInspect.remove();

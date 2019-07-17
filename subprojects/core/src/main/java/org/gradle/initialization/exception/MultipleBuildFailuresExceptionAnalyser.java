@@ -33,7 +33,7 @@ public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser
 
     @Override
     public RuntimeException transform(Throwable exception) {
-        List<Throwable> failures = new ArrayList<Throwable>();
+        List<Throwable> failures = new ArrayList<>();
         if (exception instanceof MultipleBuildFailures) {
             MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) exception;
             for (Throwable cause : multipleBuildFailures.getCauses()) {

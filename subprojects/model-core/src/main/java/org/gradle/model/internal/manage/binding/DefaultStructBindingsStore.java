@@ -68,7 +68,13 @@ import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.PropertyAccessorType.GET_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.IS_GETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.SETTER;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasVoidReturnType;
+import static org.gradle.internal.reflect.PropertyAccessorType.takesSingleParameter;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
@@ -115,7 +121,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Iterable<StructSchema<?>> implementedSchemas = getStructSchemas(implementedViews);
         StructSchema<D> delegateSchema = delegateType == null ? null : getStructSchema(delegateType);
 
-        StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<T>(publicSchema, implementedSchemas, delegateSchema);
+        StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<>(publicSchema, implementedSchemas, delegateSchema);
 
         if (!(publicSchema instanceof RuleSourceSchema)) {
             validateTypeHierarchy(extractionContext, publicType);
@@ -132,7 +138,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             throw new InvalidManagedTypeException(extractionContext.problems.format());
         }
 
-        return new DefaultStructBindings<T>(
+        return new DefaultStructBindings<>(
             publicSchema, declaredViewSchemas, implementedSchemas, delegateSchema,
             managedProperties, methodBindings
         );
@@ -446,7 +452,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
         validateManagedProperty(extractionContext, propertyName, propertySchema, writable, declaredAsUnmanaged);
 
-        return new ManagedProperty<T>(propertyName, propertySchema.getType(), writable, declaredAsUnmanaged, internal);
+        return new ManagedProperty<>(propertyName, propertySchema.getType(), writable, declaredAsUnmanaged, internal);
     }
 
     private static void validateManagedProperty(StructBindingExtractionContext<?> extractionContext, String propertyName, ModelSchema<?> propertySchema, boolean writable, boolean isDeclaredAsHavingUnmanagedType) {

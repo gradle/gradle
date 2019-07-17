@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SerializedPayloadSerializer implements Serializer<SerializedPayload> {
-    private final Serializer<Object> javaSerializer = new DefaultSerializer<Object>();
+    private final Serializer<Object> javaSerializer = new DefaultSerializer<>();
 
     @Override
     public void write(Encoder encoder, SerializedPayload value) throws Exception {
@@ -40,7 +40,7 @@ public class SerializedPayloadSerializer implements Serializer<SerializedPayload
     public SerializedPayload read(Decoder decoder) throws Exception {
         Object header = javaSerializer.read(decoder);
         int count = decoder.readSmallInt();
-        List<byte[]> chunks = new ArrayList<byte[]>(count);
+        List<byte[]> chunks = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             chunks.add(decoder.readBinary());
         }

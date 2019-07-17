@@ -130,7 +130,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK));
+        return new TreeSet<>(Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK));
     }
 
     protected static class Description {

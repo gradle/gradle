@@ -45,7 +45,7 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     }
 
     public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule) {
-        return new DefaultConfigurableRule<DETAILS>(rule, IsolatedArray.EMPTY);
+        return new DefaultConfigurableRule<>(rule, IsolatedArray.EMPTY);
     }
 
     public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule, Action<? super ActionConfiguration> action, IsolatableFactory isolatableFactory) {
@@ -55,7 +55,7 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
             action.execute(configuration);
             params = configuration.getParams();
         }
-        return new DefaultConfigurableRule<DETAILS>(rule, isolatableFactory.isolate(params));
+        return new DefaultConfigurableRule<>(rule, isolatableFactory.isolate(params));
     }
 
     @Override

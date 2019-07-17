@@ -77,7 +77,7 @@ public class DefaultProjectOutcomes implements ProjectOutcomes, Serializable {
 
     @Override
     public DomainObjectSet<ProjectOutcomes> getChildren() {
-        return new ImmutableDomainObjectSet<ProjectOutcomes>(children);
+        return new ImmutableDomainObjectSet<>(children);
     }
 
     public void addChild(ProjectOutcomes child) {

@@ -102,7 +102,7 @@ public class OutputFilterUtil {
     }
 
     private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
-        private final Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
+        private final Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         @Override
         public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {

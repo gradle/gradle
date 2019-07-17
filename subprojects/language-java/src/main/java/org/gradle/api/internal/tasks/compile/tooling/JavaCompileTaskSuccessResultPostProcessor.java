@@ -41,8 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JavaCompileTaskSuccessResultPostProcessor implements OperationResultPostProcessor, BuildOperationListener {
 
     private static final Object TASK_MARKER = new Object();
-    private final Map<Object, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<Object, CompileJavaBuildOperationType.Result>();
-    private final Map<Object, Object> parentsOfOperationsWithJavaCompileTaskAncestor = new ConcurrentHashMap<Object, Object>();
+    private final Map<Object, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<>();
+    private final Map<Object, Object> parentsOfOperationsWithJavaCompileTaskAncestor = new ConcurrentHashMap<>();
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
@@ -88,7 +88,7 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
         if (allDetails == null) {
             return null;
         }
-        List<InternalAnnotationProcessorResult> results = new ArrayList<InternalAnnotationProcessorResult>(allDetails.size());
+        List<InternalAnnotationProcessorResult> results = new ArrayList<>(allDetails.size());
         for (AnnotationProcessorDetails details : allDetails) {
             results.add(toAnnotationProcessorResult(details));
         }

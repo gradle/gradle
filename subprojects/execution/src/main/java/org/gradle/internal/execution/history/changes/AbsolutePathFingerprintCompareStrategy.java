@@ -35,7 +35,7 @@ public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintC
 
     @Override
     protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle) {
-        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
+        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<>(previous.keySet());
 
         for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();

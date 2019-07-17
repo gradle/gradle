@@ -51,8 +51,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
-        cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
-            new SimpleStateCache<DaemonRegistryContent>(
+        cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<>(
+            new SimpleStateCache<>(
                 registryFile,
                 new OnDemandFileAccess(
                     registryFile,
@@ -70,7 +70,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
             DaemonRegistryContent content = cache.get();
             if (content == null) {
                 //when no daemon process has started yet
-                return new LinkedList<DaemonInfo>();
+                return new LinkedList<>();
             }
             return content.getInfos();
         } finally {
@@ -111,7 +111,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     private List<DaemonInfo> getDaemonsMatching(Spec<DaemonInfo> spec) {
         lock.lock();
         try {
-            List<DaemonInfo> out = new LinkedList<DaemonInfo>();
+            List<DaemonInfo> out = new LinkedList<>();
             List<DaemonInfo> all = getAll();
             for (DaemonInfo d : all) {
                 if (spec.isSatisfiedBy(d)) {
@@ -191,7 +191,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             DaemonRegistryContent content = cache.get();
             if (content == null) { // no daemon process has started yet
-                return new LinkedList<DaemonStopEvent>();
+                return new LinkedList<>();
             }
             return content.getStopEvents();
         } finally {

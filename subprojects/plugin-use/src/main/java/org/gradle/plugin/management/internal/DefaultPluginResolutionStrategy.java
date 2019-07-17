@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class DefaultPluginResolutionStrategy implements PluginResolutionStrategyInternal {
 
-    private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
+    private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<>();
     private final Map<PluginId, String> pluginVersions = Maps.newHashMap();
     private boolean locked;
 

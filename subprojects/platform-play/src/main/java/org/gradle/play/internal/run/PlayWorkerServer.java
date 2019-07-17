@@ -43,7 +43,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     private final Lock lock = new ReentrantLock();
     private final Condition signal = lock.newCondition();
 
-    private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<PlayAppLifecycleUpdate>();
+    private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<>();
 
     private boolean stopRequested;
     private boolean serverStarted;

@@ -111,7 +111,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     private <T> ConfigureByMapAction<T> configureByMapActionFor(Map<String, ?> args) {
-        return new ConfigureByMapAction<T>(args);
+        return new ConfigureByMapAction<>(args);
     }
 
     @Override

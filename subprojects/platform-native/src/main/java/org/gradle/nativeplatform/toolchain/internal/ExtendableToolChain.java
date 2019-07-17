@@ -29,7 +29,7 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final PathToFileResolver fileResolver;
-    protected final MutableActionSet<T> configureActions = new MutableActionSet<T>();
+    protected final MutableActionSet<T> configureActions = new MutableActionSet<>();
     protected final BuildOperationExecutor buildOperationExecutor;
 
     protected ExtendableToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver) {

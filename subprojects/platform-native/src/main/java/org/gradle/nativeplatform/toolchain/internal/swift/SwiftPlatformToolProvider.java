@@ -95,13 +95,13 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<LinkerSpec> createLinker() {
         CommandLineToolConfigurationInternal linkerTool = (CommandLineToolConfigurationInternal) toolRegistry.getLinker();
         SwiftLinker swiftLinker = new SwiftLinker(buildOperationExecutor, commandLineTool(ToolType.LINKER, "swiftc"), context(linkerTool), workerLeaseService);
-        return new VersionAwareCompiler<LinkerSpec>(swiftLinker, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
+        return new VersionAwareCompiler<>(swiftLinker, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
     }
 
     protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
         CommandLineToolConfigurationInternal swiftCompilerTool = (CommandLineToolConfigurationInternal) toolRegistry.getSwiftCompiler();
         SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService, swiftcMetaData.getVersion());
-        return new VersionAwareCompiler<SwiftCompileSpec>(swiftCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
+        return new VersionAwareCompiler<>(swiftCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
     }
 
     @Override

@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
-    private final List<Object> queue = new LinkedList<Object>();
+    private final List<Object> queue = new LinkedList<>();
     private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
     private final Converter<? extends FileTreeInternal> fileTreeConverter;
 
@@ -98,7 +98,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     }
 
     private <T> List<T> doResolve(Converter<? extends T> converter) {
-        List<T> result = new ArrayList<T>();
+        List<T> result = new ArrayList<>();
         for (Object element : queue) {
             converter.convertInto(element, result);
         }

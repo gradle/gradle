@@ -31,15 +31,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class Inspector {
-    Set<JavaLibrary> javaLibsByEquality = new HashSet<JavaLibrary>();
-    Map<File, JavaLibrary> javaLibsByFile = new HashMap<File, JavaLibrary>();
-    Map<JavaLibrary, JavaLibrary> javaLibsByIdentity = new IdentityHashMap<JavaLibrary, JavaLibrary>();
-    Map<Object, Object> javaLibsBackingByIdentity = new IdentityHashMap<Object, Object>();
+    Set<JavaLibrary> javaLibsByEquality = new HashSet<>();
+    Map<File, JavaLibrary> javaLibsByFile = new HashMap<>();
+    Map<JavaLibrary, JavaLibrary> javaLibsByIdentity = new IdentityHashMap<>();
+    Map<Object, Object> javaLibsBackingByIdentity = new IdentityHashMap<>();
 
-    Set<AndroidLibrary> libsByEquality = new HashSet<AndroidLibrary>();
-    Map<File, AndroidLibrary> libsByFile = new HashMap<File, AndroidLibrary>();
-    Map<AndroidLibrary, AndroidLibrary> libsByIdentity = new IdentityHashMap<AndroidLibrary, AndroidLibrary>();
-    Map<Object, Object> libsBackingByIdentity = new IdentityHashMap<Object, Object>();
+    Set<AndroidLibrary> libsByEquality = new HashSet<>();
+    Map<File, AndroidLibrary> libsByFile = new HashMap<>();
+    Map<AndroidLibrary, AndroidLibrary> libsByIdentity = new IdentityHashMap<>();
+    Map<Object, Object> libsBackingByIdentity = new IdentityHashMap<>();
 
     void inspectModel(Map<String, AndroidProject> models) {
         System.out.println("* Inspecting");

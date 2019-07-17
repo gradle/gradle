@@ -38,7 +38,7 @@ class TokenLookup {
 
     void unresolved(Expression expression) {
         if (broken == null) {
-            broken = new HashSet<Expression>();
+            broken = new HashSet<>();
         }
         broken.add(expression);
     }

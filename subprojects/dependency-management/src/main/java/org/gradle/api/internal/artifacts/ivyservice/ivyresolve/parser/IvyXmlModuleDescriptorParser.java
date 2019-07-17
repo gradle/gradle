@@ -146,7 +146,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     private Map<String, String> populateProperties() {
-        HashMap<String, String> properties = new HashMap<String, String>();
+        HashMap<String, String> properties = new HashMap<>();
         String baseDir = new File(".").getAbsolutePath();
         properties.put("ivy.default.settings.dir", baseDir);
         properties.put("ivy.basedir", baseDir);
@@ -177,7 +177,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private final ExternalResource res;
 
-        private final List<String> errors = new ArrayList<String>();
+        private final List<String> errors = new ArrayList<>();
 
         private final DefaultModuleDescriptor md;
         protected IvyModuleResolveMetaDataBuilder metaData;
@@ -1272,7 +1272,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private Map<String, String> getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
-            Map<String, String> ret = new HashMap<String, String>();
+            Map<String, String> ret = new HashMap<>();
             Collection ignored = Arrays.asList(ignoredAttributeNames);
             for (int i = 0; i < attributes.getLength(); i++) {
                 if (!ignored.contains(attributes.getQName(i))) {

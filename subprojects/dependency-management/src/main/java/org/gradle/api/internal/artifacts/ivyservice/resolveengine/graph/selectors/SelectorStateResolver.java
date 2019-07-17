@@ -63,7 +63,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         // If the module matches, add the root component into the mix
         if (moduleId.equals(rootModuleId) && !candidates.contains(rootComponent)) {
-            candidates = new ArrayList<T>(candidates);
+            candidates = new ArrayList<>(candidates);
             candidates.add(rootComponent);
         }
 
@@ -218,7 +218,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
     private T resolveConflicts(Collection<T> candidates) {
         // Do conflict resolution to choose the best out of current selection and candidate.
-        ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<T>(candidates);
+        ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<>(candidates);
         conflictResolver.select(details);
         T selected = details.getSelected();
         if (details.hasFailure()) {

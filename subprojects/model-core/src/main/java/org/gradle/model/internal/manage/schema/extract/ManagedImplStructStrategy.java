@@ -38,6 +38,6 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
-        return new ManagedImplStructSchema<R>(extractionContext.getType(), properties, nonPropertyMethods, aspects);
+        return new ManagedImplStructSchema<>(extractionContext.getType(), properties, nonPropertyMethods, aspects);
     }
 }

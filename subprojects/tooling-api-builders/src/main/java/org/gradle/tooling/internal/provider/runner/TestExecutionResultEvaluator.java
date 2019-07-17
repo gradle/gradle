@@ -48,7 +48,7 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
 
     private final AtomicLong resultCount = new AtomicLong();
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
-    private final Queue<FailedTest> failedTests = new ConcurrentLinkedQueue<FailedTest>();
+    private final Queue<FailedTest> failedTests = new ConcurrentLinkedQueue<>();
 
     public TestExecutionResultEvaluator(TestExecutionRequestAction internalTestExecutionRequest) {
         this.internalTestExecutionRequest = internalTestExecutionRequest;

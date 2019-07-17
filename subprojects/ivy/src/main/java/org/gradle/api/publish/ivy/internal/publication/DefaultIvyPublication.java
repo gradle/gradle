@@ -134,7 +134,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
-    private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
+    private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<>();
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;

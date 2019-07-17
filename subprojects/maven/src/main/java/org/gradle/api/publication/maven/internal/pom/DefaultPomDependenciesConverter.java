@@ -23,13 +23,25 @@ import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Strings.emptyToNull;
 
@@ -47,7 +59,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     public List<Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
         Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
         Map<ModuleDependency, Conf2ScopeMapping> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, dependencyToConfigurations);
-        Map<Dependency, Integer> dependenciesWithPriorities = new LinkedHashMap<Dependency, Integer>();
+        Map<Dependency, Integer> dependenciesWithPriorities = new LinkedHashMap<>();
         for (ModuleDependency dependency : dependenciesMap.keySet()) {
             Conf2ScopeMapping conf2ScopeMapping = dependenciesMap.get(dependency);
             String scope = conf2ScopeMapping.getScope();
@@ -59,12 +71,12 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
                 addFromArtifactDescriptor(dependenciesWithPriorities, dependency, scope, priority, dependencyConfigurations);
             }
         }
-        return new ArrayList<Dependency>(dependenciesWithPriorities.keySet());
+        return new ArrayList<>(dependenciesWithPriorities.keySet());
     }
 
     private Map<ModuleDependency, Conf2ScopeMapping> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer,
                                                                                 Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations) {
-        Map<ModuleDependency, Conf2ScopeMapping> dependencyToScope = new LinkedHashMap<ModuleDependency, Conf2ScopeMapping>();
+        Map<ModuleDependency, Conf2ScopeMapping> dependencyToScope = new LinkedHashMap<>();
         for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
             Conf2ScopeMapping conf2ScopeDependencyMapping = conf2ScopeMappingContainer.getMapping(dependencyToConfigurations.get(dependency));
             if (!useScope(conf2ScopeMappingContainer, conf2ScopeDependencyMapping)) {
@@ -89,11 +101,11 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     }
 
     private Map<ModuleDependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
-        Map<ModuleDependency, Set<Configuration>> dependencySetMap = new LinkedHashMap<ModuleDependency, Set<Configuration>>();
+        Map<ModuleDependency, Set<Configuration>> dependencySetMap = new LinkedHashMap<>();
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
                 if (dependencySetMap.get(dependency) == null) {
-                    dependencySetMap.put(dependency, new HashSet<Configuration>());
+                    dependencySetMap.put(dependency, new HashSet<>());
                 }
                 dependencySetMap.get(dependency).add(configuration);
             }
@@ -127,7 +139,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     private void addMavenDependencies(Map<Dependency, Integer> dependenciesWithPriorities,
                                       ModuleDependency dependency, String name, String type, String scope, String classifier, Integer priority,
                                       Set<Configuration> configurations) {
-        final List<Dependency> mavenDependencies = new ArrayList<Dependency>();
+        final List<Dependency> mavenDependencies = new ArrayList<>();
 
         if (dependency instanceof ProjectDependency) {
             // TODO: Combine with ProjectDependencyPublicationResolver
@@ -235,8 +247,8 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         if (!dependency.isTransitive()) {
             return EXCLUDE_ALL;
         }
-        List<Exclusion> mavenExclusions = new ArrayList<Exclusion>();
-        Set<ExcludeRule> excludeRules = new HashSet<ExcludeRule>(dependency.getExcludeRules());
+        List<Exclusion> mavenExclusions = new ArrayList<>();
+        Set<ExcludeRule> excludeRules = new HashSet<>(dependency.getExcludeRules());
         for (Configuration configuration : configurations) {
             excludeRules.addAll(configuration.getExcludeRules());
         }

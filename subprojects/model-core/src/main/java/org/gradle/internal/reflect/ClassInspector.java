@@ -37,8 +37,8 @@ public class ClassInspector {
     }
 
     private static void visitGraph(Class<?> type, MutableClassDetails classDetails) {
-        Set<Class<?>> seen = new HashSet<Class<?>>();
-        Deque<Class<?>> queue = new ArrayDeque<Class<?>>();
+        Set<Class<?>> seen = new HashSet<>();
+        Deque<Class<?>> queue = new ArrayDeque<>();
 
         // fully visit the class hierarchy before any interfaces in order to meet the contract
         // of PropertyDetails.getGetters() etc.

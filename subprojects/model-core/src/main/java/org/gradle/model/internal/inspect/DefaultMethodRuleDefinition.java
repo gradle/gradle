@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.model.Path;
@@ -29,6 +28,7 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -72,7 +72,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     private static <T, R, S> MethodRuleDefinition<R, S> innerCreate(Class<T> source, Method method) {
         ModelType<R> returnType = ModelType.returnType(method);
-        return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType);
+        return new DefaultMethodRuleDefinition<>(method, ModelType.of(source), returnType);
     }
 
     @Override

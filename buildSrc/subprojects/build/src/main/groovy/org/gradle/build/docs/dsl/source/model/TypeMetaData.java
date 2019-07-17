@@ -119,7 +119,7 @@ public class TypeMetaData implements Serializable, TypeContainer {
 
     public TypeMetaData addTypeArg(TypeMetaData typeArg) {
         if (typeArgs == null) {
-            typeArgs = new ArrayList<TypeMetaData>();
+            typeArgs = new ArrayList<>();
         }
         typeArgs.add(typeArg);
         return this;
@@ -138,7 +138,7 @@ public class TypeMetaData implements Serializable, TypeContainer {
             lowerBounds.visitTypes(action);
             return;
         }
-        
+
         action.execute(this);
         if (typeArgs != null) {
             for (TypeMetaData typeArg : typeArgs) {

@@ -143,7 +143,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
-        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<CustomInjectAnnotationPropertyHandler>(enabledAnnotations.size());
+        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<>(enabledAnnotations.size());
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
@@ -153,7 +153,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
 
         // Order is significant. Injection handler should be at the end
-        List<ClassGenerationHandler> handlers = new ArrayList<ClassGenerationHandler>(5 + enabledAnnotations.size() + disabledAnnotations.size());
+        List<ClassGenerationHandler> handlers = new ArrayList<>(5 + enabledAnnotations.size() + disabledAnnotations.size());
         handlers.add(extensibleTypeHandler);
         handlers.add(dslMixInHandler);
         handlers.add(propertyTypedHandler);
@@ -166,7 +166,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(injectionHandler);
 
         // Order is significant
-        List<ClassValidator> validators = new ArrayList<ClassValidator>(2 + disabledAnnotations.size());
+        List<ClassValidator> validators = new ArrayList<>(2 + disabledAnnotations.size());
         for (Class<? extends Annotation> annotation : disabledAnnotations) {
             validators.add(new DisabledAnnotationValidator(annotation));
         }
@@ -433,7 +433,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static class ClassMetadata {
         private final Class<?> type;
-        private final Map<String, PropertyMetadata> properties = new LinkedHashMap<String, PropertyMetadata>();
+        private final Map<String, PropertyMetadata> properties = new LinkedHashMap<>();
 
         public ClassMetadata(Class<?> type) {
             this.type = type;
@@ -500,9 +500,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final String name;
         private final List<MethodMetadata> getters = new ArrayList<>();
         private final List<MethodMetadata> overridableGetters = new ArrayList<>();
-        private final List<Method> overridableSetters = new ArrayList<Method>();
-        private final List<Method> setters = new ArrayList<Method>();
-        private final List<Method> setMethods = new ArrayList<Method>();
+        private final List<Method> overridableSetters = new ArrayList<>();
+        private final List<Method> setters = new ArrayList<>();
+        private final List<Method> setMethods = new ArrayList<>();
         private MethodMetadata mainGetter;
 
         private PropertyMetadata(String name) {
@@ -638,7 +638,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean providesOwnDynamicObject;
         private boolean needDynamicAware;
         private boolean needGroovyObject;
-        private final List<PropertyMetadata> mutableProperties = new ArrayList<PropertyMetadata>();
+        private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final MethodSet actionMethods = new MethodSet();
         private final SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
 
@@ -752,7 +752,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean conventionAware;
         private boolean extensible;
         private boolean hasExtensionAwareImplementation;
-        private final List<PropertyMetadata> conventionProperties = new ArrayList<PropertyMetadata>();
+        private final List<PropertyMetadata> conventionProperties = new ArrayList<>();
 
         @Override
         void startType(Class<?> type) {
@@ -912,7 +912,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class PropertyTypePropertyHandler extends ClassGenerationHandler {
-        private final List<PropertyMetadata> propertyTyped = new ArrayList<PropertyMetadata>();
+        private final List<PropertyMetadata> propertyTyped = new ArrayList<>();
 
         @Override
         void visitProperty(PropertyMetadata property) {
@@ -946,7 +946,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         public void validateMethod(Method method, PropertyAccessorType accessorType) {
-            List<Class<? extends Annotation>> matches = new ArrayList<Class<? extends Annotation>>();
+            List<Class<? extends Annotation>> matches = new ArrayList<>();
             validateMethod(method, accessorType, Inject.class, matches);
             for (Class<? extends Annotation> annotationType : annotationTypes) {
                 validateMethod(method, accessorType, annotationType, matches);
@@ -1054,7 +1054,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static abstract class AbstractInjectedPropertyHandler extends ClassGenerationHandler {
         final Class<? extends Annotation> annotation;
-        final List<PropertyMetadata> serviceInjectionProperties = new ArrayList<PropertyMetadata>();
+        final List<PropertyMetadata> serviceInjectionProperties = new ArrayList<>();
 
         public AbstractInjectedPropertyHandler(Class<? extends Annotation> annotation) {
             this.annotation = annotation;

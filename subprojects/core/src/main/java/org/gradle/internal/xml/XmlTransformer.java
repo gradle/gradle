@@ -56,7 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class XmlTransformer implements Transformer<String, String> {
-    private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
+    private final List<Action<? super XmlProvider>> actions = new ArrayList<>();
     private final List<Action<? super XmlProvider>> finalizers = Lists.newArrayListWithExpectedSize(2);
     private String indentation = "  ";
 

@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  */
 class DaemonConnectionBackedEventConsumer implements BuildEventConsumer {
     private final DaemonCommandExecution execution;
-    private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+    private final BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
     private final ForwardEvents forwarder = new ForwardEvents();
 
     public DaemonConnectionBackedEventConsumer(DaemonCommandExecution execution) {

@@ -24,7 +24,7 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
     private final PotentialPlugin<? extends T> potentialPlugin;
 
     public static <T> DefaultPotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
-        return new DefaultPotentialPluginWithId<T>(pluginId, potentialPlugin);
+        return new DefaultPotentialPluginWithId<>(pluginId, potentialPlugin);
     }
 
     protected DefaultPotentialPluginWithId(PluginId pluginId, PotentialPlugin<? extends T> potentialPlugin) {

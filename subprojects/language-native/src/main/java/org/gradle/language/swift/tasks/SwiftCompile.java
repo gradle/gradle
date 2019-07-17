@@ -321,7 +321,7 @@ public class SwiftCompile extends DefaultTask {
         spec.setChangedFiles(changedFiles);
 
         // Convert Swift-like macros to a Map like NativeCompileSpec expects
-        Map<String, String> macros = new LinkedHashMap<String, String>();
+        Map<String, String> macros = new LinkedHashMap<>();
         for (String macro : getMacros().get()) {
             macros.put(macro, null);
         }

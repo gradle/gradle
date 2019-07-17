@@ -80,7 +80,7 @@ public class GnupgSignatory extends SignatorySupport {
     }
 
     private List<String> buildArgumentList() {
-        final List<String> args = new ArrayList<String>();
+        final List<String> args = new ArrayList<>();
         if (homeDir != null) {
             args.add("--homedir");
             args.add(homeDir.getAbsolutePath());

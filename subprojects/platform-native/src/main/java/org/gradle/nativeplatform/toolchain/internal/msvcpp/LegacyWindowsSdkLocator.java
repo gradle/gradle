@@ -69,7 +69,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     private static final String RESOURCE_FILENAME = "rc.exe";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
 
-    private final Map<File, WindowsSdkInstall> foundSdks = new HashMap<File, WindowsSdkInstall>();
+    private final Map<File, WindowsSdkInstall> foundSdks = new HashMap<>();
     private final OperatingSystem os;
     private final WindowsRegistry windowsRegistry;
     private WindowsSdkInstall pathSdk;
@@ -192,18 +192,18 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     private SearchResult<WindowsSdkInstall> locateUserSpecifiedSdk(File candidate) {
         File sdkDir = FileUtils.canonicalize(candidate);
         if (!isWindowsSdk(sdkDir)) {
-            return new ComponentNotFound<WindowsSdkInstall>(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
+            return new ComponentNotFound<>(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
         }
 
         if (!foundSdks.containsKey(sdkDir)) {
             addSdk(sdkDir, VERSION_USER, NAME_USER);
         }
-        return new ComponentFound<WindowsSdkInstall>(foundSdks.get(sdkDir));
+        return new ComponentFound<>(foundSdks.get(sdkDir));
     }
 
     private SearchResult<WindowsSdkInstall> locateDefaultSdk() {
         if (pathSdk != null) {
-            return new ComponentFound<WindowsSdkInstall>(pathSdk);
+            return new ComponentFound<>(pathSdk);
         }
 
         WindowsSdkInstall candidate = null;
@@ -212,7 +212,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
                 candidate = windowsSdk;
             }
         }
-        return candidate == null ? new ComponentNotFound<WindowsSdkInstall>("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new ComponentFound<WindowsSdkInstall>(candidate);
+        return candidate == null ? new ComponentNotFound<>("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new ComponentFound<>(candidate);
     }
 
     private void addSdk(File path, String version, String name) {

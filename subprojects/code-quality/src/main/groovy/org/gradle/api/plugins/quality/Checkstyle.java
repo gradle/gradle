@@ -59,7 +59,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
+    private Map<String, Object> configProperties = new LinkedHashMap<>();
     private final CheckstyleReports reports;
     private boolean ignoreFailures;
     private int maxErrors;
@@ -117,7 +117,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      */
     @Override
     public CheckstyleReports reports(@DelegatesTo(value=CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return reports(new ClosureBackedAction<CheckstyleReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**

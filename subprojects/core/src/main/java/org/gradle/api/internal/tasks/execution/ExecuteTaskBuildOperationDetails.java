@@ -63,7 +63,7 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+        ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
         builder.put("buildPath", getBuildPath());
         builder.put("taskPath", getTaskPath());
         builder.put("taskClass", getTaskClass().getName());

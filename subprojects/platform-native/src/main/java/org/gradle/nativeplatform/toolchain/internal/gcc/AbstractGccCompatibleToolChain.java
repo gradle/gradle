@@ -70,7 +70,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
-    private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
+    private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<>();
     private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
     private final CompilerMetaDataProvider<GccMetadata> metaDataProvider;
     private final SystemLibraryDiscovery standardLibraryDiscovery;

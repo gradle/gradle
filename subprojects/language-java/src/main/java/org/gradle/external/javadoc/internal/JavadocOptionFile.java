@@ -35,7 +35,7 @@ public class JavadocOptionFile {
     private final OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        this(new LinkedHashMap<String, JavadocOptionFileOptionInternal<?>>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
+        this(new LinkedHashMap<>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
     }
 
     private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options, OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
@@ -86,7 +86,7 @@ public class JavadocOptionFile {
     }
 
     public <T> JavadocOptionFileOption<T> addEnumOption(String option, T value) {
-        return addOption(new EnumJavadocOptionFileOption<T>(option, value));
+        return addOption(new EnumJavadocOptionFileOption<>(option, value));
     }
 
     public JavadocOptionFileOption<List<File>> addPathOption(String option) {

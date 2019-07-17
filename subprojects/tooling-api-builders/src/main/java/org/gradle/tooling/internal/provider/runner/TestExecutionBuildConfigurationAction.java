@@ -31,7 +31,12 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
@@ -44,7 +49,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
     @Override
     public void configure(BuildExecutionContext context) {
-        final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
+        final Set<Test> allTestTasksToRun = new LinkedHashSet<>();
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
@@ -70,7 +75,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             }
         });
 
-        List<Test> testTasksToRun = new ArrayList<Test>();
+        List<Test> testTasksToRun = new ArrayList<>();
         for (final String testTaskPath : testTaskPaths) {
             final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
             if (task == null) {
@@ -103,7 +108,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             return Collections.emptyList();
         }
 
-        List<Test> tasksToExecute = new ArrayList<Test>();
+        List<Test> tasksToExecute = new ArrayList<>();
 
         final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project project : allprojects) {

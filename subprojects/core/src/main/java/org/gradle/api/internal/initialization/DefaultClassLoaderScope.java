@@ -80,7 +80,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         if (!classPath.isEmpty()) {
             numParents += 1;
         }
-        List<ClassLoader> parents = new ArrayList<ClassLoader>(numParents);
+        List<ClassLoader> parents = new ArrayList<>(numParents);
         parents.add(parent.getExportClassLoader());
         if (loaders != null) {
             parents.addAll(loaders);
@@ -163,7 +163,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader loader(ClassLoaderId id, ClassPath classPath) {
         ClassLoader classLoader = classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
         if (ownLoaders == null) {
-            ownLoaders = new ArrayList<ClassLoader>();
+            ownLoaders = new ArrayList<>();
         }
         ownLoaders.add(classLoader);
         return classLoader;
@@ -209,7 +209,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             exportingClassLoader.addParent(classLoader);
         } else {
             if (exportLoaders == null) {
-                exportLoaders = new ArrayList<ClassLoader>(1);
+                exportLoaders = new ArrayList<>(1);
             }
             exportLoaders.add(classLoader);
         }

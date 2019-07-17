@@ -61,7 +61,7 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         DefaultModelSchemaExtractionContext<T> context = DefaultModelSchemaExtractionContext.root(type);
         List<DefaultModelSchemaExtractionContext<?>> validations = Lists.newArrayList();
-        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies = new ArrayDeque<DefaultModelSchemaExtractionContext<?>>();
+        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies = new ArrayDeque<>();
         DefaultModelSchemaExtractionContext<?> extractionContext = context;
         validations.add(extractionContext);
 

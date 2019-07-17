@@ -27,7 +27,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
     @Override
     public boolean containsProject(ProjectRegistry<? extends ProjectIdentifier> registry) {
         checkPreconditions(registry);
-        List<ProjectIdentifier> matches = new ArrayList<ProjectIdentifier>();
+        List<ProjectIdentifier> matches = new ArrayList<>();
         select(registry, matches);
         return !matches.isEmpty();
     }
@@ -35,7 +35,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
     @Override
     public <T extends ProjectIdentifier> T selectProject(String settingsDescription, ProjectRegistry<? extends T> registry) {
         checkPreconditions(registry);
-        List<T> matches = new ArrayList<T>();
+        List<T> matches = new ArrayList<>();
         select(registry, matches);
         if (matches.isEmpty()) {
             String message = formatNoMatchesMessage(settingsDescription) + UNRELATED_BUILD_HINT;

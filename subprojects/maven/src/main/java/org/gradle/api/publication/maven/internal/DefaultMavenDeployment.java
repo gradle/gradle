@@ -70,7 +70,7 @@ public class DefaultMavenDeployment implements MavenDeployment {
 
     @Override
     public Set<PublishArtifact> getArtifacts() {
-        Set<PublishArtifact> artifacts = new HashSet<PublishArtifact>();
+        Set<PublishArtifact> artifacts = new HashSet<>();
         artifacts.addAll(attachedArtifacts);
         if (mainArtifact != null) {
             artifacts.add(mainArtifact);

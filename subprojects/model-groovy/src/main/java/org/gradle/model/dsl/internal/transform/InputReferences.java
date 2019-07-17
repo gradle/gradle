@@ -55,7 +55,7 @@ public class InputReferences {
     }
 
     public List<InputReference> getAllReferences() {
-        List<InputReference> result = new ArrayList<InputReference>(ownReferences.size() + nestedReferences.size());
+        List<InputReference> result = new ArrayList<>(ownReferences.size() + nestedReferences.size());
         result.addAll(ownReferences);
         result.addAll(nestedReferences);
         return result;

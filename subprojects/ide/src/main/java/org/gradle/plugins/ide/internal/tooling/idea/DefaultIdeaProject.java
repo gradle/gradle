@@ -25,7 +25,7 @@ import java.util.LinkedList;
 public class DefaultIdeaProject implements Serializable {
     private String name;
     private String description;
-    private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
+    private Collection<DefaultIdeaModule> children = new LinkedList<>();
     private IdeaLanguageLevel languageLevel;
     private String jdkName;
     private DefaultIdeaJavaLanguageSettings javaLanguageSettings;

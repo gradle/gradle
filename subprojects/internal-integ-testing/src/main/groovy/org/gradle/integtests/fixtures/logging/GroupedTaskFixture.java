@@ -30,7 +30,7 @@ public class GroupedTaskFixture {
 
     private String taskOutcome;
 
-    private final List<String> outputs = new ArrayList<String>(1);
+    private final List<String> outputs = new ArrayList<>(1);
 
     public GroupedTaskFixture(String taskName) {
         this.taskName = taskName;

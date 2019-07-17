@@ -41,7 +41,7 @@ public class JdkTools {
 
     // Copied from ToolProvider.defaultJavaCompilerName
     private static final String DEFAULT_COMPILER_IMPL_NAME = "com.sun.tools.javac.api.JavacTool";
-    private static final AtomicReference<JdkTools> INSTANCE = new AtomicReference<JdkTools>();
+    private static final AtomicReference<JdkTools> INSTANCE = new AtomicReference<>();
 
     private final ClassLoader isolatedToolsLoader;
     private final boolean isJava9Compatible;

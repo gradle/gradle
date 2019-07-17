@@ -89,7 +89,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, Factory<PatternSet> patternSetFactory) {
-        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<GeneratedResource.Location, PatternSet>(GeneratedResource.Location.class);
+        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<>(GeneratedResource.Location.class);
         for (GeneratedResource.Location location : GeneratedResource.Location.values()) {
             resourcesByLocation.put(location, patternSetFactory.create());
         }

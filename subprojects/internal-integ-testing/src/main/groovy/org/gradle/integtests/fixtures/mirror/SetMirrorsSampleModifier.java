@@ -39,10 +39,10 @@ public class SetMirrorsSampleModifier implements SampleModifier {
             return sample;
         }
         List<Command> commands = sample.getCommands();
-        List<Command> modifiedCommands = new ArrayList<Command>();
+        List<Command> modifiedCommands = new ArrayList<>();
         for (Command command : commands) {
             if ("gradle".equals(command.getExecutable())) {
-                List<String> args = new ArrayList<String>(command.getArgs());
+                List<String> args = new ArrayList<>(command.getArgs());
                 args.add("--init-script");
                 args.add(initScript.getAbsolutePath());
                 args.add("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl());

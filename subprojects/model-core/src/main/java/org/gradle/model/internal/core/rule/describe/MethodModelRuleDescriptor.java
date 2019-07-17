@@ -20,11 +20,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -108,7 +108,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     private static class Cache {
-        private final WeakHashMap<Class<?>, CacheEntry> cached = new WeakHashMap<Class<?>, CacheEntry>();
+        private final WeakHashMap<Class<?>, CacheEntry> cached = new WeakHashMap<>();
 
         public synchronized <T, R> ModelRuleDescriptor get(WeaklyTypeReferencingMethod<T, R> method) {
             Class<?> clazz = method.getDeclaringType().getConcreteClass();
@@ -128,7 +128,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
             private final Map<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor> descriptors;
 
             public CacheEntry(Class<?> clazz) {
-                this.descriptors = new HashMap<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor>(clazz.getDeclaredMethods().length);
+                this.descriptors = new HashMap<>(clazz.getDeclaredMethods().length);
             }
 
             public <T, R> MethodModelRuleDescriptor get(WeaklyTypeReferencingMethod<T, R> weakMethod) {

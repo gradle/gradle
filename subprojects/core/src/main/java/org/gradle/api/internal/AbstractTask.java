@@ -90,7 +90,7 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
-    private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
+    private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<>();
 
     private final TaskIdentity<?> identity;
 
@@ -231,7 +231,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<InputChangesAwareTaskAction> getTaskActions() {
         if (actions == null) {
-            actions = new ArrayList<InputChangesAwareTaskAction>(3);
+            actions = new ArrayList<>(3);
         }
         return actions;
     }
@@ -315,7 +315,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private AndSpec<Task> createNewOnlyIfSpec() {
-        return new AndSpec<Task>(new Spec<Task>() {
+        return new AndSpec<>(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return element == AbstractTask.this && enabled;

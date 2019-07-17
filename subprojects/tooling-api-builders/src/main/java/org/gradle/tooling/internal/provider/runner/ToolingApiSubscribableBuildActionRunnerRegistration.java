@@ -48,7 +48,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         }
         BuildOperationParentTracker parentTracker = new BuildOperationParentTracker();
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, parentTracker);
-        List<Object> listeners = new ArrayList<Object>();
+        List<Object> listeners = new ArrayList<>();
         listeners.add(parentTracker);
         if (clientSubscriptions.isRequested(OperationType.TEST)) {
             listeners.add(new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions));

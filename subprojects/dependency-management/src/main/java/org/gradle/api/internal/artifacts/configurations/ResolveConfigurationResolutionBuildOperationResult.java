@@ -46,7 +46,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
         final Map<String, Map<String, String>> components = Maps.newHashMap();
         resolutionResult.allComponents(new Action<ResolvedComponentResult>() {

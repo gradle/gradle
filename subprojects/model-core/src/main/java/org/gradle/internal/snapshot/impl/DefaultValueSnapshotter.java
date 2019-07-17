@@ -121,7 +121,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             Map<?, ?> map = (Map<?, ?>) value;
             ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.add(new MapEntrySnapshot<T>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+                builder.add(new MapEntrySnapshot<>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
             }
             return visitor.map(builder.build());
         }

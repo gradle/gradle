@@ -41,7 +41,7 @@ public class EnumFromCharSequenceNotationParser<T extends Enum<T>> implements No
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        List<String> values = new ArrayList<String>();
+        List<String> values = new ArrayList<>();
         final Enum[] enumConstants = type.getEnumConstants();
         for (Enum enumConstant : enumConstants) {
             values.add(enumConstant.name());

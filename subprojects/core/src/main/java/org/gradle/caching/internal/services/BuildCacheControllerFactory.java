@@ -162,7 +162,7 @@ public final class BuildCacheControllerFactory {
             if (!description.config.isEmpty() || pullOnly) {
                 Map<String, String> configMap;
                 if (pullOnly) {
-                    configMap = new LinkedHashMap<String, String>();
+                    configMap = new LinkedHashMap<>();
                     // Pull-only always comes first
                     configMap.put("pull-only", null);
                     configMap.putAll(description.config);
@@ -237,7 +237,7 @@ public final class BuildCacheControllerFactory {
     private static class Describer implements BuildCacheServiceFactory.Describer {
 
         private String type;
-        private Map<String, String> configParams = new HashMap<String, String>();
+        private Map<String, String> configParams = new HashMap<>();
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {

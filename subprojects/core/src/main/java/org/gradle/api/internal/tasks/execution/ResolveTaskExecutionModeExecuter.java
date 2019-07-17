@@ -76,7 +76,7 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
                     return fileCollectionFactory.empty();
                 }
                 ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
-                Set<File> outputs = new HashSet<File>();
+                Set<File> outputs = new HashSet<>();
                 for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
                     for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
                         outputs.add(new File(absolutePath));

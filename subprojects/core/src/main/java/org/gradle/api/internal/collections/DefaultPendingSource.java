@@ -19,7 +19,9 @@ package org.gradle.api.internal.collections;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
-import org.gradle.api.internal.provider.Collectors.*;
+import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Iterator;
@@ -67,7 +69,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
-        return pending.add(new TypedCollector<T>(provider.getType(), new ElementFromProvider<T>(provider)));
+        return pending.add(new TypedCollector<>(provider.getType(), new ElementFromProvider<>(provider)));
     }
 
     @Override
@@ -89,7 +91,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
 
     @Override
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return pending.add(new TypedCollector<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider)));
+        return pending.add(new TypedCollector<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider)));
     }
 
     @Override

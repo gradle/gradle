@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 class DocBookBuilder {
-    final LinkedList<Element> stack = new LinkedList<Element>();
+    final LinkedList<Element> stack = new LinkedList<>();
     final Document document;
 
     DocBookBuilder(Document document) {
@@ -35,7 +35,7 @@ class DocBookBuilder {
     }
 
     List<Element> getElements() {
-        List<Element> elements = new ArrayList<Element>();
+        List<Element> elements = new ArrayList<>();
         for (Node node = stack.getLast().getFirstChild(); node != null; node = node.getNextSibling()) {
             elements.add((Element) node);
         }

@@ -101,7 +101,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<? extends FileSystemSnapshot> roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        HashSet<String> processedEntries = new HashSet<String>();
+        HashSet<String> processedEntries = new HashSet<>();
         for (FileSystemSnapshot root : roots) {
             ClasspathFingerprintVisitor fingerprintVisitor = new ClasspathFingerprintVisitor(processedEntries, builder);
             root.accept(new ClasspathContentFingerprintingVisitor(fingerprintVisitor));

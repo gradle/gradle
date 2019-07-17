@@ -35,9 +35,9 @@ import java.util.Set;
 public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
-    private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
-    private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
-    private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
+    private final Set<NativePlatform> allPlatforms = new LinkedHashSet<>();
+    private final Set<BuildType> allBuildTypes = new LinkedHashSet<>();
+    private final Set<Flavor> allFlavors = new LinkedHashSet<>();
 
     public PrebuiltLibraryInitializer(Instantiator instantiator,
                                       FileCollectionFactory fileCollectionFactory,

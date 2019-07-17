@@ -25,7 +25,7 @@ import java.util.List;
 
 public class DefaultCommandLineToolConfiguration implements CommandLineToolConfigurationInternal {
     private final ToolType toolType;
-    private List<Action<? super List<String>>> argActions = new ArrayList<Action<? super List<String>>>();
+    private List<Action<? super List<String>>> argActions = new ArrayList<>();
 
     public DefaultCommandLineToolConfiguration(ToolType toolType) {
         this.toolType = toolType;

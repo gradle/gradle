@@ -51,7 +51,7 @@ public class DistributionInstaller {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final InternalBuildProgressListener buildProgressListener;
     private final Clock clock;
-    private final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<InternalBuildProgressListener>(NO_OP);
+    private final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<>(NO_OP);
     // Protects the following state
     private final Object lock = new Object();
     private boolean completed;

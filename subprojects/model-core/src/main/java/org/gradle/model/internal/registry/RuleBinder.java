@@ -16,11 +16,11 @@
 
 package org.gradle.model.internal.registry;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,7 +83,7 @@ public class RuleBinder {
         if (inputReferences.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
+        List<ModelBinding> bindings = new ArrayList<>(inputReferences.size());
         for (BindingPredicate inputReference : inputReferences) {
             bindings.add(binding(inputReference, descriptor, false, inputBindAction));
         }

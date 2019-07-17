@@ -218,7 +218,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 Action.class,
                 Trie.class,
                 JavaVersion.class);
-            Set<Class<?>> result = new HashSet<Class<?>>(classes);
+            Set<Class<?>> result = new HashSet<>(classes);
             for (Class<?> klass : classes) {
                 result.addAll(Arrays.asList(klass.getDeclaredClasses()));
             }

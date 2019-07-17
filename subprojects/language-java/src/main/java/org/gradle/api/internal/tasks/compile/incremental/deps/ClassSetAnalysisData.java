@@ -89,7 +89,7 @@ public class ClassSetAnalysisData {
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
-            Map<Integer, String> classNameMap = new HashMap<Integer, String>();
+            Map<Integer, String> classNameMap = new HashMap<>();
 
             int count = decoder.readSmallInt();
             ImmutableSet.Builder<String> classes = ImmutableSet.builder();
@@ -120,7 +120,7 @@ public class ClassSetAnalysisData {
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
-            Map<String, Integer> classNameMap = new HashMap<String, Integer>();
+            Map<String, Integer> classNameMap = new HashMap<>();
             encoder.writeSmallInt(value.classes.size());
             for (String clazz : value.classes) {
                 writeClassName(clazz, classNameMap, encoder);

@@ -35,8 +35,8 @@ public class PlayApplication implements PlayRunWorkerClientProtocol {
     private final WorkerProcess process;
     private final AtomicBoolean stopped;
 
-    private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
-    private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
+    private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<>();
+    private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<>();
     private final Deployment activity;
     private InetSocketAddress playAppAddress;
 

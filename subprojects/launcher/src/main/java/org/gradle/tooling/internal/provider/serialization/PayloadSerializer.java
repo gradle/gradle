@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -53,7 +53,7 @@ public class PayloadSerializer {
                 IoActions.closeQuietly(objectStream);
             }
 
-            Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
+            Map<Short, ClassLoaderDetails> classLoaders = new HashMap<>();
             map.collectClassLoaderDefinitions(classLoaders);
             return new SerializedPayload(classLoaders, buffer.readAsListOfByteArrays());
         } catch (IOException e) {

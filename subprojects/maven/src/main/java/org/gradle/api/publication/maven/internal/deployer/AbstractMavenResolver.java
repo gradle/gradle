@@ -64,7 +64,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     private LoggingManagerInternal loggingManager;
 
-    private final MutableActionSet<MavenDeployment> beforeDeploymentActions = new MutableActionSet<MavenDeployment>();
+    private final MutableActionSet<MavenDeployment> beforeDeploymentActions = new MutableActionSet<>();
 
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;

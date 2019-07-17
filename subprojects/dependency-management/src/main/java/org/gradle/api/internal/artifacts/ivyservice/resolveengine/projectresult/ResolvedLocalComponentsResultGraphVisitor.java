@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor, ResolvedLocalComponentsResult {
-    private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<ResolvedProjectConfiguration>();
+    private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<>();
     private final BuildIdentifier thisBuild;
     private ComponentIdentifier rootId;
 

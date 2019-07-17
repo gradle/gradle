@@ -72,7 +72,7 @@ public abstract class BridgedCollections {
                                 ModelRegistration itemRegistration = ModelRegistrations
                                     .unmanagedInstanceOf(
                                         ModelReference.of(containerPath.child(name), (Class)info.getType()),
-                                        new ExtractFromParentContainer<I, C>(name, containerType)
+                                        new ExtractFromParentContainer<>(name, containerType)
                                     )
                                     .descriptor(new SimpleModelRuleDescriptor(new Factory<String>() {
                                         @Override

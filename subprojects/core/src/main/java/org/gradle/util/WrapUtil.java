@@ -40,7 +40,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable unordered set.
      */
     public static <T> Set<T> toSet(T... items) {
-        Set<T> coll = new HashSet<T>();
+        Set<T> coll = new HashSet<>();
         Collections.addAll(coll, items);
         return coll;
     }
@@ -49,7 +49,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable domain object set.
      */
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
-        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type, CollectionCallbackActionDecorator.NOOP);
+        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<>(type, CollectionCallbackActionDecorator.NOOP);
         set.addAll(Arrays.asList(items));
         return set;
     }
@@ -58,7 +58,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable ordered set.
      */
     public static <T> Set<T> toLinkedSet(T... items) {
-        Set<T> coll = new LinkedHashSet<T>();
+        Set<T> coll = new LinkedHashSet<>();
         Collections.addAll(coll, items);
         return coll;
     }
@@ -67,7 +67,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable sorted set.
      */
     public static <T> SortedSet<T> toSortedSet(T... items) {
-        SortedSet<T> coll = new TreeSet<T>();
+        SortedSet<T> coll = new TreeSet<>();
         Collections.addAll(coll, items);
         return coll;
     }
@@ -76,7 +76,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable sorted set using the given comparator.
      */
     public static <T> SortedSet<T> toSortedSet(Comparator<T> comp, T... items) {
-        SortedSet<T> coll = new TreeSet<T>(comp);
+        SortedSet<T> coll = new TreeSet<>(comp);
         Collections.addAll(coll, items);
         return coll;
     }
@@ -85,7 +85,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable list.
      */
     public static <T> List<T> toList(T... items) {
-        ArrayList<T> coll = new ArrayList<T>();
+        ArrayList<T> coll = new ArrayList<>();
         Collections.addAll(coll, items);
         return coll;
     }
@@ -94,7 +94,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable list.
      */
     public static <T> List<T> toList(Iterable<? extends T> items) {
-        ArrayList<T> coll = new ArrayList<T>();
+        ArrayList<T> coll = new ArrayList<>();
         for (T item : items) {
             coll.add(item);
         }
@@ -105,7 +105,7 @@ public class WrapUtil {
      * Wraps the given key and value in a mutable unordered map.
      */
     public static <K, V> Map<K, V> toMap(K key, V value) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         map.put(key, value);
         return map;
     }

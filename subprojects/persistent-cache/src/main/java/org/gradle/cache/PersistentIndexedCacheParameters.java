@@ -29,15 +29,15 @@ public class PersistentIndexedCacheParameters<K, V> {
     private final CacheDecorator cacheDecorator;
 
     public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null);
+        return new PersistentIndexedCacheParameters<>(cacheName, keySerializer, valueSerializer, null);
     }
 
     public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
+        return new PersistentIndexedCacheParameters<>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
     }
 
     public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null);
+        return new PersistentIndexedCacheParameters<>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null);
     }
 
     private PersistentIndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, @Nullable CacheDecorator cacheDecorator) {
@@ -65,6 +65,6 @@ public class PersistentIndexedCacheParameters<K, V> {
     }
 
     public PersistentIndexedCacheParameters<K, V> withCacheDecorator(CacheDecorator cacheDecorator) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, cacheDecorator);
+        return new PersistentIndexedCacheParameters<>(cacheName, keySerializer, valueSerializer, cacheDecorator);
     }
 }

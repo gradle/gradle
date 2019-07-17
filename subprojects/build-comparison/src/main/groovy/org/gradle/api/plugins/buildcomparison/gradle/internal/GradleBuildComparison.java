@@ -72,9 +72,9 @@ public class GradleBuildComparison {
     private final ComparableGradleBuildExecuter targetBuildExecuter;
 
     private final DefaultBuildOutcomeComparatorFactory outcomeComparatorFactory = new DefaultBuildOutcomeComparatorFactory();
-    private final List<BuildOutcomeAssociator> outcomeAssociators = new LinkedList<BuildOutcomeAssociator>();
-    private final DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> comparisonResultRenderers = new DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
-    private final DefaultBuildOutcomeRendererFactory<HtmlRenderContext> outcomeRenderers = new DefaultBuildOutcomeRendererFactory<HtmlRenderContext>(HtmlRenderContext.class);
+    private final List<BuildOutcomeAssociator> outcomeAssociators = new LinkedList<>();
+    private final DefaultBuildOutcomeComparisonResultRendererFactory<HtmlRenderContext> comparisonResultRenderers = new DefaultBuildOutcomeComparisonResultRendererFactory<>(HtmlRenderContext.class);
+    private final DefaultBuildOutcomeRendererFactory<HtmlRenderContext> outcomeRenderers = new DefaultBuildOutcomeRendererFactory<>(HtmlRenderContext.class);
     private final Logger logger;
     private final ProgressLogger progressLogger;
     private final Gradle gradle;
@@ -101,7 +101,7 @@ public class GradleBuildComparison {
         outcomeComparatorFactory.registerComparator(outcomeComparator);
         comparisonResultRenderers.registerRenderer(comparisonResultRenderer);
         outcomeRenderers.registerRenderer(outcomeRenderer);
-        outcomeAssociators.add(new ByTypeAndNameBuildOutcomeAssociator<T>(outcomeType));
+        outcomeAssociators.add(new ByTypeAndNameBuildOutcomeAssociator<>(outcomeType));
     }
 
     private String executingMessage(String name, ComparableGradleBuildExecuter executer) {

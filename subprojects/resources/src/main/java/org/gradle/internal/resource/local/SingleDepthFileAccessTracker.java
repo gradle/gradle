@@ -63,7 +63,7 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
     }
 
     private Set<Path> collectSubPaths(Collection<File> files) {
-        Set<Path> paths = new HashSet<Path>();
+        Set<Path> paths = new HashSet<>();
         for (File file : files) {
             paths.add(toSubPath(file));
         }

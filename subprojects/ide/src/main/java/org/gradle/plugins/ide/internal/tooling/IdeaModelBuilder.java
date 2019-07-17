@@ -106,7 +106,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (IdeaModule module : projectModel.getModules()) {
             ideaModules.add(createModule(module, out, rootGradleProject));
         }
-        out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
+        out.setChildren(new LinkedList<>(ideaModules));
         return out;
     }
 
@@ -117,7 +117,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     private void buildDependencies(DefaultIdeaModule tapiModule, IdeaModule ideaModule) {
         ideaModule.setOffline(offlineDependencyResolution);
         Set<Dependency> resolved = ideaModule.resolveDependencies();
-        List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
+        List<DefaultIdeaDependency> dependencies = new LinkedList<>();
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
@@ -181,7 +181,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     }
 
     private Set<DefaultIdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
-        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<DefaultIdeaSourceDirectory>();
+        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<>();
         for (File s : sourceDirs) {
             DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
             if (generatedSourceDirs.contains(s)) {

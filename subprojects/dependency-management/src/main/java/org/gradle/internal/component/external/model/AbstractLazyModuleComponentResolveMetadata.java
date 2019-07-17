@@ -91,7 +91,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
-        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<ConfigurationMetadata>();
+        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
         }
@@ -138,7 +138,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
             return ImmutableSet.of(descriptorConfiguration.getName());
         }
-        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<String>();
+        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<>();
         populateHierarchy(descriptorConfiguration, accumulator);
         return accumulator.build();
     }

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
-    private final List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
+    private final List<LibraryBinaryLocator> locators = new ArrayList<>();
 
     public ChainedLibraryBinaryLocator(List<? extends LibraryBinaryLocator> locators) {
         this.locators.addAll(locators);

@@ -170,7 +170,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         TarArchiveEntry tarEntry;
         OriginMetadata originMetadata = null;
-        Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
+        Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         tarEntry = tarInput.getNextTarEntry();
         MutableLong entries = new MutableLong();

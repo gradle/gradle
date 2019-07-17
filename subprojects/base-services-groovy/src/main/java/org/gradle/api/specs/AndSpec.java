@@ -27,7 +27,7 @@ import org.gradle.api.specs.internal.ClosureSpec;
  * @param <T> The target type for this Spec
  */
 public class AndSpec<T> extends CompositeSpec<T> {
-    public static final AndSpec<?> EMPTY = new AndSpec<Object>();
+    public static final AndSpec<?> EMPTY = new AndSpec<>();
 
     public AndSpec() {
         super();
@@ -59,12 +59,12 @@ public class AndSpec<T> extends CompositeSpec<T> {
         Spec<? super T>[] thisSpecs = getSpecsArray();
         int thisLength = thisSpecs.length;
         if (thisLength == 0) {
-            return new AndSpec<T>(specs);
+            return new AndSpec<>(specs);
         }
         Spec<? super T>[] combinedSpecs = uncheckedCast(ObjectArrays.newArray(Spec.class, thisLength + specs.length));
         System.arraycopy(thisSpecs, 0, combinedSpecs, 0, thisLength);
         System.arraycopy(specs, 0, combinedSpecs, thisLength, specs.length);
-        return new AndSpec<T>(combinedSpecs);
+        return new AndSpec<>(combinedSpecs);
     }
 
     /**
@@ -80,7 +80,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
 
     @SuppressWarnings("unchecked")
     public AndSpec<T> and(Closure spec) {
-        return and(new ClosureSpec<T>(spec));
+        return and(new ClosureSpec<>(spec));
     }
 
     public static <T> AndSpec<T> empty() {

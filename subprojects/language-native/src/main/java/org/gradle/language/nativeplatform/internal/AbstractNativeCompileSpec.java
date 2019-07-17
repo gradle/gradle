@@ -30,12 +30,12 @@ import java.util.Map;
 
 public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec implements NativeCompileSpec {
 
-    private List<File> includeRoots = new ArrayList<File>();
-    private List<File> systemIncludeRoots = new ArrayList<File>();
-    private List<File> sourceFiles = new ArrayList<File>();
-    private List<File> removedSourceFiles = new ArrayList<File>();
+    private List<File> includeRoots = new ArrayList<>();
+    private List<File> systemIncludeRoots = new ArrayList<>();
+    private List<File> sourceFiles = new ArrayList<>();
+    private List<File> removedSourceFiles = new ArrayList<>();
     private boolean incrementalCompile;
-    private Map<String, String> macros = new LinkedHashMap<String, String>();
+    private Map<String, String> macros = new LinkedHashMap<>();
     private File objectFileDir;
     private boolean positionIndependentCode;
     private boolean debuggable;
@@ -43,7 +43,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
-    private List<File> sourceFilesForPch = new ArrayList<File>();
+    private List<File> sourceFilesForPch = new ArrayList<>();
     private String preCompiledHeader;
 
     @Override

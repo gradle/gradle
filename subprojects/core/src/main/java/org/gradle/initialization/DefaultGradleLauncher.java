@@ -161,7 +161,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         RuntimeException reportableFailure = stageFailure == null ? null : exceptionAnalyser.transform(stageFailure);
         BuildResult buildResult = new BuildResult(action, gradle, reportableFailure);
-        List<Throwable> failures = new ArrayList<Throwable>();
+        List<Throwable> failures = new ArrayList<>();
         includedBuildControllers.finishBuild(failures);
         try {
             buildListener.buildFinished(buildResult);
@@ -232,7 +232,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             throw new IllegalStateException("Cannot execute tasks: current stage = " + stage);
         }
 
-        List<Throwable> taskFailures = new ArrayList<Throwable>();
+        List<Throwable> taskFailures = new ArrayList<>();
         buildExecuter.execute(gradle, taskFailures);
         if (!taskFailures.isEmpty()) {
             throw new MultipleBuildFailures(taskFailures);

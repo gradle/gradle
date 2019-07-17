@@ -27,7 +27,7 @@ public class RuleContext {
     private static final ThreadLocal<Deque<ModelRuleDescriptor>> STACK = new ThreadLocal<Deque<ModelRuleDescriptor>>() {
         @Override
         protected Deque<ModelRuleDescriptor> initialValue() {
-            return new ArrayDeque<ModelRuleDescriptor>();
+            return new ArrayDeque<>();
         }
     };
 

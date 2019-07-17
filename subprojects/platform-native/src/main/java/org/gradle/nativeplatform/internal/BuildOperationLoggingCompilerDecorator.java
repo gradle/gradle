@@ -28,7 +28,7 @@ public class BuildOperationLoggingCompilerDecorator<T extends BinaryToolSpec> im
     }
 
     public static <T extends BinaryToolSpec> Compiler<T> wrap(Compiler<T> delegate) {
-        return new BuildOperationLoggingCompilerDecorator<T>(delegate);
+        return new BuildOperationLoggingCompilerDecorator<>(delegate);
     }
 
     @Override

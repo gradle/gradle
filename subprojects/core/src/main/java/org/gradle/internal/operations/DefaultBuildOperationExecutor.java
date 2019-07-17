@@ -97,7 +97,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<T>();
+        CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<>();
         try {
             execute(buildOperation, worker, getCurrentBuildOperation());
         } finally {
@@ -114,7 +114,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         try {
-            executeInParallel(new ParentPreservingQueueWorker<O>(runnableBuildOperationWorker), schedulingAction);
+            executeInParallel(new ParentPreservingQueueWorker<>(runnableBuildOperationWorker), schedulingAction);
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
@@ -123,7 +123,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
         try {
-            executeInParallel(new ParentPreservingQueueWorker<O>(worker), schedulingAction);
+            executeInParallel(new ParentPreservingQueueWorker<>(worker), schedulingAction);
         } finally {
             maybeStopUnmanagedThreadOperation();
         }

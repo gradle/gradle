@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class DefaultSwiftcPlatformToolChain implements SwiftcPlatformToolChain {
     private final NativePlatform platform;
-    private final Map<ToolType, CommandLineToolConfigurationInternal> tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
+    private final Map<ToolType, CommandLineToolConfigurationInternal> tools = new HashMap<>();
 
     public DefaultSwiftcPlatformToolChain(NativePlatform platform) {
         this.platform = platform;

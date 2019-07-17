@@ -108,10 +108,10 @@ public class ClassSetAnalysis {
             return deps;
         }
 
-        Set<String> resultClasses = new HashSet<String>();
-        Set<GeneratedResource> resultResources = new HashSet<GeneratedResource>(resourcesDependingOnAllOthers);
-        recurseDependentClasses(new HashSet<String>(), resultClasses, resultResources, deps.getDependentClasses());
-        recurseDependentClasses(new HashSet<String>(), resultClasses, resultResources, classesDependingOnAllOthers);
+        Set<String> resultClasses = new HashSet<>();
+        Set<GeneratedResource> resultResources = new HashSet<>(resourcesDependingOnAllOthers);
+        recurseDependentClasses(new HashSet<>(), resultClasses, resultResources, deps.getDependentClasses());
+        recurseDependentClasses(new HashSet<>(), resultClasses, resultResources, classesDependingOnAllOthers);
         resultClasses.remove(className);
 
         return DependentsSet.dependents(resultClasses, resultResources);

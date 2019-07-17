@@ -35,8 +35,8 @@ import java.util.concurrent.Executor;
  * Use {@link ExecHandleFactory} instead.
  */
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
-    private final List<Object> arguments = new ArrayList<Object>();
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private final List<Object> arguments = new ArrayList<>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
 
     public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
         this(fileResolver, executor, new DefaultBuildCancellationToken());
@@ -112,7 +112,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public List<String> getArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         for (Object argument : arguments) {
             args.add(argument.toString());
         }
@@ -126,7 +126,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public List<String> getAllArguments() {
-        List<String> args = new ArrayList<String>(getArgs());
+        List<String> args = new ArrayList<>(getArgs());
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(args, argumentProvider.asArguments());
         }

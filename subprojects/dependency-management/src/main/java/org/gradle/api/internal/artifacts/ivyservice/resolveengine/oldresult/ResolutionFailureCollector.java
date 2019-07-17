@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ResolutionFailureCollector implements DependencyGraphVisitor {
-    private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ComponentSelector, BrokenDependency>();
+    private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<>();
     private final ComponentSelectorConverter componentSelectorConverter;
     private RootGraphNode root;
 
@@ -101,7 +101,7 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
 
     private static class BrokenDependency {
         final ModuleVersionResolveException failure;
-        final List<DependencyGraphNode> requiredBy = new ArrayList<DependencyGraphNode>();
+        final List<DependencyGraphNode> requiredBy = new ArrayList<>();
 
         private BrokenDependency(ModuleVersionResolveException failure) {
             this.failure = failure;

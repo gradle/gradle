@@ -34,7 +34,7 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
     private final SetSerializer<String> stringSetSerializer;
 
     public ClassAnalysisSerializer(StringInterner interner) {
-        stringSetSerializer = new SetSerializer<String>(new InterningStringSerializer(interner), false);
+        stringSetSerializer = new SetSerializer<>(new InterningStringSerializer(interner), false);
         this.interner = interner;
     }
 

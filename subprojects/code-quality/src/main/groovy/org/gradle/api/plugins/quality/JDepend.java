@@ -106,7 +106,7 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
      */
     @Override
     public JDependReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<JDependReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**

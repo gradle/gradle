@@ -216,7 +216,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public List<String> getCompilerDefines() {
-        List<String> defines = new ArrayList<String>();
+        List<String> defines = new ArrayList<>();
         defines.addAll(getDefines("cCompiler"));
         defines.addAll(getDefines("cppCompiler"));
         defines.addAll(getDefines("rcCompiler"));
@@ -234,7 +234,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public Set<File> getIncludePaths() {
-        Set<File> includes = new LinkedHashSet<File>();
+        Set<File> includes = new LinkedHashSet<>();
 
         for (LanguageSourceSet sourceSet : binary.getInputs()) {
             if (sourceSet instanceof HeaderExportingSourceSet) {

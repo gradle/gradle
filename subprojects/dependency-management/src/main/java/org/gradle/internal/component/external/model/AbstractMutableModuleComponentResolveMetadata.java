@@ -214,7 +214,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
         MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
         if (newVariants == null) {
-            newVariants = new ArrayList<MutableVariantImpl>();
+            newVariants = new ArrayList<>();
         }
         newVariants.add(variant);
         return variant;
@@ -227,7 +227,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         if (variants != null && newVariants == null) {
             return variants;
         }
-        ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<ComponentVariant>();
+        ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<>();
         if (variants != null) {
             builder.addAll(variants);
         }
@@ -554,7 +554,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            List<ComponentArtifactMetadata> artifacts = new ArrayList<ComponentArtifactMetadata>(files.size());
+            List<ComponentArtifactMetadata> artifacts = new ArrayList<>(files.size());
             for (ComponentVariant.File file : files) {
                 artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
             }

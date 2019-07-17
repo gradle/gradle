@@ -42,7 +42,7 @@ public class SerializableCoffeeScriptCompileSpec implements Serializable {
     public SerializableCoffeeScriptCompileSpec(File coffeeScriptJs, File destinationDir, FileCollection source, CoffeeScriptCompileOptions options) {
         this.coffeeScriptJs = coffeeScriptJs;
         this.destinationDir = destinationDir;
-        this.source = new LinkedList<RelativeFile>();
+        this.source = new LinkedList<>();
         this.options = options;
 
         toRelativeFiles(source, this.source);

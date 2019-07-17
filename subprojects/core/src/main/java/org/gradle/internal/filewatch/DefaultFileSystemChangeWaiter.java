@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
     private final long quietPeriodMillis;
     private final BuildCancellationToken cancellationToken;
-    private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
+    private final AtomicReference<Throwable> error = new AtomicReference<>();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final AtomicLong lastChangeAt = new AtomicLong(0);
@@ -42,7 +42,7 @@ class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
     private final Action<Throwable> onError;
     private boolean watching;
     private FileWatcherEventListener eventListener;
-    private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<FileWatcherEvent>();
+    private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<>();
     private final Lock eventDeliveryLock = new ReentrantLock();
 
     private static long monotonicClockMillis() {

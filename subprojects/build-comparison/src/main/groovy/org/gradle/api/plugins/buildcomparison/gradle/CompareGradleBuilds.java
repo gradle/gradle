@@ -273,7 +273,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         File fileStoreTmpBase = getFileResolver().resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
         MovableFileStore<String> fileStore = new Files(fileStoreTmpBase);
 
-        Map<String, String> hostAttributes = new LinkedHashMap<String, String>(4);
+        Map<String, String> hostAttributes = new LinkedHashMap<>(4);
         hostAttributes.put("Project", getProject().getRootDir().getAbsolutePath());
         hostAttributes.put("Task", getPath());
         hostAttributes.put("Gradle version", GradleVersion.current().getVersion());

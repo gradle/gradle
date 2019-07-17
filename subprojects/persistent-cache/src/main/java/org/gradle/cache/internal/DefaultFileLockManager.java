@@ -63,7 +63,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     public static final int DEFAULT_LOCK_TIMEOUT = 60000;
 
-    private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
+    private final Set<File> lockedFiles = new CopyOnWriteArraySet<>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;

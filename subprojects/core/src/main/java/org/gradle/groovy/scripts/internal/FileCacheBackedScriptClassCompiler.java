@@ -99,7 +99,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
         PersistentCache remappedClassesCache = cacheRepository.cache("scripts-remapped/" + source.getClassName() + "/" + sourceHash + "/" + classpathHash)
             .withDisplayName(dslId + " remapped class cache for " + sourceHash)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local compilation cache"))
             .open();
@@ -115,7 +115,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
         classLoaderCache.remove(classLoaderId);
-        return new EmptyCompiledScript<T, M>(operation);
+        return new EmptyCompiledScript<>(operation);
     }
 
     @Override

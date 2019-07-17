@@ -25,7 +25,7 @@ public class TypedModelProjection<M> extends TypeCompatibilityModelProjectionSup
     private final ModelViewFactory<M> viewFactory;
 
     public static <M> ModelProjection of(ModelType<M> type, ModelViewFactory<M> viewFactory) {
-        return new TypedModelProjection<M>(type, viewFactory);
+        return new TypedModelProjection<>(type, viewFactory);
     }
 
     public TypedModelProjection(ModelType<M> type, ModelViewFactory<M> viewFactory) {

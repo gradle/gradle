@@ -21,7 +21,7 @@ import java.util.List;
 
 public class FailureCollector {
 
-    private final List<Throwable> failures = new ArrayList<Throwable>();
+    private final List<Throwable> failures = new ArrayList<>();
 
     public void addFailure(Throwable throwable) {
         failures.add(throwable);

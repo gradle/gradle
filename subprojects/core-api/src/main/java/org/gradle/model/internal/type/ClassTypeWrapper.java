@@ -27,7 +27,7 @@ class ClassTypeWrapper implements TypeWrapper {
 
     public ClassTypeWrapper(Class<?> clazz) {
         Class<?> effectiveClass = effectiveClassOf(clazz);
-        this.reference = new WeakReference<Class<?>>(effectiveClass);
+        this.reference = new WeakReference<>(effectiveClass);
         this.hashCode = effectiveClass.hashCode();
     }
 
@@ -102,7 +102,7 @@ class ClassTypeWrapper implements TypeWrapper {
     }
 
     private ArrayList<Class<?>> getEnclosingClassChain() {
-        ArrayList<Class<?>> classChain = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> classChain = new ArrayList<>();
         Class<?> clazz = unwrap();
         do {
             classChain.add(clazz);

@@ -36,7 +36,7 @@ import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
 public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory> {
 
     private final GnupgSignatoryFactory factory = new GnupgSignatoryFactory();
-    private final Map<String, GnupgSignatory> signatories = new LinkedHashMap<String, GnupgSignatory>();
+    private final Map<String, GnupgSignatory> signatories = new LinkedHashMap<>();
 
     @Override
     public void configure(final SigningExtension settings, Closure closure) {

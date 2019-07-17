@@ -53,7 +53,7 @@ public class SyncCopyActionDecorator implements CopyAction {
 
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final Set<RelativePath> visited = new HashSet<RelativePath>();
+        final Set<RelativePath> visited = new HashSet<>();
 
         WorkResult didWork = delegate.execute(new CopyActionProcessingStream() {
             @Override

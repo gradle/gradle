@@ -43,7 +43,7 @@ import java.util.Set;
  * this will have no effect.
  */
 public class Delete extends ConventionTask implements DeleteSpec {
-    private Set<Object> delete = new LinkedHashSet<Object>();
+    private Set<Object> delete = new LinkedHashSet<>();
 
     private boolean followSymlinks;
 

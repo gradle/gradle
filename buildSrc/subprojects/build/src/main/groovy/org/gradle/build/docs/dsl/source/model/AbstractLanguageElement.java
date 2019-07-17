@@ -25,7 +25,7 @@ import java.util.Objects;
 
 public abstract class AbstractLanguageElement implements LanguageElement, Serializable {
     private String rawCommentText;
-    private final List<String> annotationNames = new ArrayList<String>();
+    private final List<String> annotationNames = new ArrayList<>();
     private String replacement;
 
     protected AbstractLanguageElement() {

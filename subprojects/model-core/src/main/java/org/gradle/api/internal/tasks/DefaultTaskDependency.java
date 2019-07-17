@@ -77,7 +77,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         if (mutableValues.isEmpty() && immutableValues.isEmpty()) {
             return;
         }
-        final Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
+        final Deque<Object> queue = new ArrayDeque<>(mutableValues.size() + immutableValues.size());
         queue.addAll(immutableValues);
         queue.addAll(mutableValues);
         while (!queue.isEmpty()) {
@@ -135,7 +135,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
             } else {
-                List<String> formats = new ArrayList<String>();
+                List<String> formats = new ArrayList<>();
                 if (resolver != null) {
                     formats.add("A String or CharSequence task name or path");
                 }

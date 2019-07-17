@@ -34,7 +34,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     @Override
     public void visitProperties(Object bean, ParameterValidationContext validationContext, PropertyVisitor visitor) {
-        Queue<RuntimeBeanNode<?>> queue = new ArrayDeque<RuntimeBeanNode<?>>();
+        Queue<RuntimeBeanNode<?>> queue = new ArrayDeque<>();
         queue.add(nodeFactory.createRoot(bean));
         while (!queue.isEmpty()) {
             RuntimeBeanNode<?> node = queue.remove();

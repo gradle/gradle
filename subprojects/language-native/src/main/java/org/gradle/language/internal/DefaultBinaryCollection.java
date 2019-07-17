@@ -44,8 +44,8 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     private final Class<T> elementType;
     private final ProviderFactory providerFactory;
-    private final Set<T> elements = new LinkedHashSet<T>();
-    private List<SingleElementProvider<?>> pending = new LinkedList<SingleElementProvider<?>>();
+    private final Set<T> elements = new LinkedHashSet<>();
+    private List<SingleElementProvider<?>> pending = new LinkedList<>();
     private State state = State.Collecting;
     private ImmutableActionSet<T> knownActions = ImmutableActionSet.empty();
     private ImmutableActionSet<T> configureActions = ImmutableActionSet.empty();
@@ -59,7 +59,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> BinaryProvider<S> get(final Class<S> type, final Spec<? super S> spec) {
-        SingleElementProvider<S> provider = new SingleElementProvider<S>(type, spec);
+        SingleElementProvider<S> provider = new SingleElementProvider<>(type, spec);
         if (state == State.Collecting) {
             pending.add(provider);
         } else {
@@ -93,7 +93,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> void whenElementKnown(final Class<S> type, final Action<? super S> action) {
-        whenElementKnown(new TypeFilteringAction<T, S>(type, action));
+        whenElementKnown(new TypeFilteringAction<>(type, action));
     }
 
     @Override
@@ -109,7 +109,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> void whenElementFinalized(Class<S> type, Action<? super S> action) {
-        whenElementFinalized(new TypeFilteringAction<T, S>(type, action));
+        whenElementFinalized(new TypeFilteringAction<>(type, action));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> void configureEach(Class<S> type, Action<? super S> action) {
-        configureEach(new TypeFilteringAction<T, S>(type, action));
+        configureEach(new TypeFilteringAction<>(type, action));
     }
 
     public void add(T element) {

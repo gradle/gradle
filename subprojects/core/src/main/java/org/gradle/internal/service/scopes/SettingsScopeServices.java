@@ -65,7 +65,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        PluginTarget target = new ImperativeOnlyPluginTarget<SettingsInternal>(settings);
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(settings);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 

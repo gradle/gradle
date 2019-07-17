@@ -77,7 +77,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         if (descriptors.isEmpty()) {
             return ImmutableCapabilities.EMPTY;
         }
-        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<ImmutableCapability>();
+        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<>();
         for (Capability descriptor : descriptors) {
             builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
         }

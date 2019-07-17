@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
-    private final Set<DaemonConnectDetails> daemons = new CopyOnWriteArraySet<DaemonConnectDetails>();
+    private final Set<DaemonConnectDetails> daemons = new CopyOnWriteArraySet<>();
     private final DaemonStopClient client;
 
     public ShutdownCoordinator(DaemonStopClient client) {

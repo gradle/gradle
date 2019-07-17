@@ -38,7 +38,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
-        children.put(root, new ArrayList<DefaultImmutableAttributes>());
+        children.put(root, new ArrayList<>());
     }
 
     public int size() {

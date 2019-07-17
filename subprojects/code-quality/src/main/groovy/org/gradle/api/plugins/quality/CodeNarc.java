@@ -112,7 +112,7 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      */
     @Override
     public CodeNarcReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<CodeNarcReports>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     /**

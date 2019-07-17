@@ -34,7 +34,7 @@ public class ManifestUtil {
     private static final String[] EMPTY = new String[0];
 
     public static String createManifestClasspath(File jarFile, Collection<File> classpath) {
-        List<String> paths = new ArrayList<String>(classpath.size());
+        List<String> paths = new ArrayList<>(classpath.size());
         for (File file : classpath) {
             String path = constructRelativeClasspathUri(jarFile, file);
             paths.add(path);
@@ -51,7 +51,7 @@ public class ManifestUtil {
     }
 
     public static List<URI> parseManifestClasspath(File jarFile) {
-        List<URI> manifestClasspath = new ArrayList<URI>();
+        List<URI> manifestClasspath = new ArrayList<>();
         for (String value : readManifestClasspathString(jarFile)) {
             try {
                 URI uri = new URI(value);

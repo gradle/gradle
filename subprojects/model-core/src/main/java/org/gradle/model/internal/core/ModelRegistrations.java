@@ -20,8 +20,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
@@ -32,6 +30,8 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,7 +86,7 @@ public abstract class ModelRegistrations {
     @NotThreadSafe
     public static class Builder {
         private final ModelReference<Object> reference;
-        private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
+        private final List<ModelProjection> projections = new ArrayList<>();
         private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
         private final NodeInitializer nodeInitializer;
         private final DescriptorReference descriptorReference = new DescriptorReference();
@@ -120,7 +120,7 @@ public abstract class ModelRegistrations {
         }
 
         public <T> Builder action(ModelActionRole role, ModelReference<T> input, BiAction<MutableModelNode, T> action) {
-            return action(role, new InputsUsingBuilderAction(reference, descriptorReference, Collections.singleton(input), new SingleInputNodeBiAction<T>(input.getType(), action)));
+            return action(role, new InputsUsingBuilderAction(reference, descriptorReference, Collections.singleton(input), new SingleInputNodeBiAction<>(input.getType(), action)));
         }
 
         public Builder action(ModelActionRole role, Iterable<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {

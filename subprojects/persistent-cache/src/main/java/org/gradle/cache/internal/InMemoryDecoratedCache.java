@@ -75,7 +75,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
 
     @Override
     public V get(final K key, final Transformer<? extends V, ? super K> producer, final Runnable completion) {
-        final AtomicReference<Runnable> completionRef = new AtomicReference<Runnable>(completion);
+        final AtomicReference<Runnable> completionRef = new AtomicReference<>(completion);
         Object value;
         try {
             value = inMemoryCache.getIfPresent(key);

@@ -39,7 +39,7 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
 
     @Override
     protected List<String> getOutputArgs(T spec, File outputFile) {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         if (spec.isDebuggable()) {
             args.add("/Fd" + new File(outputFile.getParentFile(), outputFile.getName() + ".pdb"));
         }
@@ -57,7 +57,7 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
 
     @Override
     protected List<String> getPCHArgs(T spec) {
-        List<String> pchArgs = new ArrayList<String>();
+        List<String> pchArgs = new ArrayList<>();
         if (spec.getPreCompiledHeader() != null && spec.getPreCompiledHeaderObjectFile() != null) {
             String lastHeader = spec.getPreCompiledHeader();
 

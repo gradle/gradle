@@ -32,7 +32,7 @@ import java.util.List;
 public class GenerationPlanBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenerationPlanBuilder.class);
 
-    private final LinkedHashMap<String, GenerationPlan> generationPlans = new LinkedHashMap<String, GenerationPlan>();
+    private final LinkedHashMap<String, GenerationPlan> generationPlans = new LinkedHashMap<>();
     private final File outputDirectory;
 
     private XRef metadataXRef;
@@ -51,7 +51,7 @@ public class GenerationPlanBuilder {
             locateOrBuildGenerationPlan(grammarFileMetadata);
         }
 
-        return new ArrayList<GenerationPlan>(generationPlans.values());
+        return new ArrayList<>(generationPlans.values());
     }
 
     private GenerationPlan locateOrBuildGenerationPlan(GrammarFileMetadata grammarFileMetadata) {

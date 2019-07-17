@@ -45,7 +45,7 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
 @Deprecated
 public class JavaLibrary implements SoftwareComponentInternal {
 
-    private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+    private final Set<PublishArtifact> artifacts = new LinkedHashSet<>();
     private final UsageContext runtimeUsage;
     private final UsageContext compileUsage;
     private final ConfigurationContainer configurations;

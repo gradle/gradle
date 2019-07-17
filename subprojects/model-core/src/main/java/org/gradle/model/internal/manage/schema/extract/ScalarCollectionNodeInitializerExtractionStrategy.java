@@ -97,7 +97,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             return new ScalarCollectionModelProjection<E, List<E>>(ModelTypes.list(elementType)) {
                 @Override
                 protected ScalarCollectionModelView<E, List<E>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-                    return new ListModelView<E>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
+                    return new ListModelView<>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
                 }
             };
         }
@@ -106,7 +106,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             return new ScalarCollectionModelProjection<E, Set<E>>(ModelTypes.set(elementType)) {
                 @Override
                 protected ScalarCollectionModelView<E, Set<E>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-                    return new SetModelView<E>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
+                    return new SetModelView<>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
                 }
             };
         }
@@ -120,12 +120,12 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
         @Override
         protected List<T> initialValue() {
-            return new LinkedList<T>();
+            return new LinkedList<>();
         }
 
         @Override
         protected List<T> toMutationSafe(Collection<?> backingCollection) {
-            return new ListBackedCollection<T>(Cast.<List<T>>uncheckedCast(backingCollection), state, elementType);
+            return new ListBackedCollection<>(Cast.<List<T>>uncheckedCast(backingCollection), state, elementType);
         }
     }
 
@@ -137,12 +137,12 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
         @Override
         protected Set<T> initialValue() {
-            return new LinkedHashSet<T>();
+            return new LinkedHashSet<>();
         }
 
         @Override
         protected Set<T> toMutationSafe(Collection<?> backingCollection) {
-            return new SetBackedCollection<T>(Cast.<Set<T>>uncheckedCast(backingCollection), state, elementType);
+            return new SetBackedCollection<>(Cast.<Set<T>>uncheckedCast(backingCollection), state, elementType);
         }
     }
 
