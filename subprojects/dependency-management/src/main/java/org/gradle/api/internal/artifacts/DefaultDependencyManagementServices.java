@@ -335,13 +335,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public OriginMetadata getOriginMetadata() {
-                    return result.getOriginMetadata();
-                }
-
-                @Override
-                public boolean isReused() {
-                    return result.isReused();
+                public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                    return result.getReusedOutputOriginMetadata();
                 }
 
                 @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-public interface SnapshotResult extends Result {
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
+import java.util.Map;
+import java.util.Optional;
+
+public interface EmptySourceTaskSkipper {
+    Optional<ExecutionOutcome> skipIfEmptySources(TaskInternal task, boolean hasSourceFiles, FileCollection inputFiles, FileCollection sourceFiles, Map<String, FileCollectionFingerprint> outputFileSnapshots);
 }

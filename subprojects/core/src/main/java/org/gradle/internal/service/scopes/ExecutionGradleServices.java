@@ -54,6 +54,7 @@ import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.SkipEmptyWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
@@ -132,24 +133,26 @@ public class ExecutionGradleServices {
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<>(
-            new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
-                    new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
-                        new MarkSnapshottingInputsFinishedStep<>(
-                            new ResolveChangesStep<>(changeDetector,
-                                new SkipUpToDateStep<>(
-                                    new RecordOutputsStep<>(outputFilesRepository,
-                                        new StoreSnapshotsStep<>(
-                                            new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                                    new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                                        new CreateOutputsStep<>(
-                                                            new CatchExceptionStep<>(
-                                                                new TimeoutStep<>(timeoutHandler,
-                                                                    new CancelExecutionStep<>(cancellationToken,
-                                                                        new ResolveInputChangesStep<>(
-                                                                            new CleanupOutputsStep<>(
-                                                                                new ExecuteStep<>()
+            new SkipEmptyWorkStep<>(
+                new ValidateStep<>(
+                    new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
+                        new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
+                            new MarkSnapshottingInputsFinishedStep<>(
+                                new ResolveChangesStep<>(changeDetector,
+                                    new SkipUpToDateStep<>(
+                                        new RecordOutputsStep<>(outputFilesRepository,
+                                            new StoreSnapshotsStep<>(
+                                                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                                    new CacheStep(buildCacheController, buildCacheCommandFactory,
+                                                        new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+                                                            new CreateOutputsStep<>(
+                                                                new CatchExceptionStep<>(
+                                                                    new TimeoutStep<>(timeoutHandler,
+                                                                        new CancelExecutionStep<>(cancellationToken,
+                                                                            new ResolveInputChangesStep<>(
+                                                                                new CleanupOutputsStep<>(
+                                                                                    new ExecuteStep<>()
+                                                                                )
                                                                             )
                                                                         )
                                                                     )

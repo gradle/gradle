@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -89,6 +90,15 @@ public interface UnitOfWork extends CacheableEntity {
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
     Optional<CachingDisabledReason> shouldDisableCaching();
+
+    /**
+     * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
+     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#EMPTY} is
+     * returned depending on whether cleanup of existing outputs had to be performed.
+     */
+    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
+        return Optional.empty();
+    }
 
     /**
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.

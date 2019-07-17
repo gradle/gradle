@@ -30,6 +30,11 @@ public enum ExecutionOutcome {
     FROM_CACHE,
 
     /**
+     * The work's inputs required no work to be executed.
+     */
+    EMPTY,
+
+    /**
      * The work has been executed with information about the changes that happened since the previous execution.
      */
     EXECUTED_INCREMENTALLY,

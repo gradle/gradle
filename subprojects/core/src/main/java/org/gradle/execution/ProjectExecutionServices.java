@@ -29,15 +29,16 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
+import org.gradle.api.internal.tasks.execution.DefaultEmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.DefaultTaskSnapshotter;
+import org.gradle.api.internal.tasks.execution.EmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
-import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.StartSnapshotTaskInputsBuildOperationTaskExecuter;
@@ -91,6 +92,14 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
+    EmptySourceTaskSkipper createEmptySourceTaskSkipper(
+        TaskInputsListener taskInputsListener,
+        OutputChangeListener outputChangeListener,
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry
+    ) {
+        return new DefaultEmptySourceTaskSkipper(taskInputsListener, outputChangeListener, buildOutputCleanupRegistry);
+    }
+
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,
                                     BuildCacheController buildCacheController,
                                     TaskInputsListener inputsListener,
@@ -112,8 +121,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskListenerInternal taskListenerInternal,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
                                     WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
+                                    ListenerManager listenerManager,
                                     ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-                                    ListenerManager listenerManager
+                                    EmptySourceTaskSkipper emptySourceTaskSkipper
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -132,9 +142,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             classLoaderHierarchyHasher,
             workExecutor,
             listenerManager,
-            reservedFileSystemLocationRegistry
+            reservedFileSystemLocationRegistry,
+            emptySourceTaskSkipper
         );
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer);
         executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskSnapshotter, executer);
         // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)

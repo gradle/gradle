@@ -54,6 +54,7 @@ import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
+import org.gradle.internal.execution.steps.SkipEmptyWorkStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.ValidateStep
@@ -137,20 +138,23 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
+    def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
 
     def workExecutor = new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
-        new ValidateStep<>(
-            new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter,
-                new ResolveCachingStateStep(buildCacheController, false,
-                    new ResolveChangesStep<>(changeDetector,
-                        new SkipUpToDateStep<>(
-                            new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                new SnapshotOutputsStep<>(buildId,
-                                    new CatchExceptionStep<>(
-                                        new CancelExecutionStep<>(cancellationToken,
-                                            new ResolveInputChangesStep<>(
-                                                new CleanupOutputsStep<>(
-                                                    new ExecuteStep<InputChangesContext>()
+        new SkipEmptyWorkStep<>(
+            new ValidateStep<>(
+                new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter,
+                    new ResolveCachingStateStep(buildCacheController, false,
+                        new ResolveChangesStep<>(changeDetector,
+                            new SkipUpToDateStep<>(
+                                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                    new SnapshotOutputsStep<>(buildId,
+                                        new CatchExceptionStep<>(
+                                            new CancelExecutionStep<>(cancellationToken,
+                                                new ResolveInputChangesStep<>(
+                                                    new CleanupOutputsStep<>(
+                                                        new ExecuteStep<InputChangesContext>()
+                                                    )
                                                 )
                                             )
                                         )
@@ -176,7 +180,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         classloaderHierarchyHasher,
         workExecutor,
         listenerManager,
-        reservedFileSystemLocationRegistry
+        reservedFileSystemLocationRegistry,
+        emptySourceTaskSkipper
     )
 
     def setup() {

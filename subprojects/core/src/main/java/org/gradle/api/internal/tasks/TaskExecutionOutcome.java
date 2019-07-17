@@ -56,6 +56,8 @@ public enum TaskExecutionOutcome {
                 return FROM_CACHE;
             case UP_TO_DATE:
                 return UP_TO_DATE;
+            case EMPTY:
+                return NO_SOURCE;
             case EXECUTED_INCREMENTALLY:
             case EXECUTED_NON_INCREMENTALLY:
                 return EXECUTED;

@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,6 +41,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -111,6 +113,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
+    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -125,7 +128,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
         ListenerManager listenerManager,
-        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
+        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+        EmptySourceTaskSkipper emptySourceTaskSkipper
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
@@ -140,6 +144,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.workExecutor = workExecutor;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
+        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
     }
 
     @Override
@@ -177,9 +182,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return result.isReused()
-                    ? Optional.of(result.getOriginMetadata())
-                    : Optional.empty();
+                return result.getReusedOutputOriginMetadata();
             }
 
             @Override
@@ -438,6 +441,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     .collect(Collectors.toList());
                 throw new TaskValidationException(errorMessage, causes);
             }
+        }
+
+        @Override
+        public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
+            TaskProperties properties = context.getTaskProperties();
+            FileCollection inputFiles = properties.getInputFiles();
+            FileCollection sourceFiles = properties.getSourceFiles();
+            boolean hasSourceFiles = properties.hasSourceFiles();
+            return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, outputFilesAfterPreviousExecution);
         }
 
         @Override
