@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.fingerprint.OverlappingOutputs;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 

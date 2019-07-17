@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -61,7 +59,6 @@ public class OverlappingOutputs {
         }
         return FileCollectionFingerprint.EMPTY;
     }
-
 
     @Nullable
     private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, FileSystemSnapshot before) {
