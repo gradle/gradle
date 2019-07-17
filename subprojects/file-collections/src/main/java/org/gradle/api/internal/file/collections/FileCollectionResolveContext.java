@@ -46,6 +46,8 @@ public interface FileCollectionResolveContext {
      *     <li>{@link org.gradle.api.Buildable}</li>
      *     <li>{@link TaskDependencyContainer}</li>
      * </ul>
+     *
+     * @return true when the element has been handled, false when the caller is responsible for unpacking the element.
      */
     boolean maybeAdd(Object element);
 
