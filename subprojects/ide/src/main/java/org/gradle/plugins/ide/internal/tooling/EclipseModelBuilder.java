@@ -365,14 +365,22 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private static DefaultAccessRule createAccessRule(AccessRule accessRule) {
         int kindCode;
         String kind = accessRule.getKind();
-        if (kind.equals("accessible") || kind.equals("0")) {
-            kindCode = 0;
-        } else if (kind.equals("nonaccessible") || kind.equals("1")) {
-            kindCode = 1;
-        } else if (kind.equals("discouraged") || kind.equals("2")) {
-            kindCode = 2;
-        } else {
-            kindCode = 0;
+        switch (kind) {
+            case "accessible":
+            case "0":
+                kindCode = 0;
+                break;
+            case "nonaccessible":
+            case "1":
+                kindCode = 1;
+                break;
+            case "discouraged":
+            case "2":
+                kindCode = 2;
+                break;
+            default:
+                kindCode = 0;
+                break;
         }
         return new DefaultAccessRule(kindCode, accessRule.getPattern());
     }

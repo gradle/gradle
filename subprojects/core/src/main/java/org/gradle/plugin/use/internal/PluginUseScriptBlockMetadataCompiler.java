@@ -78,42 +78,47 @@ public class PluginUseScriptBlockMetadataCompiler {
                     ConstantExpression methodName = (ConstantExpression) call.getMethod();
                     if (isOfType(methodName, String.class)) {
                         String methodNameText = methodName.getText();
-                        if (methodNameText.equals("id")) {
-                            ConstantExpression argumentExpression = hasSingleConstantArgOfType(call, String.class);
-                            if (argumentExpression == null) {
-                                restrict(call, formatErrorMessage(NEED_LITERAL_STRING));
-                                return;
-                            }
+                        switch (methodNameText) {
+                            case "id":
+                                ConstantExpression argumentExpression = hasSingleConstantArgOfType(call, String.class);
+                                if (argumentExpression == null) {
+                                    restrict(call, formatErrorMessage(NEED_LITERAL_STRING));
+                                    return;
+                                }
 
-                            if (!call.isImplicitThis()) {
-                                restrict(call, formatErrorMessage(BASE_MESSAGE));
-                            } else {
-                                ConstantExpression lineNumberExpression = new ConstantExpression(call.getLineNumber(), true);
-                                call.setArguments(new ArgumentListExpression(argumentExpression, lineNumberExpression));
-                            }
+                                if (!call.isImplicitThis()) {
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
+                                } else {
+                                    ConstantExpression lineNumberExpression = new ConstantExpression(call.getLineNumber(), true);
+                                    call.setArguments(new ArgumentListExpression(argumentExpression, lineNumberExpression));
+                                }
 
-                        } else if (methodNameText.equals("version")) {
-                            if (!hasSimpleInterpolatedStringType(call)) {
-                                restrict(call, formatErrorMessage(NEED_INTERPOLATED_STRING));
-                                return;
-                            }
+                                break;
+                            case "version":
+                                if (!hasSimpleInterpolatedStringType(call)) {
+                                    restrict(call, formatErrorMessage(NEED_INTERPOLATED_STRING));
+                                    return;
+                                }
 
-                            if (call.isImplicitThis()) {
-                                restrict(call, formatErrorMessage(BASE_MESSAGE));
-                            }
-                        } else if (methodNameText.equals("apply")) {
-                            ConstantExpression arguments = hasSingleConstantArgOfType(call, boolean.class);
-                            if (arguments == null) {
-                                restrict(call, formatErrorMessage(NEED_SINGLE_BOOLEAN));
-                            } else if (call.isImplicitThis()) {
-                                restrict(call, formatErrorMessage(BASE_MESSAGE));
-                            }
-                        } else {
-                            if (!call.isImplicitThis()) {
-                                restrict(methodName, formatErrorMessage(EXTENDED_MESSAGE));
-                            } else {
-                                restrict(methodName, formatErrorMessage(BASE_MESSAGE));
-                            }
+                                if (call.isImplicitThis()) {
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
+                                }
+                                break;
+                            case "apply":
+                                ConstantExpression arguments = hasSingleConstantArgOfType(call, boolean.class);
+                                if (arguments == null) {
+                                    restrict(call, formatErrorMessage(NEED_SINGLE_BOOLEAN));
+                                } else if (call.isImplicitThis()) {
+                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
+                                }
+                                break;
+                            default:
+                                if (!call.isImplicitThis()) {
+                                    restrict(methodName, formatErrorMessage(EXTENDED_MESSAGE));
+                                } else {
+                                    restrict(methodName, formatErrorMessage(BASE_MESSAGE));
+                                }
+                                break;
                         }
                     } else {
                         restrict(methodName, formatErrorMessage(NOT_LITERAL_ID_METHOD_NAME));

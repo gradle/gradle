@@ -29,7 +29,14 @@ import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 @SuppressWarnings("deprecation")
@@ -130,22 +137,23 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     @Override
     public List<String> instructionValue(String instructionName) {
-        if (instructionName.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
-            return createListFromPropertyString(getSymbolicName());
-        } else if (instructionName.equals(Analyzer.BUNDLE_NAME)) {
-            return createListFromPropertyString(getName());
-        } else if (instructionName.equals(Analyzer.BUNDLE_VERSION)) {
-            return createListFromPropertyString(getVersion());
-        } else if (instructionName.equals(Analyzer.BUNDLE_DESCRIPTION)) {
-            return createListFromPropertyString(getDescription());
-        } else if (instructionName.equals(Analyzer.BUNDLE_LICENSE)) {
-            return createListFromPropertyString(getLicense());
-        } else if (instructionName.equals(Analyzer.BUNDLE_VENDOR)) {
-            return createListFromPropertyString(getVendor());
-        } else if (instructionName.equals(Analyzer.BUNDLE_DOCURL)) {
-            return createListFromPropertyString(getDocURL());
-        } else {
-            return unmodelledInstructions.get(instructionName);
+        switch (instructionName) {
+            case Analyzer.BUNDLE_SYMBOLICNAME:
+                return createListFromPropertyString(getSymbolicName());
+            case Analyzer.BUNDLE_NAME:
+                return createListFromPropertyString(getName());
+            case Analyzer.BUNDLE_VERSION:
+                return createListFromPropertyString(getVersion());
+            case Analyzer.BUNDLE_DESCRIPTION:
+                return createListFromPropertyString(getDescription());
+            case Analyzer.BUNDLE_LICENSE:
+                return createListFromPropertyString(getLicense());
+            case Analyzer.BUNDLE_VENDOR:
+                return createListFromPropertyString(getVendor());
+            case Analyzer.BUNDLE_DOCURL:
+                return createListFromPropertyString(getDocURL());
+            default:
+                return unmodelledInstructions.get(instructionName);
         }
     }
 
@@ -172,29 +180,30 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private boolean maybeAppendModelledInstruction(String name, String... values) {
-        if (name.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
-            setSymbolicName(appendValues(getSymbolicName(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_NAME)) {
-            setName(appendValues(getName(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_VERSION)) {
-            setVersion(appendValues(getVersion(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_DESCRIPTION)) {
-            setDescription(appendValues(getDescription(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_LICENSE)) {
-            setLicense(appendValues(getLicense(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_VENDOR)) {
-            setVendor(appendValues(getVendor(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_DOCURL)) {
-            setDocURL(appendValues(getDocURL(), values));
-            return true;
-        } else {
-            return false;
+        switch (name) {
+            case Analyzer.BUNDLE_SYMBOLICNAME:
+                setSymbolicName(appendValues(getSymbolicName(), values));
+                return true;
+            case Analyzer.BUNDLE_NAME:
+                setName(appendValues(getName(), values));
+                return true;
+            case Analyzer.BUNDLE_VERSION:
+                setVersion(appendValues(getVersion(), values));
+                return true;
+            case Analyzer.BUNDLE_DESCRIPTION:
+                setDescription(appendValues(getDescription(), values));
+                return true;
+            case Analyzer.BUNDLE_LICENSE:
+                setLicense(appendValues(getLicense(), values));
+                return true;
+            case Analyzer.BUNDLE_VENDOR:
+                setVendor(appendValues(getVendor(), values));
+                return true;
+            case Analyzer.BUNDLE_DOCURL:
+                setDocURL(appendValues(getDocURL(), values));
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -220,29 +229,30 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private boolean maybePrependModelledInstruction(String name, String... values) {
-        if (name.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
-            setSymbolicName(prependValues(getSymbolicName(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_NAME)) {
-            setName(prependValues(getName(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_VERSION)) {
-            setVersion(prependValues(getVersion(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_DESCRIPTION)) {
-            setDescription(prependValues(getDescription(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_LICENSE)) {
-            setLicense(prependValues(getLicense(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_VENDOR)) {
-            setVendor(prependValues(getVendor(), values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_DOCURL)) {
-            setDocURL(prependValues(getDocURL(), values));
-            return true;
-        } else {
-            return false;
+        switch (name) {
+            case Analyzer.BUNDLE_SYMBOLICNAME:
+                setSymbolicName(prependValues(getSymbolicName(), values));
+                return true;
+            case Analyzer.BUNDLE_NAME:
+                setName(prependValues(getName(), values));
+                return true;
+            case Analyzer.BUNDLE_VERSION:
+                setVersion(prependValues(getVersion(), values));
+                return true;
+            case Analyzer.BUNDLE_DESCRIPTION:
+                setDescription(prependValues(getDescription(), values));
+                return true;
+            case Analyzer.BUNDLE_LICENSE:
+                setLicense(prependValues(getLicense(), values));
+                return true;
+            case Analyzer.BUNDLE_VENDOR:
+                setVendor(prependValues(getVendor(), values));
+                return true;
+            case Analyzer.BUNDLE_DOCURL:
+                setDocURL(prependValues(getDocURL(), values));
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -265,29 +275,30 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private boolean maybeSetModelledInstruction(String name, String... values) {
-        if (name.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
-            setSymbolicName(createPropertyStringFromArray(values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_NAME)) {
-            setName(createPropertyStringFromArray(values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_VERSION)) {
-            setVersion(createPropertyStringFromArray(values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_DESCRIPTION)) {
-            setDescription(createPropertyStringFromArray(values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_LICENSE)) {
-            setLicense(createPropertyStringFromArray(values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_VENDOR)) {
-            setVendor(createPropertyStringFromArray(values));
-            return true;
-        } else if (name.equals(Analyzer.BUNDLE_DOCURL)) {
-            setDocURL(createPropertyStringFromArray(values));
-            return true;
-        } else {
-            return false;
+        switch (name) {
+            case Analyzer.BUNDLE_SYMBOLICNAME:
+                setSymbolicName(createPropertyStringFromArray(values));
+                return true;
+            case Analyzer.BUNDLE_NAME:
+                setName(createPropertyStringFromArray(values));
+                return true;
+            case Analyzer.BUNDLE_VERSION:
+                setVersion(createPropertyStringFromArray(values));
+                return true;
+            case Analyzer.BUNDLE_DESCRIPTION:
+                setDescription(createPropertyStringFromArray(values));
+                return true;
+            case Analyzer.BUNDLE_LICENSE:
+                setLicense(createPropertyStringFromArray(values));
+                return true;
+            case Analyzer.BUNDLE_VENDOR:
+                setVendor(createPropertyStringFromArray(values));
+                return true;
+            case Analyzer.BUNDLE_DOCURL:
+                setDocURL(createPropertyStringFromArray(values));
+                return true;
+            default:
+                return false;
         }
     }
 
