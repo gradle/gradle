@@ -46,6 +46,7 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreSnapshotsStep
+import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
@@ -130,19 +131,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     WorkExecutor<AfterPreviousExecutionContext, CachingResult> getExecutor() {
         new DefaultWorkExecutor<>(
-            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter,
-                new ResolveCachingStateStep<>(buildCacheController, false,
-                    new ResolveChangesStep<>(changeDetector,
-                        new SkipUpToDateStep<>(
-                            new RecordOutputsStep<>(outputFilesRepository,
-                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                    new StoreSnapshotsStep<>(
-                                        new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                            new CreateOutputsStep<>(
-                                                new CatchExceptionStep<>(
-                                                    new ResolveInputChangesStep<>(
-                                                        new CleanupOutputsStep<>(
-                                                            new ExecuteStep<InputChangesContext>()
+            new ValidateStep<>(
+                new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter,
+                    new ResolveCachingStateStep<>(buildCacheController, false,
+                        new ResolveChangesStep<>(changeDetector,
+                            new SkipUpToDateStep<>(
+                                new RecordOutputsStep<>(outputFilesRepository,
+                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                        new StoreSnapshotsStep<>(
+                                            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+                                                new CreateOutputsStep<>(
+                                                    new CatchExceptionStep<>(
+                                                        new ResolveInputChangesStep<>(
+                                                            new CleanupOutputsStep<>(
+                                                                new ExecuteStep<InputChangesContext>()
+                                                            )
                                                         )
                                                     )
                                                 )
@@ -570,6 +573,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
         upToDate noOutputs
     }
 
+    def "invalid work is not executed"() {
+        def validationError = new RuntimeException("Validation error")
+        def invalidWork = builder
+            .withValidationError(validationError)
+            .withWork({ throw new RuntimeException("Should not get executed") })
+            .build()
+
+        when:
+        execute(invalidWork)
+
+        then:
+        def ex = thrown Exception
+        ex == validationError
+    }
+
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
         filesRemoved('Input', removedFiles)
     }
@@ -690,7 +708,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private
+        private Exception validationError
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -742,6 +760,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         UnitOfWorkBuilder withProperty(String name, Object value) {
             inputProperties.put(name, value)
+            return this
+        }
+
+        UnitOfWorkBuilder withValidationError(Exception validationError) {
+            this.validationError = validationError
             return this
         }
 
@@ -805,6 +828,13 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
                     snapshotOutputs(outputs)
+                }
+
+                @Override
+                void validate() {
+                    if (validationError != null) {
+                        throw validationError
+                    }
                 }
 
                 @Override

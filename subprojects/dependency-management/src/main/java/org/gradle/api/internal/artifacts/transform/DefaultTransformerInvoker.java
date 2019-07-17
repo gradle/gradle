@@ -443,6 +443,10 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public void validate() {
+        }
+
+        @Override
         public Optional<CachingDisabledReason> shouldDisableCaching() {
             return transformer.isCacheable()
                 ? Optional.empty()

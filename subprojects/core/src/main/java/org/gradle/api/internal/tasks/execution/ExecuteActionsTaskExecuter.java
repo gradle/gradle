@@ -20,11 +20,15 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
+import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -32,12 +36,14 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerManager;
@@ -55,6 +61,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
+import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -80,6 +87,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
@@ -102,6 +110,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
     private final ListenerManager listenerManager;
+    private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -115,7 +124,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
@@ -129,11 +139,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.workExecutor = workExecutor;
         this.listenerManager = listenerManager;
+        this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
+        try {
+            return executeIfValid(task, state, context, work);
+        } catch (TaskValidationException ex) {
+            state.setOutcome(ex);
+            return TaskExecuterResult.WITHOUT_OUTPUTS;
+        }
+    }
+
+    private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
         CachingResult result = workExecutor.execute(new AfterPreviousExecutionContext() {
             @Override
             public UnitOfWork getWork() {
@@ -371,6 +391,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 Maps.transformEntries(afterExecutionOutputSnapshots, (propertyName, afterExecutionOutputSnapshot) -> {
                         FileCollectionFingerprint afterLastExecutionFingerprint = afterLastExecutionFingerprints.get(propertyName);
                         FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
+                        assert afterExecutionOutputSnapshot != null;
                         return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasOverlappingOutputs);
                     }
                 )
@@ -396,6 +417,26 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             if (buildCacheEnabled || scanPluginApplied) {
                 context.removeSnapshotTaskInputsBuildOperation()
                     .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState)));
+            }
+        }
+
+        @Override
+        public void validate() {
+            List<String> messages = new ArrayList<>();
+            FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
+            TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, reservedFileSystemLocationRegistry, messages);
+
+            context.getTaskProperties().validate(validationContext);
+            if (!messages.isEmpty()) {
+                String errorMessage = messages.size() == 1
+                    ? String.format("A problem was found with the configuration of %s.", task)
+                    : String.format("Some problems were found with the configuration of %s.", task);
+                List<InvalidUserDataException> causes = messages.stream()
+                    .limit(5)
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(Collectors.toList());
+                throw new TaskValidationException(errorMessage, causes);
             }
         }
 

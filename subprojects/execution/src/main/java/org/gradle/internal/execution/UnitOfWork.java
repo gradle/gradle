@@ -80,6 +80,11 @@ public interface UnitOfWork extends CacheableEntity {
     long markExecutionTime();
 
     /**
+     * Validate the work's inputs and outputs, and throws an exception if violations are found.
+     */
+    void validate();
+
+    /**
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */

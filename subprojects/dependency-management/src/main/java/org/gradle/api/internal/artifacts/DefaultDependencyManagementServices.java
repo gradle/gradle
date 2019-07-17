@@ -146,6 +146,7 @@ import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
+import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -251,19 +252,21 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
-                    new NoOpCachingStateStep(
-                        new ResolveChangesStep<>(changeDetector,
-                            new SkipUpToDateStep<>(
-                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                    new StoreSnapshotsStep<>(
-                                        new SnapshotOutputsStep<>(fixedUniqueId,
-                                            new CreateOutputsStep<>(
-                                                new CatchExceptionStep<>(
-                                                    new TimeoutStep<>(timeoutHandler,
-                                                        new ResolveInputChangesStep<>(
-                                                            new CleanupOutputsStep<>(
-                                                                new ExecuteStep<InputChangesContext>()
+                new ValidateStep<>(
+                    new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
+                        new NoOpCachingStateStep(
+                            new ResolveChangesStep<>(changeDetector,
+                                new SkipUpToDateStep<>(
+                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                        new StoreSnapshotsStep<>(
+                                            new SnapshotOutputsStep<>(fixedUniqueId,
+                                                new CreateOutputsStep<>(
+                                                    new CatchExceptionStep<>(
+                                                        new TimeoutStep<>(timeoutHandler,
+                                                            new ResolveInputChangesStep<>(
+                                                                new CleanupOutputsStep<>(
+                                                                    new ExecuteStep<InputChangesContext>()
+                                                                )
                                                             )
                                                         )
                                                     )
