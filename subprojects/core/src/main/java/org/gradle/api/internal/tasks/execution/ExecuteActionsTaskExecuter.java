@@ -36,6 +36,7 @@ import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskActi
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -81,6 +82,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -440,13 +442,29 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void markSnapshottingInputsFinished(CachingState cachingState) {
-            // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
+        public void markLegacySnapshottingInputsStarted() {
+            // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)
             if (buildCacheEnabled || scanPluginApplied) {
-                context.removeSnapshotTaskInputsBuildOperation()
-                    .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState)));
+                ExecutingBuildOperation operation = buildOperationExecutor.start(BuildOperationDescriptor
+                    .displayName("Snapshot task inputs for " + task.getIdentityPath())
+                    .name("Snapshot task inputs")
+                    .details(SnapshotTaskInputsBuildOperationType.Details.INSTANCE));
+                context.setSnapshotTaskInputsBuildOperation(operation);
             }
+        }
+
+        @Override
+        public void markLegacySnapshottingInputsFinished(CachingState cachingState) {
+            context.removeSnapshotTaskInputsBuildOperation()
+                .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState)));
+        }
+
+        @Override
+        public void ensureLegacySnapshottingInputsClosed() {
+            // If the operation hasn't finished normally (because of a shortcut or an error), we close it without a cache key
+            context.removeSnapshotTaskInputsBuildOperation()
+                .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(CachingState.NOT_DETERMINED)));
         }
 
         @Override

@@ -101,11 +101,6 @@ public interface UnitOfWork extends CacheableEntity {
     }
 
     /**
-     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
-     */
-    default void markSnapshottingInputsFinished(CachingState cachingState) {}
-
-    /**
      * Returns whether the execution history should be stored.
      */
     default boolean isTaskHistoryMaintained() {
@@ -209,4 +204,19 @@ public interface UnitOfWork extends CacheableEntity {
     }
 
     ExecutionHistoryStore getExecutionHistoryStore();
+
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void markLegacySnapshottingInputsStarted() {}
+
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void markLegacySnapshottingInputsFinished(CachingState cachingState) {}
+
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void ensureLegacySnapshottingInputsClosed() {}
 }

@@ -39,7 +39,6 @@ import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
-import org.gradle.api.internal.tasks.execution.StartSnapshotTaskInputsBuildOperationTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.TaskSnapshotter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -144,11 +143,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             emptySourceTaskSkipper,
             fileCollectionFactory
         );
-        // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
-        // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
-        if (buildCacheEnabled || scanPluginApplied) {
-            executer = new StartSnapshotTaskInputsBuildOperationTaskExecuter(buildOperationExecutor, executer);
-        }
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, fileCollectionFactory, propertyWalker, executer);
