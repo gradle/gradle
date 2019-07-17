@@ -28,7 +28,7 @@ import java.util.List;
  * explicitly one of the candidates, or selecting the one with the highest
  * version of the capability.
  *
- * @since 6.0
+ * @since 5.6
  */
 @Incubating
 @HasInternalProtocol

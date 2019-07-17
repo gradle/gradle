@@ -313,7 +313,7 @@ public interface ResolutionStrategy {
      *
      * @return this resolution strategy
      *
-     * @since 6.0
+     * @since 5.6
      */
     @Incubating
     ResolutionStrategy capabilitiesResolution(Action<? super CapabilitiesResolution> action);
@@ -321,7 +321,7 @@ public interface ResolutionStrategy {
     /**
      * Returns the capabilities resolution strategy.
      *
-     * @since 6.0
+     * @since 5.6
      */
     @Incubating
     CapabilitiesResolution getCapabilitiesResolution();
