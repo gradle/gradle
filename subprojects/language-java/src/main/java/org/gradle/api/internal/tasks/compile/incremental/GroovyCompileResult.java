@@ -22,7 +22,7 @@ import org.gradle.workers.internal.DefaultWorkResult;
  * Marks a Groovy compilation ends incrementally, e.g. no full-recompilation happens.
  */
 public class GroovyCompileResult extends DefaultWorkResult {
-    boolean fullRecompilation;
+    private boolean fullRecompilation;
 
     public GroovyCompileResult(DefaultWorkResult workResult) {
         super(workResult.getDidWork(), workResult.getException());
