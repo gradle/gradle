@@ -33,12 +33,12 @@ public class SharedResourceLeaseLockRegistry extends AbstractResourceLockRegistr
         sharedResources.put(name, new Semaphore(leases));
     }
 
-    public ResourceLock getResourceLock(final String sharedResource, final int leases, final Thread ownerThread) {
-        String displayName = "Lease of " + leases + " for " + sharedResource + " by " + ownerThread;
+    public ResourceLock getResourceLock(final String sharedResource, final int leases) {
+        String displayName = "Lease of " + leases + " for " + sharedResource;
         return getOrRegisterResourceLock(displayName, new ResourceLockProducer<String, SharedResourceLease>() {
             @Override
             public SharedResourceLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                return new SharedResourceLease(displayName, coordinationService, lockAction, unlockAction, sharedResource, leases, ownerThread);
+                return new SharedResourceLease(displayName, coordinationService, lockAction, unlockAction, sharedResource, leases);
             }
         });
     }
@@ -46,20 +46,20 @@ public class SharedResourceLeaseLockRegistry extends AbstractResourceLockRegistr
     public class SharedResourceLease extends AbstractTrackedResourceLock {
         private final int leases;
         private final Semaphore semaphore;
-        private final Thread ownerThread;
+        private Thread ownerThread;
         private boolean active = false;
 
-        SharedResourceLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, String sharedResource, int leases, Thread ownerThread) {
+        SharedResourceLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, String sharedResource, int leases) {
             super(displayName, coordinationService, lockAction, unlockAction);
             this.leases = leases;
             this.semaphore = sharedResources.get(sharedResource);
-            this.ownerThread = ownerThread;
         }
 
         @Override
         protected boolean acquireLock() {
             if (semaphore.tryAcquire(leases)) {
                 active = true;
+                ownerThread = Thread.currentThread();
             }
 
             return active;
@@ -73,6 +73,7 @@ public class SharedResourceLeaseLockRegistry extends AbstractResourceLockRegistr
 
             semaphore.release(leases);
             active = false;
+            ownerThread = null;
         }
 
         @Override

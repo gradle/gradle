@@ -330,6 +330,17 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     projectLocks.put(project, getOrCreateProjectLock(project));
                 }
 
+                if (node instanceof TaskNode) {
+                    Map<String, Integer> sharedResources = ((TaskNode) node).getTask().getSharedResources();
+                    if (sharedResources != null && !sharedResources.isEmpty()) {
+                        List<ResourceLock> locks = Lists.newArrayList();
+                        for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
+                            locks.add(sharedResourceLeaseLockRegistry.getResourceLock(entry.getKey(), entry.getValue()));
+                        }
+
+                        sharedResourceLocks.put(node, locks);
+                    }
+                }
                 // Add any finalizers to the queue
                 for (Node finalizer : node.getFinalizers()) {
                     if (!visitingNodes.containsKey(finalizer)) {
@@ -594,20 +605,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryLockSharedResourceFor(Node node) {
-        if (node instanceof TaskNode) {
-            Map<String, Integer> sharedResources = ((TaskNode) node).getTask().getSharedResources();
-            if (sharedResources == null || sharedResources.isEmpty()) {
-                return true;
-            } else {
-                List<ResourceLock> locks = Lists.newArrayList();
-                for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
-                    locks.add(sharedResourceLeaseLockRegistry.getResourceLock(entry.getKey(), entry.getValue(), Thread.currentThread()));
-                }
-                sharedResourceLocks.put(node, locks);
-                return locks.stream().allMatch(ResourceLock::tryLock);
-            }
-        } else {
+        List<ResourceLock> locks = sharedResourceLocks.get(node);
+
+        if (locks == null) {
             return true;
+        } else {
+            return locks.stream().allMatch(ResourceLock::tryLock);
         }
     }
 
