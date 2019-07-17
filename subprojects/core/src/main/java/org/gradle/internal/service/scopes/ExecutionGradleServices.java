@@ -33,12 +33,7 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.CurrentSnapshotResult;
-import org.gradle.internal.execution.IncrementalChangesContext;
-import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -135,24 +130,24 @@ public class ExecutionGradleServices {
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
+        return new DefaultWorkExecutor<>(
             new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
                 new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
-                    new MarkSnapshottingInputsFinishedStep<UpToDateResult>(
-                        new ResolveChangesStep<UpToDateResult>(changeDetector,
-                            new SkipUpToDateStep<IncrementalChangesContext>(
-                                new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
-                                    new StoreSnapshotsStep<IncrementalChangesContext>(
-                                        new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
+                    new MarkSnapshottingInputsFinishedStep<>(
+                        new ResolveChangesStep<>(changeDetector,
+                            new SkipUpToDateStep<>(
+                                new RecordOutputsStep<>(outputFilesRepository,
+                                    new StoreSnapshotsStep<>(
+                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
                                             new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                                new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                                    new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                                        new CatchExceptionStep<IncrementalChangesContext>(
-                                                            new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                                new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                                    new ResolveInputChangesStep<IncrementalChangesContext>(
-                                                                        new CleanupOutputsStep<InputChangesContext, Result>(
-                                                                            new ExecuteStep<InputChangesContext>()
+                                                new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+                                                    new CreateOutputsStep<>(
+                                                        new CatchExceptionStep<>(
+                                                            new TimeoutStep<>(timeoutHandler,
+                                                                new CancelExecutionStep<>(cancellationToken,
+                                                                    new ResolveInputChangesStep<>(
+                                                                        new CleanupOutputsStep<>(
+                                                                            new ExecuteStep<>()
                                                                         )
                                                                     )
                                                                 )
