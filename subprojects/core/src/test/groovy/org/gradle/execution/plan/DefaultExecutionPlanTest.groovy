@@ -60,8 +60,8 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         def taskNodeFactory = new TaskNodeFactory(root.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         def coordinationService = new DefaultResourceLockCoordinationService()
-        def sharedResourceLockRegistry = new SharedResourceLeaseRegistry(coordinationService)
-        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver, sharedResourceLockRegistry)
+        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
+        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
