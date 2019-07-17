@@ -182,11 +182,8 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
                 }
                 
                 def submitWorkItem(item) {
-                    return workerExecutor.execute(${parallelWorkerExecution.name}.class) {
-                        isolationMode = IsolationMode.NONE
-                        parameters {
-                            itemName = item.toString()
-                        }
+                    return workerExecutor.noIsolation().submit(${parallelWorkerExecution.name}.class) {
+                        itemName = item.toString()
                     }
                 }
             }

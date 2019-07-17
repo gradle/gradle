@@ -241,53 +241,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
-    def "produces a sensible error when the runnable cannot be instantiated in #isolationMode"() {
-        fixture.withWorkerExecutionClassInBuildSrc()
-        def failureExecution = executionThatFailsInstantiation.writeToBuildSrc()
-
-        buildFile << """
-            task runInWorker(type: WorkerTask) {
-                isolationMode = $isolationMode
-                workerExecutionClass = ${failureExecution.name}.class
-            }
-        """.stripIndent()
-
-        when:
-        fails("runInWorker")
-
-        then:
-        failureHasCause("A failure occurred while executing ${failureExecution.packageName}.${failureExecution.name}")
-        failureHasCause("Could not create an instance of type ${failureExecution.packageName}.${failureExecution.name}.")
-        failureHasCause("You shall not pass!")
-
-        where:
-        isolationMode << ISOLATION_MODES
-    }
-
-    @Unroll
-    def "produces a sensible error when worker configuration is incorrect in #isolationMode"() {
-        fixture.withWorkerExecutionClassInBuildSrc()
-
-        buildFile << """
-            task runInWorker(type: WorkerTask) {
-                isolationMode = IsolationMode.$isolationMode
-                additionalForkOptions = {
-                    it.systemProperty("FOO", "bar")
-                }
-            }
-        """.stripIndent()
-
-        when:
-        fails("runInWorker")
-
-        then:
-        failureHasCause("The worker system properties cannot be set when using isolation mode $isolationMode")
-
-        where:
-        isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.NONE]
-    }
-
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "produces a sensible error when worker fails before logging is initialized"() {
         fixture.withWorkerExecutionClassInBuildScript()

@@ -20,17 +20,17 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.TextUtil.normaliseFileSeparators
-import static org.hamcrest.CoreMatchers.notNullValue
 
 @IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
+    boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
+
     WorkerExecutorFixture.ExecutionClass workerExecutionThatPrintsWorkingDirectory
     WorkerExecutorFixture.ExecutionClass workerExecutionThatVerifiesOptions
 
@@ -67,7 +67,9 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                 assert arguments.contains("-Dfile.encoding=UTF-8");
                 assert arguments.contains("-ea");
     
-                assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("/foo");
+                if (${isOracleJDK}) {
+                    assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("/foo");
+                }
     
                 assert System.getenv("foo").equals("bar")
             """
@@ -119,12 +121,10 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         fails("runInWorker")
 
         then:
-        failureCauseContains('setting the working directory of a worker is not supported')
+        failureCauseContains('Setting the working directory of a worker is not supported')
     }
 
-    @Requires(TestPrecondition.JDK_ORACLE)
     def "interesting worker daemon fork options are honored"() {
-        Assume.assumeThat(Jvm.current().jre, notNullValue())
         fixture.withWorkerExecutionClassInBuildSrc()
         workerExecutionThatVerifiesOptions.writeToBuildFile()
         outputFileDir.createDir()
@@ -140,8 +140,10 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                         maxHeapSize = "128m"
                         systemProperty("foo", "bar")
                         jvmArgs("-Dbar=baz")
-                        bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
-                        bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath(testDirectory.file("foo").absolutePath))}"))
+                        if (${isOracleJDK}) {
+                            bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
+                            bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath(testDirectory.file("foo").absolutePath))}"))
+                        }
                         defaultCharacterEncoding = "UTF-8"
                         enableAssertions = true
                         environment "foo", "bar"

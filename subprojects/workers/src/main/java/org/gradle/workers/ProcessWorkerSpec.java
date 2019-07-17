@@ -16,23 +16,14 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Represents the common configuration of a worker.  Used when submitting an item of work
- * to the {@link WorkerExecutor}.
+ * A worker spec providing the requirements of a forked process with a custom classpath.
  *
  * @since 5.6
  */
 @Incubating
-@HasInternalProtocol
-public interface WorkerSpec extends Describable {
-    /**
-     * Sets the name to use when displaying this item of work.
-     *
-     * @param displayName the name of this item of work
-     */
-    void setDisplayName(String displayName);
+public interface ProcessWorkerSpec extends ForkingWorkerSpec, ClassLoaderWorkerSpec {
+
 }

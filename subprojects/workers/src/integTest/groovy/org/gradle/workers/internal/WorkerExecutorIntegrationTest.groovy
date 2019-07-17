@@ -28,6 +28,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.WORKER_METHODS
 
 @IntegrationTestTimeout(120)
 @Unroll
@@ -257,19 +258,19 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                         @Override
                         public void run() {
                             try {
-                                workerExecutor.execute(workerExecutionClass) { config ->
-                                    config.isolationMode = $isolationMode
-                                    if (isolationMode == IsolationMode.PROCESS) {
+                                workerExecutor."${workerMethod}"({ config ->
+                                    if (config instanceof ProcessWorkerSpec) {
                                         forkOptions.maxHeapSize = "64m"
+                                        forkOptions(additionalForkOptions)
                                     }
-                                    config.forkOptions(additionalForkOptions)
-                                    config.classpath.from(additionalClasspath)
-                                    config.parameters {
-                                        files = list.collect { it as String }
-                                        outputDir = new File(outputFileDirPath)
-                                        foo = owner.foo
+                                    if (config instanceof ClassLoaderWorkerSpec) {
+                                        classpath.from(additionalClasspath)
                                     }
-                                }.get()
+                                }).submit(workerExecutionClass) {
+                                    files = list.collect { it as String }
+                                    outputDir = new File(outputFileDirPath)
+                                    foo = owner.foo
+                                }
                             } catch(Exception ex) {
                                 thrown = ex
                             }
@@ -293,7 +294,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         failure.assertHasCause 'An attempt was made to submit work from a thread not managed by Gradle.  Work may only be submitted from a Gradle-managed thread.'
 
         where:
-        isolationMode << ISOLATION_MODES
+        workerMethod << WORKER_METHODS.values().toUnique()
     }
 
     def "can set a custom display name for work items in #isolationMode"() {

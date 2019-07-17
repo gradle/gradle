@@ -194,17 +194,18 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     WorkerExecutorFixture.ExecutionClass getFirstLevelExecution(String nestedIsolationMode) {
         def workerClass = fixture.executionClass("FirstLevelExecution", "org.gradle.test", nestingParameterType)
         workerClass.imports += ["org.gradle.workers.WorkerExecutor"]
-        workerClass.extraFields = "WorkerExecutor executor"
+        workerClass.extraFields = """
+            WorkerExecutor executor
+            
+            ${fixture.workerMethodTranslation}
+        """
         workerClass.constructorArgs = "WorkerExecutor executor"
         workerClass.constructorAction = "this.executor = executor"
         workerClass.action = """
             def theGreeting = parameters.greeting
             parameters.childSubmissions.times {
-                executor.execute(SecondLevelExecution) {
-                    isolationMode = $nestedIsolationMode
-                    parameters {
-                        greeting = theGreeting
-                    }
+                executor."\${getWorkerMethod($nestedIsolationMode)}"().submit(SecondLevelExecution) {
+                    greeting = theGreeting
                 }
             }
         """
@@ -238,18 +239,17 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                 @TaskAction
                 public void runInWorker() {
                     submissions.times {
-                        executor.execute(FirstLevelExecution) {
-                            isolationMode = $isolationMode
-                            parameters {
-                                greeting = "Hello World"
-                                childSubmissions = this.childSubmissions
-                            }
+                        executor."\${getWorkerMethod($isolationMode)}"().submit(FirstLevelExecution) {
+                            greeting = "Hello World"
+                            childSubmissions = this.childSubmissions
                         }
                     }
                     if (waitForChildren) {
                         executor.await()
                     }
                 }
+
+                ${fixture.workerMethodTranslation}
             }
         """.stripIndent()
     }

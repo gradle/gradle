@@ -42,7 +42,25 @@ import java.io.File;
  *
  * @since 3.5
  */
-public interface WorkerConfiguration extends ActionConfiguration, BaseWorkerSpec {
+public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerSpec {
+    /**
+     * Gets the isolation mode for this worker, see {@link IsolationMode}.
+     *
+     * @return the isolation mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
+     *
+     * @since 4.0
+     */
+    IsolationMode getIsolationMode();
+
+    /**
+     * Sets the isolation mode for this worker, see {@link IsolationMode}.
+     *
+     * @param isolationMode the forking mode for this worker, see {@link IsolationMode}
+     *
+     * @since 4.0
+     */
+    void setIsolationMode(IsolationMode isolationMode);
+
     /**
      * Adds a set of files to the classpath associated with the worker.
      *

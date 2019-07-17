@@ -17,12 +17,15 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @Unroll
 class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
+    WorkerExecutorFixture fixture = new WorkerExecutorFixture(temporaryFolder)
+
     def setup() {
         buildFile << """
             import javax.inject.Inject
@@ -40,17 +43,15 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void doWork() {
-                    workerExecutor.execute(ParameterWorkerExecution.class) { 
-                        isolationMode = this.isolationMode
-                        if (paramConfig != null) {
-                            parameters(paramConfig)
-                        }
-                    }
+                    def parameterAction = paramConfig != null ? paramConfig : {}
+                    workerExecutor."\${getWorkerMethod(isolationMode)}"().submit(ParameterWorkerExecution.class, parameterAction)
                 }
                 
                 void parameters(Closure closure) {
                     paramConfig = closure
                 }
+                
+                ${fixture.workerMethodTranslation}
             }  
         """
     }

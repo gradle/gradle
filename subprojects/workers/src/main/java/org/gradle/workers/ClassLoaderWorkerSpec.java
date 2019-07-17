@@ -16,23 +16,20 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.file.ConfigurableFileCollection;
 
 /**
- * Represents the common configuration of a worker.  Used when submitting an item of work
- * to the {@link WorkerExecutor}.
+ * A worker spec providing the requirements of an isolated classpath.
  *
  * @since 5.6
  */
 @Incubating
-@HasInternalProtocol
-public interface WorkerSpec extends Describable {
+public interface ClassLoaderWorkerSpec extends WorkerSpec {
     /**
-     * Sets the name to use when displaying this item of work.
+     * Gets the classpath associated with the worker.
      *
-     * @param displayName the name of this item of work
+     * @return the classpath associated with the worker
      */
-    void setDisplayName(String displayName);
+    ConfigurableFileCollection getClasspath();
 }

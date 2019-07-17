@@ -69,9 +69,7 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
 
                 @TaskAction
                 public void runInWorker() {
-                    executor.execute(InjectingExecution) {
-                        isolationMode = IsolationMode.NONE
-                    }
+                    executor.noIsolation().submit(InjectingExecution) { }
                 }
             }
         """.stripIndent()

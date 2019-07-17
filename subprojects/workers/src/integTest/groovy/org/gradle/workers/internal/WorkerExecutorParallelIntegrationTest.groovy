@@ -216,9 +216,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("workItem1", ${parallelWorkerExecution.name}.class) { isolationMode = IsolationMode.PROCESS } 
-                    submitWorkItem("workItem2", ${failingWorkerExecution.name}.class) { isolationMode = $isolationMode }
-                    submitWorkItem("workItem3", ${parallelWorkerExecution.name}.class) { isolationMode = IsolationMode.CLASSLOADER } 
+                    submitWorkItem("workItem1", ${parallelWorkerExecution.name}.class, IsolationMode.PROCESS)
+                    submitWorkItem("workItem2", ${failingWorkerExecution.name}.class, $isolationMode)
+                    submitWorkItem("workItem3", ${parallelWorkerExecution.name}.class, IsolationMode.CLASSLOADER)
                 }
             }
         """
@@ -244,12 +244,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("workItem1", ${failingWorkerExecution.name}.class) { config ->
-                        config.isolationMode = $isolationMode1
+                    submitWorkItem("workItem1", ${failingWorkerExecution.name}.class, $isolationMode1) { config ->
                         config.displayName = "work item 1"
                     }
-                    submitWorkItem("workItem2", ${failingWorkerExecution.name}.class) { config ->
-                        config.isolationMode = $isolationMode2
+                    submitWorkItem("workItem2", ${failingWorkerExecution.name}.class, $isolationMode2) { config ->
                         config.displayName = "work item 2"
                     }
                 }
@@ -842,12 +840,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 
                 @TaskAction
                 void executeRunnable() {
-                    workerExecutor.execute(${verifyingWorkerExecution.name}.class) { 
-                        isolationMode = IsolationMode.NONE
-                        parameters {
-                            itemName = item.toString()
-                            list = testList
-                        }
+                    workerExecutor.noIsolation().submit(${verifyingWorkerExecution.name}.class) { 
+                        itemName = item.toString()
+                        list = testList
                     }
                 }
             }
@@ -889,28 +884,38 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                     throw new UnsupportedOperationException()
                 }
                 
-                def submitWorkItem(item) {
+                def submitWorkItem(String item) {
                     return submitWorkItem(item, runnableClass) 
                 }
                 
-                def submitWorkItem(item, actionClass) {
-                    return submitWorkItem(item, actionClass, {})
+                def submitWorkItem(String item, Class<?> actionClass) {
+                    return submitWorkItem(item, actionClass, isolationMode, {})
                 }
                 
-                def submitWorkItem(item, actionClass, configClosure) {
-                    return workerExecutor.execute(actionClass) { config ->
-                        config.isolationMode = this.isolationMode
-                        if (config.isolationMode == IsolationMode.PROCESS) {
+                def submitWorkItem(String item, Class<?> actionClass, IsolationMode isolationMode) {
+                    return submitWorkItem(item, actionClass, isolationMode, {})
+                }
+                
+                def submitWorkItem(String item, Class<?> actionClass, Closure configClosure) {
+                    return submitWorkItem(item, actionClass, isolationMode, configClosure)
+                }
+                
+                def submitWorkItem(String item, Class<?> actionClass, IsolationMode isolationMode, Closure configClosure) {
+                    return workerExecutor."\${getWorkerMethod(isolationMode)}"({ config ->
+                        if (config instanceof ProcessWorkerSpec) {
                             config.forkOptions.maxHeapSize = "64m"
+                            config.forkOptions(additionalForkOptions)
                         }
-                        config.forkOptions(additionalForkOptions)
-                        config.classpath.from(additionalClasspath)
-                        config.parameters {
-                            itemName = item.toString() 
+                        if (config instanceof ClassLoaderWorkerSpec) {
+                            config.classpath.from(additionalClasspath)
                         }
                         configClosure.call(config)
+                    }).submit(actionClass) {
+                        itemName = item.toString() 
                     }
                 }
+                
+                ${fixture.workerMethodTranslation}
             }
         """
     }

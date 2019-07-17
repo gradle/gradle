@@ -22,6 +22,12 @@ import org.gradle.workers.IsolationMode
 
 class WorkerExecutorFixture {
     public static final ISOLATION_MODES = (IsolationMode.values() - IsolationMode.AUTO).collect { "IsolationMode.${it.toString()}" }
+    public static final Map<IsolationMode,String> WORKER_METHODS = [
+            (IsolationMode.AUTO): "noIsolation",
+            (IsolationMode.NONE): "noIsolation",
+            (IsolationMode.CLASSLOADER): "classLoaderIsolation",
+            (IsolationMode.PROCESS): "processIsolation"
+    ]
     def outputFileDir
     def outputFileDirPath
     def list = [ 1, 2, 3 ]
@@ -81,23 +87,41 @@ class WorkerExecutorFixture {
 
                 @TaskAction
                 void executeTask() {
-                    workerExecutor.execute(workerExecutionClass) {
-                        isolationMode = this.isolationMode
+                    workerExecutor."\${getWorkerMethod(isolationMode)}"({ spec ->
                         displayName = this.displayName
-                        if (isolationMode == IsolationMode.PROCESS) {
-                            forkOptions.maxHeapSize = "64m"
+                        if (spec instanceof ClassLoaderWorkerSpec) {
+                            classpath.from(additionalClasspath)
                         }
-                        forkOptions(additionalForkOptions)
-                        classpath.from(additionalClasspath)
-                        parameters {
-                            files = list.collect { it as String }
-                            outputDir = new File(outputFileDirPath)
-                            bar = foo
+                        if (spec instanceof ProcessWorkerSpec) {
+                            forkOptions.maxHeapSize = "64m"
+                            forkOptions(additionalForkOptions)
                         }
                         if (this.forkMode != null) {
                             forkMode = this.forkMode
                         }
+                    }).submit(workerExecutionClass) {
+                        files = list.collect { it as String }
+                        outputDir = new File(outputFileDirPath)
+                        bar = foo
                     }
+                }
+                
+                ${workerMethodTranslation}
+            }
+        """
+    }
+
+    static String getWorkerMethodTranslation() {
+        return """
+            static String getWorkerMethod(IsolationMode isolationMode) {
+                if (isolationMode == IsolationMode.AUTO || isolationMode == IsolationMode.NONE) {
+                    return "${WORKER_METHODS[IsolationMode.NONE]}"
+                } else if (isolationMode == IsolationMode.CLASSLOADER) {
+                    return "${WORKER_METHODS[IsolationMode.CLASSLOADER]}"
+                } else if (isolationMode == IsolationMode.PROCESS) {
+                    return "${WORKER_METHODS[IsolationMode.PROCESS]}"
+                } else {
+                    throw new IllegalArgumentException()
                 }
             }
         """

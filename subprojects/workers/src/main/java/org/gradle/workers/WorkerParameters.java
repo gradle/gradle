@@ -47,6 +47,4 @@ public interface WorkerParameters {
     final class None implements WorkerParameters {
         private None() {}
     }
-
-    WorkerParameters.None NONE = new WorkerParameters.None();
 }

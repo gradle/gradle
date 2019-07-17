@@ -47,9 +47,11 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         """
 
         when:
+        //executer.startBuildProcessInDebugger(true)
         succeeds "runInWorker1"
 
         and:
+       // executer.startBuildProcessInDebugger(true)
         succeeds "runInWorker2"
 
         then:

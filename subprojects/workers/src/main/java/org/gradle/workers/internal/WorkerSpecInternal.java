@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.workers;
+package org.gradle.workers.internal;
 
-import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.workers.WorkerSpec;
+import org.gradle.workers.IsolationMode;
 
-/**
- * Represents the common configuration of a worker.  Used when submitting an item of work
- * to the {@link WorkerExecutor}.
- *
- * @since 5.6
- */
-@Incubating
-@HasInternalProtocol
-public interface WorkerSpec extends Describable {
-    /**
-     * Sets the name to use when displaying this item of work.
-     *
-     * @param displayName the name of this item of work
-     */
-    void setDisplayName(String displayName);
+public interface WorkerSpecInternal extends WorkerSpec {
+    IsolationMode getIsolationMode();
 }

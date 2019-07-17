@@ -17,11 +17,17 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
+    boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
+
     @Unroll
     def "can submit an item of work with the legacy API using isolation mode #isolationMode"() {
         buildFile << """
@@ -94,6 +100,8 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         "ForkMode.ALWAYS" | ">"
     }
 
+
+
     @Unroll
     def "produces a sensible error when parameters are incorrect in #isolationMode"() {
         buildFile << """
@@ -120,6 +128,51 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         isolationMode << ISOLATION_MODES
+    }
+
+    def "interesting worker daemon fork options are honored"() {
+        buildFile << """
+            import org.gradle.internal.jvm.Jvm
+
+            ${legacyWorkerTypeAndTask}
+            ${optionVerifyingRunnable}
+
+            task runInDaemon(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+                runnableClass = OptionVerifyingRunnable.class
+                workerConfiguration = {
+                    forkOptions { options ->
+                        options.with {
+                            minHeapSize = "128m"
+                            maxHeapSize = "128m"
+                            systemProperty("foo", "bar")
+                            jvmArgs("-Dbar=baz")
+                            if (${isOracleJDK}) {
+                                bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
+                                bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath('foo'))}"))
+                            }
+                            defaultCharacterEncoding = "UTF-8"
+                            enableAssertions = true
+                            environment "foo", "bar"
+                        }
+                    }
+                }
+                
+                text = "foo"
+                arrayOfThings = ["foo", "bar", "baz"]
+                listOfThings = ["foo", "bar", "baz"]
+            }
+        """
+
+        when:
+        succeeds("runInDaemon")
+
+        then:
+        result.groupedOutput.task(":runInDaemon").output.contains """
+            text = foo
+            array = [foo, bar, baz]
+            list = [foo, bar, baz]
+         """.stripIndent().trim()
     }
 
     String getLegacyWorkerTypeAndTask() {
@@ -182,6 +235,44 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 public RunnableWithDifferentConstructor(List<String> files, File outputDir) { 
                 }
                 public void run() {
+                }
+            }
+        """
+    }
+
+    String getOptionVerifyingRunnable() {
+        boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled
+
+        return """
+            import java.util.regex.Pattern;
+            import java.util.List;
+            import java.lang.management.ManagementFactory;
+            import java.lang.management.RuntimeMXBean;
+            import javax.inject.Inject;
+
+            public class OptionVerifyingRunnable extends TestRunnable {
+                @Inject
+                public OptionVerifyingRunnable(String text, String[] arrayOfThings, ListProperty<String> listOfThings) {
+                    super(text, arrayOfThings, listOfThings);
+                }
+
+                public void run() {
+                    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+                    List<String> arguments = runtimeMxBean.getInputArguments();
+                    assert arguments.contains("-Dfoo=bar");
+                    assert arguments.contains("-Dbar=baz");
+                    assert arguments.contains("-Xmx128m");
+                    assert arguments.contains("-Xms128m");
+                    assert arguments.contains("-Dfile.encoding=UTF-8");
+                    assert arguments.contains("-ea");
+
+                    if (${isOracleJDK}) {
+                        assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("/foo");
+                    }
+
+                    assert System.getenv("foo").equals("bar")
+
+                    super.run();
                 }
             }
         """
