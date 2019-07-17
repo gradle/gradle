@@ -18,22 +18,41 @@ package org.gradle.gradlebuild.dependencies
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
+import groovy.lang.Binding
+import groovy.lang.GroovyShell
 import library
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.extra
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
+    companion object {
+        val warnedAboutCapabilities = AtomicBoolean()
+        val supportsCapabilitiesResolutionAPI by lazy { ResolutionStrategy::class.java.declaredMethods.any { it.name == "getCapabilitiesResolution" } }
+        val upgradeScript by lazy {
+            GroovyShell().parse("""
+                configurations.all {
+                    resolutionStrategy.capabilitiesResolution.all {
+                        selectHighestVersion()
+                    }
+                }
+            """.trimIndent())
+        }
+    }
+
     override fun apply(project: Project): Unit = project.run {
+        applyAutomaticUpgradeOfCapabilities()
         dependencies {
             components {
                 // Gradle distribution - minify: remove unused transitive dependencies
@@ -72,6 +91,20 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 // Test dependencies - minify: remove unused transitive dependencies
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
                     setOf("barchart-udt-bundle", "guava", "commons-cli"))
+            }
+        }
+    }
+
+    private
+    fun Project.applyAutomaticUpgradeOfCapabilities() {
+        if (supportsCapabilitiesResolutionAPI) {
+            val binding = Binding()
+            binding.setVariable("configurations", configurations)
+            upgradeScript.binding = binding
+            upgradeScript.run()
+        } else {
+            if (warnedAboutCapabilities.compareAndSet(false, true)) {
+                logger.warn("Ignoring automatic upgrade of capabilities. This is likely because this build is using an older Gradle API. Replace applyAutomaticUpgradeOfCapabilities with a static API once the wrapper has been updated to a version which supports it.")
             }
         }
     }
