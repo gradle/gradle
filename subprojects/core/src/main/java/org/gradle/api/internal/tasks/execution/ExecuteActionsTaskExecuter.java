@@ -396,17 +396,26 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
+            return snapshotOutputs();
+        }
+
+        @Override
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+            return snapshotOutputs();
+        }
+
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
             ImmutableSortedSet<OutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
             return taskSnapshotter.snapshotTaskFiles(task, outputFilePropertySpecs);
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
             ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-            ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
             boolean hasDetectedOverlappingOutputs
         ) {
-            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(afterExecutionOutputSnapshots, (propertyName, afterExecutionOutputSnapshot) -> {
                         FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);

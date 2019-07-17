@@ -816,6 +816,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
+                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+                    snapshotOutputs(outputs)
+                }
+
+                @Override
                 void validate() {
                     if (validationError != null) {
                         throw validationError
@@ -868,20 +873,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
                     ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-                    ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
+                    ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+                    ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
                     boolean hasDetectedOverlappingOutputs
                 ) {
-                    fingerprintOutputs(outputs)
+                    fingerprintOutputs(afterExecutionOutputSnapshots)
                 }
             }
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(Map<String, OutputPropertySpec> outputs) {
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
             def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
-            outputs.each { propertyName, spec ->
-                builder.put(propertyName, outputFingerprinter.fingerprint(spec.roots))
+            outputSnapshots.each { propertyName, snapshot ->
+                builder.put(propertyName, outputFingerprinter.fingerprint([snapshot]))
             }
             return builder.build()
         }

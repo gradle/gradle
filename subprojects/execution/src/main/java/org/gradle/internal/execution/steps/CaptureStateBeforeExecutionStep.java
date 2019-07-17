@@ -116,12 +116,12 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
-        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsBeforeExecution = work.snapshotOutputsBeforeExecution();
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots = work.snapshotOutputsBeforeExecution();
 
         OverlappingOutputs overlappingOutputs;
         switch (work.getOverlappingOutputHandling()) {
             case DETECT_OVERLAPS:
-                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, outputSnapshotsBeforeExecution);
+                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, outputFileSnapshots);
                 break;
             case IGNORE_OVERLAPS:
                 overlappingOutputs = null;
@@ -131,18 +131,19 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
         }
 
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = fingerprintInputProperties(work, previousInputProperties, valueSnapshotter);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = fingerprintInputFiles(work);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = fingerprintOutputFiles(
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = fingerprintInputFiles(work);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileFingerprints = fingerprintOutputFiles(
             outputSnapshotsAfterPreviousExecution,
-            outputSnapshotsBeforeExecution,
+            outputFileSnapshots,
             overlappingOutputs != null);
 
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
             inputProperties,
-            inputFiles,
-            outputFiles,
+            inputFileFingerprints,
+            outputFileFingerprints,
+            outputFileSnapshots,
             overlappingOutputs
         );
     }

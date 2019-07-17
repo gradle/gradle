@@ -156,9 +156,24 @@ public interface UnitOfWork extends CacheableEntity {
     boolean shouldCleanupOutputsOnNonIncrementalExecution();
 
     /**
-     * Returns the output snapshots after the current execution.
+     * Takes a snapshot of the outputs before execution.
      */
     ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution();
+
+    /**
+     * Takes a snapshot of the outputs after execution.
+     */
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution();
+
+    /**
+     * Convert to fingerprints and filter out missing roots.
+     */
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
+        boolean hasDetectedOverlappingOutputs
+    );
 
     enum WorkResult {
         DID_WORK,
@@ -194,10 +209,4 @@ public interface UnitOfWork extends CacheableEntity {
     }
 
     ExecutionHistoryStore getExecutionHistoryStore();
-
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-        ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
-        boolean hasDetectedOverlappingOutputs
-    );
 }

@@ -460,15 +460,21 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+            return snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
+        }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
             ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-            ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
             boolean hasDetectedOverlappingOutputs
         ) {
             //noinspection ConstantConditions
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(
-                    snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace),
+                    afterExecutionOutputSnapshots,
                     (key, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value))
                 )
             );

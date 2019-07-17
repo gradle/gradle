@@ -30,6 +30,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -48,18 +49,20 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements St
         Result result = delegate.execute(context);
 
         UnitOfWork work = context.getWork();
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputSnapshots = context.getAfterPreviousExecutionState()
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputFingerprints = context.getAfterPreviousExecutionState()
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
-            .map(BeforeExecutionState::getOutputFileProperties)
+        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
+            .map(BeforeExecutionState::getOutputFileSnapshots)
             .orElse(ImmutableSortedMap.of());
         boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated(
-            afterPreviousExecutionStateOutputSnapshots,
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = work.snapshotOutputsAfterExecution();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.fingerprintAndFilterOutputSnapshots(
+            afterPreviousExecutionStateOutputFingerprints,
             beforeExecutionOutputSnapshots,
+            afterExecutionOutputSnapshots,
             hasDetectedOverlappingOutputs);
         OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
         return new CurrentSnapshotResult() {
