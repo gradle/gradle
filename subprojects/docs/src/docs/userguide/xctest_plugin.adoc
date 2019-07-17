@@ -171,7 +171,7 @@ The XCTest Plugin will compile whatever it finds, and handles anything which is 
 `src/test/swift`::
 Swift source with extension of `.swift`
 
-You <<building_swift_projects.adoc#sec:custom_cpp_source_set_paths,configure the project layout>> by configuring the `source` on the `xctest` script block.
+You <<building_swift_projects.adoc#sec:custom_swift_source_set_paths,configure the project layout>> by configuring the `source` on the `xctest` script block.
 
 [[sec:xctest_compile_task]]
 === `compileTest__Variant__Swift` Task
@@ -197,7 +197,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:xctest_link_task]]
 === `linkTest__Variant__` Task
@@ -221,7 +221,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gr
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 ==== Linux
 
@@ -238,7 +238,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:xctest_install_task]]
 === `installTest__Variant__` Task

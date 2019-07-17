@@ -30,7 +30,7 @@ include::sample[dir="userguide/swift/swiftApplication/kotlin",files="build.gradl
 == Build variants
 
 The Swift Application Plugin understands the following dimensions.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 
 Build types - always either _debug_ or _release_::
 The build type controls the debuggability as well as the optimization of the generated binaries.
@@ -62,7 +62,7 @@ image::swift-application-task-graph.png[]
 === Variant-dependent Tasks
 
 The Swift Application Plugin creates tasks based on the variants of the application component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following diagram shows the relationship between variant-dependent tasks.
 
 .Swift Application Plugin variant-dependent task graph
@@ -119,7 +119,7 @@ This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 == Dependency management
 
 Just like the tasks created by the Swift Application Plugin, multiple configurations are created based on the variants of the application component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 The following graph describes the configurations added by the Swift Application Plugin:
 
 .Swift Application Plugin configurations
@@ -175,15 +175,13 @@ The Swift Application Plugin will compile whatever it finds and ignore anything 
 `src/main/swift`::
 Swift source with extension of `.swift`
 
-// TODO: Switch to this line once the other chapter is ready.
-//You <<building_swift_projects.adoc#sec:custom_swift_source_set_paths,configure the project layout>> by configuring the `source` on the `application` script block.
-You configure the project layout by configuring the `source` on the `application` script block.
+You <<building_swift_projects.adoc#sec:custom_swift_source_set_paths,configure the project layout>> by configuring the `source` on the `application` script block.
 
 [[sec:swift_application_compile_task]]
 === `compile__Variant__Swift` Task
 
 The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html[SwiftCompile] instance for each variant of the application component to build (e.g. `compileDebugSwift` and `compileReleaseSwift`).
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -203,13 +201,13 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:swift_application_link_task]]
 === `link__Variant__` Task
 
 The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -225,11 +223,11 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: automatically selected based on target machine
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:swift_application_install_task]]
 === `install__Variant__` Task
 
 The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable] instance for each variant of the test component - e.g. `installDebug` and `installRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
 There is no need to configure any properties on the task.

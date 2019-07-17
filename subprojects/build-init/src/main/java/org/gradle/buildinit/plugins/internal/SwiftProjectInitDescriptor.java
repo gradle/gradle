@@ -17,20 +17,24 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.ModuleNameBuilder.toModuleName;
 
 public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final TemplateOperationFactory templateOperationFactory;
+    private final DocumentationRegistry documentationRegistry;
 
-    public SwiftProjectInitDescriptor(TemplateOperationFactory templateOperationFactory) {
+    public SwiftProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
         this.templateOperationFactory = templateOperationFactory;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -42,7 +46,8 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample Swift project to get you started.")
-            .fileComment("For more details take a look at the Building Swift applications and libraries chapter in the Gradle");
+            .fileComment("For more details take a look at the Building Swift applications and libraries chapter in the Gradle")
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_swift_projects"));
         configureBuildScript(settings, buildScriptBuilder);
 
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
@@ -59,6 +64,11 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
         return null;
+    }
+
+    @Override
+    public Optional<String> getFurtherReading() {
+        return Optional.of(documentationRegistry.getDocumentationFor("building_swift_projects"));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
