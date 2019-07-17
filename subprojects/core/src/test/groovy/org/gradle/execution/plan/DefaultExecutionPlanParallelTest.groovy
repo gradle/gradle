@@ -33,7 +33,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.internal.resources.SharedResourceLeaseLockRegistry
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -58,7 +58,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         def coordinationService = new DefaultResourceLockCoordinationService()
-        def sharedResourceLockRegistry = new SharedResourceLeaseLockRegistry(coordinationService)
+        def sharedResourceLockRegistry = new SharedResourceLeaseRegistry(coordinationService)
         executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver, sharedResourceLockRegistry)
     }
 

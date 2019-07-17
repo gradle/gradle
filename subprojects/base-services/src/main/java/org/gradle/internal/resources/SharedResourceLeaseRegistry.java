@@ -22,10 +22,10 @@ import org.gradle.api.Action;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
-public class SharedResourceLeaseLockRegistry extends AbstractResourceLockRegistry<String, SharedResourceLeaseLockRegistry.SharedResourceLease> {
+public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<String, SharedResourceLeaseRegistry.SharedResourceLease> {
     private final Map<String, Semaphore> sharedResources = Maps.newConcurrentMap();
 
-    public SharedResourceLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
+    public SharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {
         super(coordinationService);
     }
 

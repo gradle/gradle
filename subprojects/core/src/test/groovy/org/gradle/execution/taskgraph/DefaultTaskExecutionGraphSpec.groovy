@@ -52,7 +52,7 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.SharedResourceLeaseLockRegistry
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.testfixtures.ProjectBuilder
@@ -75,7 +75,7 @@ class    DefaultTaskExecutionGraphSpec extends Specification {
     def thisBuild = project.gradle
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-    def sharedResourceLockRegistry = new SharedResourceLeaseLockRegistry(coordinationService)
+    def sharedResourceLockRegistry = new SharedResourceLeaseRegistry(coordinationService)
     def taskGraph = new DefaultTaskExecutionGraph(new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [nodeExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskNodeFactory, dependencyResolver, graphListeners, taskExecutionListeners, sharedResourceLockRegistry)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []

@@ -35,7 +35,7 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.internal.resources.SharedResourceLeaseLockRegistry
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -60,7 +60,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         def taskNodeFactory = new TaskNodeFactory(root.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         def coordinationService = new DefaultResourceLockCoordinationService()
-        def sharedResourceLockRegistry = new SharedResourceLeaseLockRegistry(coordinationService)
+        def sharedResourceLockRegistry = new SharedResourceLeaseRegistry(coordinationService)
         executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver, sharedResourceLockRegistry)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false

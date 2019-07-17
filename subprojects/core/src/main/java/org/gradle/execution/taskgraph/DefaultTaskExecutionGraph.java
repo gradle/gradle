@@ -53,7 +53,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
-import org.gradle.internal.resources.SharedResourceLeaseLockRegistry;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -83,7 +83,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
-    private final SharedResourceLeaseLockRegistry sharedResourceRegistry;
+    private final SharedResourceLeaseRegistry sharedResourceRegistry;
     private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
@@ -102,7 +102,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
-        SharedResourceLeaseLockRegistry sharedResourceRegistry
+        SharedResourceLeaseRegistry sharedResourceRegistry
     ) {
         this.planExecutor = planExecutor;
         this.nodeExecutors = nodeExecutors;

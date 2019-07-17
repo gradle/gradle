@@ -59,7 +59,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
-import org.gradle.internal.resources.SharedResourceLeaseLockRegistry;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -107,18 +107,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
-    private final SharedResourceLeaseLockRegistry sharedResourceLeaseLockRegistry;
+    private final SharedResourceLeaseRegistry sharedResourceLeaseRegistry;
     private final Map<Node, List<ResourceLock>> sharedResourceLocks = Maps.newIdentityHashMap();
     private final GradleInternal gradle;
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseLockRegistry sharedResourceLeaseLockRegistry) {
+    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
-        this.sharedResourceLeaseLockRegistry = sharedResourceLeaseLockRegistry;
+        this.sharedResourceLeaseRegistry = sharedResourceLeaseRegistry;
     }
 
     @Override
@@ -335,7 +335,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (sharedResources != null && !sharedResources.isEmpty()) {
                         List<ResourceLock> locks = Lists.newArrayList();
                         for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
-                            locks.add(sharedResourceLeaseLockRegistry.getResourceLock(entry.getKey(), entry.getValue()));
+                            locks.add(sharedResourceLeaseRegistry.getResourceLock(entry.getKey(), entry.getValue()));
                         }
 
                         sharedResourceLocks.put(node, locks);

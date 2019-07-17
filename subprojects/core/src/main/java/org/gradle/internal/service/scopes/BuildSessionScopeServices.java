@@ -85,7 +85,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.SharedResourceLeaseLockRegistry;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
@@ -265,7 +265,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    SharedResourceLeaseLockRegistry createSharedResourceLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
-        return new SharedResourceLeaseLockRegistry(coordinationService);
+    SharedResourceLeaseRegistry createSharedResourceLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
+        return new SharedResourceLeaseRegistry(coordinationService);
     }
 }
