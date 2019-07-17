@@ -78,7 +78,7 @@ include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gra
 include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
-Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method. 
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method.
 
 And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
@@ -450,6 +450,7 @@ Gradle supports this behavior out of the box through a feature it calls incremen
 
 How does incremental build work? And what does it take to make use of it in your own tasks? Let’s take a look.
 
+Note that changing the availability of an unavailable file (e.g. modifying the target of a broken symlink to a valid file, or vice versa), will be detected and handled by up-to-date check.
 
 [[sec:task_inputs_outputs]]
 === Task inputs and outputs

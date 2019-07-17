@@ -165,20 +165,13 @@ For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` 
 The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
 
 ## Unavailable files are handled more gracefully
-Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files)
-found in inputs/outputs of tasks are handled gracefully from now on: similarly to missing files.
-
-In incremental builds therefore, changing the availability of a file (e.g. modifying the target of a broken symlink to a valid file, or vice versa),
-will be detected and handled by up-to-date check.
-
-Since we wouldn't be able to restore unavailable files from the cache, if a task produces one, caching will be disabled for the whole build.
+Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files) found in inputs/outputs of tasks are handled gracefully from now on: similarly to missing files.
 
 If the output contains an unavailable file - not produced by the task -, it will be ignored.
 
 Direct input references to unavailable files (i.e. in a root position) will fail validation for `@InputFile` and `@InputDirectory`.
 
-Indirect references to unavailable files (e.g. underneath a directly, referenced in `@InputDirectory`, `@InputFiles`, `@Classpath` or `@CompileClasspath`)
-will be marked as missing - unless they're annotated with `@SkipWhenEmpty`.
+Indirect references to unavailable files (e.g. underneath a directly, referenced in `@InputDirectory`, `@InputFiles`, `@Classpath` or `@CompileClasspath`) will be marked as missing.
 
 ## Fail the build on deprecation warnings
 
