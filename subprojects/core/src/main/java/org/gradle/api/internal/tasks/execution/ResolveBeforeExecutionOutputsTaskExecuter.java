@@ -26,7 +26,9 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.OverlappingOutputs;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
@@ -37,10 +39,12 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
     private final TaskSnapshotter taskSnapshotter;
     private final TaskExecuter delegate;
+    private final OverlappingOutputDetector overlappingOutputDetector;
 
     public ResolveBeforeExecutionOutputsTaskExecuter(TaskSnapshotter taskSnapshotter, TaskExecuter delegate) {
         this.taskSnapshotter = taskSnapshotter;
         this.delegate = delegate;
+        this.overlappingOutputDetector = new DefaultOverlappingOutputDetector();
     }
 
     @Override
@@ -53,8 +57,10 @@ public class ResolveBeforeExecutionOutputsTaskExecuter implements TaskExecuter {
         ImmutableSortedMap<String, FileCollectionFingerprint> outputsAfterPreviousExecution = afterPreviousExecutionState != null
             ? afterPreviousExecutionState.getOutputFileProperties()
             : ImmutableSortedMap.of();
-        OverlappingOutputs.detect(outputsAfterPreviousExecution, outputsBeforeExecution)
-            .ifPresent(context::setOverlappingOutputs);
+        OverlappingOutputs overlappingOutputs = overlappingOutputDetector.detect(outputsAfterPreviousExecution, outputsBeforeExecution);
+        if (overlappingOutputs != null) {
+            context.setOverlappingOutputs(overlappingOutputs);
+        }
 
         return delegate.execute(task, state, context);
     }

@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.fingerprint.OverlappingOutputs;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
