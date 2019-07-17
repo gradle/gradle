@@ -25,8 +25,10 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
@@ -46,13 +48,19 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements St
         Result result = delegate.execute(context);
 
         UnitOfWork work = context.getWork();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties = context.getBeforeExecutionState()
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputSnapshots = context.getAfterPreviousExecutionState()
+            .map(AfterPreviousExecutionState::getOutputFileProperties)
+            .orElse(ImmutableSortedMap.of());
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
             .map(BeforeExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
         boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated(outputFileProperties, hasDetectedOverlappingOutputs);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated(
+            afterPreviousExecutionStateOutputSnapshots,
+            beforeExecutionOutputSnapshots,
+            hasDetectedOverlappingOutputs);
         OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
         return new CurrentSnapshotResult() {
             @Override

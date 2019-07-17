@@ -117,13 +117,12 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -140,6 +139,7 @@ import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
@@ -242,7 +242,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<AfterPreviousExecutionContext, CachingResult> createWorkExecutor(
+        WorkExecutor<ReasonedContext, CachingResult> createWorkExecutor(
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
@@ -254,20 +254,22 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new ValidateStep<>(
-                    new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                        new NoOpCachingStateStep(
-                            new ResolveChangesStep<>(changeDetector,
-                                new SkipUpToDateStep<>(
-                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                        new StoreSnapshotsStep<>(
-                                            new SnapshotOutputsStep<>(fixedUniqueId,
-                                                new CreateOutputsStep<>(
-                                                    new CatchExceptionStep<>(
-                                                        new TimeoutStep<>(timeoutHandler,
-                                                            new ResolveInputChangesStep<>(
-                                                                new CleanupOutputsStep<>(
-                                                                    new ExecuteStep<InputChangesContext>()
+                new LoadPreviousExecutionStateStep<>(
+                    new ValidateStep<>(
+                        new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                            new NoOpCachingStateStep(
+                                new ResolveChangesStep<>(changeDetector,
+                                    new SkipUpToDateStep<>(
+                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                            new StoreSnapshotsStep<>(
+                                                new SnapshotOutputsStep<>(fixedUniqueId,
+                                                    new CreateOutputsStep<>(
+                                                        new CatchExceptionStep<>(
+                                                            new TimeoutStep<>(timeoutHandler,
+                                                                new ResolveInputChangesStep<>(
+                                                                    new CleanupOutputsStep<>(
+                                                                        new ExecuteStep<>()
+                                                                    )
                                                                 )
                                                             )
                                                         )
@@ -371,7 +373,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<ReasonedContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,

@@ -31,9 +31,9 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -50,6 +50,7 @@ import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
@@ -120,7 +121,7 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<AfterPreviousExecutionContext, CachingResult> createWorkExecutor(
+    public WorkExecutor<ReasonedContext, CachingResult> createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildScanPluginApplied buildScanPlugin,
@@ -135,25 +136,27 @@ public class ExecutionGradleServices {
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<>(
-            new SkipEmptyWorkStep<>(
-                new ValidateStep<>(
-                    new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                        new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
-                            new MarkSnapshottingInputsFinishedStep<>(
-                                new ResolveChangesStep<>(changeDetector,
-                                    new SkipUpToDateStep<>(
-                                        new RecordOutputsStep<>(outputFilesRepository,
-                                            new StoreSnapshotsStep<>(
-                                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                    new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                                        new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                                            new CreateOutputsStep<>(
-                                                                new CatchExceptionStep<>(
-                                                                    new TimeoutStep<>(timeoutHandler,
-                                                                        new CancelExecutionStep<>(cancellationToken,
-                                                                            new ResolveInputChangesStep<>(
-                                                                                new CleanupOutputsStep<>(
-                                                                                    new ExecuteStep<>()
+            new LoadPreviousExecutionStateStep<>(
+                new SkipEmptyWorkStep<>(
+                    new ValidateStep<>(
+                        new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                            new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
+                                new MarkSnapshottingInputsFinishedStep<>(
+                                    new ResolveChangesStep<>(changeDetector,
+                                        new SkipUpToDateStep<>(
+                                            new RecordOutputsStep<>(outputFilesRepository,
+                                                new StoreSnapshotsStep<>(
+                                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                                        new CacheStep(buildCacheController, buildCacheCommandFactory,
+                                                            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+                                                                new CreateOutputsStep<>(
+                                                                    new CatchExceptionStep<>(
+                                                                        new TimeoutStep<>(timeoutHandler,
+                                                                            new CancelExecutionStep<>(cancellationToken,
+                                                                                new ResolveInputChangesStep<>(
+                                                                                    new CleanupOutputsStep<>(
+                                                                                        new ExecuteStep<>()
+                                                                                    )
                                                                                 )
                                                                             )
                                                                         )

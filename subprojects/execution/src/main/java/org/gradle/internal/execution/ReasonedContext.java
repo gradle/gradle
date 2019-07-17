@@ -16,14 +16,11 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-
 import java.util.Optional;
 
-public interface AfterPreviousExecutionContext extends ReasonedContext {
+public interface ReasonedContext extends Context {
     /**
-     * Returns the execution state after the previous execution if available.
-     * Empty when execution history is not available.
+     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
      */
-    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
+    Optional<String> getRebuildReason();
 }

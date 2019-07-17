@@ -19,20 +19,13 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface TaskExecutionContext {
 
     LocalTaskNode getLocalTaskNode();
-
-    @Nullable
-    AfterPreviousExecutionState getAfterPreviousExecution();
-
-    void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
 
     TaskExecutionMode getTaskExecutionMode();
 

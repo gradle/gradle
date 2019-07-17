@@ -195,5 +195,9 @@ public interface UnitOfWork extends CacheableEntity {
 
     ExecutionHistoryStore getExecutionHistoryStore();
 
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution, boolean hasDetectedOverlappingOutputs);
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+        ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
+        boolean hasDetectedOverlappingOutputs
+    );
 }

@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
@@ -39,6 +38,7 @@ import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -49,6 +49,7 @@ import org.gradle.internal.execution.steps.StoreSnapshotsStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -132,22 +133,24 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
 
-    WorkExecutor<AfterPreviousExecutionContext, CachingResult> getExecutor() {
+    WorkExecutor<ReasonedContext, CachingResult> getExecutor() {
         new DefaultWorkExecutor<>(
-            new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                    new ResolveCachingStateStep<>(buildCacheController, false,
-                        new ResolveChangesStep<>(changeDetector,
-                            new SkipUpToDateStep<>(
-                                new RecordOutputsStep<>(outputFilesRepository,
-                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                        new StoreSnapshotsStep<>(
-                                            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                                new CreateOutputsStep<>(
-                                                    new CatchExceptionStep<>(
-                                                        new ResolveInputChangesStep<>(
-                                                            new CleanupOutputsStep<>(
-                                                                new ExecuteStep<InputChangesContext>()
+            new LoadPreviousExecutionStateStep<>(
+                new ValidateStep<>(
+                    new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                        new ResolveCachingStateStep<>(buildCacheController, false,
+                            new ResolveChangesStep<>(changeDetector,
+                                new SkipUpToDateStep<>(
+                                    new RecordOutputsStep<>(outputFilesRepository,
+                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                            new StoreSnapshotsStep<>(
+                                                new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+                                                    new CreateOutputsStep<>(
+                                                        new CatchExceptionStep<>(
+                                                            new ResolveInputChangesStep<>(
+                                                                new CleanupOutputsStep<>(
+                                                                    new ExecuteStep<InputChangesContext>()
+                                                                )
                                                             )
                                                         )
                                                     )
@@ -638,9 +641,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     UpToDateResult execute(UnitOfWork unitOfWork) {
         fileSystemMirror.beforeBuildFinished()
 
-        def afterPreviousExecutionState = executionHistoryStore.load(unitOfWork.identity)
-
-        executor.execute(new AfterPreviousExecutionContext() {
+        executor.execute(new ReasonedContext() {
             @Override
             UnitOfWork getWork() {
                 unitOfWork
@@ -649,11 +650,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
             @Override
             Optional<String> getRebuildReason() {
                 Optional.empty()
-            }
-
-            @Override
-            Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                afterPreviousExecutionState
             }
         })
     }
@@ -873,7 +869,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
                 @Override
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
-                    ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution,
+                    ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+                    ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
                     boolean hasDetectedOverlappingOutputs
                 ) {
                     fingerprintOutputs(outputs)

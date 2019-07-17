@@ -56,10 +56,10 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.InputChangesContext;
+import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -118,7 +118,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
+    private final WorkExecutor<ReasonedContext, CachingResult> workExecutor;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
@@ -135,7 +135,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskCacheabilityResolver taskCacheabilityResolver,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
+        WorkExecutor<ReasonedContext, CachingResult> workExecutor,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
@@ -170,7 +170,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        CachingResult result = workExecutor.execute(new AfterPreviousExecutionContext() {
+        CachingResult result = workExecutor.execute(new ReasonedContext() {
             @Override
             public UnitOfWork getWork() {
                 return work;
@@ -179,11 +179,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getTaskExecutionMode().getRebuildReason();
-            }
-
-            @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return Optional.ofNullable(context.getAfterPreviousExecution());
             }
         });
         result.getOutcome().ifSuccessfulOrElse(
@@ -407,23 +402,17 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
-            ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution,
+            ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+            ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots,
             boolean hasDetectedOverlappingOutputs
         ) {
-            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
-            return createFilteredOutputFingerprints(afterPreviousExecutionState, outputFilesBeforeExecution, outputsAfterExecution, hasDetectedOverlappingOutputs);
-        }
-
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots, ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots, boolean hasOverlappingOutputs) {
-            ImmutableSortedMap<String, FileCollectionFingerprint> afterLastExecutionFingerprints = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
-
+            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(afterExecutionOutputSnapshots, (propertyName, afterExecutionOutputSnapshot) -> {
-                        FileCollectionFingerprint afterLastExecutionFingerprint = afterLastExecutionFingerprints.get(propertyName);
+                        FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
                         FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
                         assert afterExecutionOutputSnapshot != null;
-                        return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasOverlappingOutputs);
+                        return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasDetectedOverlappingOutputs);
                     }
                 )
             );

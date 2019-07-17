@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.execution.EmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
@@ -49,9 +48,9 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
@@ -119,7 +118,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionListener taskExecutionListener,
                                     TaskListenerInternal taskListenerInternal,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
-                                    WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
+                                    WorkExecutor<ReasonedContext, CachingResult> workExecutor,
                                     ListenerManager listenerManager,
                                     ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
                                     EmptySourceTaskSkipper emptySourceTaskSkipper
@@ -150,7 +149,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new StartSnapshotTaskInputsBuildOperationTaskExecuter(buildOperationExecutor, executer);
         }
-        executer = new ResolveAfterPreviousExecutionStateTaskExecuter(executionHistoryStore, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, fileCollectionFactory, propertyWalker, executer);

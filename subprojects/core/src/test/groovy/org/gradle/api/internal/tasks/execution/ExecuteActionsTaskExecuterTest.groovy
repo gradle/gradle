@@ -41,10 +41,10 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
-import org.gradle.internal.execution.AfterPreviousExecutionContext
 import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.ReasonedContext
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
@@ -55,6 +55,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
@@ -109,7 +110,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def executionContext = Stub(TaskExecutionContext) {
         getTaskProperties() >> taskProperties
-        getAfterPreviousExecution() >> previousState
     }
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
@@ -148,20 +148,22 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null)
 
-    def workExecutor = new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
-        new SkipEmptyWorkStep<>(
-            new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                    new ResolveCachingStateStep(buildCacheController, false,
-                        new ResolveChangesStep<>(changeDetector,
-                            new SkipUpToDateStep<>(
-                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                    new SnapshotOutputsStep<>(buildId,
-                                        new CatchExceptionStep<>(
-                                            new CancelExecutionStep<>(cancellationToken,
-                                                new ResolveInputChangesStep<>(
-                                                    new CleanupOutputsStep<>(
-                                                        new ExecuteStep<InputChangesContext>()
+    def workExecutor = new DefaultWorkExecutor<ReasonedContext, CachingResult>(
+        new LoadPreviousExecutionStateStep<>(
+            new SkipEmptyWorkStep<>(
+                new ValidateStep<>(
+                    new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                        new ResolveCachingStateStep(buildCacheController, false,
+                            new ResolveChangesStep<>(changeDetector,
+                                new SkipUpToDateStep<>(
+                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                        new SnapshotOutputsStep<>(buildId,
+                                            new CatchExceptionStep<>(
+                                                new CancelExecutionStep<>(cancellationToken,
+                                                    new ResolveInputChangesStep<>(
+                                                        new CleanupOutputsStep<>(
+                                                            new ExecuteStep<InputChangesContext>()
+                                                        )
                                                     )
                                                 )
                                             )
@@ -198,11 +200,13 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         task.getProject() >> project
         task.getState() >> state
         task.getOutputs() >> taskOutputs
+        task.getPath() >> "task"
         taskOutputs.setPreviousOutputFiles(_ as FileCollection)
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
+        executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }
 

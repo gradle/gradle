@@ -19,18 +19,15 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
-    private AfterPreviousExecutionState afterPreviousExecution;
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
     private Long executionTime;
@@ -46,17 +43,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public LocalTaskNode getLocalTaskNode() {
         return localTaskNode;
-    }
-
-    @Nullable
-    @Override
-    public AfterPreviousExecutionState getAfterPreviousExecution() {
-        return afterPreviousExecution;
-    }
-
-    @Override
-    public void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState afterPreviousExecution) {
-        this.afterPreviousExecution = afterPreviousExecution;
     }
 
     @Override
