@@ -331,7 +331,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
 
 ```
-Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 because they provide the same capability: org.slf4j:slf4j-capability:1.0
+Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
 ```
 
 It does not, however, choose what component to use for you: detecting a conflict is the first step, then you have to fix it.
@@ -344,19 +344,27 @@ For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1
 It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
 Because each component has an implicit capability corresponding to its GAV coordinates, we can fix this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
 
-.Automatic conflict resolution by capability versioning
+.Conflict resolution by capability versioning
 ====
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
 ====
 
-However, fixing by automatic capability version conflict resolution is not always suitable.
+And then we can say that we will solve the conflict by automatically choosing the component which has the highest capability version:
+
+.Conflict resolution by capability versioning
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=use_highest_asm]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_highest_asm]"]
+====
+
+However, fixing by choosing the highest capability version conflict resolution is not always suitable.
 In our logging example, it doesn't matter what version of the logging frameworks we use, we should always select the slf4j bridge.
 
-In this case, we can fix it by using dependency substitution:
+In this case, we can fix it by explicitly selecting slf4j as the winner:
 
 .Substitute log4j with slf4j
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=replacement_rule]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=replacement_rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=use_slf4j]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_slf4j]"]
 ====
