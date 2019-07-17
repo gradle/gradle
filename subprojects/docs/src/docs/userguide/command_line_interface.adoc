@@ -589,7 +589,7 @@ On Linux, OpenJDK's implementation of the file watch service can sometimes miss 
 ==== Changes to symbolic links
 
  * Creating or removing symbolic link to files will initiate a build.
- * Modifying the target of a symbolic link (while keeping its content) will not cause a rebuild.
+ * Modifying the target of a symbolic link will not cause a rebuild.
  * Creating or removing symbolic links to directories will not cause rebuilds.
  * Creating new files in the target directory of a symbolic link will not cause a rebuild.
  * Deleting the target directory will not cause a rebuild.
