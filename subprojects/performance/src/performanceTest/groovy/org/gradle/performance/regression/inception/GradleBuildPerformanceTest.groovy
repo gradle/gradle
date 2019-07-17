@@ -32,12 +32,10 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.performance.regression.inception.GradleInceptionPerformanceTest.extraGradleBuildArguments
-
 /**
  * Test Gradle's build performance against current Gradle.
  *
@@ -53,7 +51,6 @@ import static org.gradle.performance.regression.inception.GradleInceptionPerform
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-@Ignore("Temporarily ignore in order to get a passing build on older API")
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
