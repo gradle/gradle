@@ -165,18 +165,12 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                     Class<?> clazz;
                     try {
                         clazz = classLoader.loadClass(className);
-                    } catch (IllegalAccessError e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    } catch (ClassNotFoundException e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    } catch (NoClassDefFoundError e) {
+                    } catch (IllegalAccessError | NoClassDefFoundError | ClassNotFoundException e) {
                         throw new GradleException("Could not load class: " + className, e);
                     }
                     try {
                         validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {
+                    } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
                 }
