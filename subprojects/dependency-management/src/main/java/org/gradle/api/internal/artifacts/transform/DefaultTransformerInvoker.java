@@ -47,6 +47,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.OutputNormalizer;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -424,11 +425,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean hasOverlappingOutputs() {
-            return false;
-        }
-
-        @Override
         public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
             return true;
         }
@@ -447,7 +443,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching() {
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             return transformer.isCacheable()
                 ? Optional.empty()
                 : Optional.of(NOT_CACHEABLE);
@@ -464,12 +460,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
             return outputFileSnapshotsBeforeExecution;
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution) {
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+            ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution,
+            boolean hasDetectedOverlappingOutputs
+        ) {
             //noinspection ConstantConditions
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(

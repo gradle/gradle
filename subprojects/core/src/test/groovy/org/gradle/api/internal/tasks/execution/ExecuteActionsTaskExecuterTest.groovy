@@ -62,6 +62,7 @@ import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -139,11 +140,12 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
+    def overlappingOutputDetector = Stub(OverlappingOutputDetector)
 
     def workExecutor = new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
         new SkipEmptyWorkStep<>(
             new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter,
+                new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                     new ResolveCachingStateStep(buildCacheController, false,
                         new ResolveChangesStep<>(changeDetector,
                             new SkipUpToDateStep<>(
@@ -190,10 +192,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
-        executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
-        executionContext.getOverlappingOutputs() >> Optional.empty()
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
-
         executionContext.getTaskProperties() >> taskProperties
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }

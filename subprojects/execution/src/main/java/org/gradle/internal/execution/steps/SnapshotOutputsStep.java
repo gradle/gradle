@@ -46,8 +46,13 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements St
         Result result = delegate.execute(context);
 
         UnitOfWork work = context.getWork();
-        BeforeExecutionState beforeExecutionState = context.getBeforeExecutionState().get();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated(beforeExecutionState.getOutputFileProperties());
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties = context.getBeforeExecutionState()
+            .map(BeforeExecutionState::getOutputFileProperties)
+            .orElse(ImmutableSortedMap.of());
+        boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
+            .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
+            .isPresent();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated(outputFileProperties, hasDetectedOverlappingOutputs);
         OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
         return new CurrentSnapshotResult() {
             @Override

@@ -62,6 +62,7 @@ import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
@@ -130,12 +131,13 @@ public class ExecutionGradleServices {
         ValueSnapshotter valueSnapshotter,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
+        OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<>(
             new SkipEmptyWorkStep<>(
                 new ValidateStep<>(
-                    new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
+                    new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                         new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
                             new MarkSnapshottingInputsFinishedStep<>(
                                 new ResolveChangesStep<>(changeDetector,

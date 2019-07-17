@@ -52,6 +52,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -128,11 +130,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def unitOfWork = builder.build()
 
     def changeDetector = new DefaultExecutionStateChangeDetector()
+    def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
 
     WorkExecutor<AfterPreviousExecutionContext, CachingResult> getExecutor() {
         new DefaultWorkExecutor<>(
             new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter,
+                new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                     new ResolveCachingStateStep<>(buildCacheController, false,
                         new ResolveChangesStep<>(changeDetector,
                             new SkipUpToDateStep<>(
@@ -812,7 +815,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
+                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
                     snapshotOutputs(outputs)
                 }
 
@@ -821,11 +824,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                     if (validationError != null) {
                         throw validationError
                     }
-                }
-
-                @Override
-                boolean hasOverlappingOutputs() {
-                    return false
                 }
 
                 @Override
@@ -844,7 +842,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                Optional<CachingDisabledReason> shouldDisableCaching() {
+                Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
                     throw new UnsupportedOperationException()
                 }
 
@@ -874,7 +872,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution) {
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+                    ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution,
+                    boolean hasDetectedOverlappingOutputs
+                ) {
                     fingerprintOutputs(outputs)
                 }
             }

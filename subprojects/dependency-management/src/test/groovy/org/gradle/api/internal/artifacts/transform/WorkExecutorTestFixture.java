@@ -29,6 +29,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
@@ -118,6 +119,7 @@ public class WorkExecutorTestFixture {
             valueSnapshotter,
             outputChangeListener,
             outputFilesRepository,
+            new DefaultOverlappingOutputDetector(),
             new DefaultTimeoutHandler(null)
         );
     }

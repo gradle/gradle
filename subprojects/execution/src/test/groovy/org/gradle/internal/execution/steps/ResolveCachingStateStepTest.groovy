@@ -54,7 +54,7 @@ class ResolveCachingStateStepTest extends Specification {
         _ * buildCache.enabled >> true
         1 * context.beforeExecutionState >> Optional.empty()
         1 * context.work >> work
-        1 * work.shouldDisableCaching() >> Optional.of(disabledReason)
+        1 * work.shouldDisableCaching(null) >> Optional.of(disabledReason)
         1 * delegateStep.execute(_) >> { CachingContext context ->
             assert context.cachingState.disabledReasons.get(0) == disabledReason
         }

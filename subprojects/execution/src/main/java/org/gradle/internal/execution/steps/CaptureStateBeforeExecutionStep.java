@@ -34,6 +34,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -50,15 +52,18 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
+    private final OverlappingOutputDetector overlappingOutputDetector;
     private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
 
     public CaptureStateBeforeExecutionStep(
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
+        OverlappingOutputDetector overlappingOutputDetector,
         Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
     ) {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
+        this.overlappingOutputDetector = overlappingOutputDetector;
         this.delegate = delegate;
     }
 
@@ -107,23 +112,38 @@ public class CaptureStateBeforeExecutionStep implements Step<AfterPreviousExecut
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState
             .map(ExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, FileCollectionFingerprint> previousOutputFiles = afterPreviousExecutionState
+        ImmutableSortedMap<String, FileCollectionFingerprint> outputSnapshotsAfterPreviousExecution = afterPreviousExecutionState
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
+
+        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsBeforeExecution = work.snapshotOutputsBeforeExecution();
+
+        OverlappingOutputs overlappingOutputs;
+        switch (work.getOverlappingOutputHandling()) {
+            case DETECT_OVERLAPS:
+                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, outputSnapshotsBeforeExecution);
+                break;
+            case IGNORE_OVERLAPS:
+                overlappingOutputs = null;
+                break;
+            default:
+                throw new AssertionError();
+        }
 
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = fingerprintInputProperties(work, previousInputProperties, valueSnapshotter);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = fingerprintInputFiles(work);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = fingerprintOutputFiles(
-            previousOutputFiles,
-            work.getOutputFileSnapshotsBeforeExecution(),
-            work.hasOverlappingOutputs());
+            outputSnapshotsAfterPreviousExecution,
+            outputSnapshotsBeforeExecution,
+            overlappingOutputs != null);
 
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
             inputProperties,
             inputFiles,
-            outputFiles
+            outputFiles,
+            overlappingOutputs
         );
     }
 

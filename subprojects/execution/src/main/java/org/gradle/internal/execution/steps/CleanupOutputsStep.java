@@ -22,6 +22,7 @@ import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.GFileUtils;
@@ -42,13 +43,13 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
 
     @Override
     public R execute(C context) {
-        boolean incremental = context.getInputChanges()
-            .map(inputChanges -> inputChanges.isIncremental())
-            .orElse(false);
-        if (!incremental) {
+        if (!context.isIncrementalExecution()) {
             UnitOfWork work = context.getWork();
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
-                if (work.hasOverlappingOutputs()) {
+                boolean hasOverlappingOutputs = context.getBeforeExecutionState()
+                    .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
+                    .isPresent();
+                if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
                     cleanupExclusiveOutputs(work);

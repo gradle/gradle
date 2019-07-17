@@ -70,6 +70,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -316,8 +317,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean hasOverlappingOutputs() {
-            return context.getOverlappingOutputs().isPresent();
+        public OverlappingOutputHandling getOverlappingOutputHandling() {
+            return OverlappingOutputHandling.DETECT_OVERLAPS;
         }
 
         @Override
@@ -331,7 +332,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching() {
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
             }
@@ -342,7 +343,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task,
                 task.getOutputs().getCacheIfSpecs(),
                 task.getOutputs().getDoNotCacheIfSpecs(),
-                context.getOverlappingOutputs().orElse(null)
+                detectedOverlappingOutputs
             );
         }
 
@@ -376,15 +377,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
-            return context.getOutputFilesBeforeExecution();
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
+            ImmutableSortedSet<OutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
+            return taskSnapshotter.snapshotTaskFiles(task, outputFilePropertySpecs);
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution) {
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(
+            ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution,
+            boolean hasDetectedOverlappingOutputs
+        ) {
             AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
             ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
-            return createFilteredOutputFingerprints(afterPreviousExecutionState, outputFilesBeforeExecution, outputsAfterExecution, context.getOverlappingOutputs().isPresent());
+            return createFilteredOutputFingerprints(afterPreviousExecutionState, outputFilesBeforeExecution, outputsAfterExecution, hasDetectedOverlappingOutputs);
         }
 
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, ? extends FileSystemSnapshot> beforeExecutionOutputSnapshots, ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots, boolean hasOverlappingOutputs) {

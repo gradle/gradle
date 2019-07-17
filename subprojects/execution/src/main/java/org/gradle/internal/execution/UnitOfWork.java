@@ -26,6 +26,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -89,7 +90,7 @@ public interface UnitOfWork extends CacheableEntity {
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
-    Optional<CachingDisabledReason> shouldDisableCaching();
+    Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs);
 
     /**
      * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
@@ -131,9 +132,23 @@ public interface UnitOfWork extends CacheableEntity {
     Optional<? extends Iterable<String>> getChangingOutputs();
 
     /**
-     * Whether the current execution detected that there are overlapping outputs.
+     * Whether overlapping outputs should be allowed or ignored.
      */
-    boolean hasOverlappingOutputs();
+    default OverlappingOutputHandling getOverlappingOutputHandling() {
+        return OverlappingOutputHandling.IGNORE_OVERLAPS;
+    }
+
+    enum OverlappingOutputHandling {
+        /**
+         * Overlapping outputs are detected and handled.
+         */
+        DETECT_OVERLAPS,
+
+        /**
+         * Overlapping outputs are not detected.
+         */
+        IGNORE_OVERLAPS
+    }
 
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
@@ -143,7 +158,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Returns the output snapshots after the current execution.
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution();
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution();
 
     enum WorkResult {
         DID_WORK,
@@ -180,5 +195,5 @@ public interface UnitOfWork extends CacheableEntity {
 
     ExecutionHistoryStore getExecutionHistoryStore();
 
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution);
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated(ImmutableSortedMap<String, ? extends FileSystemSnapshot> outputFilesBeforeExecution, boolean hasDetectedOverlappingOutputs);
 }

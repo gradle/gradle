@@ -15,15 +15,12 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.operations.ExecutingBuildOperation;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -34,8 +31,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
-    private OverlappingOutputs overlappingOutputs;
-    private ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution;
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
     private Long executionTime;
@@ -62,26 +57,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState afterPreviousExecution) {
         this.afterPreviousExecution = afterPreviousExecution;
-    }
-
-    @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesBeforeExecution() {
-        return outputFilesBeforeExecution;
-    }
-
-    @Override
-    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution) {
-        this.outputFilesBeforeExecution = outputFilesBeforeExecution;
-    }
-
-    @Override
-    public Optional<OverlappingOutputs> getOverlappingOutputs() {
-        return Optional.ofNullable(overlappingOutputs);
-    }
-
-    @Override
-    public void setOverlappingOutputs(OverlappingOutputs overlappingOutputs) {
-        this.overlappingOutputs = overlappingOutputs;
     }
 
     @Override
