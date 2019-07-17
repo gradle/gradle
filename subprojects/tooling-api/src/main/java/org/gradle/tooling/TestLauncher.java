@@ -89,7 +89,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * When called, the forked test JVM is launched with the following argument:
      * <pre>-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:&lt;port&gt;</pre>
      * This means the test JVM expects a debugger at the specified port that uses a
-     * <a href="https://docs.oracle.com/javase/1.5.0/docs/guide/jpda/conninv.html#Connectors">socket listening connector</a>.
+     * <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/jpda/conninv.html#Connectors">socket listening connector</a>.
      * If the debugger is not present then the test execution will fail.
      * <p>
      * Invoking this method adjusts the test task to launch only one JVM. More specifically, the parallel execution
