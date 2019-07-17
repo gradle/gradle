@@ -69,6 +69,7 @@ import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
+import org.gradle.api.internal.tasks.compile.incremental.GroovyCompileResult;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -149,11 +150,31 @@ public class GroovyCompile extends AbstractCompile {
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
 
-        if (inputChanges != null && getOptions().isIncremental()) {
-            doIncrementalCompile(inputChanges);
+        GroovyJavaJointCompileSpec spec = createSpec();
+
+        if (inputChanges != null && enableIncrementalCompilation(spec)) {
+            doIncrementalCompile(spec, inputChanges);
         } else {
-            doCompile(createSpec(), inputChanges, null);
+            doCompile(spec, inputChanges, null);
         }
+    }
+
+    private void doIncrementalCompile(GroovyJavaJointCompileSpec spec, InputChanges inputChanges) {
+        Multimap<String, String> oldMappings = readSourceClassesMappingFile(getSourceClassesMappingFile());
+        getSourceClassesMappingFile().delete();
+
+        WorkResult result = doCompile(spec, inputChanges, oldMappings);
+
+        if (!isFullRecompilation(result)) {
+            // Do not merge old mappings on full recompilation
+            mergeIncrementalMappingsIntoOldMappings(inputChanges, oldMappings);
+        }
+    }
+
+    private WorkResult doCompile(GroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
+        WorkResult result = getCompiler(spec, inputChanges, sourceClassesMapping).execute(spec);
+        setDidWork(result.getDidWork());
+        return result;
     }
 
     /**
@@ -171,21 +192,8 @@ public class GroovyCompile extends AbstractCompile {
         return sourceClassesMappingFile;
     }
 
-    private void doIncrementalCompile(InputChanges inputChanges) {
-        Multimap<String, String> oldMappings = readSourceClassesMappingFile(getSourceClassesMappingFile());
-
-        DefaultGroovyJavaJointCompileSpec spec = createSpec();
-        doCompile(spec, inputChanges, oldMappings);
-
-        if (enableIncrementalCompilation(spec)) {
-            // Only merge old mapping on incremental compilation
-            mergeIncrementalMappingsIntoOldMappings(inputChanges, oldMappings);
-        }
-    }
-
-    private void doCompile(DefaultGroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
-        WorkResult result = getCompiler(spec, inputChanges, sourceClassesMapping).execute(spec);
-        setDidWork(result.getDidWork());
+    private boolean isFullRecompilation(WorkResult result) {
+        return result instanceof GroovyCompileResult && ((GroovyCompileResult) result).isFullRecompilation();
     }
 
     private void mergeIncrementalMappingsIntoOldMappings(InputChanges inputChanges, Multimap<String, String> oldMappings) {
@@ -283,10 +291,11 @@ public class GroovyCompile extends AbstractCompile {
                 "Incremental Groovy compilation has been disabled since Java annotation processors are configured. Enabling incremental compilation and configuring Java annotation processors for Groovy compilation",
                 "Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
         }
+//        return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
         return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty() && !spec.annotationProcessingConfigured();
     }
 
-    private DefaultGroovyJavaJointCompileSpec createSpec() {
+    private GroovyJavaJointCompileSpec createSpec() {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions).create();
         spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource()));
         spec.setSourceFiles(getSource());
@@ -302,7 +311,6 @@ public class GroovyCompile extends AbstractCompile {
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (enableIncrementalCompilation(spec)) {
             spec.setCompilationMappingFile(getSourceClassesMappingFile());
-            getSourceClassesMappingFile().delete();
         }
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = new File(getTemporaryDir(), "groovy-java-stubs");

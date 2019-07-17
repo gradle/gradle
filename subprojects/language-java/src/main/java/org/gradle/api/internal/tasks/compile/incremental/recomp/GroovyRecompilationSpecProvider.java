@@ -36,7 +36,6 @@ import java.util.Set;
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final InputChanges inputChanges;
     private final Iterable<FileChange> sourceChanges;
-    private final Multimap<String, String> sourceClassesMapping;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
@@ -47,16 +46,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         super(fileOperations, sources);
         this.inputChanges = inputChanges;
         this.sourceChanges = sourceChanges;
-        this.sourceClassesMapping = sourceClassesMapping;
         this.sourceFileClassNameConverter = new GroovySourceFileClassNameConverter(sourceClassesMapping);
-    }
-
-    private RecompilationSpec clearMappingOnFullRecompilation(RecompilationSpec spec) {
-        if (spec.isFullRebuildNeeded()) {
-            // Clear the mapping to prevent it being merged into the new mapping file
-            sourceClassesMapping.clear();
-        }
-        return spec;
     }
 
     @Override
@@ -69,14 +59,14 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         RecompilationSpec spec = new RecompilationSpec();
         if (sourceFileClassNameConverter.isEmpty()) {
             spec.setFullRebuildCause("unable to get source-classes mapping relationship from last compilation", null);
-            return clearMappingOnFullRecompilation(spec);
+            return spec;
         }
 
         processClasspathChanges(current, previous, spec);
         processOtherChanges(previous, spec);
 
         spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
-        return clearMappingOnFullRecompilation(spec);
+        return spec;
     }
 
     @Override

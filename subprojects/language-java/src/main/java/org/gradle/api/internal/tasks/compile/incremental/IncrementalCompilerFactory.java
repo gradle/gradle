@@ -98,7 +98,11 @@ public class IncrementalCompilerFactory {
             @Override
             public WorkResult execute(T spec) {
                 spec.setSourceFiles(sourceFiles);
-                return cleaningJavaCompiler.execute(spec);
+                WorkResult result = cleaningJavaCompiler.execute(spec);
+                if (result instanceof GroovyCompileResult) {
+                    ((GroovyCompileResult) result).setFullRecompilation(true);
+                }
+                return result;
             }
         };
     }
