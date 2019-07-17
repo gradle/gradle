@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.process.JavaDebugOptions;
+import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
@@ -62,7 +64,15 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
             if (debugOptions.isDebugMode()) {
                 task.setDebug(true);
-                task.setDebugOptions(new JavaDebugOptions(debugOptions.getPort(), false, false));
+                task.debugOptions(new Action<JavaDebugOptions>() {
+                    @Override
+                    public void execute(JavaDebugOptions javaDebugOptions) {
+                        DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
+                        options.setPort(debugOptions.getPort());
+                        options.setServer(false);
+                        options.setSuspend(false);
+                    }
+                });
             }
         }
     }

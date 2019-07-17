@@ -16,6 +16,8 @@
 
 package org.gradle.process;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
@@ -213,7 +215,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * {@link org.gradle.api.tasks.testing.Test#getForkEvery()}.
      * <p>
      * Since Gradle 5.6, you can configure the port and other Java debug properties via
-     * {@link #setDebugOptions(JavaDebugOptions)}.
+     * {@link #debugOptions(Action)}.
      *
      * @return true when debugging is enabled, false to disable.
      */
@@ -225,22 +227,40 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * 5005.
      * <p>
      * Since Gradle 5.6, you can configure the port and other Java debug properties via
-     * {@link #setDebugOptions(JavaDebugOptions)}.
+     * {@link #debugOptions(Action)}.
      *
      * @param enabled true to enable debugging, false to disable.
      */
     void setDebug(boolean enabled);
 
     /**
+     * Returns the Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
+     * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
+     *
+     * @since 5.6
+     */
+    @Nested
+    @Incubating
+    JavaDebugOptions getDebugOptions();
+
+    /**
      * Configures Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
      * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
      *
-     * @param debugOptions the Java debug configuration
+     * @param closure the Java debug configuration
      * @since 5.6
      */
-    @Input
-    @Incubating
-    void setDebugOptions(JavaDebugOptions debugOptions);
+    void debugOptions(Closure closure);
+
+
+    /**
+     * Configures Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
+     * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
+     *
+     * @param action the Java debug configuration
+     * @since 5.6
+     */
+    void debugOptions(Action<JavaDebugOptions> action);
 
     /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define

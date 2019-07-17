@@ -18,7 +18,6 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -272,7 +271,9 @@ class JvmOptionsTest extends Specification {
 
         when:
         opts.debug = true
-        opts.debugOptions = new JavaDebugOptions(port, server, suspend)
+        opts.debugOptions.port = port
+        opts.debugOptions.server = server
+        opts.debugOptions.suspend = suspend
 
         then:
         opts.allJvmArgs.findAll { it.contains 'jdwp' } == [expected]

@@ -16,6 +16,8 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -35,6 +37,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+
+import static org.gradle.util.ConfigureUtil.*;
 
 /**
  * Use {@link JavaExecHandleFactory} instead.
@@ -200,8 +204,19 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public void setDebugOptions(JavaDebugOptions debugOptions) {
-        javaOptions.setDebugOptions(debugOptions);
+    public JavaDebugOptions getDebugOptions() {
+        return javaOptions.getDebugOptions();
+    }
+
+    @Override
+    public void debugOptions(Closure closure) {
+        debugOptions(configureUsing(closure));
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        
+        javaOptions.debugOptions(action);
     }
 
     @Override

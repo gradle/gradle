@@ -17,55 +17,17 @@
 package org.gradle.process;
 
 import org.gradle.api.Incubating;
-
-import java.util.Objects;
+import org.gradle.api.tasks.Input;
 
 /**
- * Contains a subset of the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/introclientissues005.html">Java Debug Wire Protocol</a> properties.
+ * Contains a subset of the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/jpda/conninv.html">Java Debug Wire Protocol</a> properties.
  *
  * @since 5.6
  */
 @Incubating
-public class JavaDebugOptions {
-
-    private final int port;
-    private final boolean server;
-    private final boolean suspend;
-
-    public JavaDebugOptions(int port, boolean server, boolean suspend) {
-        this.port = port;
-        this.server = server;
-        this.suspend = suspend;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public boolean isServer() {
-        return server;
-    }
-
-    public boolean isSuspend() {
-        return suspend;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        JavaDebugOptions that = (JavaDebugOptions) o;
-        return port == that.port &&
-            server == that.server &&
-            suspend == that.suspend;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(port, server, suspend);
-    }
+public interface JavaDebugOptions {
+    @Input boolean isEnabled();
+    @Input int getPort();
+    @Input boolean isServer();
+    @Input boolean isSuspend();
 }

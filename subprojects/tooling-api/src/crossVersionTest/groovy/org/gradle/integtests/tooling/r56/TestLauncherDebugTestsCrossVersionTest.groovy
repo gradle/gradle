@@ -16,15 +16,12 @@
 
 package org.gradle.integtests.tooling.r56
 
-import com.sun.jdi.Bootstrap
-import com.sun.jdi.VirtualMachine
-import com.sun.jdi.connect.Connector
-import com.sun.jdi.connect.ListeningConnector
-import com.sun.jdi.connect.TransportTimeoutException
+import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
+import org.junit.Rule
 import spock.lang.Timeout
 
 
@@ -32,6 +29,9 @@ import spock.lang.Timeout
 @TargetGradleVersion(">=5.6")
 @Timeout(60)
 class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
+
+    @Rule
+    JDWPUtil jdwpClient = new JDWPUtil()
 
     def setup() {
         buildFile << """
@@ -62,7 +62,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .debugTests(findFreePort())
+                .debugTests(JDWPUtil.findFreePort())
                 .run()
         }
 
@@ -72,21 +72,18 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
 
     def "can launch tests in debug mode"() {
         setup:
-        def (connector, port, arguments) = startSocketListenDebugSession()
+        jdwpClient.listen()
 
         when:
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .debugTests(port)
+                .debugTests(jdwpClient.port)
                 .run()
         }
 
         then:
         true // test successfully executed with debugger attached
-
-        cleanup:
-        connector.stopListening(arguments)
     }
 
     def "Forks only one JVM to debug"() {
@@ -97,56 +94,17 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
                   maxParallelForks = 2
             }
         """
-        def (connector, port, arguments) = startSocketListenDebugSession()
+        jdwpClient.listen()
 
         when:
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest", "example.SecondTest")
-                .debugTests(port)
+                .debugTests(jdwpClient.port)
                 .run()
         }
 
         then:
         true // test successfully executed with debugger attached
-
-        cleanup:
-        connector.stopListening(arguments)
-    }
-
-    int findFreePort() {
-        new ServerSocket(0).withCloseable { socket ->
-            try {
-                return socket.getLocalPort()
-            } catch (IOException e) {
-                throw new RuntimeException("Cannot find free port", e)
-            }
-        }
-    }
-
-    def startSocketListenDebugSession() {
-        int port = findFreePort()
-
-        ListeningConnector connector = Bootstrap.virtualMachineManager().listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
-
-        Map<String, Connector.Argument> arguments = connector.defaultArguments()
-        Connector.Argument param = arguments.get("port")
-        param.setValue(String.valueOf(port))
-        Connector.Argument timeout = arguments.get("timeout")
-        timeout.setValue("3000") // 3 seconds
-
-        connector.startListening(arguments)
-
-        Thread.start {
-            VirtualMachine vm
-            while (!vm) {
-                try {
-                    vm = connector.accept(arguments)
-                } catch (TransportTimeoutException e) {
-                }
-            }
-        }
-
-        [connector, port, arguments]
     }
 }

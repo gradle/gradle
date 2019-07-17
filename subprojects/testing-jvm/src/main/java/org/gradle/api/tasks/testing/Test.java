@@ -454,12 +454,28 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setDebug(enabled);
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setDebugOptions(JavaDebugOptions debugOptions) {
-        forkOptions.setDebugOptions(debugOptions);
+    public JavaDebugOptions getDebugOptions() {
+        return forkOptions.getDebugOptions();
+    }
+
+
+    @Override
+    public void debugOptions(Closure closure) {
+        debugOptions(ConfigureUtil.<JavaDebugOptions>configureUsing(closure)); // TODO why doesn't it work with static import®
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param action
+     */
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        forkOptions.debugOptions(action);
         // run all tests on the same JVM
         setForkEvery(null);
         setMaxParallelForks(1);

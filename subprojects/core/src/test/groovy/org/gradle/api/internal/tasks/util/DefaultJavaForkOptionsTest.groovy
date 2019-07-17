@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.CommandLineArgumentProvider
-import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -340,7 +339,9 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "can set debug options"() {
         when:
-        options.setDebugOptions(new JavaDebugOptions(2233, false, false)) // TODO add more tests
+        options.debugOptions {
+            port = 2233
+        }
 
         then:
         options.debugOptions.port == 2233

@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
@@ -355,7 +356,17 @@ public class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public void setDebugOptions(JavaDebugOptions debugOptions) {
+        public JavaDebugOptions getDebugOptions() {
+            return delegate.getDebugOptions();
+        }
+
+        @Override
+        public void debugOptions(Closure closure) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void debugOptions(Action<JavaDebugOptions> action) {
             throw new UnsupportedOperationException();
         }
 

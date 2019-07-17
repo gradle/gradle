@@ -17,6 +17,8 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
@@ -37,6 +39,7 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.containsAll;
 import static org.gradle.process.internal.util.MergeOptionsUtil.getHeapSizeMb;
 import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final PathToFileResolver resolver;
@@ -213,8 +216,15 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public void setDebugOptions(JavaDebugOptions debugOptions) {
-        options.setDebugOptions(debugOptions);
+    public void debugOptions(Closure closure) {
+        debugOptions(configureUsing(closure));
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        JavaDebugOptions o = options.getDebugOptions();
+        action.execute(o);
+        options.setDebugOptions(o);
     }
 
     @Override

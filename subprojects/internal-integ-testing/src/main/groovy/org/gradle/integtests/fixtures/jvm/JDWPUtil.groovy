@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.debug
+package org.gradle.integtests.fixtures.jvm
 
 import org.gradle.util.ports.DefaultPortDetector
 import org.junit.Assume
@@ -29,6 +29,12 @@ class JDWPUtil implements TestRule {
     String host
     Integer port
     def vm
+    def connection
+    def connectionArgs
+
+    JDWPUtil() {
+        this(findFreePort())
+    }
 
     JDWPUtil(Integer port) {
         this("127.0.0.1", port)
@@ -38,6 +44,16 @@ class JDWPUtil implements TestRule {
     JDWPUtil(String host, Integer port) {
         this.host = host
         this.port = port
+    }
+
+    static int findFreePort() {
+        new ServerSocket(0).withCloseable { socket ->
+            try {
+                return socket.getLocalPort()
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot find free port", e)
+            }
+        }
     }
 
     @Override
@@ -51,19 +67,44 @@ class JDWPUtil implements TestRule {
         }
     }
 
+    def getPort() {
+        port
+    }
+
     def connect() {
         if (vm == null) {
-            def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
-            def connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
-            def connectionArgs = connection.defaultArguments()
-            connectionArgs.get("port").setValue(port as String)
-            connectionArgs.get("hostname").setValue(host)
-            this.vm = connection.attach(connectionArgs)
+        def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
+        def connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
+        def connectionArgs = connection.defaultArguments()
+        connectionArgs.get("port").setValue(port as String)
+        connectionArgs.get("hostname").setValue(host)
+        this.vm = connection.attach(connectionArgs)
+    }
+    vm
+}
+
+    def listen() {
+        connection = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager().listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
+        connectionArgs = connection.defaultArguments()
+        connectionArgs.get("port").setValue(port as String)
+        connectionArgs.get("timeout").setValue('3000')
+        connection.startListening(connectionArgs)
+
+        Thread.start {
+            while (!vm) {
+                try {
+                    vm = connection.accept(connectionArgs)
+                } catch (Exception e) {
+                }
+            }
         }
-        return vm
     }
 
     void close() {
+        if (connection && connectionArgs) {
+            connection.stopListening(connectionArgs)
+        }
+
         if (vm != null) {
             try {
                 vm.dispose()

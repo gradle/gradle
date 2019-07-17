@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -58,7 +59,6 @@ public class JvmOptions {
     public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
 
-
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY
     );
@@ -75,8 +75,8 @@ public class JvmOptions {
     private String minHeapSize;
     private String maxHeapSize;
     private boolean assertionsEnabled;
-    private boolean debug;
-    private JavaDebugOptions debugOptions = new JavaDebugOptions(5005, true, true);
+
+    private DefaultJavaDebugOptions debugOptions = new DefaultJavaDebugOptions();;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
 
@@ -147,7 +147,7 @@ public class JvmOptions {
             args.add("-ea");
         }
 
-        if (debug) {
+        if (debugOptions.isEnabled()) {
             args.add("-agentlib:jdwp=transport=dt_socket,server=" + (debugOptions.isServer() ? 'y' : 'n') + ",suspend=" + (debugOptions.isSuspend() ? 'y' : 'n') + ",address=" + debugOptions.getPort());
         }
         return args;
@@ -159,7 +159,7 @@ public class JvmOptions {
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
-        debug = false;
+        debugOptions.setEnabled(false);
         jvmArgs(arguments);
     }
 
@@ -207,7 +207,6 @@ public class JvmOptions {
         boolean xdebugFound = false;
         boolean xrunjdwpFound = false;
         boolean xagentlibJdwpFound = false;
-        JavaDebugOptions options = null;
 
         Set<Object> matches = new HashSet<Object>();
         for (Object extraJvmArg : extraJvmArgs) {
@@ -217,32 +216,34 @@ public class JvmOptions {
                 matches.add(extraJvmArg);
             } else if (PATTERN_XRUNJDWP.matcher(extraJvmArgString).matches()) {
                 xrunjdwpFound = true;
-                options = extractDebugOptions(extraJvmArgString);
+                extractDebugOptions(extraJvmArgString);
                 matches.add(extraJvmArg);
             } else if (PATTERN_JDWP.matcher(extraJvmArgString).matches()) {
                 xagentlibJdwpFound = true;
-                options = extractDebugOptions(extraJvmArgString);
+                extractDebugOptions(extraJvmArgString);
                 matches.add(extraJvmArg);
             }
         }
         if (xdebugFound && xrunjdwpFound || xagentlibJdwpFound) {
-            debug = true;
-            debugOptions = options;
+            debugOptions.setEnabled(true);
             extraJvmArgs.removeAll(matches);
         }
     }
 
-    private static JavaDebugOptions extractDebugOptions(String extraJvmArgString) {
+    private void extractDebugOptions(String extraJvmArgString) {
+        // TODO delete the entire method
+        if (debugOptions == null) {
+            return;
+        }
+
         Matcher serverMatcher = PATTERN_SERVER.matcher(extraJvmArgString);
-        boolean server = serverMatcher.matches(); // 'n' is the default for server
+        debugOptions.setServer(serverMatcher.matches()); // 'n' is the default for server
 
         Matcher suspendMatcher = PATTERN_SUSPEND.matcher(extraJvmArgString);
-        boolean suspend = !suspendMatcher.matches(); // 'y' is the default for suspend
+        debugOptions.setSuspend(!suspendMatcher.matches()); // 'y' is the default for suspend
 
         Matcher portMatcher = PATTERN_PORT.matcher(extraJvmArgString);
-        int port = portMatcher.matches() ? Integer.valueOf(portMatcher.group(1)) : 5005;
-
-        return new JavaDebugOptions(port, server, suspend);
+        debugOptions.setPort(portMatcher.matches() ? Integer.valueOf(portMatcher.group(1)) : 5005);
     }
 
     public void jvmArgs(Object... arguments) {
@@ -332,19 +333,19 @@ public class JvmOptions {
     }
 
     public boolean getDebug() {
-        return debug;
+        return debugOptions.isEnabled();
     }
 
     public void setDebug(boolean enabled) {
-        debug = enabled;
+        debugOptions.setEnabled(enabled);
     }
 
-  public JavaDebugOptions getDebugOptions() {
+    public JavaDebugOptions getDebugOptions() {
         return debugOptions;
   }
 
     public void setDebugOptions(JavaDebugOptions debugOptions) {
-        this.debugOptions = debugOptions;
+        this.debugOptions = (DefaultJavaDebugOptions) debugOptions;
     }
 
     public void copyTo(JavaForkOptions target) {
@@ -354,8 +355,14 @@ public class JvmOptions {
         target.setMaxHeapSize(maxHeapSize);
         target.setBootstrapClasspath(getBootstrapClasspath());
         target.setEnableAssertions(assertionsEnabled);
-        target.setDebug(debug);
-        target.setDebugOptions(debugOptions);
+        if (debugOptions != null) {
+            target.debugOptions(new Action<JavaDebugOptions>() {
+                @Override
+                public void execute(JavaDebugOptions p) {
+                    debugOptions.applyTo(p);
+                }
+            });
+        }
         target.systemProperties(immutableSystemProperties);
     }
 
@@ -369,7 +376,6 @@ public class JvmOptions {
             target.setBootstrapClasspath(getBootstrapClasspath());
         }
         target.setEnableAssertions(assertionsEnabled);
-        target.setDebug(debug);
         target.setDebugOptions(debugOptions);
         target.systemProperties(immutableSystemProperties);
         return target;
