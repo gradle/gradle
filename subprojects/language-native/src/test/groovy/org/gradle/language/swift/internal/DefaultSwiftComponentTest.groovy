@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
+import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -103,7 +104,7 @@ class DefaultSwiftComponentTest extends Specification {
         component.sourceCompatibility.getOrNull() == null
     }
 
-    static class TestComponent extends DefaultSwiftComponent {
+    static class TestComponent extends DefaultSwiftComponent<SwiftBinary> {
         @Inject
         TestComponent(String name, ObjectFactory objectFactory) {
             super(name, objectFactory)
