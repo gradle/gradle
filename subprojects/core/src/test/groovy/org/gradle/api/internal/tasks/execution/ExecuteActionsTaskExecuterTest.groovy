@@ -18,9 +18,13 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskExecutionMode
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
+import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -85,6 +89,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
+    def taskOutputs = Mock(TaskOutputsInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", HashCode.fromInt(1234))
     }
@@ -141,6 +146,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
+    def fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null)
 
     def workExecutor = new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
         new SkipEmptyWorkStep<>(
@@ -183,13 +189,16 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         workExecutor,
         listenerManager,
         reservedFileSystemLocationRegistry,
-        emptySourceTaskSkipper
+        emptySourceTaskSkipper,
+        fileCollectionFactory
     )
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
         task.getProject() >> project
         task.getState() >> state
+        task.getOutputs() >> taskOutputs
+        taskOutputs.setPreviousOutputFiles(_ as FileCollection)
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL

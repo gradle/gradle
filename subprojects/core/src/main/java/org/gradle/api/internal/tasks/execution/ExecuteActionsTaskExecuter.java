@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -25,7 +26,10 @@ import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
@@ -55,6 +59,7 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -86,10 +91,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
@@ -115,6 +122,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
+    private final FileCollectionFactory fileCollectionFactory;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -130,7 +138,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        EmptySourceTaskSkipper emptySourceTaskSkipper
+        EmptySourceTaskSkipper emptySourceTaskSkipper,
+        FileCollectionFactory fileCollectionFactory
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
@@ -146,6 +155,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.emptySourceTaskSkipper = emptySourceTaskSkipper;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -231,7 +241,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+            FileCollection previousFiles = context.getAfterPreviousExecutionState()
+                .map(afterPreviousExecutionState -> (FileCollection) new PreviousOutputFileCollection(task, afterPreviousExecutionState))
+                .orElseGet(fileCollectionFactory::empty);
+            TaskOutputsInternal outputs = task.getOutputs();
+            outputs.setPreviousOutputFiles(previousFiles);
+            try {
+                return executeWithPreviousOutputFiles(inputChanges);
+            } finally {
+                outputs.setPreviousOutputFiles(null);
+            }
+        }
+
+        private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
@@ -548,6 +571,33 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static class MultipleTaskActionFailures extends DefaultMultiCauseException {
         public MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
             super(message, causes);
+        }
+    }
+
+    private class PreviousOutputFileCollection extends LazilyInitializedFileCollection {
+        private final TaskInternal task;
+        private final AfterPreviousExecutionState previousExecution;
+
+        public PreviousOutputFileCollection(TaskInternal task, AfterPreviousExecutionState previousExecution) {
+            this.task = task;
+            this.previousExecution = previousExecution;
+        }
+
+        @Override
+        public FileCollection createDelegate() {
+            ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
+            Set<File> outputs = new HashSet<>();
+            for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
+                for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
+                    outputs.add(new File(absolutePath));
+                }
+            }
+            return fileCollectionFactory.fixed(outputs);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "previous output files of " + task.toString();
         }
     }
 }

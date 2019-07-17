@@ -29,8 +29,8 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
         ExecutionOutcome outcome = context.getInputChanges()
-            .map(inputChanges -> determineOutcome(work.execute(inputChanges), inputChanges.isIncremental()))
-            .orElseGet(() -> determineOutcome(work.execute(null), false));
+            .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
+            .orElseGet(() -> determineOutcome(work.execute(null, context), false));
         return () -> Try.successful(outcome);
     }
 

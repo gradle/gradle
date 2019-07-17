@@ -766,7 +766,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 boolean executed
 
                 @Override
-                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges) {
+                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
                     executed = true
                     return work.get()
                 }

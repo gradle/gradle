@@ -41,7 +41,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    WorkResult execute(@Nullable InputChangesInternal inputChanges);
+    WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
 
     Optional<Duration> getTimeout();
 

@@ -34,6 +34,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -333,7 +334,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
 

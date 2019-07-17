@@ -142,7 +142,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             workExecutor,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            emptySourceTaskSkipper
+            emptySourceTaskSkipper,
+            fileCollectionFactory
         );
         // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
