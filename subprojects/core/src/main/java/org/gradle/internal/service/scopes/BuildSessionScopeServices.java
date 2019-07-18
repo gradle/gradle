@@ -264,8 +264,4 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             currentBuildOperationRef
         );
     }
-
-    SharedResourceLeaseRegistry createSharedResourceLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
-        return new SharedResourceLeaseRegistry(coordinationService);
-    }
 }

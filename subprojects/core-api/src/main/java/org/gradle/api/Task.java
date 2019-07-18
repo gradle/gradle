@@ -756,12 +756,30 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Property<Duration> getTimeout();
 
     /**
-     * <p>Sets the shared resources required by this task.</p>
+     * <p>Adds the given shared resource as a requirement of this task.</p>
      *
-     * @param sharedResources the shared resources.
+     * <p>Requests a single lease for the given shared resource. If the given resource has already been added as a requirement to this task calling this method has no effect.</p>
+     *
+     * @param name The name of the shared resource.
+     * @see org.gradle.api.execution.SharedResource
      *
      * @since 5.6
      */
     @Incubating
-    void setSharedResources(Map<String, Integer> sharedResources);
+    void requiresResource(String name);
+
+    /**
+     * <p>Adds the given shared resource as a requirement of this task.</p>
+     *
+     * <p>Requests the given number of leases for the shared resource. If the given resource has already been added as a requirement, calling this method will override the requested
+     * number of leases.</p>
+     *
+     * @param name The name of the shared resource.
+     * @param leases The number of required leases.
+     * @see org.gradle.api.execution.SharedResource
+     *
+     * @since 5.6
+     */
+    @Incubating
+    void requiresResource(String name, int leases);
 }

@@ -83,7 +83,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
-    private final SharedResourceLeaseRegistry sharedResourceRegistry;
     private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
@@ -102,7 +101,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
-        SharedResourceLeaseRegistry sharedResourceRegistry
+        SharedResourceLeaseRegistry sharedResourceLeaseRegistry
     ) {
         this.planExecutor = planExecutor;
         this.nodeExecutors = nodeExecutors;
@@ -112,8 +111,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
-        this.sharedResourceRegistry = sharedResourceRegistry;
-        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskNodeFactory, dependencyResolver, sharedResourceRegistry);
+        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry);
     }
 
     @Override
@@ -385,11 +383,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public ProjectInternal getRootProject() {
         return gradleInternal.getRootProject();
-    }
-
-    @Override
-    public void sharedResource(String name, int leases) {
-        sharedResourceRegistry.registerSharedResource(name, leases);
     }
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {

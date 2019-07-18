@@ -18,6 +18,7 @@ package org.gradle.invocation
 
 import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.execution.SharedResourceContainer
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
@@ -83,6 +84,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
         _ * serviceRegistry.get(MutablePublicBuildPath) >> Mock(MutablePublicBuildPath)
+        _ * serviceRegistry.get(SharedResourceContainer) >> Mock(SharedResourceContainer)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }

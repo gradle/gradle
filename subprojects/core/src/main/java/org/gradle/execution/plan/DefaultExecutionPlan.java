@@ -28,11 +28,14 @@ import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.execution.SharedResource;
+import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -109,6 +112,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final WorkerLeaseService workerLeaseService;
     private final SharedResourceLeaseRegistry sharedResourceLeaseRegistry;
     private final Map<Node, List<ResourceLock>> sharedResourceLocks = Maps.newIdentityHashMap();
+    private final SharedResourceContainer sharedResourceContainer;
     private final GradleInternal gradle;
 
     private boolean buildCancelled;
@@ -119,6 +123,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.sharedResourceLeaseRegistry = sharedResourceLeaseRegistry;
+        this.sharedResourceContainer = gradle.getSharedResources();
     }
 
     @Override
@@ -269,6 +274,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         Deque<Node> path = new ArrayDeque<Node>();
         Map<Node, Integer> planBeforeVisiting = Maps.newHashMap();
 
+        // Register shared resources with the lease registry. Any subsequent changes to SharedRegistryContainer during execution are effectively ignored.
+        registerSharedResources();
+
         while (!nodeQueue.isEmpty()) {
             NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
             int currentSegment = nodeInVisitingSegment.visitingSegment;
@@ -335,6 +343,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (sharedResources != null && !sharedResources.isEmpty()) {
                         List<ResourceLock> locks = Lists.newArrayList();
                         for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
+                            SharedResource resource = sharedResourceContainer.findByName(entry.getKey());
+
+                            if (resource == null) {
+                                throw new InvalidUserDataException("The task " + node + " requires the shared resource '" + entry.getKey() + "' but no such shared resource exists.");
+                            }
+
+                            if (resource.getLeases() < entry.getValue()) {
+                                throw new InvalidUserDataException("The task " + node + " requires " + entry.getValue() + " leases from shared resource '" + entry.getKey() + "' but maximum leases is " + resource.getLeases());
+                            }
+
                             locks.add(sharedResourceLeaseRegistry.getResourceLock(entry.getKey(), entry.getValue()));
                         }
 
@@ -616,6 +634,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void unlockSharedResourcesFor(Node node) {
         sharedResourceLocks.getOrDefault(node, Collections.emptyList()).forEach(ResourceLock::unlock);
+    }
+
+    private void registerSharedResources() {
+        for (SharedResource sharedResource : sharedResourceContainer) {
+            sharedResourceLeaseRegistry.registerSharedResource(sharedResource.getName(), sharedResource.getLeases());
+        }
     }
 
     private MutationInfo getResolvedMutationInfo(Node node) {

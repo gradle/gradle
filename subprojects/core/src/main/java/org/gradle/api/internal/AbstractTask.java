@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -138,7 +139,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String toStringValue;
 
-    private Map<String, Integer> sharedResources;
+    private Map<String, Integer> sharedResources = Maps.newHashMap();
 
     protected AbstractTask() {
         this(taskInfo());
@@ -942,8 +943,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void setSharedResources(Map<String, Integer> sharedResources) {
-        this.sharedResources = sharedResources;
+    public void requiresResource(String name) {
+        sharedResources.putIfAbsent(name, 1);
+    }
+
+    @Override
+    public void requiresResource(String name, int leases) {
+        if (leases <= 0) {
+            throw new InvalidUserDataException("Required number of leases must be greater than zero.");
+        }
+
+        sharedResources.put(name, leases);
     }
 
     @Override

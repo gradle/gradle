@@ -156,15 +156,4 @@ public interface TaskExecutionGraph {
      */
     @Incubating
     Set<Task> getDependencies(Task task);
-
-    /**
-     * <p>Creates a new shared resource.</p>
-     *
-     * @param name the name of the shared resource.
-     * @param leases number of concurrently available leases.
-     *
-     * @since 5.6
-     */
-    @Incubating
-    void sharedResource(String name, int leases);
 }
