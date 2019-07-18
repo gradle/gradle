@@ -41,7 +41,7 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
         if (result.size() > 1) {
             throw new InvalidUserDataException(
                     "The configuration to scope mapping is not unique. The following configurations "
-                            + "have the same priority: " + result);
+                            + "have the same priority: " + Arrays.toString(result.toArray()));
         }
         return result.size() == 0 ? null : result.iterator().next();
     }
