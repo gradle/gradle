@@ -93,6 +93,27 @@ class DefaultVersionComparatorTest extends Specification {
         "a-b-c"     | "a.b"
     }
 
+    def "sorts numbers accordingly for pre-release versions"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller                                | larger
+        "1.0.0-snapshot.1"                     | "1.0.0-snapshot.2"
+        "1.0.0-snapshot.20190107234512"        | "1.0.0-snapshot.20190107234513"
+        "1.0.0-snapshot.20190207234512"        | "1.0.0-snapshot.20190707234513"
+        "1.0.0-snapshot.20190207234512"        | "1.0.0-snapshot.20200101000000"
+        "1.0.0-dev.1"                          | "1.0.0-dev.2"
+        "1.0.0-dev.20190107234512"             | "1.0.0-dev.20190107234513"
+        "1.0.0-dev.20190207234512"             | "1.0.0-dev.20190707234513"
+        "1.0.0-dev.20190207234512"             | "1.0.0-dev.20200101000000"
+        "1.0.0-dev.20190207234512"             | "1.0.0-snapshot.20190207234512"
+        "1.0.0-snapshot.20190107234512+branch" | "1.0.0-snapshot.20190107234512+test" //TODO: ideally this should return either of two since + shouldn't be part of comparison because of semantic
+    }
+
     def "gives some special treatment to 'dev', 'snapshot', 'rc', 'release', and 'final' qualifiers"() {
         expect:
         compare(smaller, larger) < 0
@@ -133,12 +154,12 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller        | larger
-        "1.0-dev"      | "1.0-a"
-        "1.0-a"        | "1.0-snapshot"
-        "1.0-a"        | "1.0-rc"
-        "1.0-a"        | "1.0-release"
-        "1.0-a"        | "1.0-final"
+        smaller   | larger
+        "1.0-dev" | "1.0-a"
+        "1.0-a"   | "1.0-snapshot"
+        "1.0-a"   | "1.0-rc"
+        "1.0-a"   | "1.0-release"
+        "1.0-a"   | "1.0-final"
     }
 
     def "compares identical versions equal"() {
