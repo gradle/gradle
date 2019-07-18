@@ -30,7 +30,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 class ResolveChangesStepTest extends StepSpec {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<Result>(changeDetector, delegate)
-    def context = Mock(CachingContext)
+    final CachingContext context = Stub()
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
 
@@ -41,8 +41,7 @@ class ResolveChangesStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
@@ -54,8 +53,8 @@ class ResolveChangesStepTest extends StepSpec {
             }
             return delegateResult
         }
-        1 * context.rebuildReason >> Optional.of("Forced rebuild.")
-        1 * context.beforeExecutionState >> Optional.empty()
+        context.rebuildReason >> Optional.of("Forced rebuild.")
+        context.beforeExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -66,13 +65,12 @@ class ResolveChangesStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             assert !delegateContext.changes.present
             return delegateResult
         }
-        1 * context.rebuildReason >> Optional.empty()
-        1 * context.beforeExecutionState >> Optional.empty()
+        context.rebuildReason >> Optional.empty()
+        context.beforeExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -83,18 +81,17 @@ class ResolveChangesStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert changes.allChangeMessages == ImmutableList.of("No history is available.")
             return delegateResult
         }
-        1 * context.rebuildReason >> Optional.empty()
-        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        context.rebuildReason >> Optional.empty()
+        context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
-        1 * context.afterPreviousExecutionState >> Optional.empty()
+        context.afterPreviousExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -109,15 +106,14 @@ class ResolveChangesStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             assert delegateContext.changes.get() == changes
             return delegateResult
         }
-        1 * context.rebuildReason >> Optional.empty()
-        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        context.rebuildReason >> Optional.empty()
+        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, _) >> changes
         0 * _
     }

@@ -27,7 +27,6 @@ class RecordOutputsStepTest extends StepSpec implements FingerprinterFixture {
     def outputFile = file("output.txt").text = "output"
     def finalOutputs = fingerprintsOf(output: outputFile)
 
-    def context = Mock(Context)
     def delegateResult = Mock(CurrentSnapshotResult)
 
     def "outputs are recorded after execution"() {

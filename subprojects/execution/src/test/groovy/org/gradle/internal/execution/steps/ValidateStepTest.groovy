@@ -21,20 +21,23 @@ import org.gradle.internal.execution.Result
 
 class ValidateStepTest extends StepSpec {
     def step = new ValidateStep<Context, Result>(delegate)
-    def context = Mock(Context)
     def delegateResult = Mock(Result)
 
     def "executes work when there are no violations"() {
+        boolean validated = false
         when:
         def result = step.execute(context)
 
         then:
         result == delegateResult
 
+        1 * delegate.execute(_) >> { ctx ->
+            delegateResult
+        }
+        work.validate() >> { validated = true }
+
         then:
-        1 * context.work >> work
-        1 * delegate.execute(context) >> delegateResult
-        1 * work.validate()
+        validated
         0 * _
     }
 
@@ -48,8 +51,7 @@ class ValidateStepTest extends StepSpec {
         def ex = thrown Exception
         ex == failure
 
-        1 * context.work >> work
-        1 * work.validate() >> {
+        work.validate() >> {
             throw failure
         }
         0 * _

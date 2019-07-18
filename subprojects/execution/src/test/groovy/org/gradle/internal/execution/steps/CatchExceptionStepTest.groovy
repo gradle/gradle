@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 class CatchExceptionStepTest extends StepSpec {
     def step = new CatchExceptionStep<Context>(delegate)
-    def context = Mock(IncrementalChangesContext)
+    final IncrementalChangesContext context = Mock()
 
     def "successful result is preserved"() {
         def delegateResult = Mock(Result)

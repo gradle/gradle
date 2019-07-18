@@ -24,7 +24,6 @@ import org.gradle.internal.execution.Result
 class CancelExecutionStepTest extends StepSpec {
     def cancellationToken = Mock(BuildCancellationToken)
     def step = new CancelExecutionStep<Context>(cancellationToken, delegate)
-    def context = Mock(Context)
     def delegateResult = Mock(Result)
 
     def "executes normally when cancellation is not requested"() {
@@ -52,8 +51,6 @@ class CancelExecutionStepTest extends StepSpec {
 
         then:
         1 * cancellationToken.cancellationRequested >> true
-        1 * context.work >> work
-        1 * work.displayName >> "cancelled work"
         0 *_
     }
 }

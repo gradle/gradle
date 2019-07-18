@@ -29,7 +29,6 @@ import java.time.temporal.ChronoUnit
 class TimeoutStepTest extends StepSpec {
     def timeoutHandler = Mock(TimeoutHandler)
     def step = new TimeoutStep<Context>(timeoutHandler, delegate)
-    def context = Mock(Context)
     def delegateResult = Mock(Result)
 
     def "negative timeout is reported"() {
@@ -39,9 +38,7 @@ class TimeoutStepTest extends StepSpec {
         then:
         thrown InvalidUserDataException
 
-        1 * context.work >> work
-        1 * work.timeout >> Optional.of(Duration.of(-1, ChronoUnit.SECONDS))
-        1 * work.displayName >> "bad work"
+        work.timeout >> Optional.of(Duration.of(-1, ChronoUnit.SECONDS))
         0 * _
     }
 
@@ -52,8 +49,7 @@ class TimeoutStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * work.timeout >> Optional.empty()
+        work.timeout >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -70,8 +66,7 @@ class TimeoutStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * work.timeout >> Optional.of(duration)
+        work.timeout >> Optional.of(duration)
 
         then:
         timeoutHandler.start(_ as Thread, duration) >> timeout
@@ -92,8 +87,7 @@ class TimeoutStepTest extends StepSpec {
         step.execute(context)
 
         then:
-        1 * context.work >> work
-        1 * work.timeout >> Optional.of(duration)
+        work.timeout >> Optional.of(duration)
 
         then:
         1 * timeoutHandler.start(_ as Thread, duration) >> timeout

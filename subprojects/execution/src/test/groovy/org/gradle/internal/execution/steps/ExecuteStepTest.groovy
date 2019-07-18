@@ -20,30 +20,27 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class ExecuteStepTest extends Specification {
+class ExecuteStepTest extends StepSpec {
     def step = new ExecuteStep<InputChangesContext>()
-    def context = Mock(InputChangesContext)
-    def work = Mock(UnitOfWork)
     def inputChanges = Mock(InputChangesInternal)
+    final InputChangesContext context = Stub()
 
     @Unroll
-    def "result #workResult yields outcome #outcome (incremental false)"() {
+    def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
         when:
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == outcome
+        result.outcome.get() == expectedOutcome
 
-        1 * context.work >> work
-        1 * context.inputChanges >> Optional.empty()
-        1 * work.execute(null, context) >> workResult
+        context.inputChanges >> Optional.empty()
+        work.execute(null, context) >> workResult
         0 * _
 
         where:
-        workResult                        | outcome
+        workResult                        | expectedOutcome
         UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
         UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
@@ -57,9 +54,8 @@ class ExecuteStepTest extends Specification {
         def ex = thrown Throwable
         ex == failure
 
-        1 * context.work >> work
-        1 * context.inputChanges >> Optional.empty()
-        1 * work.execute(null, context) >> { throw failure }
+        context.inputChanges >> Optional.empty()
+        work.execute(null, context) >> { throw failure }
         0 * _
 
         where:
@@ -74,10 +70,9 @@ class ExecuteStepTest extends Specification {
         then:
         result.outcome.get() == outcome
 
-        1 * context.work >> work
-        1 * context.inputChanges >> Optional.of(inputChanges)
+        context.inputChanges >> Optional.of(inputChanges)
         1 * inputChanges.incremental >> incrementalExecution
-        1 * work.execute(inputChanges, context) >> workResult
+        work.execute(inputChanges, context) >> workResult
         0 * _
 
         where:

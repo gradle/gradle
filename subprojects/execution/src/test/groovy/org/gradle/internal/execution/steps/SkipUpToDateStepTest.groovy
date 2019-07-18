@@ -28,7 +28,7 @@ import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprin
 
 class SkipUpToDateStepTest extends StepSpec {
     def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
-    def context = Mock(IncrementalChangesContext)
+    final IncrementalChangesContext context = Stub()
 
     def changes = Mock(ExecutionStateChanges)
 
@@ -40,9 +40,9 @@ class SkipUpToDateStepTest extends StepSpec {
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
         !result.executionReasons.present
 
-        1 * context.changes >> Optional.of(changes)
+        context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
-        1 * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
+        context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
 
@@ -58,8 +58,7 @@ class SkipUpToDateStepTest extends StepSpec {
         result.executionReasons == ["change"]
         !result.reusedOutputOriginMetadata.present
 
-        1 * context.getWork() >> work
-        1 * context.changes >> Optional.of(changes)
+        context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of("change")
         1 * delegate.execute(context) >> delegateResult
         0 * _
@@ -90,8 +89,7 @@ class SkipUpToDateStepTest extends StepSpec {
         then:
         result.executionReasons == ["Change tracking is disabled."]
 
-        1 * context.getWork() >> work
-        1 * context.changes >> Optional.empty()
+        context.changes >> Optional.empty()
         1 * delegate.execute(context)
         0 * _
     }

@@ -16,21 +16,37 @@
 
 package org.gradle.internal.execution.steps
 
-
+import groovy.transform.Memoized
+import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
-class StepSpec extends Specification {
+abstract class StepSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
+    final displayName = "job ':test'"
+    final identity = ":test"
     final delegate = Mock(Step)
 
-    final work = Mock(UnitOfWork)
+    @Memoized
+    UnitOfWork getWork() {
+        Stub(UnitOfWork)
+    }
+    @Memoized
+    Context getContext() {
+        Stub(Context)
+    }
+
+    def setup() {
+        context.work >> work
+        work.displayName >> displayName
+        work.identity >> identity
+    }
 
     protected TestFile file(Object... path) {
         return temporaryFolder.file(path)

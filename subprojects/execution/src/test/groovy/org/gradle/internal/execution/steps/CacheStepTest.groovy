@@ -48,7 +48,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
 
     def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
-    def context = Mock(IncrementalChangesContext)
+    final IncrementalChangesContext context = Stub()
 
     def loadCommand = Mock(BuildCacheLoadCommand)
 
@@ -68,7 +68,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> true
+        work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
@@ -89,7 +89,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> true
+        work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
@@ -98,7 +98,6 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        1 * context.work >> work
         interaction { outputStored {} }
         0 * _
     }
@@ -117,7 +116,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> true
+        work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> { BuildCacheLoadCommand command ->
             loadedOutputFile << "output"
@@ -127,8 +126,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         }
 
         then:
-        1 * work.displayName >> "work"
-        1 * work.visitOutputProperties(_) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+        work.visitOutputProperties(_) >> { UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("outputFile", TreeType.FILE, ImmutableList.of(loadedOutputFile))
             visitor.visitOutputProperty("outputDir", TreeType.DIRECTORY, ImmutableList.of(loadedOutputDir))
             visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableList.of(file("missing.txt")))
@@ -139,7 +137,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { localStateIsRemoved() }
 
         then:
-        1 * context.changes >> Optional.ofNullable(changes)
+        context.changes >> Optional.ofNullable(changes)
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             assert delegateContext != context
             check(delegateContext)
@@ -170,13 +168,12 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> true
+        work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> { throw new RuntimeException("unpack failure") }
 
         then:
-        1 * work.displayName >> "work"
-        1 * work.visitOutputProperties(_) >> {
+        work.visitOutputProperties(_) >> {
             throw new RuntimeException("cleanup failure")
         }
         interaction { localStateIsRemoved() }
@@ -194,7 +191,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> true
+        work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
@@ -203,8 +200,6 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("failure"))
 
         then:
-        1 * context.work >> work
-        1 * work.displayName >> "Display name"
         0 * buildCacheController.store(_)
         0 * _
     }
@@ -219,14 +214,13 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> false
+        work.allowedToLoadFromCache >> false
 
         then:
         1 * delegate.execute(context) >> delegateResult
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        1 * context.work >> work
         interaction { outputStored {} }
         0 * _
     }
@@ -241,14 +235,13 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         interaction { withValidCacheKey() }
 
         then:
-        1 * work.allowedToLoadFromCache >> false
+        work.allowedToLoadFromCache >> false
 
         then:
         1 * delegate.execute(context) >> delegateResult
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        1 * context.work >> work
         interaction { outputStored { throw new RuntimeException("store failure") } }
         0 * _
     }
@@ -261,15 +254,14 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         result == delegateResult
         !result.reused
 
-        1 * context.cachingState >> cachingState
+        context.cachingState >> cachingState
         1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
 
     private void withValidCacheKey() {
-        1 * context.work >> work
-        1 * context.cachingState >> cachingState
+        context.cachingState >> cachingState
         1 * cachingState.disabledReasons >> ImmutableList.of()
         1 * cachingState.key >> Optional.of(cacheKey)
     }
@@ -287,7 +279,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
     }
 
     private void localStateIsRemoved() {
-        1 * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
+        work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
             visitor.visitLocalStateRoot(localStateFile)
         }
         !localStateFile.exists()
