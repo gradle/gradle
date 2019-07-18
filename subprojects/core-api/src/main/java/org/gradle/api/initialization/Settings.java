@@ -248,13 +248,6 @@ public interface Settings extends PluginAware, ExtensionAware {
     void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**
-     * Configures plugin management.
-     *
-     * @since 3.5
-     */
-    void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
-
-    /**
      * Returns the plugin management configuration.
      *
      * @since 3.5

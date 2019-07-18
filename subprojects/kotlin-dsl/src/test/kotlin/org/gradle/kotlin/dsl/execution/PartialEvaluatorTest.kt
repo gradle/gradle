@@ -150,6 +150,7 @@ class PartialEvaluatorTest {
 
         val program =
             Program.Stage1Sequence(
+                null,
                 Program.Buildscript(fragment("buildscript", "...")),
                 Program.Plugins(fragment("plugins", "...")))
 
@@ -173,6 +174,7 @@ class PartialEvaluatorTest {
 
         val program =
             Program.Stage1Sequence(
+                null,
                 Program.Buildscript(fragment("buildscript", "...")),
                 Program.Plugins(fragment("plugins", "...")))
 
@@ -196,6 +198,7 @@ class PartialEvaluatorTest {
         val program =
             Program.Staged(
                 Program.Stage1Sequence(
+                    null,
                     Program.Buildscript(fragment("buildscript", "...")),
                     Program.Plugins(fragment("plugins", "..."))
                 ),

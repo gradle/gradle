@@ -49,6 +49,11 @@ object ProgramParser {
                 .singleSectionOf(TopLevelBlockId.buildscriptIdFor(target))
                 ?.let { sourceWithoutComments.fragment(it) }
 
+        val pluginManagementFragment =
+            topLevelBlocks
+                .singleSectionOf(TopLevelBlockId.pluginManagement)
+                ?.let { sourceWithoutComments.fragment(it) }
+
         val pluginsFragment =
             topLevelBlocks
                 .takeIf { topLevelBlockIds.contains(TopLevelBlockId.plugins) && kind == ProgramKind.TopLevel }
@@ -58,22 +63,30 @@ object ProgramParser {
         val buildscript =
             buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
 
+        val pluginManagement =
+            pluginManagementFragment?.takeIf { it.isNotBlank() }?.let(Program::PluginManagement)
+
         val plugins =
             pluginsFragment?.takeIf { it.isNotBlank() }?.let(Program::Plugins)
 
-        val stage1 =
-            buildscript?.let { bs ->
-                plugins?.let { ps ->
-                    Program.Stage1Sequence(bs, ps)
-                } ?: bs
-            } ?: plugins
+        val stage1Components =
+            listOfNotNull<Program.Stage1>(pluginManagement, buildscript, plugins)
+
+        val stage1 = when {
+            stage1Components.isEmpty() -> null
+            stage1Components.size == 1 -> stage1Components.first()
+            else -> Program.Stage1Sequence(pluginManagement, buildscript, plugins )
+        }
 
         val remainingSource =
             sourceWithoutComments.map {
                 it.erase(
                     listOfNotNull(
                         buildscriptFragment?.range,
-                        pluginsFragment?.range))
+                        pluginManagementFragment?.range,
+                        pluginsFragment?.range
+                    )
+                )
             }
 
         val stage2 = remainingSource

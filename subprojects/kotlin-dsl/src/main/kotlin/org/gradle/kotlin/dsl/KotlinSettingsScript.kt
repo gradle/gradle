@@ -55,6 +55,7 @@ import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.gradle.process.ExecResult
@@ -111,7 +112,7 @@ abstract class KotlinSettingsScript(
      */
     @Incubating
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
+    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         throw Exception("The plugins {} block must not be used here. "
             + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.")
 }
@@ -431,6 +432,17 @@ abstract class SettingsScriptApi(
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         processOperations.javaexec(configuration)
+
+    /**
+     * Configures the plugin management for the entire build.
+     *
+     * @see [Settings.getPluginManagement]
+     * @since 5.6
+     */
+    @Incubating
+    @Suppress("unused")
+    open fun pluginManagement(@Suppress("unused_parameter") block: PluginManagementSpec.() -> Unit): Unit =
+        internalError()
 
     /**
      * Configures the build script classpath for settings.

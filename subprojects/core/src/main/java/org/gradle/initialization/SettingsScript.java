@@ -15,8 +15,12 @@
  */
 package org.gradle.initialization;
 
+import groovy.lang.Closure;
+import org.gradle.api.Incubating;
+import org.gradle.api.initialization.Settings;
 import org.gradle.groovy.scripts.PluginScript;
 import org.gradle.plugin.use.internal.PluginRequestCollector;
+import org.gradle.util.ConfigureUtil;
 
 public abstract class SettingsScript extends PluginScript {
 
@@ -26,5 +30,14 @@ public abstract class SettingsScript extends PluginScript {
 
     public String toString() {
         return getScriptTarget().toString();
+    }
+
+    /**
+     * @since 5.6
+     */
+    @Incubating
+    public void pluginManagement(final Closure configureClosure) {
+        Settings settings = (Settings) getScriptTarget();
+        ConfigureUtil.configure(configureClosure, settings.getPluginManagement());
     }
 }

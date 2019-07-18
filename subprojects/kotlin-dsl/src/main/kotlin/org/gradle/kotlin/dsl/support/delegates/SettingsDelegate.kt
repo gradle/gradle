@@ -91,9 +91,6 @@ abstract class SettingsDelegate : Settings {
     override fun getBuildCache(): BuildCacheConfiguration =
         delegate.buildCache
 
-    override fun pluginManagement(pluginManagementSpec: Action<in PluginManagementSpec>) =
-        delegate.pluginManagement(pluginManagementSpec)
-
     override fun getPluginManagement(): PluginManagementSpec =
         delegate.pluginManagement
 

@@ -186,7 +186,7 @@ enum class TopLevelBlockId {
         fun topLevelBlockIdFor(target: ProgramTarget) = when (target) {
             ProgramTarget.Project -> arrayOf(buildscript, plugins)
             ProgramTarget.Settings -> arrayOf(buildscript, pluginManagement, plugins)
-            ProgramTarget.Gradle -> arrayOf(buildscript)
+            ProgramTarget.Gradle -> arrayOf(initscript)
         }
 
 

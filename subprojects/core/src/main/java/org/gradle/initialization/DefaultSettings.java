@@ -309,11 +309,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
-        rule.execute(getPluginManagement());
-    }
-
-    @Override
     @Inject
     public PluginManagementSpec getPluginManagement() {
         throw new UnsupportedOperationException();

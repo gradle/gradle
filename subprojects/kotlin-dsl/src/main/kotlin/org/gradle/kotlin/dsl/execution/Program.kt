@@ -46,17 +46,27 @@ sealed class Program {
     /**
      * A `buildscript` / `initscript` block.
      */
-    data class Buildscript(val fragment: ProgramSourceFragment) : Stage1()
+    data class Buildscript(override val fragment: ProgramSourceFragment) : Stage1(), FragmentHolder
+
+    /**
+     * A `pluginManagement` block.
+     */
+    data class PluginManagement(override val fragment: ProgramSourceFragment) : Stage1(), FragmentHolder
 
     /**
      * A `plugins` block.
      */
-    data class Plugins(val fragment: ProgramSourceFragment) : Stage1()
+    data class Plugins(override val fragment: ProgramSourceFragment) : Stage1(), FragmentHolder
+
+
+    interface FragmentHolder {
+        val fragment: ProgramSourceFragment
+    }
 
     /**
-     * A `buildscript` block followed by a `plugins` block.
+     * A `buildscript` block followed by an optional `pluginManagement` block then followed by a `plugins` block.
      */
-    data class Stage1Sequence(val buildscript: Buildscript, val plugins: Plugins) : Stage1()
+    data class Stage1Sequence(val pluginManagement: PluginManagement?, val buildscript: Buildscript?, val plugins: Plugins?) : Stage1()
 
     /**
      * A script that must be dynamically evaluated after stage 1 completes and the script classpath

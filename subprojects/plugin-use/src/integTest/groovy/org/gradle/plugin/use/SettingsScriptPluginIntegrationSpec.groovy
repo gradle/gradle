@@ -111,7 +111,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     }
 
     @Unroll
-    def "plugins block does not allow apply false on settings"() {
+    def "plugins block does not allow apply false on settings - #settingScriptExtension"() {
         given:
         file("settings$settingScriptExtension") << use
 
@@ -125,5 +125,50 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         settingScriptExtension | use
         '.gradle.kts'          | "plugins { id(\"noop\").version(\"1.0\").apply(false) }"
         '.gradle'              | "plugins { id 'noop' version '1.0' apply false }"
+    }
+
+    @Unroll
+    def "plugin management block can be used to configure the version of plugins used in settings - #settingScriptExtension"() {
+        given:
+        doConfigureSettingsPlugin()
+        file("settings$settingScriptExtension") << use
+
+        when:
+        succeeds 'customTask'
+
+        then:
+        outputContains("Executing task added by a 'Settings' plugin")
+
+        where:
+        settingScriptExtension | use
+        '.gradle.kts'          | "pluginManagement { $USE_KOTLIN  }\nplugins { id(\"$PLUGIN_ID\") }"
+        '.gradle'              | "pluginManagement { $USE  }\nplugins { id '$PLUGIN_ID' }"
+    }
+
+    @Unroll
+    def "plugin management execution ordering - #settingScriptExtension"() {
+        file("settings$settingScriptExtension") << """
+pluginManagement {
+    ${createPrintln("pluginManagement")};
+    plugins { ${createPrintln("pluginManagement.plugins")} }
+ }
+ plugins { id(\"unknown\") }
+ """
+
+        when:
+        fails 'help'
+
+        then:
+        errorOutput.contains("Plugin [id: 'unknown'] was not found in any of the following sources:")
+        outputContains("In `pluginManagement`\nIn `pluginManagement.plugins`")
+
+        where:
+        settingScriptExtension | unused
+        '.gradle.kts'          | false
+        '.gradle'              | false
+    }
+
+    String createPrintln(String location) {
+        return "System.out.println(\"In `$location`\")"
     }
 }
