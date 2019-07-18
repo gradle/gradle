@@ -30,6 +30,7 @@ Include only their name, impactful features should be called out separately belo
 [Robin Verduijn](https://github.com/robinverduijn),
 [Sandu Turcan](https://github.com/idlsoft),
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
+[Nikita Skvortsov](https://github.com/nskvortsov),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
