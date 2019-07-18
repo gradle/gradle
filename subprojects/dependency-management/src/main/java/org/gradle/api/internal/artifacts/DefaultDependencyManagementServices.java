@@ -264,7 +264,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new SkipUpToDateStep<>(
                 new BroadcastChangingOutputsStep<>(outputChangeListener,
                 new StoreSnapshotsStep<>(
-                new SnapshotOutputsStep<>(fixedUniqueId,
+                new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId,
                 new CreateOutputsStep<>(
                 new CatchExceptionStep<>(
                 new TimeoutStep<>(timeoutHandler,

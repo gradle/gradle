@@ -30,16 +30,21 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
+public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final Step<? super C, ? extends Result> delegate;
 
     public SnapshotOutputsStep(
-            UniqueId buildInvocationScopeId,
-            Step<? super C, ? extends Result> delegate
+        BuildOperationExecutor buildOperationExecutor,
+        UniqueId buildInvocationScopeId,
+        Step<? super C, ? extends Result> delegate
     ) {
+        super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.delegate = delegate;
     }
@@ -47,24 +52,19 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements St
     @Override
     public CurrentSnapshotResult execute(C context) {
         Result result = delegate.execute(context);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = operation(
+            operationContext -> {
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputSnapshots = captureOutputs(context);
+                operationContext.setResult(Operation.Result.INSTANCE);
+                return outputSnapshots;
+            },
+            BuildOperationDescriptor
+                .displayName("Snapshot outputs after executing " + context.getWork().getDisplayName())
+                .details(Operation.Details.INSTANCE)
+        );
 
-        UnitOfWork work = context.getWork();
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputFingerprints = context.getAfterPreviousExecutionState()
-            .map(AfterPreviousExecutionState::getOutputFileProperties)
-            .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
-            .map(BeforeExecutionState::getOutputFileSnapshots)
-            .orElse(ImmutableSortedMap.of());
-        boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
-            .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
-            .isPresent();
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = work.snapshotOutputsAfterExecution();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.fingerprintAndFilterOutputSnapshots(
-            afterPreviousExecutionStateOutputFingerprints,
-            beforeExecutionOutputSnapshots,
-            afterExecutionOutputSnapshots,
-            hasDetectedOverlappingOutputs);
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), context.getWork().markExecutionTime());
+
         return new CurrentSnapshotResult() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
@@ -86,5 +86,40 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> implements St
                 return false;
             }
         };
+    }
+
+    private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(BeforeExecutionContext context) {
+        UnitOfWork work = context.getWork();
+
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputFingerprints = context.getAfterPreviousExecutionState()
+            .map(AfterPreviousExecutionState::getOutputFileProperties)
+            .orElse(ImmutableSortedMap.of());
+
+        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots = context.getBeforeExecutionState()
+            .map(BeforeExecutionState::getOutputFileSnapshots)
+            .orElse(ImmutableSortedMap.of());
+
+        boolean hasDetectedOverlappingOutputs = context.getBeforeExecutionState()
+            .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
+            .isPresent();
+
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = work.snapshotOutputsAfterExecution();
+
+        return work.fingerprintAndFilterOutputSnapshots(
+            afterPreviousExecutionStateOutputFingerprints,
+            beforeExecutionOutputSnapshots,
+            afterExecutionOutputSnapshots,
+            hasDetectedOverlappingOutputs
+        );
+    }
+
+    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
+        interface Details {
+            Details INSTANCE = new Details() {};
+        }
+
+        interface Result {
+            Result INSTANCE = new Result() {};
+        }
     }
 }

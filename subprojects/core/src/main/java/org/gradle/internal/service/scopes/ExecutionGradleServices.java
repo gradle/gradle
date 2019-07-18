@@ -153,7 +153,7 @@ public class ExecutionGradleServices {
             new StoreSnapshotsStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CacheStep(buildCacheController, buildCacheCommandFactory,
-            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
             new TimeoutStep<>(timeoutHandler,

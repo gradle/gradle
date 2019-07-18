@@ -155,7 +155,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
         new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new SnapshotOutputsStep<>(buildId,
+        new SnapshotOutputsStep<>(buildOperationExecutor, buildId,
         new CatchExceptionStep<>(
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(

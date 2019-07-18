@@ -146,7 +146,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new RecordOutputsStep<>(outputFilesRepository,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreSnapshotsStep<>(
-            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
             new ResolveInputChangesStep<>(
