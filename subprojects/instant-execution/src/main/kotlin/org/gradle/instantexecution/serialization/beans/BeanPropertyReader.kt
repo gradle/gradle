@@ -22,9 +22,11 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
+import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.IsolateContext
@@ -96,6 +98,11 @@ class BeanPropertyReader(
             RegularFileProperty::class.java -> { bean, value ->
                 field.set(bean, filePropertyFactory.newFileProperty().apply {
                     set(value as File?)
+                })
+            }
+            MapProperty::class.java -> { bean, value ->
+                field.set(bean, DefaultMapProperty(Any::class.java, Any::class.java).apply {
+                    set(value as Map<Any?, Any?>)
                 })
             }
             ListProperty::class.java -> { bean, value ->

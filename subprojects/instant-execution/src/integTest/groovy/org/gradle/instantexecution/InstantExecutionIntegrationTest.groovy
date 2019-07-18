@@ -456,15 +456,17 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${expected}")
 
         where:
-        type                   | factory                        | reference     | output
-        "Property<String>"     | "objects.property(String)"     | "'value'"     | "value"
-        "Property<String>"     | "objects.property(String)"     | "null"        | "null"
-        "DirectoryProperty"    | "objects.directoryProperty()"  | "file('abc')" | new File('abc')
-        "DirectoryProperty"    | "objects.directoryProperty()"  | "null"        | "null"
-        "RegularFileProperty"  | "objects.fileProperty()"       | "file('abc')" | new File('abc')
-        "RegularFileProperty"  | "objects.fileProperty()"       | "null"        | "null"
-        "ListProperty<String>" | "objects.listProperty(String)" | "[]"          | "[]"
-        "ListProperty<String>" | "objects.listProperty(String)" | "['abc']"     | ['abc']
+        type                          | factory                               | reference        | output
+        "Property<String>"            | "objects.property(String)"            | "'value'"        | "value"
+        "Property<String>"            | "objects.property(String)"            | "null"           | "null"
+        "DirectoryProperty"           | "objects.directoryProperty()"         | "file('abc')"    | new File('abc')
+        "DirectoryProperty"           | "objects.directoryProperty()"         | "null"           | "null"
+        "RegularFileProperty"         | "objects.fileProperty()"              | "file('abc')"    | new File('abc')
+        "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
     }
 
     @Unroll
