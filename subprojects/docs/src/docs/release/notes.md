@@ -169,7 +169,7 @@ The `Sync` task and `Project.copy()` and `sync()` operations now also handle cas
 
 Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files) found in inputs and outputs of tasks are handled gracefully from now on: as if they don't exist.
 
-For example copying into a directory with a leftover named pipe or broken symbolic link won't hang the build anymore.
+For example copying into a directory with a leftover named pipe or broken symbolic link won't break the build anymore.
 
 ## Fail the build on deprecation warnings
 
