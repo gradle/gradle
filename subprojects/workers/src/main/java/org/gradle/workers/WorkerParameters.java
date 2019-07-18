@@ -27,8 +27,7 @@ import org.gradle.api.Incubating;
  * </p>
  * <pre class='autoTested'>
  * public interface MyParameters extends WorkerParameters {
- *     String getStringParameter();
- *     void setStringParameters(String stringParameter);
+ *     Property&lt;String&gt; getStringParameter();
  *     ConfigurableFileCollection getFiles();
  * }
  * </pre>
