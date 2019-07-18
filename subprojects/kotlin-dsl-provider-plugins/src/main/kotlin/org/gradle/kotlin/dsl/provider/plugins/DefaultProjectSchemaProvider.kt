@@ -126,12 +126,19 @@ fun accessibleContainerSchema(collectionSchema: NamedDomainObjectCollectionSchem
 
 private
 fun NamedDomainObjectSchema.toFirstKotlinPublicOrSelf() =
-    publicType.concreteClass.kotlin.let { kotlinPublicType ->
-        takeIf { kotlinPublicType.visibility == KVisibility.PUBLIC }
-            ?: ProjectSchemaNamedDomainObjectSchema(
+    publicType.concreteClass.kotlin.let { kotlinType ->
+        // Because a public Java class might not correspond necessarily to a
+        // public Kotlin type due to Kotlin `internal` semantics, we check
+        // whether the public Java class is also the first public Kotlin type,
+        // otherwise we compute a new schema entry with the correct Kotlin type.
+        val firstPublicKotlinType = kotlinType.firstKotlinPublicOrSelf
+        when {
+            firstPublicKotlinType === kotlinType -> this
+            else -> ProjectSchemaNamedDomainObjectSchema(
                 name,
-                TypeOf.typeOf(kotlinPublicType.firstKotlinPublicOrSelf.java)
+                firstPublicKotlinType.asTypeOf()
             )
+        }
     }
 
 
@@ -208,3 +215,8 @@ val typeOfTaskContainer = typeOf<TaskContainer>()
 internal
 inline fun <reified T> typeOf(): TypeOf<T> =
     object : TypeOf<T>() {}
+
+
+private
+fun KClass<out Any>.asTypeOf() =
+    TypeOf.typeOf(java)
