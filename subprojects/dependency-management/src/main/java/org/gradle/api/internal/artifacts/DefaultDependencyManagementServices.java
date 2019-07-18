@@ -255,35 +255,21 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
                 new LoadPreviousExecutionStateStep<>(
-                    new ValidateStep<>(
-                        new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                            new NoOpCachingStateStep(
-                                new ResolveChangesStep<>(changeDetector,
-                                    new SkipUpToDateStep<>(
-                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                            new StoreSnapshotsStep<>(
-                                                new SnapshotOutputsStep<>(fixedUniqueId,
-                                                    new CreateOutputsStep<>(
-                                                        new CatchExceptionStep<>(
-                                                            new TimeoutStep<>(timeoutHandler,
-                                                                new ResolveInputChangesStep<>(
-                                                                    new CleanupOutputsStep<>(
-                                                                        new ExecuteStep<>()
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            );
+                new ValidateStep<>(
+                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                new NoOpCachingStateStep(
+                new ResolveChangesStep<>(changeDetector,
+                new SkipUpToDateStep<>(
+                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                new StoreSnapshotsStep<>(
+                new SnapshotOutputsStep<>(fixedUniqueId,
+                new CreateOutputsStep<>(
+                new CatchExceptionStep<>(
+                new TimeoutStep<>(timeoutHandler,
+                new ResolveInputChangesStep<>(
+                new CleanupOutputsStep<>(
+                new ExecuteStep<>()
+            )))))))))))))));
         }
     }
 

@@ -138,46 +138,26 @@ public class ExecutionGradleServices {
     ) {
         return new DefaultWorkExecutor<>(
             new LoadPreviousExecutionStateStep<>(
-                new MarkSnapshottingInputsStartedStep<>(
-                    new SkipEmptyWorkStep<>(
-                        new ValidateStep<>(
-                            new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                                new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
-                                    new MarkSnapshottingInputsFinishedStep<>(
-                                        new ResolveChangesStep<>(changeDetector,
-                                            new SkipUpToDateStep<>(
-                                                new RecordOutputsStep<>(outputFilesRepository,
-                                                    new StoreSnapshotsStep<>(
-                                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                            new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                                                new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                                                    new CreateOutputsStep<>(
-                                                                        new CatchExceptionStep<>(
-                                                                            new TimeoutStep<>(timeoutHandler,
-                                                                                new CancelExecutionStep<>(cancellationToken,
-                                                                                    new ResolveInputChangesStep<>(
-                                                                                        new CleanupOutputsStep<>(
-                                                                                            new ExecuteStep<>()
-                                                                                        )
-                                                                                    )
-                                                                                )
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
+            new MarkSnapshottingInputsStartedStep<>(
+            new SkipEmptyWorkStep<>(
+            new ValidateStep<>(
+            new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
+            new MarkSnapshottingInputsFinishedStep<>(
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new RecordOutputsStep<>(outputFilesRepository,
+            new StoreSnapshotsStep<>(
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new CacheStep(buildCacheController, buildCacheCommandFactory,
+            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new CreateOutputsStep<>(
+            new CatchExceptionStep<>(
+            new TimeoutStep<>(timeoutHandler,
+            new CancelExecutionStep<>(cancellationToken,
+            new ResolveInputChangesStep<>(
+            new CleanupOutputsStep<>(
+            new ExecuteStep<>()
+        )))))))))))))))))))));
     }
 }

@@ -135,35 +135,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
     WorkExecutor<ReasonedContext, CachingResult> getExecutor() {
         new DefaultWorkExecutor<>(
             new LoadPreviousExecutionStateStep<>(
-                new ValidateStep<>(
-                    new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                        new ResolveCachingStateStep<>(buildCacheController, false,
-                            new ResolveChangesStep<>(changeDetector,
-                                new SkipUpToDateStep<>(
-                                    new RecordOutputsStep<>(outputFilesRepository,
-                                        new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                            new StoreSnapshotsStep<>(
-                                                new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                                    new CreateOutputsStep<>(
-                                                        new CatchExceptionStep<>(
-                                                            new ResolveInputChangesStep<>(
-                                                                new CleanupOutputsStep<>(
-                                                                    new ExecuteStep<InputChangesContext>()
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
+            new ValidateStep<>(
+            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new ResolveCachingStateStep<>(buildCacheController, false,
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new RecordOutputsStep<>(outputFilesRepository,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new StoreSnapshotsStep<>(
+            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new CreateOutputsStep<>(
+            new CatchExceptionStep<>(
+            new ResolveInputChangesStep<>(
+            new CleanupOutputsStep<>(
+            new ExecuteStep<InputChangesContext>()
+        )))))))))))))))
     }
 
     def "outputs are created"() {

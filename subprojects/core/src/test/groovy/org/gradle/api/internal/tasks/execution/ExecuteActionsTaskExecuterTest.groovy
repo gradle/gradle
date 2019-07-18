@@ -41,10 +41,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
-import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.ReasonedContext
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
@@ -148,35 +145,23 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null)
 
-    def workExecutor = new DefaultWorkExecutor<ReasonedContext, CachingResult>(
+    def workExecutor = new DefaultWorkExecutor<>(
         new LoadPreviousExecutionStateStep<>(
-            new SkipEmptyWorkStep<>(
-                new ValidateStep<>(
-                    new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-                        new ResolveCachingStateStep(buildCacheController, false,
-                            new ResolveChangesStep<>(changeDetector,
-                                new SkipUpToDateStep<>(
-                                    new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                        new SnapshotOutputsStep<>(buildId,
-                                            new CatchExceptionStep<>(
-                                                new CancelExecutionStep<>(cancellationToken,
-                                                    new ResolveInputChangesStep<>(
-                                                        new CleanupOutputsStep<>(
-                                                            new ExecuteStep<InputChangesContext>()
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
+        new SkipEmptyWorkStep<>(
+        new ValidateStep<>(
+        new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+        new ResolveCachingStateStep(buildCacheController, false,
+        new ResolveChangesStep<>(changeDetector,
+        new SkipUpToDateStep<>(
+        new BroadcastChangingOutputsStep<>(outputChangeListener,
+        new SnapshotOutputsStep<>(buildId,
+        new CatchExceptionStep<>(
+        new CancelExecutionStep<>(cancellationToken,
+        new ResolveInputChangesStep<>(
+        new CleanupOutputsStep<>(
+        new ExecuteStep<>()
+    ))))))))))))))
+
     def executer = new ExecuteActionsTaskExecuter(
         false,
         false,
