@@ -33,9 +33,9 @@ object ImmutableMapCodec : Codec<ImmutableMap<Any, Any>> {
         val size = readSmallInt()
         val builder = ImmutableMap.builderWithExpectedSize<Any, Any>(size)
         for (i in 0 until size) {
-            val key = read()
-            val value = read()
-            builder.put(key!!, value!!)
+            val key = read()!!
+            val value = read()!!
+            builder.put(key, value)
         }
         return builder.build()
     }
