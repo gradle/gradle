@@ -258,7 +258,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultWorkExecutor<>(
                 new LoadPreviousExecutionStateStep<>(
                 new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                 new NoOpCachingStateStep(
                 new ResolveChangesStep<>(changeDetector,
                 new SkipUpToDateStep<>(

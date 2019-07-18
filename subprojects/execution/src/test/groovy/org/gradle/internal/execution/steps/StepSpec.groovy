@@ -57,6 +57,10 @@ abstract class StepSpec extends Specification {
         return temporaryFolder.file(path)
     }
 
+    protected void assertNoOperation() {
+        assert buildOperationExecutor.log.records.empty
+    }
+
     protected <D, R, T extends BuildOperationType<D, R>> void withOnlyOperation(
         Class<T> operationType,
         Consumer<TestBuildOperationExecutor.Log.TypedRecord<D, R>> verifier

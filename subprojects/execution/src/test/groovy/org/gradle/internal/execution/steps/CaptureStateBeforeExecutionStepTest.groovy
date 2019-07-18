@@ -35,6 +35,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
+import static org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.Operation.Result
 
 class CaptureStateBeforeExecutionStepTest extends StepSpec {
 
@@ -46,12 +47,13 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
 
-    def step = new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector, delegate)
+    def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector, delegate)
 
     def "no state is captured when task history is not maintained"() {
         when:
         step.execute(context)
         then:
+        assertNoOperation()
         1 * work.isTaskHistoryMaintained() >> false
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             assert !beforeExecution.beforeExecutionState.present
@@ -83,6 +85,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.additionalImplementations == additionalImplementations
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "input properties are snapshotted"() {
@@ -103,6 +110,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "uses previous input property snapshots"() {
@@ -127,6 +139,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "input file properties are fingerprinted"() {
@@ -146,6 +163,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "output file properties are fingerprinted"() {
@@ -163,6 +185,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "uses before output snapshot when there are no overlapping outputs"() {
@@ -187,6 +214,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "detects overlapping outputs when instructed"() {
@@ -216,6 +248,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     def "filters before output snapshot when there are overlapping outputs"() {
@@ -247,6 +284,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
+
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
+            assert it.result == Result.INSTANCE
+        }
     }
 
     void fingerprintInputs() {
@@ -258,6 +300,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.of()
+        _ * work.displayName >> displayName
         _ * work.taskHistoryMaintained >> true
     }
 

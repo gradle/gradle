@@ -144,7 +144,7 @@ public class ExecutionGradleServices {
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
             new ValidateStep<>(
-            new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
