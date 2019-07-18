@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ComponentWithVariants;
@@ -156,11 +157,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Inject
     public DefaultMavenPublication(
-            String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
-            ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-            FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory,
-            CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy,
-            PlatformSupport platformSupport) {
+        String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
+        ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+        FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy,
+        PlatformSupport platformSupport) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = projectIdentity;
@@ -271,7 +272,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE);
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
-        Set<String> seenDependencies = Sets.newHashSet();
+        Set<PublishedDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
         for (UsageContext usageContext : getSortedUsageContexts()) {
             // TODO Need a smarter way to map usage to artifact classifier
@@ -286,7 +287,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
-                if (seenDependencies.add(dependency.getGroup() + ":" + dependency.getName())) {
+                if (seenDependencies.add(PublishedDependency.of(dependency))) {
                     if (platformSupport.isTargettingPlatform(dependency)) {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
@@ -377,7 +378,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         // legacy mode for internal APIs
         String name = usage.getName();
-        if (API_VARIANT.equals(name)  || API_ELEMENTS_VARIANT.equals(name)) {
+        if (API_VARIANT.equals(name) || API_ELEMENTS_VARIANT.equals(name)) {
             return apiDependencies;
         }
         return runtimeDependencies;
@@ -714,8 +715,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         populateFromComponent();
         for (MavenArtifact mavenArtifact : mainArtifacts) {
             if (source.getFile().equals(mavenArtifact.getFile())
-                    && source.getExtension().equals(mavenArtifact.getExtension())
-                    && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
+                && source.getExtension().equals(mavenArtifact.getExtension())
+                && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
                 return;
             }
         }
@@ -764,6 +765,65 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         @Override
         public int hashCode() {
             return file.hashCode() ^ Objects.hashCode(classifier, extension);
+        }
+    }
+
+    /**
+     * This is used to de-duplicate dependencies based on relevant contents.
+     * In particular, versions are ignored.
+     */
+    private static class PublishedDependency {
+        private final String group;
+        private final String name;
+        private final String targetConfiguration;
+        private final AttributeContainer attributes;
+        private final Set<DependencyArtifact> artifacts;
+        private final Set<ExcludeRule> excludeRules;
+        private final List<Capability> requestedCapabilities;
+
+        private PublishedDependency(String group, String name, String targetConfiguration, AttributeContainer attributes, Set<DependencyArtifact> artifacts, Set<ExcludeRule> excludeRules, List<Capability> requestedCapabilities) {
+            this.group = group;
+            this.name = name;
+            this.targetConfiguration = targetConfiguration;
+            this.attributes = attributes;
+            this.artifacts = artifacts;
+            this.excludeRules = excludeRules;
+            this.requestedCapabilities = requestedCapabilities;
+        }
+
+        static PublishedDependency of(ModuleDependency dep) {
+            return new PublishedDependency(
+                dep.getGroup(),
+                dep.getName(),
+                dep.getTargetConfiguration(),
+                dep.getAttributes(),
+                dep.getArtifacts(),
+                dep.getExcludeRules(),
+                dep.getRequestedCapabilities()
+            );
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            PublishedDependency that = (PublishedDependency) o;
+            return Objects.equal(group, that.group) &&
+                Objects.equal(name, that.name) &&
+                Objects.equal(targetConfiguration, that.targetConfiguration) &&
+                Objects.equal(attributes, that.attributes) &&
+                Objects.equal(artifacts, that.artifacts) &&
+                Objects.equal(excludeRules, that.excludeRules) &&
+                Objects.equal(requestedCapabilities, that.requestedCapabilities);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(group, name, targetConfiguration, attributes, artifacts, excludeRules, requestedCapabilities);
         }
     }
 }

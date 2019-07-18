@@ -192,4 +192,45 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:1.0')
     }
 
+    def "publishes both dependencies when one has a classifier"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: "java-library"
+            apply plugin: "maven-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation "org:foo:1.0:classy"
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublished()
+        repoModule.assertApiDependencies()
+        repoModule.parsedPom.scope("runtime") {
+            def deps = dependencies.values()
+            assert deps.size() == 2
+            assert deps[0].classifier == null
+            assert deps[1].classifier == "classy"
+        }
+    }
+
 }
