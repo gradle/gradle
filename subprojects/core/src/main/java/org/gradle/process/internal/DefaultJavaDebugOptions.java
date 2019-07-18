@@ -22,10 +22,10 @@ import java.util.Objects;
 
 public class DefaultJavaDebugOptions implements JavaDebugOptions {
 
-    private boolean enabled;
+    private boolean enabled = false;
     private int port = 5005;
-    private boolean server;
-    private boolean suspend;
+    private boolean server = true;
+    private boolean suspend = true;
 
     @Override
     public boolean isEnabled() {
