@@ -84,8 +84,6 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;

@@ -58,7 +58,6 @@ import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
