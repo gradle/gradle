@@ -176,6 +176,12 @@ For example copying into a directory with a leftover named pipe or broken symbol
 
 The `warning-mode` command line option now has a [new `fail` value](userguide/command_line_interface.html#sec:command_line_warnings) that will behave like `all` and in addition fail the build if any deprecation warning was reported during the execution.
 
+## Rich console output on Linux aarch64 machines
+
+Gradle can now detect that it is running in an interactive terminal on Linux aarch64 machines, and will generate rich console output (such as colored text, progress information) in this case. 
+
+Thanks to [Amey](https://github.com/ameyp) for adding this support to [native-platform](https://github.com/adammurdoch/native-platform/).
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
