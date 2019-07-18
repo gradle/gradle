@@ -944,16 +944,26 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void requiresResource(String name) {
-        sharedResources.putIfAbsent(name, 1);
+        taskMutator.mutate("Task.requiresResource(String)", new Runnable() {
+            @Override
+            public void run() {
+                sharedResources.putIfAbsent(name, 1);
+            }
+        });
     }
 
     @Override
     public void requiresResource(String name, int leases) {
-        if (leases <= 0) {
-            throw new InvalidUserDataException("Required number of leases must be greater than zero.");
-        }
+        taskMutator.mutate("Task.requiresResource(String, int)", new Runnable() {
+            @Override
+            public void run() {
+                if (leases <= 0) {
+                    throw new InvalidUserDataException("Required number of leases must be greater than zero.");
+                }
 
-        sharedResources.put(name, leases);
+                sharedResources.put(name, leases);
+            }
+        });
     }
 
     @Override
