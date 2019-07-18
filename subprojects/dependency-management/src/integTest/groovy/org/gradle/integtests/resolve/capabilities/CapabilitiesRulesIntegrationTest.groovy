@@ -135,9 +135,9 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         where:
         rule                                                                               | reason
-        'all { selectHighestVersion() }'                                                      | 'latest version of capability cglib:cglib'
-        'withCapability("cglib:cglib") { selectHighestVersion() }'                            | 'latest version of capability cglib:cglib'
-        'withCapability("cglib", "cglib") { selectHighestVersion() }'                         | 'latest version of capability cglib:cglib'
+        'all { selectHighestVersion() }'                                                   | 'latest version of capability cglib:cglib'
+        'withCapability("cglib:cglib") { selectHighestVersion() }'                         | 'latest version of capability cglib:cglib'
+        'withCapability("cglib", "cglib") { selectHighestVersion() }'                      | 'latest version of capability cglib:cglib'
         'all { select(candidates.find { it.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
     }
 

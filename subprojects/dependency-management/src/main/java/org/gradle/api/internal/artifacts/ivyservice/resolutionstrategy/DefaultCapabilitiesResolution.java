@@ -80,30 +80,42 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
                     .map(CapabilitiesConflictHandler.CandidateDetails::getId)
                     .collect(Collectors.toList());
                 DefaultCapabilityResolutionDetails resolutionDetails = new DefaultCapabilityResolutionDetails(componentNotationParser, key, candidateIds);
-                for (CapabilityAction action : actions) {
-                    if (action.predicate.isSatisfiedBy(key)) {
-                        action.execute(resolutionDetails);
-                        if (resolutionDetails.didSomething) {
-                            if (resolutionDetails.useHighest) {
-                                upgradeCapabilityResolver.resolve(details);
-                            } else if (resolutionDetails.selected != null) {
-                                versions.forEach(version -> {
-                                    details.getCandidates(version).forEach(cand -> {
-                                        if (cand.getId().equals(resolutionDetails.selected)) {
-                                            cand.select();
-                                            String reason = resolutionDetails.reason;
-                                            if (reason != null) {
-                                                cand.byReason(Describables.of("On capability", ((CapabilityInternal) version).getCapabilityId(), reason));
-                                            }
-                                        }
-                                    });
-                                });
-                            }
-                        }
-                    }
-                }
+                handleCapabilityAction(details, key, versions, resolutionDetails);
             });
 
+    }
+
+    private void handleCapabilityAction(CapabilitiesConflictHandler.ResolutionDetails details, Capability key, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
+        for (CapabilityAction action : actions) {
+            if (action.predicate.isSatisfiedBy(key)) {
+                action.execute(resolutionDetails);
+                if (resolutionDetails.didSomething) {
+                    performCapabilitySelection(details, versions, resolutionDetails);
+                }
+            }
+        }
+    }
+
+    private void performCapabilitySelection(CapabilitiesConflictHandler.ResolutionDetails details, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
+        if (resolutionDetails.useHighest) {
+            upgradeCapabilityResolver.resolve(details);
+        } else if (resolutionDetails.selected != null) {
+            versions.forEach(version -> {
+                details.getCandidates(version).forEach(cand -> {
+                    selectExplicitCandidate(resolutionDetails, (CapabilityInternal) version, cand);
+                });
+            });
+        }
+    }
+
+    private void selectExplicitCandidate(DefaultCapabilityResolutionDetails resolutionDetails, CapabilityInternal version, CapabilitiesConflictHandler.CandidateDetails cand) {
+        if (cand.getId().equals(resolutionDetails.selected)) {
+            cand.select();
+            String reason = resolutionDetails.reason;
+            if (reason != null) {
+                cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
+            }
+        }
     }
 
     private static class DefaultCapabilityResolutionDetails implements CapabilityResolutionDetails {
