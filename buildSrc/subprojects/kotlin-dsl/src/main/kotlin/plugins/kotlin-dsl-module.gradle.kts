@@ -33,6 +33,7 @@ tasks.jar {
     val main by sourceSets.getting
     from(main.allSource) {
         // prevent duplicated zip entries
+        // see https://github.com/gradle/gradle/issues/10005
         exclude { it.file in main.resources }
     }
     manifest.attributes.apply {
