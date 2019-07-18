@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeParameter;
@@ -921,22 +922,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (!hasFields) {
                 visitor.addManagedMethods(
                     mutableProperties,
-                    concat(readOnlyProperties, readOnlyNestedProperties)
+                    Iterables.concat(readOnlyProperties, readOnlyNestedProperties)
                 );
             }
-        }
-
-        private static List<PropertyMetadata> concat(List<PropertyMetadata> first, List<PropertyMetadata> second) {
-            if (first.isEmpty()) {
-                return second;
-            }
-            if (second.isEmpty()) {
-                return first;
-            }
-            return ImmutableList.<PropertyMetadata>builderWithExpectedSize(first.size() + second.size())
-                    .addAll(first)
-                    .addAll(second)
-                    .build();
         }
     }
 
@@ -1253,7 +1241,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter);
 
-        void addManagedMethods(List<PropertyMetadata> properties, List<PropertyMetadata> readOnlyProperties);
+        void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties);
 
         void applyConventionMappingToProperty(PropertyMetadata property);
 
