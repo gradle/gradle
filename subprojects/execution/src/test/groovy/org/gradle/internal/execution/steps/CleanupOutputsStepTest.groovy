@@ -26,7 +26,6 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.OutputPropertyVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
-import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
@@ -43,12 +42,6 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
-    def incrementalInputChanges = Stub(InputChangesInternal) {
-        isIncremental() >> true
-    }
-    def nonIncrementalInputChanges = Stub(InputChangesInternal) {
-        isIncremental() >> false
-    }
 
     def step = new CleanupOutputsStep<InputChangesContext, Result>(delegate)
 

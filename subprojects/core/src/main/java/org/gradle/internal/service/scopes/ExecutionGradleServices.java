@@ -125,16 +125,16 @@ public class ExecutionGradleServices {
     public WorkExecutor<ReasonedContext, CachingResult> createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
-        BuildScanPluginApplied buildScanPlugin,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
-        ExecutionStateChangeDetector changeDetector,
+        BuildScanPluginApplied buildScanPlugin,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ValueSnapshotter valueSnapshotter,
+        ExecutionStateChangeDetector changeDetector,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         OverlappingOutputDetector overlappingOutputDetector,
-        TimeoutHandler timeoutHandler
+        TimeoutHandler timeoutHandler,
+        ValueSnapshotter valueSnapshotter
     ) {
         return new DefaultWorkExecutor<>(
             new LoadPreviousExecutionStateStep<>(
