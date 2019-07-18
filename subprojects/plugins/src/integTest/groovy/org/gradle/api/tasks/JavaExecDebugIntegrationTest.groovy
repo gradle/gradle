@@ -19,12 +19,13 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    JDWPUtil jdwpClient = new JDWPUtil()
+    JDWPUtil debugClient = new JDWPUtil()
 
     def "Debug is disabled by default"(String taskName) {
         setup:
@@ -72,20 +73,47 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Can debug Java exec"(String taskName) {
+    def "Can debug Java exec with socket listen type debugger (server = false)"(String taskName) {
         setup:
         sampleProject"""    
             debugOptions {
                 enabled = true
                 server = false
                 suspend = false
-                port = $jdwpClient.port
+                port = $debugClient.port
             }
         """
-        jdwpClient.listen()
+        debugClient.listen()
 
         expect:
         succeeds(taskName)
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+    }
+
+    def "Can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
+        setup:
+        sampleProject"""    
+            debugOptions {
+                enabled = true
+                server = true
+                suspend = true
+                port = $debugClient.port
+            }
+        """
+
+        when:
+        def handle = executer.withTasks(taskName).start()
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains('Listening for transport dt_socket at address')
+        }
+
+        then:
+        debugClient.connect().dispose()
+
+        cleanup:
+        handle.waitForFinish()
 
         where:
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
@@ -118,14 +146,14 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                 suspend = false
             }
             
-            jvmArgs "-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$jdwpClient.port"
+            jvmArgs "-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port"
         """
 
-        jdwpClient.listen()
+        debugClient.listen()
 
         expect:
         succeeds(taskName)
-        output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$jdwpClient.port]"
+        output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port]"
 
         where:
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
@@ -186,6 +214,10 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.withType(Test) {
+                onOutput { descriptor, event ->
+                    logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+                }
+
                 $javaExecConfig
             }
         """
