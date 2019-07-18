@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.state;
+package org.gradle.workers.internal;
 
-public interface ManagedFactoryRegistry {
-    /**
-     * Looks up a {@link ManagedFactory} that can provide the given type.
-     */
-    ManagedFactory lookup(int id);
+public interface ProvidesWorkResult {
+    DefaultWorkResult getWorkResult();
 }

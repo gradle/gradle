@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-
+import org.gradle.workers.fixtures.WorkerExecutorFixture.ExecutionClass
 import spock.lang.Timeout
 import spock.lang.Unroll
 
@@ -24,10 +24,37 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @Timeout(120)
 class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
+    ExecutionClass executionWithLogging
+
+    def setup() {
+        executionWithLogging = fixture.workerExecutionThatCreatesFiles
+        executionWithLogging.with {
+            imports.add("org.gradle.api.logging.Logging")
+            action = """
+                Logging.getLogger(getClass()).warn("warn message");
+                Logging.getLogger(getClass()).info("info message");
+                Logging.getLogger(getClass()).debug("debug message");
+                Logging.getLogger(getClass()).error("error message");
+                
+                org.slf4j.LoggerFactory.getLogger(getClass()).warn("slf4j warn");
+                org.slf4j.LoggerFactory.getLogger(getClass()).info("slf4j info");
+                org.slf4j.LoggerFactory.getLogger(getClass()).debug("slf4j debug message");
+                org.slf4j.LoggerFactory.getLogger(getClass()).error("slf4j error");
+                
+                java.util.logging.Logger.getLogger("worker").warning("jul warn");
+                java.util.logging.Logger.getLogger("worker").warning("jul info");
+                java.util.logging.Logger.getLogger("worker").fine("jul debug message");
+                java.util.logging.Logger.getLogger("worker").severe("jul error");
+                
+                System.out.println("stdout message");
+                System.err.println("stderr message");
+            """
+        }
+    }
 
     @Unroll
     def "worker lifecycle is logged in #isolationMode"() {
-        fixture.withRunnableClassInBuildSrc()
+        def workerExecution = fixture.workerExecutionThatCreatesFiles.writeToBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -43,8 +70,8 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         gradle.waitForFinish()
 
         and:
-        gradle.standardOutput.contains("Build operation 'org.gradle.test.TestRunnable' started")
-        gradle.standardOutput.contains("Build operation 'org.gradle.test.TestRunnable' completed")
+        gradle.standardOutput.contains("Build operation '${workerExecution.packageName}.${workerExecution.name}' started")
+        gradle.standardOutput.contains("Build operation '${workerExecution.packageName}.${workerExecution.name}' completed")
 
         where:
         isolationMode << ISOLATION_MODES
@@ -52,8 +79,9 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode"() {
+        executionWithLogging.writeToBuildFile()
+
         buildFile << """
-            ${runnableWithLogging}
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
             }
@@ -83,8 +111,9 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --info"() {
+        executionWithLogging.writeToBuildFile()
+
         buildFile << """
-            ${runnableWithLogging}
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
             }
@@ -118,8 +147,9 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --debug"() {
+        executionWithLogging.writeToBuildFile()
+
         buildFile << """
-            ${runnableWithLogging}
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
             }
@@ -150,43 +180,5 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         where:
         isolationMode << ISOLATION_MODES
-    }
-
-    String getRunnableWithLogging() {
-        return """
-            import java.io.File;
-            import java.util.List;
-            import org.gradle.other.Foo;
-            import java.util.UUID;
-            import org.gradle.api.logging.Logging;
-            import org.slf4j.LoggerFactory;
-            import javax.inject.Inject;
-
-            public class TestRunnable implements Runnable {
-                @Inject
-                public TestRunnable(List<String> files, File outputDir, Foo foo) {
-                }
-
-                public void run() {
-                    Logging.getLogger(getClass()).warn("warn message");
-                    Logging.getLogger(getClass()).info("info message");
-                    Logging.getLogger(getClass()).debug("debug message");
-                    Logging.getLogger(getClass()).error("error message");
-                    
-                    LoggerFactory.getLogger(getClass()).warn("slf4j warn");
-                    LoggerFactory.getLogger(getClass()).info("slf4j info");
-                    LoggerFactory.getLogger(getClass()).debug("slf4j debug message");
-                    LoggerFactory.getLogger(getClass()).error("slf4j error");
-                    
-                    java.util.logging.Logger.getLogger("worker").warning("jul warn");
-                    java.util.logging.Logger.getLogger("worker").warning("jul info");
-                    java.util.logging.Logger.getLogger("worker").fine("jul debug message");
-                    java.util.logging.Logger.getLogger("worker").severe("jul error");
-                    
-                    System.out.println("stdout message");
-                    System.err.println("stderr message");
-                }
-            }
-        """.stripIndent()
     }
 }

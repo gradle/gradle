@@ -21,7 +21,6 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 
 import javax.inject.Inject
@@ -39,7 +38,7 @@ import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonG
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean
 
 class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "can inject service using @Inject on a getter method with dummy method body"() {
         given:
@@ -230,7 +229,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         def services = defaultServices()
         _ * services.get(Number, CustomInject) >> 12
 
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         def obj = create(generator, BeanWithCustomServices, services)
@@ -246,7 +245,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         def services = defaultServices()
         _ * services.get(Number, CustomInject) >> 12
 
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         def obj = create(generator, AbstractBeanWithCustomServices, services)
@@ -258,7 +257,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot use multiple inject annotations on getter"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         create(generator, MultipleInjectAnnotations)
@@ -327,7 +326,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot attach custom annotation that is known but not enabled to getter method"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         create(generator, BeanWithCustomServices)
@@ -338,7 +337,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot attach custom annotation that is known but not enabled to static method"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         create(generator, StaticCustomInjectBean)
@@ -349,7 +348,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot attach custom inject annotation to methods of ExtensionAware"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         generator.generate(ExtensibleBeanWithCustomInject)
@@ -360,7 +359,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot attach custom inject annotation to static method"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), Mock(ManagedFactoryRegistry))
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         generator.generate(StaticCustomInjectBean)
