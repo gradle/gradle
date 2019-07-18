@@ -101,7 +101,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 5.6
      */
     @Incubating
-    TestLauncher debugTests(int port);
+    TestLauncher debugTestsOn(int port);
 
     /**
      * Executes the tests, blocking until complete.

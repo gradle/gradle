@@ -476,9 +476,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         forkOptions.debugOptions(action);
-        // run all tests on the same JVM
-        setForkEvery(null);
-        setMaxParallelForks(1);
     }
 
     /**

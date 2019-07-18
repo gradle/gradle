@@ -62,7 +62,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .debugTests(JDWPUtil.findFreePort())
+                .debugTestsOn(JDWPUtil.findFreePort())
                 .run()
         }
 
@@ -78,7 +78,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .debugTests(jdwpClient.port)
+                .debugTestsOn(jdwpClient.port)
                 .run()
         }
 
@@ -100,7 +100,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest", "example.SecondTest")
-                .debugTests(jdwpClient.port)
+                .debugTestsOn(jdwpClient.port)
                 .run()
         }
 
