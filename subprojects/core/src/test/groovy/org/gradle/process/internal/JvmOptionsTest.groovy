@@ -80,65 +80,6 @@ class JvmOptionsTest extends Specification {
         parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16", *localePropertyStrings()]
     }
 
-    def "debug option can be set via allJvmArgs"() {
-        setup:
-        def opts = createOpts()
-
-        when:
-        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
-        then:
-        opts.debug
-
-        when:
-        opts.allJvmArgs = []
-        then:
-        !opts.debug
-    }
-
-    def "debug port can be set via allJvmArgs"() {
-        setup:
-        def opts = createOpts()
-
-        when:
-        opts.allJvmArgs = ['-Xdebug']
-
-        then:
-        !opts.debug
-
-        when:
-        opts.allJvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=n,suspend=y,address=8989']
-
-        then:
-        opts.debug
-        opts.debugOptions.port == 8989
-        !opts.debugOptions.server
-        opts.debugOptions.suspend
-
-        when:
-        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:4456']
-
-        then:
-        opts.debug
-        !opts.debugOptions.suspend
-        !opts.debugOptions.server
-        opts.debugOptions.port == 4456
-
-        when:
-        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:4457']
-
-        then:
-        opts.debug
-        opts.debugOptions.suspend
-        opts.debugOptions.server
-        opts.debugOptions.port == 4457
-
-        when:
-        opts.allJvmArgs = []
-
-        then:
-        !opts.debug
-    }
-
     def "managed jvm args includes heap settings"() {
         expect:
         parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=${defaultCharset}", *localePropertyStrings()]

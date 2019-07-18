@@ -276,67 +276,6 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 
-    def "debug is enabled when set using jvmArgs"() {
-        when:
-        options.jvmArgs('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005')
-
-        then:
-        options.debug
-        options.jvmArgs == []
-
-        when:
-        options.allJvmArgs = []
-
-        then:
-        !options.debug
-
-        when:
-        options.debug = false
-        options.jvmArgs = ['-Xdebug']
-
-        then:
-        !options.debug
-        options.jvmArgs == ['-Xdebug']
-
-        when:
-        options.jvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
-
-        then:
-        !options.debug
-        options.jvmArgs == ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
-
-        when:
-        options.jvmArgs '-Xdebug'
-
-        then:
-        options.debug
-        options.jvmArgs == []
-
-        when:
-        options.debug = false
-        options.jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=other']
-
-        then:
-        !options.debug
-        options.jvmArgs == ['-Xdebug', '-Xrunjdwp:transport=other']
-
-        when:
-        options.debug = false
-        options.allJvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005', '-Xdebug']
-
-        then:
-        options.debug
-        options.jvmArgs == []
-
-        when:
-        options.debug = false
-        options.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
-
-        then:
-        options.debug
-        options.jvmArgs == []
-    }
-
     def "can set debug options"() {
         when:
         options.debugOptions {
@@ -418,7 +357,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.setMaxHeapSize('1g')
         1 * target.setBootstrapClasspath(options.bootstrapClasspath)
         1 * target.setEnableAssertions(false)
-        1 * target.setDebug(false)
+        1 * target.debugOptions(_) // TODO
 
         then:
         1 * target.jvmArgs(['argFromProvider'])
