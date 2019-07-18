@@ -111,16 +111,16 @@ public class WorkExecutorTestFixture {
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheCommandFactory,
             buildCacheController,
-            buildScanPluginApplied,
             cancellationToken,
             buildInvocationScopeId,
-            new DefaultExecutionStateChangeDetector(),
+            buildScanPluginApplied,
             classLoaderHierarchyHasher,
-            valueSnapshotter,
+            new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,
             new DefaultOverlappingOutputDetector(),
-            new DefaultTimeoutHandler(null)
+            new DefaultTimeoutHandler(null),
+            valueSnapshotter
         );
     }
 
