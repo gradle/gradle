@@ -37,9 +37,11 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovySourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.model.ObjectFactory;
@@ -69,7 +71,6 @@ import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
-import org.gradle.api.internal.tasks.compile.incremental.GroovyCompileResult;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -152,7 +153,7 @@ public class GroovyCompile extends AbstractCompile {
 
         GroovyJavaJointCompileSpec spec = createSpec();
 
-        if (inputChanges != null && enableIncrementalCompilation(spec)) {
+        if (inputChanges != null && spec.incrementalCompilationEnabled()) {
             doIncrementalCompile(spec, inputChanges);
         } else {
             doCompile(spec, inputChanges, null);
@@ -165,8 +166,9 @@ public class GroovyCompile extends AbstractCompile {
 
         WorkResult result = doCompile(spec, inputChanges, oldMappings);
 
-        if (!isFullRecompilation(result)) {
-            // Do not merge old mappings on full recompilation
+        if (result instanceof IncrementalCompilationResult) {
+            // The compilation will generate the new mapping file
+            // Only merge old mappings into new mapping on incremental recompilation
             mergeIncrementalMappingsIntoOldMappings(inputChanges, oldMappings);
         }
     }
@@ -190,10 +192,6 @@ public class GroovyCompile extends AbstractCompile {
             sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
-    }
-
-    private boolean isFullRecompilation(WorkResult result) {
-        return result instanceof GroovyCompileResult && ((GroovyCompileResult) result).isFullRecompilation();
     }
 
     private void mergeIncrementalMappingsIntoOldMappings(InputChanges inputChanges, Multimap<String, String> oldMappings) {
@@ -229,7 +227,7 @@ public class GroovyCompile extends AbstractCompile {
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(workerDaemonFactory, inProcessWorkerFactory, forkOptionsFactory, processorDetector, jvmVersionDetector, workerDirectoryProvider, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
         CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
-        if (enableIncrementalCompilation(spec)) {
+        if (spec.incrementalCompilationEnabled()) {
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
                 cleaningGroovyCompiler,
@@ -248,7 +246,7 @@ public class GroovyCompile extends AbstractCompile {
             getSource(),
             inputChanges,
             inputChanges.getFileChanges(getStableSources()),
-            sourceClassesMapping);
+            new GroovySourceFileClassNameConverter(sourceClassesMapping));
     }
 
     /**
@@ -291,7 +289,6 @@ public class GroovyCompile extends AbstractCompile {
                 "Incremental Groovy compilation has been disabled since Java annotation processors are configured. Enabling incremental compilation and configuring Java annotation processors for Groovy compilation",
                 "Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
         }
-//        return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
         return getOptions().isIncremental() && !spec.getSourceRoots().isEmpty() && !spec.annotationProcessingConfigured();
     }
 

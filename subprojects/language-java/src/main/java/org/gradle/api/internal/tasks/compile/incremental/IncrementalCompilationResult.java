@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.tasks.WorkResult;
-
-public class RecompilationNotNecessary implements WorkResult, IncrementalCompilationResult {
-    @Override
-    public boolean getDidWork() {
-        return false;
-    }
+/**
+ * A marker interface for incremental compilation result.
+ */
+public interface IncrementalCompilationResult {
 }

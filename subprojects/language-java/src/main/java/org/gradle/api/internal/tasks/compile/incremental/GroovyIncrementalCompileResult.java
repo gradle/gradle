@@ -19,20 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.workers.internal.DefaultWorkResult;
 
 /**
- * Marks a Groovy compilation ends incrementally, e.g. no full-recompilation happens.
+ * Marks a Groovy compilation is performed incrementally.
  */
-public class GroovyCompileResult extends DefaultWorkResult {
-    private boolean fullRecompilation;
-
-    public GroovyCompileResult(DefaultWorkResult workResult) {
+public class GroovyIncrementalCompileResult extends DefaultWorkResult implements IncrementalCompilationResult {
+    public GroovyIncrementalCompileResult(DefaultWorkResult workResult) {
         super(workResult.getDidWork(), workResult.getException());
-    }
-
-    public boolean isFullRecompilation() {
-        return fullRecompilation;
-    }
-
-    public void setFullRecompilation(boolean fullRecompilation) {
-        this.fullRecompilation = fullRecompilation;
     }
 }

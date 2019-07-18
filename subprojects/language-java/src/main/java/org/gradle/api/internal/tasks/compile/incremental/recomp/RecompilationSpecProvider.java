@@ -17,11 +17,13 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.tasks.WorkResult;
 
 /**
- * In a typical incremental recompilation, there're two steps:
+ * In a typical incremental recompilation, there're three steps:
  * First, examine the incremental change files to get the classes to be recompiled: {@link #provideRecompilationSpec(CurrentCompilation, PreviousCompilation)}
  * Second, initialize the recompilation (e.g. delete stale class files and narrow down the source files to be recompiled): {@link #initializeCompilation(JavaCompileSpec, RecompilationSpec)}
+ * Third, decorate the compilation result if necessary: {@link #decorateResult(RecompilationSpec, WorkResult)}, for example, notify whether current recompilation is full recompilation.
  */
 public interface RecompilationSpecProvider {
     boolean isIncremental();
@@ -29,4 +31,6 @@ public interface RecompilationSpecProvider {
     RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous);
 
     void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec);
+
+    WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult);
 }

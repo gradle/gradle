@@ -16,16 +16,18 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.GroovyIncrementalCompileResult;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
+import org.gradle.workers.internal.DefaultWorkResult;
 
 import java.io.File;
 import java.util.Collection;
@@ -42,11 +44,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
                                            FileTree sources,
                                            InputChanges inputChanges,
                                            Iterable<FileChange> sourceChanges,
-                                           Multimap<String, String> sourceClassesMapping) {
+                                           GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
         super(fileOperations, sources);
         this.inputChanges = inputChanges;
         this.sourceChanges = sourceChanges;
-        this.sourceFileClassNameConverter = new GroovySourceFileClassNameConverter(sourceClassesMapping);
+        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
     }
 
     @Override
@@ -88,6 +90,14 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         addClassesToProcess(spec, recompilationSpec);
 
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
+    }
+
+    @Override
+    public WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult) {
+        if(!recompilationSpec.isFullRebuildNeeded()) {
+            return new GroovyIncrementalCompileResult((DefaultWorkResult) workResult);
+        }
+        return workResult;
     }
 
     private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
