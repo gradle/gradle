@@ -26,7 +26,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     JDWPUtil jdwpClient = new JDWPUtil()
 
-    def "Debug is disabled by default"() {
+    def "Debug is disabled by default"(String taskName) {
         setup:
         sampleProject"""
             debugOptions {
@@ -34,10 +34,13 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds('run')
+        succeeds(taskName)
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Deebug mode can be disabled"() {
+    def "Debug mode can be disabled"(String taskName) {
         setup:
         sampleProject"""
             debugOptions {
@@ -46,23 +49,30 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds('run')
+        succeeds(taskName)
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Debug session fails without debugger"() {
+    def "Debug session fails without debugger"(String taskName) {
         setup:
         sampleProject"""
             debugOptions {
                 enabled = true
+                server = false
             }
         """
 
         expect:
-        def failure = fails('run')
+        def failure = fails(taskName)
         failure.assertHasErrorOutput('ERROR: transport error 202: connect failed: Connection refused')
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Can debug Java exec"() {
+    def "Can debug Java exec"(String taskName) {
         setup:
         sampleProject"""    
             debugOptions {
@@ -75,24 +85,31 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         jdwpClient.listen()
 
         expect:
-        succeeds('run')
+        succeeds(taskName)
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Debug options overrides debug property"() {
+    def "Debug options overrides debug property"(String taskName) {
         setup:
         sampleProject"""    
             debug = true
         
             debugOptions {
                 enabled = false
+                server = false
             }
         """
 
         expect:
-        succeeds('run')
+        succeeds(taskName)
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "If custom debug argument is passed to the build then debug options is ignored"() {
+    def "If custom debug argument is passed to the build then debug options is ignored"(String taskName) {
         setup:
         sampleProject"""    
             debugOptions {
@@ -107,51 +124,69 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         jdwpClient.listen()
 
         expect:
-        succeeds('run')
+        succeeds(taskName)
         output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$jdwpClient.port]"
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-
-    private void sampleProject(String runConfig) {
-        file('src/main/java/Driver.java')
-        file("src/main/java/Driver.java").text = mainClass("""
-            try {
-                FileWriter out = new FileWriter("out.txt");
-                for (String arg: args) {
-                    out.write(arg);
-                    out.write("\\n");
-                }
-                out.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        """)
-
-
-        buildFile.text = """
-            apply plugin: "java"
-
-            task run(type: JavaExec) {
-                classpath = project.layout.files(compileJava)
-                main "driver.Driver"
-                args "1"
-                
-                $runConfig
-            }
-        """
-    }
-
-    private static String mainClass(String body) {
-        """
+    private def sampleProject(String javaExecConfig) {
+        file("src/main/java/driver/Driver.java").text = """
             package driver;
-
-            import java.io.*;
-            import java.lang.System;
 
             public class Driver {
                 public static void main(String[] args) {
-                ${body}
+                    System.exit(0);
                 }
+            }
+            
+        """
+
+        file('src/test/java/driver/DriverTest.java').text = """
+            package driver;
+
+            public class DriverTest {
+                 @org.junit.Test public void driverTest() {
+                    org.junit.Assert.assertTrue(true);
+                 }
+            }
+        """
+
+        buildFile.text = """
+            plugins {
+                id 'java-library'
+            }
+
+            repositories {
+                 ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                 testImplementation 'junit:junit:4.12'
+            }
+
+            task runJavaExec(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                main "driver.Driver"
+                
+                $javaExecConfig
+            }
+
+            task runProjectJavaExec {
+                doLast {
+                    project.javaexec {
+                        classpath = sourceSets.main.runtimeClasspath
+                        main "driver.Driver"
+                        
+                        $javaExecConfig
+                    }
+                }
+                dependsOn sourceSets.main.runtimeClasspath
+            }
+
+            tasks.withType(Test) {
+                $javaExecConfig
             }
         """
     }
