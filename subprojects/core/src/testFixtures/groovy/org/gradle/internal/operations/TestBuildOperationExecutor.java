@@ -151,7 +151,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             });
         }
 
-        private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> mostRecent(Class<T> type) {
+        public <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> mostRecent(Class<T> type) {
             Class<D> detailsType = BuildOperationTypes.detailsType(type);
             Iterator<Record> iterator = records.descendingIterator();
             while (iterator.hasNext()) {
@@ -193,6 +193,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
         public <D, R, T extends BuildOperationType<D, R>> Throwable mostRecentFailure(Class<T> type) {
             return mostRecent(type).failure;
+        }
+
+        @Override
+        public String toString() {
+            return records.toString();
         }
 
         public static class Record {

@@ -20,14 +20,19 @@ import groovy.transform.Memoized
 import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.operations.BuildOperationType
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 abstract class StepSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final buildOperationExecutor = new TestBuildOperationExecutor()
 
     final displayName = "job ':test'"
     final identity = ":test"
@@ -50,5 +55,15 @@ abstract class StepSpec extends Specification {
 
     protected TestFile file(Object... path) {
         return temporaryFolder.file(path)
+    }
+
+    protected <D, R, T extends BuildOperationType<D, R>> void withOnlyOperation(
+        Class<T> operationType,
+        Consumer<TestBuildOperationExecutor.Log.TypedRecord<D, R>> verifier
+    ) {
+        assert buildOperationExecutor.log.records.size() == 1
+        interaction {
+            verifier.accept(buildOperationExecutor.log.mostRecent(operationType))
+        }
     }
 }

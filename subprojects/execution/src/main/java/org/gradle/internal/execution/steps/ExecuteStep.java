@@ -20,28 +20,52 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationType;
 
-public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
+public class ExecuteStep<C extends InputChangesContext> extends BuildOperationStep<C, Result> {
+
+    public ExecuteStep(BuildOperationExecutor buildOperationExecutor) {
+        super(buildOperationExecutor);
+    }
 
     @Override
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
-        ExecutionOutcome outcome = context.getInputChanges()
-            .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
-            .orElseGet(() -> determineOutcome(work.execute(null, context), false));
-        return () -> Try.successful(outcome);
+        return operation(operationContext -> {
+                ExecutionOutcome outcome = context.getInputChanges()
+                    .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
+                    .orElseGet(() -> determineOutcome(work.execute(null, context), false));
+                operationContext.setResult((Operation.Result) () -> outcome);
+                return () -> Try.successful(outcome);
+            },
+            BuildOperationDescriptor.displayName("Executing " + work.getDisplayName())
+                .details(Operation.Details.INSTANCE)
+        );
     }
 
-    private ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
+    private static ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
         switch (result) {
             case DID_NO_WORK:
                 return ExecutionOutcome.UP_TO_DATE;
             case DID_WORK:
-                return incremental ? ExecutionOutcome.EXECUTED_INCREMENTALLY : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+                return incremental
+                    ? ExecutionOutcome.EXECUTED_INCREMENTALLY
+                    : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
             default:
                 throw new IllegalArgumentException("Unknown result: " + result);
+        }
+    }
+
+    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
+        interface Details {
+            Details INSTANCE = new Details() {};
+        }
+
+        interface Result {
+            ExecutionOutcome getOutcome();
         }
     }
 }

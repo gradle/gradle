@@ -23,7 +23,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import spock.lang.Unroll
 
 class ExecuteStepTest extends StepSpec {
-    def step = new ExecuteStep<InputChangesContext>()
+    def step = new ExecuteStep<InputChangesContext>(buildOperationExecutor)
     def inputChanges = Mock(InputChangesInternal)
     final InputChangesContext context = Stub()
 
@@ -38,6 +38,11 @@ class ExecuteStepTest extends StepSpec {
         context.inputChanges >> Optional.empty()
         work.execute(null, context) >> workResult
         0 * _
+
+        withOnlyOperation(ExecuteStep.Operation) {
+            assert it.descriptor.displayName == "Executing job ':test'"
+            assert it.result.outcome == expectedOutcome
+        }
 
         where:
         workResult                        | expectedOutcome
@@ -58,6 +63,11 @@ class ExecuteStepTest extends StepSpec {
         work.execute(null, context) >> { throw failure }
         0 * _
 
+        withOnlyOperation(ExecuteStep.Operation) {
+            assert it.descriptor.displayName == "Executing job ':test'"
+            assert it.failure == failure
+        }
+
         where:
         failure << [new RuntimeException(), new Error()]
     }
@@ -68,15 +78,20 @@ class ExecuteStepTest extends StepSpec {
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == outcome
+        result.outcome.get() == expectedOutcome
 
         context.inputChanges >> Optional.of(inputChanges)
         1 * inputChanges.incremental >> incrementalExecution
         work.execute(inputChanges, context) >> workResult
         0 * _
 
+        withOnlyOperation(ExecuteStep.Operation) {
+            assert it.descriptor.displayName == "Executing job ':test'"
+            assert it.result.outcome == expectedOutcome
+        }
+
         where:
-        incrementalExecution | workResult                        | outcome
+        incrementalExecution | workResult                        | expectedOutcome
         true                 | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_INCREMENTALLY
         false                | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
         true                 | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE

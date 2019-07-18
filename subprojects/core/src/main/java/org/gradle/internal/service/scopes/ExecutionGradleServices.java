@@ -66,6 +66,7 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedS
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -127,6 +128,7 @@ public class ExecutionGradleServices {
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
+        BuildOperationExecutor buildOperationExecutor,
         BuildScanPluginApplied buildScanPlugin,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionStateChangeDetector changeDetector,
@@ -158,8 +160,8 @@ public class ExecutionGradleServices {
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(
-            new ExecuteStep<>()
-        )))))))))))))))))))));
+            new ExecuteStep<>(buildOperationExecutor
+        ))))))))))))))))))))));
         // @formatter:on
     }
 }

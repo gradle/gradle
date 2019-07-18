@@ -160,8 +160,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
         new CleanupOutputsStep<>(
-        new ExecuteStep<>()
-    ))))))))))))))
+        new ExecuteStep<>(buildOperationExecutor
+    )))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(

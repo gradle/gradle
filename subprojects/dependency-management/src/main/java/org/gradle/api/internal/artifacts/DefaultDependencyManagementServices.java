@@ -243,6 +243,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          * Currently used for running artifact transformations in buildscript blocks.
          */
         WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
+            BuildOperationExecutor buildOperationExecutor,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
@@ -269,8 +270,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
                 new CleanupOutputsStep<>(
-                new ExecuteStep<>()
-            )))))))))))))));
+                new ExecuteStep<>(buildOperationExecutor
+            ))))))))))))))));
             // @formatter:on
         }
     }
