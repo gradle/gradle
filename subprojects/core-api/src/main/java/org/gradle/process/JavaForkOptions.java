@@ -250,6 +250,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param closure the Java debug configuration
      * @since 5.6
      */
+    @Incubating
     void debugOptions(Closure closure);
 
 
@@ -260,6 +261,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param action the Java debug configuration
      * @since 5.6
      */
+    @Incubating
     void debugOptions(Action<JavaDebugOptions> action);
 
     /**

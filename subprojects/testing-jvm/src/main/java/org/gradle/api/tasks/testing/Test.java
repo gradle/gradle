@@ -471,7 +471,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * {@inheritDoc}
-     * @param action
      */
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
