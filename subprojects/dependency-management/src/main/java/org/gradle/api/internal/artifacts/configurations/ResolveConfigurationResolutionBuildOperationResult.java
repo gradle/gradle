@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
@@ -27,6 +28,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
@@ -35,7 +38,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
     private final ResolutionResult resolutionResult;
@@ -93,11 +95,11 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
     // This does almost the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer.
     // Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a string instead.
-    private static final class LazyDesugaringAttributeContainer implements AttributeContainer {
+    private static final class LazyDesugaringAttributeContainer implements ImmutableAttributes {
 
         private final AttributeContainer source;
         private final ImmutableAttributesFactory attributesFactory;
-        private AttributeContainer desugared;
+        private ImmutableAttributes desugared;
 
         private LazyDesugaringAttributeContainer(AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
             this.source = source;
@@ -105,7 +107,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         }
 
         @Override
-        public Set<Attribute<?>> keySet() {
+        public ImmutableSet<Attribute<?>> keySet() {
             return getDesugared().keySet();
         }
 
@@ -135,7 +137,37 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
             return getDesugared().getAttributes();
         }
 
-        private AttributeContainer getDesugared() {
+        @Override
+        public ImmutableAttributes asImmutable() {
+            return getDesugared();
+        }
+
+        @Override
+        public <T> AttributeValue<T> findEntry(Attribute<T> key) {
+            return getDesugared().findEntry(key);
+        }
+
+        @Override
+        public AttributeValue<?> findEntry(String key) {
+            return getDesugared().findEntry(key);
+        }
+
+        @Override
+        public String toString() {
+            return getDesugared().toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return getDesugared().equals(obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return getDesugared().hashCode();
+        }
+
+        private ImmutableAttributes getDesugared() {
             if (desugared == null) {
                 desugarAttributes();
             }
@@ -149,15 +181,15 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
                 for (Attribute<?> attribute : source.keySet()) {
                     String name = attribute.getName();
                     Class<?> type = attribute.getType();
+                    Object attributeValue = source.getAttribute(attribute);
                     if (type.equals(Boolean.class)) {
-                        result.attribute((Attribute<Boolean>) attribute, (Boolean) source.getAttribute(attribute));
+                        result.attribute((Attribute<Boolean>) attribute, (Boolean) attributeValue);
                     } else if (type.equals(String.class)) {
-                        result.attribute((Attribute<String>) attribute, (String) source.getAttribute(attribute));
+                        result.attribute((Attribute<String>) attribute, (String) attributeValue);
                     } else if (type.equals(Integer.class)) {
-                        result.attribute((Attribute<Integer>) attribute, (Integer) source.getAttribute(attribute));
+                        result.attribute((Attribute<Integer>) attribute, (Integer) attributeValue);
                     } else {
                         // just serialize as a String as best we can
-                        Object attributeValue = source.getAttribute(attribute);
                         Attribute<String> stringAtt = Attribute.of(name, String.class);
                         String stringValue;
                         if (attributeValue instanceof Named) {
