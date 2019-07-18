@@ -426,7 +426,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             boolean managed,
             boolean providesOwnDynamicObject,
             boolean requiresServicesMethod,
-            boolean instantiatesNestedObjects
+            boolean requiresInstantiator
         ) {
             this.type = type;
             this.factoryId = factoryId;
@@ -440,7 +440,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             this.conventionAware = conventionAware;
             this.providesOwnDynamicObject = providesOwnDynamicObject;
             this.requiresServicesMethod = requiresServicesMethod;
-            this.requiresInstantiator = instantiatesNestedObjects;
+            this.requiresInstantiator = requiresInstantiator;
         }
 
         public void startClass() {

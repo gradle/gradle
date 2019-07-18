@@ -90,6 +90,8 @@ import java.util.stream.Collectors;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
+    private static final ImmutableSet<Class<?>> LAZY_PROPERTY_TYPES = ImmutableSet.of(ConfigurableFileCollection.class, ListProperty.class, SetProperty.class, MapProperty.class, RegularFileProperty.class, DirectoryProperty.class, Property.class);
+
     private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
@@ -140,7 +142,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // Also use the generated class for itself
             generatedClasses.put(generatedClass.generatedClass, generatedClass);
         }
-        return Cast.uncheckedCast(generatedClass);
+        return Cast.uncheckedNonnullCast(generatedClass);
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
@@ -358,7 +360,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         public Class<Object> getGeneratedClass() {
-            return Cast.uncheckedCast(generatedClass);
+            return Cast.uncheckedNonnullCast(generatedClass);
         }
 
         @Nullable
@@ -729,13 +731,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Nullable
         private Method findClosureOverload(Method method, Collection<Method> candidates) {
+            Class<?>[] methodParameterTypes = method.getParameterTypes();
             for (Method candidate : candidates) {
-                if (candidate.getParameterTypes().length != method.getParameterTypes().length) {
+                Class<?>[] candidateParameterTypes = candidate.getParameterTypes();
+                if (candidateParameterTypes.length != methodParameterTypes.length) {
                     continue;
                 }
                 boolean matches = true;
-                for (int i = 0; i < candidate.getParameterTypes().length - 1; i++) {
-                    if (!candidate.getParameterTypes()[i].equals(method.getParameterTypes()[i])) {
+                for (int i = 0; i < candidateParameterTypes.length - 1; i++) {
+                    if (!candidateParameterTypes[i].equals(methodParameterTypes[i])) {
                         matches = false;
                         break;
                     }
@@ -861,14 +865,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             // Property is readable and all getters and setters are abstract
             if (property.setters.isEmpty()) {
-                if (property.getType().equals(ConfigurableFileCollection.class)
-                    || property.getType().equals(ListProperty.class)
-                    || property.getType().equals(SetProperty.class)
-                    || property.getType().equals(MapProperty.class)
-                    || property.getType().equals(RegularFileProperty.class)
-                    || property.getType().equals(DirectoryProperty.class)
-                    || property.getType().equals(Property.class)
-                ) {
+                if (LAZY_PROPERTY_TYPES.contains(property.getType())) {
                     // Read-only property with managed type
                     readOnlyProperties.add(property);
                     return true;
