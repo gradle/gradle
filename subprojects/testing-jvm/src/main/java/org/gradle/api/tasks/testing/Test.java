@@ -1005,7 +1005,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Internal
     public long getForkEvery() {
-        return forkEvery;
+        return getDebug() ? 0 : forkEvery;
     }
 
     /**
