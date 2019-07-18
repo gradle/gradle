@@ -41,7 +41,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
             version = '2.0'
             
             dependencies {
-                compile "org.test:dep:latest.integration"
+                implementation "org.test:dep:latest.integration"
             }
         """
         file("src/main/java/Main.java") << """
@@ -53,7 +53,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         depProject = singleProjectBuild("dep") {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     group = 'org.test'
                 }
             """
@@ -256,8 +256,8 @@ The following types/formats are supported:
             version = '2.0'
             
             dependencies {
-                compile "org.test:dep:1.3.0"
-                compile "org.test:dep:1.4.0"
+                implementation "org.test:dep:1.3.0"
+                implementation "org.test:dep:1.4.0"
             }
         """
         def commit = repo.commit('initial commit')
@@ -359,7 +359,7 @@ The following types/formats are supported:
             project(':bar') {
                 apply plugin: 'java'
                 dependencies {
-                    compile 'org.test:dep:latest.integration'
+                    implementation 'org.test:dep:latest.integration'
                 }
             }
 
@@ -368,7 +368,7 @@ The following types/formats are supported:
             }
 
             dependencies {
-                compile project(':bar')
+                implementation project(':bar')
             }
         """
         def commit = repo.commit('initial commit')

@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.GradleException;
@@ -36,13 +35,14 @@ import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.List;
+import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,7 +58,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private RootBuildState rootBuild;
     private final Map<BuildIdentifier, BuildState> builds = Maps.newHashMap();
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
-    private final List<IncludedBuildState> pendingIncludedBuilds = Lists.newArrayList();
+    private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeScopeServices rootServices) {
         this.includedBuildFactory = includedBuildFactory;
@@ -145,7 +145,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         SettingsInternal settings = getRootBuild().getLoadedSettings();
         SetMultimap<String, IncludedBuildState> names = LinkedHashMultimap.create();
         while (!pendingIncludedBuilds.isEmpty()) {
-            IncludedBuildState build = pendingIncludedBuilds.remove(0);
+            IncludedBuildState build = pendingIncludedBuilds.removeFirst();
             build.loadSettings();
             String buildName = build.getName();
             names.put(buildName, build);

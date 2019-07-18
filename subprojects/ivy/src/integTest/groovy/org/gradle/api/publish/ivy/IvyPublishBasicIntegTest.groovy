@@ -159,4 +159,36 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         then:
         failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
+
+    def "publishes to all defined repositories"() {
+        given:
+        def ivyRepo2 = ivy("ivy-repo-2")
+
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url "${ivyRepo2.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication)
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
+        def module2 = ivyRepo2.module('org.gradle.test', 'root', '1.0')
+        module2.assertPublished()
+    }
+
 }

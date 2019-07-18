@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.instantiation.InstantiationScheme;
 
 import javax.annotation.Nullable;
 
@@ -40,13 +40,13 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
     }
 
     @Override
-    public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-        return new PropertyAssociationTaskFactory(delegate.createChild(project, instantiator), propertyWalker);
+    public ITaskFactory createChild(ProjectInternal project, InstantiationScheme instantiationScheme) {
+        return new PropertyAssociationTaskFactory(delegate.createChild(project, instantiationScheme), propertyWalker);
     }
 
     @Override
-    public <S extends Task> S create(TaskIdentity<S> taskIdentity, Object... args) {
-        final S task = delegate.create(taskIdentity, args);
+    public <S extends Task> S create(TaskIdentity<S> taskIdentity, @Nullable Object[] constructorArgs) {
+        final S task = delegate.create(taskIdentity, constructorArgs);
         TaskPropertyUtils.visitProperties(propertyWalker, (TaskInternal) task, new Listener(task));
         return task;
     }

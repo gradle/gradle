@@ -20,6 +20,7 @@ apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gra
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("instantExecution")
+include("instantExecutionReport")
 include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")
@@ -33,6 +34,7 @@ include("dependencyManagement")
 include("wrapper")
 include("cli")
 include("launcher")
+include("bootstrap")
 include("messaging")
 include("resources")
 include("resourcesHttp")
@@ -101,7 +103,9 @@ include("persistentCache")
 include("buildCache")
 include("coreApi")
 include("versionControl")
+include("fileCollections")
 include("files")
+include("hashing")
 include("snapshots")
 include("architectureTest")
 include("buildCachePackaging")
@@ -115,6 +119,8 @@ include("kotlinDslToolingModels")
 include("kotlinDslToolingBuilders")
 include("kotlinDslTestFixtures")
 include("kotlinDslIntegTests")
+include("workerProcesses")
+include("pineapple")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -127,15 +133,8 @@ rootProject.name = "gradle"
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = hashSetOf(
     "distributions",
-    "wrapper",
     "docs",
-    "performance",
-    "testing-base",
-    "testing-jvm",
-    "testing-junit-platform",
-    "test-kit",
-    "smoke-test",
-    "version-control"
+    "performance"
 )
 
 fun buildFileNameFor(projectDirName: String) =

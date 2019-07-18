@@ -43,6 +43,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         this.versionRangeMapper = versionRangeMapper;
     }
 
+    @Override
     public List<Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
         Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
         Map<ModuleDependency, Conf2ScopeMapping> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, dependencyToConfigurations);

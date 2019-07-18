@@ -36,12 +36,15 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
         this.delegate = delegate;
     }
 
+    @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
 
         return delegate.execute(new CopyActionProcessingStream() {
+            @Override
             public void process(final CopyActionProcessingStreamAction action) {
                 stream.process(new CopyActionProcessingStreamAction() {
+                    @Override
                     public void processFile(FileCopyDetailsInternal details) {
                         if (!details.isDirectory()) {
                             DuplicatesStrategy strategy = details.getDuplicatesStrategy();

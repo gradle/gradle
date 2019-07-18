@@ -27,14 +27,17 @@ class DefaultAppliedPlugin implements AppliedPlugin {
         this.pluginId = pluginId;
     }
 
+    @Override
     public String getId() {
         return pluginId.toString();
     }
 
+    @Override
     public String getNamespace() {
         return pluginId.getNamespace();
     }
 
+    @Override
     public String getName() {
         return pluginId.getName();
     }

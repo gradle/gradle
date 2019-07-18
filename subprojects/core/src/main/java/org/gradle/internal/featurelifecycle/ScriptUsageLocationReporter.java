@@ -43,6 +43,7 @@ public class ScriptUsageLocationReporter implements ScriptExecutionListener, Usa
         }
     }
 
+    @Override
     public void reportLocation(FeatureUsage usage, StringBuilder target) {
         lock.lock();
         try {

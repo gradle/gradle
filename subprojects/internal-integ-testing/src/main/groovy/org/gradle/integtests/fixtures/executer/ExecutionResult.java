@@ -17,10 +17,12 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
-import java.util.List;
-import java.util.Set;
-
 public interface ExecutionResult {
+    /**
+     * Returns a copy of this result that ignores `buildSrc` tasks.
+     */
+    ExecutionResult getIgnoreBuildSrc();
+
     /**
      * Stdout of the Gradle execution, normalized to use new-line char as line separator.
      *
@@ -111,36 +113,29 @@ public interface ExecutionResult {
     ExecutionResult assertHasPostBuildOutput(String expectedOutput);
 
     /**
-     * Returns the tasks have been executed in order started (includes tasks that were skipped). Asserts that each task appears once only. Note: ignores buildSrc tasks.
-     *
-     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
-     */
-    List<String> getExecutedTasks();
-
-    /**
-     * Asserts that exactly the given set of tasks have been executed in the given order. Note: ignores buildSrc tasks.
+     * Asserts that exactly the given set of tasks have been executed in the given order.
      * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
      * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
      */
     ExecutionResult assertTasksExecutedInOrder(Object... taskPaths);
 
     /**
-     * Asserts that exactly the given set of tasks have been executed in any order. Note: ignores buildSrc tasks.
+     * Asserts that exactly the given set of tasks have been executed in any order.
      */
     ExecutionResult assertTasksExecuted(Object... taskPaths);
 
     /**
-     * Asserts that the given task has been executed. Note: ignores buildSrc tasks.
+     * Asserts that the given task has been executed.
      */
     ExecutionResult assertTaskExecuted(String taskPath);
 
     /**
-     * Asserts that exactly the given set of tasks have been executed in any order and none of the tasks were skipped. Note: ignores buildSrc tasks.
+     * Asserts that exactly the given set of tasks have been executed in any order and none of the tasks were skipped.
      */
     ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths);
 
     /**
-     * Asserts that the given task has not been executed. Note: ignores buildSrc tasks.
+     * Asserts that the given task has not been executed.
      */
     ExecutionResult assertTaskNotExecuted(String taskPath);
 
@@ -152,29 +147,22 @@ public interface ExecutionResult {
     ExecutionResult assertTaskOrder(Object... taskPaths);
 
     /**
-     * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
-     *
-     * <p>You should avoid using this method, as as doing so not provide useful context on assertion failure. Instead, use the more descriptive assertion methods
-     */
-    Set<String> getSkippedTasks();
-
-    /**
-     * Asserts that exactly the given set of tasks have been skipped. Note: ignores buildSrc tasks.
+     * Asserts that exactly the given set of tasks have been skipped.
      */
     ExecutionResult assertTasksSkipped(Object... taskPaths);
 
     /**
-     * Asserts the given task has been skipped. Note: ignores buildSrc tasks.
+     * Asserts the given task has been skipped.
      */
     ExecutionResult assertTaskSkipped(String taskPath);
 
     /**
-     * Asserts that exactly the given set of tasks have not been skipped. Note: ignores buildSrc tasks.
+     * Asserts that exactly the given set of tasks have not been skipped.
      */
     ExecutionResult assertTasksNotSkipped(Object... taskPaths);
 
     /**
-     * Asserts that the given task has not been skipped. Note: ignores buildSrc tasks.
+     * Asserts that the given task has not been skipped.
      */
     ExecutionResult assertTaskNotSkipped(String taskPath);
 }

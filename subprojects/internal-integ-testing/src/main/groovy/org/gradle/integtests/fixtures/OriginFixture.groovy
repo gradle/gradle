@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
-import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -95,13 +94,13 @@ class OriginFixture extends UserInitScriptExecuterFixture {
         origins.clear()
         rawOrigins.each {
             origins[it.key] = it.value == null ? null : new OriginMetadata(
-                UniqueId.from(it.value.buildInvocationId as String),
+                it.value.buildInvocationId as String,
                 it.value.executionTime as long
             )
         }
     }
 
-    UniqueId originId(String path) {
+    String originId(String path) {
         origin(path)?.buildInvocationId
     }
 

@@ -15,26 +15,36 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":reporting"))
+    implementation(project(":plugins"))
+    implementation(project(":workers"))
+    implementation(project(":dependencyManagement")) // Required by JavaScriptExtension#getGoogleApisRepository()
 
-    compile(library("rhino"))
-    compile(library("gson")) // used by JsHint.coordinates
-    compile(library("simple")) // used by http package in envjs.coordinates
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":workers"))
-    compile(library("inject"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("commons_io"))
+    implementation(library("inject"))
+    implementation(library("rhino"))
+    implementation(library("gson")) // used by JsHint.coordinates
+    implementation(library("simple")) // used by http package in envjs.coordinates
+    
+    testImplementation(testFixtures(project(":core")))
 
-    // Required by JavaScriptExtension#getGoogleApisRepository()
-    compile(project(":dependencyManagement"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

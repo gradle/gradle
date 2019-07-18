@@ -18,6 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.operations.BuildOperationRef
+import org.gradle.workers.WorkerExecution
+import org.gradle.workers.WorkerParameters
 import spock.lang.Specification
 
 class WorkerDaemonClientTest extends Specification {
@@ -56,11 +58,19 @@ class WorkerDaemonClientTest extends Specification {
 
     WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
+        def actionExecutionSpecFactory = Stub(ActionExecutionSpecFactory) {
+            newTransportableSpec(_) >> { Mock(TransportableActionExecutionSpec) }
+        }
         def workerProcess = workerDaemonProcess.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO)
+        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, LogLevel.INFO, actionExecutionSpecFactory)
     }
 
     def spec() {
-        return new SerializedParametersActionExecutionSpec(Runnable.class, "test", [] as Object[], null)
+        return new SimpleActionExecutionSpec(TestWorkerExecution, "test", null, null)
+    }
+
+    static abstract class TestWorkerExecution implements WorkerExecution<WorkerParameters.None> {
+        @Override
+        void execute() { }
     }
 }

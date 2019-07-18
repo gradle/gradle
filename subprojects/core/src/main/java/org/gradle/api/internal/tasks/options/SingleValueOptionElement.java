@@ -37,6 +37,7 @@ public class SingleValueOptionElement extends AbstractOptionElement {
         notationParser = createNotationParserOrFail(notationParserFactory, optionName, optionType, setter.getDeclaringClass());
     }
 
+    @Override
     public Set<String> getAvailableValues() {
         ValueCollectingDiagnosticsVisitor visitor = new ValueCollectingDiagnosticsVisitor();
         notationParser.describe(visitor);

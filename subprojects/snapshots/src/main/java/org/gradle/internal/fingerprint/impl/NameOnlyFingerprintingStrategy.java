@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -34,9 +35,10 @@ import java.util.Map;
 public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+    public static final String IDENTIFIER = "NAME_ONLY";
 
     private NameOnlyFingerprintingStrategy() {
-        super("NAME_ONLY", NormalizedPathFingerprintCompareStrategy.INSTANCE);
+        super(IDENTIFIER);
     }
 
     @Override
@@ -64,7 +66,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(
@@ -83,5 +85,10 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             });
         }
         return builder.build();
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORT;
     }
 }

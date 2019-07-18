@@ -37,6 +37,7 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
         rootClassLoader = new FilteringClassLoader(parent, filterSpec);
     }
 
+    @Override
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof SystemClassLoaderSpec) {
             return rootClassLoader;

@@ -1,0 +1,3 @@
+rootProject.name = 'android-3.5-minimal'
+
+include ':app'

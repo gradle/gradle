@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
@@ -30,14 +31,17 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         this.rootDir = new TestFile(rootDir);
     }
 
+    @Override
     public TestFile sourceFile(String path) {
         return rootDir.file("src/main/java", path);
     }
 
+    @Override
     public TestFile resourceFile(String path) {
         return rootDir.file("src/main/resources", path);
     }
 
+    @Override
     public void buildJar(File jarFile) {
         buildJar(jarFile, false);
     }
@@ -48,10 +52,11 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
                 throw new IllegalStateException("Couldn't delete file " + jarFile);
             }
         }
+        String conf = executer.getDistribution().getVersion().compareTo(GradleVersion.version("3.4")) < 0 ? "compile" : "implementation";
         rootDir.file("settings.gradle").touch();
         rootDir.file("build.gradle").writelns(
                 "apply plugin: 'java'",
-                "dependencies { compile gradleApi() }",
+                String.format("dependencies { %s gradleApi() }", conf),
                 String.format("jar.destinationDir = file('%s')", FilenameUtils.separatorsToUnix(jarFile.getParent())),
                 String.format("jar.archiveName = '%s'", jarFile.getName()),
                 // disable jar file caching to prevent file locking

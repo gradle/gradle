@@ -80,6 +80,7 @@ include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/k
 In short, a configuration role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
 
 .Configuration roles
+[options="header"]
 |===
 |Configuration role|can be resolved|can be consumed
 |Bucket of dependencies|false|false
@@ -102,15 +103,15 @@ We may, for example, want to expose the test fixtures of a component too.
 But then, the consumer needs to explain _what_ configuration to consume, and this is done by setting _attributes_ on both the _consumer_ and _producer_ ends.
 
 Attributes consist of a _name_ and a _value_ pair.
-Gradle comes with a standard attribute named `org.gradle.usage` specifically to deal with the concept of selecting the right variant of a component based on the usage of the consumer (compile, runtime ...).
+Gradle comes with standard attributes named `org.gradle.usage`, `org.gradle.category` and `org.gradle.libraryelements` specifically to deal with the concept of selecting the right variant of a component based on the usage of the consumer (compile, runtime ...).
 It is however possible to define an arbitrary number of attributes.
-As a producer, I can express that a consumable configuration represents the API of a component by attaching the `(org.gradle.usage,JAVA_API)` attribute to the configuration.
-As a consumer, I can express that I need the API of the dependencies of a resolvable configuration by attaching the `(org.gradle.usage,JAVA_API)` attribute to it.
+As a producer, I can express that a consumable configuration represents the API of a component by attaching the `org.gradle.usage=java-api` attribute to the configuration.
+As a consumer, I can express that I need the API of the dependencies of a resolvable configuration by attaching the `org.gradle.usage=java-api` attribute to it.
 Now Gradle has a way to _automatically select the appropriate variant_ by looking at the configuration attributes:
 
-- the consumer wants `org.gradle.usage=JAVA_API`
-- the dependent project exposes 2 different variants. One with `org.gradle.usage=JAVA_API`, the other with `org.gradle.usage=JAVA_RUNTIME`.
-- Gradle selects the `org.gradle.usage=JAVA_API` variant
+- the consumer wants `org.gradle.usage=java-api`
+- the dependent project exposes 2 different variants. One with `org.gradle.usage=java-api`, the other with `org.gradle.usage=java-runtime`.
+- Gradle selects the `org.gradle.usage=java-api` variant
 
 In other words: attributes are used to perform the selection based on the values of the attributes.
 It doesn't matter what the names of the configurations are: only the attributes matter.
@@ -152,7 +153,7 @@ include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/k
 ====
 
 [[sec:abm_compatibility_rules]]
-== Attribute compatibility rules
+=== Attribute compatibility rules
 
 Attributes let the engine select _compatible variants_.
 However, there are cases where a provider may not have _exactly_ what the consumer wants, but still something that it can use.
@@ -165,7 +166,7 @@ The role of a compatibility rule is to explain what variants are _compatible_ wi
 Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 
 [[sec:abm_disambiguation_rules]]
-== Attribute disambiguation rules
+=== Attribute disambiguation rules
 
 Because multiple values for an attribute can be _compatible_ with the requested attribute, Gradle needs to choose between the candidates.
 This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
@@ -177,22 +178,22 @@ Attribute disambiguation rules have to be registered via the link:{javadocPath}/
 
 As described in <<sec:abm_configuration_kinds,different kinds of configurations>>, there may be different variants for the same dependency.
 For example, an external Maven dependency has a variant which should be used when compiling against the dependency (`java-api`), and a variant for running an application which uses the dependency (`java-runtime`).
-A project dependency has even more variants, for example the classes of the project which are used for compilation are available as classes directories (`java-api-classes`) or as JARs (`java-api-jars`).
+A project dependency has even more variants, for example the classes of the project which are used for compilation are available as classes directories (`org.gradle.usage=java-api, org.gradle.libraryelements=classes`) or as JARs (`org.gradle.usage=java-api, org.gradle.libraryelements=jar`).
 
 The variants of a dependency may differ in its transitive dependencies or in the artifact itself.
 For example, the `java-api` and `java-runtime` variants of a Maven dependency only differ in the transitive dependencies and both use the same artifact - the JAR file.
-For a project dependency, the `java-api-classes` and the `java-api-jars` variants have the same transitive dependencies and different artifacts - the classes directories and the JAR files respectively.
+For a project dependency, the `java-api,classes` and the `java-api,jars` variants have the same transitive dependencies and different artifacts - the classes directories and the JAR files respectively.
 
 Gradle identifies a variant of a dependency uniquely by its set of <<sec:abm_configuration_attributes,attributes>>.
-The `java-api` variant of a dependency is the variant identified by the `usage` attribute with value `java-api`.
+The `java-api` variant of a dependency is the variant identified by the `org.gradle.usage` attribute with value `java-api`.
 
 When Gradle resolves a configuration, the <<sec:abm_configuration_attributes,attributes>> on the resolved configuration determine the _requested attributes_.
 For all dependencies in the configuration, the variant with the requested attributes is selected when resolving the configuration.
-For example, when the configuration requests `usage=java-api-classes` on a project dependency, then the classes directory is selected as the artifact.
+For example, when the configuration requests `org.gradle.usage=java-api, org.gradle.libraryelements=classes` on a project dependency, then the classes directory is selected as the artifact.
 
 When the dependency does not have a variant with the requested attributes, resolving the configuration fails.
 Sometimes it is possible to transform the artifact of the dependency into the requested variant without changing the transitive dependencies.
-For example, unzipping a JAR transforms the artifact of the `java-api-jars` variant into the `java-api-classes` variant.
+For example, unzipping a JAR transforms the artifact of the `java-api,jars` variant into the `java-api,classes` variant.
 Such a transformation is called _Artifact Transform_.
 Gradle allows registering artifact transforms, and when the dependency does not have the requested variant, then Gradle will try to find a chain of artifact transforms for creating the variant.
 
@@ -201,7 +202,7 @@ Gradle allows registering artifact transforms, and when the dependency does not 
 As described above, when Gradle resolves a configuration and a dependency in the configuration does not have a variant with the requested attributes, Gradle tries to find a chain of artifact transforms to create the variant.
 The process of finding a matching chain of artifact transforms is called _artifact transform selection_.
 Each registered transform converts from a set of attributes to a set of attributes.
-For example, the unzip transform can convert from `usage=java-api-jars` to `usage=java-api-classes`.
+For example, the unzip transform can convert from `org.gradle.usage=java-api, org.gradle.libraryelements=jars` to `org.gradle.usage=java-api, org.gradle.libraryelements=classes`.
 
 In order to find a chain, Gradle starts with the requested attributes and then considers all transforms which modify some of the requested attributes as possible paths leading there.
 Going backwards, Gradle tries to obtain a path to some existing variant using transforms.
@@ -236,22 +237,22 @@ As soon as Gradle finishes resolving the artifacts for the variant, either by do
 Gradle executes the transform chains in parallel when possible.
 
 Picking up the minify example above, consider a configuration with two dependencies, the external `guava` dependency and a project dependency on the `producer` project.
-The configuration has the attributes `usage=java-runtime-jars,minified=true`.
+The configuration has the attributes `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=true`.
 The external `guava` dependency has two variants:
 
-- `usage=java-runtime-jars,minified=false` and
-- `usage=java-api-jars,minified=false`.
+- `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false` and
+- `org.gradle.usage=java-api,org.gradle.libraryelements=jar,minified=false`.
 
-Using the minify transform, Gradle can convert the variant `usage=java-runtime-jars,minified=false` of `guava` to `usage=java-runtime-jars,minified=true`, which are the requested attributes.
+Using the minify transform, Gradle can convert the variant `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false` of `guava` to `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=true`, which are the requested attributes.
 The project dependency also has variants:
 
-- `usage=java-runtime-jars,minified=false`,
-- `usage=java-runtime-classes,minified=false`,
-- `usage=java-api-jars,minified=false`,
-- `usage=java-api-classes,minified=false`
+- `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false`,
+- `org.gradle.usage=java-runtime,org.gradle.libraryelements=classes,minified=false`,
+- `org.gradle.usage=java-api,org.gradle.libraryelements=jar,minified=false`,
+- `org.gradle.usage=java-api,org.gradle.libraryelements=classes,minified=false`
 - and a few more.
 
-Again, using the minify transform, Gradle can convert the variant `usage=java-runtime-jars,minified=false` of the project `producer` to `usage=java-runtime-jars,minified=true`, which are the requested attributes.
+Again, using the minify transform, Gradle can convert the variant `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false` of the project `producer` to `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=true`, which are the requested attributes.
 
 When the configuration is resolved, Gradle needs to download the `guava` JAR and minify it.
 Gradle also needs to execute the `producer:jar` task to generate the JAR artifact of the project and then minify it.

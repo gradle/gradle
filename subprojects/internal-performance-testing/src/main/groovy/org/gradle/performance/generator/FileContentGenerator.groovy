@@ -16,7 +16,9 @@
 
 package org.gradle.performance.generator
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.language.Language
+
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 abstract class FileContentGenerator {
@@ -25,7 +27,7 @@ abstract class FileContentGenerator {
         switch (config.dsl) {
             case KOTLIN:
                 return new KotlinDslFileContentGenerator(config)
-            case GROOVY:
+            case GradleDsl.GROOVY:
                 return new GroovyDslFileContentGenerator(config)
         }
     }
@@ -36,7 +38,7 @@ abstract class FileContentGenerator {
         this.config = config
     }
 
-    def generateBuildGradle(Integer subProjectNumber, DependencyTree dependencyTree) {
+    def generateBuildGradle(Language language, Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
             if (config.compositeBuild) {
@@ -51,6 +53,7 @@ abstract class FileContentGenerator {
         import org.gradle.util.GradleVersion
 
         ${missingJavaLibrarySupportFlag()}
+        ${noJavaLibraryPluginFlag()}
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
         
@@ -58,6 +61,15 @@ abstract class FileContentGenerator {
             ${config.repositories.join("\n            ")}
         }
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}             
+
+        allprojects {
+            dependencies{
+        ${
+            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.7') : ""
+        }
+            }
+        }
+
 
         ${tasksConfiguration()}
 
@@ -93,6 +105,8 @@ abstract class FileContentGenerator {
             }
             """ 
             ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
+
+            ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
             """
         }
     }
@@ -108,6 +122,9 @@ abstract class FileContentGenerator {
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
+        ${->
+            config.systemProperties.entrySet().collect { "systemProp.${it.key}=${it.value}" }.join("\n")
+        }
         """
     }
 
@@ -379,7 +396,7 @@ abstract class FileContentGenerator {
         if (plugin.contains('java')) {
             if (projectHasParents) {
                 return """
-                    if(missingJavaLibrarySupport) {
+                    if (missingJavaLibrarySupport || noJavaLibraryPlugin) {
                         ${imperativelyApplyPlugin("java")}
                     } else {
                         ${imperativelyApplyPlugin("java-library")}
@@ -402,15 +419,23 @@ abstract class FileContentGenerator {
                 it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
             }.join("\n            ")
         }
+        def block = """
+                    ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
+                    ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
+                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
+    
+                    $subProjectDependencies
+        """
         return """
             ${configurationsIfMissingJavaLibrarySupport(hasParent)}
-
-            dependencies {
-                ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
-                ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
-                ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
-
-                $subProjectDependencies
+            if (hasProperty("compileConfiguration")) {
+                dependencies {
+                    ${block.replace(api, 'compile').replace(implementation, 'compile').replace(testImplementation, 'testCompile')}
+                }
+            } else {
+                dependencies {
+                    $block
+                }
             }
         """
     }
@@ -430,6 +455,8 @@ abstract class FileContentGenerator {
     }
 
     protected abstract String missingJavaLibrarySupportFlag()
+
+    protected abstract String noJavaLibraryPluginFlag()
 
     protected abstract String tasksConfiguration()
 

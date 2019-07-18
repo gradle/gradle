@@ -43,6 +43,7 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
         visitor.candidate("String or CharSequence values").example("'org.gradle:gradle-core:1.0'");
     }
 
+    @Override
     public void convert(String notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         result.converted(createDependencyFromString(notation));
     }

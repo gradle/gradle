@@ -73,6 +73,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         this.status = status;
         this.attributesSchema = attributesSchema;
     }
+
     @Override
     public ComponentIdentifier getId() {
         return componentId;
@@ -314,6 +315,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return componentId;
         }
 
+        @Override
         public void addDependency(LocalOriginDependencyMetadata dependency) {
             definedDependencies.add(dependency);
         }

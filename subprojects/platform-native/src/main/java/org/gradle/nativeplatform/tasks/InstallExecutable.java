@@ -79,7 +79,7 @@ public class InstallExecutable extends DefaultTask {
         this.executable = objectFactory.fileProperty();
         this.installedExecutable.set(getLibDirectory().map(directory -> directory.file(executable.getAsFile().get().getName())));
         // A further work around for missing ability to skip task when input file is missing (see #getInputFileIfExists below)
-        dependsOn(executable);
+        getInputs().file(executable);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }

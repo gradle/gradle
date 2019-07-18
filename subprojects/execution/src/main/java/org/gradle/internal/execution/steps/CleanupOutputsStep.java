@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.Iterables;
-import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
@@ -58,7 +58,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         return delegate.execute(context);
     }
 
-    private void cleanupOverlappingOutputs(IncrementalContext context, UnitOfWork work) {
+    private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputProperties((name, type, roots) -> {

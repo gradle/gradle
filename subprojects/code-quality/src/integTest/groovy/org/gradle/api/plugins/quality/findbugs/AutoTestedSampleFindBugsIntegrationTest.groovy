@@ -21,8 +21,14 @@ import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
 class AutoTestedSampleFindBugsIntegrationTest extends AbstractAutoTestedSamplesTest {
+// TODO: Need to enable this for all possible autoTested samples in codeQuality
+//    @Test
+//    void runSamples() {
+//        runSamplesFrom("subprojects/code-quality/src/main")
+//    }
+
     @Test
-    void runSamples() {
+    void runFindBugsSamples() {
         executer.beforeExecute {
             noDeprecationChecks()
         }

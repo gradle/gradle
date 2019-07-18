@@ -18,17 +18,12 @@ package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
-import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
-import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-
-import javax.inject.Inject;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -36,7 +31,6 @@ import javax.inject.Inject;
  * @since 1.4
  */
 public class PublishToMavenRepository extends AbstractPublishToMaven {
-
     private MavenArtifactRepository repository;
 
     /**
@@ -70,23 +64,18 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
 
+        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         doPublish(publicationInternal, repository);
     }
 
     private void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
         new PublishOperation(publication, repository.getName()) {
             @Override
-            protected void publish() throws Exception {
-                MavenPublisher remotePublisher = new MavenRemotePublisher(getMavenRepositoryLocator(), getTemporaryDirFactory(), getRepositoryTransportFactory());
-                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(remotePublisher);
-                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
-                validatingPublisher.publish(publication.asNormalisedPublication(), repository);
+            protected void publish() {
+                MavenPublisher remotePublisher = getMavenPublishers().getRemotePublisher(getTemporaryDirFactory());
+                remotePublisher = new ValidatingMavenPublisher(remotePublisher);
+                remotePublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
-    }
-
-    @Inject
-    protected RepositoryTransportFactory getRepositoryTransportFactory() {
-        throw new UnsupportedOperationException();
     }
 }

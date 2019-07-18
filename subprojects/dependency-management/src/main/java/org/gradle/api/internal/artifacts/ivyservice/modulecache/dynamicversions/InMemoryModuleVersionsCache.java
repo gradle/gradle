@@ -34,6 +34,7 @@ public class InMemoryModuleVersionsCache extends AbstractModuleVersionsCache {
         this.delegate = delegate;
     }
 
+    @Override
     protected void store(ModuleAtRepositoryKey key, ModuleVersionsCacheEntry entry) {
         inMemoryCache.put(key, entry);
         if (delegate != null) {
@@ -41,6 +42,7 @@ public class InMemoryModuleVersionsCache extends AbstractModuleVersionsCache {
         }
     }
 
+    @Override
     protected ModuleVersionsCacheEntry get(ModuleAtRepositoryKey key) {
         ModuleVersionsCacheEntry entry = inMemoryCache.get(key);
         if (entry == null && delegate != null) {

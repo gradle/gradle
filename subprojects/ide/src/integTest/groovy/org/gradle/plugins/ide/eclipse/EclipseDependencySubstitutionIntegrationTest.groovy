@@ -33,7 +33,7 @@ allprojects {
 
 project(":project2") {
     dependencies {
-        compile group: "junit", name: "junit", version: "4.7"
+        implementation group: "junit", name: "junit", version: "4.7"
     }
 
     configurations.all {
@@ -66,7 +66,7 @@ project(":project2") {
     }
 
     dependencies {
-        compile "org.gradle:module1:1.0"
+        implementation "org.gradle:module1:1.0"
     }
 
     configurations.all {
@@ -95,7 +95,7 @@ project(":project2") {
     ${mavenCentralRepository()}
 
     dependencies {
-        compile project(":project1")
+        implementation project(":project1")
     }
 
     configurations.all {

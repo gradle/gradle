@@ -25,7 +25,18 @@ import java.util.jar.JarOutputStream
 
 class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
-    def "project can declare an API dependency"() {
+    private toggleCompileClasspathPackaging(boolean activate) {
+        if (activate) {
+            propertiesFile << """
+                systemProp.org.gradle.java.compile-classpath-packaging=true
+            """.trim()
+        }
+    }
+
+    @Unroll
+    def "project can declare an API dependency [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
+
         given:
         subproject('a') {
             'build.gradle'('''
@@ -61,7 +72,12 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging)
+
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
     def "uses the default configuration when producer is not a library"() {
@@ -147,7 +163,9 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "uses the API of a library when compiling a custom source set against it"() {
+    def "uses the API of a library when compiling a custom source set against it [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
+
         given:
         subproject('a') {
             'build.gradle'("""
@@ -188,7 +206,12 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging)
+
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
     @Unroll
@@ -234,7 +257,10 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         configuration << ['testCompile', 'testImplementation']
     }
 
-    def "recompiles consumer if API dependency of producer changed"() {
+    @Unroll
+    def "recompiles consumer if API dependency of producer changed [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
+
         publishSharedV1()
         publishSharedV11()
 
@@ -248,7 +274,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    compile project(':b')
+                    implementation project(':b')
                 }
             """)
             src {
@@ -286,7 +312,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':a:compileJava', ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging)
 
         when:
         file('b/build.gradle').text = file('b/build.gradle').text.replace(/api 'org.gradle.test:shared:1.0'/, '''
@@ -297,10 +323,18 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds ':a:compileJava', 'a:compileJava'
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging)
+
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
-    def "doesn't recompile consumer if implementation dependency of producer changed"() {
+    @Unroll
+    def "doesn't recompile consumer if implementation dependency of producer changed [compileClasspathPackaging=#compileClasspathPackaging]"() {
+        toggleCompileClasspathPackaging(compileClasspathPackaging)
+
         publishSharedV1()
         publishSharedV11()
 
@@ -310,7 +344,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java'
 
                 dependencies {
-                    compile project(':b')
+                    implementation project(':b')
                 }
             """)
             src {
@@ -348,7 +382,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':a:compileJava', ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging)
 
         when:
         file('b/build.gradle').text = file('b/build.gradle').text.replace(/implementation 'org.gradle.test:shared:1.0'/, '''
@@ -359,8 +393,13 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds 'a:compileJava'
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        packagingTasks(compileClasspathPackaging)
         skipped ':a:compileJava'
+
+        where:
+        compileClasspathPackaging | _
+        false                     | _
+        true                      | _
     }
 
     @Unroll
@@ -376,7 +415,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             
             task processDependency {
                 def lazyInputs = configurations.runtimeClasspath.incoming.artifactView {
-                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.${token})) }
+                    attributes{ attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${token})) }
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
@@ -398,9 +437,18 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":b:$notExec"
 
         where:
-        scenario              | token                    | expectedDirName     | executed           | notExec
-        'class directory'     | 'JAVA_RUNTIME_CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
-        'resources directory' | 'JAVA_RUNTIME_RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
+        scenario              | token       | expectedDirName     | executed           | notExec
+        'class directory'     | 'CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'resources directory' | 'RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
+    }
+
+    private void packagingTasks(boolean expectExecuted) {
+        def tasks = [':b:processResources', ':b:classes', ':b:jar']
+        if (expectExecuted) {
+            executed(*tasks)
+        } else {
+            notExecuted(*tasks)
+        }
     }
 
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {

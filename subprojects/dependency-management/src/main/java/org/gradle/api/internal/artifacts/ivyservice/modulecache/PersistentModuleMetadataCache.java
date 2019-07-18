@@ -109,11 +109,13 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {
         private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
 
+        @Override
         public void write(Encoder encoder, ModuleComponentAtRepositoryKey value) throws Exception {
             encoder.writeString(value.getRepositoryId());
             componentIdSerializer.write(encoder, value.getComponentId());
         }
 
+        @Override
         public ModuleComponentAtRepositoryKey read(Decoder decoder) throws Exception {
             String resolverId = decoder.readString();
             ModuleComponentIdentifier identifier = (ModuleComponentIdentifier) componentIdSerializer.read(decoder);

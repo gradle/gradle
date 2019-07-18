@@ -63,6 +63,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
+    @Override
     public <T> Action<T> decorate(String registrationPoint, Action<T> action) {
         UserCodeApplicationId applicationId = userCodeApplicationContext.current();
         if (applicationId == null || action instanceof InternalListener) {
@@ -71,6 +72,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return new BuildOperationEmittingAction<T>(applicationId, registrationPoint, action);
     }
 
+    @Override
     public <T> Closure<T> decorate(String registrationPoint, Closure<T> closure) {
         UserCodeApplicationId applicationId = userCodeApplicationContext.current();
         if (applicationId == null) {
@@ -79,6 +81,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return new BuildOperationEmittingClosure<T>(applicationId, registrationPoint, closure);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T decorate(String registrationPoint, Class<T> targetClass, T listener) {
         if (listener instanceof InternalListener || !isSupported(listener)) {
@@ -96,6 +99,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return targetClass.cast(Proxy.newProxyInstance(listenerClass.getClassLoader(), allInterfaces.toArray(new Class[0]), handler));
     }
 
+    @Override
     public Object decorateUnknownListener(String registrationPoint, Object listener) {
         return decorate(registrationPoint, Object.class, listener);
     }

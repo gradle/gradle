@@ -22,9 +22,8 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -36,11 +35,9 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private OverlappingOutputs overlappingOutputs;
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
-    private BeforeExecutionState beforeExecutionState;
+    private ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution;
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
-    private boolean taskCachingEnabled;
     private Long executionTime;
     private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
@@ -68,12 +65,12 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesBeforeExecution() {
         return outputFilesBeforeExecution;
     }
 
     @Override
-    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
+    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution) {
         this.outputFilesBeforeExecution = outputFilesBeforeExecution;
     }
 
@@ -87,15 +84,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.overlappingOutputs = overlappingOutputs;
     }
 
-    public Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return Optional.ofNullable(beforeExecutionState);
-    }
-
-    @Override
-    public void setBeforeExecutionState(BeforeExecutionState beforeExecutionState) {
-        this.beforeExecutionState = beforeExecutionState;
-    }
-
     @Override
     public TaskExecutionMode getTaskExecutionMode() {
         return taskExecutionMode;
@@ -106,6 +94,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.taskExecutionMode = taskExecutionMode;
     }
 
+    @Override
     public long markExecutionTime() {
         if (this.executionTime != null) {
             throw new IllegalStateException("execution time already set");
@@ -122,16 +111,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public TaskProperties getTaskProperties() {
         return properties;
-    }
-
-    @Override
-    public boolean isTaskCachingEnabled() {
-        return taskCachingEnabled;
-    }
-
-    @Override
-    public void setTaskCachingEnabled(boolean taskCachingEnabled) {
-        this.taskCachingEnabled = taskCachingEnabled;
     }
 
     @Override

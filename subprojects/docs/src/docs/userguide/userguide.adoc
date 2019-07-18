@@ -14,7 +14,7 @@
 
 = Gradle User Manual
 
-Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a link:http://groovy-lang.org/[Groovy] or link:https://kotlinlang.org/[Kotlin] DSL. Read about link:{website}/features/[Gradle features] to learn what is possible with Gradle.
+Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a link:https://groovy-lang.org/[Groovy] or link:https://kotlinlang.org/[Kotlin] DSL. Read about link:{website}/features/[Gradle features] to learn what is possible with Gradle.
 
  * **Highly customizable** — Gradle is modeled in a way that is customizable and extensible in the most fundamental ways.
  * **Fast** — Gradle completes tasks quickly by reusing outputs from previous executions, processing only inputs that changed, and executing tasks in parallel.
@@ -63,4 +63,4 @@ link:https://scans.gradle.com/[Gradle build scans] help you understand build res
 
 [.legalnotice]
 Gradle build tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
-Gradle user manual and DSL references are licensed under link:http://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
+Gradle user manual and DSL references are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].

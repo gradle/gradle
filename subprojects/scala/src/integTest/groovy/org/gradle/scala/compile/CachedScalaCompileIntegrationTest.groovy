@@ -41,7 +41,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             ${mavenCentralRepository()}
 
             dependencies {
-                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
+                implementation group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
             }
         """.stripIndent()
 
@@ -65,7 +65,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             ${mavenCentralRepository()}
             
             dependencies {
-                compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
+                implementation group: 'org.scala-lang', name: 'scala-library', version: '2.11.12'
             }
         """
         file('src/main/java/RequiredByScala.java') << """

@@ -27,4 +27,8 @@ public interface GroovyCompileSpec extends JvmLanguageCompileSpec {
     List<File> getGroovyClasspath();
 
     void setGroovyClasspath(List<File> classpath);
+
+    File getCompilationMappingFile();
+
+    void setCompilationMappingFile(File compilationMappingFile);
 }

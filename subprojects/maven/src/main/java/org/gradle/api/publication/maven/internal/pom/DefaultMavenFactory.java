@@ -33,10 +33,12 @@ public class DefaultMavenFactory implements MavenFactory {
         this.versionRangeMapper = versionRangeMapper;
     }
 
+    @Override
     public Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer conf2ScopeMappingContainer, FileResolver fileResolver) {
         return new DefaultMavenPomFactory(configurationContainer, conf2ScopeMappingContainer, createPomDependenciesConverter(), fileResolver);
     }
 
+    @Override
     public Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Map<Configuration, Conf2ScopeMapping> mappings, FileResolver fileResolver) {
         return new DefaultMavenPomFactory(configurationContainer, createConf2ScopeMappingContainer(mappings), createPomDependenciesConverter(), fileResolver);
     }
@@ -45,6 +47,7 @@ public class DefaultMavenFactory implements MavenFactory {
         return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter(), versionRangeMapper);
     }
 
+    @Override
     public Conf2ScopeMappingContainer createConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {
         return new DefaultConf2ScopeMappingContainer(mappings);
     }

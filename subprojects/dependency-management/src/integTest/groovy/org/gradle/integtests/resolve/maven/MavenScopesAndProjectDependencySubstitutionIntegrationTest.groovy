@@ -114,11 +114,11 @@ project(':child1') {
 project(':child2') {
     apply plugin: 'java'
     dependencies {
-        compile 'org.test:m1:1.0'
-        runtime 'org.test:m2:1.0'
+        implementation 'org.test:m1:1.0'
+        runtimeOnly 'org.test:m2:1.0'
         compileOnly 'org.test.ignore-me:1.0'
-        testCompile 'org.test.ignore-me:1.0'
-        testRuntime 'org.test.ignore-me:1.0'
+        testImplementation 'org.test.ignore-me:1.0'
+        testRuntimeOnly 'org.test.ignore-me:1.0'
         "default" 'org.test.ignore-me:1.0'
     }
 }
@@ -207,12 +207,12 @@ project(':child1') {
 project(':child2') {
     apply plugin: 'java'
     dependencies {
-        compile 'org.test:m1:1.0'
-        runtime 'org.test:m2:1.0'
+        implementation 'org.test:m1:1.0'
+        runtimeOnly 'org.test:m2:1.0'
         
         compileOnly 'org.test:ignore-me:1.0'
-        testCompile 'org.test:ignore-me:1.0'
-        testRuntime 'org.test:ignore-me:1.0'
+        testImplementation 'org.test:ignore-me:1.0'
+        testRuntimeOnly 'org.test:ignore-me:1.0'
         "default" 'org.test:ignore-me:1.0'
     }
 }

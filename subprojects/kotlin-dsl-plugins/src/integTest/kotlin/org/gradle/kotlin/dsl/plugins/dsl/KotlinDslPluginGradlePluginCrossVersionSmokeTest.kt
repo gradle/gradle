@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
@@ -66,9 +68,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 `kotlin-dsl`
             }
 
-            repositories {
-                jcenter()
-            }
+            ${RepoScriptBlockUtil.jcenterRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(kotlin("gradle-plugin", "$kotlinVersion"))

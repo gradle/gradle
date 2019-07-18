@@ -38,10 +38,12 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
         this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
+    @Override
     public void visitDir(FileVisitDetails dirDetails) {
         processDir(dirDetails);
     }
 
+    @Override
     public void visitFile(FileVisitDetails fileDetails) {
         processFile(fileDetails);
     }

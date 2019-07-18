@@ -23,25 +23,30 @@ plugins {
 description = "Package build cache results"
 
 dependencies {
-    api(project(":buildCache"))
-    api(project(":snapshots"))
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("inject"))
+    implementation(project(":baseServices"))
+    implementation(project(":native"))
+    implementation(project(":coreApi"))
+    implementation(project(":buildCache"))
+    implementation(project(":files"))
+    implementation(project(":snapshots"))
 
+    implementation(library("jsr305"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("inject"))
     implementation(library("commons_compress"))
     implementation(library("commons_io"))
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":fileCollections"))
+    testImplementation(project(":resources"))
+    
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":coreApi")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":baseServices")
-    from(":snapshots")
-    from(":core")
-    from(":coreApi")
 }

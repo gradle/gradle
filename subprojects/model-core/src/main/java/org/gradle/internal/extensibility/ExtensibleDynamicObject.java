@@ -138,6 +138,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         updateDelegates();
     }
 
+    @Override
     public Convention getConvention() {
         return convention;
     }

@@ -30,6 +30,7 @@ import org.gradle.api.Action;
  */
 public abstract class ErroringAction<T> implements Action<T> {
 
+    @Override
     public void execute(T thing) {
         try {
             doExecute(thing);

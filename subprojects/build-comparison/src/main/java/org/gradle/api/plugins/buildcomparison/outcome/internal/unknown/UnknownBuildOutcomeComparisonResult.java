@@ -25,6 +25,7 @@ public class UnknownBuildOutcomeComparisonResult extends BuildOutcomeComparisonR
         super(compared);
     }
 
+    @Override
     public boolean isOutcomesAreIdentical() {
         return false;
     }

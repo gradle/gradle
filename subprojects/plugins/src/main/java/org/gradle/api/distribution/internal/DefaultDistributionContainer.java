@@ -33,6 +33,7 @@ public class DefaultDistributionContainer extends AbstractNamedDomainObjectConta
         this.fileOperations = fileOperations;
     }
 
+    @Override
     protected Distribution doCreate(String name) {
         return getInstantiator().newInstance(DefaultDistribution.class, name, fileOperations.copySpec());
     }

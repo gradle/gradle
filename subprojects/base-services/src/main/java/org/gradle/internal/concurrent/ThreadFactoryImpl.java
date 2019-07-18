@@ -31,6 +31,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
         this.displayName = displayName;
     }
 
+    @Override
     public Thread newThread(Runnable r) {
         Thread thread = new Thread(new ManagedThreadRunnable(r));
         long count = counter.incrementAndGet();

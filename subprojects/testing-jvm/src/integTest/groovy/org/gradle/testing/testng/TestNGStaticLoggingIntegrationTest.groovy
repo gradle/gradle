@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.is
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.is
 
 class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -38,7 +38,7 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2841")
     def "captures output from logging frameworks"() {
         buildFile << """
-            dependencies { compile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
+            dependencies { implementation "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
 """
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;

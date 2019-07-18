@@ -24,7 +24,7 @@ import org.hamcrest.Matcher
 
 import static BuildInitDsl.GROOVY
 import static BuildInitDsl.KOTLIN
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 @CompileStatic
 class ScriptDslFixture {

@@ -44,6 +44,7 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
 
         if (sourceFileExists && targetFileExists) {
             if (CollectionUtils.every(getEntryComparisons(), new Spec<ArchiveEntryComparison>() {
+                @Override
                 public boolean isSatisfiedBy(ArchiveEntryComparison element) {
                     return element.getComparisonResultType() == ComparisonResultType.EQUAL;
                 }
@@ -61,6 +62,7 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
         }
     }
 
+    @Override
     public boolean isOutcomesAreIdentical() {
         return getComparisonResultType().equals(ComparisonResultType.EQUAL) || getComparisonResultType().equals(ComparisonResultType.NON_EXISTENT);
     }

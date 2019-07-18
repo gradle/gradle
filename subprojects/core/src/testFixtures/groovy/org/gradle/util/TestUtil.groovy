@@ -15,7 +15,6 @@
  */
 package org.gradle.util
 
-
 import org.gradle.api.Task
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
@@ -31,13 +30,13 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
@@ -49,6 +48,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
+    private static ManagedFactoryRegistry managedFactoryRegistry
     private static ServiceRegistry services
 
     private final File rootDir
@@ -67,6 +67,14 @@ class TestUtil {
         return instantiatorFactory
     }
 
+    static ManagedFactoryRegistry managedFactoryRegistry() {
+        if (managedFactoryRegistry == null) {
+            NativeServicesTestFixture.initialize()
+            managedFactoryRegistry = ProjectBuilderImpl.getGlobalServices().get(ManagedFactoryRegistry.class)
+        }
+        return managedFactoryRegistry
+    }
+
     static DomainObjectCollectionFactory domainObjectCollectionFactory() {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory(), services(), CollectionCallbackActionDecorator.NOOP, MutationGuards.identity())
     }
@@ -80,20 +88,24 @@ class TestUtil {
     }
 
     private static ObjectFactory objFactory(FileResolver fileResolver) {
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
     }
 
     private static ServiceRegistry services() {
         if (services == null) {
             services = new DefaultServiceRegistry()
-            services.add(ProviderFactory, new DefaultProviderFactory())
-            services.add(InstantiatorFactory, instantiatorFactory())
+            services.register {
+                it.add(DefaultProviderFactory)
+                it.add(InstantiatorFactory, instantiatorFactory())
+                it.add(TestCrossBuildInMemoryCacheFactory)
+                it.add(NamedObjectInstantiator)
+            }
         }
         return services
     }
 
     static NamedObjectInstantiator objectInstantiator() {
-        return NamedObjectInstantiator.INSTANCE
+        return services().get(NamedObjectInstantiator)
     }
 
     static FeaturePreviews featurePreviews(boolean gradleMetadataEnabled = false) {

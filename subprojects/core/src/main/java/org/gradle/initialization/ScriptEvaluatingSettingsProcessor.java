@@ -50,6 +50,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         this.textResourceLoader = textResourceLoader;
     }
 
+    @Override
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
                                     ClassLoaderScope buildRootClassLoaderScope,

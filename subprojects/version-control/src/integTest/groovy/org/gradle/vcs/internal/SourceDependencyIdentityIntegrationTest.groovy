@@ -120,7 +120,7 @@ Required by:
             include 'a'
         """
         repo.file("build.gradle") << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             dependencies { implementation project(':a') }
         """
         repo.commit("initial version")

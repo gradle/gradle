@@ -39,5 +39,6 @@ public interface ExternalModuleDependency extends ExternalDependency {
     /**
      * {@inheritDoc}
      */
+    @Override
     ExternalModuleDependency copy();
 }

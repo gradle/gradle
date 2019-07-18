@@ -121,7 +121,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         succeeds('jacocoTestReport')
 
         then:
-        skippedTasks.contains(":jacocoTestReport")
+        skipped(":jacocoTestReport")
         !file(REPORT_HTML_DEFAULT_PATH).exists()
 
         when:
@@ -131,7 +131,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         succeeds('jacocoTestReport')
 
         then:
-        executedTasks.contains(":jacocoTestReport")
+        executed(":jacocoTestReport")
         htmlReport().totalCoverage() == 100
     }
 
@@ -158,7 +158,7 @@ public class ThingTest {
                 otherMain
                 otherTest
             }
-            sourceSets.otherTest.compileClasspath = configurations.testCompile + sourceSets.otherMain.output
+            sourceSets.otherTest.compileClasspath = configurations.testCompileClasspath + sourceSets.otherMain.output
             sourceSets.otherTest.runtimeClasspath = sourceSets.otherTest.compileClasspath + sourceSets.otherTest.output
 
             task otherTests(type: Test) {
@@ -184,9 +184,9 @@ public class ThingTest {
         succeeds 'mergedReport'
 
         then:
-        ":jacocoMerge" in nonSkippedTasks
-        ":test" in nonSkippedTasks
-        ":otherTests" in nonSkippedTasks
+        executedAndNotSkipped(":jacocoMerge")
+        executedAndNotSkipped(":test")
+        executedAndNotSkipped(":otherTests")
         file("build/jacoco/jacocoMerge.exec").exists()
         htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 71
     }
@@ -223,7 +223,7 @@ public class ThingTest {
         succeeds 'test', 'jacocoTestReport'
 
         then:
-        ':jacocoTestReport' in nonSkippedTasks
+        executedAndNotSkipped ':jacocoTestReport'
     }
 
     def "skips report task if all of the execution data files do not exist"() {
@@ -238,8 +238,8 @@ public class ThingTest {
         succeeds 'test', 'jacocoTestReport'
 
         then:
-        ':test' in nonSkippedTasks
-        ':jacocoTestReport' in skippedTasks
+        executedAndNotSkipped ':test'
+        skipped ':jacocoTestReport'
     }
 
     def "fails report task if only some of the execution data files do not exist"() {
@@ -255,8 +255,8 @@ public class ThingTest {
         fails 'test', 'jacocoTestReport'
 
         then:
-        ':test' in nonSkippedTasks
-        ':jacocoTestReport' in executedTasks
+        executedAndNotSkipped(':test')
+        executed(':jacocoTestReport')
         failure.assertHasCause("Unable to read execution data file ${new File(testDirectory, execFileName)}")
     }
 

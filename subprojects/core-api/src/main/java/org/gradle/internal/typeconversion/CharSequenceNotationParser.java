@@ -19,6 +19,7 @@ package org.gradle.internal.typeconversion;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 class CharSequenceNotationParser implements NotationConverter<String, String> {
+    @Override
     public void convert(String notation, NotationConvertResult<? super String> result) throws TypeConversionException {
         result.converted(notation);
     }

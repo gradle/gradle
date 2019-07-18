@@ -31,7 +31,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
 
             task resolveLibs(type: Copy) {
                 ext.extractedDir = file("\$buildDir/libs")
-                from configurations.testCompile
+                from configurations.testCompileClasspath
                 into extractedDir
             }
 
@@ -47,7 +47,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         given:
         buildFile << """
             dependencies {
-                testCompile gradleTestKit()
+                testImplementation gradleTestKit()
             }
 
             verifyTestKitJars {
@@ -82,7 +82,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         when:
         buildFile << """
             dependencies {
-                testCompile gradleApi()
+                testImplementation gradleApi()
             }
             verifyTestKitJars {
                 doLast {
@@ -101,7 +101,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         given:
         buildFile << """
             dependencies {
-                testCompile gradleApi()
+                testImplementation gradleApi()
             }
         """
 

@@ -72,10 +72,12 @@ class BuildActionsFactory implements CommandLineAction {
         jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
     }
 
+    @Override
     public void configureCommandLineParser(CommandLineParser parser) {
         parametersConverter.configure(parser);
     }
 
+    @Override
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, new Parameters(fileCollectionFactory));
 

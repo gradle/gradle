@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.UsesNativeServices
 
 @UsesNativeServices
@@ -181,7 +181,7 @@ class CompositeFileCollectionTest extends Specification {
 
         @Override
         void visitContents(FileCollectionResolveContext context) {
-            context.add(sourceCollections)
+            context.addAll(sourceCollections)
         }
 
         @Override

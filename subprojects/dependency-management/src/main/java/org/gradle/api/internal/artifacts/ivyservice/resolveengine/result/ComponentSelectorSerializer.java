@@ -58,6 +58,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         attributeContainerSerializer.reset();
     }
 
+    @Override
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
@@ -124,6 +125,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         }
     }
 
+    @Override
     public void write(Encoder encoder, ComponentSelector value) throws IOException {
         if (value == null) {
             throw new IllegalArgumentException("Provided component selector may not be null");

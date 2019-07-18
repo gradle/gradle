@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestExecutionResult;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -44,9 +43,7 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
             }
         }));
 
-        if (OperatingSystem.current().isLinux()) {
-            result.add(getLinuxMainSourceFile(getTestSuites()));
-        }
+        result.add(getLinuxMainSourceFile(getTestSuites()));
         return result;
     }
 
@@ -70,7 +67,7 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         }
         content.append("])\n");
 
-        return new SourceFile("swift", "main.swift", content.toString());
+        return new SourceFile("swift", "LinuxMain.swift", content.toString());
     }
 
     @Override

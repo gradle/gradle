@@ -39,14 +39,17 @@ public class DefaultCacheRepository implements CacheRepository {
         this.factory = factory;
     }
 
+    @Override
     public CacheBuilder cache(String key) {
         return new PersistentCacheBuilder(null, key);
     }
 
+    @Override
     public CacheBuilder cache(File baseDir) {
         return new PersistentCacheBuilder(baseDir);
     }
 
+    @Override
     public CacheBuilder cache(@Nullable Object scope, String key) {
         return new PersistentCacheBuilder(scope, key);
     }
@@ -75,6 +78,7 @@ public class DefaultCacheRepository implements CacheRepository {
             this.baseDir = baseDir;
         }
 
+        @Override
         public CacheBuilder withProperties(Map<String, ?> properties) {
             this.properties = properties;
             return this;
@@ -87,16 +91,19 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
+        @Override
         public CacheBuilder withDisplayName(String displayName) {
             this.displayName = displayName;
             return this;
         }
 
+        @Override
         public CacheBuilder withLockOptions(LockOptions lockOptions) {
             this.lockOptions = lockOptions;
             return this;
         }
 
+        @Override
         public CacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
             this.initializer = initializer;
             return this;
@@ -108,6 +115,7 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
+        @Override
         public PersistentCache open() {
             File cacheBaseDir;
             if (baseDir != null) {

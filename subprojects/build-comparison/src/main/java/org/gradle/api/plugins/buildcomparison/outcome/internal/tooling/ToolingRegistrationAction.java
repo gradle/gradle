@@ -21,6 +21,7 @@ import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 public class ToolingRegistrationAction implements ProjectConfigureAction {
+    @Override
     public void execute(ProjectInternal project) {
         project.getServices().get(ToolingModelBuilderRegistry.class).register(new ProjectOutcomesModelBuilder());
     }

@@ -797,6 +797,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         Action<Project> action = new Action<Project>() {
+            @Override
             public void execute(Project project) {
                 foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
             }
@@ -816,6 +817,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         }
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
+            @Override
             public void execute(Project project) {
                 // Don't force evaluation of rules here, let the task container do what it needs to
                 ((ProjectInternal) project).evaluate();
@@ -1051,6 +1053,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public Map<String, ?> getProperties() {
         return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
+            @Override
             public Map<String, ?> create() {
                 return extensibleDynamicObject.getProperties();
             }
@@ -1087,6 +1090,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().copySpec();
     }
 
+    @Override
     @Inject
     public ProcessOperations getProcessOperations() {
         // Decoration takes care of the implementation

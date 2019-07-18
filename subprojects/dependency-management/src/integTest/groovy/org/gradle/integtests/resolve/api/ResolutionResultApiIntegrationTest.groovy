@@ -418,4 +418,273 @@ baz:1.0 requested
         noExceptionThrown()
 
     }
+
+    def "each dependency is associated to its resolved variant"() {
+        mavenRepo.module("org", "dep", "1.0").publish()
+        mavenRepo.module("com", "foo", "1.0").publish()
+        mavenRepo.module("com", "bar", "1.0").publish()
+        mavenRepo.module("com", "baz", "1.0").publish()
+        settingsFile << """
+            include 'lib', 'tool'
+        """
+        buildFile << """
+            allprojects {
+               repositories {
+                  maven { url "${mavenRepo.uri}" }
+               }
+
+                apply plugin: 'java-library'
+            }
+            
+            project(":lib") {
+                dependencies {
+                   api "org:dep:1.0"
+                }
+            }
+            
+            project(":tool") {
+                apply plugin: 'java-test-fixtures'
+                dependencies {
+                    api "com:baz:1.0"
+                    testFixturesApi "com:foo:1.0"
+                    testFixturesImplementation "com:bar:1.0"
+                }
+            }
+            
+            dependencies {
+                implementation(project(":lib"))
+                testImplementation(testFixtures(project(":tool")))
+                testImplementation(testFixtures(project(":tool"))) // intentional duplication
+            }
+            
+
+        """
+        withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        outputContains """
+testCompileClasspath
+   project :lib (apiElements)
+      org:dep:1.0 (compile)
+   project :tool (testFixturesApiElements)
+      project :tool (apiElements)
+         com:baz:1.0 (compile)
+      com:foo:1.0 (compile)
+"""
+
+        and:
+        outputContains """testRuntimeClasspath
+   project :lib (runtimeElements)
+      org:dep:1.0 (runtime)
+   project :tool (testFixturesRuntimeElements)
+      project :tool (runtimeElements)
+         com:baz:1.0 (runtime)
+      com:foo:1.0 (runtime)
+      com:bar:1.0 (runtime)
+"""
+    }
+
+    def "requested dependency attributes are reported on dependency result as desugared attributes"() {
+        settingsFile << "include 'platform'"
+        buildFile << """
+            project(":platform") {
+                apply plugin: 'java-platform'
+            }
+            
+            apply plugin: 'java-library'
+            
+            dependencies {
+                implementation(platform(project(":platform")))
+            }
+            
+            task checkDependencyAttributes {
+                doLast {
+                    configurations.compileClasspath.incoming.resolutionResult.root.dependencies.each {
+                        def desugaredCategory = Attribute.of("org.gradle.category", String)
+                        assert it.requested.attributes.getAttribute(desugaredCategory) == 'platform'
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'checkDependencyAttributes'
+
+    }
+
+    def "reports duplicated dependencies in all variants"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'baz', '1.0').publish()
+        mavenRepo.module('org', 'gaz', '1.0').publish()
+
+        file("producer/build.gradle") << """
+            plugins {
+              id 'java-library'
+              id 'java-test-fixtures'
+            }
+            dependencies {
+              testFixturesApi('org:foo:1.0')
+              testFixturesImplementation('org:bar:1.0')
+              testFixturesImplementation('org:baz:1.0')
+            
+              api('org:baz:1.0')
+              implementation('org:gaz:1.0')
+            }
+            """
+                    buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            allprojects {
+               repositories {
+                  maven { url "${mavenRepo.uri}" }
+               }
+            }
+                        
+            dependencies {
+              implementation(project(':producer'))
+              testImplementation(testFixtures(project(':producer')))
+            }
+        """
+        settingsFile << """
+            include 'producer'
+        """
+
+        withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
+
+        when: "baz should appear in both apiElements and testFixturesRuntimeElements"
+        succeeds 'resolve'
+
+        then:
+        outputContains("""
+testCompileClasspath
+   project :producer (apiElements)
+      org:baz:1.0 (compile)
+   project :producer (testFixturesApiElements)
+      project :producer (apiElements)
+      org:foo:1.0 (compile)
+""")
+
+        and:
+        outputContains("""
+testRuntimeClasspath
+   project :producer (runtimeElements)
+      org:baz:1.0 (runtime)
+      org:gaz:1.0 (runtime)
+   project :producer (testFixturesRuntimeElements)
+      project :producer (runtimeElements)
+      org:foo:1.0 (runtime)
+      org:bar:1.0 (runtime)
+      org:baz:1.0 (runtime)
+""")
+    }
+
+    def "reports if we try to get dependencies from a different variant"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        file("producer/build.gradle") << """
+            plugins {
+              id 'java-library'
+              id 'java-test-fixtures'
+            }
+            dependencies {
+              testFixturesApi('org:foo:1.0')
+            }
+            """
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+
+            allprojects {
+               repositories {
+                  maven { url "${mavenRepo.uri}" }
+               }
+            }
+                        
+            dependencies {
+              implementation(project(':producer'))
+              testImplementation(testFixtures(project(':producer')))
+            }
+            
+            task resolve {
+                doLast {
+                    def result = configurations.testCompileClasspath.incoming.resolutionResult
+                    def rootComponent = result.root
+                    def childComponent = result.allComponents.find { it.toString() == 'project :producer' }
+                    def childVariant = childComponent.variants[0]
+                    // try to get dependencies for child variant on the wrong component
+                    println(rootComponent.getDependenciesForVariant(childVariant))
+                }
+            }
+        """
+        settingsFile << """
+            include 'producer'
+        """
+
+        when:
+        fails 'resolve'
+
+        then:
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+    }
+
+    private void withResolutionResultDumper(String... configurations) {
+        def confList = configurations.collect { configuration ->
+            """
+                // dump variant dependencies
+                def result_$configuration = configurations.${configuration}.incoming.resolutionResult
+                dump("$configuration", result_${configuration}.root, null, 0)
+                
+                // check that configuration attributes are visible and desugared
+                def consumerAttributes_$configuration = configurations.${configuration}.attributes
+                assert result_${configuration}.requestedAttributes.keySet().size() == consumerAttributes_${configuration}.keySet().size()
+                consumerAttributes_${configuration}.keySet().each {
+                    println "Checking \$it of type \$it.type"
+                    def desugared = Attribute.of(it.name, String)
+                    assert result_${configuration}.requestedAttributes.getAttribute(desugared) == consumerAttributes_${configuration}.getAttribute(it).toString()
+                }
+            """
+        }
+        buildFile << """
+
+            task resolve {
+                doLast {
+                    { -> ${confList.join('\n')} }()
+                    println()
+                    println 'Waiting for the cache to expire'
+                    // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
+                    Thread.sleep(800) // must be > cache expiry
+                    println 'Read result again to make sure serialization state is ok'
+                    println();
+                    { -> ${confList.join('\n')} }()
+                }
+            }
+
+            void dump(String root, ResolvedComponentResult result, ResolvedVariantResult variant, int depth, Set visited = []) {
+                if (visited.add([result, variant])) {
+                    if (variant == null) {
+                        println(root)
+                    }
+                    def dependencies = variant == null ? result.dependencies : result.getDependenciesForVariant(variant)
+                    depth++
+                    dependencies.each {
+                        if (it instanceof ResolvedDependencyResult) {
+                            def resolvedVariant = it.resolvedVariant
+                            def selected = it.selected
+                            println("   " * depth + "\$selected (\$resolvedVariant)")
+                            dump(root, selected, resolvedVariant, depth, visited)
+                        } else {
+                            println("   " * depth + "\$it (unresolved)")
+                        }
+                    }
+                }
+            }
+"""
+    }
 }

@@ -21,8 +21,16 @@ object ProjectGroups {
     // TODO Why is smoke test not on that list
     private
     val Project.internalProjects
-        get() = rootProject.subprojects.filter { it.name.startsWith("internal") ||
-            it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance", "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests") }.toSet()
+        get() = rootProject.subprojects.filter {
+            it.name.startsWith("internal") || it.name in internalProjectNames
+        }.toSet()
+
+    private
+    val internalProjectNames = setOf(
+        "integTest", "distributions", "performance", "buildScanPerformance",
+        "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests",
+        "instantExecutionReport"
+    )
 
     val Project.javaProjects
         get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
@@ -47,22 +55,6 @@ object ProjectGroups {
             rootProject.project("kotlinDslProviderPlugins"),
             rootProject.project("kotlinDslToolingBuilders")
         )
-
-    val Project.publishedProjects
-        get() = setOf(
-            rootProject.project(":logging"),
-            rootProject.project(":core"),
-            rootProject.project(":modelCore"),
-            rootProject.project(":toolingApi"),
-            rootProject.project(":wrapper"),
-            rootProject.project(":baseServices"),
-            rootProject.project(":baseServicesGroovy"),
-            rootProject.project(":workers"),
-            rootProject.project(":dependencyManagement"),
-            rootProject.project(":messaging"),
-            rootProject.project(":processServices"),
-            rootProject.project(":resources"),
-            rootProject.project(":kotlinDslToolingModels"))
 
     val Project.publicProjects
         get() = pluginProjects +

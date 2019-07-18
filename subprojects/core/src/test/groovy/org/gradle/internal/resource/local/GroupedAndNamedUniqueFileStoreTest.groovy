@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local
 
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

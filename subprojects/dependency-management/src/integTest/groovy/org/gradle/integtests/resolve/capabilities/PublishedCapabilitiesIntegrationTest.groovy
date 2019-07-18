@@ -20,9 +20,10 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Unroll
 
 @RequiredFeatures(
-    [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")]
+    [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
 )
 class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -63,7 +64,8 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5(runtime)]""")
     }
 
-    def "can detect conflict with capability in different versions and upgrade automatically to latest version"() {
+    @Unroll
+    def "can detect conflict with capability in different versions and upgrade to latest version (#rule)"() {
         given:
         repository {
             'cglib:cglib:3.2.5'()
@@ -80,6 +82,8 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                conf "cglib:cglib-nodep:3.2.4"
                conf "cglib:cglib:3.2.5"
             }
+            
+            configurations.conf.resolutionStrategy.capabilitiesResolution.$rule
         """
 
         when:
@@ -97,10 +101,18 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('cglib:cglib-nodep:3.2.4', 'cglib:cglib:3.2.5')
-                    .byConflictResolution('latest version of capability cglib:cglib')
+                    .byConflictResolution(reason)
                 module('cglib:cglib:3.2.5')
             }
         }
+
+        where:
+        rule                                                                               | reason
+        'all { selectHighestVersion() }'                                                      | 'latest version of capability cglib:cglib'
+        'withCapability("cglib:cglib") { selectHighestVersion() }'                            | 'latest version of capability cglib:cglib'
+        'withCapability("cglib", "cglib") { selectHighestVersion() }'                         | 'latest version of capability cglib:cglib'
+        'all { select(candidates.find { it.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
+
     }
 
     def "can detect conflict between local project and capability from external dependency"() {
@@ -225,6 +237,8 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 conf 'org:testC:1.0'
                 conf 'org:testD:1.0'
             }
+            
+            configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
         """
 
         when:
@@ -263,6 +277,109 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 }
             }
         }
+
+    }
+
+    @Unroll
+    def "can select a particular module participating do a capability conflict independently of the version (select #expected)"() {
+        given:
+        repository {
+            'org:testA:1.0' {
+                variant('runtime') {
+                    capability('org', 'testA', '1.0')
+                    capability('org', 'cap', '1')
+                }
+            }
+            'org:testB:1.0' {
+                variant('runtime') {
+                    capability('org', 'testB', '1.0')
+                    capability('org', 'cap', '4')
+                }
+            }
+            'org:testC:1.0' {
+                dependsOn('org:testCC:1.0')
+            }
+            'org:testD:1.0' {
+                dependsOn('org:testA:1.0') // must have a dependency on an evicted edge
+            }
+            'org:testCC:1.0' {
+                variant('runtime') {
+                    capability('org', 'testCC', '1.0')
+                    capability('org', 'cap', '2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:testA:1.0'
+                conf 'org:testB:1.0'
+                conf 'org:testC:1.0'
+                conf 'org:testD:1.0'
+            }
+            
+            configurations.conf.resolutionStrategy.capabilitiesResolution.withCapability('org:cap') {
+                select candidates.find { it.module == "$expected" }
+                because "prefers module ${expected}"
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:testA:1.0' {
+                if (expected == 'testA') {
+                    expectResolve()
+                } else {
+                    expectGetMetadata()
+                }
+            }
+            'org:testB:1.0' {
+                if (expected == 'testB') {
+                    expectResolve()
+                } else {
+                    expectGetMetadata()
+                }
+            }
+            'org:testC:1.0' {
+                expectResolve()
+            }
+            'org:testD:1.0' {
+                expectResolve()
+            }
+            'org:testCC:1.0' {
+                expectGetMetadata()
+            }
+        }
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                if (expected == 'testB') {
+                    edge('org:testA:1.0', "org:$expected:1.0")
+                        .byConflictResolution("On capability org:cap prefers module $expected")
+                    module('org:testB:1.0')
+                } else {
+                    module('org:testA:1.0')
+                    edge('org:testB:1.0', "org:testA:1.0")
+                        .byConflictResolution("On capability org:cap prefers module $expected")
+                }
+                module('org:testC:1.0') {
+                    edge('org:testCC:1.0', "org:$expected:1.0")
+                        .byConflictResolution("On capability org:cap prefers module $expected")
+                }
+                module('org:testD:1.0') {
+                    edge('org:testA:1.0', "org:$expected:1.0")
+                        .byConflictResolution("On capability org:cap prefers module $expected")
+                }
+            }
+        }
+
+        where:
+        expected << [
+            'testA',
+            'testB'
+        ]
 
     }
 

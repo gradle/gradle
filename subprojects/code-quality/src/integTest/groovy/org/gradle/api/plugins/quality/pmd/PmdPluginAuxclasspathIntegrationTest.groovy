@@ -22,7 +22,7 @@ import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
@@ -44,7 +44,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
             project("pmd-rule") {
                 dependencies {
-                    compile "${calculateDefaultDependencyNotation()}"
+                    implementation "${calculateDefaultDependencyNotation()}"
                 }
             }
 
@@ -52,7 +52,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                 apply plugin: 'pmd'
 
                 dependencies {
-                    compile "junit:junit:3.8.1"
+                    implementation "junit:junit:3.8.1"
 
                     pmd project(":pmd-rule")
                 }

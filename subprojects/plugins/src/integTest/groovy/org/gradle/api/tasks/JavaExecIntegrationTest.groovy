@@ -17,9 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
@@ -68,7 +66,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "java exec is not incremental by default"() {
         when:
         run "run"

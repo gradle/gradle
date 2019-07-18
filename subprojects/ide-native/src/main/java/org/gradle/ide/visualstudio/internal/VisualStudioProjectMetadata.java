@@ -43,6 +43,7 @@ public class VisualStudioProjectMetadata implements IdeProjectMetadata {
         return project.getName();
     }
 
+    @Override
     public File getFile() {
         return project.getProjectFile().getLocation();
     }

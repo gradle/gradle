@@ -41,6 +41,7 @@ public interface Named {
 
         public static final org.gradle.api.Namer<Named> INSTANCE = new Namer();
 
+        @Override
         public String determineName(Named object) {
             return object.getName();
         }

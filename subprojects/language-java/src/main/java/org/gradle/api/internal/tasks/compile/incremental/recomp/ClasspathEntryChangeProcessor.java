@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class ClasspathEntryChangeProcessor {
-
     private final ClasspathChangeDependentsFinder dependentsFinder;
 
     public ClasspathEntryChangeProcessor(ClasspathSnapshot classpathSnapshot, PreviousCompilation previousCompilation) {

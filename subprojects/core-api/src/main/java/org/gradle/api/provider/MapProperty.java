@@ -36,7 +36,7 @@ import java.util.Set;
  * @since 5.1
  */
 @Incubating
-public interface MapProperty<K, V> extends Provider<Map<K, V>> {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -68,7 +68,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>> {
      * Sets the value of this property to the entries of the given Map, and replaces any existing value.
      * This property will query the entries of the map each time the value of this property is queried.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param entries the entries, can be {@code null}
      */
@@ -83,6 +84,31 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>> {
      * @param provider Provider of the entries.
      */
     void set(Provider<? extends Map<? extends K, ? extends V>> provider);
+
+    /**
+     * Sets the value of this property to the entries of the given Map, and replaces any existing value.
+     * This property will query the entries of the map each time the value of this property is queried.
+     *
+     * <p>This is the same as {@link #set(Map)} but returns this property to allow method chaining.</p>
+     *
+     * @param entries the entries, can be {@code null}
+     * @return this
+     * @since 5.6
+     */
+    MapProperty<K, V> value(@Nullable Map<? extends K, ? extends V> entries);
+
+    /**
+     * Sets the property to have the same value of the given provider, and replaces any existing value.
+     *
+     * This property will track the value of the provider and query its value each time the value of this property is queried.
+     * When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider Provider of the entries.
+     * @since 5.6
+     */
+    MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
      * Adds a map entry to the property value.
@@ -156,9 +182,9 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>> {
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.
      *
-     * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called  and the value of the provider will no longer be tracked.</p>
+     * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called and the value of the provider will no longer be tracked.</p>
      *
-     * <p>Note that although the value of the property will not change, the resulting collection may contain mutable objects. Calling this method does not guarantee that the value will become immutable.</p>
+     * <p>Note that although the value of the property will not change, the resulting map may contain mutable objects. Calling this method does not guarantee that the value will become immutable.</p>
      */
     void finalizeValue();
 }

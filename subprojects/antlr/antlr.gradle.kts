@@ -16,20 +16,35 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+plugins {
+    `java-library`
+}
+
 dependencies {
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":workers"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":plugins"))
+    implementation(project(":workers"))
 
-    compileOnly("antlr:antlr:2.7.7")
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
+    implementation(library("inject"))
 
-    compile(library("slf4j_api"))
+    compileOnly("antlr:antlr:2.7.7") {
+        because("this dependency is downloaded by the antlr plugin")
+    }
+
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
 }

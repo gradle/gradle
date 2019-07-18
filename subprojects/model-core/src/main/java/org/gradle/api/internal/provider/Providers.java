@@ -69,6 +69,16 @@ public class Providers {
         }
 
         @Override
+        public Provider<Object> orElse(Object value) {
+            return Providers.of(value);
+        }
+
+        @Override
+        public Provider<Object> orElse(Provider<?> provider) {
+            return Cast.uncheckedCast(provider);
+        }
+
+        @Override
         public String toString() {
             return "undefined";
         }
@@ -89,7 +99,7 @@ public class Providers {
         return Cast.uncheckedCast(value);
     }
 
-    private static class FixedValueProvider<T> extends AbstractMinimalProvider<T> {
+    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
         private final T value;
 
         FixedValueProvider(T value) {
@@ -105,21 +115,6 @@ public class Providers {
         @Override
         public T get() {
             return value;
-        }
-
-        @Override
-        public T getOrElse(T defaultValue) {
-            return value;
-        }
-
-        @Override
-        public T getOrNull() {
-            return value;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return true;
         }
 
         @Override

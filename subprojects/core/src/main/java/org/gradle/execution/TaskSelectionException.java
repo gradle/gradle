@@ -31,6 +31,7 @@ public class TaskSelectionException extends InvalidUserDataException implements 
         super(message);
     }
 
+    @Override
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         output.text("Run ");
         clientMetaData.describeCommand(output.withStyle(UserInput), ProjectInternal.TASKS_TASK);

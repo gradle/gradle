@@ -37,6 +37,7 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
         this.name = artifactName;
     }
 
+    @Override
     public String getDisplayName() {
         return name + " (" + componentIdentifier.getDisplayName()+ ")";
     }
@@ -51,10 +52,12 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
         return null;
     }
 
+    @Override
     public IvyArtifactName getName() {
         return name;
     }
 
+    @Override
     public ComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
     }

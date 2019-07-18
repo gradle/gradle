@@ -146,6 +146,7 @@ public class JavadocConverter {
             this.nodes = nodes;
         }
 
+        @Override
         public List<Element> getDocbook() {
             return nodes;
         }
@@ -209,6 +210,7 @@ public class JavadocConverter {
             tagValue = new StringBuilder();
         }
 
+        @Override
         public void onText(String text) {
             if (tagValue != null) {
                 tagValue.append(text);
@@ -258,6 +260,7 @@ public class JavadocConverter {
             this.listener = listener;
         }
 
+        @Override
         public boolean onJavadocTag(String tag, String value) {
             listener.warning(String.format("Unsupported Javadoc tag '%s'", tag));
             Element element = document.createElement("UNHANDLED-TAG");
@@ -278,6 +281,7 @@ public class JavadocConverter {
             this.listener = listener;
         }
 
+        @Override
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
             listener.warning(String.format("Unsupported HTML element <%s>", elementName));
             Element element = document.createElement("UNHANDLED-ELEMENT");
@@ -286,10 +290,12 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
 
+        @Override
         public void onEndElement(String elementName) {
             nodes.appendChild(String.format("</%s>", elementName));
             nodes.pop();
@@ -307,6 +313,7 @@ public class JavadocConverter {
             tagToElementMap.put("code", "literal");
         }
 
+        @Override
         public boolean onJavadocTag(String tag, String value) {
             String elementName = tagToElementMap.get(tag);
             if (elementName == null) {
@@ -339,6 +346,7 @@ public class JavadocConverter {
             elementToElementMap.put("tt", "literal");
         }
 
+        @Override
         public boolean onStartElement(String element, Map<String, String> attributes) {
             String newElementName = elementToElementMap.get(element);
             if (newElementName == null) {
@@ -348,10 +356,12 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
 
+        @Override
         public void onEndElement(String element) {
             nodes.pop();
         }
@@ -366,6 +376,7 @@ public class JavadocConverter {
             this.document = document;
         }
 
+        @Override
         public boolean onStartElement(String element, Map<String, String> attributes) {
             if (!"pre".equals(element)) {
                 return false;
@@ -379,10 +390,12 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
 
+        @Override
         public void onEndElement(String element) {
             nodes.pop();
         }
@@ -398,6 +411,7 @@ public class JavadocConverter {
             this.document = document;
         }
 
+        @Override
         public boolean onStartElement(String element, Map<String, String> attributes) {
             Matcher matcher = HEADER_PATTERN.matcher(element);
             if (!matcher.matches()) {
@@ -421,10 +435,12 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
 
+        @Override
         public void onEndElement(String element) {
             nodes.pop();
         }
@@ -442,6 +458,7 @@ public class JavadocConverter {
             this.document = document;
         }
 
+        @Override
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
             if (elementName.equals("table")) {
                 if (currentTable != null) {
@@ -472,6 +489,7 @@ public class JavadocConverter {
             return false;
         }
 
+        @Override
         public void onEndElement(String elementName) {
             if (elementName.equals("table")) {
                 currentTable = null;
@@ -483,6 +501,7 @@ public class JavadocConverter {
             nodes.pop();
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
@@ -499,6 +518,7 @@ public class JavadocConverter {
             this.classMetaData = classMetaData;
         }
 
+        @Override
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
             if (!elementName.equals("a") || !attributes.containsKey("name")) {
                 return false;
@@ -510,9 +530,11 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onEndElement(String element) {
         }
 
+        @Override
         public void onText(String text) {
         }
     }
@@ -528,6 +550,7 @@ public class JavadocConverter {
             this.classMetaData = classMetaData;
         }
 
+        @Override
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
             if (!elementName.equals("a") || !attributes.containsKey("href")) {
                 return false;
@@ -543,10 +566,12 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onEndElement(String element) {
             nodes.pop();
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
@@ -561,6 +586,7 @@ public class JavadocConverter {
             this.document = document;
         }
 
+        @Override
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
             if (!elementName.equals("a") || !attributes.containsKey("href")) {
                 return false;
@@ -575,10 +601,12 @@ public class JavadocConverter {
             return true;
         }
 
+        @Override
         public void onEndElement(String element) {
             nodes.pop();
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
@@ -595,6 +623,7 @@ public class JavadocConverter {
             this.document = document;
         }
 
+        @Override
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
             if (elementName.equals("dl")) {
                 if (currentList != null) {
@@ -624,6 +653,7 @@ public class JavadocConverter {
             return false;
         }
 
+        @Override
         public void onEndElement(String element) {
             if (element.equals("dl")) {
                 currentList = null;
@@ -641,6 +671,7 @@ public class JavadocConverter {
             }
         }
 
+        @Override
         public void onText(String text) {
             nodes.appendChild(text);
         }
@@ -660,6 +691,7 @@ public class JavadocConverter {
             this.listener = listener;
         }
 
+        @Override
         public boolean onJavadocTag(String tag, String value) {
             if (!tag.equals("value")) {
                 return false;
@@ -676,6 +708,7 @@ public class JavadocConverter {
             this.nodes = nodes;
         }
 
+        @Override
         public boolean onJavadocTag(String tag, String value) {
             if (!tag.equals("literal")) {
                 return false;
@@ -699,6 +732,7 @@ public class JavadocConverter {
             this.listener = listener;
         }
 
+        @Override
         public boolean onJavadocTag(String tag, String value) {
             if (!tag.equals("link")) {
                 return false;
@@ -717,6 +751,7 @@ public class JavadocConverter {
             this.source = source;
         }
 
+        @Override
         public boolean onJavadocTag(String tag, String value) {
             if (!tag.equals("inheritDoc")) {
                 return false;
@@ -733,6 +768,7 @@ public class JavadocConverter {
     }
 
     private static class NoOpCommentSource implements CommentSource {
+        @Override
         public List<? extends Node> getCommentText() {
             throw new UnsupportedOperationException();
         }
@@ -747,6 +783,7 @@ public class JavadocConverter {
             this.listener = listener;
         }
 
+        @Override
         public Iterable<? extends Node> getCommentText() {
             PropertyMetaData overriddenProperty = propertyMetaData.getOverriddenProperty();
             if (overriddenProperty == null) {
@@ -766,6 +803,7 @@ public class JavadocConverter {
             this.methodMetaData = methodMetaData;
         }
 
+        @Override
         public Iterable<? extends Node> getCommentText() {
             MethodMetaData overriddenMethod = methodMetaData.getOverriddenMethod();
             if (overriddenMethod == null) {

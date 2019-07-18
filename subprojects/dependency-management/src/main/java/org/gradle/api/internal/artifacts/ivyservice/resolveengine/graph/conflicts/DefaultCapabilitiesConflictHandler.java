@@ -22,13 +22,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.CapabilityInternal;
 
 import java.util.ArrayDeque;
@@ -123,8 +124,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             resolver.resolve(details);
             if (details.hasResult()) {
                 resolutionAction.execute(details);
-                CapabilityInternal capability = (CapabilityInternal) conflict.descriptors.iterator().next();
-                details.getSelected().getComponent().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(Describables.of("latest version of capability", capability.getCapabilityId())));
+                ComponentSelectionDescriptorInternal conflictResolution = ComponentSelectionReasons.CONFLICT_RESOLUTION;
+                if (details.reason != null) {
+                    conflictResolution = conflictResolution.withDescription(details.reason);
+                }
+                details.getSelected().getComponent().addCause(conflictResolution);
                 return;
             }
         }
@@ -150,10 +154,12 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this.implicitCapabilityProviders = implicitCapabilityProviders;
         }
 
+        @Override
         public NodeState getNode() {
             return node;
         }
 
+        @Override
         public Capability getCapability() {
             return capability;
         }
@@ -169,6 +175,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         private final CapabilityConflict conflict;
         private final Set<NodeState> evicted = Sets.newHashSet();
         private NodeState selected;
+        private Describable reason;
 
         private Details(CapabilityConflict conflict) {
             this.conflict = conflict;
@@ -211,6 +218,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                                 ComponentState component = node.getComponent();
                                 component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.nodes));
                                 component.selectAndRestartModule();
+                            }
+
+                            @Override
+                            public void byReason(Describable description) {
+                                reason = description;
                             }
                         });
                     }

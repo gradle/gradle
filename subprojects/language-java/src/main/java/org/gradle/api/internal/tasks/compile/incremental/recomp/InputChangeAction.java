@@ -20,20 +20,27 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
+import java.util.Collection;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
 class InputChangeAction implements Action<InputFileDetails> {
     private final RecompilationSpec spec;
-    private final JavaChangeProcessor javaChangeProcessor;
+    private final SourceFileChangeProcessor javaChangeProcessor;
     private final AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor;
     private final ResourceChangeProcessor resourceChangeProcessor;
+    private final JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter;
 
-    InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor, ResourceChangeProcessor resourceChangeProcessor) {
+    InputChangeAction(RecompilationSpec spec,
+                      SourceFileChangeProcessor javaChangeProcessor,
+                      AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor,
+                      ResourceChangeProcessor resourceChangeProcessor,
+                      JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter) {
         this.spec = spec;
         this.javaChangeProcessor = javaChangeProcessor;
         this.annotationProcessorChangeProcessor = annotationProcessorChangeProcessor;
         this.resourceChangeProcessor = resourceChangeProcessor;
+        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
     }
 
     @Override
@@ -44,7 +51,14 @@ class InputChangeAction implements Action<InputFileDetails> {
 
         File file = input.getFile();
         if (hasExtension(file, ".java")) {
-            javaChangeProcessor.processChange(input, spec);
+            Collection<String> classNames = sourceFileClassNameConverter.getClassNames(file);
+            if (classNames.isEmpty()) {
+                // https://github.com/gradle/gradle/issues/9380
+                // Remove a srcDir from a sourceSet
+                spec.setFullRebuildCause("source dirs are changed", file);
+            } else {
+                javaChangeProcessor.processChange(file, classNames, spec);
+            }
         } else if (hasExtension(file, ".jar") || hasExtension(file, ".class")) {
             annotationProcessorChangeProcessor.processChange(input, spec);
         } else {

@@ -37,6 +37,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
         ivyArtifactName = DefaultIvyArtifactName.forPublishArtifact(publishArtifact);
     }
 
+    @Override
     public String getDisplayName() {
         StringBuilder result = new StringBuilder();
         result.append(getName());
@@ -56,6 +57,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
         return getDisplayName();
     }
 
+    @Override
     public ComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
     }

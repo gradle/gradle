@@ -25,6 +25,7 @@ class SimpleProgressFormatter implements ProgressFormatter {
         this.postfix = postfix;
     }
 
+    @Override
     public String incrementAndGetProgress() {
         if (current == total) {
             throw new IllegalStateException("Cannot increment beyond the total of: " + total);
@@ -33,6 +34,7 @@ class SimpleProgressFormatter implements ProgressFormatter {
         return getProgress();
     }
 
+    @Override
     public String getProgress() {
         return current + "/" + total + " " + postfix;
     }

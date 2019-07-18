@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.command;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -25,18 +25,16 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
+import org.gradle.internal.file.DefaultFileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,14 +45,12 @@ import java.util.Map;
 
 public class BuildCacheCommandFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheCommandFactory.class);
-
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
     private final FileSystemMirror fileSystemMirror;
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
 
-    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
+    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, Interner<String> stringInterner) {
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
         this.fileSystemMirror = fileSystemMirror;
@@ -93,7 +89,6 @@ public class BuildCacheCommandFactory {
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) throws IOException {
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-            LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
             return new Result<LoadMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -175,7 +170,6 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            LOGGER.info("Packing {}", entity.getDisplayName());
             final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override

@@ -41,7 +41,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
@@ -74,6 +74,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
@@ -109,7 +110,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(incrementalAnalysisUsage);
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
             }
         });
     }
@@ -157,7 +158,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             @Override
             public void execute(ScalaCompile scalaCompile) {
                 scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
-                SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
+                JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
                 scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
                 scalaCompile.setSource(scalaSourceSet.getScala());
 
@@ -187,7 +188,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 }).getFiles());
             }
         });
-        SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
             @Override
             public CompileOptions transform(ScalaCompile scalaCompile) {
                 return scalaCompile.getOptions();
@@ -251,19 +252,19 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
     static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
         private final ImmutableSet<Usage> expectedUsages;
-        private final Usage javaRuntimeJars;
+        private final Usage javaRuntime;
 
         @Inject
-        UsageDisambiguationRules(Usage incrementalAnalysis, Usage javaApi, Usage javaRuntimeJars) {
-            this.javaRuntimeJars = javaRuntimeJars;
-            this.expectedUsages = ImmutableSet.of(incrementalAnalysis, javaApi, javaRuntimeJars);
+        UsageDisambiguationRules(Usage incrementalAnalysis, Usage javaApi, Usage javaRuntime) {
+            this.javaRuntime = javaRuntime;
+            this.expectedUsages = ImmutableSet.of(incrementalAnalysis, javaApi, javaRuntime);
         }
 
         @Override
         public void execute(MultipleCandidatesDetails<Usage> details) {
             if (details.getConsumerValue() == null) {
                 if (details.getCandidateValues().equals(expectedUsages)) {
-                    details.closestMatch(javaRuntimeJars);
+                    details.closestMatch(javaRuntime);
                 }
             }
         }

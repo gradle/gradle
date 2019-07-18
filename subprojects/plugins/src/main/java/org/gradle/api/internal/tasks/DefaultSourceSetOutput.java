@@ -22,7 +22,10 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -39,6 +42,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
+    private final DefaultTaskDependency compileTasks;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.fileResolver = fileResolver;
@@ -49,10 +53,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
         outputDirectories.from(new Callable() {
+            @Override
             public Object call() {
                 return classesDirs;
             }
         }, new Callable() {
+            @Override
             public Object call() {
                 return getResourcesDir();
             }
@@ -61,6 +67,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
         this.generatedSourcesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " generatedSourcesDirs");
+        this.compileTasks = new DefaultTaskDependency();
     }
 
     @Override
@@ -142,4 +149,13 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     public ConfigurableFileCollection getGeneratedSourcesDirs() {
         return generatedSourcesDirs;
     }
+
+    public void registerCompileTask(Provider<? extends AbstractCompile> compileTask) {
+        compileTasks.add(compileTask);
+    }
+
+    public TaskDependency getCompileDependencies() {
+        return compileTasks;
+    }
+
 }

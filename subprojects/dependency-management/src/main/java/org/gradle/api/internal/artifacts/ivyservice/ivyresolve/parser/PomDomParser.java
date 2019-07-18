@@ -128,6 +128,7 @@ public final class PomDomParser {
             }
         }
 
+        @Override
         public int read() throws IOException {
             if (count < prefix.length) {
                 return prefix[count++];
@@ -136,6 +137,7 @@ public final class PomDomParser {
             return super.read();
         }
 
+        @Override
         public int read(byte[] b, int off, int len) throws IOException {
             if (b == null) {
                 throw new NullPointerException();

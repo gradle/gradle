@@ -19,12 +19,20 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 import groovy.lang.GroovySystem;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.InnerClassNode;
+import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
@@ -34,6 +42,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -49,9 +58,11 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.writeSourceClassesMappingFile;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
@@ -59,6 +70,84 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler) {
         this.javaCompiler = javaCompiler;
+    }
+
+    private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
+        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec) {
+            if (spec.getCompilationMappingFile() != null) {
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec.getSourceRoots()), spec.getCompilationMappingFile());
+            } else {
+                return new NoOpCompilationCustomizer();
+            }
+        }
+
+        public IncrementalCompilationCustomizer() {
+            super(CompilePhase.CLASS_GENERATION);
+        }
+
+        abstract void writeToMappingFile();
+
+        abstract void addToConfiguration(CompilerConfiguration configuration);
+    }
+
+    private static class NoOpCompilationCustomizer extends IncrementalCompilationCustomizer {
+        @Override
+        public void writeToMappingFile() {
+        }
+
+        @Override
+        public void addToConfiguration(CompilerConfiguration configuration) {
+        }
+
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
+        private final Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
+            .hashKeys()
+            .hashSetValues()
+            .build();
+        private final CompilationSourceDirs compilationSourceDirs;
+        private final File sourceClassesMappingFile;
+
+        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, File mappingFile) {
+            this.compilationSourceDirs = compilationSourceDirs;
+            this.sourceClassesMappingFile = mappingFile;
+        }
+
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) {
+            inspectClassNode(source, classNode);
+        }
+
+        private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
+            String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
+            sourceClassesMapping.put(relativePath, classNode.getName());
+            Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
+            while (iterator.hasNext()) {
+                inspectClassNode(sourceUnit, iterator.next());
+            }
+        }
+
+        @Override
+        public void writeToMappingFile() {
+            writeSourceClassesMappingFile(sourceClassesMappingFile, sourceClassesMapping);
+        }
+
+        @Override
+        public void addToConfiguration(CompilerConfiguration configuration) {
+            configuration.addCompilationCustomizers(this);
+        }
+    }
+
+    private File[] getSortedSourceFiles(GroovyJavaJointCompileSpec spec) {
+        // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
+        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
+        Arrays.sort(sortedSourceFiles);
+        return sortedSourceFiles;
     }
 
     @Override
@@ -73,6 +162,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setTargetBytecode(spec.getTargetCompatibility());
         configuration.setTargetDirectory(spec.getDestinationDir());
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
+
+        IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec);
+        customizer.addToConfiguration(configuration);
+
         if (spec.getGroovyCompileOptions().getConfigurationScript() != null) {
             applyConfigurationScript(spec.getGroovyCompileOptions().getConfigurationScript(), configuration);
         }
@@ -131,11 +224,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // to the sources won't cause any issues.
             unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
-
-        // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
-        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
-        Arrays.sort(sortedSourceFiles);
-        unit.addSources(sortedSourceFiles);
+        unit.addSources(getSortedSourceFiles(spec));
 
         unit.setCompilerFactory(new JavaCompilerFactory() {
             @Override
@@ -177,6 +266,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
         try {
             unit.compile();
+            customizer.writeToMappingFile();
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
@@ -194,10 +284,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         return WorkResults.didWork(true);
     }
 
-    private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
-        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing()
-            && !spec.getAnnotationProcessorPath().isEmpty()
-            && !spec.getCompileOptions().getCompilerArgs().contains("-proc:none");
+    private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
+        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing() && spec.annotationProcessingConfigured();
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {

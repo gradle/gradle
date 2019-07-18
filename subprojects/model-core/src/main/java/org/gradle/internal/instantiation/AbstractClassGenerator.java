@@ -29,6 +29,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -42,6 +43,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.InjectionPointQualifier;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -58,7 +60,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -67,14 +68,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -92,13 +89,19 @@ import java.util.stream.Collectors;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
-    private static final Map<Object, Map<Class<?>, CachedClass>> GENERATED_CLASSES = new HashMap<Object, Map<Class<?>, CachedClass>>();
-    private static final Lock CACHE_LOCK = new ReentrantLock();
+    private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
     private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
+    private final Transformer<GeneratedClassImpl, Class<?>> generator = new Transformer<GeneratedClassImpl, Class<?>>() {
+        @Override
+        public GeneratedClassImpl transform(Class<?> type) {
+            return generateUnderLock(type);
+        }
+    };
 
-    public AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
+    protected AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache) {
+        this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         ImmutableListMultimap.Builder<Class<? extends Annotation>, TypeToken<?>> allowedTypesBuilder = ImmutableListMultimap.builder();
@@ -126,31 +129,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return new TypeToken<Provider<T>>() {}.where(new TypeParameter<T>() {}, providerType);
     }
 
+    @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
-        CACHE_LOCK.lock();
-        try {
-            return Cast.uncheckedCast(generateUnderLock(type));
-        } finally {
-            CACHE_LOCK.unlock();
+        GeneratedClassImpl generatedClass = generatedClasses.get(type);
+        if (generatedClass == null) {
+            // It is possible that multiple threads will execute this branch concurrently, when the type is missing. However, the contract for `get()` below will ensure that
+            // only one thread will actually generate the implementation class
+            generatedClass = generatedClasses.get(type, generator);
+            // Also use the generated class for itself
+            generatedClasses.put(generatedClass.generatedClass, generatedClass);
         }
+        return Cast.uncheckedCast(generatedClass);
     }
 
-    private GeneratedClass<?> generateUnderLock(Class<?> type) {
-        Map<Class<?>, CachedClass> cache = GENERATED_CLASSES.get(key());
-        if (cache == null) {
-            // Use weak keys to allow the type to be garbage collected. The entries maintain only weak and soft references to the type and the generated class
-            cache = new WeakHashMap<Class<?>, CachedClass>();
-            GENERATED_CLASSES.put(key(), cache);
-        }
-        CachedClass generatedClass = cache.get(type);
-        if (generatedClass != null) {
-            GeneratedClass<?> wrapper = generatedClass.asWrapper();
-            if (wrapper != null) {
-                return wrapper;
-            }
-            // Else, the generated class has been collected, so generate a new one
-        }
-
+    private GeneratedClassImpl generateUnderLock(Class<?> type) {
         List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<CustomInjectAnnotationPropertyHandler>(enabledAnnotations.size());
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
@@ -180,7 +172,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
         validators.add(new InjectionAnnotationValidator(enabledAnnotations, allowedTypesForAnnotation));
 
-        final Class<?> subclass;
+        final Class<?> generatedClass;
         try {
             ClassInspectionVisitor inspectionVisitor = start(type);
 
@@ -203,7 +195,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
-            subclass = generationVisitor.generate();
+            generatedClass = generationVisitor.generate();
         } catch (ClassGenerationException e) {
             throw e;
         } catch (Throwable e) {
@@ -220,16 +212,18 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 annotationsTriggeringServiceInjection.add(handler.getAnnotation());
             }
         }
-        CachedClass cachedClass = new CachedClass(type, subclass, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
-        cache.put(type, cachedClass);
-        cache.put(subclass, cachedClass);
-        return cachedClass.asWrapper();
-    }
 
-    /**
-     * Returns the key to use to cache the classes generated by this generator.
-     */
-    protected abstract Object key();
+        // This is expensive to calculate, so cache the result
+        Class<?> enclosingClass = type.getEnclosingClass();
+        Class<?> outerType;
+        if (enclosingClass != null && !Modifier.isStatic(type.getModifiers())) {
+            outerType = enclosingClass;
+        } else {
+            outerType = null;
+        }
+
+        return new GeneratedClassImpl(generatedClass, outerType, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
+    }
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
 
@@ -340,7 +334,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
 
-    private class GeneratedClassImpl implements GeneratedClass<Object> {
+    protected class GeneratedClassImpl implements GeneratedClass<Object> {
         private final Class<?> generatedClass;
         private final Class<?> outerType;
         private final List<Class<?>> injectedServices;
@@ -410,6 +404,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
+            public Class<?> getGeneratedClass() {
+                return constructor.getDeclaringClass();
+            }
+
+            @Override
             public Class<?>[] getParameterTypes() {
                 return constructor.getParameterTypes();
             }
@@ -429,39 +428,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             public int getModifiers() {
                 return constructor.getModifiers();
             }
-        }
-    }
-
-    private class CachedClass {
-        // Keep a weak reference to the generated class, to allow it to be collected
-        private final WeakReference<Class<?>> generatedClass;
-        private final WeakReference<Class<?>> outerType;
-        // This should be a list of weak references. For now, assume that all services are Gradle core services and are never collected
-        private final List<Class<?>> injectedServices;
-        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
-
-        CachedClass(Class<?> type, Class<?> generatedClass, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
-            this.generatedClass = new WeakReference<Class<?>>(generatedClass);
-            this.injectedServices = injectedServices;
-            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
-
-            // This is expensive to calculate, so cache the result
-            Class<?> enclosingClass = type.getEnclosingClass();
-            if (enclosingClass != null && !Modifier.isStatic(type.getModifiers())) {
-                outerType = new WeakReference<Class<?>>(enclosingClass);
-            } else {
-                outerType = null;
-            }
-        }
-
-        @Nullable
-        public GeneratedClassImpl asWrapper() {
-            // Hold a strong reference to the class, to avoid it being collected while doing this work
-            Class<?> generatedClass = this.generatedClass.get();
-            if (generatedClass == null) {
-                return null;
-            }
-            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices, annotationsTriggeringServiceInjection);
         }
     }
 

@@ -21,15 +21,17 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -64,32 +66,49 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
     private final ComponentSelectorSerializer componentSelectorSerializer;
-    private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
+    private final DependencyResultSerializer dependencyResultSerializer;
     private final Set<Long> visitedComponents = new HashSet<Long>();
+    private final AttributeContainerSerializer attributeContainerSerializer;
+    private final AttributeDesugaring desugaring;
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, attributeContainerSerializer);
+    private AttributeContainer rootAttributes;
+    private boolean mayHaveVirtualPlatforms;
+
+    public StreamingResolutionResultBuilder(BinaryStore store,
+                                            Store<ResolvedComponentResult> cache,
+                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                            AttributeContainerSerializer attributeContainerSerializer,
+                                            AttributeDesugaring desugaring) {
+        ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(attributeContainerSerializer);
+        this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer);
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
+        this.attributeContainerSerializer = attributeContainerSerializer;
+        this.desugaring = desugaring;
     }
 
     public ResolutionResult complete(Set<UnresolvedDependency> extraFailures) {
         BinaryStore.BinaryData data = store.done();
-        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, extraFailures);
-        return new DefaultResolutionResult(rootSource);
+        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, attributeContainerSerializer, extraFailures);
+        return new DefaultResolutionResult(rootSource, rootAttributes);
     }
 
     @Override
     public void start(final RootGraphNode root) {
+        rootAttributes = desugaring.desugar(root.getMetadata().getAttributes());
+        mayHaveVirtualPlatforms = root.getResolveOptimizations().mayHaveVirtualPlatforms();
     }
 
     @Override
     public void finish(final DependencyGraphNode root) {
         store.write(new BinaryStore.WriteAction() {
+            @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
                 encoder.writeSmallLong(root.getOwner().getResultId());
+                attributeContainerSerializer.write(encoder, rootAttributes);
             }
         });
     }
@@ -99,6 +118,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         final DependencyGraphComponent component = node.getOwner();
         if (visitedComponents.add(component.getResultId())) {
             store.write(new BinaryStore.WriteAction() {
+                @Override
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(COMPONENT);
                     componentResultSerializer.write(encoder, component);
@@ -122,11 +142,14 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitEdges(DependencyGraphNode node) {
         final Long fromComponent = node.getOwner().getResultId();
-        final Collection<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges().stream()
+        final Collection<? extends DependencyGraphEdge> dependencies = mayHaveVirtualPlatforms
+            ? node.getOutgoingEdges().stream()
             .filter(dep -> !dep.isTargetVirtualPlatform())
-            .collect(Collectors.toList());
+            .collect(Collectors.toList())
+            : node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
+                @Override
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
                     encoder.writeSmallLong(fromComponent);
@@ -155,24 +178,29 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final Object lock = new Object();
         private final ComponentSelectorSerializer componentSelectorSerializer;
         private final DependencyResultSerializer dependencyResultSerializer;
+        private final AttributeContainerSerializer attributeContainerSerializer;
         private final Set<UnresolvedDependency> extraFailures;
 
-        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer, Set<UnresolvedDependency> extraFailures) {
+        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer, AttributeContainerSerializer attributeContainerSerializer, Set<UnresolvedDependency> extraFailures) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
             this.componentResultSerializer = componentResultSerializer;
             this.componentSelectorSerializer = componentSelectorSerializer;
             this.dependencyResultSerializer = dependencyResultSerializer;
+            this.attributeContainerSerializer = attributeContainerSerializer;
             this.extraFailures = extraFailures;
         }
 
+        @Override
         public ResolvedComponentResult create() {
             synchronized (lock) {
                 return cache.load(new Factory<ResolvedComponentResult>() {
+                    @Override
                     public ResolvedComponentResult create() {
                         try {
                             return data.read(new BinaryStore.ReadAction<ResolvedComponentResult>() {
+                                @Override
                                 public ResolvedComponentResult read(Decoder decoder) throws IOException {
                                     return deserialize(decoder);
                                 }
@@ -191,6 +219,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
         private ResolvedComponentResult deserialize(Decoder decoder) {
             componentSelectorSerializer.reset();
+            componentResultSerializer.reset();
             int valuesRead = 0;
             byte type = -1;
             Timer clock = Time.startTimer();
@@ -204,6 +233,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                         case ROOT:
                             // Last entry, complete the result
                             Long rootId = decoder.readSmallLong();
+                            builder.setRequestedAttributes(attributeContainerSerializer.read(decoder));
                             builder.addExtraFailures(rootId, extraFailures);
                             ResolvedComponentResult root = builder.complete(rootId).getRoot();
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
@@ -234,7 +264,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Problems loading the resolution results (" + clock.getElapsed() + "). "
-                        + "Read " + valuesRead + " values, last was: " + type, e);
+                    + "Read " + valuesRead + " values, last was: " + type, e);
             }
         }
     }

@@ -65,6 +65,7 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
      *
      * @since 4.5
      */
+    @Override
     BinaryCollection<? extends SwiftBinary> getBinaries();
 
     /**

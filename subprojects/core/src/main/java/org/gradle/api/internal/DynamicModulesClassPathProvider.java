@@ -45,6 +45,7 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
         this.javaVersion = javaVersion;
     }
 
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_EXTENSIONS")) {
             return gradleExtensionsWithout("gradle-core");

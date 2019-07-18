@@ -35,6 +35,7 @@ public class RejectedMessage extends InterHubMessage implements Routable {
         return Delivery.AllHandlers;
     }
 
+    @Override
     public ChannelIdentifier getChannel() {
         return channel;
     }

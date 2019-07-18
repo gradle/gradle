@@ -22,9 +22,8 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -40,15 +39,11 @@ public interface TaskExecutionContext {
 
     TaskExecutionMode getTaskExecutionMode();
 
-    Optional<BeforeExecutionState> getBeforeExecutionState();
-
-    void setBeforeExecutionState(BeforeExecutionState beforeExecutionState);
-
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesBeforeExecution();
 
-    void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
+    void setOutputFilesBeforeExecution(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesBeforeExecution);
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.
@@ -66,13 +61,6 @@ public interface TaskExecutionContext {
     void setTaskProperties(TaskProperties properties);
 
     TaskProperties getTaskProperties();
-
-    /**
-     * Returns if caching for this task is enabled.
-     */
-    boolean isTaskCachingEnabled();
-
-    void setTaskCachingEnabled(boolean enabled);
 
     Optional<OverlappingOutputs> getOverlappingOutputs();
 

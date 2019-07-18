@@ -38,10 +38,12 @@ public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
         allScala.source(scala);
     }
 
+    @Override
     public SourceDirectorySet getScala() {
         return scala;
     }
 
+    @Override
     public ScalaSourceSet scala(Closure configureClosure) {
         configure(configureClosure, getScala());
         return this;
@@ -53,6 +55,7 @@ public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
         return this;
     }
 
+    @Override
     public SourceDirectorySet getAllScala() {
         return allScala;
     }

@@ -55,7 +55,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         processorProjectDir.file("build.gradle") << """
             apply plugin: "java"
             dependencies {
-                compile project(':annotation')
+                implementation project(':annotation')
             }
         """
 
@@ -124,7 +124,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "sourcesJar"
-        ":compileJava" in executedTasks
+        executed(":compileJava")
     }
 
     def "can model annotation processor arguments"() {
@@ -162,7 +162,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
         """
 
@@ -178,7 +179,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {
         buildFile << """
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
             
             compileJava {
@@ -207,7 +209,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             }
             
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
             
             compileJava {
@@ -232,7 +235,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     def "processors in the compile classpath don't emit deprecation warning if processing is disabled"() {
         buildFile << """
             dependencies {
-                compile project(":processor")
+                implementation project(":annotation")
+                implementation project(":processor")
             }
             compileJava {
                 options.compilerArgs << "-proc:none"

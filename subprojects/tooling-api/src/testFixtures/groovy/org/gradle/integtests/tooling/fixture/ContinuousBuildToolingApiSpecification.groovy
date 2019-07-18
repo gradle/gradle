@@ -29,13 +29,13 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.hamcrest.Matcher
-import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Retry
 import spock.lang.Timeout
 
 import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.anyOf
+import static org.hamcrest.CoreMatchers.containsString
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Timeout(180)
@@ -191,34 +191,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         }
     }
 
-    protected List<String> getExecutedTasks() {
-        assertHasResult()
-        result.executedTasks
-    }
-
-    private assertHasResult() {
-        assert result != null: "result is null, you haven't run succeeds()"
-    }
-
-    protected Set<String> getSkippedTasks() {
-        assertHasResult()
-        result.skippedTasks
-    }
-
-    protected List<String> getNonSkippedTasks() {
-        executedTasks - skippedTasks
-    }
-
-    protected void executedAndNotSkipped(String... tasks) {
-        tasks.each {
-            assert it in executedTasks
-            assert !skippedTasks.contains(it)
-        }
-    }
-
     boolean cancel() {
         cancellationTokenSource.cancel()
-        waitUntilOutputContains Matchers.anyOf(containsString(BUILD_CANCELLED), containsString(BUILD_CANCELLED_AND_STOPPED))
+        waitUntilOutputContains anyOf(containsString(BUILD_CANCELLED), containsString(BUILD_CANCELLED_AND_STOPPED))
         true
     }
 

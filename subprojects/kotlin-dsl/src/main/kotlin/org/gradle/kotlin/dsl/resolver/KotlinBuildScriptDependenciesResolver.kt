@@ -30,17 +30,12 @@ import org.gradle.tooling.BuildException
 import com.google.common.annotations.VisibleForTesting
 
 import java.io.File
-import java.net.URI
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
-
-
-internal
-typealias Environment = Map<String, Any?>
 
 
 private
@@ -177,33 +172,24 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         scriptFile: File?,
         environment: Environment,
         correlationId: String
-    ): KotlinBuildScriptModelRequest {
+    ): KotlinBuildScriptModelRequest =
 
-        @Suppress("unchecked_cast")
-        fun stringList(key: String) =
-            (environment[key] as? List<String>) ?: emptyList()
-
-        fun path(key: String) =
-            (environment[key] as? String)?.let(::File)
-
-        val projectDir = environment["projectRoot"] as File
-        return KotlinBuildScriptModelRequest(
-            projectDir = projectDir,
+        KotlinBuildScriptModelRequest(
+            projectDir = environment.projectRoot,
             scriptFile = scriptFile,
             gradleInstallation = gradleInstallationFrom(environment),
-            gradleUserHome = path("gradleUserHome"),
-            javaHome = path("gradleJavaHome"),
-            options = stringList("gradleOptions"),
-            jvmOptions = stringList("gradleJvmOptions"),
+            gradleUserHome = environment.gradleUserHome,
+            javaHome = environment.gradleJavaHome,
+            options = environment.gradleOptions,
+            jvmOptions = environment.gradleJvmOptions,
             correlationId = correlationId
         )
-    }
 
     private
     fun gradleInstallationFrom(environment: Environment): GradleInstallation =
-        (environment["gradleHome"] as? File)?.let(GradleInstallation::Local)
-            ?: (environment["gradleUri"] as? URI)?.let(GradleInstallation::Remote)
-            ?: (environment["gradleVersion"] as? String)?.let(GradleInstallation::Version)
+        environment.gradleHome?.let(GradleInstallation::Local)
+            ?: environment.gradleUri?.let(GradleInstallation::Remote)
+            ?: environment.gradleVersion?.let(GradleInstallation::Version)
             ?: GradleInstallation.Wrapper
 
     private

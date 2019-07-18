@@ -32,6 +32,7 @@ public interface GradlePublication extends ProjectModel {
      *
      * @since 3.3
      */
+    @Override
     ProjectIdentifier getProjectIdentifier();
 
     /**

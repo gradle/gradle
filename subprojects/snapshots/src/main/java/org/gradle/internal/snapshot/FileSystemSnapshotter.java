@@ -16,13 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
-import java.util.List;
 
 /**
  * Provides access to snapshots of the content and metadata of the file system.
@@ -49,7 +47,23 @@ public interface FileSystemSnapshotter {
     FileSystemLocationSnapshot snapshot(File file);
 
     /**
-     * Returns snapshots of the roots of a file collection.
+     * Snapshots a directory tree.
+     *
+     * For simplicity this only caches trees without includes/excludes. However, if it is asked
+     * to snapshot a filtered tree, it will try to find a snapshot for the underlying
+     * tree and filter it in memory instead of walking the file system again. This covers the
+     * majority of cases, because all task outputs are put into the cache without filters
+     * before any downstream task uses them.
+     *
+     * If it turns out that a filtered tree has actually not been filtered (i.e. the condition always returned true),
+     * then we cache the result as unfiltered tree.
      */
-    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
+    FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter filter);
+
+    /**
+     * Create a {@link FileSystemSnapshotBuilder} for creating custom {@link FileSystemSnapshot}s.
+     *
+     * The builder uses the same hashing infrastructure as the snapshotter.
+     */
+    FileSystemSnapshotBuilder newFileSystemSnapshotBuilder();
 }

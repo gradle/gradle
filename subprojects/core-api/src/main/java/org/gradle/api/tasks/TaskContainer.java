@@ -133,6 +133,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
+    @Override
     Task create(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
@@ -145,6 +146,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
+    @Override
     Task create(String name) throws InvalidUserDataException;
 
     /**
@@ -158,6 +160,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
+    @Override
     <T extends Task> T create(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
@@ -191,6 +194,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
+    @Override
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 
     /**
@@ -204,6 +208,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
+    @Override
     TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException;
 
     /**
@@ -219,6 +224,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
+    @Override
     <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
@@ -233,6 +239,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
+    @Override
     <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
@@ -260,6 +267,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
+    @Override
     TaskProvider<Task> register(String name) throws InvalidUserDataException;
 
     /**

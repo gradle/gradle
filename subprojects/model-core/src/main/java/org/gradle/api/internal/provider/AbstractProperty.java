@@ -20,13 +20,14 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.DeprecationLogger;
 
-public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T>, ProducerAwareProperty {
+public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
-        InitialValue, Convention, Mutable, FinalLenient, FinalStrict
+        ImplicitValue, ExplicitValue, Final
     }
 
-    private State state = State.InitialValue;
+    private State state = State.ImplicitValue;
     private boolean finalizeOnNextGet;
+    private boolean disallowChanges;
     private Task producer;
 
     @Override
@@ -48,14 +49,20 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void finalizeValue() {
-        if (state != State.FinalStrict) {
+        if (state != State.Final) {
             makeFinal();
         }
-        state = State.FinalStrict;
+        state = State.Final;
+        disallowChanges = true;
     }
 
     @Override
-    public void finalizeValueOnReadAndWarnAboutChanges() {
+    public void disallowChanges() {
+        disallowChanges = true;
+    }
+
+    @Override
+    public void implicitFinalizeValue() {
         finalizeOnNextGet = true;
     }
 
@@ -67,12 +74,12 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      * Call prior to reading the value of this property.
      */
     protected void beforeRead() {
-        if (state == State.FinalLenient || state == State.FinalStrict) {
+        if (state == State.Final) {
             return;
         }
         if (finalizeOnNextGet) {
             makeFinal();
-            state = State.FinalLenient;
+            state = State.Final;
         }
     }
 
@@ -80,38 +87,46 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      * Call prior to mutating the value of this property.
      */
     protected boolean beforeMutate() {
-        if (state == State.FinalStrict) {
-            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
-        } else if (state == State.FinalLenient) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
-            return false;
-        } else if (state == State.Convention) {
-            applyDefaultValue();
-            state = State.InitialValue;
-        }
-        return true;
-    }
-
-    /**
-     * Call immediately after mutating the value of this property.
-     */
-    protected void afterMutate() {
-        if (state == State.InitialValue || state == State.Convention) {
-            state = State.Mutable;
-        }
-    }
-
-    /**
-     * Call prior to applying a convention of this property.
-     */
-    protected boolean shouldApplyConvention() {
-        if (!beforeMutate()) {
-            return false;
-        }
-        if (state == State.InitialValue) {
-            state = State.Convention;
+        if (canMutate()) {
+            if (state == State.ImplicitValue) {
+                applyDefaultValue();
+                state = State.ExplicitValue;
+            }
             return true;
         }
-        return state == State.Convention;
+        return false;
+    }
+
+    /**
+     * Call prior to discarding the value of this property.
+     */
+    protected boolean beforeReset() {
+        if (canMutate()) {
+            state = State.ImplicitValue;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Call prior to applying a convention to this property.
+     */
+    protected boolean shouldApplyConvention() {
+        if (canMutate()) {
+            return state == State.ImplicitValue;
+        }
+        return false;
+    }
+
+    private boolean canMutate() {
+        if (state == State.Final && disallowChanges) {
+            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
+        } else if (disallowChanges) {
+            throw new IllegalStateException("The value for this property cannot be changed any further.");
+        } else if (state == State.Final) {
+            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
+            return false;
+        }
+        return true;
     }
 }

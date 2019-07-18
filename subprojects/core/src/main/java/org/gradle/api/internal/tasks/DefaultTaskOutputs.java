@@ -82,6 +82,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void upToDateWhen(final Closure upToDateClosure) {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Closure)", new Runnable() {
+            @Override
             public void run() {
                 upToDateSpec = upToDateSpec.and(upToDateClosure);
             }
@@ -91,6 +92,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void upToDateWhen(final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", new Runnable() {
+            @Override
             public void run() {
                 upToDateSpec = upToDateSpec.and(spec);
             }
@@ -105,6 +107,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void cacheIf(final String cachingEnabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
+            @Override
             public void run() {
                 cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
             }
@@ -114,6 +117,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void doNotCacheIf(final String cachingDisabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.doNotCacheIf(Spec)", new Runnable() {
+            @Override
             public void run() {
                 doNotCacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingDisabledReason));
             }

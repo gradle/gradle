@@ -45,6 +45,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
         return singleMatch != null || multipleMatches!=null;
     }
 
+    @Override
     public Set<T> getMatches() {
         assert hasResult();
         if (singleMatch != null) {

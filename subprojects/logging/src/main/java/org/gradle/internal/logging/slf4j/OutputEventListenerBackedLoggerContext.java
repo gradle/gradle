@@ -65,6 +65,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         return outputEventListener.get();
     }
 
+    @Override
     public Logger getLogger(String name) {
         Logger logger = loggers.get(name);
         if (logger != null) {

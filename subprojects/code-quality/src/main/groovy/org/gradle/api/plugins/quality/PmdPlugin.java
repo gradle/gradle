@@ -48,7 +48,7 @@ import java.util.concurrent.Callable;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.8.0";
+    public static final String DEFAULT_PMD_VERSION = "6.15.0";
     private PmdExtension extension;
 
     @Override
@@ -109,7 +109,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         });
     }
 
-    private void configureTaskConventionMapping(Configuration configuration, Pmd task) {
+    private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("pmdClasspath", Callables.returning(configuration));
         taskMapping.map("ruleSets", new Callable<List<String>>() {
@@ -154,6 +154,8 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 return extension.getTargetJdk();
             }
         });
+
+        task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {

@@ -64,7 +64,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
-import org.gradle.internal.event.ListenerBroadcast
+import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -80,7 +80,7 @@ import spock.lang.Unroll
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
 import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
@@ -103,7 +103,7 @@ class DefaultConfigurationSpec extends Specification {
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
         _ * resolver.getRepositories() >> []
         _ * projectStateRegistry.stateFor(_) >> projectState
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
@@ -742,6 +742,23 @@ class DefaultConfigurationSpec extends Specification {
         assert copiedConfiguration.extendsFrom.empty
     }
 
+    def "multiple copies create unique configuration names"() {
+        def configuration = prepareConfigurationForCopyTest()
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+
+        when:
+        3 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        def copied1Configuration = configuration.copy()
+        def copied2Configuration = configuration.copy()
+        def copied3Configuration = configuration.copyRecursive()
+
+        then:
+        checkCopiedConfiguration(configuration, copied1Configuration, resolutionStrategyCopy)
+        checkCopiedConfiguration(configuration, copied2Configuration, resolutionStrategyCopy, 2)
+        checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
+    }
+
     @Unroll
     void "copies configuration role"() {
         def configuration = prepareConfigurationForCopyTest()
@@ -776,7 +793,7 @@ class DefaultConfigurationSpec extends Specification {
 
         and:
         def copiedConfiguration = configuration.copy(new Spec<Dependency>() {
-            public boolean isSatisfiedBy(Dependency element) {
+            boolean isSatisfiedBy(Dependency element) {
                 return !element.getGroup().equals("group3");
             }
         })
@@ -868,8 +885,8 @@ class DefaultConfigurationSpec extends Specification {
         return configuration
     }
 
-    private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy) {
-        assert copy.name == original.name + "Copy"
+    private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy, int copyCount = 1) {
+        assert copy.name == original.name + "Copy${copyCount > 1 ? copyCount : ''}"
         assert copy.visible == original.visible
         assert copy.transitive == original.transitive
         assert copy.description == original.description
@@ -1080,7 +1097,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
-        def listenerBroadcaster = Mock(ListenerBroadcast)
+        def listenerBroadcaster = Mock(AnonymousListenerBroadcast)
 
         when:
         def config = conf("conf")

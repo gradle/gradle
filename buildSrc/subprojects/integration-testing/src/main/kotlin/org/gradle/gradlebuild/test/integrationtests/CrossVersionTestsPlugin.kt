@@ -19,8 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
-import org.gradle.gradlebuild.test.fixtures.TestFixturesExtension
-import org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin
 import org.gradle.kotlin.dsl.*
 import releasedVersions
 
@@ -30,7 +28,7 @@ class CrossVersionTestsPlugin : Plugin<Project> {
         val sourceSet = addSourceSet(TestType.CROSSVERSION)
         addDependenciesAndConfigurations(TestType.CROSSVERSION)
         dependencies {
-            "crossVersionTestRuntime"(project(":toolingApiBuilders"))
+            "crossVersionTestRuntimeOnly"(project(":toolingApiBuilders"))
         }
         createTasks(sourceSet, TestType.CROSSVERSION)
         createAggregateTasks(sourceSet)
@@ -40,10 +38,8 @@ class CrossVersionTestsPlugin : Plugin<Project> {
 
     private
     fun Project.configureTestFixturesForCrossVersionTests() {
-        plugins.withType<TestFixturesPlugin> {
-            configure<TestFixturesExtension> {
-                from(":toolingApi")
-            }
+        dependencies {
+            "testImplementation"(testFixtures(project(":toolingApi")))
         }
     }
 

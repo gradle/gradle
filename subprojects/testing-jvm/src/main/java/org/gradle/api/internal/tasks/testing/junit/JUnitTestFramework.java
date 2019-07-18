@@ -54,6 +54,7 @@ public class JUnitTestFramework implements TestFramework {
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
+            @Override
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
                 workerProcessBuilder.sharedPackages("junit.framework");
                 workerProcessBuilder.sharedPackages("junit.extensions");

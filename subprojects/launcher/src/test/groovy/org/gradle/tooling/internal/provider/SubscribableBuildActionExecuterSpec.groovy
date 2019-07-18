@@ -24,7 +24,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.tooling.events.OperationType
 
 class SubscribableBuildActionExecuterSpec extends Specification {

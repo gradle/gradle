@@ -145,12 +145,16 @@ include::java_testing.adoc[leveloffset=+2]
 
 include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 
-[[part:cpp_projects]]
-== C++ Projects
+[[part:native_projects]]
+== C++ & Other Native Projects
 
 include::building_cpp_projects.adoc[leveloffset=+2]
 
 include::cpp_testing.adoc[leveloffset=+2]
+
+include::building_swift_projets.adoc[leveloffset=+2]
+
+include::swift_testing.adoc[leveloffset=+2]
 
 [[part:native_projects]]
 == Native Projects using the Software Model

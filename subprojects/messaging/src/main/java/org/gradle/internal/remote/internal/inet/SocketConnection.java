@@ -75,6 +75,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         return "socket connection from " + localAddress + " to " + remoteAddress;
     }
 
+    @Override
     public T receive() throws MessageIOException {
         try {
             return objectReader.read();
@@ -112,6 +113,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         return false;
     }
 
+    @Override
     public void dispatch(T message) throws MessageIOException {
         try {
             objectWriter.write(message);
@@ -136,6 +138,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         }
     }
 
+    @Override
     public void stop() {
         CompositeStoppable.stoppable(new Closeable() {
             @Override

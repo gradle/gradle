@@ -43,6 +43,7 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
         return false;
     }
 
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return annotationType;
     }

@@ -34,6 +34,7 @@ public class HttpBuildCacheCredentials implements PasswordCredentials {
      *
      * @return The user name. May be null.
      */
+    @Override
     @Nullable
     public String getUsername() {
         return username;
@@ -44,6 +45,7 @@ public class HttpBuildCacheCredentials implements PasswordCredentials {
      *
      * @param username The user name. May be null.
      */
+    @Override
     public void setUsername(@Nullable String username) {
         this.username = username;
     }
@@ -53,6 +55,7 @@ public class HttpBuildCacheCredentials implements PasswordCredentials {
      *
      * @return The password. May be null.
      */
+    @Override
     @Nullable
     public String getPassword() {
         return password;
@@ -63,6 +66,7 @@ public class HttpBuildCacheCredentials implements PasswordCredentials {
      *
      * @param password The password. May be null.
      */
+    @Override
     public void setPassword(@Nullable String password) {
         this.password = password;
     }

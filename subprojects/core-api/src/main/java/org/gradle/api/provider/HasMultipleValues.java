@@ -29,11 +29,12 @@ import javax.annotation.Nullable;
  * @since 4.5
  */
 @Incubating
-public interface HasMultipleValues<T> {
+public interface HasMultipleValues<T> extends HasConfigurableValue {
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param elements The elements, can be null.
      */
@@ -45,6 +46,28 @@ public interface HasMultipleValues<T> {
      * @param provider Provider of the elements.
      */
     void set(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
+     * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
+     *
+     * <p>This is the same as {@link #set(Iterable)} but returns this property to allow method chaining.</p>
+     *
+     * @param elements The elements, can be null.
+     * @return this
+     * @since 5.6
+     */
+    HasMultipleValues<T> value(@Nullable Iterable<? extends T> elements);
+
+    /**
+     * Sets the property to have the same value of the given provider, and replaces any existing value. This property will track the value of the provider and query its value each time the value of this property is queried. When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider Provider of the elements.
+     * @return this
+     * @since 5.6
+     */
+    HasMultipleValues<T> value(Provider<? extends Iterable<? extends T>> provider);
 
     /**
      * Sets the value of this property to an empty collection, and replaces any existing value.

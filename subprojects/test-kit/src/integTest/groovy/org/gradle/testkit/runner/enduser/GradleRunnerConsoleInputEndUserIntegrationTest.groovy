@@ -25,9 +25,9 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             apply plugin: 'groovy'
 
             dependencies {
-                testCompile localGroovy()
-                testCompile gradleTestKit()
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                testImplementation localGroovy()
+                testImplementation gradleTestKit()
+                testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
                 }
             }

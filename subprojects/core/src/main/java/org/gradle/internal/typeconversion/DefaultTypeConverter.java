@@ -89,6 +89,7 @@ public class DefaultTypeConverter implements TypeConverter {
             this.type = type;
         }
 
+        @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("A String or CharSequence");
             visitor.candidate("A " + type.getSimpleName());
@@ -125,6 +126,7 @@ public class DefaultTypeConverter implements TypeConverter {
             visitor.candidate("Any Number");
         }
 
+        @Override
         public void convert(Object notation, NotationConvertResult<? super T> result) throws TypeConversionException {
             if (notation instanceof CharSequence) {
                 try {
@@ -167,6 +169,7 @@ public class DefaultTypeConverter implements TypeConverter {
 
     public DefaultTypeConverter(final PathToFileResolver fileResolver) {
         registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
+            @Override
             public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
                 result.converted(fileResolver.resolve(notation));
             }
@@ -174,6 +177,7 @@ public class DefaultTypeConverter implements TypeConverter {
         registerConverters();
     }
 
+    @Override
     public Object convert(Object notation, Class<?> type, boolean primitive) throws TypeConversionException {
         if (type.isInstance(notation)) {
             return notation;
@@ -298,6 +302,7 @@ public class DefaultTypeConverter implements TypeConverter {
             super(Boolean.class);
         }
 
+        @Override
         public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
             result.converted("true".equals(notation));
         }
@@ -311,6 +316,7 @@ public class DefaultTypeConverter implements TypeConverter {
             this.target = target;
         }
 
+        @Override
         public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
             if (notation.length() != 1) {
                 throw new TypeConversionException(String.format("Cannot convert string value '%s' with length %d to type %s",

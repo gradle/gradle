@@ -72,6 +72,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
             super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         }
 
+        @Override
         public void enableLocking() {
             this.configurationLocked = true;
         }

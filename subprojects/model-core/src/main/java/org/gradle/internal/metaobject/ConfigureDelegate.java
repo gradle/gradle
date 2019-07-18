@@ -104,6 +104,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         throw _delegate.setMissingProperty(property);
     }
 
+    @Override
     public Object getProperty(String name) {
         boolean isAlreadyConfiguring = _configuring;
         _configuring = true;

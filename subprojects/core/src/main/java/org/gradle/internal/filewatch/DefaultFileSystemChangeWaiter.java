@@ -114,6 +114,7 @@ class DefaultFileSystemChangeWaiter implements FileSystemChangeWaiter {
         }
     }
 
+    @Override
     public void wait(Runnable notifier, FileWatcherEventListener eventListener) {
         Runnable cancellationHandler = new Runnable() {
             @Override

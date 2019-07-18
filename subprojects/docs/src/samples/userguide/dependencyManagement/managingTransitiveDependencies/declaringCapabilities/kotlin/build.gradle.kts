@@ -32,6 +32,14 @@ dependencies {
 }
 // end::dependencies[]
 
+// tag::use_highest_asm[]
+configurations.all {
+    resolutionStrategy.capabilitiesResolution.withCapability("org.ow2.asm:asm") {
+        selectHighestVersion()
+    }
+}
+// end::use_highest_asm[]
+
 // tag::declare_capability[]
 dependencies {
     // Activate the "LoggingCapability" rule
@@ -47,7 +55,7 @@ class LoggingCapability : ComponentMetadataRule {
             allVariants {
                 withCapabilities {
                     // Declare that both log4j and log4j-over-slf4j provide the same capability
-                    addCapability("org.slf4j", "slf4j-capability", "1.0")
+                    addCapability("log4j", "log4j", id.version)
                 }
             }
         }
@@ -72,12 +80,16 @@ class AsmCapability : ComponentMetadataRule {
 // end::fix_asm[]
 
 if (project.hasProperty("replace")) {
-    // tag::replacement_rule[]
-    configurations.compileClasspath.resolutionStrategy.dependencySubstitution {
-        substitute(module("log4j:log4j"))
-            .because("Prefer SLF4J for logging")
-            .with(module("org.slf4j:log4j-over-slf4j:1.7.10"))
 
+    // tag::use_slf4j[]
+    configurations.all {
+        resolutionStrategy.capabilitiesResolution.withCapability("log4j:log4j") {
+            select(candidates.find {
+                it as ModuleComponentIdentifier
+                it.module == "log4j-over-slf4j"
+            } )
+            because("use slf4j in place of log4j")
+        }
     }
-    // end::replacement_rule[]
+    // end::use_slf4j[]
 }

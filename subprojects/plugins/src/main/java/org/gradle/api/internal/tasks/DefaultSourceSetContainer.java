@@ -39,6 +39,7 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     @Inject
     public DefaultSourceSetContainer(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator classGenerator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(SourceSet.class, classGenerator, new Namer<SourceSet>() {
+            @Override
             public String determineName(SourceSet ss) {
                 return ss.getName();
             }

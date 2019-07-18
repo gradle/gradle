@@ -58,11 +58,15 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
+            configurations {
+                create("compileOnlyClasspath") { extendsFrom(configurations["compileOnly"]) }
+            }
+
             tasks {
                 register("assertions") {
                     doLast {
                         val requiredLibs = listOf("kotlin-stdlib-jdk8-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
-                        listOf("compileOnly", "testRuntimeClasspath").forEach { configuration ->
+                        listOf("compileOnlyClasspath", "testRuntimeClasspath").forEach { configuration ->
                             require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
                                 "Embedded Kotlin libraries not found in ${'$'}configuration"
                             })
@@ -87,8 +91,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             dependencies {
                 ${dependencyDeclarationsFor(
-                    "compile",
-                    listOf("compiler-embeddable", "scripting-compiler-embeddable")
+                    "implementation",
+                    listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
                 )}
             }
 
@@ -100,7 +104,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         val result = build("dependencies")
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
-        listOf("stdlib", "reflect", "compiler-embeddable", "scripting-compiler-embeddable").forEach {
+        listOf("stdlib", "reflect", "compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable").forEach {
             assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
         }
     }
@@ -117,7 +121,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect"))}
+                ${dependencyDeclarationsFor("implementation", listOf("stdlib", "reflect"))}
             }
 
             configurations["compileClasspath"].files.forEach {
@@ -126,7 +130,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             val components =
                 configurations
-                    .compile
+                    .compileClasspath
                     .incoming
                     .artifactView { lenient(true) }
                     .artifacts

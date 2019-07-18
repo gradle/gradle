@@ -66,12 +66,14 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
     private static class ModuleArtifactsKeySerializer extends AbstractSerializer<ArtifactsAtRepositoryKey> {
         private final ComponentIdentifierSerializer identifierSerializer = new ComponentIdentifierSerializer();
 
+        @Override
         public void write(Encoder encoder, ArtifactsAtRepositoryKey value) throws Exception {
             encoder.writeString(value.repositoryId);
             identifierSerializer.write(encoder, value.componentId);
             encoder.writeString(value.context);
         }
 
+        @Override
         public ArtifactsAtRepositoryKey read(Decoder decoder) throws Exception {
             String resolverId = decoder.readString();
             ComponentIdentifier componentId = identifierSerializer.read(decoder);
@@ -98,6 +100,7 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
     private static class ModuleArtifactsCacheEntrySerializer extends AbstractSerializer<ModuleArtifactsCacheEntry> {
         private final Serializer<Set<ComponentArtifactMetadata>> artifactsSerializer =
                 new SetSerializer<ComponentArtifactMetadata>(new ComponentArtifactMetadataSerializer());
+        @Override
         public void write(Encoder encoder, ModuleArtifactsCacheEntry value) throws Exception {
             encoder.writeLong(value.createTimestamp);
             byte[] hash = value.moduleDescriptorHash.toByteArray();
@@ -105,6 +108,7 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
             artifactsSerializer.write(encoder, value.artifacts);
         }
 
+        @Override
         public ModuleArtifactsCacheEntry read(Decoder decoder) throws Exception {
             long createTimestamp = decoder.readLong();
             byte[] encodedHash = decoder.readBinary();

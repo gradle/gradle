@@ -66,30 +66,37 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
         this.attributes = attributes;
     }
 
+    @Override
     public String getOrganisation() {
         return organisation;
     }
 
+    @Override
     public String getModule() {
         return module;
     }
 
+    @Override
     public String getRevision() {
         return revision;
     }
 
+    @Override
     public String getConfMapping() {
         return confMapping;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
+    @Override
     public Iterable<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
 
+    @Override
     public Iterable<ExcludeRule> getExcludeRules() {
         return excludeRules;
     }

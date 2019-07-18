@@ -31,6 +31,8 @@ import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -54,12 +56,12 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
     void execute(ChildProcess... processes) throws Throwable {
         for (ChildProcess process : processes) {
-            process.start();
+            process.start()
         }
         for (ChildProcess process : processes) {
-            process.waitForStop();
+            process.waitForStop()
         }
-        exceptionListener.rethrow();
+        exceptionListener.rethrow()
     }
 
     def workerProcessStdoutAndStderrIsForwardedToThisProcess() {
@@ -224,26 +226,36 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         ! stdout.stdErr.contains("java.lang.IllegalStateException")
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "handles output when worker fails before logging is started"() {
+        when:
+        execute(worker(new RemoteProcess()).jvmArgs("-Dorg.gradle.native.dir=/dev/null").expectStartFailure())
+
+        then:
+        noExceptionThrown()
+        stdout.stdErr.contains("net.rubygrapefruit.platform.NativeException: Failed to load native library")
+    }
+
     private class ChildProcess {
-        private boolean stopFails;
-        private boolean startFails;
-        private WorkerProcess proc;
-        private Action<? super WorkerProcessContext> action;
-        private List<String> jvmArgs = Collections.emptyList();
-        private Action<ObjectConnectionBuilder> serverAction;
+        private boolean stopFails
+        private boolean startFails
+        private WorkerProcess proc
+        private Action<? super WorkerProcessContext> action
+        private List<String> jvmArgs = Collections.emptyList()
+        private Action<ObjectConnectionBuilder> serverAction
 
         public ChildProcess(Action<? super WorkerProcessContext> action) {
-            this.action = action;
+            this.action = action
         }
 
         ChildProcess expectStopFailure() {
-            stopFails = true;
-            return this;
+            stopFails = true
+            return this
         }
 
         ChildProcess expectStartFailure() {
-            startFails = true;
-            return this;
+            startFails = true
+            return this
         }
 
         public void start() {
@@ -253,9 +265,9 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             builder.javaCommand.systemProperty("test.system.property", "value")
             builder.javaCommand.environment("TEST_ENV_VAR", "value")
 
-            builder.javaCommand.jvmArgs(jvmArgs);
+            builder.javaCommand.jvmArgs(jvmArgs)
 
-            proc = builder.build();
+            proc = builder.build()
             try {
                 proc.start()
                 assertFalse(startFails)
@@ -263,7 +275,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
                 if (!startFails) {
                     throw new AssertionError(e)
                 }
-                return;
+                return
             }
             proc.connection.addIncoming(TestListenerInterface.class, exceptionListener)
             if (serverAction != null) {
@@ -303,7 +315,7 @@ class StdOutSerializableLogAction extends SerializableLogAction {
     }
 
     void execute() {
-        System.out.println(message);
+        System.out.println(message)
     }
 }
 
@@ -313,7 +325,7 @@ class StdErrSerializableLogAction extends SerializableLogAction {
     }
 
     void execute() {
-        System.err.println(message);
+        System.err.println(message)
     }
 }
 
@@ -338,5 +350,5 @@ abstract class SerializableLogAction implements Serializable {
         this.message = message
     }
 
-    abstract void execute();
+    abstract void execute()
 }

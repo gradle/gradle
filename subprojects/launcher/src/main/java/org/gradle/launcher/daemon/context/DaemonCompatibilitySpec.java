@@ -27,10 +27,12 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
         this.desiredContext = desiredContext;
     }
 
+    @Override
     public boolean isSatisfiedBy(DaemonContext potentialContext) {
         return whyUnsatisfied(potentialContext) == null;
     }
 
+    @Override
     public String whyUnsatisfied(DaemonContext context) {
         if (!javaHomeMatches(context)) {
             return "Java home is different.\n" + description(context);

@@ -44,18 +44,22 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
         return this;
     }
 
+    @Override
     public T get() throws GradleConnectionException {
         BlockingResultHandler<T> handler = new BlockingResultHandler<T>(modelType);
         get(handler);
         return handler.getResult();
     }
 
+    @Override
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         connection.run(new ConsumerAction<T>() {
+            @Override
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
+            @Override
             public T run(ConsumerConnection connection) {
                 T model = connection.run(modelType, operationParameters);
                 return model;
@@ -63,6 +67,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
         }, new ResultHandlerAdapter<T>(handler));
     }
 
+    @Override
     public DefaultModelBuilder<T> forTasks(String... tasks) {
         // only set a non-null task list on the operationParamsBuilder if at least one task has been given to this method,
         // this is needed since any non-null list, even if empty, is treated as 'execute these tasks before building the model'

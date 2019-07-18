@@ -102,6 +102,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             this.applicationId = applicationId;
         }
 
+        @Override
         @Nullable
         public String getFile() {
             return file == null ? null : file.getAbsolutePath();

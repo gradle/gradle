@@ -26,18 +26,22 @@ public class ExactVersionSelector extends AbstractStringVersionSelector {
         this.version = selector;
     }
 
+    @Override
     public boolean isDynamic() {
         return false;
     }
 
+    @Override
     public boolean requiresMetadata() {
         return false;
     }
 
+    @Override
     public boolean matchesUniqueVersion() {
         return true;
     }
 
+    @Override
     public boolean accept(String candidate) {
         return version.isEmpty() || version.equals(candidate);
     }

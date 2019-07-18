@@ -16,66 +16,71 @@
 
 package org.gradle.internal.execution.impl
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
-import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputFingerprint
+import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution
+import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotBeforeExecution
 
 class OutputFilterUtilTest extends Specification {
+
+    private static final FileCollectionFingerprint EMPTY_OUTPUT_FINGERPRINT = AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
-    def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
+    def snapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
 
     def "pre-existing directories are filtered"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
-        def beforeExecution = fingerprintOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
         outputDir.file()
 
         when:
-        def filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
         then:
         filteredOutputs.empty
 
         when:
         def outputDirFile = outputDir.file("in-output-dir").createFile()
         fileSystemMirror.beforeBuildFinished()
-        def afterExecution = fingerprintOutput(outputDir)
-        filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution)
+        def afterExecution = snapshotOutput(outputDir)
+        filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
         then:
-        filteredOutputs.fingerprints.keySet() == [outputDir.absolutePath, outputDirFile.absolutePath] as Set
+        collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
 
     def "only newly created files in directory are part of filtered outputs"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
         outputDir.file("outputOfOther").createFile()
-        def beforeExecution = fingerprintOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
         then:
         filteredOutputs.empty
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
-        def afterExecution = fingerprintOutput(outputDir)
-        filteredOutputs = filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution)
+        def afterExecution = snapshotOutput(outputDir)
+        filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
         then:
-        filteredOutputs.fingerprints.keySet() == [outputDir.absolutePath, outputOfCurrent.absolutePath] as Set
+        collectFiles(filteredOutputs) == [outputDir, outputOfCurrent]
     }
 
     def "previous outputs remain outputs"() {
@@ -83,73 +88,113 @@ class OutputFilterUtilTest extends Specification {
         def outputDirFile = outputDir.file("outputOfCurrent").createFile()
         def previousExecution = fingerprintOutput(outputDir)
         outputDir.file("outputOfOther").createFile()
-        def beforeExecution = fingerprintOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
 
         when:
-        def filteredOutputs = filterOutputFingerprint(previousExecution, beforeExecution, beforeExecution)
+        def filteredOutputs = filterOutputSnapshotAfterExecution(previousExecution, beforeExecution, beforeExecution)
         then:
-        filteredOutputs.fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        collectFiles(filteredOutputs) == [outputDir, outputDirFile]
     }
-    
+
     def "missing files are ignored"() {
         def missingFile = temporaryFolder.file("missing")
-        def beforeExecution = fingerprintOutput(missingFile)
+        def beforeExecution = snapshotOutput(missingFile)
         expect:
-        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, beforeExecution).empty
+        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution).empty
     }
 
     def "added empty dir is captured"() {
         def emptyDir = temporaryFolder.file("emptyDir").createDir()
-        def afterExecution = fingerprintOutput(emptyDir)
+        def afterExecution = snapshotOutput(emptyDir)
+        def beforeExecution = FileSystemSnapshot.EMPTY
         expect:
-        filterOutputFingerprint(outputFingerprinter.empty(), outputFingerprinter.empty(), afterExecution).fingerprints.keySet() == [emptyDir.absolutePath] as Set
-        filterOutputFingerprint(outputFingerprinter.empty(), afterExecution, afterExecution).empty
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [emptyDir]
+        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution).empty
     }
 
-    private CurrentFileCollectionFingerprint fingerprintOutput(File output) {
-        fileSystemMirror.beforeBuildFinished()
-        outputFingerprinter.fingerprint(ImmutableFileCollection.of(output))
-    }
-    
     def "updated files in output directory are part of the output"() {
         def outputDir = temporaryFolder.createDir("outputDir")
         def existingFile = outputDir.file("some").createFile()
-        def beforeExecution = fingerprintOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
         existingFile << "modified"
-        def afterExecution = fingerprintOutput(outputDir)
+        def afterExecution = snapshotOutput(outputDir)
         expect:
-        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).fingerprints.keySet() == [outputDir, existingFile]*.absolutePath as Set
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, existingFile]
     }
 
     def "updated files are part of the output"() {
         def existingFile = temporaryFolder.file("some").createFile()
-        def beforeExecution = fingerprintOutput(existingFile)
+        def beforeExecution = snapshotOutput(existingFile)
         existingFile << "modified"
-        def afterExecution = fingerprintOutput(existingFile)
+        def afterExecution = snapshotOutput(existingFile)
         expect:
-        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).fingerprints.keySet() == [existingFile.absolutePath] as Set
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [existingFile]
     }
 
     def "removed files are not considered outputs"() {
         def outputDir = temporaryFolder.createDir("outputDir")
         def outputDirFile = outputDir.file("toBeDeleted").createFile()
-        def beforeExecution = fingerprintOutput(outputDir)
+        def afterPreviousExecutionFingerprint = fingerprintOutput(outputDir)
+        def beforeExecutionSnapshot = snapshotOutput(outputDir)
         outputDirFile.delete()
-        def afterExecution = fingerprintOutput(outputDir)
+        def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        filterOutputFingerprint(beforeExecution, beforeExecution, afterExecution).fingerprints.keySet() == [outputDir.absolutePath] as Set
-        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution).empty
+        collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionFingerprint, beforeExecutionSnapshot, afterExecution)) == [outputDir]
+        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution).empty
     }
 
     def "overlapping directories are not included"() {
         def outputDir = temporaryFolder.createDir("outputDir")
         outputDir.createDir("output-dir-2")
-        def beforeExecution = fingerprintOutput(outputDir)
+        def beforeExecution = snapshotOutput(outputDir)
         def outputDirFile = outputDir.createFile("outputDirFile")
-        def afterExecution1 = fingerprintOutput(outputDir)
+        def afterExecution = snapshotOutput(outputDir)
 
         expect:
-        filterOutputFingerprint(outputFingerprinter.empty(), beforeExecution, afterExecution1).fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [outputDir, outputDirFile]
+    }
+
+    def "overlapping files are not part of the before execution snapshot"() {
+        def outputDir = temporaryFolder.file("outputDir").createDir()
+        def outputDirFile = outputDir.createFile("outputDirFile")
+        def afterLastExecution = fingerprintOutput(outputDir)
+        outputDir.createFile("not-in-output")
+        def beforeExecution = snapshotOutput(outputDir)
+
+        expect:
+        collectFiles(filterOutputSnapshotBeforeExecution(afterLastExecution, beforeExecution)) == [outputDir, outputDirFile]
+    }
+
+    private FileSystemSnapshot snapshotOutput(File output) {
+        fileSystemMirror.beforeBuildFinished()
+        snapshotter.snapshot(output)
+    }
+
+    private CurrentFileCollectionFingerprint fingerprintOutput(File outputDir) {
+        DefaultCurrentFileCollectionFingerprint.from([snapshotOutput(outputDir)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+    }
+
+    List<File> collectFiles(ImmutableList<FileSystemSnapshot> fileSystemSnapshots) {
+        def result = []
+        fileSystemSnapshots.each {
+            it.accept(new FileSystemSnapshotVisitor() {
+                @Override
+                boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                    result.add(directorySnapshot)
+                    return true
+                }
+
+                @Override
+                void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                    result.add(fileSnapshot)
+                }
+
+                @Override
+                void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                }
+            })
+        }
+        result.collect { it.absolutePath as File }
     }
 }

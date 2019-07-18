@@ -34,20 +34,25 @@ abstract class AbstractArchiver implements CompressedReadableResource {
 
     abstract protected String getSchemePrefix();
 
+    @Override
     public abstract InputStream read();
 
+    @Override
     public String getDisplayName() {
         return resource.getDisplayName();
     }
 
+    @Override
     public URI getURI() {
         return uri;
     }
 
+    @Override
     public String getBaseName() {
         return resource.getBaseName();
     }
 
+    @Override
     public File getBackingFile() {
         return resource.getBackingFile();
     }

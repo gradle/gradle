@@ -25,11 +25,14 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface UnitOfWork extends CacheableEntity {
 
@@ -42,13 +45,34 @@ public interface UnitOfWork extends CacheableEntity {
 
     InputChangeTrackingStrategy getInputChangeTrackingStrategy();
 
+    void visitImplementations(ImplementationVisitor visitor);
+
+    interface ImplementationVisitor {
+        void visitImplementation(Class<?> implementation);
+        void visitImplementation(ImplementationSnapshot implementation);
+        void visitAdditionalImplementation(ImplementationSnapshot implementation);
+    }
+
+    void visitInputProperties(InputPropertyVisitor visitor);
+
+    interface InputPropertyVisitor {
+        void visitInputProperty(String propertyName, Object value);
+    }
+
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
+
+    interface InputFilePropertyVisitor {
+        void visitInputFileProperty(String propertyName, @Nullable Object value, boolean incremental, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+    }
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
+    interface OutputPropertyVisitor {
+        void visitOutputProperty(String propertyName, TreeType type, FileCollection roots);
+    }
+
     void visitLocalState(LocalStateVisitor visitor);
 
-    @FunctionalInterface
     interface LocalStateVisitor {
         void visitLocalStateRoot(File localStateRoot);
     }
@@ -65,6 +89,13 @@ public interface UnitOfWork extends CacheableEntity {
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
      */
     default void markSnapshottingInputsFinished(CachingState cachingState) {}
+
+    /**
+     * Returns whether the execution history should be stored.
+     */
+    default boolean isTaskHistoryMaintained() {
+        return true;
+    }
 
     /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
@@ -85,11 +116,6 @@ public interface UnitOfWork extends CacheableEntity {
     Optional<? extends Iterable<String>> getChangingOutputs();
 
     /**
-     * When overlapping outputs are allowed, output files added between executions are ignored during change detection.
-     */
-    boolean isAllowOverlappingOutputs();
-
-    /**
      * Whether the current execution detected that there are overlapping outputs.
      */
     boolean hasOverlappingOutputs();
@@ -99,15 +125,10 @@ public interface UnitOfWork extends CacheableEntity {
      */
     boolean shouldCleanupOutputsOnNonIncrementalExecution();
 
-    @FunctionalInterface
-    interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String name, @Nullable Object value, boolean incremental);
-    }
-
-    @FunctionalInterface
-    interface OutputPropertyVisitor {
-        void visitOutputProperty(String name, TreeType type, FileCollection roots);
-    }
+    /**
+     * Returns the output snapshots after the current execution.
+     */
+    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution();
 
     enum WorkResult {
         DID_WORK,

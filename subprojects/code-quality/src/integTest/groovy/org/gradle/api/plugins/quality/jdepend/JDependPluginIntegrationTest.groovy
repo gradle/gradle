@@ -16,10 +16,8 @@
 package org.gradle.api.plugins.quality.jdepend
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class JDependPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
@@ -56,30 +54,32 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/jdepend/test.xml").assertContents(containsString("org.gradle.Class1Test"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
         goodCode()
 
         expect:
-        succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
-        succeeds(":jdependMain") && ":jdependMain" in skippedTasks
+        succeeds("jdependMain")
+        executedAndNotSkipped(":jdependMain")
+
+        succeeds(":jdependMain")
+        skipped(":jdependMain")
 
         when:
         file("build/reports/jdepend/main.xml").delete()
 
         then:
-        succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
+        succeeds("jdependMain")
+        executedAndNotSkipped(":jdependMain")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "out-of-date when mixed with Java and Groovy code"() {
         given:
         goodCode()
         buildFile << """
             apply plugin: 'groovy'
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
         """
         file("src/main/groovy/org/gradle/Groovy1.groovy") << """

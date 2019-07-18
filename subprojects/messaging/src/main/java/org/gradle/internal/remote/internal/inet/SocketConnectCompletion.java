@@ -35,6 +35,7 @@ class SocketConnectCompletion implements ConnectCompletion {
         return socket.socket().getLocalSocketAddress() + " to " + socket.socket().getRemoteSocketAddress();
     }
 
+    @Override
     public <T> RemoteConnection<T> create(StatefulSerializer<T> serializer) {
         return new SocketConnection<T>(socket, new KryoBackedMessageSerializer(), serializer);
     }

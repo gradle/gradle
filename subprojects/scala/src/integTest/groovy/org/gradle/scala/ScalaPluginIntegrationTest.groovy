@@ -19,8 +19,8 @@ package org.gradle.scala
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
@@ -47,7 +47,7 @@ task someTask
                 }
                 plugins.withId("scala") {
                     dependencies {
-                        compile("org.scala-lang:scala-library:2.12.6")
+                        implementation("org.scala-lang:scala-library:2.12.6")
                     }
                 }
             }
@@ -65,9 +65,9 @@ task someTask
         }
         file("a/build.gradle") << """
             dependencies {
-              compile(project(":b"))
-              compile(project(":c"))
-              compile(project(":d"))
+              implementation(project(":b"))
+              implementation(project(":c"))
+              implementation(project(":d"))
             }
         """
 
@@ -92,8 +92,8 @@ task someTask
             project(":scala") {
                 apply plugin: 'scala'
                 dependencies {
-                    compile("org.scala-lang:scala-library:2.12.6")
-                    compile(project(":java").sourceSets.main.output)
+                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation(project(":java").sourceSets.main.output)
                 }
             }
         """
@@ -139,7 +139,7 @@ task someTask
                 apply plugin: 'scala'
 
                 dependencies {
-                    compile("org.scala-lang:scala-library:2.12.6")
+                    implementation("org.scala-lang:scala-library:2.12.6")
                 }
             }
         """
@@ -164,7 +164,7 @@ task someTask
                 apply plugin: 'scala'
 
                 dependencies {
-                    compile("org.scala-lang:scala-library:2.12.6")
+                    implementation("org.scala-lang:scala-library:2.12.6")
                 }
             }
             project(":war") {
@@ -184,7 +184,7 @@ task someTask
         expect:
         succeeds(":ear:assemble")
         // The Scala incremental compilation mapping should not be exposed to anything else
-        file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("compileScala.mapping")))
+        file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("implementationScala.mapping")))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6849")
@@ -201,7 +201,7 @@ task someTask
                 ${jcenterRepository()}
             }
             dependencies {
-                compile("org.scala-lang:scala-library:2.12.6")
+                implementation("org.scala-lang:scala-library:2.12.6")
             }
         """
         file("src/test/scala/Foo.scala") << """

@@ -50,6 +50,7 @@ public class RunBuildAction implements Runnable {
         this.stoppable = stoppable;
     }
 
+    @Override
     public void run() {
         try {
             BuildActionResult result = executer.execute(

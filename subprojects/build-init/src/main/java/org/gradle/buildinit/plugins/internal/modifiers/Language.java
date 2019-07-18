@@ -23,6 +23,7 @@ public class Language {
     public static final Language KOTLIN = Language.withNameAndExtension("Kotlin", "kt");
     public static final Language SCALA = Language.withName("Scala");
     public static final Language CPP = Language.withName("C++", "cpp");
+    public static final Language SWIFT = Language.withName("Swift", "swift");
 
     private final String displayName;
     private final String name;

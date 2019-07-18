@@ -37,10 +37,12 @@ public class DefaultIvyContextManager implements IvyContextManager {
     private final LinkedList<Ivy> cached = new LinkedList<Ivy>();
     private final ThreadLocal<Integer> depth = new ThreadLocal<Integer>();
 
+    @Override
     public void withIvy(final Action<? super Ivy> action) {
         withIvy(Transformers.toTransformer(action));
     }
 
+    @Override
     public <T> T withIvy(Transformer<? extends T, ? super Ivy> action) {
         Integer currentDepth = depth.get();
 

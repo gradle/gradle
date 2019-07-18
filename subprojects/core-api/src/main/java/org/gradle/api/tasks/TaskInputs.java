@@ -28,7 +28,7 @@ import java.util.Map;
  * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskInputs extends CompatibilityAdapterForTaskInputs{
+public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
     /**
      * Returns true if this task has declared the inputs that it consumes.
      *

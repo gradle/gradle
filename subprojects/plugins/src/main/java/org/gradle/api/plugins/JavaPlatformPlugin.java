@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
@@ -87,10 +88,12 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             "Found dependencies in the '%s' configuration.";
 
     private final SoftwareComponentFactory softwareComponentFactory;
+    private final PlatformSupport platformSupport;
 
     @Inject
-    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory) {
+    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory, PlatformSupport platformSupport) {
         this.softwareComponentFactory = softwareComponentFactory;
+        this.platformSupport = platformSupport;
     }
 
     @Override
@@ -105,16 +108,10 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         configureExtension(project);
         addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
-
-
     }
 
     private void addPlatformDisambiguationRule(Project project) {
-        project.getDependencies()
-                .getAttributesSchema()
-                .getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-                .getDisambiguationRules()
-                .add(PlatformSupport.PreferRegularPlatform.class);
+        platformSupport.addDisambiguationRule(project.getDependencies().getAttributesSchema());
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
@@ -138,7 +135,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtimeElements);
-        declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME);
+        declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, LibraryElements.JAR);
 
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
@@ -161,6 +158,11 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void declareConfigurationCategory(ObjectFactory objectFactory, Configuration configuration, String value) {
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
+    }
+
+    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage, String libraryContents) {
+        declareConfigurationUsage(objectFactory, configuration, usage);
+        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryContents));
     }
 
     private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage) {

@@ -359,7 +359,8 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     variant("apiElements", ['org.gradle.category':'library',
                                             'org.gradle.dependency.bundling':'external',
                                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                                            'org.gradle.usage':'java-api-jars'])
+                                            'org.gradle.usage':'java-api',
+                                            'org.gradle.libraryelements': 'jar'])
                     constraint("org:platform:1.0", "org:platform:1.0") {
                         variant("platform-compile", [
                             'org.gradle.usage': 'java-api',

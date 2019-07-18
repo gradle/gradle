@@ -68,10 +68,12 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
     }
 
     private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
+        @Override
         public VisualStudioSolutionFile create() {
             return new VisualStudioSolutionFile();
         }
 
+        @Override
         public void configure(final VisualStudioSolutionFile solutionFile) {
             DefaultVisualStudioSolution solution = (DefaultVisualStudioSolution) getSolution();
 

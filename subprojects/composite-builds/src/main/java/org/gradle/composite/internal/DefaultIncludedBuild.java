@@ -228,6 +228,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
         gradleLauncher.finishBuild();
     }
 
+    @Override
     public synchronized void addTasks(Iterable<String> taskPaths) {
         gradleLauncher.scheduleTasks(taskPaths);
     }

@@ -40,10 +40,12 @@ import java.util.Collections;
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
 
     private final SslContextFactory sslContextFactory;
+    private final HttpBuildCacheRequestCustomizer requestCustomizer;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory) {
+    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer) {
         this.sslContextFactory = sslContextFactory;
+        this.requestCustomizer = requestCustomizer;
     }
 
     @Override
@@ -83,7 +85,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("authenticated", Boolean.toString(authenticated))
             .config("allowUntrustedServer", Boolean.toString(allowUntrustedServer));
 
-        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl);
+        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer);
     }
 
     @VisibleForTesting

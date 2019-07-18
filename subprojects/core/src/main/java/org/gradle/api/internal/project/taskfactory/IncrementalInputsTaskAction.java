@@ -27,6 +27,7 @@ public class IncrementalInputsTaskAction extends AbstractIncrementalTaskAction {
         super(type, method);
     }
 
+    @Override
     protected void doExecute(Task task, String methodName) {
         JavaMethod.of(task, Object.class, methodName, InputChanges.class).invoke(task, getInputChanges());
     }

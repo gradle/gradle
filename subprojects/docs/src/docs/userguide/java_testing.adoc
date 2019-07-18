@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md
+
 [[java_testing]]
 = Testing in Java & JVM projects
 
@@ -469,3 +471,89 @@ You can force tests to run in this situation by cleaning the output of the relev
 On the few occasions that you want to debug your code while the tests are running, it can be helpful if you can attach a debugger at that point. You can either set the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:debug[Test.getDebug()] property to `true` or use the `--debug-jvm` command line option.
 
 When debugging for tests is enabled, Gradle will start the test process suspended and listening on port 5005.
+
+[[sec:java_test_fixtures]]
+== Using test fixtures
+
+=== Producing and using test fixtures within a single project
+
+Test fixtures are commonly used to setup the code under test, or provide utilities aimed at facilitating the tests of a component.
+Java projects can enable test fixtures support by applying the `java-test-fixtures` plugin, in addition to the `java` or `java-library` plugins:
+
+.Applying the Java test fixtures plugin
+====
+include::sample[dir="userguide/java/fixtures/groovy",files="lib/build.gradle[tags=use-plugin]"]
+include::sample[dir="userguide/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=use-plugin]"]
+====
+
+This will automatically create a `testFixtures` source set, in which you can write your test fixtures.
+Test fixtures are configured so that:
+
+- they can see the _main_ source set classes
+- _test_ sources can see the _test fixtures_ classes
+
+For example for this main class:
+
+[source,java,indent=0]
+.src/main/java/com/acme/Person.java
+----
+include::{samplesPath}/userguide/java/fixtures/groovy/lib/src/main/java/com/acme/Person.java[tags=sample]
+----
+
+A test fixture can be written in `src/testFixtures/java`:
+
+[source,java,indent=0]
+.src/testFixtures/java/com/acme/Simpsons.java
+----
+include::{samplesPath}/userguide/java/fixtures/groovy/lib/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
+----
+
+=== Declaring dependencies of test fixtures
+
+Similarly to the link:java_library_plugin.html[Java Library Plugin], test fixtures expose an API and an implementation configuration:
+
+.Declaring test fixture dependencies
+====
+include::sample[dir="userguide/java/fixtures/groovy",files="lib/build.gradle[tags=test_fixtures_deps]"]
+include::sample[dir="userguide/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=test_fixtures_deps]"]
+====
+
+It's worth noticing that if a dependency is an _implementation_ dependency of test fixtures, then _when compiling tests that depend on those test fixtures_, the implementation dependencies will _not leak_ into the compile classpath.
+This results in improved separation of concerns and better compile avoidance.
+
+=== Consuming test fixtures of another project
+
+Test fixtures are not limited to a single project.
+It is often the case that a dependent project tests also needs the test fixtures of the dependency.
+This can be achieved very easily using the `testFixtures` keyword:
+
+.Adding a dependency on test fixtures of another project
+====
+include::sample[dir="userguide/java/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
+include::sample[dir="userguide/java/fixtures/kotlin",files="build.gradle.kts[tags=consumer_dependencies]"]
+====
+
+=== Publishing test fixtures
+
+One of the advantages of using the `java-test-fixtures` plugin is that test fixtures are published.
+By convention, test fixtures will be published with an artifact having the `test-fixtures` classifier.
+For both Maven and Ivy, an artifact with that classifier is simply published alongside the regular artifacts.
+However, if you use the `maven-publish` or `ivy-publish` plugins and enable {metadata-file-spec}[experimental Gradle metadata], then test fixtures are published as additional variants, which implies that you can directly depend on test fixtures of external libraries:
+
+.Adding a dependency on test fixtures of an external library
+====
+include::sample[dir="userguide/java/fixtures/groovy",files="build.gradle[tags=external-test-fixtures-dependency]"]
+include::sample[dir="userguide/java/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
+====
+
+It's worth noting that if the external project is _not_ publishing Gradle module metadata, then resolution will fail with an error indicating that such a variant cannot be found:
+
+.Output of **`gradle dependencyInsight --configuration functionalTestClasspath --dependency gson`**
+----
+> gradle dependencyInsight --configuration functionalTestClasspath --dependency gson
+include::{samplesPath}/userguide/java/fixtures/dependencyInsight.out[]
+----
+
+The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
+That's because by convention, for projects that use the `java-test-fixtures` plugin, Gradle automatically creates test fixtures variants with a capability whose name is the name of the main component, with the appendix `-test-fixtures`.
+

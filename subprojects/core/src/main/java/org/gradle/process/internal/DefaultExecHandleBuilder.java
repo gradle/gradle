@@ -46,16 +46,19 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
         super(fileResolver, executor, buildCancellationToken);
     }
 
+    @Override
     public DefaultExecHandleBuilder executable(Object executable) {
         super.executable(executable);
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder commandLine(Object... arguments) {
         commandLine(Arrays.asList(arguments));
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder commandLine(Iterable<?> args) {
         List<Object> argsList = Lists.newArrayList(args);
         executable(argsList.get(0));
@@ -63,18 +66,22 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
         return this;
     }
 
+    @Override
     public void setCommandLine(List<String> args) {
         commandLine(args);
     }
 
+    @Override
     public void setCommandLine(Object... args) {
         commandLine(args);
     }
 
+    @Override
     public void setCommandLine(Iterable<?> args) {
         commandLine(args);
     }
 
+    @Override
     public DefaultExecHandleBuilder args(Object... args) {
         if (args == null) {
             throw new IllegalArgumentException("args == null!");
@@ -83,23 +90,27 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder args(Iterable<?> args) {
         GUtil.addToCollection(arguments, args);
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder setArgs(List<String> arguments) {
         this.arguments.clear();
         this.arguments.addAll(arguments);
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder setArgs(Iterable<?> arguments) {
         this.arguments.clear();
         GUtil.addToCollection(this.arguments, arguments);
         return this;
     }
 
+    @Override
     public List<String> getArgs() {
         List<String> args = new ArrayList<String>();
         for (Object argument : arguments) {
@@ -140,16 +151,19 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder redirectErrorStream() {
         super.redirectErrorStream();
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder setStandardOutput(OutputStream outputStream) {
         super.setStandardOutput(outputStream);
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder setStandardInput(InputStream inputStream) {
         super.setStandardInput(inputStream);
         return this;
@@ -161,16 +175,19 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder listener(ExecHandleListener listener) {
         super.listener(listener);
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder setTimeout(int timeoutMillis) {
         super.setTimeout(timeoutMillis);
         return this;
     }
 
+    @Override
     public ExecHandleBuilder setDaemon(boolean daemon) {
         super.daemon = daemon;
         return this;

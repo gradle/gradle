@@ -24,12 +24,12 @@ import org.gradle.internal.hash.HashCode;
  */
 public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
     private final HashCode contentHash;
-    private final long lastModified;
+    private final FileMetadata metadata;
 
-    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, long lastModified) {
+    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata) {
         super(absolutePath, name);
         this.contentHash = contentHash;
-        this.lastModified = lastModified;
+        this.metadata = metadata;
     }
 
     @Override
@@ -42,17 +42,21 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
         return contentHash;
     }
 
+    public FileMetadata getMetadata() {
+        return metadata;
+    }
+
     @Override
     public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
             return false;
         }
         RegularFileSnapshot otherSnapshot = (RegularFileSnapshot) other;
-        return lastModified == otherSnapshot.lastModified && contentHash.equals(otherSnapshot.contentHash);
+        return metadata.equals(otherSnapshot.metadata) && contentHash.equals(otherSnapshot.contentHash);
     }
 
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visit(this);
+        visitor.visitFile(this);
     }
 }

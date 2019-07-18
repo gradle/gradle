@@ -64,4 +64,12 @@ public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
     public int hashCode() {
         return Objects.hashCode(self, parent);
     }
+
+    @Override
+    public String toString() {
+        return "HierarchicalClassLoaderStructure{" +
+                "self=" + self +
+                ", parent=" + parent +
+                '}';
+    }
 }

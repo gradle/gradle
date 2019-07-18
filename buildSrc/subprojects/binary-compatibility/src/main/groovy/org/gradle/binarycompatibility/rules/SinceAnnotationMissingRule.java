@@ -22,9 +22,7 @@ import japicmp.model.JApiConstructor;
 import japicmp.model.JApiField;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiMethod;
-
 import me.champeau.gradle.japicmp.report.Violation;
-
 import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries;
 
 import java.util.Map;
@@ -49,7 +47,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
     private boolean shouldSkipViolationCheckFor(JApiCompatibility member) {
         return !isClassFieldConstructorOrMethod(member) ||
             isDeprecated(member) ||
-            isInjectConstructor(member) ||
+            isInject(member) ||
             isOverrideMethod(member) ||
             isKotlinFileFacadeClass(member);
     }
@@ -58,8 +56,8 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
         return member instanceof JApiClass || member instanceof JApiField || member instanceof JApiConstructor || member instanceof JApiMethod;
     }
 
-    private boolean isInjectConstructor(JApiCompatibility member) {
-        return member instanceof JApiConstructor && isInject((JApiHasAnnotations) member);
+    private boolean isInject(JApiCompatibility member) {
+        return member instanceof JApiHasAnnotations && isInject((JApiHasAnnotations) member);
     }
 
     private boolean isOverrideMethod(JApiCompatibility member) {

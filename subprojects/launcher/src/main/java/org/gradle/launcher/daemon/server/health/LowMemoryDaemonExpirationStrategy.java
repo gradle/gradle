@@ -55,6 +55,7 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
         return Math.min(maxValue, Math.max(minValue, thresholdIn));
     }
 
+    @Override
     public DaemonExpirationResult checkExpiration() {
         lock.lock();
         try {

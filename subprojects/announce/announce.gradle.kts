@@ -15,19 +15,28 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+plugins {
+    `java-library`
+}
+
 dependencies {
-    compile(library("commons_codec"))
-    compile(library("slf4j_api"))
-    compile(library("commons_io"))
-    compile(project(":core"))
-    testRuntime(project(":plugins"))
+    implementation(project(":modelCore"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("commons_codec"))
+    implementation(library("commons_io"))
+
+    testRuntimeOnly(project(":plugins"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-
-testFixtures {
-    from(":core")
 }

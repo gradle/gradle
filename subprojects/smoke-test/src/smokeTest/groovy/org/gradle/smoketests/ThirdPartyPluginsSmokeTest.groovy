@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,7 +26,8 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
-    @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
+    @Rule
+    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
@@ -166,12 +166,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile 'org.springframework:spring-core'
+                implementation 'org.springframework:spring-core'
             }
             """.stripIndent()
 
         when:
-        def result = runner("dependencies", "--configuration", "compile").build()
+        def result = runner("dependencies", "--configuration", "compileClasspath").build()
 
         then:
         result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')
@@ -256,41 +256,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         expect:
         runner('integrationTest').build()
-    }
-
-    @Issue('https://plugins.gradle.org/plugin/org.gosu-lang.gosu')
-    @Ignore("Relies on SourceTask.source - https://github.com/gosu-lang/gradle-gosu-plugin/issues/47")
-    def 'gosu plugin'() { // Requires JDK 8 or later
-        given:
-        buildFile << """
-            plugins {
-                id 'org.gosu-lang.gosu' version '${TestedVersions.gosu}'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.9'
-            }
-            """.stripIndent()
-
-        file('src/main/gosu/example/Foo.gs') << """
-            package example
-
-            public class Foo {
-
-              function doSomething(arg : String) : String {
-                return "Hello, got the argument '\${arg}'"
-              }
-            }
-            """.stripIndent()
-
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':compileGosu').outcome == SUCCESS
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
@@ -423,7 +388,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             
             }
         """
-
         expect:
         runner('compileJava').forwardOutput().build()
     }

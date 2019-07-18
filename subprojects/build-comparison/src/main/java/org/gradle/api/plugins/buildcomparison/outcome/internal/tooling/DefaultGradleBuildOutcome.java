@@ -32,14 +32,17 @@ public class DefaultGradleBuildOutcome implements GradleBuildOutcome, Serializab
         this.taskPath = taskPath;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public String getTaskPath() {
         return taskPath;
     }

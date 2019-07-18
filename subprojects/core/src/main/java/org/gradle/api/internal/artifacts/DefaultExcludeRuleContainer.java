@@ -32,6 +32,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
         this.addedRules = new HashSet<ExcludeRule>(addedRules);
     }
 
+    @Override
     public void add(Map<String, String> args) {
         maybeAdd(args);
     }
@@ -43,6 +44,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
         return addedRules.add(ExcludeRuleNotationConverter.parser().parseNotation(args));
     }
 
+    @Override
     public Set<ExcludeRule> getRules() {
         return addedRules == null ? Collections.<ExcludeRule>emptySet() : addedRules;
     }

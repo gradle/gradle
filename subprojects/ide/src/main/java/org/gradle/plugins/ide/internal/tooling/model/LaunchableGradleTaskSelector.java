@@ -66,6 +66,7 @@ public class LaunchableGradleTaskSelector implements InternalLaunchable, TaskExe
         return this;
     }
 
+    @Override
     public List<String> getArgs() {
         return Collections.singletonList(taskName);
     }
@@ -75,6 +76,7 @@ public class LaunchableGradleTaskSelector implements InternalLaunchable, TaskExe
         return this;
     }
 
+    @Override
     public String getProjectPath() {
         return projectIdentifier.getProjectPath();
     }

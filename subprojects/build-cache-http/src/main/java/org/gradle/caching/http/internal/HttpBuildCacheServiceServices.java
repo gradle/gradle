@@ -21,10 +21,13 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistr
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.util.GradleVersion;
 
 public class HttpBuildCacheServiceServices extends AbstractPluginServiceRegistry {
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(BuildCacheServiceRegistration.class, new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
+        registration.add(HttpBuildCacheRequestCustomizer.class, request -> request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion()));
     }
 }

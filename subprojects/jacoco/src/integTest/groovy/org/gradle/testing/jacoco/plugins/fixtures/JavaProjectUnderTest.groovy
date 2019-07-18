@@ -41,7 +41,7 @@ class JavaProjectUnderTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
         this
@@ -61,7 +61,7 @@ class JavaProjectUnderTest {
                     java {
                         srcDir file('$testSrcDir')
                     }
-                    compileClasspath += sourceSets.main.output + configurations.testRuntime
+                    compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
                     runtimeClasspath += output + compileClasspath
                 }
             }

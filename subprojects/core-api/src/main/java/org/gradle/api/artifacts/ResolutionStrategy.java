@@ -294,8 +294,8 @@ public interface ResolutionStrategy {
      * Specifies the ordering for resolved artifacts. Options are:
      * <ul>
      * <li>{@link SortOrder#DEFAULT} : Don't specify the sort order. Gradle will provide artifacts in the default order.</li>
-     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear <em>before</em> artifacts for it's dependencies.</li>
-     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming component should appear <em>after</em> artifacts for it's dependencies.</li>
+     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear <em>before</em> artifacts for its dependencies.</li>
+     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming component should appear <em>after</em> artifacts for its dependencies.</li>
      * </ul>
      * A best attempt will be made to sort artifacts according the supplied {@link SortOrder}, but no guarantees will be made in the presence of dependency cycles.
      *
@@ -305,6 +305,26 @@ public interface ResolutionStrategy {
      * @since 3.5
      */
     void sortArtifacts(SortOrder sortOrder);
+
+    /**
+     * Configures the capabilities resolution strategy.
+     *
+     * @param action the configuration action.
+     *
+     * @return this resolution strategy
+     *
+     * @since 5.6
+     */
+    @Incubating
+    ResolutionStrategy capabilitiesResolution(Action<? super CapabilitiesResolution> action);
+
+    /**
+     * Returns the capabilities resolution strategy.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    CapabilitiesResolution getCapabilitiesResolution();
 
     /**
      * Defines the sort order for components and artifacts produced by the configuration.

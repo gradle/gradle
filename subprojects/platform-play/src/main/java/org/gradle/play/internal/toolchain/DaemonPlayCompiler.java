@@ -29,6 +29,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
@@ -38,19 +39,28 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 import java.io.File;
 
 public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemonCompiler<T> {
+    private final Class<? extends Compiler<T>> compilerClass;
+    private final Object[] compilerConstructorArguments;
     private final Iterable<File> compilerClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final File daemonWorkingDir;
 
-    public DaemonPlayCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compiler, Object[] compilerParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
-        super(compiler, compilerParameters, workerDaemonFactory);
+    public DaemonPlayCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compilerClass, Object[] compilerConstructorArguments, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        super(workerDaemonFactory, actionExecutionSpecFactory);
+        this.compilerClass = compilerClass;
+        this.compilerConstructorArguments = compilerConstructorArguments;
         this.compilerClasspath = compilerClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
+    }
+
+    @Override
+    protected CompilerParameters getCompilerParameters(T spec) {
+        return new PlayCompilerParameters<T>(compilerClass.getName(), compilerConstructorArguments, spec);
     }
 
     @Override
@@ -85,5 +95,19 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
         gradleApiAndPlaySpec.allowPackage("org.apache.commons.lang");
 
         return gradleApiAndPlaySpec;
+    }
+
+    public static class PlayCompilerParameters<T extends PlayCompileSpec> extends CompilerParameters {
+        private final T compileSpec;
+
+        public PlayCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {
+            super(compilerClassName, compilerInstanceParameters);
+            this.compileSpec = compileSpec;
+        }
+
+        @Override
+        public T getCompileSpec() {
+            return compileSpec;
+        }
     }
 }

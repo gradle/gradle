@@ -16,37 +16,64 @@
 
 package org.gradle.internal.reflect;
 
+import com.google.common.collect.Maps;
+
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static java.util.Collections.unmodifiableCollection;
 
 public class MethodSet implements Iterable<Method> {
-    private final List<Method> methods = new ArrayList<Method>();
+    private final Map<MethodKey, Method> methods = Maps.newLinkedHashMap();
 
-    /**
-     * @return true if the method was added, false if not
-     */
-    public boolean add(Method method) {
-        for (Method current : methods) {
-            if (current.getName().equals(method.getName()) && current.getReturnType().equals(method.getReturnType()) && Arrays.equals(current.getParameterTypes(), method.getParameterTypes())) {
-                return false;
-            }
-        }
-        methods.add(method);
-        return true;
+    public void add(Method method) {
+        methods.putIfAbsent(new MethodKey(method), method);
     }
 
+    @Override
     public Iterator<Method> iterator() {
-        return methods.iterator();
+        return getValues().iterator();
     }
 
-    public List<Method> getValues() {
-        return methods;
+    public Collection<Method> getValues() {
+        return unmodifiableCollection(methods.values());
     }
 
     public boolean isEmpty() {
         return methods.isEmpty();
+    }
+
+    static class MethodKey {
+        private final Method method;
+        private final Class<?>[] parameterTypes;
+
+        private MethodKey(Method method) {
+            this.method = method;
+            this.parameterTypes = method.getParameterTypes(); // avoid clone
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            } else if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+
+            MethodKey that = (MethodKey) obj;
+            return Objects.equals(method.getName(), that.method.getName())
+                && Objects.equals(method.getReturnType(), that.method.getReturnType())
+                && Arrays.equals(parameterTypes, that.parameterTypes);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(method.getName(), parameterTypes.length);
+        }
     }
 }

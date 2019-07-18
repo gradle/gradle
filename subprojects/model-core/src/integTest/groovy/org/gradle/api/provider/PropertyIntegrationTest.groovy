@@ -17,6 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
@@ -60,12 +61,18 @@ task thing(type: SomeTask) {
         skipped(":thing")
     }
 
-    def "can define task with abstract Property getter"() {
+    @Unroll
+    def "can define task with abstract Property<#type> getter"() {
         given:
         buildFile << """
+            class Param<T> {
+                T display
+                String toString() { display.toString() }
+            }
+
             abstract class MyTask extends DefaultTask {
                 @Input
-                abstract Property<String> getProp()
+                abstract Property<$type> getProp()
                 
                 @TaskAction
                 void go() {
@@ -74,7 +81,7 @@ task thing(type: SomeTask) {
             }
             
             tasks.create("thing", MyTask) {
-                prop = "abc"
+                prop = $value
             }
         """
 
@@ -82,7 +89,12 @@ task thing(type: SomeTask) {
         succeeds("thing")
 
         then:
-        outputContains("prop = abc")
+        outputContains("prop = $display")
+
+        where:
+        type            | value                               | display
+        "String"        | "'abc'"                             | "abc"
+        "Param<String>" | "new Param<String>(display: 'abc')" | "abc"
     }
 
     def "can finalize the value of a property using API"() {
@@ -108,6 +120,31 @@ property.set(12)
 
         then:
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "can disallow changes to a property using API without finalizing the value"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1 
+assert property.get() == 2 
+property.disallowChanges()
+assert property.get() == 3
+assert property.get() == 4 
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property cannot be changed any further.")
     }
 
     def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {

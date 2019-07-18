@@ -62,6 +62,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         this.token = token;
     }
 
+    @Override
     public void handle(final RemoteConnection<Message> connection) {
         // Mark the connection has being handled
         onStartHandling(connection);
@@ -94,6 +95,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     /**
      * Blocks until all connections have been handled or abandoned.
      */
+    @Override
     public void stop() {
         lock.lock();
         try {
@@ -116,6 +118,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
             this.connection = connection;
         }
 
+        @Override
         public void run() {
             try {
                 receiveAndHandleCommand();

@@ -31,6 +31,7 @@ public class BaseDirSelector implements FileSelector {
         return String.format("{basedir: %s}", baseDir);
     }
 
+    @Override
     public boolean isSelected(File basedir, String filename, File file) {
         return basedir.equals(this.baseDir);
     }

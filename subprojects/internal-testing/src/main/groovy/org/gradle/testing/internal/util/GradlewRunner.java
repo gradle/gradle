@@ -45,6 +45,7 @@ public class GradlewRunner {
             process = builder.start();
             final Process finalProcess = process;
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         finalProcess.destroy();
@@ -66,6 +67,7 @@ public class GradlewRunner {
     
     private static void forwardAsync(final InputStream input, final OutputStream output) {
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 int bufferSize = 4096;
                 byte[] buffer = new byte[bufferSize];

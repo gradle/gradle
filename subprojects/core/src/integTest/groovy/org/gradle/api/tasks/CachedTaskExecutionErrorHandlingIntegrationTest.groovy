@@ -174,7 +174,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         !output.contains("The remote build cache was disabled during the build")
         output.count("> Attempting load") == 2
         output.count("> Attempting store") == 2
-        skippedTasks.empty
+        noneSkipped()
 
         where:
         failEvent | attemptsBeforeFailure

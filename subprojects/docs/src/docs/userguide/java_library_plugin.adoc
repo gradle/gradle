@@ -229,23 +229,15 @@ The role of each configuration is described in the following tables:
 | This configuration contains the test runtime classpath of this library
 |===
 
-
-[[sec:java_library_known_issues]]
-== Known issues
-
-
-[[sec:java_library_known_issues_compat]]
-=== Compatibility with other plugins
-
-At the moment, the Java Library plugin is wired to behave correctly with the `java`, `groovy` and `kotlin` plugins. In Gradle 5.3 or earlier, some plugins, such as the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the `java-library` plugin, then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile dependency, like this:
-
-.Configuring the Groovy plugin to work with Java Library in Gradle 5.3 or earlier
-====
-include::sample[dir="java-library/with-groovy/groovy",files="a/build.gradle[tags=configure-groovy]"]
-include::sample[dir="java-library/with-groovy/kotlin",files="a/build.gradle.kts[tags=configure-groovy]"]
-====
-
 [[sec:java_library_known_issues_memory]]
 === Increased memory usage for consumers
 
 When a project uses the Java Library plugin, consumers will use the output classes directory of this project directly on their compile classpath, instead of the jar file if the project uses the Java plugin. An indirect consequence is that up-to-date checking will require more memory, because Gradle will snapshot individual class files instead of a single jar. This may lead to increased memory consumption for large projects.
+
+[[sec:java_library_known_issues_windows_performance]]
+=== Significant build performance drop on Windows for huge multi-projects
+
+Another side effect of the snapshotting of individual class files, only affecting Windows systems, is that the performance can significantly drop when processing a very large amount of class files on the compile classpath.
+This only concerns very large multi-projects where a lot of classes are present on the classpath by using many `api` or (deprecated) `compile` dependencies.
+To mitigate this, you can set the `org.gradle.java.compile-classpath-packaging` system property to `true` to change the behavior of the Java Library plugin to use jars instead of class folders for everything on the compile classpath.
+Note, since this has other performance impacts and potentially side effects, by triggering all jar tasks at compile time, it is only recommended to activate this if you suffer from the described performance issue on Windows.

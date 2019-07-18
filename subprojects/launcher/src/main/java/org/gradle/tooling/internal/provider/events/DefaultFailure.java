@@ -35,10 +35,12 @@ public class DefaultFailure implements Serializable, InternalFailure {
         this.cause = cause;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }

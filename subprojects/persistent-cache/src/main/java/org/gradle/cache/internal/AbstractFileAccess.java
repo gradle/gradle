@@ -25,8 +25,10 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractFileAccess implements FileAccess {
+    @Override
     public <T> T readFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
         return readFile(new Factory<T>() {
+            @Override
             public T create() {
                 return uncheckedCall(action);
             }

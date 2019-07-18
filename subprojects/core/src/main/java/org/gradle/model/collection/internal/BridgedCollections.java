@@ -50,6 +50,7 @@ public abstract class BridgedCollections {
 
         return ModelRegistrations.of(containerPath)
             .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
                 public void execute(final MutableModelNode containerNode) {
                     final C container = containerFactory.transform(containerNode);
                     containerNode.setPrivateData(containerType, container);
@@ -88,6 +89,7 @@ public abstract class BridgedCollections {
                         @Override
                         public void run() {
                             container.whenObjectRemoved(new Action<I>() {
+                                @Override
                                 public void execute(I item) {
                                     String name = namer.determineName(item);
                                     containerNode.removeLink(name);

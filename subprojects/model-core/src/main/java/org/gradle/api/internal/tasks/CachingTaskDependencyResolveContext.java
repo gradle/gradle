@@ -72,6 +72,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         }
     }
 
+    @Override
     @Nullable
     public Task getTask() {
         return task;
@@ -80,6 +81,10 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
     @Override
     public void add(Object dependency) {
         Preconditions.checkNotNull(dependency);
+        if (dependency == TaskDependencyContainer.EMPTY) {
+            // Ignore things we know are empty
+            return;
+        }
         queue.add(dependency);
     }
 

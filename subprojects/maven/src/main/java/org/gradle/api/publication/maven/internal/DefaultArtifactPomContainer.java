@@ -43,6 +43,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         this.artifactPomFactory = artifactPomFactory;
     }
 
+    @Override
     public void addArtifact(Artifact artifact, File src) {
         if (artifact == null || src == null) {
             throw new InvalidUserDataException("Artifact or source file must not be null!");
@@ -57,6 +58,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         }
     }
 
+    @Override
     public Set<MavenDeployment> createDeployableFilesInfos() {
         Set<MavenDeployment> mavenDeployments = new HashSet<MavenDeployment>();
         for (String activeArtifactPomName : artifactPoms.keySet()) {

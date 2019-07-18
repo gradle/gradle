@@ -24,6 +24,7 @@ import java.util.List;
 public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final List<StyledTextOutput> textOutputs = new ArrayList<StyledTextOutput>();
 
+    @Override
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
         StyledTextOutput textOutput = new TestStyledTextOutput();
 

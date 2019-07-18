@@ -77,7 +77,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                testCompile("junit:junit:4.12")
+                testImplementation("junit:junit:4.12")
             }
 
         """)
@@ -131,9 +131,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                testCompile("junit:junit:4.12")
-                testCompile("org.hamcrest:hamcrest-library:1.3")
-                testCompile(gradleTestKit())
+                testImplementation("junit:junit:4.12")
+                testImplementation("org.hamcrest:hamcrest-library:1.3")
+                testImplementation(gradleTestKit())
             }
 
             gradlePlugin {

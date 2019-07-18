@@ -42,6 +42,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         this.processEnvironment = processEnvironment;
     }
 
+    @Override
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());

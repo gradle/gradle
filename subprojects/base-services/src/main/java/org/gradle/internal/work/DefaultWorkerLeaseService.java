@@ -155,13 +155,19 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
+    public void releaseCurrentProjectLocks() {
+        final Iterable<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
+        releaseLocks(projectLocks);
+    }
+
+    @Override
     public void withoutProjectLock(Runnable runnable) {
         withoutProjectLock(Factories.toFactory(runnable));
     }
 
     @Override
     public <T> T withoutProjectLock(Factory<T> factory) {
-        final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
+        final Iterable<? extends ResourceLock> projectLocks = getCurrentProjectLocks();
         return withoutLocks(projectLocks, factory);
     }
 
@@ -336,6 +342,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     private class Root implements LeaseHolder {
         int leasesInUse;
 
+        @Override
         public String getDisplayName() {
             return "root";
         }

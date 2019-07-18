@@ -29,17 +29,19 @@ import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 public class Matchers {
 
     @Factory
     public static <T extends CharSequence> Matcher<T> matchesRegexp(final String pattern) {
         return new BaseMatcher<T>() {
+            @Override
             public boolean matches(Object o) {
                 return Pattern.compile(pattern, Pattern.DOTALL).matcher((CharSequence) o).matches();
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that matches regexp ").appendValue(pattern);
             }
@@ -49,10 +51,12 @@ public class Matchers {
     @Factory
     public static <T extends CharSequence> Matcher<T> matchesRegexp(final Pattern pattern) {
         return new BaseMatcher<T>() {
+            @Override
             public boolean matches(Object o) {
                 return pattern.matcher((CharSequence) o).matches();
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that matches regexp ").appendValue(pattern);
             }
@@ -62,9 +66,11 @@ public class Matchers {
     @Factory
     public static <T extends CharSequence> Matcher<T> containsText(final String pattern) {
         return new BaseMatcher<T>() {
+            @Override
             public boolean matches(Object o) {
                 return ((String) o).contains(pattern);
             }
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that contains text ").appendValue(pattern);
             }
@@ -74,10 +80,12 @@ public class Matchers {
     @Factory
     public static <T> Matcher<T> strictlyEqual(final T other) {
         return new BaseMatcher<T>() {
+            @Override
             public boolean matches(Object o) {
                 return strictlyEquals(o, other);
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("an Object that strictly equals ").appendValue(other);
             }
@@ -116,10 +124,12 @@ public class Matchers {
      */
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {
+            @Override
             public boolean matches(Object o) {
                 return containsLine(equalTo(line)).matches(o);
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a String that contains line ").appendValue(line);
             }
@@ -129,11 +139,13 @@ public class Matchers {
     @Factory
     public static Matcher<String> containsLine(final Matcher<? super String> matcher) {
         return new BaseMatcher<String>() {
+            @Override
             public boolean matches(Object o) {
                 String str = (String) o;
                 return containsLine(str, matcher);
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("a String that contains line that is ").appendDescriptionOf(matcher);
             }
@@ -162,11 +174,13 @@ public class Matchers {
     @Factory
     public static Matcher<Iterable<?>> isEmpty() {
         return new BaseMatcher<Iterable<?>>() {
+            @Override
             public boolean matches(Object o) {
                 Iterable<?> iterable = (Iterable<?>) o;
                 return iterable != null && !iterable.iterator().hasNext();
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("an empty Iterable");
             }
@@ -176,6 +190,7 @@ public class Matchers {
     @Factory
     public static Matcher<Object> isSerializable() {
         return new BaseMatcher<Object>() {
+            @Override
             public boolean matches(Object o) {
                 try {
                     new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(o);
@@ -185,6 +200,7 @@ public class Matchers {
                 return true;
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("is serializable");
             }
@@ -194,11 +210,13 @@ public class Matchers {
     @Factory
     public static Matcher<Throwable> hasMessage(final Matcher<String> matcher) {
         return new BaseMatcher<Throwable>() {
+            @Override
             public boolean matches(Object o) {
                 Throwable t = (Throwable) o;
                 return matcher.matches(t.getMessage());
             }
 
+            @Override
             public void describeTo(Description description) {
                 description.appendText("an exception with message that is ").appendDescriptionOf(matcher);
             }
@@ -208,11 +226,13 @@ public class Matchers {
     @Factory
     public static Matcher<String> normalizedLineSeparators(final Matcher<String> matcher) {
         return new BaseMatcher<String>() {
+            @Override
             public boolean matches(Object o) {
                 String string = (String) o;
                 return matcher.matches(string.replace(SystemProperties.getInstance().getLineSeparator(), "\n"));
             }
 
+            @Override
             public void describeTo(Description description) {
                 matcher.describeTo(description);
                 description.appendText(" (normalize line separators)");

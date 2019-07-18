@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
  * A container object that represents a configurable value of a specific type. A {@link Property} is also a {@link Provider} and can be used in the same way as a {@link Provider}. A property's value can be accessed using the methods of {@link Provider} such as {@link Provider#get()}. The value can be modified by using the method {@link #set(Object)} or {@link #set(Provider)}.
  *
  * <p>
- * A property may be used to represent a task output. Such a property carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
+ * A property may be used to represent a task output. Such a property carries information about which task produces its value. When the property is attached to a task input, this allows Gradle to automatically calculate the dependencies between tasks based on the values they use as inputs and produce as outputs.
  * </p>
  *
  * <p>You can create a {@link Property} instance using {@link org.gradle.api.model.ObjectFactory#property(Class)}. There are also several specialized subtypes of this interface that can be created using various other factory methods.</p>
@@ -35,11 +35,12 @@ import javax.annotation.Nullable;
  * @since 4.3
  */
 @Incubating
-public interface Property<T> extends Provider<T> {
+public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property the given value, replacing whatever value the property already had.
      *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     * <p>This method can also be used to discard the value of the property, by passing {@code null} as the value.
+     * The convention for this property, if any, will be used to provide the value instead.
      *
      * @param value The value, can be null.
      */
@@ -52,7 +53,7 @@ public interface Property<T> extends Provider<T> {
      * When the given provider represents a task output, this property will also carry the task dependency information from the provider.
      * </p>
      *
-     * @param provider Provider
+     * @param provider The provider whose value to use.
      */
     void set(Provider<? extends T> provider);
 
@@ -66,6 +67,17 @@ public interface Property<T> extends Provider<T> {
      * @since 5.0
      */
     Property<T> value(@Nullable T value);
+
+    /**
+     * Sets the property to have the same value of the given provider, replacing whatever value the property already had. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
+     *
+     * <p>This is the same as {@link #set(Provider)} but returns this property to allow method chaining.</p>
+     *
+     * @param provider The provider whose value to use.
+     * @return this
+     * @since 5.6
+     */
+    Property<T> value(Provider<? extends T> provider);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
@@ -90,7 +102,7 @@ public interface Property<T> extends Provider<T> {
      *
      * <p>When this property has a value provided by a {@link Provider}, the value of the provider is queried when this method is called and the value of this property set to the result. The value of the provider will no longer be tracked.</p>
      *
-     * <p>Note that although the value of the property will not change, the value may refer to a mutable object. Calling this method does not guarantee that the value will become immutable.</p>
+     * <p>Note that although the value of the property will not change, the value itself may be a mutable object. Calling this method does not guarantee that the value will become immutable.</p>
      *
      * @since 5.0
      */

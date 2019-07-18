@@ -24,8 +24,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
@@ -36,25 +37,21 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         }
     }
 
-    private final EnumMap<UserData, Object> userData = new EnumMap<UserData, Object>(UserData.class);
-
-    public enum UserData {
-        NAMED_OBJECT_INSTANTIATOR
-    }
+    private final Map<Object, Object> userData = new HashMap<Object, Object>();
 
     /**
      * This method can be used to store user data that should live among with this classloader
-     * @param user the consumer
+     * @param consumerId the consumer
      * @param onMiss called to create the initial data, when not found
      * @param <T> the type of data
      * @return user data
      */
-    public synchronized <T> T getUserData(UserData user, Factory<T> onMiss) {
-        if (userData.containsKey(user)) {
-            return Cast.uncheckedCast(userData.get(user));
+    public synchronized <T> T getUserData(Object consumerId, Factory<T> onMiss) {
+        if (userData.containsKey(consumerId)) {
+            return Cast.uncheckedCast(userData.get(consumerId));
         }
         T value = onMiss.create();
-        userData.put(user, value);
+        userData.put(consumerId, value);
         return value;
     }
 
@@ -88,6 +85,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         return VisitableURLClassLoader.class.getSimpleName() + "(" + name + ")";
     }
 
+    @Override
     public void visit(ClassLoaderVisitor visitor) {
         URL[] urls = getURLs();
         visitor.visitSpec(new Spec(name, Arrays.asList(urls)));

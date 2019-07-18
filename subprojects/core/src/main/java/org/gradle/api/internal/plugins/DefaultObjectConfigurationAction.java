@@ -57,13 +57,16 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         this.defaultTarget = defaultTarget;
     }
 
+    @Override
     public ObjectConfigurationAction to(Object... targets) {
         GUtil.flatten(targets, this.targets);
         return this;
     }
 
+    @Override
     public ObjectConfigurationAction from(final Object script) {
         actions.add(new Runnable() {
+            @Override
             public void run() {
                 applyScript(script);
             }
@@ -71,8 +74,10 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
+    @Override
     public ObjectConfigurationAction plugin(final Class<? extends Plugin> pluginClass) {
         actions.add(new Runnable() {
+            @Override
             public void run() {
                 applyPlugin(pluginClass);
             }
@@ -80,8 +85,10 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
+    @Override
     public ObjectConfigurationAction plugin(final String pluginId) {
         actions.add(new Runnable() {
+            @Override
             public void run() {
                 applyType(pluginId);
             }
@@ -89,8 +96,10 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
+    @Override
     public ObjectConfigurationAction type(final Class<?> pluginClass) {
         actions.add(new Runnable() {
+            @Override
             public void run() {
                 applyType(pluginClass);
             }

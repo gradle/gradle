@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -15,49 +13,54 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
-
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(library("inject"))
-    api(project(":coreApi"))
-
-    implementation(project(":messaging"))
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":resources"))
     implementation(project(":logging"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
+    implementation(library("inject"))
 
-    jmh(library("ant")) {
+    jmhImplementation(library("ant")) {
         version {
             prefer(libraryVersion("ant"))
         }
     }
 
-    jmh(library("commons_compress")) {
+    jmhImplementation(library("commons_compress")) {
         version {
             prefer(libraryVersion("commons_compress"))
         }
     }
 
-    jmh("io.airlift:aircompressor:0.8")
-    jmh("org.iq80.snappy:snappy:0.4")
-    jmh("org.kamranzafar:jtar:2.3")
+    jmhImplementation("io.airlift:aircompressor:0.8")
+    jmhImplementation("org.iq80.snappy:snappy:0.4")
+    jmhImplementation("org.kamranzafar:jtar:2.3")
+
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":fileCollections"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-
-testFixtures {
-    from(":core")
-    from(":baseServices")
-}

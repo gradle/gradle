@@ -16,29 +16,50 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":ide"))
-    compile(project(":platformNative"))
-    compile(project(":languageNative"))
-    compile(project(":testingNative"))
-    compile(library("plist"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":fileCollections"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":ide"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformNative"))
+    implementation(project(":languageNative"))
+    implementation(project(":testingBase"))
+    implementation(project(":testingNative"))
 
-    testFixturesApi(project(":internalTesting"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation(library("plist"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":languageNative")))
+    testImplementation(testFixtures(project(":versionControl")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestImplementation(project(":native"))
+    integTestImplementation(library("commons_io"))
+    integTestImplementation(library("jgit"))
+
+    testFixturesApi(testFixtures(project(":ide")))
+    testFixturesImplementation(library("plist"))
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(testFixtures(project(":ide")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-    from(":languageNative")
-    from(":versionControl")
-    from(":ide", "testFixtures")
-}

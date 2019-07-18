@@ -20,7 +20,7 @@ import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.CacheAccessSerializer;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.file.Chmod;
 
 import java.io.File;
 import java.util.HashMap;
@@ -55,6 +55,7 @@ public class DaemonRegistryServices {
     DaemonRegistry createDaemonRegistry(DaemonDir daemonDir, final FileLockManager fileLockManager, final Chmod chmod) {
         final File daemonRegistryFile = daemonDir.getRegistry();
         return daemonRegistryCache.get(daemonRegistryFile, new Factory<DaemonRegistry>() {
+            @Override
             public DaemonRegistry create() {
                 return new PersistentDaemonRegistry(daemonRegistryFile, fileLockManager, chmod);
             }

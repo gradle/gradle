@@ -59,6 +59,7 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
         this.status = status;
     }
 
+    @Override
     public ModuleComponentIdentifier getComponentId() {
         return id;
     }
@@ -131,6 +132,7 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
         return artifact;
     }
 
+    @Override
     public Collection<IvyModuleArtifactPublishMetadata> getArtifacts() {
         return artifactsById.values();
     }

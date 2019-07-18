@@ -29,6 +29,7 @@ public class PropertiesLoadingSettingsProcessor implements SettingsProcessor {
         this.propertiesLoader = propertiesLoader;
     }
 
+    @Override
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
                                     ClassLoaderScope buildRootClassLoaderScope,

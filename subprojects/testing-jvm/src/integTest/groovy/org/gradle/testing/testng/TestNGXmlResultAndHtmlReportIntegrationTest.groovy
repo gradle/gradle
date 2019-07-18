@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SUITE
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_TESTCASE
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 
 @Unroll
 public class TestNGXmlResultAndHtmlReportIntegrationTest extends
@@ -88,7 +88,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         buildFile.text = """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
+            dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
             test {
                 $testConfiguration

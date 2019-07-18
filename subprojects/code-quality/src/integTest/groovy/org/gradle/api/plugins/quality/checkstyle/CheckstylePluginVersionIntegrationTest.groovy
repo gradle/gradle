@@ -30,8 +30,8 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.TextUtil.normaliseFileSeparators
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
@@ -192,16 +192,20 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         goodCode()
 
         expect:
-        succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
+        succeeds("checkstyleMain")
+        executedAndNotSkipped(":checkstyleMain")
+
         executer.withArgument("-i")
-        succeeds("checkstyleMain") && ":checkstyleMain" in skippedTasks
+        succeeds("checkstyleMain")
+        skipped(":checkstyleMain")
 
         when:
         file("build/reports/checkstyle/main.xml").delete()
         file("build/reports/checkstyle/main.html").delete()
 
         then:
-        succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
+        succeeds("checkstyleMain")
+        executedAndNotSkipped(":checkstyleMain")
     }
 
     def "can configure reporting"() {
@@ -269,14 +273,14 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         when:
         succeeds "checkstyleMain"
         then:
-        result.skippedTasks.contains(":checkstyleMain")
+        skipped(":checkstyleMain")
 
         when:
         file("config/checkstyle/suppressions.xml") << "<!-- This is a change -->"
         and:
         succeeds "checkstyleMain"
         then:
-        result.assertTaskExecuted(":checkstyleMain")
+        executedAndNotSkipped(":checkstyleMain")
     }
 
     def "can change built-in config_loc"() {
@@ -295,14 +299,14 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         then:
         suppressionsXml.assertDoesNotExist()
-        result.assertTaskExecuted(":checkstyleMain")
+        executedAndNotSkipped(":checkstyleMain")
 
         when:
         file("config/checkstyle/newFile.xml") << "<!-- This is a new file -->"
         and:
         succeeds "checkstyleMain"
         then:
-        result.skippedTasks.contains(":checkstyleMain")
+        skipped(":checkstyleMain")
     }
 
     def "behaves if config_loc is already defined"() {
@@ -324,7 +328,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         then:
         outputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated.")
-        result.assertTaskExecuted(":checkstyleMain")
+        executedAndNotSkipped(":checkstyleMain")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
@@ -347,7 +351,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds('clean', 'check')
 
         then:
-        nonSkippedTasks.contains(':checkstyleMain')
+        executedAndNotSkipped(':checkstyleMain')
         result.hasErrorOutput("[ant:checkstyle] [WARN]") || result.hasErrorOutput("warning: Name 'class1' must match pattern")
     }
 
@@ -389,7 +393,7 @@ apply plugin: "checkstyle"
 ${mavenCentralRepository()}
 
 dependencies {
-    compile localGroovy()
+    implementation localGroovy()
 }
 
 checkstyle {

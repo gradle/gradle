@@ -22,18 +22,20 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
 import java.io.File;
@@ -41,37 +43,42 @@ import java.util.Optional;
 
 public class WorkExecutorTestFixture {
 
-    private final BuildCacheController buildCacheController = new BuildCacheController() {
-        @Override
-        public boolean isEnabled() {
-            return false;
-        }
+    private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
 
-        @Override
-        public boolean isEmitDebugLogging() {
-            return false;
-        }
+    WorkExecutorTestFixture(
+        DefaultFileSystemMirror fileSystemMirror,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter
 
-        @Override
-        public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
-            return Optional.empty();
-        }
+    ) {
+        BuildCacheController buildCacheController = new BuildCacheController() {
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
 
-        @Override
-        public void store(BuildCacheStoreCommand command) {
+            @Override
+            public boolean isEmitDebugLogging() {
+                return false;
+            }
 
-        }
+            @Override
+            public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
+                return Optional.empty();
+            }
 
-        @Override
-        public void close() {
+            @Override
+            public void store(BuildCacheStoreCommand command) {
 
-        }
-    };
-    private BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
-    private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
-    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
+            }
 
-    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror) {
+            @Override
+            public void close() {
+
+            }
+        };
+        BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+        BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
         BuildCacheCommandFactory buildCacheCommandFactory = null;
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
@@ -107,13 +114,15 @@ public class WorkExecutorTestFixture {
             cancellationToken,
             buildInvocationScopeId,
             new DefaultExecutionStateChangeDetector(),
+            classLoaderHierarchyHasher,
+            valueSnapshotter,
             outputChangeListener,
             outputFilesRepository,
             new DefaultTimeoutHandler(null)
         );
     }
 
-    public WorkExecutor<IncrementalContext, CachingResult> getWorkExecutor() {
+    public WorkExecutor<AfterPreviousExecutionContext, CachingResult> getWorkExecutor() {
         return workExecutor;
     }
 }

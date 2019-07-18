@@ -30,10 +30,10 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.stream.EncodedStream;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.streams.EncodedStream;
-import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.worker.GradleWorkerMain;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.util.GUtil;
 
 import java.io.DataOutputStream;
@@ -81,7 +81,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     }
 
     @Override
-    public void prepareJavaCommand(Object workerId, String displayName, DefaultWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
+    public void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();

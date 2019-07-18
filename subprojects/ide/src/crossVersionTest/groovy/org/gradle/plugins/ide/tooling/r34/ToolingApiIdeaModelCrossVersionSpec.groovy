@@ -102,8 +102,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
             }
             
             dependencies {
-                compile project(':a')
-                testCompile project(':f')
+                implementation project(':a')
+                testImplementation project(':f')
             }
             
             project(':a') {
@@ -153,8 +153,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
             }
             
             dependencies {
-                compile project(':a')
-                testCompile project(':f')
+                implementation project(':a')
+                testImplementation project(':f')
             }
             
             project(':a') {

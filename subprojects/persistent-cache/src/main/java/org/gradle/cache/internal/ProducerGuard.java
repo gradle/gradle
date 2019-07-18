@@ -17,12 +17,12 @@ package org.gradle.cache.internal;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Synchronizes access to some resource, by making sure that 2 threads do not try to produce it at the same time.
@@ -73,17 +73,17 @@ public abstract class ProducerGuard<T> {
      * Runs the given factory, guarded by the given key.
      *
      * @param key the key to lock on
-     * @param factory the factory to run under the lock
+     * @param supplier the supplier to run under the lock
      * @param <V> the type returned by the factory
      * @return the value returned by the factory
      */
-    public abstract <V> V guardByKey(T key, Factory<V> factory);
+    public abstract <V> V guardByKey(T key, Supplier<V> supplier);
 
     private static class AdaptiveProducerGuard<T> extends ProducerGuard<T> {
         private final Set<T> producing = Sets.newHashSet();
 
         @Override
-        public <V> V guardByKey(T key, Factory<V> factory) {
+        public <V> V guardByKey(T key, Supplier<V> supplier) {
             synchronized (producing) {
                 while (!producing.add(key)) {
                     try {
@@ -94,7 +94,7 @@ public abstract class ProducerGuard<T> {
                 }
             }
             try {
-                return factory.create();
+                return supplier.get();
             } finally {
                 synchronized (producing) {
                     producing.remove(key);
@@ -108,11 +108,11 @@ public abstract class ProducerGuard<T> {
         private final Striped<Lock> locks = Striped.lock(Runtime.getRuntime().availableProcessors() * 4);
 
         @Override
-        public <V> V guardByKey(T key, Factory<V> factory) {
+        public <V> V guardByKey(T key, Supplier<V> supplier) {
             Lock lock = locks.get(key);
             try {
                 lock.lock();
-                return factory.create();
+                return supplier.get();
             } finally {
                 lock.unlock();
             }
@@ -123,10 +123,10 @@ public abstract class ProducerGuard<T> {
         private final Lock lock = new ReentrantLock();
 
         @Override
-        public <V> V guardByKey(T key, Factory<V> factory) {
+        public <V> V guardByKey(T key, Supplier<V> supplier) {
             try {
                 lock.lock();
-                return factory.create();
+                return supplier.get();
             } finally {
                 lock.unlock();
             }

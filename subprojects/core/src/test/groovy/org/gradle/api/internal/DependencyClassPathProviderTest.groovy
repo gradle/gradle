@@ -32,9 +32,10 @@ class DependencyClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath("GRADLE_API")
 
         then:
-        classpath.asFiles.collect{it.name} == ["gradle-core-runtime", "gradle-cli-runtime", "gradle-workers-runtime", "gradle-dependency-management-runtime", "gradle-plugin-use-runtime", "gradle-tooling-api-runtime", "plugin1-runtime", "plugin2-runtime"]
+        classpath.asFiles.collect{it.name} == ["gradle-worker-processes-runtime", "gradle-core-runtime", "gradle-cli-runtime", "gradle-workers-runtime", "gradle-dependency-management-runtime", "gradle-plugin-use-runtime", "gradle-tooling-api-runtime", "plugin1-runtime", "plugin2-runtime"]
 
         and:
+        1 * moduleRegistry.getModule("gradle-worker-processes") >> module("gradle-worker-processes")
         1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")

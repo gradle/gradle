@@ -16,18 +16,14 @@
 
 package org.gradle.workers.internal;
 
-public class TransportableActionExecutionSpec extends AbstractSerializedActionExecutionSpec {
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
+
+public class TransportableActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
     private final String displayName;
     private final String implementationClassName;
     private final byte[] serializedParameters;
     private final ClassLoaderStructure classLoaderStructure;
-
-    public TransportableActionExecutionSpec(String displayName, Class<?> implementationClass, Object[] params, ClassLoaderStructure classLoaderStructure) {
-        this.displayName = displayName;
-        this.implementationClassName = implementationClass.getName();
-        this.serializedParameters = serialize(params);
-        this.classLoaderStructure = classLoaderStructure;
-    }
 
     public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure) {
         this.displayName = displayName;
@@ -36,24 +32,13 @@ public class TransportableActionExecutionSpec extends AbstractSerializedActionEx
         this.classLoaderStructure = classLoaderStructure;
     }
 
-    public static TransportableActionExecutionSpec from(ActionExecutionSpec spec) {
-        if (spec instanceof SerializedParametersActionExecutionSpec) {
-            SerializedParametersActionExecutionSpec serializedSpec = (SerializedParametersActionExecutionSpec) spec;
-            return new TransportableActionExecutionSpec(serializedSpec.getDisplayName(), serializedSpec.getImplementationClass().getName(), serializedSpec.getSerializedParameters(), serializedSpec.getClassLoaderStructure());
-        } else if (spec instanceof TransportableActionExecutionSpec) {
-            return (TransportableActionExecutionSpec) spec;
-        } else {
-            throw new IllegalArgumentException("Can't create a TransportableActionExecutionSpec from spec with type: " + spec.getClass().getSimpleName());
-        }
-    }
-
     @Override
     public ClassLoaderStructure getClassLoaderStructure() {
         return classLoaderStructure;
     }
 
     @Override
-    public Class<?> getImplementationClass() {
+    public Class<? extends WorkerExecution<T>> getImplementationClass() {
         throw new UnsupportedOperationException();
     }
 
@@ -63,7 +48,7 @@ public class TransportableActionExecutionSpec extends AbstractSerializedActionEx
     }
 
     @Override
-    public Object[] getParams() {
+    public T getParameters() {
         throw new UnsupportedOperationException();
     }
 
@@ -73,16 +58,5 @@ public class TransportableActionExecutionSpec extends AbstractSerializedActionEx
 
     public byte[] getSerializedParameters() {
         return serializedParameters;
-    }
-
-    @Override
-    public ActionExecutionSpec deserialize(ClassLoader classLoader) {
-        try {
-            Class<?> implementationClass = classLoader.loadClass(implementationClassName);
-            Object[] params = (Object[]) deserialize(serializedParameters, classLoader);
-            return new SimpleActionExecutionSpec(implementationClass, displayName, params);
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not deserialize unit of work", e);
-        }
     }
 }

@@ -33,10 +33,6 @@ gradlePlugin {
             id = "gradlebuild.dependency-vulnerabilities"
             implementationClass = "org.gradle.gradlebuild.buildquality.DependencyVulnerabilitiesPlugin"
         }
-        register("noResolutionAtConfigurationTime") {
-            id = "gradlebuild.no-resolution-at-configuration"
-            implementationClass = "org.gradle.gradlebuild.buildquality.NoResolutionAtConfigurationTimePlugin"
-        }
         register("taskPropertyValidation") {
             id = "gradlebuild.task-properties-validation"
             implementationClass = "org.gradle.gradlebuild.buildquality.TaskPropertyValidationPlugin"

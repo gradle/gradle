@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -30,7 +29,6 @@ import java.io.File;
  *
  * @since 5.3
  */
-@Incubating
 @HasInternalProtocol
 public interface TransformOutputs {
     /**

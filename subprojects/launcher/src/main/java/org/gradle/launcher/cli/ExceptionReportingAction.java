@@ -31,6 +31,7 @@ public class ExceptionReportingAction implements Action<ExecutionListener> {
         this.loggingOutput = loggingOutput;
     }
 
+    @Override
     public void execute(ExecutionListener executionListener) {
         try {
             try {

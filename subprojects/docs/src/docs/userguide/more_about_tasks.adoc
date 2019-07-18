@@ -78,7 +78,7 @@ include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gra
 include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
-Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method. 
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `register()` method.
 
 And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
@@ -449,7 +449,6 @@ An important part of any build tool is the ability to avoid doing work that has 
 Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<#sec:task_outcomes,Task outcomes>>.
 
 How does incremental build work? And what does it take to make use of it in your own tasks? Let’s take a look.
-
 
 [[sec:task_inputs_outputs]]
 === Task inputs and outputs
@@ -937,15 +936,28 @@ One last benefit of defining task inputs and outputs is that Gradle can use this
 [[sec:how_does_it_work]]
 === How does it work?
 
-Before a task is executed for the first time, Gradle takes a fingerprint of the inputs. This fingerprint contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a fingerprint of the outputs. This fingerprint contains the set of output files and a hash of the contents of each file. Gradle persists both fingerprints for the next time the task is executed.
+Before a task is executed for the first time, Gradle takes a fingerprint of the inputs.
+This fingerprint contains the paths of input files and a hash of the contents of each file.
+Gradle then executes the task.
+If the task completes successfully, Gradle takes a fingerprint of the outputs.
+This fingerprint contains the set of output files and a hash of the contents of each file.
+Gradle persists both fingerprints for the next time the task is executed.
 
-Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs. If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both fingerprints for the next time the task is executed.
+Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs.
+If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task.
+If they are not the same, Gradle executes the task.
+Gradle persists both fingerprints for the next time the task is executed.
+
+If the stats of a file (i.e. `lastModified` and `size`) did not change, Gradle will reuse the file's fingerprint from the previous run.
+That means that Gradle does not detect changes when the stats of a file did not change.
 
 Gradle also considers the _code_ of the task as part of the inputs to the task. When a task, its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
 
 Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing the fingerprint of such a property, even a change in the order of the files will result in the task becoming out-of-date.
 
 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen(groovy.lang.Closure)]
+
+Note also that changing the availability of an unavailable file (e.g. modifying the target of a broken symlink to a valid file, or vice versa), will be detected and handled by up-to-date check.
 
 The inputs for the task are also used to calculate the <<build_cache.adoc#build_cache,build cache>> key used to load task outputs when enabled. For more details see <<build_cache.adoc#sec:task_output_caching,Task output caching>>.
 

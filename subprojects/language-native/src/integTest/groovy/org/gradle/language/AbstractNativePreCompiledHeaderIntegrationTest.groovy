@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -400,7 +400,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         then:
         fails "helloSharedLibrary"
         failure.assertHasDescription("Execution failed for task ':${getPCHCompileTaskName("hello", "shared")}'.")
-        failure.assertThatCause(Matchers.containsString("compiler failed while compiling prefix-headers"))
+        failure.assertThatCause(CoreMatchers.containsString("compiler failed while compiling prefix-headers"))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

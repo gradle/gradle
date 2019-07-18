@@ -35,10 +35,12 @@ public class JDependReportsImpl extends TaskReportContainer<SingleFileReport> im
         add(TaskGeneratedSingleFileReport.class, "text", task);
     }
 
+    @Override
     public SingleFileReport getXml() {
         return getByName("xml");
     }
 
+    @Override
     public SingleFileReport getText() {
         return getByName("text");
     }

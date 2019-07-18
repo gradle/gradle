@@ -16,10 +16,8 @@
 
 package org.gradle.api.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
@@ -88,44 +86,7 @@ public interface ProjectLayout {
     Provider<RegularFile> file(Provider<File> file);
 
     /**
-     * <p>Creates a {@link FileCollection} for the given targets. You can pass any of the following
-     * types to this method:</p>
-     *
-     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link Project#file(Object)}. A string that starts with {@code file:} is treated as a file URL.</li>
-     *
-     * <li>A {@link File}. Interpreted relative to the project directory, as per {@link Project#file(Object)}.</li>
-     *
-     * <li>A {@link java.nio.file.Path} as defined by {@link Project#file(Object)}.</li>
-     *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
-     *
-     * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
-     *
-     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array that contains objects of any supported type. The elements of the collection are recursively converted to files.</li>
-     *
-     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
-     *
-     * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files. If the provider represents an output of a task, that task is executed if the file collection is used as an input to another task.
-     *
-     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
-     *
-     * <li>A {@link Closure} that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
-     *
-     * <li>A {@link Task}. Converted to the task's output files. The task is executed if the file collection is used as an input to another task.</li>
-     *
-     * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task. The task is executed if the file collection is used as an input to another task.</li>
-     *
-     * <li>Anything else is treated as a failure.</li>
-     *
-     * </ul>
-     *
-     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
-     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
-     * of the collection is queried.</p>
-     *
-     * <p>The returned file collection maintains the iteration order of the supplied paths.</p>
-     *
-     * <p>The returned file collection maintains the details of the tasks that produce the files, so that these tasks are executed if this file collection is used as an input to some task.</p>
+     * <p>Creates a {@link FileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
      *
      * <p>This method can also be used to create an empty collection, but the collection may not be mutated later.</p>
      *
@@ -136,44 +97,7 @@ public interface ProjectLayout {
     FileCollection files(Object... paths);
 
     /**
-     * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
-     * types to this method:</p>
-     *
-     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link Project#file(Object)}. A string that starts with {@code file:} is treated as a file URL.</li>
-     *
-     * <li>A {@link File}. Interpreted relative to the project directory, as per {@link Project#file(Object)}.</li>
-     *
-     * <li>A {@link java.nio.file.Path} as defined by {@link Project#file(Object)}.</li>
-     *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
-     *
-     * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
-     *
-     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array that contains objects of any supported type. The elements of the collection are recursively converted to files.</li>
-     *
-     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
-     *
-     * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files. If the provider represents an output of a task, that task is executed if the file collection is used as an input to another task.
-     *
-     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
-     *
-     * <li>A {@link Closure} that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
-     *
-     * <li>A {@link Task}. Converted to the task's output files. The task is executed if the file collection is used as an input to another task.</li>
-     *
-     * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task. The task is executed if the file collection is used as an input to another task.</li>
-     *
-     * <li>Anything else is treated as a failure.</li>
-     *
-     * </ul>
-     *
-     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
-     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
-     * of the collection is queried.</p>
-     *
-     * <p>The returned file collection maintains the iteration order of the supplied paths.</p>
-     *
-     * <p>The returned file collection maintains the details of the tasks that produce the files, so that these tasks are executed if this file collection is used as an input to some task.</p>
+     * <p>Returns a {@link ConfigurableFileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
      *
      * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
      *

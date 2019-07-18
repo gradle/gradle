@@ -1,37 +1,72 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
+    implementation(project(":launcher"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":workerProcesses"))
+    implementation(project(":files"))
+    implementation(project(":fileCollections"))
+    implementation(project(":persistentCache"))
+    implementation(project(":jvmServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":snapshots"))
+    implementation(project(":execution"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":toolingApi"))
+
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("fastutil"))
+    implementation(library("ant")) // for 'ZipFile' and 'ZipEntry'
     implementation(library("asm"))
     implementation(library("asm_commons"))
-    implementation(library("groovy"))
+    implementation(library("inject"))
 
-    compile(project(":core"))
-    compile(project(":platformJvm"))
-    compile(project(":languageJvm"))
-    compile(project(":toolingApi"))
-    compile(project(":launcher"))
-    implementation(project(":snapshots"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(library("commons_io"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":launcher")))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":platformBase"))
+    testFixturesImplementation(project(":persistentCache"))
+    testFixturesImplementation(library("slf4j_api"))
+
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    
     // TODO - get rid of this cycle
-    integTestRuntime(project(":plugins"))
+    integTestRuntimeOnly(project(":plugins"))
 }
 
 gradlebuildJava {
-    // Needs to run in the compiler daemon
-    moduleType = ModuleType.ENTRY_POINT
-}
-
-testFixtures {
-    from(":core")
-    from(":languageJvm", "testFixtures")
-    from(":platformBase")
-    from(":launcher")
+    moduleType = ModuleType.CORE
 }
 
 classycle {

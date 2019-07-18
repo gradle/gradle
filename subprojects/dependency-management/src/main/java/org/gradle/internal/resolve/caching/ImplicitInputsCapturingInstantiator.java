@@ -86,14 +86,17 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
             this.registrar = registrar;
         }
 
+        @Override
         public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.get(serviceType);
         }
 
+        @Override
         public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
             return serviceRegistry.getAll(serviceType);
         }
 
+        @Override
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.get(serviceType);
         }
@@ -103,6 +106,7 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
             return serviceRegistry.get(serviceType, annotatedWith);
         }
 
+        @Override
         public Object find(Type serviceType) throws ServiceLookupException {
             Object service = serviceRegistry.find(serviceType);
             if (ImplicitInputsProvidingService.class.isInstance(service)) {
@@ -111,10 +115,12 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
             return service;
         }
 
+        @Override
         public <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.getFactory(type);
         }
 
+        @Override
         public <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
             return serviceRegistry.newInstance(type);
         }

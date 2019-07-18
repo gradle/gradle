@@ -44,6 +44,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -89,6 +90,8 @@ import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -120,6 +123,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(new Action<ServiceRegistration>() {
+            @Override
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
                 parent.get(DependencyManagementServices.class).addDslServices(registration, project);
@@ -170,6 +174,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
         return new DefaultTemporaryFileProvider(new Factory<File>() {
+            @Override
             public File create() {
                 return new File(project.getBuildDir(), "tmp");
             }
@@ -223,12 +228,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultModelRegistry(ruleExtractor, project.getPath());
     }
 
-    protected ScriptHandlerInternal createScriptHandler() {
+    protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver, NamedObjectInstantiator instantiator) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
-            get(DependencyManagementServices.class),
-            get(FileResolver.class),
-            get(DependencyMetaDataProvider.class),
-            get(ScriptClassPathResolver.class));
+            dependencyManagementServices,
+            fileResolver,
+            dependencyMetaDataProvider,
+            scriptClassPathResolver,
+            instantiator);
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 
@@ -271,6 +277,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
         return new ServiceRegistryFactory() {
+            @Override
             public ServiceRegistry createFor(Object domainObject) {
                 throw new UnsupportedOperationException();
             }
@@ -286,6 +293,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
+        @Override
         public Module getModule() {
             return new ProjectBackedModule(project);
         }
@@ -311,15 +319,24 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultFileCollectionFactory(fileResolver, taskResolver);
     }
 
-    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
         ServiceRegistry services = ProjectScopeServices.this;
         Instantiator instantiator = instantiatorFactory.injectAndDecorate(services);
-        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory, filePropertyFactory, fileCollectionFactory, domainObjectCollectionFactory);
+        return new DefaultObjectFactory(instantiator, namedObjectInstantiator, fileResolver, directoryFileTreeFactory, filePropertyFactory, fileCollectionFactory, domainObjectCollectionFactory);
     }
 
     protected DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator, CrossProjectConfigurator projectConfigurator) {
         ServiceRegistry services = ProjectScopeServices.this;
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
+    }
+
+    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver) {
+        return new DefaultManagedFactoryRegistry(parent).withFactories(
+            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver),
+            new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
+            new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver),
+            new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver)
+        );
     }
 
 }

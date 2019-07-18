@@ -30,8 +30,8 @@ import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;

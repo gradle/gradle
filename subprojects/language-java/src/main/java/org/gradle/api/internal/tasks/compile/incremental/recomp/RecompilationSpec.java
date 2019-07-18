@@ -21,16 +21,37 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedRes
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class RecompilationSpec {
-
     private final Collection<String> classesToCompile = new NormalizingClassNamesSet();
     private final Collection<String> classesToProcess = new NormalizingClassNamesSet();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<GeneratedResource>();
+    private final Set<String> relativeSourcePathsToCompile = new LinkedHashSet<>();
     private String fullRebuildCause;
+
+    @Override
+    public String toString() {
+        return "RecompilationSpec{" +
+            "classesToCompile=" + classesToCompile +
+            ", classesToProcess=" + classesToProcess +
+            ", resourcesToGenerate=" + resourcesToGenerate +
+            ", relativeSourcePathsToCompile=" + relativeSourcePathsToCompile +
+            ", fullRebuildCause='" + fullRebuildCause + '\'' +
+            ", buildNeeded=" + isBuildNeeded() +
+            ", fullRebuildNeeded=" + isFullRebuildNeeded() +
+            '}';
+    }
 
     public Collection<String> getClassesToCompile() {
         return classesToCompile;
+    }
+
+    /**
+     * @return the relative paths of files we clearly know to recompile
+     */
+    public Set<String> getRelativeSourcePathsToCompile() {
+        return relativeSourcePathsToCompile;
     }
 
     public Collection<String> getClassesToProcess() {
@@ -42,7 +63,7 @@ public class RecompilationSpec {
     }
 
     public boolean isBuildNeeded() {
-        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty();
+        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty() || !relativeSourcePathsToCompile.isEmpty();
     }
 
     public boolean isFullRebuildNeeded() {

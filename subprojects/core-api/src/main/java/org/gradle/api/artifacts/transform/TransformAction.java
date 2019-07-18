@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import javax.inject.Inject;
 
@@ -60,7 +59,6 @@ import javax.inject.Inject;
  * @param <T> Parameter type for the transform action. Should be {@link TransformParameters.None} if the action does not have parameters.
  * @since 5.3
  */
-@Incubating
 public interface TransformAction<T extends TransformParameters> {
 
     /**

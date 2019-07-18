@@ -670,7 +670,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link Provider} of any supported type. The provider's value is resolved recursively.</li>
      *
-     * <li>A {@link Closure} that returns any supported type. The closure's return value is resolved recursively.</li>
+     * <li>A Groovy {@link Closure} or Kotlin function that returns any supported type. The closure's return value is resolved recursively.</li>
      *
      * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
      *
@@ -719,7 +719,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
-     * <li>A {@link java.nio.file.Path} as defined by {@link #file(Object)}.</li>
+     * <li>A {@link java.nio.file.Path}, as per {@link #file(Object)}.</li>
      *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
      *
@@ -733,13 +733,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
-     * <li>A {@link Closure} that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
+     * <li>A Groovy {@link Closure} or Kotlin function that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>A {@link Task}. Converted to the task's output files. The task is executed if the file collection is used as an input to another task.</li>
      *
      * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task. The task is executed if the file collection is used as an input to another task.</li>
      *
-     * <li>Anything else is treated as a failure.</li>
+     * <li>Anything else is treated as an error.</li>
      *
      * </ul>
      *
@@ -1707,6 +1707,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return Returned instance allows adding DSL extensions to the project
      */
+    @Override
     ExtensionContainer getExtensions();
 
     /**

@@ -25,6 +25,7 @@ public class ProviderBuildResult<T> implements BuildResult<T> {
         this.result = result;
     }
 
+    @Override
     public T getModel() {
         return result;
     }

@@ -32,10 +32,10 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.not
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assert.assertThat
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
@@ -166,7 +166,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('b/build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { compile 'junit:junit:4.12' }
+            dependencies { implementation 'junit:junit:4.12' }
         """
         testDirectory.file('b/src/main/java/org/gradle/AbstractTest.java') << '''
             package org.gradle;
@@ -178,7 +178,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile project(':b') }
+            dependencies { testImplementation project(':b') }
         """
         testDirectory.file('a/src/test/java/org/gradle/SomeTest.java') << '''
             package org.gradle;
@@ -201,7 +201,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
             test { exclude '**/BaseTest.*' }
         """
         testDirectory.file('src/test/java/org/gradle/BaseTest.java') << '''
@@ -254,7 +254,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 mavenCentralRepository(),
-                "dependencies { compile 'junit:junit:4.12' }"
+                "dependencies { implementation 'junit:junit:4.12' }"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
                 "package org.gradle;",
@@ -289,7 +289,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 mavenCentralRepository(),
-                "dependencies { compile 'junit:junit:4.12' }",
+                "dependencies { implementation 'junit:junit:4.12' }",
                 "test.forkEvery = 1"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
@@ -343,7 +343,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true
@@ -394,7 +394,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:3.8' }
+            dependencies { testImplementation 'junit:junit:3.8' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true
@@ -460,7 +460,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile '$dependencyNotation'
+                testImplementation '$dependencyNotation'
             }
         """
 

@@ -27,6 +27,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
  */
 public abstract class BuildCommandOnly implements DaemonCommandAction {
 
+    @Override
     public void execute(DaemonCommandExecution execution) {
         Command command = execution.getCommand();
         if (!(command instanceof Build)) {

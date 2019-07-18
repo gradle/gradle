@@ -66,6 +66,7 @@ public class DaemonJvmOptions extends JvmOptions {
         });
     }
 
+    @Override
     public void systemProperty(String name, Object value) {
         if (IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(name)) {
             immutableSystemProperties.put(name, value);

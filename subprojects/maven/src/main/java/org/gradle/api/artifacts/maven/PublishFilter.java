@@ -25,6 +25,7 @@ import java.io.File;
  */
 public interface PublishFilter {
     PublishFilter ALWAYS_ACCEPT = new PublishFilter() {
+        @Override
         public boolean accept(Artifact artifact, File src) {
             return true;
         }

@@ -18,15 +18,15 @@ package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
 
 import java.util.Map;
 
 public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
-    public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
-        super(collectKnownClassLoaders(registry), classLoaderHasher);
+    public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
+        super(collectKnownClassLoaders(registry), classLoaderFactory);
     }
 
     private static Map<ClassLoader, String> collectKnownClassLoaders(ClassLoaderRegistry registry) {

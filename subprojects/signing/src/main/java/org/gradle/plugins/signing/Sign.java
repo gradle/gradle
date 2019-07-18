@@ -285,12 +285,14 @@ public class Sign extends DefaultTask implements SignatureSpec {
             Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getFile), Predicates.notNull())));
     }
 
+    @Override
     @Nested
     @Optional
     public SignatureType getSignatureType() {
         return signatureType;
     }
 
+    @Override
     public void setSignatureType(SignatureType signatureType) {
         this.signatureType = signatureType;
     }
@@ -299,12 +301,14 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * Returns the signatory for this signing task.
      * @return the signatory
      */
+    @Override
     @Nested
     @Optional
     public Signatory getSignatory() {
         return signatory;
     }
 
+    @Override
     public void setSignatory(Signatory signatory) {
         this.signatory = signatory;
     }
@@ -314,11 +318,13 @@ public class Sign extends DefaultTask implements SignatureSpec {
      *
      * <p>Defaults to {@code true}.</p>
      */
+    @Override
     @Input
     public boolean isRequired() {
         return required;
     }
 
+    @Override
     public void setRequired(boolean required) {
         this.required = required;
     }

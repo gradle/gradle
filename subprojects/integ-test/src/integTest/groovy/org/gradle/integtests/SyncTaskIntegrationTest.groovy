@@ -19,6 +19,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -155,21 +156,21 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('dest').allDescendants() == ['not-preserved.txt', 'preserved.txt'] as Set
-        skippedTasks.empty
+        noneSkipped()
 
         when:
         file('dest/preserved.txt').text = 'Changed!'
         run 'sync'
 
         then:
-        skippedTasks == [':sync'] as Set
+        skipped ':sync'
 
         when:
         file('dest/not-preserved.txt').text = 'Changed!'
         run 'sync'
 
         then:
-        skippedTasks.empty
+        executedAndNotSkipped ':sync'
     }
 
     @NotYetImplemented
@@ -189,14 +190,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
 
         when:
         file('dest/new-file.txt').text = 'Created!'
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
     }
 
     @NotYetImplemented
@@ -221,7 +222,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
         file('dest/preserved').exists()
 
         when:
@@ -234,7 +235,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        skippedTasks.empty
+        noneSkipped()
         !file('dest/preserved').exists()
     }
 
@@ -390,6 +391,78 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails 'syncIt'
         ins.close()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9586")
+    def "change in case of input file will sync properly"() {
+        given:
+        def uppercaseFile = file('FILE.TXT')
+        def lowercaseFile = file('file.txt').createFile()
+        buildFile << '''
+            task syncIt(type: Sync) {
+                from project.hasProperty("capitalize") ? "FILE.TXT" : "file.txt"
+                into buildDir
+            }
+        '''
+        and:
+        run 'syncIt'
+        file('build/file.txt').assertExists()
+
+        and:
+        lowercaseFile.renameTo(uppercaseFile)
+        assert uppercaseFile.canonicalFile.name == 'FILE.TXT'
+
+        when:
+        succeeds('syncIt', '-Pcapitalize')
+        then:
+        executedAndNotSkipped ':syncIt'
+        file('build/FILE.TXT').with {
+            assert it.parentFile.list() != [].toArray()
+            assert it.assertExists()
+            assert it.canonicalFile.name == 'FILE.TXT'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9586")
+    def "change in case of input folder will sync properly"() {
+        given:
+        def uppercaseDir = file('DIR')
+        def lowercaseDir = file('dir').create {
+            file('file.txt').createFile()
+            nestedDir {
+                file('nestedDirFile1.txt').createFile()
+                file('nestedDirFile2.txt').createFile()
+            }
+        }
+        buildFile << '''
+            task syncIt(type: Sync) {
+                from project.hasProperty("capitalize") ? "DIR" : "dir"
+                into buildDir
+            }
+        '''
+        and:
+        run 'syncIt'
+        file('build').assertHasDescendants(
+            'file.txt',
+            'nestedDir/nestedDirFile1.txt',
+            'nestedDir/nestedDirFile2.txt'
+        )
+        and:
+        lowercaseDir.renameTo(uppercaseDir)
+
+        def uppercaseNestedDir = new File(uppercaseDir, 'NESTEDDIR')
+        new File(uppercaseDir, 'nestedDir').renameTo(uppercaseNestedDir)
+        new File(uppercaseNestedDir, 'nestedDirFile2.txt').renameTo(new File(uppercaseNestedDir, 'NESTEDDIRFILE2.TXT'))
+
+        when:
+        succeeds('syncIt', '-Pcapitalize')
+        then:
+        executedAndNotSkipped ':syncIt'
+        file('build').assertHasDescendants(
+            'file.txt',
+            'NESTEDDIR/nestedDirFile1.txt',
+            'NESTEDDIR/NESTEDDIRFILE2.TXT'
+        )
     }
 
     def "sync from file tree"() {

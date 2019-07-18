@@ -102,14 +102,17 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
         @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
+                @Override
                 public String getTaskPrefix() {
                     return "minify";
                 }
 
+                @Override
                 public Class<? extends DefaultTask> getTaskType() {
                     return JavaScriptMinify.class;
                 }
 
+                @Override
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) binarySpec;
                     JavaScriptSourceSet javaScriptSourceSet = (JavaScriptSourceSet) sourceSet;

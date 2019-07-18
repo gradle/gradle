@@ -26,7 +26,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.Hashing;
@@ -82,7 +82,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         HashCode sourceHashCode = source.getResource().getContentHash();
-        final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
+        final String sourceHash = HashUtil.compactStringFor(sourceHashCode.toByteArray());
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
         if (classLoaderHash == null) {
@@ -118,6 +118,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return new EmptyCompiledScript<T, M>(operation);
     }
 
+    @Override
     public void close() {
     }
 
@@ -145,6 +146,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             this.scriptBaseClass = scriptBaseClass;
         }
 
+        @Override
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
             File metadataDir = metadataDir(cache);
@@ -168,6 +170,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             this.longDescription = longDescription;
         }
 
+        @Override
         public void execute(PersistentCache cache) {
             ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
                 .start(shortDescription, longDescription);
@@ -196,6 +199,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return false;
         }
 
+        @Override
         public Class<? extends T> loadClass() {
             throw new UnsupportedOperationException("Cannot load a script that does nothing.");
         }
@@ -219,6 +223,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             this.contentHash = contentHash;
         }
 
+        @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             String owner = remap(name);
             boolean shouldAddScriptOrigin = shouldAddScriptOrigin(access);
@@ -319,6 +324,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return remapped;
         }
 
+        @Override
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
             MethodVisitor mv = cv.visitMethod(access, name, remap(desc), remap(signature), remap(exceptions));
             if (mv != null && (access & ACC_ABSTRACT) == 0) {
@@ -353,14 +359,17 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 super(AsmConstants.ASM_LEVEL, mv);
             }
 
+            @Override
             public void visitTypeInsn(int i, String name) {
                 mv.visitTypeInsn(i, remap(name));
             }
 
+            @Override
             public void visitFieldInsn(int opcode, String owner, String name, String desc) {
                 mv.visitFieldInsn(opcode, remap(owner), name, remap(desc));
             }
 
+            @Override
             public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean intf) {
                 mv.visitMethodInsn(opcode, remap(owner), name, remap(desc), intf);
             }
@@ -410,6 +419,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             this.scriptBaseClass = scriptBaseClass;
         }
 
+        @Override
         public void execute(final PersistentCache remappedClassesCache) {
             final PersistentCache cache = cacheRepository.cache("scripts/" + sourceHash + "/" + dslId + "/" + classpathHash)
                 .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())

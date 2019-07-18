@@ -39,10 +39,12 @@ public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableR
         return files;
     }
     
+    @Override
     public boolean isNone() {
         return getFiles().isEmpty();
     }
 
+    @Override
     public LocallyAvailableResource findByHashValue(HashValue targetHash) {
         HashValue thisHash;
         for (File file : getFiles()) {

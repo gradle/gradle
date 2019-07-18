@@ -52,7 +52,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         expect:
-        executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
+        executer.withArguments('help', '--continuous', '-i').run().assertTasksExecuted(':help')
     }
 
     //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
@@ -75,8 +75,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         captureResults << executer.withTasks('capture2').run()
 
         then:
-        captureResults[0].getExecutedTasks().contains(':capture1')
-        captureResults[1].getExecutedTasks().contains(':capture2')
+        captureResults[0].assertTaskExecuted(':capture1')
+        captureResults[1].assertTaskExecuted(':capture2')
 
         cleanup:
         daemon?.abort()
@@ -164,7 +164,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         result = executer.withArgument('--no-daemon').withTasks('capture').run()
 
         then:
-        executedTasks.contains(':capture')
+        executed(':capture')
         outputContains(SingleUseDaemonClient.MESSAGE)
 
         and:

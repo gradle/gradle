@@ -17,10 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -37,17 +34,6 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     public EmptyCurrentFileCollectionFingerprint(String identifier) {
         this.identifier = identifier;
-    }
-
-    @Override
-    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, final String title, boolean includeAdded, ChangeVisitor visitor) {
-        for (Map.Entry<String, FileSystemLocationFingerprint> entry : oldFingerprint.getFingerprints().entrySet()) {
-            DefaultFileChange removed = DefaultFileChange.removed(entry.getKey(), title, entry.getValue().getType(), entry.getValue().getNormalizedPath());
-            if (!visitor.visitChange(removed)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override
@@ -69,6 +55,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     public void accept(FileSystemSnapshotVisitor visitor) {
     }
 
+    @Override
     public ImmutableMultimap<String, HashCode> getRootHashes() {
         return ImmutableMultimap.of();
     }

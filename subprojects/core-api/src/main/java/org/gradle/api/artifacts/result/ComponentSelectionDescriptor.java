@@ -17,12 +17,14 @@ package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A component selection description, which wraps a cause with an optional custom description.
  *
  * @since 4.6
  */
+@UsedByScanPlugin
 @Incubating
 @HasInternalProtocol
 public interface ComponentSelectionDescriptor {

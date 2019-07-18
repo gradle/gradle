@@ -57,16 +57,19 @@ public class DefaultGradleConnector extends GradleConnector {
         ConnectorServices.close();
     }
 
+    @Override
     public GradleConnector useInstallation(File gradleHome) {
         distribution = distributionFactory.getDistribution(gradleHome);
         return this;
     }
 
+    @Override
     public GradleConnector useGradleVersion(String gradleVersion) {
         distribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }
 
+    @Override
     public GradleConnector useDistribution(URI gradleDistribution) {
         distribution = distributionFactory.getDistribution(gradleDistribution);
         return this;
@@ -77,6 +80,7 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    @Override
     public GradleConnector useBuildDistribution() {
         distribution = null;
         return this;
@@ -87,11 +91,13 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    @Override
     public GradleConnector forProjectDirectory(File projectDir) {
         connectionParamsBuilder.setProjectDir(projectDir);
         return this;
     }
 
+    @Override
     public GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
         connectionParamsBuilder.setGradleUserHomeDir(gradleUserHomeDir);
         return this;
@@ -126,6 +132,7 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    @Override
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
 

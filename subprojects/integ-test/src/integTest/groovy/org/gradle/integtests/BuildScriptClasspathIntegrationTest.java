@@ -43,7 +43,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
         testFile("buildSrc/build.gradle").writelns(
                 "repositories { flatDir { dirs '../repo' } }",
-                "dependencies { compile name: 'test', version: '1.3' }");
+                "dependencies { implementation name: 'test', version: '1.3' }");
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass extends org.gradle.test.DepClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
         inTestDirectory().withTaskList().run();

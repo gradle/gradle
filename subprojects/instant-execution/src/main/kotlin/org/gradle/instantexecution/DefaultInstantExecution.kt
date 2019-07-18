@@ -16,37 +16,51 @@
 
 package org.gradle.instantexecution
 
-import groovy.lang.GroovyObject
-import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.Task
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheInternal
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Property
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.serialization.DefaultReadContext
+import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.IsolateOwner
+import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.PropertyTrace
+import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
+import org.gradle.instantexecution.serialization.codecs.Codecs
+import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
+import org.gradle.instantexecution.serialization.readClassPath
+import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.withPropertyTrace
+import org.gradle.instantexecution.serialization.writeClassPath
+import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
+
 import java.io.File
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
+import java.io.FileOutputStream
 import java.nio.file.Files
+
+import java.util.ArrayList
 import java.util.SortedSet
-import java.util.function.Supplier
+
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 
 class DefaultInstantExecution(
@@ -54,13 +68,12 @@ class DefaultInstantExecution(
 ) : InstantExecution {
 
     interface Host {
+
+        val skipLoadingStateReason: String?
+
         val currentBuild: ClassicModeBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
-
-        fun newStateSerializer(): StateSerializer
-
-        fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer
 
         fun <T> getService(serviceType: Class<T>): T
 
@@ -73,262 +86,262 @@ class DefaultInstantExecution(
         fun classLoaderFor(classPath: ClassPath): ClassLoader
     }
 
-    private
-    val stateSerializer by lazy(LazyThreadSafetyMode.NONE) {
-        host.newStateSerializer()
-    }
-
-    override fun canExecuteInstantaneously(): Boolean {
-        if (!isInstantExecutionEnabled) {
-            return false
+    override fun canExecuteInstantaneously(): Boolean = when {
+        !isInstantExecutionEnabled -> {
+            false
         }
-        if (!instantExecutionStateFile.isFile) {
+        host.skipLoadingStateReason != null -> {
+            logger.lifecycle("Calculating task graph as instant execution cache cannot be reused due to ${host.skipLoadingStateReason}")
+            false
+        }
+        !instantExecutionStateFile.isFile -> {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
-            return false
-        } else {
+            false
+        }
+        else -> {
             logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
-            return true
+            true
         }
     }
 
     override fun saveTaskGraph() {
-        if (isInstantExecutionEnabled) {
-            saveTasks(host.currentBuild)
+
+        if (!isInstantExecutionEnabled) {
+            return
+        }
+
+        buildOperationExecutor.withStoreOperation {
+
+            val report = instantExecutionReport()
+            val instantExecutionException = report.withExceptionHandling {
+                KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
+                    writeContextFor(encoder, report).run {
+                        runToCompletion {
+                            encodeTaskGraph()
+                        }
+                    }
+                }
+            }
+
+            // Discard the state file on errors
+            if (instantExecutionException != null) {
+                discardInstantExecutionState()
+                throw instantExecutionException
+            }
         }
     }
 
     override fun loadTaskGraph() {
-        KryoBackedDecoder(instantExecutionStateFile.inputStream()).use { decoder ->
-            val rootProjectName = decoder.readString()
-            val build = host.createBuild(rootProjectName)
-            build.autoApplyPlugins()
-            build.scheduleTasks(loadTasksFor(decoder, build))
-        }
-    }
 
-    private
-    fun saveTasks(build: ClassicModeBuild) {
-        Files.createDirectories(instantExecutionStateFile.parentFile.toPath())
-        KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
-            encoder.writeString(build.rootProject.name)
-            val scheduledTasks = build.scheduledTasks
-            val relevantClassPath = classPathFor(scheduledTasks)
-            encoder.serializeClassPath(relevantClassPath)
-            saveRelevantProjectsFor(scheduledTasks, encoder)
-            encoder.serializeCollection(scheduledTasks) { task ->
-                encoder.saveStateOf(task, build)
+        require(isInstantExecutionEnabled)
+
+        buildOperationExecutor.withLoadOperation {
+            KryoBackedDecoder(stateFileInputStream()).use { decoder ->
+                readContextFor(decoder).run {
+                    runToCompletion {
+                        decodeTaskGraph()
+                    }
+                }
             }
         }
     }
 
     private
-    fun saveRelevantProjectsFor(tasks: List<Task>, encoder: KryoBackedEncoder) {
-        encoder.serializeCollection(fillTheGapsOf(relevantProjectsFor(tasks))) {
-            encoder.writeString(it.path)
+    suspend fun DefaultWriteContext.encodeTaskGraph() {
+        val build = host.currentBuild
+        writeString(build.rootProject.name)
+
+        writeClassPath(collectClassPath())
+
+        writeGradleState(build.rootProject.gradle)
+
+        val scheduledTasks = build.scheduledTasks
+        writeRelevantProjectsFor(scheduledTasks)
+
+        TaskGraphCodec(service()).run {
+            writeTaskGraphOf(build, scheduledTasks)
         }
     }
 
     private
-    fun relevantProjectsFor(tasks: List<Task>) =
+    suspend fun DefaultReadContext.decodeTaskGraph() {
+        val rootProjectName = readString()
+        val build = host.createBuild(rootProjectName)
+
+        val classPath = readClassPath()
+        val classLoader = classLoaderFor(classPath)
+        initClassLoader(classLoader)
+
+        readGradleState(build.gradle)
+
+        readRelevantProjects(build)
+
+        build.autoApplyPlugins()
+        build.registerProjects()
+
+        initProjectProvider(build::getProject)
+
+        val scheduledTasks = TaskGraphCodec(service()).run {
+            readTaskGraph()
+        }
+        build.scheduleTasks(scheduledTasks)
+    }
+
+    private
+    fun instantExecutionReport() = InstantExecutionReport(
+        reportOutputDir,
+        logger,
+        maxProblems()
+    )
+
+    private
+    fun discardInstantExecutionState() {
+        instantExecutionStateFile.delete()
+    }
+
+    private
+    fun writeContextFor(
+        encoder: KryoBackedEncoder,
+        report: InstantExecutionReport
+    ) = DefaultWriteContext(
+        codecs(),
+        encoder,
+        logger,
+        report::add
+    )
+
+    private
+    fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
+        codecs(),
+        decoder,
+        logger,
+        BeanPropertyReader.factoryFor(service())
+    )
+
+    private
+    fun codecs() = Codecs(
+        directoryFileTreeFactory = service(),
+        fileCollectionFactory = service(),
+        fileResolver = service(),
+        instantiator = service(),
+        listenerManager = service()
+    )
+
+    private
+    suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
+        withGradle(gradle) {
+            BuildOperationListenersCodec().run {
+                writeBuildOperationListeners(service())
+            }
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
+        withGradle(gradle) {
+            val listeners = BuildOperationListenersCodec().run {
+                readBuildOperationListeners()
+            }
+            service<BuildOperationListenerManager>().let { manager ->
+                listeners.forEach { manager.addListener(it) }
+            }
+        }
+    }
+
+    private
+    fun Encoder.writeRelevantProjectsFor(tasks: List<Task>) {
+        writeCollection(fillTheGapsOf(relevantProjectPathsFor(tasks))) { projectPath ->
+            writeString(projectPath.path)
+        }
+    }
+
+    private
+    fun Decoder.readRelevantProjects(build: InstantExecutionBuild) {
+        readCollection {
+            val projectPath = readString()
+            build.createProject(projectPath)
+        }
+    }
+
+    private
+    fun relevantProjectPathsFor(tasks: List<Task>) =
         tasks.mapNotNull { task ->
             task.project.takeIf { it.parent != null }?.path?.let(Path::path)
         }.toSortedSet()
 
     private
-    fun loadTasksFor(decoder: Decoder, build: InstantExecutionBuild): List<Task> {
-
-        val tasksWithDependencies = loadTasksWithDependenciesFor(decoder, build)
-
-        val tasksByPath = tasksWithDependencies.associate { (task, _) ->
-            task.path to task
-        }
-
-        val tasks = ArrayList<Task>(tasksWithDependencies.size)
-        tasksWithDependencies.forEach { (task, dependencies) ->
-            task.dependsOn(dependencies.map(tasksByPath::getValue))
-            tasks.add(task)
-        }
-        return tasks
-    }
+    val buildOperationExecutor: BuildOperationExecutor
+        get() = service()
 
     private
-    fun loadTasksWithDependenciesFor(decoder: Decoder, build: InstantExecutionBuild): List<Pair<Task, List<String>>> {
-        val classPath = decoder.deserializeClassPath()
-        val taskClassLoader = classLoaderFor(classPath)
-        decoder.deserializeCollection {
-            build.createProject(decoder.readString())
-        }
-
-        build.registerProjects()
-
-        return decoder.deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
-            val task = loadTaskFor(build, decoder, taskClassLoader)
-            container.add(task)
-        }
-    }
+    inline fun <reified T> service() =
+        host.service<T>()
 
     private
     fun classLoaderFor(classPath: ClassPath) =
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(tasks: List<Task>) =
-        tasks.map(::taskClassPath).fold(ClassPath.EMPTY, ClassPath::plus)
-
-    private
-    fun taskClassPath(task: Task) =
-        task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
-
-    private
-    fun KryoBackedEncoder.saveStateOf(task: Task, build: ClassicModeBuild) {
-        val taskType = GeneratedSubclasses.unpack(task.javaClass)
-        writeString(task.project.path)
-        writeString(task.name)
-        writeString(taskType.name)
-        serializeCollection(build.dependenciesOf(task)) {
-            writeString(it.path)
-        }
-
-        for (field in relevantStateOf(taskType)) {
-            val fieldValue = field.getFieldValue(task)
-            val conventionalValue = fieldValue ?: conventionalValueOf(task, field.name)
-            val finalValue = unpack(conventionalValue) ?: continue
-            val valueSerializer = stateSerializer.serializerFor(finalValue)
-            if (valueSerializer == null) {
-                logField(taskType, field.name, "serialize", "there's no serializer for type ${finalValue.javaClass}")
-                continue
-            }
-            writeString(field.name)
-            try {
-                valueSerializer(this)
-            } catch (e: Exception) {
-                throw GradleException("Could not save the value of field `${field.name}` of task `${task.path}`.", e)
-            }
-            println("SERIALIZED ${task.path} field ${field.name} value $finalValue")
-        }
-        writeString("")
-    }
-
-    private
-    fun conventionalValueOf(task: Task, fieldName: String): Any? =
-        (task as IConventionAware).conventionMapping.getConventionValue(null, fieldName, false)
-
-    private
-    fun unpack(fieldValue: Any?) = when (fieldValue) {
-        is DirectoryProperty -> fieldValue.asFile.orNull
-        is RegularFileProperty -> fieldValue.asFile.orNull
-        is Property<*> -> fieldValue.orNull
-        is Supplier<*> -> fieldValue.get()
-        is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
-        else -> fieldValue
-    }
-
-    private
-    fun Field.getFieldValue(task: Task): Any? {
-        isAccessible = true
-        return get(task)
-    }
-
-    private
-    fun loadTaskFor(build: InstantExecutionBuild, decoder: Decoder, taskClassLoader: ClassLoader): Pair<Task, List<String>> {
-        val projectPath = decoder.readString()
-        val taskName = decoder.readString()
-        val typeName = decoder.readString()
-        val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
-        val taskFieldsByName = relevantStateOf(taskClass).associateBy { it.name }
-        val task = build.createTask(projectPath, taskName, taskClass)
-        val taskDependencies = decoder.deserializeStrings()
-        val deserializer = host.deserializerFor(taskClassLoader)
-        while (true) {
-            val fieldName = decoder.readString()
-            if (fieldName.isEmpty()) {
-                break
-            }
-            try {
-                val value = deserializer.read(decoder) ?: continue
-                val field = taskFieldsByName.getValue(fieldName)
-                println("DESERIALIZED ${task.path} field $fieldName value $value")
-                @Suppress("unchecked_cast")
-                when (field.type) {
-                    DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
-                    RegularFileProperty::class.java -> (field.getFieldValue(task) as? RegularFileProperty)?.set(value as File)
-                    Property::class.java -> (field.getFieldValue(task) as? Property<Any>)?.set(value)
-                    Supplier::class.java -> field.setValue(task, Supplier { value })
-                    Function0::class.java -> field.setValue(task, { value })
-                    else -> {
-                        if (field.type.isAssignableFrom(value.javaClass)) {
-                            field.setValue(task, value)
-                        } else {
-                            logField(taskClass, fieldName, "deserialize", "${field.type} != ${value.javaClass}")
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                throw GradleException("Could not load value of field `$fieldName` of task ${task.path}.", e)
+    fun collectClassPath() = DefaultClassPath.of(
+        linkedSetOf<File>().also { classPathFiles ->
+            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).visitClassLoadersUsedInThisBuild { loader ->
+                ClasspathUtil.collectClasspathOf(
+                    loader,
+                    classPathFiles
+                )
             }
         }
-        return task to taskDependencies
-    }
-
-    private
-    fun InstantExecutionBuild.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
-        getProject(projectPath).tasks.create(taskName, taskClass)
-
-    private
-    fun Field.setValue(task: Task, value: Any) {
-        isAccessible = true
-        set(task, value)
-    }
-
-    private
-    fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
-        relevantTypeHierarchyOf(taskType).flatMap { type ->
-            type.declaredFields.asSequence().filterNot { field ->
-                Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
-            }
-        }
-
-    private
-    fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
-        var current = taskType
-        while (isRelevantDeclaringClass(current)) {
-            yield(current)
-            current = current.superclass
-        }
-    }
-
-    private
-    fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
-        declaringClass !in irrelevantDeclaringClasses
-
-    private
-    val irrelevantDeclaringClasses = setOf(
-        Object::class.java,
-        GroovyObject::class.java,
-        Task::class.java,
-        TaskInternal::class.java,
-        DefaultTask::class.java,
-        AbstractTask::class.java,
-        ConventionTask::class.java
     )
 
     private
-    fun logField(taskType: Class<*>, name: String?, actionName: String, reason: String) {
-        logger.lifecycle("Field `$name` from $taskType cannot be ${actionName}d because $reason.")
+    fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
+        createParentDirectories()
+        outputStream()
     }
 
     private
-    val isInstantExecutionEnabled: Boolean
-        get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null
+    fun stateFileInputStream() = instantExecutionStateFile.inputStream()
+
+    private
+    fun File.createParentDirectories() {
+        Files.createDirectories(parentFile.toPath())
+    }
 
     private
     val instantExecutionStateFile by lazy {
-        val dir = File(host.rootDir, ".instant-execution-state/${GradleVersion.current().version}").absoluteFile
+        val currentGradleVersion = GradleVersion.current().version
+        val cacheDir = File(host.rootDir, ".instant-execution-state/$currentGradleVersion").absoluteFile
         val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
         val cacheFileName = "$baseName.bin"
-        File(dir, cacheFileName)
+        File(cacheDir, cacheFileName)
     }
+
+    private
+    val reportOutputDir by lazy {
+        instantExecutionStateFile.run {
+            resolveSibling(nameWithoutExtension)
+        }
+    }
+
+    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
+    private
+    val isInstantExecutionEnabled: Boolean
+        get() = systemProperty(SystemProperties.isEnabled) != null && !host.currentBuild.buildSrc
+
+    private
+    fun maxProblems(): Int =
+        systemProperty(SystemProperties.maxProblems)
+            ?.let(Integer::valueOf)
+            ?: 512
+
+    private
+    fun systemProperty(propertyName: String) =
+        host.getSystemProperty(propertyName)
 }
+
+
+inline fun <reified T> DefaultInstantExecution.Host.service(): T =
+    getService(T::class.java)
 
 
 internal
@@ -352,68 +365,36 @@ fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
 
 
 private
-fun Encoder.serializeClassPath(classPath: ClassPath) {
-    serializeCollection(classPath.asFiles) {
-        writeFile(it)
-    }
-}
-
-
-private
-fun Decoder.deserializeClassPath(): ClassPath =
-    DefaultClassPath.of(
-        deserializeCollectionInto({ count -> LinkedHashSet<File>(count) }) { container ->
-            container.add(readFile())
-        }
-    )
-
-
-private
-fun Encoder.writeFile(file: File?) {
-    BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
-}
-
-
-private
-fun Decoder.readFile(): File =
-    BaseSerializerFactory.FILE_SERIALIZER.read(this)
-
-
-private
-fun Decoder.deserializeStrings(): List<String> =
-    deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
-        container.add(readString())
-    }
-
-
-private
-fun <T> Encoder.serializeCollection(elements: Collection<T>, serializeElement: (T) -> Unit) {
-    writeSmallInt(elements.size)
-    for (element in elements) {
-        serializeElement(element)
-    }
-}
-
-
-private
-fun Decoder.deserializeCollection(deserializeElement: () -> Unit) {
-    val count = readSmallInt()
-    for (i in 0 until count) {
-        deserializeElement()
-    }
-}
-
-
-private
-inline fun <T> Decoder.deserializeCollectionInto(containerSupplier: (Int) -> T, deserializeElement: (T) -> Unit): T {
-    val count = readSmallInt()
-    val container = containerSupplier(count)
-    for (i in 0 until count) {
-        deserializeElement(container)
-    }
-    return container
-}
-
-
-private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
+
+
+private
+inline fun <T> T.withGradle(
+    gradle: Gradle,
+    action: () -> Unit
+) where T : IsolateContext, T : MutableIsolateContext {
+    withIsolate(IsolateOwner.OwnerGradle(gradle)) {
+        withPropertyTrace(PropertyTrace.Gradle) {
+            action()
+        }
+    }
+}
+
+
+/**
+ * [Starts][startCoroutine] the suspending [block], asserts it runs
+ * to completion and returns its result.
+ */
+internal
+fun <R> runToCompletion(block: suspend () -> R): R {
+    var completion: Result<R>? = null
+    block.startCoroutine(Continuation(EmptyCoroutineContext) {
+        completion = it
+    })
+    return completion.let {
+        require(it != null) {
+            "Coroutine didn't run to completion."
+        }
+        it.getOrThrow()
+    }
+}

@@ -44,10 +44,12 @@ public class SimpleReport implements ConfigurableReport {
         enabled = project.getObjects().property(Boolean.class).value(false);
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName.create();
     }
@@ -56,6 +58,7 @@ public class SimpleReport implements ConfigurableReport {
         return "Report " + getName();
     }
 
+    @Override
     public File getDestination() {
         return destination.getOrNull();
     }
@@ -70,18 +73,22 @@ public class SimpleReport implements ConfigurableReport {
         this.destination.set(provider);
     }
 
+    @Override
     public OutputType getOutputType() {
         return outputType;
     }
 
+    @Override
     public Report configure(Closure configure) {
         return ConfigureUtil.configureSelf(configure, this);
     }
 
+    @Override
     public boolean isEnabled() {
         return enabled.get();
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled.set(enabled);
     }

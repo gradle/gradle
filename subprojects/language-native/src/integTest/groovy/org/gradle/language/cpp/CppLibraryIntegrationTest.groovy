@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependen
 import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 
 import static org.gradle.util.Matchers.containsText
 
@@ -461,7 +461,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         then:
         failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp'.")
-        failure.assertThatCause(Matchers.containsString("C++ compiler failed while compiling main.cpp."))
+        failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
         buildFile << """
@@ -502,7 +502,7 @@ project(':greeter') {
 
         then:
         failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp'.")
-        failure.assertThatCause(Matchers.containsString("C++ compiler failed while compiling main.cpp."))
+        failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
         buildFile.text = buildFile.text.replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")

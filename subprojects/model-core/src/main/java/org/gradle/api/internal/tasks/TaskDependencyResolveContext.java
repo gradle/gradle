@@ -44,11 +44,6 @@ public interface TaskDependencyResolveContext {
     void add(Object dependency);
 
     /**
-     * Adds an object that <em>may</em> be able to contribute tasks to the result.
-     */
-    void maybeAdd(Object dependency);
-
-    /**
      * Visits a failure to visit the dependencies of an object.
      * @param failure
      */

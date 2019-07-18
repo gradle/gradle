@@ -49,6 +49,7 @@ public class LogToClient extends BuildCommandOnly {
         this.diagnostics = diagnostics;
     }
 
+    @Override
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
         if (Boolean.getBoolean(DISABLE_OUTPUT)) {
             execution.proceed();
@@ -77,6 +78,7 @@ public class LogToClient extends BuildCommandOnly {
             super("Asynchronous log dispatcher for " + conn);
             this.connection = conn;
             this.listener = new OutputEventListener() {
+                @Override
                 public void onOutput(OutputEvent event) {
                     if (dispatcher != null && (isMatchingBuildLogLevel(event) || isProgressEvent(event))) {
                         dispatcher.submit(event);

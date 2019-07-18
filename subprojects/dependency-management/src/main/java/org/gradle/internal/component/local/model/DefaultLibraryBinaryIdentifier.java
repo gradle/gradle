@@ -25,6 +25,7 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
     private final String displayName;
     private final String variant;
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }

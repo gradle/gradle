@@ -22,7 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
         resolve.prepare()

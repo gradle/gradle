@@ -58,6 +58,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
         Action<Throwable> errorHandler = new Action<Throwable>() {
+            @Override
             public void execute(Throwable throwable) {
                 Throwable current = throwable;
                 for (Action<Throwable> handler : unrecoverableErrorHandlers) {
@@ -86,6 +87,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         methodParamClassLoaders.add(incomingMessageClassLoader);
     }
 
+    @Override
     public <T> void addIncoming(Class<T> type, final T instance) {
         if (connection != null) {
             throw new GradleException("Cannot add incoming message handler after connection established.");
@@ -98,6 +100,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         hub.addHandler(type.getName(), handler);
     }
 
+    @Override
     public <T> T addOutgoing(Class<T> type) {
         if (connection != null) {
             throw new GradleException("Cannot add outgoing message transmitter after connection established.");
@@ -107,10 +110,12 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         return adapter.getSource();
     }
 
+    @Override
     public void useParameterSerializers(SerializerRegistry serializer) {
         this.paramSerializers.add(serializer);
     }
 
+    @Override
     public void connect() {
         ClassLoader methodParamClassLoader;
         if (methodParamClassLoaders.size() == 0) {
@@ -134,10 +139,12 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         completion = null;
     }
 
+    @Override
     public void requestStop() {
         hub.requestStop();
     }
 
+    @Override
     public void stop() {
         // TODO:ADAM - need to cleanup completion too, if not used
         CompositeStoppable.stoppable(hub, connection).stop();

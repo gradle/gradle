@@ -17,23 +17,15 @@
 package org.gradle.caching.internal.origin
 
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.internal.id.UniqueId
-import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.internal.time.Clock
-import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class OriginMetadataFactoryTest extends Specification {
     def entry = Mock(CacheableEntity)
-    def timeProvider = Mock(Clock)
-    def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
-    def buildInvocationId = UniqueId.generate()
-    def factory = new OriginMetadataFactory(timeProvider, inetAddressFactory, rootDir, "user", "os", GradleVersion.version("3.0"), buildInvocationId)
+    def buildInvocationId = UUID.randomUUID().toString()
+    def factory = new OriginMetadataFactory(rootDir, "user", "os", buildInvocationId, { it.gradleVersion = "3.0" })
 
     def "converts to origin metadata"() {
-        timeProvider.currentTime >> 0
-        inetAddressFactory.hostname >> "host"
         entry.identity >> "identity"
         rootDir.absolutePath >> "root"
         def origin = new Properties()
@@ -50,12 +42,12 @@ class OriginMetadataFactoryTest extends Specification {
         origin.identity == "identity"
         origin.type == entry.getClass().canonicalName
         origin.gradleVersion == "3.0"
-        origin.creationTime == "0"
+        origin.creationTime != null
         origin.executionTime == "10"
         origin.rootPath == "root"
         origin.operatingSystem == "os"
-        origin.hostName == "host"
+        origin.hostName == InetAddress.localHost.hostName
         origin.userName == "user"
-        origin.buildInvocationId == buildInvocationId.asString()
+        origin.buildInvocationId == buildInvocationId
     }
 }

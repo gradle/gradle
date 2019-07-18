@@ -23,7 +23,7 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 @TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE })
 class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
@@ -39,7 +39,7 @@ class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegration
         apply plugin: 'java'
         ${mavenCentralRepository()}
         dependencies { 
-            testCompile '$dependencyNotation' 
+            testImplementation '$dependencyNotation' 
         }"""
 
         when:

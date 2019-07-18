@@ -26,18 +26,18 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.ArchiveFileTree;
+import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.file.Chmod;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.nativeintegration.filesystem.Chmod;
-import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -68,14 +68,17 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         this.fileHasher = fileHasher;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("TAR '%s'", resource.getDisplayName());
     }
 
+    @Override
     public DirectoryFileTree getMirror() {
         return directoryFileTreeFactory.create(getExpandedDir());
     }
 
+    @Override
     public void visit(FileVisitor visitor) {
         InputStream inputStream;
         try {
@@ -113,6 +116,7 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         }
     }
 
+    @Override
     public File getBackingFile() {
         if (tarFile != null) {
             return tarFile;
@@ -202,14 +206,17 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             this.stopFlag = stopFlag;
         }
 
+        @Override
         public String getDisplayName() {
             return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
         }
 
+        @Override
         public void stopVisiting() {
             stopFlag.set(true);
         }
 
+        @Override
         public File getFile() {
             if (file == null) {
                 file = new File(expandedDir, entry.getName());
@@ -220,18 +227,22 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             return file;
         }
 
+        @Override
         public long getLastModified() {
             return entry.getModTime().getTime();
         }
 
+        @Override
         public boolean isDirectory() {
             return entry.isDirectory();
         }
 
+        @Override
         public long getSize() {
             return entry.getSize();
         }
 
+        @Override
         public InputStream open() {
             if (read && file != null) {
                 return GFileUtils.openInputStream(file);
@@ -243,10 +254,12 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
             return tar;
         }
 
+        @Override
         public RelativePath getRelativePath() {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
         }
 
+        @Override
         public int getMode() {
             return entry.getMode() & 0777;
         }

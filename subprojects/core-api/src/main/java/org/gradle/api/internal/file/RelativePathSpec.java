@@ -17,16 +17,19 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.specs.Spec;
 
 public class RelativePathSpec implements Spec<FileTreeElement> {
-    private final Spec<? super RelativePath> pathSpec;
+    private final PatternMatcher matcher;
 
-    public RelativePathSpec(Spec<? super RelativePath> pathSpec) {
-        this.pathSpec = pathSpec;
+    public RelativePathSpec(PatternMatcher matcher) {
+        this.matcher = matcher;
     }
 
+    @Override
     public boolean isSatisfiedBy(FileTreeElement element) {
-        return pathSpec.isSatisfiedBy(element.getRelativePath());
+        RelativePath relativePath = element.getRelativePath();
+        return matcher.test(relativePath.getSegments(), relativePath.isFile());
     }
 }

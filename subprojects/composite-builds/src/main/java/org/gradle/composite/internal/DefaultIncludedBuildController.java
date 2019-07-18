@@ -20,11 +20,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -143,6 +143,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
+    @Override
     public void stop() {
         ArrayList<Throwable> failures = new ArrayList<Throwable>();
         awaitTaskCompletion(failures);
@@ -289,7 +290,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public TaskStatus status = TaskStatus.QUEUED;
     }
 
-    private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskExecutionListener {
+    private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskListenerInternal {
         private final Collection<String> tasksToExecute;
 
         IncludedBuildExecutionListener(Collection<String> tasksToExecute) {
@@ -306,14 +307,13 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
 
         @Override
-        public void beforeExecute(Task task) {
+        public void beforeExecute(TaskIdentity taskIdentity) {
         }
 
         @Override
-        public void afterExecute(Task task, org.gradle.api.tasks.TaskState state) {
-            String taskPath = task.getPath();
+        public void afterExecute(TaskIdentity taskIdentity, org.gradle.api.tasks.TaskState state) {
             Throwable failure = state.getFailure();
-            taskCompleted(taskPath, failure);
+            taskCompleted(taskIdentity.getTaskPath(), failure);
         }
     }
 }

@@ -1,28 +1,37 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features improvements to [build init](#build-init) to generate plugin projects, 
-[an API for transforming dependency artifacts](#artifact-transforms), 
-the ability to declare [organization-wide Gradle properties](#gradle-properties), 
-lots of new [native plugin documentation](#native-support) and more.
+This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Dan Sănduleac](https://github.com/dansanduleac),
-[Martin d'Anjou](https://github.com/martinda),
-[Ben Asher](https://github.com/benasher44),
-[Mike Kobit](https://github.com/mkobit),
-[Erhard Pointl](https://github.com/epeee),
-[Sebastian Schuberth](https://github.com/sschuberth),
+[Andrew K.](https://github.com/miokowpak),
+[Noa Resare](https://github.com/nresare),
+[Juan Martín Sotuyo Dodero](https://github.com/jsotuyod),
+[Semyon Levin](https://github.com/remal),
+[wreulicke](https://github.com/wreulicke),
+[John Rodriguez](https://github.com/jrodbx),
+[mig4](https://github.com/mig4),
 [Evgeny Mandrikov](https://github.com/Godin),
+[Bjørn Mølgård Vester](https://github.com/bjornvester),
+[Simon Legner](https://github.com/simon04),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Ian Kerins](https://github.com/isker),
+[Ivo Anjo](https://github.com/ivoanjo),
 [Stefan M.](https://github.com/StefMa),
-[Igor Melnichenko](https://github.com/igor-melnichenko),
-[Björn Kautler](https://github.com/Vampire),
-[Roberto Perez Alcolea](https://github.com/rpalcolea) and
-[Christian Fränkel](https://github.com/fraenkelc).
-
+[Nickolay Chameev](https://github.com/lukaville),
+[Dominik Giger](https://github.com/gigerdo),
+[Stephan Windmüller](https://github.com/stovocor),
+[Zemian Deng](https://github.com/zemian),
+[Robin Verduijn](https://github.com/robinverduijn),
+[Sandu Turcan](https://github.com/idlsoft),
+[Emmanuel Guérin](https://github.com/emmanuelguerin),
+[Nikita Skvortsov](https://github.com/nskvortsov),
+and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
 
@@ -32,118 +41,154 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-**NOTE:** Gradle 5.5 has had _one_ patch release. We recommend using the latest patch release.
-
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-<a name="artifact-transforms"/>
+<a name="test-fixtures"/>
 
-## Transforming dependency artifacts on resolution
+## Test fixtures for Java projects
 
-A dependency’s artifacts can take many forms, and sometimes you might need one that is not readily available.
-As an example, imagine you have a dependency on a Java module.
-Its producer publishes a normal JAR file and an obfuscated JAR file to a binary repository.
-As a consumer, you want to use the normal JAR for development.
-But for production, you want to use an obfuscated version of the JAR rather than the version that’s published.
+Gradle 5.6 introduces a new [Java test fixtures plugin](userguide/java_testing.html#sec:java_test_fixtures), which, when applied in combination with the `java` or `java-library` plugin, will create a conventional `testFixtures` source set.
+Gradle will automatically perform the wiring so that the `test` compilation depends on test fixtures, but more importantly, it allows other projects to depend on the test fixtures of a library.
+For example:
 
-Let’s say you want to get hold of the obfuscated JAR, but it’s not available in any repository.
-Why not just retrieve the un-obfuscated JAR and obfuscate it yourself?
+```groovy
+dependencies {
+   // this will add the test fixtures of "my-lib" on the compile classpath of the tests of _this_ project
+   testImplementation(testFixtures(project(":my-lib")))
+}
+```
 
-Gradle now allows you to register an _artifact transform_ to do just that, by hooking into the dependency management resolution engine.
-You can specify that whenever an obfuscated JAR is requested but can’t be found, Gradle should run an artifact transform that performs the obfuscation and makes the resulting artifact available transparently to the build.
- 
-For more information have a look at the [user manual](userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms).
+## Central management of plugin versions with settings script
 
-<a name="build-init"/>
+Gradle 5.6 makes it easier to manage the versions of plugins used by your build. By configuring all plugin versions in a settings script within the new `pluginManagement.plugins {}` block, build scripts can apply plugins via the `plugins {}` block without specifying a version.
 
-## Build init plugin improvements
+```groovy
+pluginManagement {
+    plugins {
+        id 'org.my.plugin' version '1.1'
+    }
+}
+```
 
-### Support for JUnit Jupiter
+One benefit of managing plugin versions in this way is that the `pluginManagement.plugins {}` block does not have the same constrained syntax as a build script `plugins {}` block. Plugin versions may be loaded from `gradle.properties`, or defined programmatically.
 
-The `init` task now provides an option to use Junit Jupiter, instead of Junit 4, to test Java applications and libraries. You can select this test framework when you run the `init` task interactively, or use the `--test-framework` command-line option. See the [User manual](userguide/build_init_plugin.html) for more details.
+See [plugin version management](userguide/plugins.html#sec:plugin_version_management) for more details.
 
-Contributed by [Erhard Pointl](https://github.com/epeee)
+## Performance fix for using the Java library plugin in very large projects on Windows
 
-### Generate Gradle plugin builds
-
-The `init` task can now generate simple Gradle plugin projects. You can use these as a starting point for developing and testing a Gradle plugin. The `init` task provides an option to use either Java, Groovy or Kotlin for the plugin source. You can select a Gradle plugin when you run the `init` task interactively, or use the `--type` command-line option.
-
-See the [User manual](userguide/build_init_plugin.html) for more details.
-
-<a name="gradle-properties"/>
-
-## Define organization-wide properties with a custom Gradle Distribution
-
-Gradle now looks for a `gradle.properties` file in the Gradle distribution used by the build.  This file has the [lowest precedence of any `gradle.properties`](userguide/build_environment.html#sec:gradle_configuration_properties) and properties defined in other locations will override values defined here.
-
-By placing a `gradle.properties` file in a [custom Gradle distribution](userguide/organizing_gradle_projects.html#sec:custom_gradle_distribution), an organization can add default properties for the entire organization or tweak the default Gradle daemon memory parameters with `org.gradle.jvmargs`.
-
-<a name="improvements-plugin-authors"/>
+Very large multi-projects can suffer from a significant performance decrease in Java compilation when switching from the `java` to the `java-library` plugin.
+This is caused by the large amount of class files on the classpath, which is only an issue on Windows systems.
+You can now tell the `java-library` plugin to [prefer jars over class folders on the compile classpath](userguide/java_library_plugin.html#sec:java_library_known_issues_windows_performance) by setting the `org.gradle.java.compile-classpath-packaging` system property to `true`.
 
 ## Improvements for plugin authors
 
-### Abstract service injection methods
+### Task dependencies are honored for `@Input` properties of type `Provider`
 
-Gradle provides several useful services that are available for injection into various custom types, including task types, plugins and project extensions. One such service, for example, is the  
-`ObjectFactory` type.
+Gradle can automatically calculate task dependencies based on the value of certain task input properties. 
+For example, for a property that is annotated with `@InputFiles` and that has type `FileCollection` or `Provider<Set<RegularFile>>`, 
+Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
 
-In previous Gradle versions, a type could receive a service by declaring a property getter with a dummy method body. Now, these property getters can be abstract, which is more convenient and clearer.
+In this release, Gradle also performs this analysis on task properties that are annotated with `@Input` and that have type `Provider<T>` (which also includes types such as `Property<T>`).
+This allow you to connect an output of a task to a non-file input parameter of another task.
+For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle.
+With this change you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
 
-See the [user manual](userguide/custom_gradle_types.html#service_injection) for more details and examples.
+See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
 
-### `ObjectFactory` methods for creating domain object collections
+### Convert a `FileCollection` to a `Provider`
 
-Gradle provides a number of types that plugin authors can use to manage a collection of objects. These are called the "domain object collection" types and provide useful features such as DSL support 
-and lazy configuration. These types are used extensively throughout the Gradle API, for example `project.tasks` and `project.repositories` are domain object collections.  
+A new method `FileCollection.getElements()` has been added to allow the contents of the file collection to be viewed as a `Provider`. This `Provider` tracks the elements of the file collection and tasks that
+produce these files and can be connected to a `Property` instance.
+ 
+### Finalize the value of a `ConfigurableFileCollection`
 
-Previously, it was only possible to create a domain object collection by using the APIs provided by a `Project`. However, a `Project` object is not always available, for example
-in a `Settings` plugin or in a project extension object.
+A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as `Provider` instances or Groovy closures or Kotlin functions, that may be present in the collection 
+to their final file locations and prevents further changes to the collection.
 
-The [`ObjectFactory`](javadoc/org/gradle/api/model/ObjectFactory.html) service now has methods for creating [`NamedDomainObjectContainer`](javadoc/org/gradle/api/NamedDomainObjectContainer.html) and [`DomainObjectSet`](javadoc/org/gradle/api/DomainObjectSet.html) instances.
-This means that any code where a `ObjectFactory` is available can now create collection instances. 
+This method works similarly to other `finalizeValue()` methods, such as `Property.finalizeValue()`.
 
-See the [user manual](userguide/custom_gradle_types.html#collection_types) for more details and examples.
+### Prevent changes to a `Property` or `ConfigurableFileCollection`
 
-### Abstract model properties
+New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow further changes to the property or collection.
 
-A custom type, such as a task type, plugin or project extension can now be implemented as an abstract class or, in the case of project extensions and other data types, an interface.
-Gradle can provide an implementation for abstract properties.
+### `Provider` methods
 
-For a property with abstract getter and setter methods, Gradle will provide implementations for the getter and setters.
+New methods `Provider.orElse(T)` and `Provider.orElse(Provider<T>)` has been added. These allow you to perform an 'or' operation on a provider and some other value.
 
-For a read only property with an abstract getter method, Gradle will provide an implementation for the getter method and also create a value for the property.
-For plugin authors, this simplifies the process of providing configuration properties for a task or project extension.
+### Worker API improvements
 
-See the [user manual](userguide/custom_gradle_types.html#managed_properties) for more details and examples.
+TBD
 
-### Additional documentation
+## Improved handling of ZIP archives on classpaths
 
-There is a new user manual [chapter](userguide/custom_gradle_types.html) that describes how to use these features in your custom Gradle types.
+Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
+It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
+that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
 
-<a name="native-support"/>
+The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
+This improves performance for projects with a large amount of resource files.
 
-## Building native software with Gradle
+## Support for PMD incremental analysis
 
-Gradle's user manual now includes new chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects.  The DSL guide now includes [C++ related types](dsl/index.html#N10808).
+TBD
 
-Reference chapters were also created for [all of the C++ plugins](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins](userguide/plugin_reference.html#ide_integration).
+This was contributed by [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod).
 
-The [C++ guides](https://gradle.org/guides/?q=Native) have been updated to reflect all the new features available to C++ developers.
+## Incubating support for Groovy compilation avoidance
 
-See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
+Gradle now supports experimental compilation avoidance for Groovy. 
+This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
+See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
-## Improved Eclipse project name deduplication in Buildship
+## Experimental incremental Groovy compilation
 
-When importing Gradle Eclipse projects into Buildship, the current Eclipse workpace state is taken into account. This allows Gradle to import/synchronize in Eclipse workspaces that include
-non-Gradle projects that conflict with project names in the imported project.
+Gradle now supports experimental incremental compilation for Groovy.
+If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
+For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed ones need to be recompiled.
+See [Incremental Groovy compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) in the user manual for more details.
 
-The upcoming 3.1.1 version of Buildship is required to take advantage of this behavior.
+## Closed Eclipse Buildship projects
 
-Contributed by [Christian Fränkel](https://github.com/fraenkelc)
+Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
+those jars can now be built during Buildship eclipse model synchronization.
 
-## Gradle Kotlin DSL compiler upgraded to Kotlin 1.3.31
+The upcoming version of Buildship is required to take advantage of this behavior.
 
-The Gradle Kotlin DSL embedded Kotlin compiler has been upgraded from version `1.2.21` to version `1.3.31`, please refer to the [Kotlin 1.3.30 release blog entry](https://blog.jetbrains.com/kotlin/2019/04/kotlin-1-3-30-released/) and the [Kotlin 1.3.31 GitHub release notes](https://github.com/JetBrains/kotlin/releases/tag/v1.3.31) for details.
+This was contributed by [Christian Fränkel](https://github.com/fraenkelc).
+
+## Executable Jar support with `project.javaexec` and `JavaExec`
+
+TBD
+
+## File case changes when copying files on case-insensitive file systems are now handled correctly
+
+On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. 
+For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. 
+The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
+
+## Unavailable files are handled more gracefully
+
+Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files) found in inputs and outputs of tasks are handled gracefully from now on: as if they don't exist.
+
+For example copying into a directory with a leftover named pipe or broken symbolic link won't break the build anymore.
+
+## Fail the build on deprecation warnings
+
+The `warning-mode` command line option now has a [new `fail` value](userguide/command_line_interface.html#sec:command_line_warnings) that will behave like `all` and in addition fail the build if any deprecation warning was reported during the execution.
+
+## Promoted features
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the features that have been promoted in this Gradle release.
+
+<!--
+### Example promoted
+-->
+
+### Transforming dependency artifacts on resolution
+
+The API around [artifact transforms](userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms) is not incubating any more.
 
 ## Fixed issues
 

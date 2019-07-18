@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -62,22 +61,13 @@ public class CachingFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(FileTreeElement fileDetails) {
-        return snapshot(fileDetails).getHash();
-    }
-
-    @Override
-    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
-        return snapshot(file, fileDetails.getLength(), fileDetails.getLastModified()).getHash();
+    public HashCode hash(File file, long length, long lastModified) {
+        return snapshot(file, length, lastModified).getHash();
     }
 
     private FileInfo snapshot(File file) {
         FileMetadataSnapshot fileMetadata = fileSystem.stat(file);
         return snapshot(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-    }
-
-    private FileInfo snapshot(FileTreeElement file) {
-        return snapshot(file.getFile(), file.getSize(), file.getLastModified());
     }
 
     private FileInfo snapshot(File file, long length, long timestamp) {
@@ -120,6 +110,7 @@ public class CachingFileHasher implements FileHasher {
     private static class FileInfoSerializer extends AbstractSerializer<FileInfo> {
         private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
+        @Override
         public FileInfo read(Decoder decoder) throws Exception {
             HashCode hash = hashCodeSerializer.read(decoder);
             long timestamp = decoder.readLong();
@@ -127,6 +118,7 @@ public class CachingFileHasher implements FileHasher {
             return new FileInfo(hash, length, timestamp);
         }
 
+        @Override
         public void write(Encoder encoder, FileInfo value) throws Exception {
             hashCodeSerializer.write(encoder, value.hash);
             encoder.writeLong(value.timestamp);

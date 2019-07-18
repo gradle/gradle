@@ -249,6 +249,7 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public BuildResult build() {
         return run(new Action<GradleExecutionResult>() {
+            @Override
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (!gradleExecutionResult.isSuccessful()) {
                     throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
@@ -260,6 +261,7 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public BuildResult buildAndFail() {
         return run(new Action<GradleExecutionResult>() {
+            @Override
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (gradleExecutionResult.isSuccessful()) {
                     throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));

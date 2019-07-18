@@ -97,16 +97,19 @@ public class OsgiPluginConvention {
         final OsgiHelper osgiHelper = new OsgiHelper();
 
         mapping.map("version", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return osgiHelper.getVersion(project.getVersion().toString());
             }
         });
         mapping.map("name", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName();
             }
         });
         mapping.map("symbolicName", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return osgiHelper.getBundleSymbolicName(project);
             }

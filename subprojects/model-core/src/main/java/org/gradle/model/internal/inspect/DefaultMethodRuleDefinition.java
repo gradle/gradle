@@ -128,6 +128,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     private ModelReference<?> reference(List<Annotation> annotations, int i) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
+            @Override
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
             }

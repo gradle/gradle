@@ -27,6 +27,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -34,8 +36,11 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -102,6 +107,7 @@ public class NodeState implements DependencyGraphNode {
     private long previousIncomingHash;
     private long incomingHash;
     private ExcludeSpec cachedModuleResolutionFilter;
+    private ResolvedVariantResult cachedVariantResult;
 
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
@@ -132,6 +138,7 @@ public class NodeState implements DependencyGraphNode {
         return this;
     }
 
+    @Override
     public ComponentState getComponent() {
         return component;
     }
@@ -492,6 +499,7 @@ public class NodeState implements DependencyGraphNode {
         ComponentResolveMetadata metadata = potentialEdge.metadata;
         VirtualPlatformState virtualPlatformState = null;
         if (metadata == null || metadata instanceof LenientPlatformResolveMetadata) {
+
             virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
             virtualPlatformState.participatingModule(component.getModule());
         }
@@ -577,6 +585,7 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    @Override
     public boolean isSelected() {
         return !incomingEdges.isEmpty();
     }
@@ -885,5 +894,21 @@ public class NodeState implements DependencyGraphNode {
 
     ImmutableAttributes desugar(ImmutableAttributes attributes) {
         return resolveState.desugar(attributes);
+    }
+
+    public ResolvedVariantResult getResolvedVariant() {
+        if (cachedVariantResult != null) {
+            return cachedVariantResult;
+        }
+        DisplayName name = Describables.of(metaData.getName());
+        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        AttributeContainer attributes = desugar(metaData.getAttributes());
+        List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
+        cachedVariantResult = new DefaultResolvedVariantResult(
+            name,
+            attributes,
+            resolvedVariantCapabilities
+        );
+        return cachedVariantResult;
     }
 }

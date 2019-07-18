@@ -207,7 +207,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             artifacts {
-                runtime extraJar
+                implementation extraJar
                 archives extraJar
                 it."default" extraJar
             }
@@ -290,16 +290,16 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             $dependencies
 
             dependencies {
-                compile 'org.springframework:spring-core:2.5.6', {
+                api 'org.springframework:spring-core:2.5.6', {
                     exclude group: 'commons-logging', module: 'commons-logging'
                 }
-                compile "commons-beanutils:commons-beanutils:1.8.3", {
+                api "commons-beanutils:commons-beanutils:1.8.3", {
                     exclude group: 'commons-logging'
                 }
-                compile "commons-dbcp:commons-dbcp:1.4", {
+                api "commons-dbcp:commons-dbcp:1.4", {
                     transitive = false
                 }
-                compile "org.apache.camel:camel-jackson:2.15.3", {
+                api "org.apache.camel:camel-jackson:2.15.3", {
                     exclude module: 'camel-core'
                 }
             }
@@ -453,7 +453,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             ${mavenCentralRepository()}
 
-            configurations.compile.defaultDependencies { deps ->
+            configurations.api.defaultDependencies { deps ->
                 deps.add project.dependencies.create("org.test:default-dependency:1.1")
             }
 """

@@ -66,7 +66,6 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            !work.isAllowOverlappingOutputs(),
                             createIncrementalInputProperties(work))
                         )
                         .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work)))
@@ -117,12 +116,12 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                work.visitInputFileProperties((name, value, incremental) -> {
+                work.visitInputFileProperties((propertyName, value, incremental, fingerprinter) -> {
                     if (incremental) {
                         if (value == null) {
-                            throw new InvalidUserDataException("Must specify a value for incremental input property '" + name + "'.");
+                            throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
                         }
-                        builder.put(name, value);
+                        builder.put(propertyName, value);
                     }
                 });
                 return new DefaultIncrementalInputProperties(builder.build());

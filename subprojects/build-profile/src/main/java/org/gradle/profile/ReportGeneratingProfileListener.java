@@ -43,6 +43,7 @@ public class ReportGeneratingProfileListener extends InternalBuildAdapter implem
         buildDir = gradle.getRootProject().getBuildDir();
     }
 
+    @Override
     public void buildFinished(BuildProfile buildProfile) {
         ProfileReportRenderer renderer = new ProfileReportRenderer();
         File file = new File(buildDir, "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");

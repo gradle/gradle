@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins.fixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperTestFixture {
 

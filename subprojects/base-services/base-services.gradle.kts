@@ -6,7 +6,6 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import java.util.concurrent.Callable
 
 plugins {
     `java-library`
@@ -14,36 +13,36 @@ plugins {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }
 
 dependencies {
-    api(project(":distributionsDependencies"))
-
-    api(library("guava"))
+    api(project(":hashing"))
     api(library("jsr305"))
-    api(library("fastutil"))
 
     implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("asm"))
 
-    jmh(library("bouncycastle_provider")) {
+    jmhImplementation(library("bouncycastle_provider")) {
         version {
             prefer(libraryVersion("bouncycastle_provider"))
         }
     }
-}
 
-testFixtures {
-    from(":core")
+    integTestImplementation(project(":logging"))
+    
+    testFixturesImplementation(library("guava"))
+    testImplementation(testFixtures(project(":core")))
+    testRuntimeOnly(library("xerces"))
+    
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 jmh {
-    withGroovyBuilder {
-        setProperty("include", listOf("HashingAlgorithmsBenchmark"))
-    }
+    include = listOf("HashingAlgorithmsBenchmark")
 }
 
 val buildReceiptPackage: String by rootProject.extra

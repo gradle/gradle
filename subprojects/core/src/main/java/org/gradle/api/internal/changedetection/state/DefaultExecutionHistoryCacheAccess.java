@@ -41,6 +41,7 @@ public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCache
                 .open();
     }
 
+    @Override
     public void close() {
         cache.close();
     }

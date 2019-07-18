@@ -28,24 +28,33 @@ gradlebuildJava {
 
 
 dependencies {
+    implementation(project(":kotlinDsl"))
 
-    api(project(":distributionsDependencies"))
-
-    compile(project(":kotlinDsl"))
-
-    compileOnly(project(":plugins"))
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":resources"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":plugins"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
-
     integTestImplementation(project(":kotlinDslTestFixtures"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 
+    crossVersionTestImplementation(project(":persistentCache"))
+    crossVersionTestImplementation(library("slf4j_api"))
+    crossVersionTestImplementation(library("guava"))
+    crossVersionTestImplementation(library("ant"))
     crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
+    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+
 }
 
 tasks {
-
     // TODO:kotlin-dsl
     verifyTestFilesCleanup {
         enabled = false

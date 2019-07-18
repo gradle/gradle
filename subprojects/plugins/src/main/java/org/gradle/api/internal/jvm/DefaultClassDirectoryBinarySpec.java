@@ -81,50 +81,62 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
         return ClassDirectoryBinarySpec.class;
     }
 
+    @Override
     public BinaryTasksCollection getTasks() {
         return tasks;
     }
 
+    @Override
     public JavaToolChain getToolChain() {
         return toolChain;
     }
 
+    @Override
     public JavaPlatform getTargetPlatform() {
         return platform;
     }
 
+    @Override
     public void setTargetPlatform(JavaPlatform platform) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void setToolChain(JavaToolChain toolChain) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isBuildable() {
         return getBuildAbility().isBuildable();
     }
 
+    @Override
     public void setBuildable(boolean buildable) {
         this.buildable = buildable;
     }
 
+    @Override
     public boolean isLegacyBinary() {
         return true;
     }
 
+    @Override
     public File getClassesDir() {
         return sourceSet.getJava().getOutputDir();
     }
 
+    @Override
     public void setClassesDir(final File classesDir) {
         sourceSet.getJava().setOutputDir(classesDir);
     }
 
+    @Override
     public File getResourcesDir() {
         return sourceSet.getOutput().getResourcesDir();
     }
 
+    @Override
     public void setResourcesDir(File resourcesDir) {
         sourceSet.getOutput().setResourcesDir(resourcesDir);
     }

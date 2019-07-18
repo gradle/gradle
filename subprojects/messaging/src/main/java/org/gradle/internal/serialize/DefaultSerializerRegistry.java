@@ -30,6 +30,7 @@ import java.util.TreeMap;
 
 public class DefaultSerializerRegistry implements SerializerRegistry {
     private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
+        @Override
         public int compare(Class<?> o1, Class<?> o2) {
             return o1.getName().compareTo(o2.getName());
         }
@@ -135,6 +136,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             }
         }
 
+        @Override
         public T read(Decoder decoder) throws Exception {
             int tag = decoder.readSmallInt();
             TypeInfo typeInfo = tag >= serializersByTag.length ? null : serializersByTag[tag];
@@ -144,6 +146,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             return (T) typeInfo.serializer.read(decoder);
         }
 
+        @Override
         public void write(Encoder encoder, T value) throws Exception {
             TypeInfo typeInfo = map(value.getClass());
             encoder.writeSmallInt(typeInfo.tag);

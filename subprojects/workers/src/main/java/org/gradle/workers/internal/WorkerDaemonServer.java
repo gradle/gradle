@@ -16,18 +16,20 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Collections;
 
 public class WorkerDaemonServer implements WorkerProtocol {
     private final ServiceRegistry serviceRegistry;
@@ -40,19 +42,18 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
-        ServiceRegistry workerSharedGlobalServices = ServiceRegistryBuilder.builder()
+        return ServiceRegistryBuilder.builder()
                 .parent(parent)
                 .provider(new WorkerSharedGlobalScopeServices())
+                .provider(new WorkerDaemonServices())
                 .build();
-        return new WorkerDaemonServices(workerSharedGlobalServices);
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            SerializedActionExecutionSpec classloaderActionExecutionSpec = (SerializedActionExecutionSpec) spec;
-            Worker worker = getIsolatedClassloaderWorker(classloaderActionExecutionSpec.getClassLoaderStructure());
-            return worker.execute(classloaderActionExecutionSpec);
+            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure());
+            return worker.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
@@ -74,17 +75,29 @@ public class WorkerDaemonServer implements WorkerProtocol {
         return "WorkerDaemonServer{}";
     }
 
-    private static class WorkerDaemonServices extends DefaultServiceRegistry {
-        public WorkerDaemonServices(ServiceRegistry... parents) {
-            super("WorkerDaemonServices", parents);
+    private static class WorkerDaemonServices {
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
-        InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory) {
-            return new DefaultInstantiatorFactory(cacheFactory, Collections.<InjectAnnotationHandler>emptyList());
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry, InstantiatorFactory instantiatorFactory) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry, instantiatorFactory);
         }
 
-        WorkerDaemonServices createWorkerDaemonServices() {
-            return this;
+        DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+            return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
+        }
+
+        ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
+            // Return a dummy implementation of this as creating a real hasher drags ~20 more services
+            // along with it, and a hasher isn't actually needed on the worker process side at the moment.
+            return new ClassLoaderHierarchyHasher() {
+                @Nullable
+                @Override
+                public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 }

@@ -35,6 +35,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
             });
         }
         addTab("Classes", new ErroringAction<SimpleHtmlWriter>() {
+            @Override
             public void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
                 renderClasses(htmlWriter);
             }

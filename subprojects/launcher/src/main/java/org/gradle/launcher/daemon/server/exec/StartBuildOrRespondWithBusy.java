@@ -39,11 +39,13 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
         this.diagnostics = diagnostics;
     }
 
+    @Override
     protected void doBuild(final DaemonCommandExecution execution, final Build build) {
         DaemonStateControl stateCoordinator = execution.getDaemonStateControl();
 
         try {
             Runnable command = new Runnable() {
+                @Override
                 public void run() {
                     LOGGER.info("Daemon is about to start building {}. Dispatching build started information...", build);
                     execution.getConnection().buildStarted(new BuildStarted(diagnostics));

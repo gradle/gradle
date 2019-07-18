@@ -30,6 +30,7 @@ public class DefaultExecAction extends DefaultExecHandleBuilder implements ExecA
         super(fileResolver, executor, buildCancellationToken);
     }
 
+    @Override
     public ExecResult execute() {
         ExecHandle execHandle = build();
         ExecResult execResult = execHandle.start().waitForFinish();

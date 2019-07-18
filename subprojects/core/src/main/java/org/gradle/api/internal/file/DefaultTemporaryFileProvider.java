@@ -34,10 +34,12 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
         this.baseDirFactory = fileFactory;
     }
 
+    @Override
     public File newTemporaryFile(String... path) {
         return FileUtils.canonicalize(new File(baseDirFactory.create(), CollectionUtils.join("/", path)));
     }
 
+    @Override
     public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);
@@ -48,6 +50,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
         }
     }
 
+    @Override
     public File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);

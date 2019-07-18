@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import accessors.java
+import accessors.javaScript
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import accessors.*
 
 plugins {
+    `java-library`
     `javascript-base`
     gradlebuild.classycle
 }
@@ -33,24 +35,44 @@ dependencies {
     reports("jquery:jquery.min:1.11.0@js")
     reports("flot:flot:0.8.1:min@js")
 
-    compile(library("groovy"))
-    compile(project(":baseServices"))
-    compile(library("slf4j_api"))
-    compile(project(":internalIntegTesting"))
-    compile(library("jatl"))
-    compile(library("jgit"))
-    compile(library("commons_httpclient"))
-    compile(library("jsch"))
-    compile(library("commons_math"))
-    compile(library("jcl_to_slf4j"))
-    compile("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
-    compile("org.gradle.ci.health:tagging:0.63")
+    implementation(project(":baseServices"))
+    implementation(project(":native"))
+    implementation(project(":cli"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":buildOption"))
+    implementation(project(":fileCollections"))
+    implementation(project(":snapshots"))
+    implementation(project(":resources"))
+    implementation(project(":persistentCache"))
+    implementation(project(":jvmServices"))
+    implementation(project(":wrapper"))
+    implementation(project(":internalIntegTesting"))
 
-    runtime("com.h2database:h2:1.4.192")
+    implementation(library("junit"))
+    implementation(testLibrary("spock"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("joda"))
+    implementation(library("jatl"))
+    implementation(library("jgit"))
+    implementation(library("commons_httpclient"))
+    implementation(library("jsch"))
+    implementation(library("commons_math"))
+    implementation(library("jcl_to_slf4j"))
+    implementation("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
+    implementation("org.gradle.ci.health:tagging:0.63")
+    implementation(testLibrary("mina"))
+    implementation(testLibrary("jetty"))
+    implementation(testFixtures(project(":core")))
+    implementation(testFixtures(project(":toolingApi")))
+
+    runtimeOnly("com.h2database:h2:1.4.192")
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.REQUIRES_JAVA_8
+    moduleType = ModuleType.INTERNAL
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
@@ -67,7 +89,3 @@ tasks.jar {
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 
-testFixtures {
-    from(":core", "main")
-    from(":toolingApi", "main")
-}

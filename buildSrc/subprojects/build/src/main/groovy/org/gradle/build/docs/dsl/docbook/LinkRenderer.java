@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.build.docs.dsl.source.model.EnumConstantMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.dsl.source.model.TypeMetaData;
-import org.gradle.internal.jvm.Jvm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -52,17 +51,19 @@ public class LinkRenderer {
     }
 
     public LinkRenderer(Document document, DslDocModel model) {
-        this(document, model, GroovySystem.getVersion(), Jvm.current().getJavaVersion().getMajorVersion());
+        this(document, model, GroovySystem.getVersion(), "8");
     }
 
     Node link(TypeMetaData type, final GenerationListener listener) {
         final Element linkElement = document.createElement("classname");
 
         type.visitSignature(new TypeMetaData.SignatureVisitor() {
+            @Override
             public void visitText(String text) {
                 linkElement.appendChild(document.createTextNode(text));
             }
 
+            @Override
             public void visitType(String name) {
                 linkElement.appendChild(addType(name, listener));
             }
@@ -90,7 +91,7 @@ public class LinkRenderer {
 
         if (className.startsWith("java.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("http://download.oracle.com/javase/%s/docs/api/%s.html", javaVersion,
+            linkElement.setAttribute("url", String.format("https://docs.oracle.com/javase/%s/docs/api/%s.html", javaVersion,
                     className.replace(".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
@@ -100,7 +101,7 @@ public class LinkRenderer {
 
         if (className.startsWith("groovy.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("http://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
+            linkElement.setAttribute("url", String.format("https://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
                     ".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));

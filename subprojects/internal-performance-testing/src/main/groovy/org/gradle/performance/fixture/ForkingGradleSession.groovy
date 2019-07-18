@@ -78,7 +78,7 @@ class ForkingGradleSession implements GradleSession {
     }
 
     private void run(BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocation, List<String> tasks) {
-        String jvmArgs = invocation.jvmOpts.collect { '\'' + it + '\'' }.join(' ')
+        String jvmArgs = invocation.jvmOpts.join(' ')
         Map<String, String> env = [:]
         List<String> args = []
         if (OperatingSystem.current().isWindows()) {
@@ -105,7 +105,7 @@ class ForkingGradleSession implements GradleSession {
 
         def exitCode = run.start().waitFor()
         if (exitCode != 0 && !invocation.expectFailure) {
-            throw new IllegalStateException("Build failed, see ${invocationInfo.buildLog} for details")
+            throw new IllegalStateException("Build with args: ${args} envs: ${env} failed, see ${invocationInfo.buildLog} for details")
         }
     }
 

@@ -6,13 +6,13 @@ subprojects {
     }
 
     dependencies {
-        compile "org.scala-lang:scala-library:$scalaVersion"
+        implementation "org.scala-lang:scala-library:$scalaVersion"
     }
 }
 
 project(":prj2") {
     dependencies {
-        compile project(":prj1")
+        implementation project(":prj1")
     }
 }
 

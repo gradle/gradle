@@ -19,11 +19,9 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -58,7 +56,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/conditional')
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -67,7 +64,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         run "uploadArchives"
 
         then:
-        ":signArchives" in skippedTasks
+        skipped(":signArchives")
 
         and:
         def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')

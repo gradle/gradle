@@ -91,5 +91,5 @@ private constructor(
      * Configures the dependency constraints.
      */
     inline operator fun invoke(configuration: DependencyConstraintHandlerScope.() -> Unit) =
-        configuration()
+        this.configuration()
 }

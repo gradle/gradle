@@ -18,36 +18,56 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    implementation("org.codehaus.plexus:plexus-container-default")
-    implementation("org.apache.maven:maven-compat")
-    implementation("org.apache.maven:maven-plugin-api")
-    implementation(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":core"))
+    implementation(project(":fileCollections"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":platformBase"))
     implementation(project(":platformNative"))
     implementation(project(":plugins"))
     implementation(project(":wrapper"))
 
-    testFixturesImplementation(project(":internalTesting"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation("org.codehaus.plexus:plexus-container-default")
+    implementation("org.apache.maven:maven-compat")
+    implementation("org.apache.maven:maven-plugin-api")
+
+    testImplementation(project(":cli"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformNative")))
+    
+    testFixturesImplementation(project(":baseServices"))
+
+    integTestImplementation(project(":native"))
+    integTestImplementation(testLibrary("jetty"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
     allTestRuntimeDependencies.forEach {
-        integTestRuntime(it)
+        integTestRuntimeOnly(it)
     }
+    
+    testFixturesImplementation(project(":internalTesting"))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformNative")
-}
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {
@@ -70,7 +90,7 @@ tasks {
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
 
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties["spock"] = "1.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+            versionProperties["spock"] = "1.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)

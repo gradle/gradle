@@ -52,6 +52,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         this.object = object;
     }
 
+    @Override
     public DynamicObject getAsDynamicObject() {
         if (dynamicObject == null) {
             this.dynamicObject = toType(object, DynamicObjectAware.class).getAsDynamicObject();
@@ -59,6 +60,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return dynamicObject;
     }
 
+    @Override
     public Convention getConvention() {
         if (convention == null) {
             this.convention = toType(object, HasConvention.class).getConvention();
@@ -66,6 +68,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return convention;
     }
 
+    @Override
     public ExtensionContainer getExtensions() {
         if (extensionContainer == null) {
             this.extensionContainer = toType(object, ExtensionAware.class).getExtensions();
@@ -73,6 +76,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return extensionContainer;
     }
 
+    @Override
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
             this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();

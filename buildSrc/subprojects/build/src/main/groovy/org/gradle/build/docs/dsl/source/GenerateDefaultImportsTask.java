@@ -110,6 +110,7 @@ public class GenerateDefaultImportsTask extends DefaultTask {
         final Multimap<String, String> simpleNames = LinkedHashMultimap.create();
 
         repository.each(new Action<ClassMetaData>() {
+            @Override
             public void execute(ClassMetaData classMetaData) {
                 if (classMetaData.getOuterClassName() != null) {
                     // Ignore inner classes

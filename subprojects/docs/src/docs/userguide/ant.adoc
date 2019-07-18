@@ -75,7 +75,7 @@ include::sample[dir="userguide/ant/useAntType/groovy",files="build.gradle"]
 include::sample[dir="userguide/ant/useAntType/kotlin",files="build.gradle.kts"]
 ====
 
-More information about `AntBuilder` can be found in 'Groovy in Action' 8.4 or at the http://groovy-lang.org/scripting-ant.html[Groovy Wiki].
+More information about `AntBuilder` can be found in 'Groovy in Action' 8.4 or at the https://groovy-lang.org/scripting-ant.html[Groovy Wiki].
 
 [[sec:using_custom_ant_tasks]]
 === Using custom Ant tasks in your build

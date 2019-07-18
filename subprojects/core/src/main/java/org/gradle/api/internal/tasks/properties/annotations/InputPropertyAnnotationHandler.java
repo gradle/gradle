@@ -32,6 +32,7 @@ import java.lang.annotation.Annotation;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Input.class;
     }

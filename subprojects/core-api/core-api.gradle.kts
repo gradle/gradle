@@ -22,27 +22,32 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":baseServicesGroovy"))
-    api(project(":logging"))
-    api(project(":persistentCache"))
-    api(project(":processServices"))
-    api(project(":resources"))
+    implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":files"))
+    implementation(project(":logging"))
+    implementation(project(":persistentCache"))
+    implementation(project(":processServices"))
+    implementation(project(":resources"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("ant"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
+    testImplementation(library("asm"))
+    testImplementation(library("asm_commons"))
+    testImplementation(testFixtures(project(":logging")))
+    
     testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":baseServices"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
-}
-
-testFixtures {
-    from(":logging")
+    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

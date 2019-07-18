@@ -42,12 +42,12 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -147,6 +147,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         return isolatedParameters != null;
     }
 
+    @Override
     public boolean requiresDependencies() {
         return requiresDependencies;
     }
@@ -180,10 +181,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    Object unpacked = value.call();
-                    if (unpacked != null) {
-                        context.maybeAdd(unpacked);
-                    }
+                    context.add(value.getTaskDependencies());
                 }
             });
         }

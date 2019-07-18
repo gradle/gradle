@@ -18,10 +18,13 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -36,10 +39,10 @@ public class OverlappingOutputs {
         this.overlappedFilePath = overlappedFilePath;
     }
 
-    public static Optional<OverlappingOutputs> detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : current.entrySet()) {
+    public static Optional<OverlappingOutputs> detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
+        for (Map.Entry<String, FileSystemSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
-            CurrentFileCollectionFingerprint beforeExecution = entry.getValue();
+            FileSystemSnapshot beforeExecution = entry.getValue();
             FileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previous, propertyName);
             OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
             if (overlappingOutputs != null) {
@@ -61,24 +64,12 @@ public class OverlappingOutputs {
 
 
     @Nullable
-    private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, CurrentFileCollectionFingerprint before) {
+    private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, FileSystemSnapshot before) {
         Map<String, FileSystemLocationFingerprint> previousFingerprints = previous.getFingerprints();
-        Map<String, FileSystemLocationFingerprint> beforeFingerprints = before.getFingerprints();
-
-        for (Map.Entry<String, FileSystemLocationFingerprint> beforeEntry : beforeFingerprints.entrySet()) {
-            String path = beforeEntry.getKey();
-            FileSystemLocationFingerprint beforeFingerprint = beforeEntry.getValue();
-            HashCode contentHash = beforeFingerprint.getNormalizedContentHash();
-            FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
-            HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
-            // Missing files can be ignored
-            if (beforeFingerprint.getType() != FileType.Missing) {
-                if (createdSincePreviousExecution(previousContentHash) || changedSincePreviousExecution(contentHash, previousContentHash)) {
-                    return new OverlappingOutputs(propertyName, path);
-                }
-            }
-        }
-        return null;
+        OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousFingerprints);
+        before.accept(outputsDetectingVisitor);
+        String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
+        return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }
 
     private static boolean changedSincePreviousExecution(HashCode contentHash, HashCode previousContentHash) {
@@ -101,5 +92,63 @@ public class OverlappingOutputs {
 
     public String toString() {
         return String.format("output property '%s' with path '%s'", propertyName, overlappedFilePath);
+    }
+
+    private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotVisitor {
+        private final Map<String, FileSystemLocationFingerprint> previousFingerprints;
+        private int treeDepth = 0;
+        private String overlappingPath;
+
+        public OverlappingOutputsDetectingVisitor(Map<String, FileSystemLocationFingerprint> previousFingerprints) {
+            this.previousFingerprints = previousFingerprints;
+        }
+
+        @Override
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            treeDepth++;
+            if (overlappingPath == null) {
+                overlappingPath = detectOverlappingPath(directorySnapshot);
+            }
+            return overlappingPath == null;
+        }
+
+        @Override
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            if (overlappingPath == null) {
+                overlappingPath = detectOverlappingPath(fileSnapshot);
+            }
+        }
+
+        @Override
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            treeDepth--;
+        }
+
+        @Nullable
+        private String detectOverlappingPath(FileSystemLocationSnapshot beforeSnapshot) {
+            String path = beforeSnapshot.getAbsolutePath();
+            HashCode contentHash = beforeSnapshot.getHash();
+            FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
+            HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
+            // Missing files can be ignored
+            if (!isRoot() || beforeSnapshot.getType() != FileType.Missing) {
+                if (createdSincePreviousExecution(previousContentHash)
+                    || (beforeSnapshot.getType() != previousFingerprint.getType())
+                    // The fingerprint hashes for non-regular files are slightly different to the snapshot hashes, we only need to compare them for regular files
+                    || (beforeSnapshot.getType() == FileType.RegularFile && changedSincePreviousExecution(contentHash, previousContentHash))) {
+                    return path;
+                }
+            }
+            return null;
+        }
+
+        private boolean isRoot() {
+            return treeDepth == 0;
+        }
+
+        @Nullable
+        public String getOverlappingPath() {
+            return overlappingPath;
+        }
     }
 }

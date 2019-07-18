@@ -16,13 +16,16 @@
 
 package org.gradle.cache.internal;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.initialization.SessionLifecycleListener;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.SoftReference;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,45 +41,39 @@ import java.util.WeakHashMap;
  * Uses a simple algorithm to collect unused values, by retaining strong references to all keys and values used during the current build session, and the previous build session. All other values are referenced only by soft references.
  */
 @ThreadSafe
-public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCacheFactory {
+public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
     private final ListenerManager listenerManager;
 
     public DefaultCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
     }
 
-    /**
-     * Creates a new cache instance. Keys are always referenced using strong references, values by strong or soft references depending on their usage.
-     *
-     * Note: this should be used to create _only_ global scoped instances.
-     */
+    @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(new HashMap<K, SoftReference<V>>());
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(new HashMap<>());
         listenerManager.addListener(cache);
         return cache;
     }
 
-    /**
-     * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
-     *
-     * Note: this should be used to create _only_ global scoped instances.
-     */
+    @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<Class<?>, V>(new WeakHashMap<Class<?>, SoftReference<V>>());
+        // Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
+        // for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
+        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(new WeakHashMap<>());
         listenerManager.addListener(cache);
         return cache;
     }
 
-    private static class DefaultCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
+    @Override
+    public <V> CrossBuildInMemoryCache<Class<?>, V> newClassMap() {
+        DefaultClassMap<V> map = new DefaultClassMap<>();
+        listenerManager.addListener(map);
+        return map;
+    }
+
+    private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
         private final Object lock = new Object();
         private final Map<K, V> valuesForThisSession = new HashMap<K, V>();
-        // This is used only to retain strong references to the values
-        private final Set<V> valuesForPreviousSession = new HashSet<V>();
-        private final Map<K, SoftReference<V>> allValues;
-
-        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
-            this.allValues = allValues;
-        }
 
         @Override
         public void afterStart() {
@@ -85,9 +82,7 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
         @Override
         public void beforeComplete() {
             synchronized (lock) {
-                // Retain strong references to the values created for this session
-                valuesForPreviousSession.clear();
-                valuesForPreviousSession.addAll(valuesForThisSession.values());
+                retainValuesFromCurrentSession(valuesForThisSession.values());
                 valuesForThisSession.clear();
             }
         }
@@ -96,10 +91,18 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
         public void clear() {
             synchronized (lock) {
                 valuesForThisSession.clear();
-                valuesForPreviousSession.clear();
-                allValues.clear();
+                discardRetainedValues();
             }
         }
+
+        protected abstract void retainValuesFromCurrentSession(Collection<V> values);
+
+        protected abstract void discardRetainedValues();
+
+        protected abstract void retainValue(K key, V v);
+
+        @Nullable
+        protected abstract V maybeGetRetainedValue(K key);
 
         @Nullable
         @Override
@@ -120,7 +123,8 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
                 // TODO - do not hold lock while computing value
                 v = factory.transform(key);
 
-                allValues.put(key, new SoftReference<V>(v));
+                retainValue(key, v);
+
                 // Retain strong reference
                 valuesForThisSession.put(key, v);
 
@@ -131,7 +135,7 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
         @Override
         public void put(K key, V value) {
             synchronized (lock) {
-                allValues.put(key, new SoftReference<V>(value));
+                retainValue(key, value);
                 valuesForThisSession.put(key, value);
             }
         }
@@ -143,17 +147,95 @@ public class DefaultCrossBuildInMemoryCacheFactory extends CrossBuildInMemoryCac
                 return v;
             }
 
-            SoftReference<V> reference = allValues.get(key);
-            if (reference != null) {
-                v = reference.get();
-                if (v != null) {
-                    // Retain strong reference
-                    valuesForThisSession.put(key, v);
-                    return v;
-                }
+            v = maybeGetRetainedValue(key);
+            if (v != null) {
+                // Retain strong reference
+                valuesForThisSession.put(key, v);
+                return v;
             }
 
             return null;
+        }
+    }
+
+    private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
+        // This is used only to retain strong references to the values
+        private final Set<V> valuesForPreviousSession = new HashSet<V>();
+        private final Map<K, SoftReference<V>> allValues;
+
+        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
+            this.allValues = allValues;
+        }
+
+        @Override
+        protected void retainValuesFromCurrentSession(Collection<V> values) {
+            // Retain strong references to the values created for this session
+            valuesForPreviousSession.clear();
+            valuesForPreviousSession.addAll(values);
+        }
+
+        @Override
+        protected void discardRetainedValues() {
+            valuesForPreviousSession.clear();
+            allValues.clear();
+        }
+
+        @Override
+        protected void retainValue(K key, V v) {
+            allValues.put(key, new SoftReference<V>(v));
+        }
+
+        @Nullable
+        @Override
+        protected V maybeGetRetainedValue(K key) {
+            SoftReference<V> reference = allValues.get(key);
+            if (reference != null) {
+                return reference.get();
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Retains strong references to the keys and values via the key's ClassLoader. This allows the ClassLoader to be collected.
+     */
+    private static class DefaultClassMap<V> extends AbstractCrossBuildInMemoryCache<Class<?>, V> {
+        // Currently retains strong references to types that are not loaded using a VisitableURLClassLoader
+        // This is fine for JVM types, but a problem when a custom ClassLoader is used (which should probably be deprecated instead of supported)
+        private final Map<Class<?>, V> leakyValues = new HashMap<>();
+
+        @Override
+        protected void retainValuesFromCurrentSession(Collection<V> values) {
+            // Ignore
+        }
+
+        @Override
+        protected void discardRetainedValues() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected void retainValue(Class<?> key, V v) {
+            getCacheScope(key).put(key, v);
+        }
+
+        @Nullable
+        @Override
+        protected V maybeGetRetainedValue(Class<?> key) {
+            return getCacheScope(key).get(key);
+        }
+
+        private Map<Class<?>, V> getCacheScope(Class<?> type) {
+            ClassLoader classLoader = type.getClassLoader();
+            if (classLoader instanceof VisitableURLClassLoader) {
+                return ((VisitableURLClassLoader) classLoader).getUserData(this, new Factory<Map<Class<?>, V>>() {
+                    @Override
+                    public Map<Class<?>, V> create() {
+                        return new HashMap<>();
+                    }
+                });
+            }
+            return leakyValues;
         }
     }
 }

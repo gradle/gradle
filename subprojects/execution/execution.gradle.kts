@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import accessors.java
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -25,18 +24,40 @@ plugins {
 description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
-    api(project(":coreApi"))
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("inject"))
-
     implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":coreApi"))
+    implementation(project(":files"))
     implementation(project(":snapshots"))
+    implementation(project(":modelCore"))
+    implementation(project(":persistentCache"))
+    implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
+
+    implementation(library("jsr305"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
+    implementation(library("inject"))
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":native"))
+    testImplementation(project(":logging"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":modelCore"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":core")))
+
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":buildCache"))
+    testFixturesImplementation(project(":snapshots"))
+    testFixturesImplementation(project(":modelCore"))
 }
 
 java {
@@ -45,10 +66,3 @@ java {
     }
 }
 
-testFixtures {
-    from(":baseServices")
-    from(":files")
-    from(":messaging")
-    from(":snapshots")
-    from(":core")
-}

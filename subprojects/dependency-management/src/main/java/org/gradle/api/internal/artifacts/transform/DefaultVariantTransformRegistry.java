@@ -85,7 +85,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         if (parameterType == TransformParameters.class) {
             throw new VariantTransformConfigurationException(String.format("Could not register transform: must use a sub-type of %s as parameter type. Use %s for transforms without parameters.", ModelType.of(TransformParameters.class).getDisplayName(), ModelType.of(TransformParameters.None.class).getDisplayName()));
         }
-        T parameterObject = parameterType == TransformParameters.None.class ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
+        T parameterObject = parameterType == TransformParameters.None.class ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 
@@ -121,6 +121,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
+    @Override
     public List<ArtifactTransformRegistration> getTransforms() {
         return transforms;
     }

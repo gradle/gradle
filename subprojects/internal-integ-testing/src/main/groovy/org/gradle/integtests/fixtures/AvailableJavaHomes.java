@@ -243,6 +243,7 @@ public abstract class AvailableJavaHomes {
             jvms.addAll(new HomeDirJvmLocator(fileCanonicalizer).findJvms());
             // Order from most recent to least recent
             Collections.sort(jvms, new Comparator<JvmInstallation>() {
+                @Override
                 public int compare(JvmInstallation o1, JvmInstallation o2) {
                     return o2.getVersion().compareTo(o1.getVersion());
                 }
@@ -273,6 +274,7 @@ public abstract class AvailableJavaHomes {
                 jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, JvmInstallation.Arch.x86_64);
             }
             return CollectionUtils.filter(jvms, new Spec<JvmInstallation>() {
+                @Override
                 public boolean isSatisfiedBy(JvmInstallation element) {
                     return element.getJavaHome().isDirectory();
                 }

@@ -18,13 +18,18 @@ package org.gradle.build
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+import javax.inject.Inject
 import java.text.SimpleDateFormat
+
 
 class BuildReceipt extends DefaultTask {
     public static final String BUILD_RECEIPT_FILE_NAME = 'build-receipt.properties'
@@ -49,18 +54,29 @@ class BuildReceipt extends DefaultTask {
         }
     }
 
+    private final ObjectFactory objects
+
+    @Inject
+    BuildReceipt(ObjectFactory objects) {
+        this.objects = objects
+    }
+
     @Input
-    String versionNumber
+    final Property<String> versionNumber = objects.property(String)
+
     @Input
-    String baseVersion
+    final Property<String> baseVersion = objects.property(String)
+
     @Input
     @Optional
-    String commitId
+    final Property<String> commitId = objects.property(String)
+
     @Input
-    boolean snapshot
+    final Property<Boolean> snapshot = objects.property(Boolean)
+
     @Input
     @Optional
-    Date buildTimestamp
+    final Property<Date> buildTimestamp = objects.property(Date)
 
     @Internal
     File destinationDir
@@ -74,10 +90,10 @@ class BuildReceipt extends DefaultTask {
     @TaskAction
     void generate() {
         def data = [
-            commitId: commitId ?: "HEAD",
-            versionNumber: versionNumber,
-            baseVersion: baseVersion,
-            isSnapshot: String.valueOf(snapshot),
+            commitId: commitId.getOrElse("HEAD"),
+            versionNumber: versionNumber.get(),
+            baseVersion: baseVersion.get(),
+            isSnapshot: String.valueOf(snapshot.get()),
             buildTimestamp: getBuildTimestampAsString(),
             buildTimestampIso: getBuildTimestampAsIsoString(),
         ]
@@ -87,13 +103,16 @@ class BuildReceipt extends DefaultTask {
     }
 
     private String getBuildTimestampAsString() {
-        buildTimestamp ? TIMESTAMP_FORMAT.format(buildTimestamp) : UNKNOWN_TIMESTAMP
-    }
-    private String getBuildTimestampAsIsoString() {
-        buildTimestamp ? ISO_TIMESTAMP_FORMAT.format(buildTimestamp) : UNKNOWN_TIMESTAMP
+        return buildTimestamp.getOrNull()?.with { TIMESTAMP_FORMAT.format(it) } ?: UNKNOWN_TIMESTAMP
     }
 
-    void setBuildTimestamp(String buildTimestampString) {
-        this.buildTimestamp = UNKNOWN_TIMESTAMP == buildTimestampString ? null : TIMESTAMP_FORMAT.parse(buildTimestampString)
+    private String getBuildTimestampAsIsoString() {
+        return buildTimestamp.getOrNull()?.with { ISO_TIMESTAMP_FORMAT.format(it) } ?: UNKNOWN_TIMESTAMP
+    }
+
+    void buildTimestampFrom(Provider<String> provider) {
+        buildTimestamp.set(provider.map { buildTimestampString ->
+            UNKNOWN_TIMESTAMP == buildTimestampString ? null : TIMESTAMP_FORMAT.parse(buildTimestampString)
+        })
     }
 }

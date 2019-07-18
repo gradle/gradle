@@ -17,8 +17,10 @@
 package org.gradle.plugin.management;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.plugin.use.PluginDependenciesSpec;
 
 /**
  * Configures how plugins are resolved.
@@ -47,5 +49,19 @@ public interface PluginManagementSpec {
      * The plugin resolution strategy.
      */
     PluginResolutionStrategy getResolutionStrategy();
+
+    /**
+     * Configure the default plugin versions.
+     * @since 5.6
+     */
+    @Incubating
+    void plugins(Action<? super PluginDependenciesSpec> action);
+
+    /**
+     * The Plugin dependencies, permitting default plugin versions to be configured.
+     * @since 5.6
+     */
+    @Incubating
+    PluginDependenciesSpec getPlugins();
 
 }

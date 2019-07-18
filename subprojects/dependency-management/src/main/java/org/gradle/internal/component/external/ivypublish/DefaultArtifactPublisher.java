@@ -52,6 +52,7 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
     }
 
+    @Override
     public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final Module module, final Configuration configuration, final File descriptor) throws PublishException {
         Set<ConfigurationInternal> allConfigurations = Cast.uncheckedCast(configuration.getAll());
         Set<ConfigurationInternal> configurationsToPublish = Cast.uncheckedCast(configuration.getHierarchy());

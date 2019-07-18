@@ -72,16 +72,19 @@ public class DefaultCachePolicy implements CachePolicy {
     @Override
     public void setOffline() {
         eachDependency(new Action<DependencyResolutionControl>() {
+            @Override
             public void execute(DependencyResolutionControl dependencyResolutionControl) {
                 dependencyResolutionControl.useCachedResult();
             }
         });
         eachModule(new Action<ModuleResolutionControl>() {
+            @Override
             public void execute(ModuleResolutionControl moduleResolutionControl) {
                 moduleResolutionControl.useCachedResult();
             }
         });
         eachArtifact(new Action<ArtifactResolutionControl>() {
+            @Override
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
                 artifactResolutionControl.useCachedResult();
             }
@@ -91,16 +94,19 @@ public class DefaultCachePolicy implements CachePolicy {
     @Override
     public void setRefreshDependencies() {
         eachDependency(new Action<DependencyResolutionControl>() {
+            @Override
             public void execute(DependencyResolutionControl dependencyResolutionControl) {
                 dependencyResolutionControl.cacheFor(0, TimeUnit.SECONDS);
             }
         });
         eachModule(new Action<ModuleResolutionControl>() {
+            @Override
             public void execute(ModuleResolutionControl moduleResolutionControl) {
                 moduleResolutionControl.cacheFor(0, TimeUnit.SECONDS);
             }
         });
         eachArtifact(new Action<ArtifactResolutionControl>() {
+            @Override
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
                 artifactResolutionControl.cacheFor(0, TimeUnit.SECONDS);
             }
@@ -109,6 +115,7 @@ public class DefaultCachePolicy implements CachePolicy {
 
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
         eachDependency(new Action<DependencyResolutionControl>() {
+            @Override
             public void execute(DependencyResolutionControl dependencyResolutionControl) {
                 if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
                     dependencyResolutionControl.cacheFor(value, unit);
@@ -119,6 +126,7 @@ public class DefaultCachePolicy implements CachePolicy {
 
     public void cacheChangingModulesFor(final int value, final TimeUnit units) {
         eachModule(new Action<ModuleResolutionControl>() {
+            @Override
             public void execute(ModuleResolutionControl moduleResolutionControl) {
                 if (moduleResolutionControl.isChanging()) {
                     moduleResolutionControl.cacheFor(value, units);
@@ -126,6 +134,7 @@ public class DefaultCachePolicy implements CachePolicy {
             }
         });
         eachArtifact(new Action<ArtifactResolutionControl>() {
+            @Override
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
                 if (artifactResolutionControl.belongsToChangingModule()) {
                     artifactResolutionControl.cacheFor(value, units);
@@ -136,6 +145,7 @@ public class DefaultCachePolicy implements CachePolicy {
 
     private void cacheMissingArtifactsFor(final int value, final TimeUnit units) {
         eachArtifact(new Action<ArtifactResolutionControl>() {
+            @Override
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
                 if (artifactResolutionControl.getCachedResult() == null) {
                     artifactResolutionControl.cacheFor(value, units);
@@ -171,6 +181,7 @@ public class DefaultCachePolicy implements CachePolicy {
         artifactCacheRules.add(0, rule);
     }
 
+    @Override
     public boolean mustRefreshVersionList(final ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> matchingVersions, long ageMillis) {
         CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(moduleIdentifier, matchingVersions, ageMillis);
 
@@ -184,10 +195,12 @@ public class DefaultCachePolicy implements CachePolicy {
         return false;
     }
 
+    @Override
     public boolean mustRefreshMissingModule(ModuleComponentIdentifier component, long ageMillis) {
         return mustRefreshModule(component, null, ageMillis, false);
     }
 
+    @Override
     public boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
         return mustRefreshModule(component, resolvedModuleVersion, ageMillis, false);
     }
@@ -197,6 +210,7 @@ public class DefaultCachePolicy implements CachePolicy {
         return mustRefreshModule(resolvedModuleVersion.getId(), resolvedModuleVersion, ageMillis, changing);
     }
 
+    @Override
     public boolean mustRefreshChangingModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
         return mustRefreshModule(component, resolvedModuleVersion, ageMillis, true);
     }
@@ -218,6 +232,7 @@ public class DefaultCachePolicy implements CachePolicy {
         return false;
     }
 
+    @Override
     public boolean mustRefreshModuleArtifacts(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts,
                                               long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
         if (belongsToChangingModule && !moduleDescriptorInSync) {
@@ -226,6 +241,7 @@ public class DefaultCachePolicy implements CachePolicy {
         return mustRefreshModule(moduleVersionId, new DefaultResolvedModuleVersion(moduleVersionId), ageMillis, belongsToChangingModule);
     }
 
+    @Override
     public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
         CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis, belongsToChangingModule);
         if(belongsToChangingModule && !moduleDescriptorInSync){
@@ -268,14 +284,17 @@ public class DefaultCachePolicy implements CachePolicy {
         }
 
 
+        @Override
         public A getRequest() {
             return request;
         }
 
+        @Override
         public B getCachedResult() {
             return cachedResult;
         }
 
+        @Override
         public void cacheFor(int value, TimeUnit units) {
             long expiryMillis = TimeUnit.MILLISECONDS.convert(value, units);
             if (ageMillis > expiryMillis) {
@@ -285,10 +304,12 @@ public class DefaultCachePolicy implements CachePolicy {
             }
         }
 
+        @Override
         public void useCachedResult() {
             setMustCheck(false);
         }
 
+        @Override
         public void refresh() {
             setMustCheck(true);
         }
@@ -321,6 +342,7 @@ public class DefaultCachePolicy implements CachePolicy {
             this.changing = changing;
         }
 
+        @Override
         public boolean isChanging() {
             return changing;
         }
@@ -334,6 +356,7 @@ public class DefaultCachePolicy implements CachePolicy {
             this.belongsToChangingModule = belongsToChangingModule;
         }
 
+        @Override
         public boolean belongsToChangingModule() {
             return belongsToChangingModule;
         }

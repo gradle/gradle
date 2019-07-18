@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -105,6 +106,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
 
         @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Ignore
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
         public void attachProducer(Task producer) {
             // Ignore
         }
@@ -126,6 +133,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Override
         public Object getUnprocessedValue() {
             return null;
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Ignore
+            return TaskDependencyContainer.EMPTY;
         }
 
         @Override

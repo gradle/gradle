@@ -20,10 +20,12 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -34,6 +36,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newVariant
 
 class DefaultResolutionResultTest extends Specification {
 
@@ -50,8 +53,8 @@ class DefaultResolutionResultTest extends Specification {
         dep2.selected.addDependency(dep3).addDependency(dep4)
 
         when:
-        def deps = new DefaultResolutionResult({root} as Factory).allDependencies
-        def modules = new DefaultResolutionResult({root} as Factory).allComponents
+        def deps = newResolutionResult(root).allDependencies
+        def modules = newResolutionResult(root).allComponents
 
         then:
         deps == [dep1, dep2, dep3, dep4] as Set
@@ -69,7 +72,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2')).addDependency(dep3)
         dep.selected.addDependency(dep3)
 
-        def result = new DefaultResolutionResult({root} as Factory)
+        def result = newResolutionResult(root)
 
         when:
         def deps = []
@@ -90,11 +93,11 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('a', 'a', '1')
         def dep1 = newDependency('b', 'b', '1')
         root.addDependency(dep1)
-        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, dep1.selected))
+        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, newVariant(), dep1.selected))
 
         when:
-        def deps = new DefaultResolutionResult({root} as Factory).allDependencies
-        def modules = new DefaultResolutionResult({root} as Factory).allComponents
+        def deps = newResolutionResult(root).allDependencies
+        def modules = newResolutionResult(root).allComponents
 
         then:
         deps.size() == 2
@@ -109,7 +112,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('root').addDependency(dep1).addDependency(dep2)
 
         when:
-        def result = new DefaultResolutionResult({root} as Factory)
+        def result = newResolutionResult(root)
 
         then:
         result.allDependencies == [dep1, dep2] as Set
@@ -146,6 +149,10 @@ class DefaultResolutionResultTest extends Specification {
 
         then:
         from.is(projectId)
+    }
+
+    private static ResolutionResult newResolutionResult(root) {
+        new DefaultResolutionResult({ root } as Factory, ImmutableAttributes.EMPTY)
     }
 
 }

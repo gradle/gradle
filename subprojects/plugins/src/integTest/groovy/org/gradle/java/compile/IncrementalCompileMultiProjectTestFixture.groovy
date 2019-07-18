@@ -18,36 +18,39 @@ package org.gradle.java.compile
 
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(AbstractIntegrationSpec)
 trait IncrementalCompileMultiProjectTestFixture {
-    TestFile libraryAppProjectWithIncrementalCompilation() {
-        multiProjectBuild('incremental', ['library', 'app']) {
-            buildFile << '''
+    TestFile libraryAppProjectWithIncrementalCompilation(CompiledLanguage language = CompiledLanguage.JAVA) {
+        multiProjectBuild('incremental', ['library', 'app'], language) {
+            buildFile << """
                 subprojects {
-                    apply plugin: 'java'
+                    apply plugin: '${language.name}'
+                    ${language.compileTaskName}.options.incremental = true
                 }
+                ${language.projectGroovyDependencies('subprojects')}
                 
                 project(':app') {
                     dependencies {
-                        compile project(':library')
+                        implementation project(':library')
                     }
                 }
-            '''.stripIndent()
+            """.stripIndent()
         }
-        file('app/src/main/java/AClass.java') << 'public class AClass { }'
+        file("app/src/main/${language.name}/AClass.${language.name}") << 'public class AClass { }'
     }
 
-    String getAppCompileJava() {
-        ':app:compileJava'
+    String getAppCompileTask(CompiledLanguage language = CompiledLanguage.JAVA) {
+        ":app:${language.compileTaskName}"
     }
 
-    String getLibraryCompileJava() {
-        ':library:compileJava'
+    String getLibraryCompileTask(CompiledLanguage language = CompiledLanguage.JAVA) {
+        ":library:${language.compileTaskName}"
     }
 
-    TestFile writeUnusedLibraryClass() {
-        file('library/src/main/java/Unused.java') << 'public class Unused { }'
+    TestFile writeUnusedLibraryClass(CompiledLanguage language = CompiledLanguage.JAVA) {
+        file("library/src/main/${language.name}/Unused.${language.name}") << 'public class Unused { }'
     }
 }

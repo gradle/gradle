@@ -65,6 +65,7 @@ public class TaskSelector {
 
         final Set<Task> selectedTasks = getSelection(path, gradle.getDefaultProject()).getTasks();
         return new Spec<Task>() {
+            @Override
             public boolean isSatisfiedBy(Task element) {
                 return !selectedTasks.contains(element);
             }
@@ -151,6 +152,7 @@ public class TaskSelector {
             this.taskName = taskName;
         }
 
+        @Override
         public boolean isSatisfiedBy(Task element) {
             if (!element.getName().equals(taskName)) {
                 return true;

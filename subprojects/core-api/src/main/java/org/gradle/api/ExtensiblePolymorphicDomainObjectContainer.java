@@ -35,6 +35,7 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      *
      * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
      */
+    @Override
     <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory);
 
     /**

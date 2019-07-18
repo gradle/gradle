@@ -92,6 +92,7 @@ class JavaBasePluginRules implements Plugin<Project> {
         final Project project = pluginConvention.getProject();
         final List<ClassDirectoryBinarySpecInternal> binaries = Lists.newArrayList();
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
+            @Override
             public void execute(final SourceSet sourceSet) {
 
                 Provider<ProcessResources> resourcesTask = tasks.named(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);

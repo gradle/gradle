@@ -4,6 +4,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
     def "honors branch name in channel"() {
         buildFile << """
             plugins {
+                id 'java-library'
                 id 'gradlebuild.int-test-image'
                 id 'gradlebuild.performance-test'
             }

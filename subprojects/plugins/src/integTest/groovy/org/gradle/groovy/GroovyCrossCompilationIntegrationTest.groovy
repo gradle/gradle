@@ -47,7 +47,7 @@ targetCompatibility = ${MultiVersionIntegrationSpec.version}
 ${mavenCentralRepository()}
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.10'
+    implementation 'org.codehaus.groovy:groovy-all:2.4.10'
 }
 
 tasks.withType(AbstractCompile) {
@@ -81,7 +81,7 @@ class GroovyThing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'org.spockframework:spock-core:1.0-groovy-2.4' }
+dependencies { testImplementation 'org.spockframework:spock-core:1.0-groovy-2.4' }
 """
 
         file("src/test/groovy/ThingSpec.groovy") << """

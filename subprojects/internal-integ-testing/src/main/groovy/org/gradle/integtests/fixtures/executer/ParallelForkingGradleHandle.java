@@ -46,7 +46,7 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
      */
     private static class ParallelExecutionResult extends OutputScrapingExecutionFailure {
         public ParallelExecutionResult(String output, String error) {
-            super(output, error);
+            super(output, error, true);
         }
 
         @Override

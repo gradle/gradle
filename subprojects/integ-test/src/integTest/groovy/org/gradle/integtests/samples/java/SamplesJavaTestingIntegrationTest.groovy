@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.samples.java
 
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -273,9 +273,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         def result = succeeds("test", "integrationTest")
 
         then:
-        result.assertTaskExecuted(":test")
-        result.assertTaskExecuted(":integrationTest")
-        result.executedTasks.indexOf(":test") < result.executedTasks.indexOf(":integrationTest")
+        result.assertTaskOrder(":test", ":integrationTest")
 
         and:
         assertTestsRunCount(

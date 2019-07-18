@@ -1,4 +1,3 @@
-
 class Producer extends DefaultTask {
     @OutputFile
     final RegularFileProperty outputFile = project.objects.fileProperty()

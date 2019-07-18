@@ -19,11 +19,9 @@
 package org.gradle.plugins.javascript.coffeescript
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.*
-import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptBasePluginTestFixtures.*
+import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
+import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptBasePluginTestFixtures.addApplyPluginScript
 
 class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -55,7 +53,6 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         js.text.contains("CoffeeScript Compiler")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can compile coffeescript"() {
         given:
         file("src/main/coffeescript/dir1/thing1.coffee") << "number = 1"
@@ -73,7 +70,7 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         run "compile"
 
         then:
-        ":compile" in nonSkippedTasks
+        executedAndNotSkipped(":compile")
 
         and:
         def f1 = file("build/compiled/js/dir1/thing1.js")
@@ -88,6 +85,6 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         run "compile"
 
         then:
-        ":compile" in skippedTasks
+        skipped(":compile")
     }
 }

@@ -24,7 +24,7 @@ import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -303,7 +303,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'b'
 
         then:
-        ":a" in executedTasks
+        executed(":a")
     }
 
     def "finalizer task is executed even if the finalised task fails"() {
@@ -318,7 +318,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         fails 'b'
 
         then:
-        ":a" in executedTasks
+        executed(":a")
     }
 
     def "finalizer task is not executed if the finalized task does not run"() {
@@ -338,7 +338,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         fails 'c'
 
         then:
-        !(":b" in executedTasks)
+        notExecuted(":b")
     }
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {
@@ -400,7 +400,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'd'
 
         then:
-        executedTasks == [':c', ':b', ':a', ':d']
+        result.assertTasksExecuted(':c', ':b', ':a', ':d')
     }
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
@@ -436,7 +436,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'd'
 
         then:
-        executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
+        result.assertTasksExecuted(':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e')
     }
 
     @Issue("GRADLE-3575")

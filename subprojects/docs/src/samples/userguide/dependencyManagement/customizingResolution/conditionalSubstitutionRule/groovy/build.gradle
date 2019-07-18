@@ -11,7 +11,7 @@
  */
 
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     group "org.example"
     version "1.0"
@@ -37,11 +37,11 @@ allprojects {
 }
 
 dependencies {
-   compile "org.example:project1:1.0"
+    implementation "org.example:project1:1.0"
 }
 
 task showJarFiles {
     doLast {
-        configurations.compile.each { println it.path - rootDir.path }
+        configurations.compileClasspath.each { println it.path - rootDir.path }
     }
 }

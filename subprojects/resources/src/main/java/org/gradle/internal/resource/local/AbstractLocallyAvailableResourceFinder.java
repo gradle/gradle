@@ -30,6 +30,7 @@ public class AbstractLocallyAvailableResourceFinder<C> implements LocallyAvailab
         this.producer = producer;
     }
 
+    @Override
     public LocallyAvailableResourceCandidates findCandidates(C criterion) {
         return new LazyLocallyAvailableResourceCandidates(producer.transform(criterion));
     }

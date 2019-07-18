@@ -31,6 +31,7 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
@@ -38,6 +39,7 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
         store(key, entry);
     }
 
+    @Override
     public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = get(key);

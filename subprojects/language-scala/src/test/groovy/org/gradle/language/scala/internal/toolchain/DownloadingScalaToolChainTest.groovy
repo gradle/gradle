@@ -29,6 +29,7 @@ import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
 import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.util.TextUtil
+import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
@@ -37,12 +38,13 @@ class DownloadingScalaToolChainTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     ClassPathRegistry classPathRegistry = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
+    ActionExecutionSpecFactory actionExecutionSpecFactory = Mock()
     WorkerDaemonFactory workerDaemonFactory = Mock()
     DependencyHandler dependencyHandler = Mock()
     JavaForkOptionsFactory forkOptionsFactory = Mock()
     File gradleUserHome = Mock()
     File rootProjectDir = Mock()
-    DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(gradleUserHome, rootProjectDir, workerDaemonFactory, configurationContainer, dependencyHandler, forkOptionsFactory, classPathRegistry, classLoaderRegistry)
+    DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(gradleUserHome, rootProjectDir, workerDaemonFactory, configurationContainer, dependencyHandler, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
     ScalaPlatform scalaPlatform = Mock()
 
     def setup() {

@@ -27,9 +27,9 @@ import org.junit.Test
 
 import java.util.concurrent.Callable
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.instanceOf
-import static org.hamcrest.Matchers.sameInstance
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.instanceOf
+import static org.hamcrest.CoreMatchers.sameInstance
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
@@ -227,7 +227,7 @@ class BaseDirFileResolverTest {
     @Test public void testFiles() {
         FileCollection collection = baseDirConverter.resolveFiles('a', 'b')
         assertThat(collection, instanceOf(DefaultConfigurableFileCollection))
-        assertThat(collection.from, equalTo(['a', 'b'] as LinkedHashSet))
+        assertThat(collection.from as List, equalTo(['a', 'b']))
     }
 
     @Test public void testFilesReturnsSourceFileCollection() {

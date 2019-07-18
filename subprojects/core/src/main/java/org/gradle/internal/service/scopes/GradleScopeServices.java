@@ -44,14 +44,14 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
-import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
+import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
-import org.gradle.execution.DefaultBuildExecuter;
+import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
-import org.gradle.execution.IncludedBuildLifecycleBuildExecuter;
-import org.gradle.execution.NotifyingBuildExecuter;
+import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
@@ -69,8 +69,9 @@ import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskListenerInternal;
+import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
-import org.gradle.initialization.NotifyingTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -118,6 +119,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         super(parent);
         add(GradleInternal.class, gradle);
         register(new Action<ServiceRegistration>() {
+            @Override
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerGradleServices(registration);
@@ -149,10 +151,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
-        return new NotifyingBuildExecuter(
-            new IncludedBuildLifecycleBuildExecuter(
-                new DefaultBuildExecuter(
+    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
+        return new BuildOperationFiringBuildWorkerExecutor(
+            new IncludedBuildLifecycleBuildWorkExecutor(
+                new DefaultBuildWorkExecutor(
                     asList(new DryRunBuildExecutionAction(textOutputFactory),
                         new SelectedTaskExecutionAction())),
                 includedBuildControllers),
@@ -175,7 +177,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
-        return new NotifyingTaskExecutionPreparer(
+        return new BuildOperatingFiringTaskExecutionPreparer(
             new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildControllers, buildOperationExecutor),
             buildOperationExecutor);
     }
@@ -221,6 +223,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return broadcast.getSource();
     }
 
+    TaskListenerInternal createTaskListenerInternal(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(TaskListenerInternal.class);
+    }
+
     ListenerBroadcast<TaskExecutionGraphListener> createTaskExecutionGraphListenerBroadcast(ListenerManager listenerManager) {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
@@ -244,6 +250,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
         final Factory<LoggingManagerInternal> loggingManagerInternalFactory = getFactory(LoggingManagerInternal.class);
         return new ServiceRegistryFactory() {
+            @Override
             public ServiceRegistry createFor(Object domainObject) {
                 if (domainObject instanceof ProjectInternal) {
                     ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject, loggingManagerInternalFactory);

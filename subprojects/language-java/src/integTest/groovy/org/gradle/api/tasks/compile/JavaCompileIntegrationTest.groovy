@@ -57,7 +57,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
             project(':b') {
                 dependencies {
-                    compile project(':a')
+                    implementation project(':a')
                 }
             }
 """
@@ -90,18 +90,18 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
 
         when:
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
 
         when:
         buildFile.text = buildScriptWithClasspath("lib2.jar", "lib1.jar")
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
     }
 
     def "stays up-to-date after file renamed on classpath"() {
@@ -114,12 +114,12 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         run "compile"
         then:
-        nonSkippedTasks.contains ":compile"
+        executedAndNotSkipped ":compile"
 
         when:
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
 
         when:
         file("lib1.jar").renameTo(file("lib1-renamed.jar"))
@@ -127,7 +127,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         run "compile"
         then:
-        skippedTasks.contains ":compile"
+        skipped ":compile"
     }
 
     def buildScriptWithClasspath(String... dependencies) {
@@ -175,7 +175,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         when:
         succeeds "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         javaClassFile("com/example/Foo.class").assertIsFile()
 
         when:
@@ -201,7 +201,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         succeeds "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         javaClassFile("com/example/Foo.class").assertIsFile()
     }
 
@@ -258,7 +258,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
+                testImplementation 'junit:junit:4.12'
             }
         """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -407,7 +407,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             
             task processDependency {
                 def lazyInputs = configurations.runtimeClasspath.incoming.artifactView { 
-                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.${token})) }
+                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME)) }
+                    attributes{ attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${token})) }
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
@@ -429,9 +430,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         notExecuted ":b:$notExec"
 
         where:
-        scenario              | token                    | expectedDirName     | executed           | notExec
-        'class directory'     | 'JAVA_RUNTIME_CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
-        'resources directory' | 'JAVA_RUNTIME_RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
+        scenario              | token       | expectedDirName     | executed           | notExec
+        'class directory'     | 'CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'resources directory' | 'RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
     }
 
     @Issue("gradle/gradle#1347")
@@ -443,7 +444,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 ${mavenCentralRepository()}
 
                 dependencies {
-                    ${dependencies.collect { "compile ${it}"}.join('\n') }
+                    ${dependencies.collect { "implementation ${it}"}.join('\n') }
                 }
             """
         }
@@ -516,7 +517,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             dependencies {
-               compile files('foo.jar')
+               implementation files('foo.jar')
             }
         '''
         file('foo.jar') << 'this is clearly not a well formed jar file'
@@ -532,13 +533,13 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1581")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: java.nio.file.InvalidPathException: Path: nul character not allowed
-    def "compile classpath snapshotting should warn when jar on classpath has non-utf8 characters in filenames"() {
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             apply plugin: 'java'
             
             dependencies {
-               compile files('broken-utf8.jar')
+               implementation files('broken-utf8.jar')
             }
         '''
         // This file has a file name which is not UTF-8.
@@ -552,8 +553,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains "Malformed jar 'broken-utf8.jar' found on classpath"
-
+        outputContains "Malformed archive 'broken-utf8.jar'"
     }
 
     @Issue("gradle/gradle#1358")
@@ -567,7 +567,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
             
             dependencies {
-               compile files(fooJar.archivePath)
+               implementation files(fooJar.archivePath)
             }
             
             compileJava.dependsOn(fooJar)
@@ -583,7 +583,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains "Malformed jar 'foo.jar' found on classpath."
+        outputContains "Malformed archive 'foo.jar'"
     }
 
     @Issue("gradle/gradle#1358")
@@ -592,7 +592,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             dependencies {
-               compile files('classes')
+               implementation files('classes')
             }
             
         '''
@@ -620,7 +620,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             dependencies {
-               compile project(':b')
+               implementation project(':b')
             }
         '''
         file('src/main/java/Lambda.java') << 'public class Lambda extends λ {}'

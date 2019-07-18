@@ -16,51 +16,80 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":fileCollections"))
+    implementation(project(":persistentCache"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":reporting"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":languageJava"))
+    implementation(project(":languageGroovy"))
+    implementation(project(":diagnostics"))
+    implementation(project(":testingBase"))
+    implementation(project(":testingJvm"))
+    implementation(project(":snapshots"))
 
-    compile(project(":core"))
-    compile(project(":workers"))
-    compile(project(":dependencyManagement"))
-    compile(project(":reporting"))
-    compile(project(":platformJvm"))
-    compile(project(":languageJvm"))
-    compile(project(":languageJava"))
-    compile(project(":languageGroovy"))
-    compile(project(":diagnostics"))
-    compile(project(":testingJvm"))
-    compile(project(":snapshots"))
-
-    compile(library("ant"))
-    compile(library("asm"))
-    compile(library("commons_io"))
-    compile(library("commons_lang"))
-    compile(library("slf4j_api"))
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("ant"))
+    implementation(library("asm"))
+    implementation(library("guava"))
+    implementation(library("commons_io"))
+    implementation(library("commons_lang"))
+    implementation(library("inject"))
 
     // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
-    runtime(project(":compositeBuilds"))
+    runtimeOnly(project(":compositeBuilds"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    testImplementation(project(":messaging"))
+    testImplementation(project(":native"))
+    testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":launcher")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":languageJvm")))
+    testImplementation(testFixtures(project(":languageJava")))
+    testImplementation(testFixtures(project(":languageGroovy")))
+    testImplementation(testFixtures(project(":diagnostics")))
 
-    testCompile(testLibrary("jsoup"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 
-    integTestRuntime(project(":maven"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(project(":baseServicesGroovy"))
+    testFixturesImplementation(project(":fileCollections"))
+    testFixturesImplementation(project(":languageJvm"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("guava"))
+
+    testImplementation(testLibrary("jsoup"))
+
+    integTestRuntimeOnly(project(":maven"))
+
+    testImplementation(library("gson")) {
+        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
+    }
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
-    from(":core", "testFixtures")
-    from(":dependencyManagement")
-    from(":languageJava")
-    from(":languageGroovy")
-    from(":diagnostics")
+    moduleType = ModuleType.CORE
 }
 
 val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")

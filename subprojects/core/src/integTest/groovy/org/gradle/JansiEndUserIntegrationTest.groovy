@@ -34,8 +34,8 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << basicJavaProject()
         buildFile << """
             dependencies {
-                testCompile 'org.fusesource.jansi:jansi:$JANSI_VERSION'
-                testCompile 'junit:junit:4.12'
+                testImplementation 'org.fusesource.jansi:jansi:$JANSI_VERSION'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -112,7 +112,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'groovy'
 
             dependencies {
-                compile localGroovy()
+                implementation localGroovy()
             }
 
             compileGroovy {
@@ -149,7 +149,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile 'org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion'
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion'
             }
         """
 
@@ -252,7 +252,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = '1.7'
 
                 dependencies {
-                    compile 'org.fusesource.jansi:jansi:$JANSI_VERSION'
+                    implementation 'org.fusesource.jansi:jansi:$JANSI_VERSION'
                 }
 
                 publishing {

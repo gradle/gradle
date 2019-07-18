@@ -88,6 +88,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return POM_PACKAGING.equals(pomReader.getPackaging());
     }
 
+    @Override
     protected ParseResult<MutableMavenModuleResolveMetadata> doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
         PomReader pomReader = new PomReader(resource, moduleIdentifierFactory);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);

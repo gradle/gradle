@@ -84,6 +84,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
         Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(allAggregatedReports,
             new Transformer<NamedDomainObjectSet<? extends Report>, Reporting<? extends ReportContainer<?>>>() {
+            @Override
             public NamedDomainObjectSet<? extends Report> transform(Reporting<? extends ReportContainer<?>> reporting) {
                 return reporting.getReports().getEnabled();
             }
@@ -154,6 +155,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      * @param closure The configuration
      * @return The reports container
      */
+    @Override
     public BuildDashboardReports reports(Closure closure) {
         return reports(new ClosureBackedAction<BuildDashboardReports>(closure));
     }
@@ -176,6 +178,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      * @param configureAction The configuration
      * @return The reports container
      */
+    @Override
     public BuildDashboardReports reports(Action<? super BuildDashboardReports> configureAction) {
         configureAction.execute(reports);
         return reports;

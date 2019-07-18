@@ -30,8 +30,8 @@ import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.util.CollectionUtils;
@@ -130,6 +130,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         public File transform(final File original) {
             if (shouldUseFromCache(original)) {
                 return cache.useCache(new Factory<File>() {
+                    @Override
                     public File create() {
                         return jarCache.getCachedJar(original, baseDir);
                     }

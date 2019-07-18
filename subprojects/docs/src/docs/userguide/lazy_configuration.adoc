@@ -60,7 +60,7 @@ include::sample[dir="providers/propertyAndProvider/kotlin",files="build.gradle.k
 
 .Output of **`gradle greeting`**
 ----
-> gradle greeting
+$ gradle greeting
 include::{samplesPath}/providers/propertyAndProvider/usePropertyAndProvider.out[]
 ----
 
@@ -69,7 +69,7 @@ The `Greeting` task has a property of type `Property<String>` to represent the c
 [NOTE]
 ====
 
-Note that Gradle Groovy DSL will generate setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience.
+Note that Gradle Groovy DSL generates setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience.
 
 Kotlin DSL conveniences will be added in a future release.
 
@@ -107,7 +107,7 @@ include::sample[dir="providers/connectProperties/kotlin",files="build.gradle.kts
 
 .Output of **`gradle greeting`**
 ----
-> gradle greeting
+$ gradle greeting
 include::{samplesPath}/providers/connectProperties/connectProperties.out[]
 ----
 
@@ -147,13 +147,13 @@ include::sample[dir="providers/fileAndDirectoryProperty/kotlin",files="build.gra
 .Output of **`gradle print`**
 [.multi-language-text.lang-groovy]
 ----
-> gradle print
+$ gradle print
 include::{samplesPath}/providers/fileAndDirectoryProperty/workingWithFilesGroovy.out[]
 ----
 .Output of **`gradle print`**
 [.multi-language-text.lang-kotlin]
 ----
-> gradle print
+$ gradle print
 include::{samplesPath}/providers/fileAndDirectoryProperty/workingWithFilesKotlin.out[]
 ----
 
@@ -166,28 +166,49 @@ Many builds have several tasks connected together, where one task consumes the o
 
 The `Property` API makes this easier by keeping track of not just the value for a property, which we have seen already, but also the task that produces the value, so that you don't have to specify it as well. As an example consider the following plugin with a producer and consumer task which are wired together:
 
-.Implicit task dependency
+.Implicit task input file dependency
 ====
-include::sample[dir="providers/implicitTaskDependency/groovy",files="build.gradle[]"]
-include::sample[dir="providers/implicitTaskDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="providers/implicitTaskInputFileDependency/groovy",files="build.gradle[]"]
+include::sample[dir="providers/implicitTaskInputFileDependency/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-groovy]
 ----
-> gradle consumer
-include::{samplesPath}/providers/implicitTaskDependency/implicitTaskDependencyGroovy.out[]
+$ gradle consumer
+include::{samplesPath}/providers/implicitTaskInputFileDependency/implicitTaskInputFileDependencyGroovy.out[]
 ----
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-kotlin]
 ----
-> gradle consumer
-include::{samplesPath}/providers/implicitTaskDependency/implicitTaskDependencyKotlin.out[]
+$ gradle consumer
+include::{samplesPath}/providers/implicitTaskInputFileDependency/implicitTaskInputFileDependencyKotlin.out[]
 ----
 
 In the example above, the task outputs and inputs are connected before any location is defined. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
 
 Another important thing to note in this example is the absence of any explicit task dependency. Task outputs represented using `Providers` keep track of which task produces their value, and using them as task inputs will implicitly add the correct task dependencies.
+
+Implicit task dependencies also works for input properties that are not files.
+
+.Implicit task input dependency
+====
+include::sample[dir="providers/implicitTaskInputDependency/groovy",files="build.gradle[]"]
+include::sample[dir="providers/implicitTaskInputDependency/kotlin",files="build.gradle.kts[]"]
+====
+
+.Output of **`gradle consumer`**
+[.multi-language-text.lang-groovy]
+----
+$ gradle consumer
+include::{samplesPath}/providers/implicitTaskInputDependency/implicitTaskInputDependencyGroovy.out[]
+----
+.Output of **`gradle consumer`**
+[.multi-language-text.lang-kotlin]
+----
+$ gradle consumer
+include::{samplesPath}/providers/implicitTaskInputDependency/implicitTaskInputDependencyKotlin.out[]
+----
 
 [[sec:working_with_collections]]
 == Working with collections
@@ -214,13 +235,13 @@ include::sample[dir="providers/listProperty/kotlin",files="build.gradle.kts[]"]
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-groovy]
 ----
-> gradle consumer
+$ gradle consumer
 include::{samplesPath}/providers/listProperty/listPropertyGroovy.out[]
 ----
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-kotlin]
 ----
-> gradle consumer
+$ gradle consumer
 include::{samplesPath}/providers/listProperty/listPropertyKotlin.out[]
 ----
 
@@ -239,15 +260,8 @@ include::sample[dir="providers/mapProperty/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle consumer`**
-[.multi-language-text.lang-groovy]
 ----
-> gradle generate
-include::{samplesPath}/providers/mapProperty/mapProperty.out[]
-----
-.Output of **`gradle consumer`**
-[.multi-language-text.lang-kotlin]
-----
-> gradle generate
+$ gradle generate
 include::{samplesPath}/providers/mapProperty/mapProperty.out[]
 ----
 
@@ -263,15 +277,8 @@ include::sample[dir="providers/propertyConvention/kotlin",files="build.gradle.kt
 ====
 
 .Output of **`gradle show`**
-[.multi-language-text.lang-groovy]
 ----
-> gradle show
-include::{samplesPath}/providers/propertyConvention/propertyConvention.out[]
-----
-.Output of **`gradle show`**
-[.multi-language-text.lang-kotlin]
-----
-> gradle show
+$ gradle show
 include::{samplesPath}/providers/propertyConvention/propertyConvention.out[]
 ----
 

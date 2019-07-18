@@ -117,6 +117,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     protected void registerTabs() {
         addFailuresTab();
         addTab("Tests", new ErroringAction<SimpleHtmlWriter>() {
+            @Override
             public void doExecute(SimpleHtmlWriter writer) throws IOException {
                 renderTests(writer);
             }

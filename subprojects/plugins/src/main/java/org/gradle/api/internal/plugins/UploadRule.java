@@ -34,10 +34,12 @@ public class UploadRule extends AbstractRule {
         this.project = project;
     }
 
+    @Override
     public String getDescription() {
         return "Pattern: " + PREFIX + "<ConfigurationName>: Assembles and uploads the artifacts belonging to a configuration.";
     }
 
+    @Override
     public void apply(String taskName) {
         if (taskName.startsWith(PREFIX)) {
             for (Configuration configuration : project.getConfigurations()) {
@@ -55,6 +57,7 @@ public class UploadRule extends AbstractRule {
         upload.setConfiguration(configuration);
         upload.setUploadDescriptor(true);
         upload.getConventionMapping().map("descriptorDestination", new Callable<File>() {
+            @Override
             public File call() throws Exception {
                 return new File(project.getBuildDir(), "ivy.xml");
             }

@@ -29,10 +29,12 @@ public class DefaultInternalJvmTestRequest implements InternalJvmTestRequest {
         this.methodName = methodName;
     }
 
+    @Override
     public String getClassName() {
         return className;
     }
 
+    @Override
     public String getMethodName() {
         return methodName;
     }

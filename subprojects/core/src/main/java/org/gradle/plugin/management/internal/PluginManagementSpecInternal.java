@@ -20,5 +20,6 @@ import org.gradle.plugin.management.PluginManagementSpec;
 
 public interface PluginManagementSpecInternal extends PluginManagementSpec {
 
+    @Override
     PluginResolutionStrategyInternal getResolutionStrategy();
 }

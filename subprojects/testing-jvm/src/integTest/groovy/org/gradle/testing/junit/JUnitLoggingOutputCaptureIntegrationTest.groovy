@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.is
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
@@ -33,7 +33,7 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrat
             apply plugin: "java"
             ${mavenCentralRepository()}
             dependencies {
-                testCompile '$dependencyNotation'
+                testImplementation '$dependencyNotation'
             }
             test {
                 reports.junitXml.outputPerTestCase = true
@@ -164,7 +164,7 @@ after class err
 
     def "captures output from logging frameworks"() {
         buildFile << """
-dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
+dependencies { testImplementation "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
 """
         file("src/test/java/FooTest.java") << """
 

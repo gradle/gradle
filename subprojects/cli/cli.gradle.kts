@@ -27,10 +27,6 @@ plugins {
     gradlebuild.classycle
 }
 
-dependencies{
-    compile(project(":distributionsDependencies"))
-}
-
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.WORKER
 }

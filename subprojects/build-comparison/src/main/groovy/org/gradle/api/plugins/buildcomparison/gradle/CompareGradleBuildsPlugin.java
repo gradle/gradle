@@ -34,6 +34,7 @@ import java.util.concurrent.Callable;
  */
 @Deprecated
 public class CompareGradleBuildsPlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         SingleMessageLogger.nagUserOfDeprecatedPlugin("Build Comparison");
         project.getPluginManager().apply(ReportingBasePlugin.class);

@@ -25,6 +25,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         this.moduleRegistry = moduleRegistry;
     }
 
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_RUNTIME")) {
             return moduleRegistry.getModule("gradle-launcher").getAllRequiredModulesClasspath();

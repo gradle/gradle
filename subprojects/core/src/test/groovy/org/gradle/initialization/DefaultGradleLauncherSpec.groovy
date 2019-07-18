@@ -20,8 +20,8 @@ import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.composite.internal.IncludedBuildControllers
-import org.gradle.configuration.BuildConfigurer
-import org.gradle.execution.BuildExecuter
+import org.gradle.configuration.ProjectsPreparer
+import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.exception.ExceptionAnalyser
@@ -36,9 +36,9 @@ class DefaultGradleLauncherSpec extends Specification {
     def settingsPreparerMock = Mock(SettingsPreparer)
     def taskExecutionPreparerMock = Mock(TaskExecutionPreparer)
     def taskGraphMock = Mock(TaskExecutionGraphInternal)
-    def buildConfigurerMock = Mock(BuildConfigurer)
+    def buildConfigurerMock = Mock(ProjectsPreparer)
     def buildBroadcaster = Mock(BuildListener)
-    def buildExecuter = Mock(BuildExecuter)
+    def buildExecuter = Mock(BuildWorkExecutor)
 
     def settingsMock = Mock(SettingsInternal.class)
     def gradleMock = Mock(GradleInternal.class)
@@ -103,7 +103,7 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
-        1 * buildConfigurerMock.configure(gradleMock)
+        1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
         def result = gradleLauncher.getConfiguredBuild()
@@ -117,7 +117,7 @@ class DefaultGradleLauncherSpec extends Specification {
         isRootBuild()
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
-        1 * buildConfigurerMock.configure(gradleMock)
+        1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()

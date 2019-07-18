@@ -27,6 +27,7 @@ import org.gradle.internal.reflect.PropertyMetadata;
 import java.lang.annotation.Annotation;
 
 public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return LocalState.class;
     }

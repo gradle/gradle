@@ -31,6 +31,7 @@ import java.util.List;
 class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelPath> {
 
     private static final Predicate<Suggestion> REMOVE_NULLS = new Predicate<Suggestion>() {
+        @Override
         public boolean apply(Suggestion input) {
             return input != null;
         }
@@ -46,6 +47,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
     private static class Suggestion implements Comparable<Suggestion> {
 
         private static final Transformer<ModelPath, Suggestion> EXTRACT_PATH = new Transformer<ModelPath, Suggestion>() {
+            @Override
             public ModelPath transform(Suggestion original) {
                 return original.path;
             }
@@ -73,6 +75,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
     @Override
     public List<ModelPath> transform(final ModelPath unavailable) {
         Iterable<Suggestion> suggestions = Iterables.transform(availablePaths, new Function<ModelPath, Suggestion>() {
+            @Override
             public Suggestion apply(ModelPath available) {
                 int distance = StringUtils.getLevenshteinDistance(unavailable.toString(), available.toString());
                 boolean suggest = distance <= Math.min(3, unavailable.toString().length() / 2);

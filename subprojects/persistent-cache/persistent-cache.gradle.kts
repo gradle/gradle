@@ -22,20 +22,27 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":messaging"))
-    api(project(":native"))
-    api(project(":resources"))
-    api(project(":logging"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":native"))
+    implementation(project(":files"))
+    implementation(project(":resources"))
+    implementation(project(":logging"))
 
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
+
+    testImplementation(project(":coreApi"))
+    testImplementation(testFixtures(project(":core")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

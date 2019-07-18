@@ -19,9 +19,7 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.MavenLocalPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
-import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
 
@@ -39,12 +37,13 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
+        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(publication);
+
         new PublishOperation(publication, "mavenLocal") {
             @Override
-            protected void publish() throws Exception {
-                MavenPublisher localPublisher = new MavenLocalPublisher(getMavenRepositoryLocator());
-                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(localPublisher);
-                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
+            protected void publish() {
+                MavenPublisher localPublisher = getMavenPublishers().getLocalPublisher(getTemporaryDirFactory());
+                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(localPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), null);
             }
         }.run();

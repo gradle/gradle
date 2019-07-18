@@ -27,7 +27,7 @@ public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrati
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:$version' }
+            dependencies { testImplementation 'org.testng:testng:$version' }
             test {
                 useTestNG {
                     suiteName 'Suite Name'

@@ -17,25 +17,39 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-dependencies {
-    compile(project(":core"))
-    compile(project(":dependencyManagement"))
-    compile(project(":launcher"))
-    compile(project(":pluginUse"))
+plugins {
+    `java-library`
+}
 
-    integTestRuntime(project(":toolingApiBuilders"))
-    integTestRuntime(project(":ide"))
-    integTestRuntime(project(":pluginDevelopment"))
-    integTestRuntime(project(":testKit"))
+dependencies {
+    implementation(project(":launcher"))
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":pluginUse"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":launcher")))
+
+    integTestImplementation(project(":buildOption"))
+
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":ide"))
+    integTestRuntimeOnly(project(":pluginDevelopment"))
+    integTestRuntimeOnly(project(":testKit"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":dependencyManagement")
-    from(":launcher")
 }
 
 testFilesCleanup {

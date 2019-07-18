@@ -181,6 +181,7 @@ public class TestFile extends File {
         }
     }
 
+    @Override
     public TestFile[] listFiles() {
         File[] children = super.listFiles();
         if (children == null) {
@@ -489,13 +490,27 @@ public class TestFile extends File {
         return hashingStream.hash().toString();
     }
 
-    public void createLink(File target) {
-        createLink(target.getAbsolutePath());
+    public TestFile createLink(String target) {
+        return createLink(new File(target));
     }
 
-    public void createLink(String target) {
-        NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+    public TestFile createLink(File target) {
+        NativeServices.getInstance().get(FileSystem.class)
+            .createSymbolicLink(this, target);
         clearCanonCaches();
+        return this;
+    }
+
+    public TestFile createNamedPipe() {
+        try {
+            Process mkfifo = new ProcessBuilder("mkfifo", getAbsolutePath())
+                .redirectErrorStream(true)
+                .start();
+            assert mkfifo.waitFor() == 0; // assert the exit value signals success
+            return this;
+        } catch (IOException | InterruptedException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void clearCanonCaches() {
@@ -705,6 +720,18 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return this;
+    }
+
+    public TestFile makeUnreadable() {
+        setReadable(false, false);
+        assert !Files.isReadable(toPath());
+        return this;
+    }
+
+    public TestFile makeReadable() {
+        setReadable(true, false);
+        assert Files.isReadable(toPath());
         return this;
     }
 

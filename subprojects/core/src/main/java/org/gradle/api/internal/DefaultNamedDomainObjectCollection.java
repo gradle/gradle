@@ -220,6 +220,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         assertCanAdd(getNamer().determineName(t));
     }
 
+    @Override
     public Namer<T> getNamer() {
         return (Namer) this.namer;
     }
@@ -235,6 +236,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     /**
      * Creates a filtered version of this collection.
      */
+    @Override
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
         return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer);
     }
@@ -248,10 +250,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return getDisplayName();
     }
 
+    @Override
     public SortedMap<String, T> getAsMap() {
         return index.asMap();
     }
 
+    @Override
     public SortedSet<String> getNames() {
         NavigableSet<String> realizedNames = index.asMap().navigableKeySet();
         Set<String> pendingNames = index.getPendingAsMap().keySet();
@@ -263,18 +267,22 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return allNames;
     }
 
+    @Override
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
         return filtered(createFilter(type));
     }
 
+    @Override
     public NamedDomainObjectCollection<T> matching(Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }
 
+    @Override
     public NamedDomainObjectCollection<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Override
     public T findByName(String name) {
         T value = findByNameWithoutRules(name);
         if (value != null) {
@@ -317,6 +325,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
+    @Override
     public T getByName(String name) throws UnknownDomainObjectException {
         T t = findByName(name);
         if (t == null) {
@@ -325,6 +334,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return t;
     }
 
+    @Override
     public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
         return getByName(name, ConfigureUtil.configureUsing(configureClosure));
     }
@@ -337,6 +347,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return t;
     }
 
+    @Override
     public T getAt(String name) throws UnknownDomainObjectException {
         return getByName(name);
     }
@@ -438,11 +449,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return true;
     }
 
+    @Override
     public Rule addRule(Rule rule) {
         rules.add(rule);
         return rule;
     }
 
+    @Override
     public Rule addRule(final String description, final Closure ruleAction) {
         return addRule(new RuleAdapter(description) {
             @Override
@@ -481,6 +494,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
+    @Override
     public List<Rule> getRules() {
         return Collections.unmodifiableList(rules);
     }
@@ -831,6 +845,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             super(name, type);
         }
 
+        @Override
         public void configure(Action<? super I> action) {
             assertMutable("NamedDomainObjectProvider.configure(Action)");
             withMutationDisabled(action).execute(get());

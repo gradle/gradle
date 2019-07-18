@@ -17,28 +17,61 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
-dependencies {
-    compile(library("groovy"))
-    compile(project(":core"))
-    compile(project(":ide"))
-    compile(project(":platformPlay"))
+val integTestRuntimeResources by configurations.creating {
+    isCanBeResolved = false
+    isCanBeConsumed = false
+}
+val integTestRuntimeResourcesClasspath by configurations.creating {
+    extendsFrom(integTestRuntimeResources)
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    attributes {
+        // play test apps MUST be found as exploded directory
+        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
+    }
+    isTransitive = false
+}
 
-    integTestRuntime(project(":compositeBuilds"))
+dependencies {
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":fileCollections"))
+    implementation(project(":ide"))
+    implementation(project(":languageScala"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":platformPlay"))
+
+    implementation(library("groovy"))
+    implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":platformPlay")))
+    testImplementation(testFixtures(project(":ide")))
+
+    integTestRuntimeOnly(project(":compositeBuilds"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestRuntimeResources(testFixtures(project(":platformPlay")))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":platformPlay")
-    from(":ide")
-}
-
 tasks.withType<IntegrationTest>().configureEach {
     dependsOn(":platformPlay:integTestPrepare")
+    // this is a workaround for which we need a better fix:
+    // it sets the platform play test fixtures resources directory in front
+    // of the classpath, so that we can find them when executing tests in
+    // an exploded format, rather than finding them in the test fixtures jar
+    classpath = integTestRuntimeResourcesClasspath + classpath
 }

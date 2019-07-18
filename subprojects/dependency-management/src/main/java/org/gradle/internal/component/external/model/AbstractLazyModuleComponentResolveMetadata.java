@@ -78,6 +78,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         target.putAll(configurations);
     }
 
+    @Override
     public VariantMetadataRules getVariantMetadataRules() {
         return variantMetadataRules;
     }

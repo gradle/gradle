@@ -61,6 +61,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return hashCode;
     }
 
+    @Override
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
@@ -76,14 +77,17 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return builder.toString();
     }
 
+    @Override
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
+    @Override
     public String getModule() {
         return moduleIdentifier.getName();
     }
 
+    @Override
     public String getVersion() {
         return versionConstraint.getRequiredVersion();
     }
@@ -108,6 +112,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return attributes;
     }
 
+    @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 

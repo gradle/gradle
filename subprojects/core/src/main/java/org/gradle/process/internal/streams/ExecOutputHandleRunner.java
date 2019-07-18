@@ -36,7 +36,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private volatile boolean closed;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
-        this(displayName, inputStream, outputStream, 2048, completed);
+        this(displayName, inputStream, outputStream, 8192, completed);
     }
 
     ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, CountDownLatch completed) {
@@ -47,6 +47,7 @@ public class ExecOutputHandleRunner implements Runnable {
         this.completed = completed;
     }
 
+    @Override
     public void run() {
         try {
             forwardContent();
@@ -56,8 +57,8 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     private void forwardContent() {
-        byte[] buffer = new byte[bufferSize];
         try {
+            byte[] buffer = new byte[bufferSize];
             while (!closed) {
                 int nread = inputStream.read(buffer);
                 if (nread < 0) {

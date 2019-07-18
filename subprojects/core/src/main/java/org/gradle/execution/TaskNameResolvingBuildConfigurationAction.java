@@ -36,6 +36,7 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
         this.commandLineTaskParser = commandLineTaskParser;
     }
 
+    @Override
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();

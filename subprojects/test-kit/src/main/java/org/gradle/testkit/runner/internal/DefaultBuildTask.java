@@ -28,10 +28,12 @@ public class DefaultBuildTask implements BuildTask {
         this.outcome = outcome;
     }
 
+    @Override
     public String getPath() {
         return path;
     }
 
+    @Override
     public TaskOutcome getOutcome() {
         return outcome;
     }

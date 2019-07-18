@@ -30,6 +30,7 @@ import org.gradle.api.tasks.TaskAction
 @CacheableTask
 @CompileStatic
 class GradleStartScriptGenerator extends DefaultTask {
+
     @Internal
     File startScriptsDir
 

@@ -43,6 +43,7 @@ public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetada
         this.metaDataParser = metaDataParser;
     }
 
+    @Override
     protected MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
         MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult = metaDataParser.parseMetaData(context, cachedResource);
         MutableIvyModuleResolveMetadata metaData = parseResult.getResult();

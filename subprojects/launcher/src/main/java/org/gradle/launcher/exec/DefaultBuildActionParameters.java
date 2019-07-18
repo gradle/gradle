@@ -47,18 +47,22 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.injectedPluginClasspath = injectedPluginClasspath;
     }
 
+    @Override
     public Map<String, String> getSystemProperties() {
         return systemProperties;
     }
 
+    @Override
     public Map<String, String> getEnvVariables() {
         return envVariables;
     }
 
+    @Override
     public File getCurrentDir() {
         return currentDir;
     }
 
+    @Override
     public LogLevel getLogLevel() {
         return logLevel;
     }
@@ -76,14 +80,17 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
             + '}';
     }
 
+    @Override
     public boolean isUseDaemon() {
         return useDaemon;
     }
 
+    @Override
     public boolean isContinuous() {
         return continuous;
     }
 
+    @Override
     public ClassPath getInjectedPluginClasspath() {
         return injectedPluginClasspath;
     }

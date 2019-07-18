@@ -39,6 +39,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         this.pluginModuleRegistry = pluginModuleRegistry;
     }
 
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals(GRADLE_API.name())) {
             return gradleApi();
@@ -64,7 +65,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
 
     private ClassPath initGradleApi() {
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
+        for (String moduleName : Arrays.asList("gradle-worker-processes", "gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
             classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {

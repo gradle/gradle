@@ -66,15 +66,18 @@ project(':app') {
     dependencies {
         registerTransform {
             from.attribute(artifactType, 'java-classes-directory')
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API_CLASSES))
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
             artifactTransform(FileSizer)
         }
         registerTransform {
             from.attribute(artifactType, 'jar')
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API_CLASSES))
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
             to.attribute(artifactType, 'java-classes-directory')
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API_CLASSES))
+            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+            to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             artifactTransform(FileSizer)
         }
     }
@@ -169,7 +172,7 @@ project(':app') {
 
     dependencies {
         registerTransform {
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_CLASSES))
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(artifactType, 'java-classes-directory')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             to.attribute(artifactType, 'final')
@@ -182,9 +185,11 @@ project(':app') {
             artifactTransform(TestTransform)
         }
         registerTransform {
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_JARS))
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
             from.attribute(artifactType, 'jar')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             to.attribute(artifactType, 'magic-jar')
 
             if (project.hasProperty('extraAttribute')) {
@@ -504,7 +509,13 @@ allprojects {
 
 project(':child') {
     configurations {
+        runtimeOnly {
+            canBeConsumed = false
+            canBeResolved = false
+        }
         runtimeElements {
+            extendsFrom(runtimeOnly)
+            canBeConsumed = true
             canBeResolved = false
             attributes {
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
@@ -516,7 +527,7 @@ project(':child') {
     artifacts {
         buildDir.mkdirs()
         file("\$buildDir/test.jar").text = "toto"
-        runtimeElements file("\$buildDir/test.jar")
+        runtimeOnly file("\$buildDir/test.jar")
     }
 }
 
@@ -599,7 +610,7 @@ task resolve(type: Copy) {
         succeeds "resolve"
 
         then:
-        output.contains('variants: [{artifactType=size, org.gradle.dependency.bundling=external, org.gradle.usage=java-api}]')
+        output.contains('variants: [{artifactType=size, org.gradle.dependency.bundling=external, org.gradle.libraryelements=jar, org.gradle.usage=java-api}]')
 
         where:
         apiFirst << [true, false]

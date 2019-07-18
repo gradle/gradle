@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -29,12 +28,11 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -50,42 +48,43 @@ import java.util.Set;
 public class DefaultResolutionResultBuilder {
     private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
+    private AttributeContainer requestedAttributes;
 
-    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+        builder.setRequestedAttributes(attributes);
         builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, Collections.emptyList(), null));
         return builder.complete(0L);
     }
 
+    public void setRequestedAttributes(AttributeContainer attributes) {
+        requestedAttributes = attributes;
+    }
+
     public ResolutionResult complete(Long rootId) {
-        return new DefaultResolutionResult(new RootFactory(modules.get(rootId)));
+        return new DefaultResolutionResult(new RootFactory(modules.get(rootId)), requestedAttributes);
     }
 
     public void visitComponent(ResolvedGraphComponent component) {
-        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), variantDetails(component), component.getRepositoryName());
-    }
-
-    private static List<ResolvedVariantResult> variantDetails(ResolvedGraphComponent component) {
-        List<ResolvedVariantDetails> resolvedVariants = component.getResolvedVariants();
-        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(resolvedVariants.size());
-        for (ResolvedVariantDetails resolvedVariant : resolvedVariants) {
-            builder.add(new DefaultResolvedVariantResult(resolvedVariant.getVariantName(), resolvedVariant.getVariantAttributes(), resolvedVariant.getCapabilities()));
-        }
-        return builder.build();
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), component.getResolvedVariants(), component.getRepositoryName());
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
         DefaultResolvedComponentResult from = modules.get(fromComponent);
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
+            ResolvedVariantResult fromVariant = d.getFromVariant();
             if (d.getFailure() != null) {
                 dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
                 DefaultResolvedComponentResult selected = modules.get(d.getSelected());
-                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.isConstraint());
+                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.getSelectedVariant(), d.isConstraint());
                 selected.addDependent((ResolvedDependencyResult) dependencyResult);
             }
             from.addDependency(dependencyResult);
+            if (fromVariant != null) {
+                from.associateDependencyToVariant(dependencyResult, fromVariant);
+            }
         }
     }
 
@@ -113,6 +112,7 @@ public class DefaultResolutionResultBuilder {
             this.rootModule = rootModule;
         }
 
+        @Override
         public ResolvedComponentResult create() {
             return rootModule;
         }

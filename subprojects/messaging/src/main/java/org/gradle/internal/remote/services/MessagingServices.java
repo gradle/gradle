@@ -16,16 +16,13 @@
 
 package org.gradle.internal.remote.services;
 
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
-import org.gradle.internal.remote.internal.IncomingConnector;
-import org.gradle.internal.remote.internal.OutgoingConnector;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.MessagingServer;
+import org.gradle.internal.remote.internal.IncomingConnector;
+import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.hub.MessageHubBackedClient;
 import org.gradle.internal.remote.internal.hub.MessageHubBackedServer;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -45,16 +42,8 @@ import java.util.UUID;
  *
  * </ul>
  */
-public class MessagingServices extends DefaultServiceRegistry implements Stoppable {
+public class MessagingServices {
     private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
-
-    public void stop() {
-        close();
-    }
-
-    protected ExecutorFactory createExecutorFactory() {
-        return new DefaultExecutorFactory();
-    }
 
     protected InetAddressFactory createInetAddressFactory() {
         return new InetAddressFactory();

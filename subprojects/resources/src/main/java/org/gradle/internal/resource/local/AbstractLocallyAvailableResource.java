@@ -41,6 +41,7 @@ public abstract class AbstractLocallyAvailableResource implements LocallyAvailab
         return getFile().getPath();
     }
 
+    @Override
     public HashValue getSha1() {
         if (sha1 == null) {
             this.sha1 = HashUtil.sha1(getFile());
@@ -48,6 +49,7 @@ public abstract class AbstractLocallyAvailableResource implements LocallyAvailab
         return sha1;
     }
 
+    @Override
     public long getContentLength() {
         if (contentLength == null) {
             contentLength = getFile().length();
@@ -55,6 +57,7 @@ public abstract class AbstractLocallyAvailableResource implements LocallyAvailab
         return contentLength;
     }
 
+    @Override
     public long getLastModified() {
         if (lastModified == null) {
             lastModified = getFile().lastModified();

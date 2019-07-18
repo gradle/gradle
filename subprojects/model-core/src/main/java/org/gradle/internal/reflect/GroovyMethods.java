@@ -37,6 +37,7 @@ public class GroovyMethods {
                 Arrays.asList(Object.class.getMethods()),
                 Arrays.asList(GroovyObject.class.getMethods())
             ), new Function<Method, Equivalence.Wrapper<Method>>() {
+                @Override
                 public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
                     return SIGNATURE_EQUIVALENCE.wrap(input);
                 }

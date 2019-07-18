@@ -47,6 +47,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConst
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
@@ -61,6 +62,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -109,17 +111,17 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescriptorWriter;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.AfterPreviousExecutionContext;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
@@ -133,6 +135,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
+import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
@@ -146,7 +149,9 @@ import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -181,6 +186,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         this.parent = parent;
     }
 
+    @Override
     public DependencyResolutionServices create(FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
         DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
         services.add(FileResolver.class, fileResolver);
@@ -192,6 +198,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         return services.get(DependencyResolutionServices.class);
     }
 
+    @Override
     public void addDslServices(ServiceRegistration registration, DomainObjectContext domainObjectContext) {
         registration.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
     }
@@ -210,8 +217,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             };
         }
 
-        OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-            return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
+        OutputFileCollectionFingerprinter createOutputFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new OutputFileCollectionFingerprinter(fileCollectionSnapshotter);
         }
 
         TransformationNodeRegistry createTransformationNodeRegistry() {
@@ -233,27 +240,31 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
+        WorkExecutor<AfterPreviousExecutionContext, CachingResult> createWorkExecutor(
             ExecutionStateChangeDetector changeDetector,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ListenerManager listenerManager,
-            TimeoutHandler timeoutHandler
+            TimeoutHandler timeoutHandler,
+            ValueSnapshotter valueSnapshotter
         ) {
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new NoOpCachingStateStep(
-                    new ResolveChangesStep<>(changeDetector,
-                        new SkipUpToDateStep<>(
-                            new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                new StoreSnapshotsStep<>(
-                                    new SnapshotOutputsStep<>(fixedUniqueId,
-                                        new CreateOutputsStep<>(
-                                            new CatchExceptionStep<>(
-                                                new TimeoutStep<>(timeoutHandler,
-                                                    new ResolveInputChangesStep<>(
-                                                        new CleanupOutputsStep<>(
-                                                            new ExecuteStep<InputChangesContext>()
+                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter,
+                    new NoOpCachingStateStep(
+                        new ResolveChangesStep<>(changeDetector,
+                            new SkipUpToDateStep<>(
+                                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                    new StoreSnapshotsStep<>(
+                                        new SnapshotOutputsStep<>(fixedUniqueId,
+                                            new CreateOutputsStep<>(
+                                                new CatchExceptionStep<>(
+                                                    new TimeoutStep<>(timeoutHandler,
+                                                        new ResolveInputChangesStep<>(
+                                                            new CleanupOutputsStep<>(
+                                                                new ExecuteStep<InputChangesContext>()
+                                                            )
                                                         )
                                                     )
                                                 )
@@ -269,7 +280,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
     }
 
-    private static class NoOpCachingStateStep implements Step<IncrementalContext, CachingResult> {
+    private static class NoOpCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
         private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
         public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
@@ -277,7 +288,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Override
-        public CachingResult execute(IncrementalContext context) {
+        public CachingResult execute(BeforeExecutionContext context) {
             UpToDateResult result = delegate.execute(new CachingContext() {
                 @Override
                 public CachingState getCachingState() {
@@ -346,8 +357,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
-        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-            return instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
+        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
+            DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
+            platformSupport.configureSchema(attributesSchema);
+            return attributesSchema;
         }
 
         MutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
@@ -358,12 +371,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,
-                                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                                    FileCollectionSnapshotter fileCollectionSnapshotter,
                                                     ProjectFinder projectFinder,
                                                     BuildOperationExecutor buildOperationExecutor
         ) {
@@ -373,7 +386,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTransformListener,
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
-                classLoaderHierarchyHasher,
+                fileCollectionSnapshotter,
                 projectFinder,
                 buildOperationExecutor
             );
@@ -427,7 +440,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                                           IsolatableFactory isolatableFactory,
                                                           ObjectFactory objectFactory,
-                                                          CollectionCallbackActionDecorator callbackDecorator) {
+                                                          CollectionCallbackActionDecorator callbackDecorator,
+                                                          NamedObjectInstantiator instantiator) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -436,7 +450,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
                 new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository, metadataFactory),
-                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, NamedObjectInstantiator.INSTANCE),
+                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, instantiator),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,
@@ -506,7 +520,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry) {
+                                                  ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler,
+                                                  ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory,
+                                                  AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry,
+                                                  NamedObjectInstantiator namedObjectInstantiator, PlatformSupport platformSupport) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
@@ -518,7 +535,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributesSchema,
                 artifactTransformRegistrations,
                 artifactTypeRegistry,
-                NamedObjectInstantiator.INSTANCE);
+                namedObjectInstantiator,
+                platformSupport);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer) {
@@ -529,8 +547,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules());
         }
 
-        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, ComponentMetadataHandler componentMetadataHandler) {
-            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, NamedObjectInstantiator.INSTANCE);
+        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, NamedObjectInstantiator namedObjectInstantiator, PlatformSupport platformSupport) {
+            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, namedObjectInstantiator, platformSupport);
         }
 
         DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, SimpleMapInterner interner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor componentMetadataRuleExecutor) {
@@ -593,8 +611,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             artifactTypeRegistry,
                             componentSelectorConverter,
                             attributeContainerSerializer,
-                            currentBuild.getBuildIdentifier()
-                        ),
+                            currentBuild.getBuildIdentifier(),
+                            new AttributeDesugaring(attributesFactory)),
                         componentIdentifierFactory,
                         moduleIdentifierFactory,
                         currentBuild.getBuildIdentifier()));
@@ -627,14 +645,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        @Override
         public RepositoryHandler getResolveRepositoryHandler() {
             return services.get(RepositoryHandler.class);
         }
 
+        @Override
         public ConfigurationContainerInternal getConfigurationContainer() {
             return services.get(ConfigurationContainerInternal.class);
         }
 
+        @Override
         public DependencyHandler getDependencyHandler() {
             return services.get(DependencyHandler.class);
         }
@@ -668,6 +689,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.services = services;
         }
 
+        @Override
         public RepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = services.get(Instantiator.class);
             BaseRepositoryFactory baseRepositoryFactory = services.get(BaseRepositoryFactory.class);
@@ -675,6 +697,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
+        @Override
         public ArtifactPublisher createArtifactPublisher() {
             DefaultArtifactPublisher publisher = new DefaultArtifactPublisher(
                 services.get(LocalConfigurationMetadataBuilder.class),

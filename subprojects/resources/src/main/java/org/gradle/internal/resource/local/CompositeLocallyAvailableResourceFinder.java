@@ -29,6 +29,7 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
         this.composites = composites;
     }
 
+    @Override
     public LocallyAvailableResourceCandidates findCandidates(C criterion) {
         List<LocallyAvailableResourceCandidates> allCandidates = new LinkedList<LocallyAvailableResourceCandidates>();
         for (LocallyAvailableResourceFinder<C> finder : composites) {
@@ -45,6 +46,7 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
             this.allCandidates = allCandidates;
         }
 
+        @Override
         public boolean isNone() {
             for (LocallyAvailableResourceCandidates candidates : allCandidates) {
                 if (!candidates.isNone()) {
@@ -55,6 +57,7 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
             return true;
         }
 
+        @Override
         public LocallyAvailableResource findByHashValue(HashValue hashValue) {
             for (LocallyAvailableResourceCandidates candidates : allCandidates) {
                 LocallyAvailableResource match = candidates.findByHashValue(hashValue);

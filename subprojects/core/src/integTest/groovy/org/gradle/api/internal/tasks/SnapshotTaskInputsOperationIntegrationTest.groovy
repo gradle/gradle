@@ -221,7 +221,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         createDir("b") {
             file("build.gradle") << """
                 plugins { id 'java' }
-                dependencies { compile project(":a") }
+                dependencies { implementation project(":a") }
                 sourceSets.main.java.srcDir "other"
             """
             dir("src/main/java") {

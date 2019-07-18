@@ -50,6 +50,7 @@ public class DaemonClientConnection implements Connection<Message> {
         return daemon;
     }
 
+    @Override
     public void dispatch(Message message) throws DaemonConnectionException {
         LOG.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
         try {
@@ -69,6 +70,7 @@ public class DaemonClientConnection implements Connection<Message> {
         }
     }
 
+    @Override
     @Nullable
     public Message receive() throws DaemonConnectionException {
         try {
@@ -84,6 +86,7 @@ public class DaemonClientConnection implements Connection<Message> {
         }
     }
 
+    @Override
     public void stop() {
         LOG.debug("thread {}: connection stop", Thread.currentThread().getId());
         connection.stop();

@@ -69,6 +69,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
         return new StyledTextOutputEvent(getTimestamp(), getCategory(), getLogLevel(), buildOperationId, spans);
     }
 
+    @Override
     public List<Span> getSpans() {
         return spans;
     }
@@ -122,6 +123,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
             return getStyle().name();
         }
 
+        @Override
         public String getText() {
             return text;
         }

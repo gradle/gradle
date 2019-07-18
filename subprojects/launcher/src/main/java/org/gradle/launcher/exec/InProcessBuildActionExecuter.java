@@ -35,6 +35,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.buildActionRunner = buildActionRunner;
     }
 
+    @Override
     public BuildActionResult execute(final BuildAction action, final BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
         final PayloadSerializer payloadSerializer = contextServices.get(PayloadSerializer.class);

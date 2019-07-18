@@ -28,6 +28,7 @@ public class ByTypeAndCharacteristicBuildOutcomeAssociator<T extends BuildOutcom
         this.characteristicTransformer = characteristicTransformer;
     }
 
+    @Override
     public Class<? extends BuildOutcome> findAssociationType(BuildOutcome source, BuildOutcome target) {
         if (type.isInstance(source) && type.isInstance(target)) {
             Object fromCharacteristic = characteristicTransformer.transform(type.cast(source));

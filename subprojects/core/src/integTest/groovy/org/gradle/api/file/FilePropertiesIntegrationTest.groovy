@@ -17,7 +17,6 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -850,48 +849,7 @@ class SomeTask extends DefaultTask {
         then:
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer'.")
         failure.assertHasCause("No value has been specified for property 'bean.inputFile'.")
-        executedTasks == [':consumer']
-    }
-
-    @ToBeImplemented("Absent Provider in FileCollection throws exception")
-    def "depending on an optional output from another task as part of a FileCollection works"() {
-        given:
-        buildFile << """
-            class ProducerTask extends DefaultTask {
-                @Optional @OutputFile
-                Property<RegularFile> outFile = project.objects.fileProperty()
-                
-                @TaskAction
-                def go() { }
-            }
-            
-            class ConsumerTask extends DefaultTask {
-            
-                @InputFiles
-                ConfigurableFileCollection inputFiles = project.objects.fileCollection()
-                
-                @Optional
-                @OutputFile
-                Property<RegularFile> outputFile = project.objects.directoryProperty() 
-                
-                @TaskAction
-                def go() { }
-            }
-            
-            task producer(type: ProducerTask)
-            task consumer(type: ConsumerTask) {
-                inputFiles.from(producer.outFile)
-            }
-        """
-
-        when:
-        // FIXME: The task should succeed
-        fails("consumer")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':consumer'.")
-        failure.assertHasCause("No value has been specified for this provider.")
-        executedAndNotSkipped(':producer', ':consumer')
+        failure.assertTasksExecuted(':consumer')
     }
 
     def expectDeprecated(int count) {

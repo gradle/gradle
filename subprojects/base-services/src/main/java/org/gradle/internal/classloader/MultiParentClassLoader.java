@@ -63,6 +63,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         return ImmutableList.copyOf(parents);
     }
 
+    @Override
     public void visit(ClassLoaderVisitor visitor) {
         visitor.visitSpec(new Spec());
         for (ClassLoader parent : parents) {

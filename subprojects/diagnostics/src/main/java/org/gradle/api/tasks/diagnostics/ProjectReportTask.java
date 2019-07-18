@@ -78,6 +78,7 @@ public class ProjectReportTask extends AbstractReportTask {
     private void render(final Project project, GraphRenderer renderer, boolean lastChild,
                         final StyledTextOutput textOutput) {
         renderer.visit(new Action<StyledTextOutput>() {
+            @Override
             public void execute(StyledTextOutput styledTextOutput) {
                 styledTextOutput.text(StringUtils.capitalize(project.toString()));
                 if (GUtil.isTrue(project.getDescription())) {

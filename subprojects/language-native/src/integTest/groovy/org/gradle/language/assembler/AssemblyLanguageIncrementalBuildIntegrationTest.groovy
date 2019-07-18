@@ -16,7 +16,7 @@
 
 package org.gradle.language.assembler
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -66,13 +65,12 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         install = installation("build/install/main")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "does not re-execute build with no change"() {
         when:
         run "mainExecutable"
 
         then:
-        nonSkippedTasks.empty
+        allSkipped()
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -116,7 +114,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         // Need to have valid x86-64 sources, so that we can verify the output: currently we're producing a binary that won't work on x86-64
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "cleans up stale object files when source file renamed"() {
         def oldObjFile = objectFileFor(asmSourceFile, "build/objs/hello/shared/helloAsm")
         def newObjFile = objectFileFor(file('src/hello/asm/changed_sum.s'), "build/objs/hello/shared/helloAsm")
@@ -135,7 +132,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         newObjFile.file
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "reassembles binary with source comment change"() {
         when:
         asmSourceFile << "# A comment at the end of the file\n"

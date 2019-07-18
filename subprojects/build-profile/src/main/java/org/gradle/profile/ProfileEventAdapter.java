@@ -21,14 +21,14 @@ import org.gradle.api.Describable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
@@ -36,7 +36,7 @@ import org.gradle.internal.time.Clock;
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
  */
-public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener, ArtifactTransformListener {
+public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, BuildCompletionListener, ArtifactTransformListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final ProfileListener listener;
@@ -104,21 +104,19 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         projectProfile.getConfigurationOperation().setFinish(now);
     }
 
-    // TaskExecutionListener
+    // TaskListenerInternal
     @Override
-    public void beforeExecute(Task task) {
+    public void beforeExecute(TaskIdentity taskIdentity) {
         long now = clock.getCurrentTime();
-        Project project = task.getProject();
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
-        projectProfile.getTaskProfile(task.getPath()).setStart(now);
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(taskIdentity.getProjectPath());
+        projectProfile.getTaskProfile(taskIdentity.getTaskPath()).setStart(now);
     }
 
     @Override
-    public void afterExecute(Task task, TaskState state) {
+    public void afterExecute(TaskIdentity taskIdentity, TaskState state) {
         long now = clock.getCurrentTime();
-        Project project = task.getProject();
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
-        TaskExecution taskExecution = projectProfile.getTaskProfile(task.getPath());
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(taskIdentity.getProjectPath());
+        TaskExecution taskExecution = projectProfile.getTaskProfile(taskIdentity.getTaskPath());
         taskExecution.setFinish(now);
         taskExecution.completed(state);
     }

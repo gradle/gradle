@@ -74,6 +74,7 @@ public class ComponentSelectionReasons {
             }
         }
 
+        @Override
         public boolean isForced() {
             return hasCause(ComponentSelectionCause.FORCED);
         }
@@ -87,22 +88,27 @@ public class ComponentSelectionReasons {
             return false;
         }
 
+        @Override
         public boolean isConflictResolution() {
             return hasCause(ComponentSelectionCause.CONFLICT_RESOLUTION);
         }
 
+        @Override
         public boolean isSelectedByRule() {
             return hasCause(ComponentSelectionCause.SELECTED_BY_RULE);
         }
 
+        @Override
         public boolean isExpected() {
             return descriptions.size() == 1 && isCauseExpected(Iterables.getLast(descriptions));
         }
 
+        @Override
         public boolean isCompositeSubstitution() {
             return hasCause(ComponentSelectionCause.COMPOSITE_BUILD);
         }
 
+        @Override
         public String getDescription() {
             // for backwards compatibility, we use the last added description
             return descriptions.getLast().toString();

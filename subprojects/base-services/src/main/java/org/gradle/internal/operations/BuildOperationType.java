@@ -25,7 +25,7 @@ package org.gradle.internal.operations;
  * The producer side APIs in Gradle do not currently enforce (at compile-time or run-time) details or result types.
  * Over time, they will be evolved to enforce usage of correct types.
  *
- * Currently, the only reason to use to use structured details/results objects is to expose
+ * Currently, the only reason to use structured details/results objects is to expose
  * information to the build scan plugin.
  * The build scan plugin will use the details and result types,
  * but will not link against the containing BuildOperationType type.
@@ -39,14 +39,14 @@ package org.gradle.internal.operations;
  *
  * These details and result types need to maintain backwards binary compatibility.
  * They should be interfaces with minimal dependencies, and should avoid internal Gradle types.
- * The convention for these types is to make them inner types of the BuildOperationCategory token type,
+ * The convention for these types is to make them inner types of the BuildOperationType token type,
  * named {@code Details} and {@code Result}.
  * However, this is not required – the types can go anywhere.
  *
  * The information exposed by details and results objects ultimately needs to be serialized.
  * As such, these objects should be designed for serialization to non Java formats (e.g. JSON).
  *
- * - Should be be practically immutable
+ * - Should be practically immutable
  * - Should only expose primitive(ish) JDK types, or other structured types only exposing JDK types
  * - Collection like structures should have deterministic order - either sorted, or meaningful
  * - Should expose either java.util.List or java.util.Map over specialised collection types

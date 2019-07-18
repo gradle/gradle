@@ -28,6 +28,7 @@ public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> i
         this.delegate = delegate;
     }
 
+    @Override
     public T get() {
         try {
             return delegate.get();
@@ -36,10 +37,12 @@ public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> i
         }
     }
 
+    @Override
     public void set(T newValue) {
         delegate.set(newValue);
     }
 
+    @Override
     public T update(final UpdateAction<T> updateAction) {
         return doUpdate(updateAction, new Factory<T>() {
             @Override

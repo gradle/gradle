@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
@@ -37,7 +37,7 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
         ${mavenCentralRepository()}
 
         dependencies {
-           customCompile "org.scala-lang:scala-library:$version"
+           customImplementation "org.scala-lang:scala-library:$version"
         }
 
         task scaladoc(type: ScalaDoc) {
@@ -67,7 +67,7 @@ sourceSets {
 ${mavenCentralRepository()}
 
 dependencies {
-    customCompile "org.scala-lang:scala-library:$version"
+    customImplementation "org.scala-lang:scala-library:$version"
 }
 
 task scaladoc(type: ScalaDoc) {
@@ -98,7 +98,7 @@ task verify {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "com.google.guava:guava:11.0.2"
+                implementation "com.google.guava:guava:11.0.2"
             }
         """
 

@@ -38,6 +38,7 @@ class ModuleSelectorStringNotationConverter extends TypedNotationConverter<Strin
     /**
      * Empty String for either group or module name is not allowed.
      */
+    @Override
     protected ComponentSelector parseType(String notation) {
         assert notation != null;
         String[] split = notation.split(":");

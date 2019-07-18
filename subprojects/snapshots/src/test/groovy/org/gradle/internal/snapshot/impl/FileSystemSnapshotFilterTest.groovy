@@ -16,39 +16,32 @@
 
 package org.gradle.internal.snapshot.impl
 
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
+
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 @CleanupTestDirectory
 class FileSystemSnapshotFilterTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    FileSystemSnapshotter snapshotter
+    FileSystemSnapshotter snapshotter = TestFiles.fileSystemSnapshotter()
     FileSystem fileSystem = TestFiles.fileSystem()
-
-    def setup() {
-        StringInterner interner = Mock(StringInterner) {
-            intern(_) >> { String string -> string }
-        }
-
-        snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, fileSystem, new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
-    }
 
     def "filters correctly"() {
         given:
@@ -61,7 +54,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdir = dir1.createDir("subdir")
         def subdirFile1 = subdir.createFile("subdirFile1")
 
-        def unfiltered = snapshotter.snapshotDirectoryTree(root, new PatternSet())
+        def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
 
         expect:
         filteredPaths(unfiltered, include("**/*2")) == [root, dir1, dirFile2, subdir, rootFile2] as Set
@@ -72,7 +65,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "filters empty tree"() {
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(include("**/*").asSpec, FileSystemSnapshot.EMPTY, fileSystem) == FileSystemSnapshot.EMPTY
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*")).asSnapshotPredicate, FileSystemSnapshot.EMPTY) == FileSystemSnapshot.EMPTY
     }
 
     def "root directory is always matched"() {
@@ -84,7 +77,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root file can be filtered"() {
         def root = temporaryFolder.createFile("root")
-        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234)
+        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), new FileMetadata(5, 1234))
 
         expect:
         filteredPaths(regularFileSnapshot, include("different")) == [] as Set
@@ -98,15 +91,15 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile1")
         dir1.createFile("dirFile2")
 
-        def unfiltered = snapshotter.snapshotDirectoryTree(root, new PatternSet())
+        def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
 
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(include("**/*File*").asSpec, unfiltered, fileSystem).is(unfiltered)
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered).is(unfiltered)
     }
 
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new FileSystemSnapshotVisitor() {
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
@@ -114,7 +107,7 @@ class FileSystemSnapshotFilterTest extends Specification {
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 result << new File(fileSnapshot.absolutePath)
             }
 
@@ -127,5 +120,9 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     private static PatternSet include(String pattern) {
         new PatternSet().include(pattern)
+    }
+
+    private SnapshottingFilter snapshottingFilter(PatternSet patternSet) {
+        return new PatternSetSnapshottingFilter(patternSet, fileSystem)
     }
 }

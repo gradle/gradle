@@ -25,11 +25,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":resources"))
-    api(project(":baseServices"))
-    api(project(":core"))
-    api(library("commons_httpclient"))
+    implementation(project(":resources"))
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
 
+    implementation(library("commons_httpclient"))
     implementation(library("slf4j_api"))
     implementation(library("jcl_to_slf4j"))
     implementation(library("jcifs"))
@@ -39,16 +40,20 @@ dependencies {
     implementation(library("xerces"))
     implementation(library("nekohtml"))
 
+    testImplementation(project(":internalIntegTesting"))
     testImplementation(testLibrary("jetty"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
 
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("slf4j_api"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":logging")
-}

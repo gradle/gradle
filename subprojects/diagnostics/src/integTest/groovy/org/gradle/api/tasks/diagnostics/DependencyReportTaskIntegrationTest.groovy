@@ -266,7 +266,7 @@ rootProject.name = 'root'
 
         file("build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 version = '1.0'
                 repositories {
                     maven { url "${mavenRepo.uri}" }
@@ -275,36 +275,36 @@ rootProject.name = 'root'
 
             project(":a") {
                 dependencies {
-                    compile 'foo:bar:1.0'
+                    api 'foo:bar:1.0'
                 }
             }
 
             project(":b") {
                 dependencies {
-                    compile 'foo:bar:0.5.dont.exist'
+                    api 'foo:bar:0.5.dont.exist'
                 }
             }
 
             project(":c") {
                 dependencies {
-                    compile 'foo:bar:3.0'
+                    api 'foo:bar:3.0'
                 }
             }
 
             project(":d") {
                 dependencies {
-                    compile 'foo:bar:2.0'
+                    api 'foo:bar:2.0'
                 }
             }
 
             project(":e") {
                 dependencies {
-                    compile 'foo:bar:3.0'
+                    api 'foo:bar:3.0'
                 }
             }
 
             dependencies {
-                compile project(":a"), project(":b"), project(":c"), project(":d"), project(":e")
+                api project(":a"), project(":b"), project(":c"), project(":d"), project(":e")
             }
         """
 
@@ -313,7 +313,7 @@ rootProject.name = 'root'
 
         then:
         output.contains """
-compile - Dependencies for source set 'main' (deprecated, use 'implementation' instead).
+compileClasspath - Compile classpath for source set 'main'.
 +--- project :a
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
@@ -677,7 +677,7 @@ rootProject.name = 'root'
 
         file("build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 version = '1.0'
                 repositories {
                     maven { url "${mavenRepo.uri}" }
@@ -686,36 +686,36 @@ rootProject.name = 'root'
 
             project(":a") {
                dependencies {
-                    compile 'foo:bar:1.0'
+                    api 'foo:bar:1.0'
                 }
             }
 
             project(":b") {
                dependencies {
-                    compile 'foo:bar:0.5.dont.exist'
+                    api 'foo:bar:0.5.dont.exist'
                 }
             }
 
             project(":a:c") {
                dependencies {
-                    compile 'foo:bar:2.0'
+                    api 'foo:bar:2.0'
                }
             }
 
             project(":d") {
                dependencies {
-                    compile project(":e")
+                    api project(":e")
                 }
             }
 
             project(":e") {
                dependencies {
-                    compile 'foo:bar:2.0'
+                    api 'foo:bar:2.0'
                 }
             }
 
             dependencies {
-                compile project(":a"), project(":b"), project(":a:c"), project(":d")
+                api project(":a"), project(":b"), project(":a:c"), project(":d")
             }
         """
 
@@ -724,7 +724,7 @@ rootProject.name = 'root'
 
         then:
         output.contains """
-compile - Dependencies for source set 'main' (deprecated, use 'implementation' instead).
+compileClasspath - Compile classpath for source set 'main'.
 +--- project :a
 |    \\--- foo:bar:1.0 -> 2.0
 +--- project :b

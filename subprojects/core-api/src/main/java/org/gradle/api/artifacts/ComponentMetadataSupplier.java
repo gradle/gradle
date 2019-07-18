@@ -33,5 +33,6 @@ public interface ComponentMetadataSupplier extends Action<ComponentMetadataSuppl
      *
      * @param details the supplier details
      */
+    @Override
     void execute(ComponentMetadataSupplierDetails details);
 }

@@ -18,12 +18,10 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
-import spock.lang.IgnoreIf
+import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -37,13 +35,12 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "test interrupting its own thread does not kill test execution"() {
         given:
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.12" }
         """
 
         and:
@@ -61,7 +58,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         run "test"
 
         then:
-        ":test" in nonSkippedTasks
+        executedAndNotSkipped(":test")
     }
 
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
@@ -91,7 +88,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
         """
 
         when:
@@ -103,7 +100,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def results = new DefaultTestExecutionResult(file("."))
         results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", CoreMatchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
     }
 
     def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
@@ -134,7 +131,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -148,7 +145,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def results = new DefaultTestExecutionResult(file("."))
         results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", CoreMatchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -163,7 +160,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.12" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
@@ -190,7 +187,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testCompile "$dependency" }
+            dependencies { testImplementation "$dependency" }
             test { $framework() }
         """
         and:
@@ -218,15 +215,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 apply plugin:'java'
                 ${mavenCentralRepository()}
 
-                sourceSets{
-	                othertests{
+                sourceSets {
+	                othertests {
 		                java.srcDir file('src/othertests/java')
 	                    resources.srcDir file('src/othertests/resources')
 	                }
                 }
 
                 dependencies{
-	                othertestsCompile "junit:junit:4.12"
+	                othertestsImplementation "junit:junit:4.12"
                 }
 
                 task othertestsTest(type:Test){
@@ -285,9 +282,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 // guarantee ordering
                 first 'com.google.guava:guava:15.0'
                 last 'com.google.collections:google-collections:1.0'
-                compile configurations.first + configurations.last
+                implementation configurations.first + configurations.last
 
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -308,8 +305,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass("TestCase").with {
-            assertTestFailed("test", Matchers.containsString("java.lang.VerifyError"))
-            assertTestFailed("test", Matchers.containsString("\$EmptyImmutableCollection"))
+            assertTestFailed("test", CoreMatchers.containsString("java.lang.VerifyError"))
+            assertTestFailed("test", CoreMatchers.containsString("\$EmptyImmutableCollection"))
         }
     }
 
@@ -321,7 +318,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
             tasks.withType(JavaCompile) {
                 options.with {
@@ -368,7 +365,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
             test {
                 testLogging {
@@ -395,14 +392,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         when:
         run "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         output.contains("FirstTest > test PASSED")
         output.contains("SecondTest > test PASSED")
 
         when:
         run "test"
         then:
-        skippedTasks.contains ":test"
+        skipped ":test"
 
         when:
         buildFile << """
@@ -415,7 +412,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         then:
         run "test"
         then:
-        nonSkippedTasks.contains ":test"
+        executedAndNotSkipped ":test"
         output.contains("FirstTest > test PASSED")
         !output.contains("SecondTest > test PASSED")
     }
@@ -450,7 +447,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin:'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.12' }
         """
 
         and:

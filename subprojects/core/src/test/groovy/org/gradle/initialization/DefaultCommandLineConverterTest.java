@@ -21,7 +21,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.hamcrest.Matchers;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -93,7 +93,7 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
 
         checkConversion("-c", "somesettings");
 
-        Assert.assertThat(actualStartParameter.getSettingsFile(), Matchers.equalTo((File) expectedSettingsFile));
+        Assert.assertThat(actualStartParameter.getSettingsFile(), CoreMatchers.equalTo((File) expectedSettingsFile));
     }
 
     @Test

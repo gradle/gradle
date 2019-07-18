@@ -16,9 +16,10 @@
 
 package org.gradle.java.compile
 
+import org.gradle.integtests.fixtures.CompiledLanguage
+
 class NonIncrementalJavaCompileAvoidanceAgainstClassDirIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
-    def setup() {
-        useClassesDir()
-        deactivateIncrementalCompile()
-    }
+    CompiledLanguage language = CompiledLanguage.JAVA
+    boolean useJar = false
+    boolean incremental = false
 }

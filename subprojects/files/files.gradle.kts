@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,35 +17,17 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    // Some cycles have been inherited from the time these classes were in :core
-    // gradlebuild.classycle
+    gradlebuild.classycle
 }
+
+description = "Base tools to work with files"
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":baseServicesGroovy"))
-    api(project(":coreApi"))
-    api(project(":modelCore"))
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("inject"))
-
-    implementation(project(":logging"))
-    implementation(project(":native"))
-    implementation(library("commons_io"))
-    implementation(library("commons_lang"))
-
-    testImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalTesting"))
+    implementation(project(":pineapple"))
+    implementation(library("jsr305"))
+    implementation(library("guava"))
 }
 
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.ENTRY_POINT
-    }
-}
-
-testFixtures {
-    from(":core")
-    from(":coreApi")
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }

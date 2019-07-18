@@ -24,6 +24,7 @@ public class FailureHandlingDispatch<T> implements Dispatch<T> {
         this.handler = handler;
     }
 
+    @Override
     public void dispatch(T message) {
         try {
             dispatch.dispatch(message);

@@ -26,19 +26,21 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":modelCore"))
-    api(library("groovy"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":baseServicesGroovy"))
+
+    implementation(library("groovy"))
     implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":modelCore")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":modelCore")
-}

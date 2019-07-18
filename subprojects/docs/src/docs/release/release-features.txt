@@ -1,3 +1,4 @@
- - Kickstart Gradle plugin development with gradle init
- - Distribute organization-wide Gradle properties in custom Gradle distributions
- - Transform dependency artifacts on resolution
+ - PMD incremental analysis support
+ - JavaExec supports executable jar
+ - Test fixtures for Java projects
+ - Manage plugin versions via settings script

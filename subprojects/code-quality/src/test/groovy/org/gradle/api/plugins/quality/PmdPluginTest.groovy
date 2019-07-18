@@ -21,7 +21,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.CoreMatchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class PmdPluginTest extends AbstractProjectBuilderSpec {
@@ -107,6 +107,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
             assert rulePriority == 5
+            assert incrementalAnalysis.get() == false
         }
     }
 
@@ -124,6 +125,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
         task.rulePriority == 5
+        task.incrementalAnalysis.get() == false
     }
 
     def "adds pmd tasks to check lifecycle task"() {

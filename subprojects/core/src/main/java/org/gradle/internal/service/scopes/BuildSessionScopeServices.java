@@ -58,13 +58,16 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
@@ -173,28 +176,32 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptSourceHasher();
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror) {
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        return new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter);
+    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {
+        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, stat);
     }
 
-    RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new RelativePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter);
     }
 
-    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        return new NameOnlyFileCollectionFingerprinter(fileSystemSnapshotter);
+    RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new RelativePathFileCollectionFingerprinter(stringInterner, fileCollectionSnapshotter);
     }
 
-    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        return new IgnoredPathFileCollectionFingerprinter(fileSystemSnapshotter);
+    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new NameOnlyFileCollectionFingerprinter(fileCollectionSnapshotter);
     }
 
-    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
-        return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
+    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter);
+    }
+
+    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new OutputFileCollectionFingerprinter(fileCollectionSnapshotter);
     }
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
@@ -207,12 +214,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new SplitResourceSnapshotterCacheService(globalCache, localCache, wellKnownFileLocations);
     }
 
-    CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, stringInterner);
+    CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+        return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
     }
 
-    DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
-        return new DefaultImmutableAttributesFactory(isolatableFactory, NamedObjectInstantiator.INSTANCE);
+    DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
+        return new DefaultImmutableAttributesFactory(isolatableFactory, instantiator);
     }
 
     AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {

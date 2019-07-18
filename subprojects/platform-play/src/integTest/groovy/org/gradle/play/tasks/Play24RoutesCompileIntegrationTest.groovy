@@ -87,7 +87,7 @@ model {
 """
         then:
         succeeds("compilePlayBinaryScala")
-        executedTasks.contains(":compilePlayBinaryPlayRoutes")
+        executed(":compilePlayBinaryPlayRoutes")
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }

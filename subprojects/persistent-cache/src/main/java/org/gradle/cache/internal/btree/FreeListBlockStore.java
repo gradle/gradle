@@ -33,8 +33,10 @@ public class FreeListBlockStore implements BlockStore {
         this.maxBlockEntries = maxBlockEntries;
     }
 
+    @Override
     public void open(final Runnable initAction, final Factory factory) {
         Runnable freeListInitAction = new Runnable() {
+            @Override
             public void run() {
                 freeListBlock = new FreeListBlock();
                 store.write(freeListBlock);
@@ -43,6 +45,7 @@ public class FreeListBlockStore implements BlockStore {
             }
         };
         Factory freeListFactory = new Factory() {
+            @Override
             public Object create(Class<? extends BlockPayload> type) {
                 if (type == FreeListBlock.class) {
                     return new FreeListBlock();
@@ -55,39 +58,47 @@ public class FreeListBlockStore implements BlockStore {
         freeListBlock = store.readFirst(FreeListBlock.class);
     }
 
+    @Override
     public void close() {
         freeListBlock = null;
         store.close();
     }
 
+    @Override
     public void clear() {
         store.clear();
     }
 
+    @Override
     public void remove(BlockPayload block) {
         Block container = block.getBlock();
         store.remove(block);
         freeListBlock.add(container.getPos(), container.getSize());
     }
 
+    @Override
     public <T extends BlockPayload> T readFirst(Class<T> payloadType) {
         return store.read(freeListBlock.getNextPos(), payloadType);
     }
 
+    @Override
     public <T extends BlockPayload> T read(BlockPointer pos, Class<T> payloadType) {
         return store.read(pos, payloadType);
     }
 
+    @Override
     public void write(BlockPayload block) {
         attach(block);
         store.write(block);
     }
 
+    @Override
     public void attach(BlockPayload block) {
         store.attach(block);
         freeListBlock.alloc(block.getBlock());
     }
 
+    @Override
     public void flush() {
         store.flush();
     }
@@ -258,6 +269,7 @@ public class FreeListBlockStore implements BlockStore {
             this.size = size;
         }
 
+        @Override
         public int compareTo(FreeListEntry o) {
             if (size > o.size) {
                 return 1;

@@ -156,6 +156,7 @@ class ModelElementNode extends ModelNodeInternal {
         return names;
     }
 
+    @Override
     public Set<String> getLinkNames() {
         return links == null ? Collections.<String>emptySet() : links.keySet();
     }

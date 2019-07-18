@@ -20,14 +20,20 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 // TODO - use circular buffers to avoid copying
 // TODO - share a single initializer with MultiChannelQueue
 public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
     private final Set<EndPointQueue> endpoints = new HashSet<EndPointQueue>();
-    private final List<InterHubMessage> queue = new ArrayList<InterHubMessage>();
+    private final Deque<InterHubMessage> queue = new ArrayDeque<InterHubMessage>();
     private final List<EndPointQueue> waiting = new ArrayList<EndPointQueue>();
     private final Lock lock;
     private final QueueInitializer initializer = new QueueInitializer();
@@ -36,6 +42,7 @@ public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
         this.lock = lock;
     }
 
+    @Override
     public void dispatch(InterHubMessage message) {
         queue.add(message);
         flush();
@@ -62,7 +69,7 @@ public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
         // waiting endpoint, even if there are multiple waiting to do work
         EndPointQueue selected = waiting.isEmpty() ? null : waiting.get(0);
         while (!queue.isEmpty()) {
-            InterHubMessage message = queue.get(0);
+            InterHubMessage message = queue.peekFirst();
             switch (message.getDelivery()) {
                 case Stateful:
                 case AllHandlers:
@@ -75,14 +82,14 @@ public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
                     for (EndPointQueue endpoint : endpoints) {
                         endpoint.dispatch(message);
                     }
-                    queue.remove(0);
+                    queue.removeFirst();
                     waiting.clear();
                     continue;
                 case SingleHandler:
                     if (selected == null) {
                         return;
                     }
-                    queue.remove(0);
+                    queue.removeFirst();
                     waiting.remove(selected);
                     selected.dispatch(message);
                     break;

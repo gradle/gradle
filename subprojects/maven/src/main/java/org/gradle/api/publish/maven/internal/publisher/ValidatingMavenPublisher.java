@@ -41,6 +41,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         this.delegate = delegate;
     }
 
+    @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         validateIdentity(publication);
         validateArtifacts(publication);
@@ -50,18 +51,23 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void validateIdentity(MavenNormalizedPublication publication) {
-        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
         Model model = parsePomFileIntoMavenModel(publication);
-        field(publication, "groupId", projectIdentity.getGroupId().get())
-                .validMavenIdentifier()
-                .matches(model.getGroupId());
-        field(publication, "artifactId", projectIdentity.getArtifactId().get())
+
+        field(publication, "artifactId", publication.getArtifactId())
                 .validMavenIdentifier()
                 .matches(model.getArtifactId());
-        field(publication, "version", projectIdentity.getVersion().get())
+
+        boolean hasParentPom = model.getParent() != null;
+        MavenFieldValidator groupIdValidator = field(publication, "groupId", publication.getGroupId())
+                .validMavenIdentifier();
+        MavenFieldValidator versionValidator = field(publication, "version", publication.getVersion())
                 .notEmpty()
-                .validInFileName()
-                .matches(model.getVersion());
+                .validInFileName();
+
+        if (!hasParentPom) {
+            groupIdValidator.matches(model.getGroupId());
+            versionValidator.matches(model.getVersion());
+        }
     }
 
     private Model parsePomFileIntoMavenModel(MavenNormalizedPublication publication) {
@@ -148,9 +154,9 @@ public class ValidatingMavenPublisher implements MavenPublisher {
             return this;
         }
 
-        public MavenFieldValidator matches(String expectedValue) {
-            if (!value.equals(expectedValue)) {
-                throw failure(String.format("supplied %s does not match POM file (cannot edit %1$s directly in the POM file).", name));
+        public MavenFieldValidator matches(String valueFromPomFile) {
+            if (!value.equals(valueFromPomFile)) {
+                throw failure(String.format("supplied %s (%s) does not match value from POM file (%s). Cannot edit %1$s directly in the POM file.", name, value, valueFromPomFile));
             }
             return this;
         }

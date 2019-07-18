@@ -52,6 +52,7 @@ public class DirectedGraphRenderer<N> {
         final boolean alreadySeen = !rendered.add(node);
 
         graphRenderer.visit(new Action<StyledTextOutput>() {
+            @Override
             public void execute(StyledTextOutput output) {
                 nodeRenderer.renderTo(node, output);
                 if (alreadySeen) {

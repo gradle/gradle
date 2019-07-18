@@ -220,7 +220,7 @@ Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property
 
  * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
 +
-Use http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
+Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
 
 [[changes_4.8]]
 == Upgrading from 4.7 and earlier
@@ -407,7 +407,7 @@ We recommend configuring a ruleset explicitly, though.
 === [5.0] Library upgrades
 Several libraries that are used by Gradle have been upgraded:
 
- * Groovy was upgraded from 2.4.15 to http://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.4].
+ * Groovy was upgraded from 2.4.15 to https://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.4].
  * Ant has been upgraded from 1.9.11 to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.13.html[1.9.13].
  * The AWS SDK used to access S3-backed Maven/Ivy repositories has been upgraded from 1.11.267 to https://github.com/aws/aws-sdk-java/blob/master/CHANGELOG.md#111407-2018-09-11[1.11.407].
  * The BND library used by the OSGi Plugin has been upgraded from 3.4.0 to https://github.com/bndtools/bnd/wiki/Changes-in-4.0.0[4.0.0].

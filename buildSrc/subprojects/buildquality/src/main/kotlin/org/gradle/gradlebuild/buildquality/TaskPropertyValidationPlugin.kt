@@ -21,6 +21,7 @@ import accessors.reporting
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.testing.Test
 
@@ -46,6 +47,8 @@ open class TaskPropertyValidationPlugin : Plugin<Project> {
                 val validationRuntime by configurations.creating {
                     isCanBeConsumed = false
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                    // Required to select the right :distributions variant
+                    attributes.attribute(Attribute.of("org.gradle.runtime", String::class.java), "minimal")
                 }
                 dependencies.add(
                     validationRuntime.name,

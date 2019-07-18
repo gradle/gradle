@@ -52,6 +52,7 @@ public class JsHintWorker implements JsHintProtocol {
 
     private Map<String, Object> jsHint(Scriptable jsHintScope, final String source, final String sourceName) {
         return childScope(jsHintScope, new DefaultScopeOperation<Map<String, Object>>() {
+            @Override
             public Map<String, Object> action(Scriptable scope, Context context) {
                 scope.put("jsHintSource", scope, source);
                 Object data = context.evaluateString(scope, "JSHINT(jsHintSource); JSHINT.data();", sourceName, 0, null);

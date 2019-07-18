@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
@@ -32,20 +33,25 @@ import java.util.Set;
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private Factory<ResolvedComponentResult> rootSource;
+    private final Factory<ResolvedComponentResult> rootSource;
+    private final AttributeContainer requestedAttributes;
 
-    public DefaultResolutionResult(Factory<ResolvedComponentResult> rootSource) {
+    public DefaultResolutionResult(Factory<ResolvedComponentResult> rootSource, AttributeContainer requestedAttributes) {
         assert rootSource != null;
         this.rootSource = rootSource;
+        this.requestedAttributes = requestedAttributes;
     }
 
+    @Override
     public ResolvedComponentResult getRoot() {
         return rootSource.create();
     }
 
+    @Override
     public Set<? extends DependencyResult> getAllDependencies() {
         final Set<DependencyResult> out = new LinkedHashSet<DependencyResult>();
         allDependencies(new Action<DependencyResult>() {
+            @Override
             public void execute(DependencyResult dep) {
                 out.add(dep);
             }
@@ -53,10 +59,12 @@ public class DefaultResolutionResult implements ResolutionResult {
         return out;
     }
 
+    @Override
     public void allDependencies(Action<? super DependencyResult> action) {
         eachElement(getRoot(), Actions.doNothing(), action, new HashSet<ResolvedComponentResult>());
     }
 
+    @Override
     public void allDependencies(final Closure closure) {
         allDependencies(ConfigureUtil.configureUsing(closure));
     }
@@ -76,18 +84,26 @@ public class DefaultResolutionResult implements ResolutionResult {
         }
     }
 
+    @Override
     public Set<ResolvedComponentResult> getAllComponents() {
         final Set<ResolvedComponentResult> out = new LinkedHashSet<ResolvedComponentResult>();
         eachElement(getRoot(), Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }
 
+    @Override
     public void allComponents(final Action<? super ResolvedComponentResult> action) {
         eachElement(getRoot(), action, Actions.doNothing(), new HashSet<ResolvedComponentResult>());
     }
 
+    @Override
     public void allComponents(final Closure closure) {
         allComponents(ConfigureUtil.configureUsing(closure));
+    }
+
+    @Override
+    public AttributeContainer getRequestedAttributes() {
+        return requestedAttributes;
     }
 
 }

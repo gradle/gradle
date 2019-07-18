@@ -39,21 +39,25 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
      */
     boolean constantTimeIsEmpty();
 
+    @Override
     int estimatedSize();
 
     boolean contains(Object element);
 
     boolean containsAll(Collection<?> elements);
 
+    @Override
     boolean isEmpty();
 
     boolean add(T element);
 
     boolean addRealized(T element);
 
+    @Override
     void clear();
 
     boolean remove(Object o);
 
+    @Override
     int size();
 }

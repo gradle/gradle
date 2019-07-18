@@ -26,6 +26,7 @@ public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIden
     /**
      * Returns the id of the component that this artifact belongs to.
      */
+    @Override
     ModuleComponentIdentifier getComponentIdentifier();
 
     /**

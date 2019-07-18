@@ -74,6 +74,7 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         return variant;
     }
 
+    @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 

@@ -25,7 +25,7 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 
 class BuildOperationNotificationBridgeTest extends Specification {
 

@@ -42,6 +42,7 @@ public abstract class AbstractUsageContext implements UsageContext {
         return attributes;
     }
 
+    @Override
     public Set<PublishArtifact> getArtifacts() {
         return artifacts;
     }

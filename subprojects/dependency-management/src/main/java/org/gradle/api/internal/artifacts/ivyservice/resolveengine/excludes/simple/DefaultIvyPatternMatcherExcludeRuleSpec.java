@@ -56,6 +56,7 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
         return matches(moduleId.getGroup(), module.getGroup()) && matches(moduleId.getName(), module.getName());
     }
 
+    @Override
     public boolean excludesArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
         if (!isArtifactExclude) {
             return false;
@@ -67,6 +68,7 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
             && matches(ivyArtifactName.getType(), artifact.getType());
     }
 
+    @Override
     public boolean mayExcludeArtifacts() {
         return isArtifactExclude;
     }

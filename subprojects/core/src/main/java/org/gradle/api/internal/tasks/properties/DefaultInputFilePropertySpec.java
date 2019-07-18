@@ -38,6 +38,7 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
         return skipWhenEmpty;
     }
 
+    @Override
     public boolean isIncremental() {
         return incremental;
     }

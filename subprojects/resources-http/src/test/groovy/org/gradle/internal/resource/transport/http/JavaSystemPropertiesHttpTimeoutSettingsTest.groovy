@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.gradle.testing.internal.util.Specification
+import spock.lang.Specification
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 

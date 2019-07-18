@@ -83,4 +83,12 @@ public final class TaskIdentity<T extends Task> {
     public String toString() {
         return "TaskIdentity{path=" + identityPath + ", type=" + type + ", uniqueId=" + uniqueId + '}';
     }
+
+    public String getTaskPath() {
+        return projectPath.getPath();
+    }
+
+    public String getProjectPath() {
+        return projectPath.getParent().getPath();
+    }
 }

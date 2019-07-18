@@ -26,6 +26,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         return getDisplayName();
     }
 
+    @Override
     public ExternalResourceReadResult<Void> writeTo(File destination) {
         ExternalResourceReadResult<Void> result = writeToIfPresent(destination);
         if (result == null) {
@@ -34,6 +35,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         return result;
     }
 
+    @Override
     public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) {
         ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
         if (result == null) {

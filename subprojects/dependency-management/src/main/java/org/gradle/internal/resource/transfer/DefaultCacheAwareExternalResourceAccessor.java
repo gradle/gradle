@@ -50,6 +50,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -77,10 +78,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     @Nullable
     @Override
-    public LocallyAvailableExternalResource getResource(final ExternalResourceName location, @Nullable String baseName, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
-        return producerGuard.guardByKey(location, new Factory<LocallyAvailableExternalResource>() {
+    public LocallyAvailableExternalResource getResource(final ExternalResourceName location, @Nullable String baseName, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) {
+        return producerGuard.guardByKey(location, new Supplier<LocallyAvailableExternalResource>() {
             @Override
-            public LocallyAvailableExternalResource create() {
+            public LocallyAvailableExternalResource get() {
                 LOGGER.debug("Constructing external resource: {}", location);
                 CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
 
@@ -108,6 +109,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
                         cached.getExternalResourceMetaData(),
                         new Factory<ExternalResourceMetaData>() {
+                            @Override
                             public ExternalResourceMetaData create() {
                                 return remoteMetaData;
                             }
@@ -214,6 +216,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private LocallyAvailableExternalResource moveIntoCache(final ExternalResourceName source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
         return artifactCacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
+            @Override
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();

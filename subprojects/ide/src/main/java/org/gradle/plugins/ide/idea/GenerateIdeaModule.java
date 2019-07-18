@@ -65,6 +65,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * change the output file name it is much easier to do it via the <b>idea.module.name</b> property. <p> Please refer to documentation in {@link IdeaModule} <b>name</b> property. In IntelliJ IDEA
      * the module name is the same as the name of the *.iml file.
      */
+    @Override
     public File getOutputFile() {
         if (module == null) {
             return super.getOutputFile();
@@ -72,6 +73,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
         return module.getOutputFile();
     }
 
+    @Override
     public void setOutputFile(File newOutputFile) {
         module.setOutputFile(newOutputFile);
     }

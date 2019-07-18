@@ -20,8 +20,6 @@ import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
 
 /**
  * Hashes resources (e.g., a class file in a jar or a class file in a directory)
@@ -31,5 +29,5 @@ public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHashe
      * Returns {@code null} if the zip entry should be ignored.
      */
     @Nullable
-    HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
+    HashCode hash(ZipEntry zipEntry) throws IOException;
 }

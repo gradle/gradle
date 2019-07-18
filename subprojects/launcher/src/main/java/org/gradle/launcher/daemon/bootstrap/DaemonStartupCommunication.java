@@ -19,19 +19,24 @@ package org.gradle.launcher.daemon.bootstrap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.stream.EncodedStream;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.internal.remote.Address;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.process.internal.streams.EncodedStream;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 public class DaemonStartupCommunication {
 

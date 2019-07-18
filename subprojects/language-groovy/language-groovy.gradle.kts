@@ -1,29 +1,50 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":platformJvm"))
-    compile(project(":languageJava"))
+    api(library("jsr305"))
 
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":workerProcesses"))
+    implementation(project(":fileCollections"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":jvmServices"))
+    implementation(project(":workers"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":languageJava"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
     implementation(library("asm"))
+    implementation(library("inject"))
 
-    // TODO - get rid of this cycle
-    integTestRuntime(project(":plugins"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":launcher")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    
+    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":internalTesting"))
+
+    integTestImplementation(library("commons_lang"))
+    integTestRuntimeOnly(project(":plugins"))
 }
 
 gradlebuildJava {
-    // Needs to run in the compiler daemon
-    moduleType = ModuleType.WORKER
-}
-
-testFixtures {
-    from(":core")
-    from(":languageJvm", "integTest")
-    from(":languageJvm", "testFixtures")
+    moduleType = ModuleType.CORE
 }
 
 classycle {

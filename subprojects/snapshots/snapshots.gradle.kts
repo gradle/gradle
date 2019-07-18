@@ -23,26 +23,33 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":coreApi"))
-    api(project(":files"))
-    api(library("guava"))
-    api(library("jsr305"))
-    api(library("inject"))
+    implementation(library("guava"))
+    implementation(library("jsr305"))
+    implementation(project(":files"))
+    implementation(project(":hashing"))
+    implementation(project(":pineapple"))
+    implementation(library("slf4j_api"))
 
-    implementation(project(":modelCore"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":native"))
+    testImplementation(library("ant"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":messaging")))
 
-    testImplementation(project(":internalTesting"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":fileCollections"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":baseServices")
-    from(":files")
-    from(":messaging")
-    from(":core")
-    from(":coreApi")
-}

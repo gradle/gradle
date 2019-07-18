@@ -430,6 +430,7 @@ public class DynamicVersionResolver {
             return version;
         }
 
+        @Override
         public BuildableModuleComponentMetaDataResolveResult resolve() {
             if (!searchedLocally) {
                 searchedLocally = true;

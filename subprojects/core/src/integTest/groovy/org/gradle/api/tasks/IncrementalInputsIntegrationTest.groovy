@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.change.ChangeTypeInternal
+import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -131,6 +131,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @InputFile
                 abstract RegularFileProperty getNonIncrementalInput()
 
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @Override
                 void execute(InputChanges inputChanges) {
                     inputChanges.getFileChanges(nonIncrementalInput)
@@ -156,6 +160,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
                 @InputFile
                 File nonIncrementalInput
+
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
 
                 @Override
                 void execute(InputChanges changes) {

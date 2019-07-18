@@ -23,6 +23,7 @@ import java.io.OutputStream;
 public abstract class AbstractEncoder implements Encoder {
     private EncoderStream stream;
 
+    @Override
     public OutputStream getOutputStream() {
         if (stream == null) {
             stream = new EncoderStream();
@@ -30,27 +31,33 @@ public abstract class AbstractEncoder implements Encoder {
         return stream;
     }
 
+    @Override
     public void writeBytes(byte[] bytes) throws IOException {
         writeBytes(bytes, 0, bytes.length);
     }
 
+    @Override
     public void writeBinary(byte[] bytes) throws IOException {
         writeBinary(bytes, 0, bytes.length);
     }
 
+    @Override
     public void writeBinary(byte[] bytes, int offset, int count) throws IOException {
         writeSmallInt(count);
         writeBytes(bytes, offset, count);
     }
 
+    @Override
     public void writeSmallInt(int value) throws IOException {
         writeInt(value);
     }
 
+    @Override
     public void writeSmallLong(long value) throws IOException {
         writeLong(value);
     }
 
+    @Override
     public void writeNullableString(@Nullable CharSequence value) throws IOException {
         if (value == null) {
             writeBoolean(false);

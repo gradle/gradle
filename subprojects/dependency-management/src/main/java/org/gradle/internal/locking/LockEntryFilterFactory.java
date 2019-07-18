@@ -118,6 +118,7 @@ class LockEntryFilterFactory {
             this.module = module;
         }
 
+        @Override
         public boolean isSatisfiedBy(ModuleComponentIdentifier id) {
             return matches(group, id.getGroup()) && matches(module, id.getModule());
         }

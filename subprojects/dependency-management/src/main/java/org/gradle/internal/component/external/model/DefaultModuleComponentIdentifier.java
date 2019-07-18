@@ -37,6 +37,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         this.hashCode = 31 * version.hashCode() + module.hashCode();
     }
 
+    @Override
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
@@ -54,14 +55,17 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         return getDisplayName();
     }
 
+    @Override
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
+    @Override
     public String getModule() {
         return moduleIdentifier.getName();
     }
 
+    @Override
     public String getVersion() {
         return version;
     }

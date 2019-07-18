@@ -29,6 +29,7 @@ public class DefaultBuildDashboardReports extends TaskReportContainer<Report> im
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
     }
 
+    @Override
     public DirectoryReport getHtml() {
         return (DirectoryReport)getByName("html");
     }

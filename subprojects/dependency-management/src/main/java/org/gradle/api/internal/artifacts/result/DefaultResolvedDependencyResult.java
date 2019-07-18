@@ -19,17 +19,29 @@ package org.gradle.api.internal.artifacts.result;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
-    private final ResolvedComponentResult selected;
+    private final ResolvedComponentResult selectedComponent;
+    private final ResolvedVariantResult selectedVariant;
 
-    public DefaultResolvedDependencyResult(ComponentSelector requested, boolean constraint, ResolvedComponentResult selected, ResolvedComponentResult from) {
+    public DefaultResolvedDependencyResult(ComponentSelector requested,
+                                           boolean constraint,
+                                           ResolvedComponentResult selectedComponent,
+                                           ResolvedVariantResult selectedVariant,
+                                           ResolvedComponentResult from) {
         super(requested, from, constraint);
-        this.selected = selected;
+        this.selectedComponent = selectedComponent;
+        this.selectedVariant = selectedVariant;
     }
 
+    @Override
     public ResolvedComponentResult getSelected() {
-        return selected;
+        return selectedComponent;
+    }
+
+    public ResolvedVariantResult getResolvedVariant() {
+        return selectedVariant;
     }
 
     @Override

@@ -28,10 +28,12 @@ public class NoInputsRuleAction<T> implements RuleAction<T> {
         this.action = action;
     }
 
+    @Override
     public List<Class<?>> getInputTypes() {
         return Collections.emptyList();
     }
 
+    @Override
     public void execute(T subject, List<?> inputs) {
         action.execute(subject);
     }

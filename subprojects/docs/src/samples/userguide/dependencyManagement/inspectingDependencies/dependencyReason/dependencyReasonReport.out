@@ -1,7 +1,8 @@
-org.ow2.asm:asm:6.0
+org.ow2.asm:asm:7.1
    variant "compile" [
       org.gradle.status              = release (not requested)
       org.gradle.usage               = java-api
+      org.gradle.libraryelements     = jar (compatible with: classes)
       org.gradle.category            = library (not requested)
 
       Requested attributes not found in the selected variant:
@@ -11,7 +12,7 @@ org.ow2.asm:asm:6.0
    Selection reasons:
       - Was requested : we require a JDK 9 compatible bytecode generator
 
-org.ow2.asm:asm:6.0
+org.ow2.asm:asm:7.1
 \--- compileClasspath
 
 A web-based, searchable dependency report is available by adding the --scan option.

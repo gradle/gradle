@@ -53,6 +53,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         this.workerLeaseService = workerLeaseService;
     }
 
+    @Override
     public void registerProjects(BuildState owner) {
         Set<DefaultProjectDescriptor> allProjects = owner.getLoadedSettings().getProjectRegistry().getAllProjects();
         synchronized (lock) {
@@ -182,7 +183,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public <T> void withMutableState(Runnable action) {
+        public void withMutableState(Runnable action) {
             withMutableState(Factories.toFactory(action));
         }
 

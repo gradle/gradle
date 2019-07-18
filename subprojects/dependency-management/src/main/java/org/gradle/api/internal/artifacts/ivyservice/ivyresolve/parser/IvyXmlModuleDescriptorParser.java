@@ -121,6 +121,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         this.metadataFactory = metadataFactory;
     }
 
+    @Override
     protected ParseResult<MutableIvyModuleResolveMetadata> doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties());
         parser.setValidate(validate);
@@ -151,6 +152,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         properties.put("ivy.basedir", baseDir);
 
         Set<String> propertyNames = CollectionUtils.collect(System.getProperties().entrySet(), new Transformer<String, Map.Entry<Object, Object>>() {
+            @Override
             public String transform(Map.Entry<Object, Object> entry) {
                 return entry.getKey().toString();
             }
@@ -387,14 +389,17 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             errors.add(msg + " in " + res.getDisplayName());
         }
 
+        @Override
         public void warning(SAXParseException ex) {
             LOGGER.warn("xml parsing: {}: {}", getLocationString(ex), ex.getMessage());
         }
 
+        @Override
         public void error(SAXParseException ex) {
             addError("xml parsing: " + getLocationString(ex) + ": " + ex.getMessage());
         }
 
+        @Override
         public void fatalError(SAXParseException ex) throws SAXException {
             addError("[Fatal Error] " + getLocationString(ex) + ": " + ex.getMessage());
         }
@@ -525,6 +530,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         public void parse() throws ParseException {
             getResource().withContent(new Action<InputStream>() {
+                @Override
                 public void execute(InputStream inputStream) {
                     URL schemaURL = validate ? getSchemaURL() : null;
                     InputSource inSrc = new InputSource(inputStream);
@@ -584,6 +590,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             }
         }
 
+        @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes)
                 throws SAXException {
             try {
@@ -1169,12 +1176,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return matcher;
         }
 
+        @Override
         public void characters(char[] ch, int start, int length) throws SAXException {
             if (buffer != null) {
                 buffer.append(ch, start, length);
             }
         }
 
+        @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (state == State.PUB && "artifact".equals(qName)) {
                 if (artifact.getConfigurations().isEmpty()) {

@@ -88,6 +88,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
+    @Override
     public void notifyStateChange() {
         synchronized (lock) {
             lock.notifyAll();

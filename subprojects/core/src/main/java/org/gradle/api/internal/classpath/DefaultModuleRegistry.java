@@ -94,6 +94,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         return gradleInstallation == null ? DefaultClassPath.of(classpath) : ClassPath.EMPTY;
     }
 
+    @Override
     public Module getExternalModule(String name) {
         Module module = externalModules.get(name);
         if (module == null) {
@@ -114,6 +115,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet());
     }
 
+    @Override
     public Module getModule(String name) {
         Module module = modules.get(name);
         if (module == null) {
@@ -375,22 +377,27 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             return "module '" + name + "'";
         }
 
+        @Override
         public Set<Module> getRequiredModules() {
             return getModules(projects);
         }
 
+        @Override
         public ClassPath getImplementationClasspath() {
             return implementationClasspath;
         }
 
+        @Override
         public ClassPath getRuntimeClasspath() {
             return runtimeClasspath;
         }
 
+        @Override
         public ClassPath getClasspath() {
             return classpath;
         }
 
+        @Override
         public Set<Module> getAllRequiredModules() {
             Set<Module> modules = new LinkedHashSet<Module>();
             collectRequiredModules(modules);

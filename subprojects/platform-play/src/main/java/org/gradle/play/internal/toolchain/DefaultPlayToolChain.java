@@ -37,6 +37,7 @@ import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.util.CollectionUtils;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -53,8 +54,9 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final ClasspathFingerprinter fingerprinter;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
+    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
@@ -64,6 +66,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         this.fingerprinter = fingerprinter;
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerAdapterFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerAdapterFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(forkOptionsFactory, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry);
+            return new DefaultPlayToolProvider(forkOptionsFactory, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }
@@ -90,6 +93,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
 
     private Configuration resolveToolClasspath(Object... dependencyNotations) {
         List<Dependency> dependencies = CollectionUtils.collect(dependencyNotations, new Transformer<Dependency, Object>() {
+            @Override
             public Dependency transform(Object dependencyNotation) {
                 return dependencyHandler.create(dependencyNotation);
             }

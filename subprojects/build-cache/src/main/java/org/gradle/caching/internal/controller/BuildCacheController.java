@@ -36,7 +36,4 @@ public interface BuildCacheController extends Closeable {
 
     void store(BuildCacheStoreCommand command);
 
-    @Override
-    void close();
-
 }

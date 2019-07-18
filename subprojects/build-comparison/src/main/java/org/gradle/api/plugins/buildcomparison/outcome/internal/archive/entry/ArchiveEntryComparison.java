@@ -58,6 +58,7 @@ public class ArchiveEntryComparison implements Comparable<ArchiveEntryComparison
         return target;
     }
 
+    @Override
     @SuppressWarnings("NullableProblems")
     public int compareTo(ArchiveEntryComparison o) {
         return path.compareTo(o.path);

@@ -58,8 +58,8 @@ class PluginBuilder {
         """
             apply plugin: "groovy"
             dependencies {
-              compile localGroovy()
-              compile gradleApi()
+              implementation localGroovy()
+              implementation gradleApi()
             }
         """
     }

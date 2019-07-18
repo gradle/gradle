@@ -42,6 +42,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -56,6 +57,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final ViewDecoration NO_OP_MAPPER = new NoOpDecoration();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
+        @Override
         public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
             return initialTargetType;
         }
@@ -341,6 +343,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             return sourceObject.hashCode();
         }
 
+        @Override
         public Object invoke(Object target, Method method, Object[] params) throws Throwable {
             if (EQUALS_METHOD.equals(method)) {
                 Object param = params[0];
@@ -375,6 +378,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             this.invokers = invokers.toArray(new MethodInvoker[0]);
         }
 
+        @Override
         public void invoke(MethodInvocation method) throws Throwable {
             for (int i = 0; !method.found() && i < invokers.length; i++) {
                 MethodInvoker invoker = invokers[i];
@@ -394,6 +398,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             this.next = next;
         }
 
+        @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
             if (invocation.found() && invocation.getResult() != null) {
@@ -582,6 +587,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class ReflectionMethodInvoker implements MethodInvoker {
         private final MethodInvocationCache lookupCache = new MethodInvocationCache();
 
+        @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             Method targetMethod = locateMethod(invocation);
             if (targetMethod == null) {
@@ -604,14 +610,15 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class PropertyCachingMethodInvoker implements MethodInvoker {
-        private final Map<String, Object> properties = new HashMap<String, Object>();
-        private final Set<String> unknown = new HashSet<String>();
+        private Map<String, Object> properties = Collections.emptyMap();
+        private Set<String> unknown = Collections.emptySet();
         private final MethodInvoker next;
 
         private PropertyCachingMethodInvoker(MethodInvoker next) {
             this.next = next;
         }
 
+        @Override
         public void invoke(MethodInvocation method) throws Throwable {
             if (method.isGetter()) {
                 if (properties.containsKey(method.getName())) {
@@ -625,15 +632,29 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 Object value;
                 next.invoke(method);
                 if (!method.found()) {
-                    unknown.add(method.getName());
+                    markUnknown(method.getName());
                     return;
                 }
                 value = method.getResult();
-                properties.put(method.getName(), value);
+                cachePropertyValue(method.getName(), value);
                 return;
             }
 
             next.invoke(method);
+        }
+
+        private void markUnknown(String methodName) {
+            if (unknown.isEmpty()) {
+                unknown = new HashSet<String>();
+            }
+            unknown.add(methodName);
+        }
+
+        private void cachePropertyValue(String methodName, Object value) {
+            if (properties.isEmpty()) {
+                properties = new HashMap<String, Object>();
+            }
+            properties.put(methodName, value);
         }
     }
 
@@ -644,6 +665,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             this.next = next;
         }
 
+        @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
             if (invocation.found() || invocation.getParameterTypes().length != 1 || !invocation.isIsOrGet()) {
@@ -667,6 +689,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             this.next = next;
         }
 
+        @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
             if (invocation.found()) {
@@ -726,6 +749,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             this.next = next;
         }
 
+        @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             if (current.get() != null) {
                 // Already invoking a method on the mix-in

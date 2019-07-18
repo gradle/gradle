@@ -39,6 +39,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
      */
     ClassLoaderScope getClassLoaderScope();
 
+    @Override
     StartParameter getStartParameter();
 
     ScriptSource getSettingsScript();

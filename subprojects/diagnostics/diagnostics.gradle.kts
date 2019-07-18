@@ -21,33 +21,52 @@ plugins {
 }
 
 dependencies {
-    api(library("groovy"))
-
-    api(project(":core"))
-    api(project(":reporting"))
-    api(project(":platformBase"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":fileCollections"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":reporting"))
+    implementation(project(":platformBase"))
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
     implementation(library("guava"))
-    implementation(library("jatl"))
     implementation(library("commons_lang"))
+    implementation(library("inject"))
+    implementation(library("jatl"))
+
+    testImplementation(project(":processServices"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":logging")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":kotlinDsl"))
+    testRuntimeOnly(project(":kotlinDslProviderPlugins"))
+
+    integTestImplementation(testLibrary("jsoup"))
+    integTestImplementation(testLibrary("jetty"))
+
+    testFixturesApi(testFixtures(project(":platformNative")))
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(library("guava"))
 
     integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":platformNative"))
     integTestRuntimeOnly(project(":languageNative"))
-}
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
 
-testFixtures {
-    from(":core")
-    from(":dependencyManagement")
-    from(":platformNative", "testFixtures")
-    from(":logging")
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

@@ -40,18 +40,22 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
         add(TaskGeneratedSingleFileReport.class, "emacs", task);
     }
 
+    @Override
     public FindBugsXmlReport getXml() {
         return (FindBugsXmlReport) getByName("xml");
     }
 
+    @Override
     public CustomizableHtmlReport getHtml() {
         return withType(CustomizableHtmlReport.class).getByName("html");
     }
 
+    @Override
     public SingleFileReport getText() {
         return getByName("text");
     }
 
+    @Override
     public SingleFileReport getEmacs() {
         return getByName("emacs");
     }

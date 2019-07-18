@@ -153,6 +153,7 @@ public class TestReport extends DefaultTask {
                 return new BinaryResultBackedTestResultsProvider(resultDirs.getSingleFile());
             } else {
                 return new AggregateTestResultsProvider(collect(resultDirs, resultsProviders, new Transformer<TestResultsProvider, File>() {
+                    @Override
                     public TestResultsProvider transform(File dir) {
                         return new BinaryResultBackedTestResultsProvider(dir);
                     }

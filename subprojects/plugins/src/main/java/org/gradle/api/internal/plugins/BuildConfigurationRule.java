@@ -34,10 +34,12 @@ public class BuildConfigurationRule extends AbstractRule {
         this.tasks = tasks;
     }
 
+    @Override
     public String getDescription() {
         return "Pattern: " + PREFIX + "<ConfigurationName>: Assembles the artifacts of a configuration.";
     }
 
+    @Override
     public void apply(String taskName) {
         if (taskName.startsWith(PREFIX)) {
             String configurationName = StringUtils.uncapitalize(taskName.substring(PREFIX.length()));

@@ -284,7 +284,7 @@ class RuleBindings {
         private List<RuleBinder> getByPath(Map<String, List<RuleBinder>> byState, String path) {
             List<RuleBinder> ruleBinders = byState.get(path);
             if (ruleBinders == null) {
-                ruleBinders = new LinkedList<RuleBinder>();
+                ruleBinders = new ArrayList<>();
                 byState.put(path, ruleBinders);
             }
             return ruleBinders;

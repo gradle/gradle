@@ -16,7 +16,11 @@
 
 package org.gradle.internal.instantiation
 
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
+import org.gradle.internal.state.ManagedFactory
+import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.ClassRule
@@ -24,25 +28,14 @@ import spock.lang.Shared
 import spock.lang.Unroll
 
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.*
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceListPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceMapPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfacePropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceSetPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceWithDefaultMethods
 
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [])
+    ManagedFactory generatorFactory = TestUtil.instantiatorFactory().managedFactory
+    final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
 
     def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
         def bean = create(BeanWithAbstractProperty)
@@ -64,7 +57,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state.length == 1
         state[0] == null
 
-        def copy = bean.managedFactory().fromState(BeanWithAbstractProperty, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(BeanWithAbstractProperty, state)
         !copy.is(bean)
         copy.name == null
 
@@ -75,7 +68,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state2.length == 1
         state2[0] == "name"
 
-        def copy2 = bean.managedFactory().fromState(BeanWithAbstractProperty, state2)
+        def copy2 = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(BeanWithAbstractProperty, state2)
         !copy2.is(bean)
         copy2.name == "name"
     }
@@ -105,7 +98,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state[0] == null
         state[1] == null
 
-        def copy = bean.managedFactory().fromState(InterfaceBean, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(InterfaceBean, state)
         !copy.is(bean)
         copy.name == null
         copy.numbers == null
@@ -120,7 +113,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state2[0] == "name"
         state2[1] == [12] as Set
 
-        def copy2 = bean.managedFactory().fromState(InterfaceBean, state2)
+        def copy2 = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(InterfaceBean, state2)
         !copy2.is(bean)
         copy2.name == "name"
         copy2.numbers == [12] as Set
@@ -174,11 +167,13 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.get() == newValue
 
         where:
-        type                      | defaultValue | newValue
-        InterfacePropertyBean     | null         | "value"
-        InterfaceListPropertyBean | []           | ["a", "b"]
-        InterfaceSetPropertyBean  | [] as Set    | ["a", "b"] as Set
-        InterfaceMapPropertyBean  | [:]          | [a: 1, b: 12]
+        type                               | defaultValue | newValue
+        InterfacePropertyBean              | null         | "value"
+        InterfacePropertyWithParamTypeBean | null         | Param.of(Param.of(12))
+        AbstractClassWithTypeParamProperty | null         | Param.of("value")
+        InterfaceListPropertyBean          | []           | ["a", "b"]
+        InterfaceSetPropertyBean           | [] as Set    | ["a", "b"] as Set
+        InterfaceMapPropertyBean           | [:]          | [a: 1, b: 12]
     }
 
     @Unroll
@@ -194,7 +189,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state.length == 1
         state[0].is(bean.prop)
 
-        def copy = bean.managedFactory().fromState(type, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(type, state)
         copy.prop.is(bean.prop)
 
         where:
@@ -225,7 +220,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def state = bean.unpackState()
         state.length == 0
 
-        def copy = bean.managedFactory().fromState(InterfaceWithDefaultMethods, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(InterfaceWithDefaultMethods, state)
         !copy.is(bean)
         copy.name == "name"
     }

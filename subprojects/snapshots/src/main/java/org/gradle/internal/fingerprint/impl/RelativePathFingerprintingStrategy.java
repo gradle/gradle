@@ -17,9 +17,10 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -35,10 +36,12 @@ import java.util.Map;
  * File names for root directories are ignored. For root files, the file name is used as normalized path.
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    private final StringInterner stringInterner;
+    public static final String IDENTIFIER = "RELATIVE_PATH";
 
-    public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
-        super("RELATIVE_PATH", NormalizedPathFingerprintCompareStrategy.INSTANCE);
+    private final Interner<String> stringInterner;
+
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner) {
+        super(IDENTIFIER);
         this.stringInterner = stringInterner;
     }
 
@@ -72,7 +75,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot) : createFingerprint(fileSnapshot);
@@ -94,5 +97,10 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
             });
         }
         return builder.build();
+    }
+
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORT;
     }
 }

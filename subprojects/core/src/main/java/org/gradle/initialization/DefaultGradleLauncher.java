@@ -23,8 +23,8 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.configuration.BuildConfigurer;
-import org.gradle.execution.BuildExecuter;
+import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -49,11 +49,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private final BuildConfigurer buildConfigurer;
+    private final ProjectsPreparer projectsPreparer;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final BuildCompletionListener buildCompletionListener;
-    private final BuildExecuter buildExecuter;
+    private final BuildWorkExecutor buildExecuter;
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
     private final IncludedBuildControllers includedBuildControllers;
@@ -64,14 +64,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
 
-    public DefaultGradleLauncher(GradleInternal gradle, BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
+    public DefaultGradleLauncher(GradleInternal gradle, ProjectsPreparer projectsPreparer, ExceptionAnalyser exceptionAnalyser,
                                  BuildListener buildListener, BuildCompletionListener buildCompletionListener,
-                                 BuildExecuter buildExecuter, BuildScopeServices buildServices,
+                                 BuildWorkExecutor buildExecuter, BuildScopeServices buildServices,
                                  List<?> servicesToStop, IncludedBuildControllers includedBuildControllers,
                                  SettingsPreparer settingsPreparer, TaskExecutionPreparer taskExecutionPreparer,
                                  InstantExecution instantExecution) {
         this.gradle = gradle;
-        this.buildConfigurer = buildConfigurer;
+        this.projectsPreparer = projectsPreparer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.buildExecuter = buildExecuter;
@@ -101,6 +101,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         return gradle;
     }
 
+    @Override
     public GradleInternal executeTasks() {
         doBuildStages(Stage.RunTasks);
         return gradle;
@@ -134,7 +135,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.LoadSettings) {
             return;
         }
-        configureBuild();
+        prepareProjects();
         if (upTo == Stage.Configure) {
             return;
         }
@@ -143,14 +144,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return;
         }
         instantExecution.saveTaskGraph();
-        runTasks();
+        runWork();
     }
 
     private void doInstantExecution() {
         buildListener.buildStarted(gradle);
         instantExecution.loadTaskGraph();
         stage = Stage.TaskGraph;
-        runTasks();
+        runWork();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -192,9 +193,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private void configureBuild() {
+    private void prepareProjects() {
         if (stage == Stage.LoadSettings) {
-            buildConfigurer.configure(gradle);
+            projectsPreparer.prepareProjects(gradle);
 
             stage = Stage.Configure;
         }
@@ -226,7 +227,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         doBuildStages(Stage.TaskGraph);
     }
 
-    private void runTasks() {
+    private void runWork() {
         if (stage != Stage.TaskGraph) {
             throw new IllegalStateException("Cannot execute tasks: current stage = " + stage);
         }
@@ -241,8 +242,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for
-     * supported listener types.</p>
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build.
+     * See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -251,6 +252,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         gradle.addListener(listener);
     }
 
+    @Override
     public void stop() {
         try {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();

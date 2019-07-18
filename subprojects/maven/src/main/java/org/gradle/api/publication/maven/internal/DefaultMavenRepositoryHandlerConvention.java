@@ -40,6 +40,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
         this.deployerFactory = deployerFactory;
     }
 
+    @Override
     public GroovyMavenDeployer mavenDeployer() {
         return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME);
     }
@@ -49,18 +50,22 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
         return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, configureAction);
     }
 
+    @Override
     public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
         return mavenDeployer(configureUsing(configureClosure));
     }
 
+    @Override
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args) {
         return mavenDeployer(configureByMapActionFor(args));
     }
 
+    @Override
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure) {
         return mavenDeployer(args, configureUsing(configureClosure));
     }
 
+    @Override
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Action<? super GroovyMavenDeployer> configureAction) {
         //noinspection unchecked
         return mavenDeployer(composite(configureByMapActionFor(args), configureAction));
@@ -70,10 +75,12 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
         return deployerFactory.createMavenDeployer();
     }
 
+    @Override
     public MavenResolver mavenInstaller() {
         return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME);
     }
 
+    @Override
     public MavenResolver mavenInstaller(Closure configureClosure) {
         return mavenInstaller(configureUsing(configureClosure));
     }
@@ -83,10 +90,12 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
         return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, configureAction);
     }
 
+    @Override
     public MavenResolver mavenInstaller(Map<String, ?> args) {
         return mavenInstaller(configureByMapActionFor(args));
     }
 
+    @Override
     public MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure) {
         return mavenInstaller(args, configureUsing(configureClosure));
     }

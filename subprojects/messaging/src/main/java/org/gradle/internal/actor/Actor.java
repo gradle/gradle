@@ -58,5 +58,6 @@ public interface Actor extends Dispatch<MethodInvocation>, Stoppable, ThreadSafe
      *
      * @throws DispatchException When there were any failures dispatching method calls to the target object.
      */
+    @Override
     void stop() throws DispatchException;
 }

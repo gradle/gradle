@@ -51,6 +51,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
+    @Override
     public DefaultGroovyMavenDeployer createMavenDeployer() {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
@@ -59,6 +60,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
                 mavenSettingsProvider, mavenRepositoryLocator);
     }
 
+    @Override
     public MavenResolver createMavenInstaller() {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));

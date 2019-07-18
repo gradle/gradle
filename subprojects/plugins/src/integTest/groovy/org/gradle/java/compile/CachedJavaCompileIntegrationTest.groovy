@@ -37,7 +37,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
             ${mavenCentralRepository()}
 
             dependencies {
-                compile 'org.codehaus.groovy:groovy-all:2.4.10'
+                implementation 'org.codehaus.groovy:groovy-all:2.4.10'
             }
         """.stripIndent()
 
@@ -57,10 +57,10 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         libraryAppProjectWithIncrementalCompilation()
 
         when:
-        withBuildCache().run appCompileJava
+        withBuildCache().run appCompileTask
 
         then:
-        executedAndNotSkipped appCompileJava
+        executedAndNotSkipped appCompileTask
 
         when:
         writeUnusedLibraryClass()
@@ -68,18 +68,18 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         and:
         withBuildCache()
         executer.withArgument('-i')
-        succeeds appCompileJava
+        succeeds appCompileTask
 
         then:
         outputContains "None of the classes needs to be compiled!"
-        outputContains "${appCompileJava} UP-TO-DATE"
-        executedAndNotSkipped libraryCompileJava
+        outputContains "${appCompileTask} UP-TO-DATE"
+        executedAndNotSkipped libraryCompileTask
 
         when:
         withBuildCache()
-        succeeds 'clean', appCompileJava
+        succeeds 'clean', appCompileTask
 
         then:
-        outputContains "${appCompileJava} FROM-CACHE"
+        outputContains "${appCompileTask} FROM-CACHE"
     }
 }

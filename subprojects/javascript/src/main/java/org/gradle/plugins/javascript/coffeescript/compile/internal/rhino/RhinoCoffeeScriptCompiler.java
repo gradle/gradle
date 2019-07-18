@@ -40,6 +40,7 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
         this.workingDir = workingDir;
     }
 
+    @Override
     public WorkResult compile(CoffeeScriptCompileSpec spec) {
         CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
 

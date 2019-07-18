@@ -35,6 +35,7 @@ public class GradleLauncherMetaData implements BuildClientMetaData {
         return appName;
     }
 
+    @Override
     public void describeCommand(Appendable output, String... args) {
         try {
             output.append(appName);

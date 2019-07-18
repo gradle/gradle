@@ -179,6 +179,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                             @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
             binaries.create("binary", new Action<PlayApplicationBinarySpec>() {
+                @Override
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     final File binaryBuildDir = new File(buildDir, playBinaryInternal.getProjectScopedName());
@@ -269,6 +270,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void createJarTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
             String jarTaskName = binary.getTasks().taskName("create", "Jar");
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
+                @Override
                 public void execute(Jar jar) {
                     jar.setDescription("Assembles the application jar for the " + binary.getDisplayName() + ".");
                     jar.getDestinationDirectory().set(binary.getJarFile().getParentFile());
@@ -281,6 +283,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
             String assetsJarTaskName = binary.getTasks().taskName("create", "assetsJar");
             tasks.create(assetsJarTaskName, Jar.class, new Action<Jar>() {
+                @Override
                 public void execute(Jar jar) {
                     jar.setDescription("Assembles the assets jar for the " + binary.getDisplayName() + ".");
                     jar.getDestinationDirectory().set(binary.getAssetsJarFile().getParentFile());
@@ -301,6 +304,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 String runTaskName = binary.getTasks().taskName("run");
 
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
+                    @Override
                     public void execute(PlayRun playRun) {
                         playRun.setDescription("Runs the Play application for local development.");
                         playRun.setGroup(RUN_GROUP);

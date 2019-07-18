@@ -37,17 +37,10 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         def testDirAttributes = project.sourceDirectories.find { it.path == 'src/test/java' }.classpathAttributes
 
         then:
-        mainDirAttributes.size() == 2
-        mainDirAttributes[0].name == 'gradle_scope'
-        mainDirAttributes[0].value == 'main'
-        mainDirAttributes[1].name == 'gradle_used_by_scope'
-        mainDirAttributes[1].value == 'main,test'
-
-        testDirAttributes.size() == 2
-        testDirAttributes[0].name == 'gradle_scope'
-        testDirAttributes[0].value == 'test'
-        testDirAttributes[1].name == 'gradle_used_by_scope'
-        testDirAttributes[1].value == 'test'
+        mainDirAttributes.find { it.name == 'gradle_scope' && it.value == 'main' }
+        mainDirAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'main,test' }
+        testDirAttributes.find { it.name == 'gradle_scope' && it.value == 'test' }
+        testDirAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'test' }
     }
 
     def "Source folder defines additional classpath attributes"() {

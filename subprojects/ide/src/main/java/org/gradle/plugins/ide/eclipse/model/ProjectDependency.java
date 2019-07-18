@@ -18,11 +18,21 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
+
+import java.util.Objects;
 
 /**
  * A classpath entry representing a project dependency.
  */
 public class ProjectDependency extends AbstractClasspathEntry {
+
+    private FileReference publication;
+    private FileReference publicationSourcePath;
+    private FileReference publicationJavadocPath;
+    private DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
     public ProjectDependency(Node node) {
         super(node);
@@ -31,6 +41,7 @@ public class ProjectDependency extends AbstractClasspathEntry {
 
     /**
      * Create a dependency on another Eclipse project.
+     *
      * @param path The path to the Eclipse project, which is the name of the eclipse project preceded by "/".
      */
     public ProjectDependency(String path) {
@@ -38,8 +49,119 @@ public class ProjectDependency extends AbstractClasspathEntry {
         assertPathIsValid();
     }
 
+    /**
+     * Returns the file that can replace this ProjectDependency
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public FileReference getPublication() {
+        return publication;
+    }
+
+    /**
+     * Sets the file that can replace this ProjectDependency
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public void setPublication(FileReference publication) {
+        this.publication = publication;
+    }
+
+    /**
+     * Returns the source artifact of the project publication
+     *
+     * @see #getPublication()
+     * @since 5.6
+     */
+    @Incubating
+    public FileReference getPublicationSourcePath() {
+        return publicationSourcePath;
+    }
+
+    /**
+     * Sets the source artifact of the project publication
+     *
+     * @see #getPublication()
+     * @since 5.6
+     */
+    @Incubating
+    public void setPublicationSourcePath(FileReference publicationSourcePath) {
+        this.publicationSourcePath = publicationSourcePath;
+    }
+
+    /**
+     * Returns the javadoc artifact of the project publication
+     *
+     * @see #getPublication()
+     * @since 5.6
+     */
+    @Incubating
+    public FileReference getPublicationJavadocPath() {
+        return publicationJavadocPath;
+    }
+
+    /**
+     * Sets the javadoc artifact of the project publication
+     *
+     * @see #getPublication()
+     * @since 5.6
+     */
+    @Incubating
+    public void setPublicationJavadocPath(FileReference publicationJavadocPath) {
+        this.publicationJavadocPath = publicationJavadocPath;
+    }
+
+    /**
+     * Returns the tasks to be executed to build the the file returned by {@link #getPublication()}
+     * <p>
+     * This property doesn't have a direct effect to the Gradle Eclipse plugin's behaviour. It is used, however, by
+     * Buildship to execute the configured tasks each time before the user imports the project or before a project
+     * synchronization starts in case this project is closed to build the substitute jar.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
+    }
+
+    /**
+     * Sets the tasks to be executed to build the the file returned by {@link #getPublication()}
+     *
+     * @see #getBuildDependencies()
+     * @since 5.6
+     */
+    @Incubating
+    public void buildDependencies(Object... buildDependencies) {
+        this.buildDependencies.add(buildDependencies);
+    }
+
     private void assertPathIsValid() {
         Preconditions.checkArgument(path.startsWith("/"));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        ProjectDependency that = (ProjectDependency) o;
+        return Objects.equals(publication, that.publication) &&
+            Objects.equals(publicationSourcePath, that.publicationSourcePath) &&
+            Objects.equals(publicationJavadocPath, that.publicationJavadocPath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), publication, publicationSourcePath, publicationJavadocPath);
     }
 
     @Override
@@ -49,6 +171,15 @@ public class ProjectDependency extends AbstractClasspathEntry {
 
     @Override
     public String toString() {
-        return "ProjectDependency" + super.toString();
+        return "ProjectDependency{" +
+            "publication=" + publication +
+            ", publicationSourcePath=" + publicationSourcePath +
+            ", publicationJavadocPath=" + publicationJavadocPath +
+            ", buildDependencies=" + buildDependencies +
+            ", path='" + path + '\'' +
+            ", exported=" + exported +
+            ", accessRules=" + accessRules +
+            ", entryAttributes=" + entryAttributes +
+            '}';
     }
 }

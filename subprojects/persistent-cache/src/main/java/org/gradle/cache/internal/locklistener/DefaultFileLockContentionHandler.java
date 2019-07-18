@@ -98,6 +98,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private Runnable listener() {
         return new Runnable() {
+            @Override
             public void run() {
                 try {
                     LOGGER.debug("Starting file lock listener thread.");
@@ -161,6 +162,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public void start(long lockId, Action<FileLockReleasedSignal> whenContended) {
         lock.lock();
         try {
@@ -187,6 +189,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         if (Integer.valueOf(port).equals(unlocksConfirmedFrom.get(lockId))) {
             //the unlock was confirmed we are waiting
@@ -217,6 +220,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public void stop(long lockId) {
         lock.lock();
         try {
@@ -226,6 +230,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public void stop() {
         lock.lock();
         try {
@@ -245,6 +250,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    @Override
     public int reservePort() {
         return getCommunicator().getPort();
     }

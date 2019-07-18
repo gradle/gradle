@@ -16,7 +16,10 @@
 
 package org.gradle.test.matchers;
 
-import org.hamcrest.*;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
 
 public class UserAgentMatcher extends BaseMatcher {
 
@@ -28,6 +31,7 @@ public class UserAgentMatcher extends BaseMatcher {
         this.version = version;
     }
 
+    @Override
     public void describeTo(Description description) {
         description.appendValue(expectedUserAgentString());
     }
@@ -37,9 +41,10 @@ public class UserAgentMatcher extends BaseMatcher {
         return new UserAgentMatcher(applicationName, version);
     }
 
+    @Override
     public boolean matches(Object o) {
         String testString = expectedUserAgentString();
-        return Matchers.equalTo(testString).matches(o);
+        return CoreMatchers.equalTo(testString).matches(o);
     }
 
     private String expectedUserAgentString() {

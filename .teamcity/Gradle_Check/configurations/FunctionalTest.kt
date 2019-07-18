@@ -7,15 +7,21 @@ import model.Stage
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
-    uuid = testCoverage.asConfigurationId(model, subProject)
+class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProjects: List<String> = listOf(), stage: Stage, buildTypeName: String = "") : BaseGradleBuildType(model, stage = stage, init = {
+    val coverageName = if (subProjects.size > 1) buildTypeName else subProjects.joinToString("")
+    uuid = testCoverage.asConfigurationId(model, coverageName)
     id = AbsoluteId(uuid)
-    name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
-    val testTask = if (!subProject.isEmpty()) {
-        subProject + ":"
-    } else {
-        ""
-    } + testCoverage.testType.name + "Test"
+    name = testCoverage.asName() + if (coverageName.isEmpty()) "" else " ($coverageName)"
+    description = "${testCoverage.asName()} for ${when (subProjects.size) {
+        0 -> "all projects "
+        1 -> "project ${subProjects.joinToString("")}"
+        else -> "projects ${subProjects.joinToString(", ")}"
+    }}"
+    val testTaskName = "${testCoverage.testType.name}Test"
+    val testTasks = if (subProjects.isEmpty())
+        testTaskName
+    else
+        subProjects.map { "$it:$testTaskName" }.joinToString(" ")
     val quickTest = testCoverage.testType == TestType.quick
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(
@@ -23,11 +29,11 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
             "coverageJvmVendor" to testCoverage.vendor.name,
             "coverageJvmVersion" to testCoverage.testJvmVersion.name
     )
-    applyTestDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
+    applyTestDefaults(model, this, testTasks, notQuick = !quickTest, os = testCoverage.os,
             extraParameters = (
-                    listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""")
-                            + buildScanTags.map { buildScanTag(it) }
-                            + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+                    listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
+                            buildScanTags.map { buildScanTag(it) } +
+                            buildScanValues.map { buildScanCustomValue(it.key, it.value) }
                     ).joinToString(separator = " "),
             timeout = testCoverage.testType.timeout)
 

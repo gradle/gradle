@@ -16,21 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.internal.UncheckedException;
 
-import java.io.File;
-import java.nio.file.Path;
-
 public abstract class AbstractTaskDependencyResolveContext implements TaskDependencyResolveContext {
-    @Override
-    public void maybeAdd(Object dependency) {
-        if (dependency instanceof File || dependency instanceof FileSystemLocation || dependency instanceof Path) {
-            return;
-        }
-        add(dependency);
-    }
-
     @Override
     public void visitFailure(Throwable failure) {
         // Rethrow

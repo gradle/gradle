@@ -29,6 +29,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.internal.stream.EncodedStream;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -41,7 +42,6 @@ import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
-import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -172,6 +172,7 @@ public class DaemonMain extends EntryPoint {
         final PrintStream log = result;
 
         ShutdownHooks.addShutdownHook(new Runnable() {
+            @Override
             public void run() {
                 //just in case we have a bug related to logging,
                 //printing some exit info directly to file:

@@ -28,12 +28,12 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.2.9"
+version = "1.2.10"
 
 base.archivesBaseName = "plugins"
 
 gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    moduleType = ModuleType.PORTAL_PLUGINS
 }
 
 val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")
@@ -48,20 +48,43 @@ sourceSets.main {
 }
 
 dependencies {
-    compileOnly(project(":kotlinDsl"))
+    compileOnly(project(":baseServices"))
+    compileOnly(project(":logging"))
+    compileOnly(project(":coreApi"))
+    compileOnly(project(":modelCore"))
+    compileOnly(project(":core"))
+    compileOnly(project(":languageJvm"))
+    compileOnly(project(":languageJava"))
+    compileOnly(project(":plugins"))
     compileOnly(project(":pluginDevelopment"))
+    compileOnly(project(":kotlinDsl"))
+
+    compileOnly(library("slf4j_api"))
+    compileOnly(library("inject"))
 
     implementation(futureKotlin("stdlib-jdk8"))
     implementation(futureKotlin("gradle-plugin"))
     implementation(futureKotlin("sam-with-receiver"))
 
-    testImplementation(project(":kotlinDslTestFixtures"))
-    testImplementation(project(":plugins"))
-
+    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":logging"))
+    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":modelCore"))
+    integTestImplementation(project(":core"))
+    integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":platformJvm"))
+    integTestImplementation(project(":kotlinDsl"))
+    integTestImplementation(project(":internalTesting"))
+    integTestImplementation(project(":internalIntegTesting"))
+    integTestImplementation(project(":kotlinDslTestFixtures"))
+    integTestImplementation(library("slf4j_api"))
+    integTestImplementation(testLibrary("mockito_kotlin"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 

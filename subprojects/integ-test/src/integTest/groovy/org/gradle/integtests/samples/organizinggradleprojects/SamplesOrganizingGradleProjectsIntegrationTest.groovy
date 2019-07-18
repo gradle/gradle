@@ -50,7 +50,7 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
         succeeds('build')
 
         then:
-        nonSkippedTasks.containsAll([':test', ':integTest'])
+        executedAndNotSkipped(':test', ':integTest')
 
         where:
         dsl << ['groovy', 'kotlin']

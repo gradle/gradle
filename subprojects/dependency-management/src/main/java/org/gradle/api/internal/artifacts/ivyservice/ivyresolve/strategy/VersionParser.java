@@ -132,6 +132,7 @@ public class VersionParser implements Transformer<Version, String> {
             return baseVersion;
         }
 
+        @Override
         public String[] getParts() {
             return parts;
         }

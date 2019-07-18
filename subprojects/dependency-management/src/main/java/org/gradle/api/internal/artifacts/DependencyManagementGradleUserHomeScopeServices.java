@@ -33,7 +33,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTimeJournal;
 
 public class DependencyManagementGradleUserHomeScopeServices {
     DefaultArtifactCacheMetadata createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {

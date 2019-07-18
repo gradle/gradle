@@ -27,6 +27,7 @@ import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategor
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return InputDirectory.class;
     }

@@ -36,6 +36,7 @@ public interface Directory extends FileSystemLocation {
      *
      * @since 4.2
      */
+    @Override
     File getAsFile();
 
     /**

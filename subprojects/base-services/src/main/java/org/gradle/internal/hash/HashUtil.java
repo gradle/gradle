@@ -79,10 +79,6 @@ public class HashUtil {
         return createHash(scriptText, "MD5").asCompactString();
     }
 
-    public static String compactStringFor(HashCode hashCode) {
-        return compactStringFor(hashCode.getBytes());
-    }
-
     public static String compactStringFor(byte[] digest) {
         return new HashValue(digest).asCompactString();
     }

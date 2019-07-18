@@ -29,10 +29,12 @@ import org.gradle.internal.logging.LogLevelMapping;
 public class IvyLoggingAdaper extends AbstractMessageLogger {
     private final Logger logger = Logging.getLogger(IvyLoggingAdaper.class);
 
+    @Override
     public void log(String msg, int level) {
         logger.log(LogLevelMapping.ANT_IVY_2_SLF4J.get(level), msg);
     }
 
+    @Override
     public void rawlog(String msg, int level) {
         log(msg, level);
     }
@@ -53,9 +55,11 @@ public class IvyLoggingAdaper extends AbstractMessageLogger {
         logger.error(msg);
     }
 
+    @Override
     public void doProgress() {
     }
 
+    @Override
     public void doEndProgress(String msg) {
         logger.info(msg);
     }

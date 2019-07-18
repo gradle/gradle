@@ -1,0 +1,76 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.plugins;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
+
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME;
+
+/**
+ * Adds support for producing test fixtures. This plugin will automatically
+ * create a `testFixtures` source set, and wires the tests to use those
+ * test fixtures automatically.
+ *
+ * Other projects may consume the test fixtures of the current project by
+ * declaring a dependency using the {@link DependencyHandler#testFixtures(Object)}
+ * method.
+ *
+ * @since 5.6
+ */
+@Incubating
+public class JavaTestFixturesPlugin implements Plugin<Project> {
+
+    @Override
+    public void apply(Project project) {
+        project.getPluginManager().withPlugin("java", plugin -> {
+            JavaPluginConvention convention = findJavaConvention(project);
+            JavaPluginExtension extension = findJavaPluginExtension(project);
+            SourceSet testFixtures = convention.getSourceSets().create(TEST_FIXTURE_SOURCESET_NAME);
+            extension.registerFeature(TEST_FIXTURES_FEATURE_NAME, featureSpec -> featureSpec.usingSourceSet(testFixtures));
+            addApiToSourceSet(testFixtures, project.getConfigurations());
+            createImplicitTestFixturesDependencies(project, convention);
+        });
+    }
+
+    private void createImplicitTestFixturesDependencies(Project project, JavaPluginConvention convention) {
+        DependencyHandler dependencies = project.getDependencies();
+        dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
+        ProjectDependency testDependency = (ProjectDependency) dependencies.add(findTestSourceSet(convention).getImplementationConfigurationName(), dependencies.create(project));
+        testDependency.capabilities(new ProjectTestFixtures(project));
+    }
+
+    private SourceSet findTestSourceSet(JavaPluginConvention convention) {
+        return convention.getSourceSets().getByName("test");
+    }
+
+    private JavaPluginExtension findJavaPluginExtension(Project project) {
+        return project.getExtensions().getByType(JavaPluginExtension.class);
+    }
+
+    private JavaPluginConvention findJavaConvention(Project project) {
+        return (JavaPluginConvention) project.getConvention().getPlugins().get("java");
+    }
+
+}

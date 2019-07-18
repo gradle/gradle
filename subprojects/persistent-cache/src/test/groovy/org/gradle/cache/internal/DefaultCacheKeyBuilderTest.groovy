@@ -16,9 +16,9 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.HashFunction
@@ -160,6 +160,6 @@ class DefaultCacheKeyBuilderTest extends Specification {
     }
 
     private String expectedKeyFor(String prefix, HashCode hashCode) {
-        "$prefix/${compactStringFor(hashCode)}"
+        "$prefix/${compactStringFor(hashCode.toByteArray())}"
     }
 }

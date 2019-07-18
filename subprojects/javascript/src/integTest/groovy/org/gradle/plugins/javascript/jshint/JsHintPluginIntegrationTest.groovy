@@ -16,12 +16,10 @@
 
 package org.gradle.plugins.javascript.jshint
 
+import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
-import groovy.json.JsonSlurper
 
 class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -75,7 +73,6 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         json[file("src/main/js/dir1/f1.js").absolutePath] instanceof Map
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can analyse good javascript"() {
         given:
         file("src/main/js/dir1/f1.js") << """
@@ -92,7 +89,7 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jsHint"
 
         and:
-        ":jsHint" in nonSkippedTasks
+        executedAndNotSkipped(":jsHint")
 
         and:
         File jsonReport = file("build/reports/jsHint/report.json")
@@ -106,7 +103,7 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         run "jsHint"
 
         then:
-        ":jsHint" in skippedTasks
+        skipped(":jsHint")
     }
 
 }

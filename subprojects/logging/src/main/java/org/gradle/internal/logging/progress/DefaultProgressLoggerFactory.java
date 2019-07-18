@@ -79,10 +79,12 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         return logger;
     }
 
+    @Override
     public ProgressLogger newOperation(String loggerCategory) {
         return init(loggerCategory, null);
     }
 
+    @Override
     public ProgressLogger newOperation(Class loggerClass, ProgressLogger parent) {
         return init(loggerClass.toString(), parent);
     }
@@ -244,19 +246,23 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             ));
         }
 
+        @Override
         public void progress(String status) {
             progress(status, false);
         }
 
+        @Override
         public void progress(String status, boolean failing) {
             assertRunning();
             listener.progress(new ProgressEvent(progressOperationId, ensureNotNull(status), failing));
         }
 
+        @Override
         public void completed() {
             completed(null, false);
         }
 
+        @Override
         public void completed(String status, boolean failed) {
             assertRunning();
             state = State.completed;

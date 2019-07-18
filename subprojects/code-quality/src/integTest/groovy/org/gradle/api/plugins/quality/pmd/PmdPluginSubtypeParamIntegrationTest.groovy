@@ -34,7 +34,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
 
             dependencies {
                 pmd "${calculateDefaultDependencyNotation()}"
-                compile 'ch.qos.logback.contrib:logback-json-core:0.1.4'
+                implementation 'ch.qos.logback.contrib:logback-json-core:0.1.4'
             }
         """
 

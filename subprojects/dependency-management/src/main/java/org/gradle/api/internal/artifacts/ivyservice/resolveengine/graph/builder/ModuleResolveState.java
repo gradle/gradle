@@ -208,6 +208,7 @@ class ModuleResolveState implements CandidateModule {
     /**
      * Overrides the component selection for this module, when this module has been replaced by another.
      */
+    @Override
     public void restart(ComponentState selected) {
         if (this.selected != null) {
             clearSelection();

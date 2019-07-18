@@ -77,6 +77,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -207,24 +208,24 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void resolveNodesInUnknownState(Set<Node> nodesInUnknownState) {
-        List<Node> queue = Lists.newArrayList(nodesInUnknownState);
+        Deque<Node> queue = new ArrayDeque(nodesInUnknownState);
         Set<Node> visiting = Sets.newHashSet();
 
         while (!queue.isEmpty()) {
-            Node node = queue.get(0);
+            Node node = queue.peekFirst();
             if (node.isInKnownState()) {
-                queue.remove(0);
+                queue.removeFirst();
                 continue;
             }
 
             if (visiting.add(node)) {
                 for (Node hardPredecessor : node.getDependencyPredecessors()) {
                     if (!visiting.contains(hardPredecessor)) {
-                        queue.add(0, hardPredecessor);
+                        queue.addFirst(hardPredecessor);
                     }
                 }
             } else {
-                queue.remove(0);
+                queue.removeFirst();
                 visiting.remove(node);
                 node.mustNotRun();
                 for (Node predecessor : node.getDependencyPredecessors()) {
@@ -248,7 +249,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public void determineExecutionPlan() {
-        List<NodeInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new Function<TaskNode, NodeInVisitingSegment>() {
+        LinkedList<NodeInVisitingSegment> nodeQueue = Lists.newLinkedList(Iterables.transform(entryTasks, new Function<TaskNode, NodeInVisitingSegment>() {
             private int index;
 
             @Override
@@ -265,12 +266,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         Map<Node, Integer> planBeforeVisiting = Maps.newHashMap();
 
         while (!nodeQueue.isEmpty()) {
-            NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.get(0);
+            NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
             int currentSegment = nodeInVisitingSegment.visitingSegment;
             Node node = nodeInVisitingSegment.node;
 
             if (node.isIncludeInGraph() || nodeMapping.contains(node)) {
-                nodeQueue.remove(0);
+                nodeQueue.removeFirst();
                 visitingNodes.remove(node, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
                 continue;
@@ -303,12 +304,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                             onOrderingCycle(successor, node);
                         }
                     }
-                    nodeQueue.add(0, new NodeInVisitingSegment(successor, currentSegment));
+                    nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
                 }
                 path.push(node);
             } else {
                 // Have visited this node's dependencies - add it to the end of the plan
-                nodeQueue.remove(0);
+                nodeQueue.removeFirst();
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
                 visitingNodes.remove(node, currentSegment);
                 path.pop();
@@ -328,7 +329,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 // Add any finalizers to the queue
                 for (Node finalizer : node.getFinalizers()) {
                     if (!visitingNodes.containsKey(finalizer)) {
-                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
+                        int position = finalizerTaskPosition(finalizer, nodeQueue);
+                        nodeQueue.add(position, new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
                     }
                 }
             }
@@ -358,13 +360,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         nodeMapping.retainFirst(count);
     }
 
-    private void restoreQueue(List<NodeInVisitingSegment> nodeQueue, HashMultimap<Node, Integer> visitingNodes, GraphEdge toBeRemoved) {
+    private void restoreQueue(Deque<NodeInVisitingSegment> nodeQueue, HashMultimap<Node, Integer> visitingNodes, GraphEdge toBeRemoved) {
         NodeInVisitingSegment nextInQueue = null;
         while (nextInQueue == null || !toBeRemoved.from.equals(nextInQueue.node)) {
-            nextInQueue = nodeQueue.get(0);
+            nextInQueue = nodeQueue.peekFirst();
             visitingNodes.remove(nextInQueue.node, nextInQueue.visitingSegment);
             if (!toBeRemoved.from.equals(nextInQueue.node)) {
-                nodeQueue.remove(0);
+                nodeQueue.removeFirst();
             }
         }
     }
@@ -410,7 +412,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
      * Given a finalizer task, determine where in the current node queue that it should be inserted.
      * The finalizer should be inserted after any of it's preceding tasks.
      */
-    private int finalizerTaskPosition(Node finalizer, final List<NodeInVisitingSegment> nodeQueue) {
+    private int finalizerTaskPosition(Node finalizer, final Deque<NodeInVisitingSegment> nodeQueue) {
         if (nodeQueue.size() == 0) {
             return 0;
         }

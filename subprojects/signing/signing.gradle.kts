@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -15,23 +13,38 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    `java-library`
+}
 
 dependencies {
-    compile(library("groovy"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":fileCollections"))
+    implementation(project(":plugins"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":publish"))
+    implementation(project(":maven"))
 
-    compile(project(":core"))
-    compile(project(":plugins"))
-    compile(project(":maven"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("inject"))
+    implementation(library("bouncycastle_pgp"))
 
-    testCompile(project(":ivy"))
+    testImplementation(project(":ivy"))
+    testImplementation(testFixtures(project(":core")))
 
-    compile(library("bouncycastle_pgp"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-}

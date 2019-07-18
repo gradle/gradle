@@ -18,7 +18,7 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 
 class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
@@ -34,7 +34,7 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
 
 
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.12'
             }
         """
 
@@ -157,7 +157,7 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
 
     void testFailed(def indexOfTestToFail) {
         new DefaultTestExecutionResult(testDirectory)
-            .testClass("ConditionalFailingTest_${indexOfTestToFail}").assertTestFailed('failedTest', Matchers.anything())
+            .testClass("ConditionalFailingTest_${indexOfTestToFail}").assertTestFailed('failedTest', CoreMatchers.anything())
     }
 
     void allTestsSucceed() {

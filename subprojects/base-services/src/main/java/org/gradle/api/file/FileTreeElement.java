@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Information about a file in a {@link FileTree}.
+ * Information about a file in a directory/file tree.
  */
 public interface FileTreeElement {
     /**

@@ -41,6 +41,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         this.daemonParameters = daemonParameters;
     }
 
+    @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters, ServiceRegistry contextServices) {
         boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
         ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath(Collections.<File>emptyList()));

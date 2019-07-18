@@ -30,6 +30,7 @@ public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport impl
         this.relativeEntryPath = relativeEntryPath;
     }
 
+    @Override
     public File getEntryPoint() {
         if (relativeEntryPath == null) {
             return getDestination();

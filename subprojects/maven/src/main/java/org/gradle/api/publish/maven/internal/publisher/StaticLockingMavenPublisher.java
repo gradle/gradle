@@ -32,6 +32,7 @@ public class StaticLockingMavenPublisher implements MavenPublisher {
         this.delegate = delegate;
     }
 
+    @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         STATIC_LOCK.lock();
         try {

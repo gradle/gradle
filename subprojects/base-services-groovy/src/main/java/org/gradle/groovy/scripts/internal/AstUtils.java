@@ -146,7 +146,7 @@ public abstract class AstUtils {
         }
 
         ClosureExpression closureExpression = getSingleClosureArg(methodCall);
-        return closureExpression == null ? null : new ScriptBlock(methodName, closureExpression);
+        return closureExpression == null ? null : new ScriptBlock(methodName, methodCall, closureExpression);
     }
 
     public static Pair<ClassExpression, ClosureExpression> getClassAndClosureArgs(MethodCall methodCall) {
@@ -201,6 +201,7 @@ public abstract class AstUtils {
     @Nullable
     public static ScriptBlock detectScriptBlock(Statement statement, final Collection<String> names) {
         return detectScriptBlock(statement, new Predicate<ScriptBlock>() {
+            @Override
             public boolean apply(ScriptBlock input) {
                 return names.contains(input.getName());
             }

@@ -21,8 +21,9 @@ import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.plugin.use.internal.DefaultPluginId.*
-import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor.*
-import static org.hamcrest.Matchers.containsString
+import static org.gradle.plugin.use.internal.PluginRequestCollector.EMPTY_VALUE
+import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataCompiler.*
+import static org.hamcrest.CoreMatchers.containsString
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -185,14 +186,15 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "def a = null"                         | BASE_MESSAGE
         2          | "def a = id('foo')"                    | BASE_MESSAGE
         2          | "delegate.id('a')"                     | BASE_MESSAGE
-        2          | "id()"                                 | NEED_SINGLE_STRING
-        2          | "id(1)"                                | NEED_SINGLE_STRING
-        2          | "id(System.getProperty('foo'))"        | NEED_SINGLE_STRING
-        2          | "id('a' + 'b')"                        | NEED_SINGLE_STRING
-        2          | "id(\"\${'foo'}\")"                    | NEED_SINGLE_STRING
+        2          | "id()"                                 | NEED_LITERAL_STRING
+        2          | "id(1)"                                | NEED_LITERAL_STRING
+        2          | "id(System.getProperty('foo'))"        | NEED_LITERAL_STRING
+        2          | "id('a' + 'b')"                        | NEED_LITERAL_STRING
+        2          | "id(\"\${'foo'}\")"                    | NEED_LITERAL_STRING
         2          | "version('foo')"                       | BASE_MESSAGE
-        2          | "id('foo').version(1)"                 | NEED_SINGLE_STRING
-        2          | "id 'foo' version 1"                   | NEED_SINGLE_STRING
+        2          | "id('foo').version(1)"                 | NEED_INTERPOLATED_STRING
+        2          | "id 'foo' version 1"                   | NEED_INTERPOLATED_STRING
+        2          | "id 'foo' version \"\${foo.bar}\""     | NEED_INTERPOLATED_STRING
         2          | "id 'foo' bah '1'"                     | EXTENDED_MESSAGE
         2          | "foo 'foo' version '1'"                | BASE_MESSAGE
         3          | "id('foo')\nfoo 'bar'"                 | BASE_MESSAGE
@@ -201,16 +203,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "apply false"                          | BASE_MESSAGE
         2          | "id 'foo' apply"                       | BASE_MESSAGE
         2          | "id 'foo' apply('foo')"                | NEED_SINGLE_BOOLEAN
-        2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
-        2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
-        2          | "id ''"                                | NEED_SINGLE_STRING
-        2          | "id 'foo' version ''"                  | NEED_SINGLE_STRING
-        2          | "id null"                              | NEED_SINGLE_STRING
-        2          | "id 'foo' version null"                | NEED_SINGLE_STRING
-        2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
+        2          | "id null"                              | NEED_LITERAL_STRING
+        2          | "id 'foo' version null"                | NEED_INTERPOLATED_STRING
         2          | "file('foo')" /* script api */         | BASE_MESSAGE
         2          | "getVersion()" /* script target api */ | BASE_MESSAGE
     }
@@ -242,4 +236,66 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('noop').version('bar').apply(false)",
         ]
     }
+
+    @Unroll
+    def "illegal value in plugins block - #code"() {
+        when:
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        fails "help"
+        failure.assertHasLineNumber lineNumber
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(msg))
+
+        where:
+        lineNumber | code                                   | msg
+        2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
+        2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
+        2          | "id ''"                                | EMPTY_VALUE
+        2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
+        2          | "id 'foo' version ''"                  | EMPTY_VALUE
+    }
+
+    def "can interpolate properties in plugins block"() {
+        when:
+        file("gradle.properties") << """
+    foo = 333
+    bar = 444
+    foo.bar = 555
+"""
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        succeeds "help"
+
+        where:
+        code << [
+                'id("noop").version("${foo}")',
+                'id("noop").version("0.${foo}")',
+                'id("noop").version("${foo}.0")',
+                'id("noop").version("0.${foo}.1")',
+        ]
+    }
+
+    def "fails to interpolate unknown property in plugins block"() {
+        when:
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        fails "help"
+        failure.assertHasLineNumber lineNumber
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(msg))
+
+        where:
+        lineNumber | code                                         | msg
+        2          | 'id("noop").version("${unknown}")'           | "Could not get unknown property 'unknown'"
+        2          | 'id("noop").version("part-${unknown}-part")' | "Could not get unknown property 'unknown'"
+    }
+
+
 }

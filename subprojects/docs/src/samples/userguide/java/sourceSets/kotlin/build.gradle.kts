@@ -12,7 +12,7 @@ sourceSets {
 
 dependencies {
     "intTestImplementation"("junit:junit:4.12")
-    "intTestRuntimeOnly"("org.ow2.asm:asm-all:4.0")
+    "intTestRuntimeOnly"("org.ow2.asm:asm:7.1")
 }
 
 // tag::jar[]

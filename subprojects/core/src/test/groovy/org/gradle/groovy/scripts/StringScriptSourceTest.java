@@ -16,7 +16,7 @@
 package org.gradle.groovy.scripts;
 
 import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.gradle.internal.resource.StringTextResource;

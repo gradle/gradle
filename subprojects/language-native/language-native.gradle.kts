@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -15,36 +13,77 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":platformNative"))
-    compile(project(":maven"))
-    compile(project(":ivy"))
-    compile(project(":toolingApi"))
-
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":files"))
+    implementation(project(":fileCollections"))
+    implementation(project(":persistentCache"))
+    implementation(project(":snapshots"))
+    implementation(project(":dependencyManagement"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformNative"))
+    implementation(project(":plugins"))
+    implementation(project(":publish"))
+    implementation(project(":maven"))
+    implementation(project(":ivy"))
+    implementation(project(":toolingApi"))
     implementation(project(":versionControl"))
+
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
     implementation(library("commons_io"))
+    implementation(library("inject"))
+
+    testFixturesApi(project(":baseServices")) {
+        because("Test fixtures export the Named class")
+    }
+    testFixturesApi(project(":platformBase")) {
+        because("Test fixtures export the Platform class")
+    }
+
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testFixtures(project(":platformNative")))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":versionControl")))
+    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":snapshots")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestImplementation(project(":native"))
+    integTestImplementation(project(":resources"))
+    integTestImplementation(library("nativePlatform"))
+    integTestImplementation(library("ant"))
+    integTestImplementation(library("jgit"))
 
     integTestRuntimeOnly(project(":ideNative"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":core")
-    from(":versionControl")
-    from(":platformNative")
-    from(":platformBase")
-    from(":messaging")
-    from(":platformNative", "testFixtures")
-    from(":snapshots")
 }
 
 classycle {

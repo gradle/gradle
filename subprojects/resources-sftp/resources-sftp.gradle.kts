@@ -1,6 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -16,6 +13,10 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+
 plugins {
     `java-library`
     gradlebuild.`strict-compile`
@@ -23,24 +24,30 @@ plugins {
 }
 
 dependencies {
-    api(project(":resources"))
-    api(project(":core"))
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":resources"))
+    implementation(project(":core"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("jsch"))
     implementation(library("commons_io"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":ivy")))
+    testImplementation(testFixtures(project(":maven")))
+
+    integTestImplementation(project(":logging"))
+    integTestImplementation(testLibrary("jetty"))
+    testLibraries("sshd").forEach { integTestImplementation(it) }
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-testFixtures {
-    from(":dependencyManagement")
-    from(":ivy")
-    from(":maven")
-    from(":core")
 }
 
 testFilesCleanup {

@@ -23,6 +23,8 @@ import com.github.javaparser.ast.visitor.GenericVisitor
 import org.jetbrains.kotlin.psi.KtFile
 import parser.KotlinSourceParser
 
+import org.gradle.util.TextUtil.normaliseFileSeparators
+
 import java.io.File
 
 
@@ -85,16 +87,18 @@ class SourcesRepository(
 
 
     fun <T : Any?> executeQuery(apiSourceFile: ApiSourceFile.Kotlin, transform: (KtFile) -> T): T =
-        openKotlinCompilationUnitsByRoot
-            .computeIfAbsent(apiSourceFile.currentSourceRoot) {
-                KotlinSourceParser().parseSourceRoots(
-                    listOf(apiSourceFile.currentSourceRoot),
-                    compilationClasspath
-                )
-            }
-            .ktFiles
-            .first { it.virtualFile.canonicalPath == apiSourceFile.currentFile.canonicalPath }
-            .let(transform)
+        apiSourceFile.normalizedPath.let { sourceNormalizedPath ->
+            openKotlinCompilationUnitsByRoot
+                .computeIfAbsent(apiSourceFile.currentSourceRoot) {
+                    KotlinSourceParser().parseSourceRoots(
+                        listOf(apiSourceFile.currentSourceRoot),
+                        compilationClasspath
+                    )
+                }
+                .ktFiles
+                .first { it.normalizedPath == sourceNormalizedPath }
+                .let(transform)
+        }
 
     override fun close() {
         val errors = mutableListOf<Exception>()
@@ -122,4 +126,12 @@ class SourcesRepository(
             .map { it.resolve(sourceFilePath) to it }
             .firstOrNull { it.first.isFile }
             ?: throw IllegalStateException("Source file '$sourceFilePath' not found, searched in source roots:\n${sourceRoots.joinToString("\n  - ")}")
+
+    private
+    val KtFile.normalizedPath: String?
+        get() = virtualFile.canonicalPath?.let { normaliseFileSeparators(it) }
+
+    private
+    val ApiSourceFile.normalizedPath: String
+        get() = normaliseFileSeparators(currentFile.canonicalPath)
 }

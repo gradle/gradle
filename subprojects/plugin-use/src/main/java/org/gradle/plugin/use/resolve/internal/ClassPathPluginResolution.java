@@ -40,6 +40,7 @@ public class ClassPathPluginResolution implements PluginResolution {
         this.pluginInspector = pluginInspector;
     }
 
+    @Override
     public PluginId getPluginId() {
         return pluginId;
     }

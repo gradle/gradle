@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.EmptySchema;
@@ -23,7 +25,6 @@ import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -37,16 +38,15 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 public class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
-    private static final Usage RUNTIME_JARS_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME_JARS);
-    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Usage.USAGE_ATTRIBUTE);
-    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
+    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Sets.newHashSet(Usage.USAGE_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+    private final PreferRuntimeVariantUsageDisambiguationRule usageDisambiguationRule;
+    private final PreferJarVariantUsageDisambiguationRule formatDisambiguationRule;
 
-    static PreferJavaRuntimeVariant schema() {
-        return SCHEMA_DEFAULT_JAVA_VARIANTS;
-    }
-
-    private PreferJavaRuntimeVariant() {
+    public PreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
+        Usage runtimeUsage = instantiator.named(Usage.class, Usage.JAVA_RUNTIME);
+        LibraryElements jarLibraryElements = instantiator.named(LibraryElements.class, LibraryElements.JAR);
+        usageDisambiguationRule = new PreferRuntimeVariantUsageDisambiguationRule(runtimeUsage);
+        formatDisambiguationRule = new PreferJarVariantUsageDisambiguationRule(jarLibraryElements);
     }
 
     @Override
@@ -57,26 +57,55 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
-            return Cast.uncheckedCast(PreferRuntimeVariantUsageDisambiguationRule.INSTANCE);
+            return Cast.uncheckedCast(usageDisambiguationRule);
+        }
+        if (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.equals(attribute)) {
+            return Cast.uncheckedCast(formatDisambiguationRule);
         }
         return super.disambiguationRules(attribute);
     }
 
     private static class PreferRuntimeVariantUsageDisambiguationRule implements DisambiguationRule<Usage> {
-        private final static PreferRuntimeVariantUsageDisambiguationRule INSTANCE = new PreferRuntimeVariantUsageDisambiguationRule();
+        private final Usage runtimeUsage;
+
+        public PreferRuntimeVariantUsageDisambiguationRule(Usage runtimeUsage) {
+            this.runtimeUsage = runtimeUsage;
+        }
 
         @Override
         public boolean doesSomething() {
             return true;
         }
 
+        @Override
         public void execute(MultipleCandidatesResult<Usage> details) {
             if (details.getConsumerValue() == null) {
                 Set<Usage> candidates = details.getCandidateValues();
-                if (candidates.contains(RUNTIME_JARS_USAGE)) {
-                    details.closestMatch(RUNTIME_JARS_USAGE);
-                } else if (candidates.contains(RUNTIME_USAGE)) {
-                    details.closestMatch(RUNTIME_USAGE);
+                if (candidates.contains(runtimeUsage)) {
+                    details.closestMatch(runtimeUsage);
+                }
+            }
+        }
+    }
+
+    private static class PreferJarVariantUsageDisambiguationRule implements DisambiguationRule<LibraryElements> {
+        private final LibraryElements jarLibraryElements;
+
+        public PreferJarVariantUsageDisambiguationRule(LibraryElements jarLibraryElements) {
+            this.jarLibraryElements = jarLibraryElements;
+        }
+
+        @Override
+        public boolean doesSomething() {
+            return true;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesResult<LibraryElements> details) {
+            if (details.getConsumerValue() == null) {
+                Set<LibraryElements> candidates = details.getCandidateValues();
+                if (candidates.contains(jarLibraryElements)) {
+                    details.closestMatch(jarLibraryElements);
                 }
             }
         }

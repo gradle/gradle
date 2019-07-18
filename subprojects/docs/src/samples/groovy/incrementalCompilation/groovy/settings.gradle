@@ -1,0 +1,3 @@
+include("library")
+include("app")
+enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")

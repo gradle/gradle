@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
@@ -57,11 +58,13 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
     SortOrder getSortOrder();
 
+    @Override
     DependencySubstitutionsInternal getDependencySubstitution();
 
     /**
      * @return the version selection rules object
      */
+    @Override
     ComponentSelectionRulesInternal getComponentSelection();
 
     /**
@@ -87,4 +90,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return {@code true} if dependency locking is enabled, {@code false} otherwise
      */
     boolean isDependencyLockingEnabled();
+
+    CapabilitiesResolutionInternal getCapabilitiesResolutionRules();
 }

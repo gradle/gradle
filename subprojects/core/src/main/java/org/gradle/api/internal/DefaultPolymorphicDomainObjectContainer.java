@@ -51,6 +51,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         return namedEntityInstantiator;
     }
 
+    @Override
     protected T doCreate(String name) {
         try {
             return namedEntityInstantiator.create(name, getType());
@@ -65,6 +66,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         }
     }
 
+    @Override
     protected <U extends T> U doCreate(String name, Class<U> type) {
         return namedEntityInstantiator.create(name, type);
     }
@@ -74,21 +76,26 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         registerFactory(castType, factory);
     }
 
+    @Override
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
         namedEntityInstantiator.registerFactory(type, factory);
     }
 
+    @Override
     public <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory) {
         registerFactory(type, new NamedDomainObjectFactory<U>() {
+            @Override
             public U create(String name) {
                 return factory.call(name);
             }
         });
     }
 
+    @Override
     public <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType) {
         registerFactory(type, new NamedDomainObjectFactory<U>() {
             boolean named = Named.class.isAssignableFrom(implementationType);
+            @Override
             public U create(String name) {
                 return named ? getInstantiator().newInstance(implementationType, name)
                         : getInstantiator().newInstance(implementationType);
@@ -96,6 +103,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         });
     }
 
+    @Override
     public Set<? extends Class<? extends T>> getCreateableTypes() {
         return namedEntityInstantiator.getCreatableTypes();
     }

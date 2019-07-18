@@ -61,6 +61,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractContextual
     protected Collection<GradleDistributionTool> getAllVersions() {
         List<GradleDistribution> allSupportedVersions = choosePreviousVersionsToTest(releasedVersions);
         List<GradleDistribution> sortedDistributions = sort(allSupportedVersions, new Comparator<GradleDistribution>() {
+            @Override
             public int compare(GradleDistribution dist1, GradleDistribution dist2) {
                 return dist1.getVersion().compareTo(dist2.getVersion());
             }

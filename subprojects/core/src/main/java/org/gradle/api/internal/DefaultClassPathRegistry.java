@@ -29,6 +29,7 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         this.providers.addAll(Arrays.asList(providers));
     }
 
+    @Override
     public ClassPath getClassPath(String name) {
         for (ClassPathProvider provider : providers) {
             ClassPath classpath = provider.findClassPath(name);

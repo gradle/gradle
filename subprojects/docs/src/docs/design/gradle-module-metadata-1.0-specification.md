@@ -86,8 +86,21 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 
 - `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
 - `org.gradle.status` indicates the kind of release: one of `release` or `integration`.
-- `org.gradle.category` indicates the type of component (library or platform). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
+- `org.gradle.category` indicates the type of component (library, platform or documentation). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
+- `org.gradle.libraryelements` indicates the content of a `org.gradle.category=library` variant, like `jar`, `classes` or `headers-cplusplus`. Value must be a string.
+- `org.gradle.docstype` indicates the documentation type of a `org.gradle.category=documentation` variant, like `javadoc`, `sources` or `doxygen`. Value must be a string.
 - `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. Value must be a string.
+
+##### Deprecated attributes value
+
+The `org.gradle.usage` attribute has seen an evolution for its values.
+The values `java-api-*` and `java-runtime-*` are now deprecated and replaced by a new combination.
+
+The values for the Java ecosystem are now limited to `java-api` / `java-runtime` combined with the relevant value for `org.gradle.libraryelements`.
+
+Values for the native ecosystem remain unaffected.
+
+Existing metadata must remain compatible and thus tools supporting the Gradle Module Metadata format must support both old and new values, while no longer publishing the deprecated ones.
 
 #### Java Ecosystem specific attributes
 
@@ -177,7 +190,9 @@ This value must contain an array with zero or more elements. Each element must b
         {
             "name": "api",
             "attributes": {
-                "usage": "java-compile"
+                "org.gradle.usage": "java-api",
+                "org.gradle.category": "library",
+                "org.gradle.libraryelements": "jar"
             },
             "files": [
                 { 
@@ -205,7 +220,9 @@ This value must contain an array with zero or more elements. Each element must b
         {
             "name": "runtime",
             "attributes": {
-                "usage": "java-runtime"
+                "org.gradle.usage": "java-runtime",
+                "org.gradle.category": "library",
+                "org.gradle.libraryelements": "jar"
             },
             "files": [
                 { 

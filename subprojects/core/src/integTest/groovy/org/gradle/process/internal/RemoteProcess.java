@@ -22,7 +22,7 @@ import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 public class RemoteProcess implements Action<WorkerProcessContext>, Serializable {

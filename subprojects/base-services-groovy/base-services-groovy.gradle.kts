@@ -22,15 +22,14 @@ plugins {
 }
 
 dependencies {
-    api(library("groovy"))
-    api(project(":baseServices"))
+    implementation(project(":baseServices"))
+    
+    implementation(library("groovy"))
+    implementation(library("guava"))
+
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
-}
-
-
-testFixtures {
-    from(":core")
+    moduleType = ModuleType.CORE
 }

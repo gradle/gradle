@@ -16,24 +16,16 @@
 
 package org.gradle.api.publish.ivy.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -77,44 +69,27 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final FeaturePreviews featurePreviews;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public IvyPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-                            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                            ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public IvyPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
-        this.projectDependencyResolver = projectDependencyResolver;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.immutableAttributesFactory = immutableAttributesFactory;
-        this.featurePreviews = featurePreviews;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
 
-        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-            @Override
-            public void execute(PublishingExtension extension) {
-                extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider,
-                    instantiator,
-                    objectFactory,
-                    fileResolver,
-                    collectionCallbackActionDecorator,
-                    project.getConfigurations(),
-                    project.getPluginManager(),
-                    project.getExtensions(),
-                    (AttributesSchemaInternal) project.getDependencies().getAttributesSchema()));
-                createTasksLater(project, extension, project.getLayout().getBuildDirectory());
-            }
+        project.getExtensions().configure(PublishingExtension.class, extension -> {
+            extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider,
+                instantiator,
+                objectFactory,
+                fileResolver,
+                project.getPluginManager(),
+                project.getExtensions()));
+            createTasksLater(project, extension, project.getLayout().getBuildDirectory());
         });
     }
 
@@ -127,14 +102,11 @@ public class IvyPublishPlugin implements Plugin<Project> {
             publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
         }));
 
-        publications.all(new Action<IvyPublicationInternal>() {
-            @Override
-            public void execute(IvyPublicationInternal publication) {
-                final String publicationName = publication.getName();
-                createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir, project);
-                createGenerateMetadataTask(project, tasks, publication, publications, buildDir);
-                createPublishTaskForEachRepository(tasks, publication, publicationName, repositories);
-            }
+        publications.all(publication -> {
+            final String publicationName = publication.getName();
+            createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir);
+            createGenerateMetadataTask(tasks, publication, publications, buildDir);
+            createPublishTaskForEachRepository(tasks, publication, publicationName, repositories);
         });
     }
 
@@ -143,13 +115,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
     }
 
     private void createPublishTaskForEachRepository(final TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, NamedDomainObjectList<IvyArtifactRepository> repositories) {
-        repositories.all(new Action<IvyArtifactRepository>() {
-            @Override
-            public void execute(IvyArtifactRepository repository) {
-                final String repositoryName = repository.getName();
-                final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
-                createPublishToRepositoryTask(tasks, publication, publicationName, repository, repositoryName, publishTaskName);
-            }
+        repositories.all(repository -> {
+            final String repositoryName = repository.getName();
+            final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
+            createPublishToRepositoryTask(tasks, publication, publicationName, repository, repositoryName, publishTaskName);
         });
     }
 
@@ -164,37 +133,31 @@ public class IvyPublishPlugin implements Plugin<Project> {
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
     }
 
-    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir, final Project project) {
+    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
 
-        TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, new Action<GenerateIvyDescriptor>() {
-            public void execute(final GenerateIvyDescriptor descriptorTask) {
-                descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
-                descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                descriptorTask.setDescriptor(publication.getDescriptor());
-                if (descriptorTask.getDestination() == null) {
-                    descriptorTask.setDestination(buildDir.file("publications/" + publicationName + "/ivy.xml"));
-                }
+        TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, descriptorTask -> {
+            descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
+            descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+            descriptorTask.setDescriptor(publication.getDescriptor());
+            if (descriptorTask.getDestination() == null) {
+                descriptorTask.setDestination(buildDir.file("publications/" + publicationName + "/ivy.xml"));
             }
         });
-        // TODO: Make lazy
-        publication.setIvyDescriptorGenerator(generatorTask.get());
+        publication.setIvyDescriptorGenerator(generatorTask);
     }
 
-    private void createGenerateMetadataTask(Project project, final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir) {
+    private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
-        TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
-            public void execute(final GenerateModuleMetadata generateTask) {
-                generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
-                generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                generateTask.getPublication().set(publication);
-                generateTask.getPublications().set(publications);
-                generateTask.getOutputFile().convention(buildDir.file("publications/" + publicationName + "/module.json"));
-            }
+        TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateTask -> {
+            generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
+            generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+            generateTask.getPublication().set(publication);
+            generateTask.getPublications().set(publications);
+            generateTask.getOutputFile().convention(buildDir.file("publications/" + publicationName + "/module.json"));
         });
-        // TODO: Make lazy
-        publication.setModuleDescriptorGenerator(generatorTask.get());
+        publication.setModuleDescriptorGenerator(generatorTask);
     }
 
     private class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
@@ -202,43 +165,28 @@ public class IvyPublishPlugin implements Plugin<Project> {
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final ObjectFactory objectFactory;
         private final FileResolver fileResolver;
-        private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-        private final ConfigurationContainer configurations;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
-        private final AttributesSchemaInternal attributesSchema;
 
         private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator, ConfigurationContainer configurations,
-                                      PluginManager plugins, ExtensionContainer extensionContainer,
-                                      AttributesSchemaInternal attributesSchema) {
+                                      PluginManager plugins, ExtensionContainer extensionContainer) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.objectFactory = objectFactory;
             this.fileResolver = fileResolver;
-            this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-            this.configurations = configurations;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
-            this.attributesSchema = attributesSchema;
         }
 
+        @Override
         public IvyPublication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module);
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
-            VersionMappingStrategyInternal versionMappingStrategy = instantiator.newInstance(DefaultVersionMappingStrategy.class,
-                objectFactory,
-                configurations,
-                attributesSchema,
-                immutableAttributesFactory);
+            VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
 
-            return instantiator.newInstance(
-                DefaultIvyPublication.class,
-                name, instantiator, objectFactory, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory, featurePreviews,
-                collectionCallbackActionDecorator, versionMappingStrategy
-            );
+            return objectFactory.newInstance(DefaultIvyPublication.class, name, publicationIdentity, notationParser, versionMappingStrategy);
         }
 
         private void configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(VersionMappingStrategyInternal versionMappingStrategy) {

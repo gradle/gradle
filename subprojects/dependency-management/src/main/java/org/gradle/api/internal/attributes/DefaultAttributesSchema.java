@@ -23,8 +23,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
@@ -32,6 +30,7 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
@@ -57,7 +56,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
         this.isolatableFactory = isolatableFactory;
-        PlatformSupport.configureSchema(this);
     }
 
     @Override
@@ -159,6 +157,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
         }
 
+        @Override
         public List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
             return componentAttributeMatcher.describeMatching(effectiveSchema, candidate, requested);
         }

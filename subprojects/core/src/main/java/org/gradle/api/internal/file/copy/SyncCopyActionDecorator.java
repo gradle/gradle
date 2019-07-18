@@ -51,12 +51,15 @@ public class SyncCopyActionDecorator implements CopyAction {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
+    @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visited = new HashSet<RelativePath>();
 
         WorkResult didWork = delegate.execute(new CopyActionProcessingStream() {
+            @Override
             public void process(final CopyActionProcessingStreamAction action) {
                 stream.process(new CopyActionProcessingStreamAction() {
+                    @Override
                     public void processFile(FileCopyDetailsInternal details) {
                         visited.add(details.getRelativePath());
                         action.processFile(details);
@@ -91,10 +94,12 @@ public class SyncCopyActionDecorator implements CopyAction {
             this.preserveSpec = preserveSet.getAsSpec();
         }
 
+        @Override
         public void visitDir(FileVisitDetails dirDetails) {
             maybeDelete(dirDetails, true);
         }
 
+        @Override
         public void visitFile(FileVisitDetails fileDetails) {
             maybeDelete(fileDetails, false);
         }

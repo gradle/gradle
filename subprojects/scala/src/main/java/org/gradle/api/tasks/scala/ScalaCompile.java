@@ -27,6 +27,7 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
@@ -84,6 +85,7 @@ public class ScalaCompile extends AbstractScalaCompile {
         this.compiler = compiler;
     }
 
+    @Override
     protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
@@ -91,9 +93,10 @@ public class ScalaCompile extends AbstractScalaCompile {
             JavaForkOptionsFactory forkOptionsFactory = getServices().get(JavaForkOptionsFactory.class);
             ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
             ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
+            ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry, classLoaderRegistry);
+                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;

@@ -19,6 +19,9 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.util.function.Consumer
@@ -75,7 +78,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds("clean", "customTask")
-        ":customTask" in executedTasks
+        executed(":customTask")
     }
 
     def "archive is not pushed to remote when packing fails"() {
@@ -147,7 +150,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds("clean", "customTask")
-        ":customTask" in executedTasks
+        executed(":customTask")
     }
 
     def "corrupt archive loaded from local cache is purged"() {
@@ -186,7 +189,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         succeeds("clean", "customTask")
-        ":customTask" in executedTasks
+        executed(":customTask")
     }
 
     def "corrupted cache provides useful error message"() {
@@ -378,6 +381,34 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         where:
         useRuntimeApi << [true, false]
         api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    @Issue("https://github.com/gradle/gradle/issues/9906")
+    def "don't cache if task produces broken symlink"() {
+        def link = file('root/link')
+        buildFile << """
+            import java.nio.file.*
+            class ProducesLink extends DefaultTask {
+                @OutputDirectory File outputDirectory
+
+                @TaskAction execute() {
+                    Files.createSymbolicLink(Paths.get('${link}'), Paths.get('target'));
+                }
+            }
+
+            task producesLink(type: ProducesLink) {
+                outputDirectory = file 'root'
+                outputs.cacheIf { true }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled().withBuildCacheEnabled()
+        run "producesLink"
+        then:
+        executedAndNotSkipped ":producesLink"
+        outputContains "Couldn't read content of file '${link}'"
     }
 
     private TestFile cleanBuildDir() {

@@ -41,11 +41,13 @@ public class WorkerDaemonStarter {
     private final WorkerProcessFactory workerDaemonProcessFactory;
     private final LoggingManager loggingManager;
     private final ClassPathRegistry classPathRegistry;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager, ClassPathRegistry classPathRegistry) {
+    public WorkerDaemonStarter(WorkerProcessFactory workerDaemonProcessFactory, LoggingManager loggingManager, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workerDaemonProcessFactory = workerDaemonProcessFactory;
         this.loggingManager = loggingManager;
         this.classPathRegistry = classPathRegistry;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     public WorkerDaemonClient startDaemon(Class<? extends WorkerProtocol> workerProtocolImplementationClass, DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction) {
@@ -70,7 +72,7 @@ public class WorkerDaemonStarter {
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 
-        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel());
+        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel(), actionExecutionSpecFactory);
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 

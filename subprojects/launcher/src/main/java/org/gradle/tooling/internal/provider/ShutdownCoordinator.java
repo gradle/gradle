@@ -32,10 +32,12 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
         this.client = client;
     }
 
+    @Override
     public void daemonStarted(DaemonConnectDetails daemon) {
         daemons.add(daemon);
     }
 
+    @Override
     public void stop() {
         client.gracefulStop(daemons);
     }

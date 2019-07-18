@@ -27,6 +27,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
  * Provides the various build initialization services.
  */
 public class BuildInitServices extends AbstractPluginServiceRegistry {
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeBuildInitServices());
     }

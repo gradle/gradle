@@ -16,19 +16,24 @@
 
 package org.gradle.workers.internal;
 
-public class SimpleActionExecutionSpec implements ActionExecutionSpec {
-    private final Class<?> implementationClass;
-    private final String displayName;
-    private final Object[] params;
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
 
-    public SimpleActionExecutionSpec(Class<?> implementationClass, String displayName, Object[] params) {
+public class SimpleActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
+    private final Class<? extends WorkerExecution<T>> implementationClass;
+    private final String displayName;
+    private final T params;
+    private final ClassLoaderStructure classLoaderStructure;
+
+    public SimpleActionExecutionSpec(Class<? extends WorkerExecution<T>> implementationClass, String displayName, T params, ClassLoaderStructure classLoaderStructure) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.params = params;
+        this.classLoaderStructure = classLoaderStructure;
     }
 
     @Override
-    public Class<?> getImplementationClass() {
+    public Class<? extends WorkerExecution<T>> getImplementationClass() {
         return implementationClass;
     }
 
@@ -38,7 +43,12 @@ public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     }
 
     @Override
-    public Object[] getParams() {
+    public T getParameters() {
         return params;
+    }
+
+    @Override
+    public ClassLoaderStructure getClassLoaderStructure() {
+        return classLoaderStructure;
     }
 }

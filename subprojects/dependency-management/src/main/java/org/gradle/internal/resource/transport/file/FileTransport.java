@@ -45,14 +45,17 @@ public class FileTransport extends AbstractRepositoryTransport {
         resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, repository));
     }
 
+    @Override
     public boolean isLocal() {
         return true;
     }
 
+    @Override
     public ExternalResourceRepository getRepository() {
         return repository;
     }
 
+    @Override
     public CacheAwareExternalResourceAccessor getResourceAccessor() {
         return resourceAccessor;
     }

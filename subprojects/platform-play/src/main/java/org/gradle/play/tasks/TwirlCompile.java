@@ -149,12 +149,14 @@ public class TwirlCompile extends SourceTask {
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
             inputs.outOfDate(new Action<InputFileDetails>() {
+                @Override
                 public void execute(InputFileDetails inputFileDetails) {
                     sourcesToCompile.add(inputFileDetails.getFile());
                 }
             });
             final Set<File> staleOutputFiles = new HashSet<File>();
             inputs.removed(new Action<InputFileDetails>() {
+                @Override
                 public void execute(InputFileDetails inputFileDetails) {
                     staleOutputFiles.add(inputFileDetails.getFile());
                 }

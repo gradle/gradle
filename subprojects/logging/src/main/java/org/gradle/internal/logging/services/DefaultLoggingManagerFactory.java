@@ -43,6 +43,7 @@ public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInter
         return rootManager;
     }
 
+    @Override
     public LoggingManagerInternal create() {
         if (!created) {
             created = true;

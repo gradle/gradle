@@ -41,6 +41,11 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
         run "clean"
     }
 
+    @Override
+    String getStatusForReusedOutput() {
+        return "FROM-CACHE"
+    }
+
     def "single #pathSensitivity input file loaded from cache can be used as input"() {
         file("src/data/input.txt").text = "data"
 

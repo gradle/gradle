@@ -69,6 +69,7 @@ public class ProxyDispatchAdapter<T> {
             this.dispatch = dispatch;
         }
 
+        @Override
         public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
             if (method.getName().equals("equals")) {
                 Object parameter = parameters[0];

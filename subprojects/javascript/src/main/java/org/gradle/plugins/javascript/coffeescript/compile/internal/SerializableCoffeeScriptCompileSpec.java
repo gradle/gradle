@@ -52,8 +52,10 @@ public class SerializableCoffeeScriptCompileSpec implements Serializable {
         FileTree fileTree = source.getAsFileTree();
 
         fileTree.visit(new FileVisitor() {
+            @Override
             public void visitDir(FileVisitDetails dirDetails) {}
 
+            @Override
             public void visitFile(FileVisitDetails fileDetails) {
                 targets.add(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
             }

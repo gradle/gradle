@@ -56,6 +56,7 @@ class BasicJavadocLexer implements JavadocLexer {
         scanner.pushText(rawCommentText);
     }
 
+    @Override
     public void visit(TokenVisitor visitor) {
         while (!scanner.isEmpty()) {
             if (scanner.lookingAt(START_HTML_COMMENT)) {

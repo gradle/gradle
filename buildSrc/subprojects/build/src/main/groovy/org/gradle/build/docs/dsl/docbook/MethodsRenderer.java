@@ -34,6 +34,7 @@ class MethodsRenderer implements ClassDocMemberRenderer {
         extensionMethodsSummaryRenderer = new ExtensionMethodsSummaryRenderer(methodTableRenderer);
     }
 
+    @Override
     public void renderSummaryTo(ClassDoc classDoc, Element parent) {
         Document document = parent.getOwnerDocument();
 
@@ -67,6 +68,7 @@ class MethodsRenderer implements ClassDocMemberRenderer {
         }
     }
 
+    @Override
     public void renderDetailsTo(ClassDoc classDoc, Element parent) {
         if (hasMethods(classDoc)) {
             Document document = parent.getOwnerDocument();

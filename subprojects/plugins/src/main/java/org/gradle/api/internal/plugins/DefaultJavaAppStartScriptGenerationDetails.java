@@ -43,34 +43,42 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         this.appNameSystemProperty = appNameSystemProperty;
     }
 
+    @Override
     public String getApplicationName() {
         return applicationName;
     }
 
+    @Override
     public String getOptsEnvironmentVar() {
         return optsEnvironmentVar;
     }
 
+    @Override
     public String getExitEnvironmentVar() {
         return exitEnvironmentVar;
     }
 
+    @Override
     public String getMainClassName() {
         return mainClassName;
     }
 
+    @Override
     public List<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
     }
 
+    @Override
     public List<String> getClasspath() {
         return classpath;
     }
 
+    @Override
     public String getScriptRelPath() {
         return scriptRelPath;
     }
 
+    @Override
     public String getAppNameSystemProperty() {
         return appNameSystemProperty;
     }

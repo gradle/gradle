@@ -33,6 +33,7 @@ public interface ProjectPublications extends Model, ProjectModel {
      *
      * @since 2.13
      */
+    @Override
     ProjectIdentifier getProjectIdentifier();
 
     /**

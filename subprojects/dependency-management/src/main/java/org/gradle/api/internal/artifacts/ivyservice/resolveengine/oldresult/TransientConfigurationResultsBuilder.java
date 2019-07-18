@@ -106,6 +106,7 @@ public class TransientConfigurationResultsBuilder {
 
     public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
         binaryStore.write(new BinaryStore.WriteAction() {
+            @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(EDGE);
                 encoder.writeSmallLong(parent);
@@ -117,6 +118,7 @@ public class TransientConfigurationResultsBuilder {
 
     public void nodeArtifacts(final Long node, final int artifactId) {
         binaryStore.write(new BinaryStore.WriteAction() {
+            @Override
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(NODE_ARTIFACTS);
                 encoder.writeSmallLong(node);
@@ -128,9 +130,11 @@ public class TransientConfigurationResultsBuilder {
     public TransientConfigurationResults load(final ResolvedGraphResults graphResults, final SelectedArtifactResults artifactResults) {
         synchronized (lock) {
             return cache.load(new Factory<TransientConfigurationResults>() {
+                @Override
                 public TransientConfigurationResults create() {
                     try {
                         return binaryData.read(new BinaryStore.ReadAction<TransientConfigurationResults>() {
+                            @Override
                             public TransientConfigurationResults read(Decoder decoder) throws IOException {
                                 return deserialize(decoder, graphResults, artifactResults, buildOperationProcessor);
                             }

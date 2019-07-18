@@ -26,18 +26,22 @@ public class StringScriptSource implements ScriptSource {
         resource = new StringTextResource(description, content == null ? "" : content);
     }
 
+    @Override
     public String getClassName() {
         return "script_" + HashUtil.createCompactMD5(resource.getText());
     }
 
+    @Override
     public TextResource getResource() {
         return resource;
     }
 
+    @Override
     public String getFileName() {
         return getClassName();
     }
 
+    @Override
     public String getDisplayName() {
         return resource.getDisplayName();
     }

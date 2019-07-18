@@ -269,7 +269,8 @@ public class NativeBasePlugin implements Plugin<Project> {
                 // TODO: We should set this for macOS, but this currently breaks XCTest support for Swift
                 // when Swift depends on C++ libraries built by Gradle.
                 if (!targetPlatform.getOperatingSystem().isMacOsX()) {
-                    task.getInstallName().set(task.getLinkedFile().map(linkedFile -> linkedFile.getAsFile().getName()));
+                    Provider<String> installName = task.getLinkedFile().getLocationOnly().map(linkedFile -> linkedFile.getAsFile().getName());
+                    task.getInstallName().set(installName);
                 }
                 task.getTargetPlatform().set(targetPlatform);
                 task.getToolChain().set(toolChain);

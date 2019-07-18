@@ -39,6 +39,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator);
     }
 
+    @Override
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         builder.setDaemonRegistryDir(get(DaemonDir.class).getBaseDir());
         builder.useDaemonParameters(daemonParameters);

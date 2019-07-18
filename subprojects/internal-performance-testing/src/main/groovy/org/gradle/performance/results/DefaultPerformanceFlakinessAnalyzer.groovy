@@ -34,6 +34,7 @@ import static org.gradle.ci.github.GitHubIssuesClient.TEST_NAME_PREFIX
 
 @CompileStatic
 class DefaultPerformanceFlakinessAnalyzer implements PerformanceFlakinessAnalyzer {
+    static final String BRANCH_PROPERTY_NAME = "org.gradle.performance.execution.branch";
     static final String GITHUB_FIX_IT_LABEL = "fix-it"
     static final String GITHUB_IN_PERFORMANCE_LABEL = "in:performance"
     private final GitHubIssuesClient gitHubIssuesClient
@@ -78,6 +79,7 @@ class DefaultPerformanceFlakinessAnalyzer implements PerformanceFlakinessAnalyze
 ${FROM_BOT_PREFIX}
 
 Coordinator url: https://builds.gradle.org/viewLog.html?buildId=${System.getenv("BUILD_ID")}
+Branch: ${System.getProperty(BRANCH_PROPERTY_NAME)}
 Worker url: ${scenario.webUrl}
 Agent: [${scenario.agentName}](${scenario.agentUrl})
 Details:

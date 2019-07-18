@@ -117,6 +117,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         return classLoaderCache;
     }
 
+    @Override
     public IsolatedAntBuilder withClasspath(Iterable<File> classpath) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Forking a new isolated ant builder for classpath : {}", classpath);
@@ -124,6 +125,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         return new DefaultIsolatedAntBuilder(this, classpath);
     }
 
+    @Override
     public void execute(final Closure antClosure) {
         classLoaderCache.withCachedClassLoader(libClasspath, gradleApiGroovyLoader, antAdapterGroovyLoader,
             new Factory<ClassLoader>() {

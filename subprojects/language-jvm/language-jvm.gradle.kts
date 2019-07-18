@@ -1,26 +1,45 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    `java-library`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    compile(project(":core"))
-    compile(project(":platformJvm"))
-    compile(project(":platformBase"))
+    api(library("jsr305"))
 
-    testRuntime(project(":languageJava"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":processServices"))
+    implementation(project(":fileCollections"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":core"))
+    implementation(project(":workers"))
+    implementation(project(":platformBase"))
+    implementation(project(":platformJvm"))
 
-    testFixturesApi(project(":internalIntegTesting"))
+    implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(library("guava"))
+    implementation(library("inject"))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
+    testImplementation(testFixtures(project(":core")))
+    
+    testRuntimeOnly(project(":languageJava"))
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    testFixturesImplementation(library("commons_lang"))
+    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(testFixtures(project(":launcher")))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(":core")
-    from(":core", "testFixtures")
-    from(":launcher", "testFixtures")
-}

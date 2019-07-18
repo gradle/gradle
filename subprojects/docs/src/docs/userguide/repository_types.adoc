@@ -235,6 +235,19 @@ The following metadata sources are supported:
 The defaults for Ivy and Maven repositories change with Gradle 5.0. Before 5.0, `artifact()` was included in the defaults. Leading to some inefficiency when modules are missing completely. To restore this behavior, for example, for Maven central you can use `mavenCentral { mavenPom(); artifact() }`. In a similar way, you can opt into the new behavior in older Gradle versions using `mavenCentral { mavenPom() }`
 ====
 
+
+Since Gradle 5.3, when parsing a metadata file, be it Ivy or Maven, Gradle will look for a marker indicating that a matching Gradle Module Metadata files exists.
+If it is found, it will be used instead of the Ivy or Maven file.
+
+Starting with Gradle 5.6, you can disable this behavior by adding `ignoreGradleMetadataRedirection()` to the metadataSources declaration.
+
+.Maven repository that does not use gradle metadata redirection
+====
+include::sample[dir="userguide/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
+include::sample[dir="userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
+====
+
+
 [[sub:supported_transport_protocols]]
 == Supported repository transport protocols
 

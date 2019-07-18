@@ -57,6 +57,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
         assertKeyNotNull(key);
 
         V result = artifactCacheLockingManager.useCache(new Factory<V>() {
+            @Override
             public V create() {
                 V found = getPersistentCache().get(key);
                 if (found == null) {
@@ -79,6 +80,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
 
     protected void storeInternal(final K key, final V entry) {
         artifactCacheLockingManager.useCache(new Runnable() {
+            @Override
             public void run() {
                 getPersistentCache().put(key, entry);
             }
@@ -100,6 +102,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     public void clear(final K key) {
         assertKeyNotNull(key);
         artifactCacheLockingManager.useCache(new Runnable() {
+            @Override
             public void run() {
                 getPersistentCache().remove(key);
             }

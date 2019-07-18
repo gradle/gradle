@@ -27,19 +27,19 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":kotlinDsl"))
+    
+    implementation(project(":baseServices"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":resources"))
+    implementation(project(":kotlinDslToolingBuilders"))
+    implementation(project(":testKit"))
+    implementation(project(":internalTesting"))
+    implementation(project(":internalIntegTesting"))
 
-    compile(project(":distributionsDependencies"))
-
-    compile(project(":kotlinDsl"))
-    compile(project(":kotlinDslToolingBuilders"))
-
-    compile(project(":testKit"))
-    compile(project(":internalIntegTesting"))
-
-    compile(library("junit"))
-    compile(testLibrary("hamcrest"))
-
-    compile("com.nhaarman:mockito-kotlin:1.6.0")
-    compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2")
-    compile("org.ow2.asm:asm:6.2.1")
+    implementation(library("junit"))
+    implementation(testLibrary("mockito_kotlin"))
+    implementation(testLibrary("jackson_kotlin"))
+    implementation("org.ow2.asm:asm:7.1")
 }
