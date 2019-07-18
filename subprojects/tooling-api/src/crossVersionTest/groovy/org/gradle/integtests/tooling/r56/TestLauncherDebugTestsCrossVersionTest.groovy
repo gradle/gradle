@@ -21,9 +21,9 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.Rule
 import spock.lang.Timeout
-
 
 @ToolingApiVersion(">=5.6")
 @TargetGradleVersion(">=5.6")
@@ -58,16 +58,22 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
     }
 
     def "build fails if debugger is not ready"() {
+        setup:
+        def port = FixedAvailablePortAllocator.instance.assignPort()
+
         when:
         withConnection { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses("example.MyTest")
-                .debugTestsOn(JDWPUtil.findFreePort())
+                .debugTestsOn(port)
                 .run()
         }
 
         then:
         thrown(BuildException)
+
+        cleanup:
+        FixedAvailablePortAllocator.instance.releasePort(port)
     }
 
     def "can launch tests in debug mode"() {

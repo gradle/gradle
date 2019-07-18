@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.jvm
 
 import org.gradle.util.ports.DefaultPortDetector
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.Assume
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -33,7 +34,7 @@ class JDWPUtil implements TestRule {
     def connectionArgs
 
     JDWPUtil() {
-        this(findFreePort())
+        this(FixedAvailablePortAllocator.instance.assignPort())
     }
 
     JDWPUtil(Integer port) {
@@ -44,16 +45,6 @@ class JDWPUtil implements TestRule {
     JDWPUtil(String host, Integer port) {
         this.host = host
         this.port = port
-    }
-
-    static int findFreePort() {
-        new ServerSocket(0).withCloseable { socket ->
-            try {
-                return socket.getLocalPort()
-            } catch (IOException e) {
-                throw new RuntimeException("Cannot find free port", e)
-            }
-        }
     }
 
     @Override
@@ -117,5 +108,7 @@ class JDWPUtil implements TestRule {
                 }
             }
         }
+
+        FixedAvailablePortAllocator.instance.releasePort(port)
     }
 }
