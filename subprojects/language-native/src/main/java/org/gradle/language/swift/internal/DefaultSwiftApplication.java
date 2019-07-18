@@ -26,6 +26,7 @@ import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -33,7 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftApplication extends DefaultSwiftComponent implements SwiftApplication {
+public class DefaultSwiftApplication extends DefaultSwiftComponent<SwiftBinary> implements SwiftApplication {
     private final ObjectFactory objectFactory;
     private final Property<SwiftExecutable> developmentBinary;
     private final DefaultComponentDependencies dependencies;

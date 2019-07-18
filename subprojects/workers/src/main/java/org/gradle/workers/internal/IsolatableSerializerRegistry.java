@@ -55,6 +55,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.internal.classloader.ClassLoaderUtils.*;
+
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
     private static final byte BOOLEAN_VALUE = (byte) 1;
@@ -185,7 +187,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     }
 
     private Class<?> fromClassName(String className) throws Exception {
-        return Thread.currentThread().getContextClassLoader().loadClass(className);
+        return classFromContextLoader(className);
     }
 
     private class StringValueSnapshotSerializer implements IsolatableSerializer<StringValueSnapshot> {

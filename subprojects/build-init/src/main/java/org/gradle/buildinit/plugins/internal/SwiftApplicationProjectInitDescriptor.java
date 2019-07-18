@@ -16,11 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
 public class SwiftApplicationProjectInitDescriptor extends SwiftProjectInitDescriptor {
-    public SwiftApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory) {
-        super(templateOperationFactory);
+    public SwiftApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, documentationRegistry);
     }
 
     @Override

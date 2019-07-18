@@ -27,6 +27,7 @@ import org.gradle.initialization.DefaultLegacyTypesSupport;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -72,8 +73,9 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new NamedObjectInstantiator(cacheFactory);
     }
     
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver) {
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, InstantiatorFactory instantiatorFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
+                instantiatorFactory.getManagedFactory(),
                 new ConfigurableFileCollectionManagedFactory(fileResolver),
                 new RegularFileManagedFactory(),
                 new RegularFilePropertyManagedFactory(fileResolver),

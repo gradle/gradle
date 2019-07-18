@@ -244,7 +244,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
         if (metadataSources.ivyDescriptor) {
             DefaultIvyDescriptorMetadataSource ivyDescriptorMetadataSource = new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory);
-            sources.add(new RedirectingGradleMetadataModuleMetadataSource(ivyDescriptorMetadataSource, gradleModuleMetadataSource));
+            if(metadataSources.ignoreGradleMetadataRedirection) {
+                sources.add(ivyDescriptorMetadataSource);
+            } else {
+                sources.add(new RedirectingGradleMetadataModuleMetadataSource(ivyDescriptorMetadataSource, gradleModuleMetadataSource));
+            }
         }
         if (metadataSources.artifact) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));
@@ -393,6 +397,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         boolean gradleMetadata;
         boolean ivyDescriptor;
         boolean artifact;
+        boolean ignoreGradleMetadataRedirection;
 
         void setDefaults(FeaturePreviews featurePreviews) {
             ivyDescriptor();
@@ -401,12 +406,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             } else {
                 artifact();
             }
+            ignoreGradleMetadataRedirection = false;
         }
 
         void reset() {
             gradleMetadata = false;
             ivyDescriptor = false;
             artifact = false;
+            ignoreGradleMetadataRedirection = false;
         }
 
         /**
@@ -426,6 +433,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             if (artifact) {
                 list.add("artifact");
             }
+            if (ignoreGradleMetadataRedirection) {
+                list.add("ignoreGradleMetadataRedirection");
+            }
             return list;
         }
 
@@ -442,6 +452,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         @Override
         public void artifact() {
             artifact = true;
+        }
+
+        @Override
+        public void ignoreGradleMetadataRedirection() {
+            ignoreGradleMetadataRedirection = true;
         }
     }
 

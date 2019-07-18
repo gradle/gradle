@@ -247,7 +247,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run("merge")
 
         then:
-        output.count("calculating value") == 1
+        output.count("calculating value") == 2 // once for task dependency calculation, once for task execution
     }
 
     def "can connect the elements of a file collection to task input ListProperty"() {

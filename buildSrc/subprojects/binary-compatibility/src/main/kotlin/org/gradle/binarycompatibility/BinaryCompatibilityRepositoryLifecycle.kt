@@ -38,6 +38,7 @@ class BinaryCompatibilityRepositorySetupRule(private val params: Map<String, Any
         const val sourceCompilationClasspath = "sourceCompilationClasspath"
     }
 
+    @Suppress("unchecked_cast")
     override fun execute(context: ViolationCheckContext) {
         (context.userData as MutableMap<String, Any?>)[REPOSITORY_CONTEXT_KEY] = BinaryCompatibilityRepository.openRepositoryFor(
             param(Params.sourceRoots),
@@ -45,6 +46,7 @@ class BinaryCompatibilityRepositorySetupRule(private val params: Map<String, Any
         )
     }
 
+    @Suppress("unchecked_cast")
     private
     fun param(name: String): List<File> =
         (params[name] as? Set<String>)?.map(::File) ?: emptyList()

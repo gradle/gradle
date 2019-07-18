@@ -19,6 +19,7 @@ package org.gradle.internal.instantiation
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
+import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -26,32 +27,15 @@ import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Unroll
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceListPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceMapPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceNestedBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfacePrimitiveBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfacePropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfacePropertyWithParamTypeBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceSetPropertyBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceWithDefaultMethods
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Param
-
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.*
 
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry()
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), managedFactoryRegistry)
+    ManagedFactory generatorFactory = TestUtil.instantiatorFactory().managedFactory
+    final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
 
     def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
         def bean = create(BeanWithAbstractProperty)

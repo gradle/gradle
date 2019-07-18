@@ -32,6 +32,9 @@ import org.openmbee.junit.model.JUnitTestSuite
 @CompileStatic
 abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     @Internal
+    String branchName
+
+    @Internal
     String buildId
 
     @OutputDirectory
@@ -52,6 +55,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
                 spec.args(reportDir.path, resultsJson.path, getProject().getName())
                 spec.systemProperties(databaseParameters)
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.systemProperty("org.gradle.performance.execution.branch", branchName)
                 spec.systemProperty("githubToken", project.findProperty("githubToken"))
                 spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
             }

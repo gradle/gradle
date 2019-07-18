@@ -36,8 +36,8 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
                 ivy { url "${ivyHttpRepo.uri}" }
             }
         """
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.prepare()
+        prepareResolution()
+
     }
 
     def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
@@ -119,6 +119,45 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         }
     }
 
+    def "doesn't try to fetch Gradle metadata if published has marker present and ignoreGradleMetadataRedirection is set"() {
+        setup:
+        buildFile.text = """
+            apply plugin: 'java-library'
+            
+            repositories {
+                ivy { 
+                    url "${ivyHttpRepo.uri}"
+                    metadataSources {
+                        ivyDescriptor()
+                        artifact()
+                        ignoreGradleMetadataRedirection()
+                    }
+                }
+            }
+            
+             dependencies {
+                api "org:main:1.0"
+            }
+        """
+
+        prepareResolution()
+
+        createIvyFile(true)
+
+        when:
+        mainModule.ivy.expectGet()
+        mainModule.artifact.expectGet()
+
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:main:1.0')
+            }
+        }
+    }
+
     private void createIvyFile(boolean marker) {
         if (marker) {
             mainModule.withGradleMetadataRedirection()
@@ -132,4 +171,10 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
             { "group": "org", "module": "foo", "version": { "prefers": "1.9" } }
         ]''')
     }
+
+    private void prepareResolution() {
+        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.prepare()
+    }
+
 }

@@ -37,6 +37,7 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.ownerService
+import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -131,7 +132,10 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
 
-        bind(BeanCodec())
+        // This protects the BeanCodec against StackOverflowErrors but
+        // we can still get them for the other codecs, for instance,
+        // with deeply nested Lists, deeply nested Maps, etc.
+        bind(reentrant(BeanCodec()))
     }
 
     private
@@ -147,7 +151,7 @@ class Codecs(
         else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
-    override fun ReadContext.decode(): Any? = when (val tag = readByte()) {
+    override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {
         NULL_VALUE -> null
         else -> bindings[tag.toInt()].codec.run { decode() }
     }
@@ -156,8 +160,9 @@ class Codecs(
     fun computeEncoding(type: Class<*>): Encoding? =
         bindings.find { it.type.isAssignableFrom(type) }?.run {
             encoding { value ->
+                require(value != null)
                 writeByte(tag)
-                codec.run { encode(value!!) }
+                codec.run { encode(value) }
             }
         }
 

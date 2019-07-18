@@ -106,7 +106,7 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
-    override fun read(): Any? = decoding.run {
+    override suspend fun read(): Any? = decoding.run {
         decode()
     }
 
@@ -130,7 +130,7 @@ class DefaultReadContext(
 
 internal
 interface DecodingProvider {
-    fun ReadContext.decode(): Any?
+    suspend fun ReadContext.decode(): Any?
 }
 
 

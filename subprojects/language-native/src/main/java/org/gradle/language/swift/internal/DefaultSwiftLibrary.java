@@ -39,7 +39,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 import java.util.Collections;
 
-public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftLibrary {
+public class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBinary> implements SwiftLibrary {
     private final ObjectFactory objectFactory;
     private final SetProperty<Linkage> linkage;
     private final ConfigurationContainer configurations;

@@ -28,7 +28,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.api.plugins.JavaTestFixturesPlugin
-import org.gradle.api.plugins.internal.JavaPluginsHelper
+import org.gradle.api.plugins.internal.JvmPluginsHelper
 import org.gradle.language.jvm.tasks.ProcessResources
 import testLibrary
 import java.io.File
@@ -98,7 +98,7 @@ open class TestFixturesPlugin : Plugin<Project> {
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
             attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
 
-            artifact(object : JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
+            artifact(object : JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
                 override fun getFile(): File {
                     return processResources.get().destinationDir
                 }

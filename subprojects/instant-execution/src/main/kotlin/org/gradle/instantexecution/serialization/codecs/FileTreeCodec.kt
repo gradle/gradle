@@ -36,11 +36,11 @@ class FileTreeCodec(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Codec<FileTreeInternal> {
 
-    override fun WriteContext.encode(value: FileTreeInternal) {
+    override suspend fun WriteContext.encode(value: FileTreeInternal) {
         fileSetSerializer.write(this, fileTreeRootsOf(value))
     }
 
-    override fun ReadContext.decode(): FileTreeInternal? =
+    override suspend fun ReadContext.decode(): FileTreeInternal? =
         DefaultCompositeFileTree(
             fileSetSerializer.read(this).map {
                 FileTreeAdapter(directoryFileTreeFactory.create(it))

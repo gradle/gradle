@@ -51,9 +51,18 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(spec.getDisplayName())
                     .parent(parentBuildOperation)
-                    .details(new Details(spec.getImplementationClass().getName(), spec.getDisplayName()));
+                    .details(new Details(getImplementationClassName(spec), spec.getDisplayName()));
             }
         });
+    }
+
+    private static String getImplementationClassName(ActionExecutionSpec spec) {
+        if (spec.getImplementationClass() == AdapterWorkerExecution.class) {
+            AdapterWorkerParameters parameters = (AdapterWorkerParameters) spec.getParameters();
+            return parameters.getImplementationClassName();
+        } else {
+            return spec.getImplementationClass().getName();
+        }
     }
 
     interface Work {

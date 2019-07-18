@@ -33,9 +33,9 @@ import kotlin.reflect.KClass
  */
 interface Codec<T> {
 
-    fun WriteContext.encode(value: T)
+    suspend fun WriteContext.encode(value: T)
 
-    fun ReadContext.decode(): T?
+    suspend fun ReadContext.decode(): T?
 }
 
 
@@ -47,13 +47,13 @@ interface WriteContext : IsolateContext, Encoder {
 
     fun writeActionFor(value: Any?): Encoding?
 
-    fun write(value: Any?) {
+    suspend fun write(value: Any?) {
         writeActionFor(value)!!(value)
     }
 }
 
 
-typealias Encoding = WriteContext.(value: Any?) -> Unit
+typealias Encoding = suspend WriteContext.(value: Any?) -> Unit
 
 
 interface ReadContext : IsolateContext, Decoder {
@@ -66,7 +66,7 @@ interface ReadContext : IsolateContext, Decoder {
 
     fun getProject(path: String): ProjectInternal
 
-    fun read(): Any?
+    suspend fun read(): Any?
 }
 
 
@@ -177,12 +177,46 @@ sealed class PropertyTrace {
         val trace: PropertyTrace
     ) : PropertyTrace()
 
-    override fun toString(): String = when (this) {
-        is Gradle -> "Gradle state"
-        is Property -> "$kind `$name` of $trace"
-        is Bean -> "`${type.name}` bean found in $trace"
-        is Task -> "task `$path` of type `${type.name}`"
-        is Unknown -> "unknown property"
+    override fun toString(): String =
+        StringBuilder().apply {
+            sequence.forEach {
+                appendStringOf(it)
+            }
+        }.toString()
+
+    private
+    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
+        when (trace) {
+            is Gradle -> {
+                append("Gradle state")
+            }
+            is Property -> {
+                append(trace.kind)
+                append(" ")
+                quoted(trace.name)
+                append(" of ")
+            }
+            is Bean -> {
+                quoted(trace.type.name)
+                append(" bean found in ")
+            }
+            is Task -> {
+                append("task ")
+                quoted(trace.path)
+                append(" of type ")
+                quoted(trace.type.name)
+            }
+            is Unknown -> {
+                append("unknown property")
+            }
+        }
+    }
+
+    private
+    fun StringBuilder.quoted(s: String) {
+        append('`')
+        append(s)
+        append('`')
     }
 
     val sequence: Sequence<PropertyTrace>
@@ -265,10 +299,10 @@ interface MutableIsolateContext {
 
 
 internal
-inline fun <T : MutableIsolateContext> T.withIsolate(owner: IsolateOwner, block: T.() -> Unit) {
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
     enterIsolate(owner)
     try {
-        block()
+        return block()
     } finally {
         leaveIsolate()
     }

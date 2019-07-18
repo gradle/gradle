@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Andrew K.](https://github.com/miokowpak),
 [Noa Resare](https://github.com/nresare),
@@ -28,6 +29,7 @@ Include only their name, impactful features should be called out separately belo
 [Zemian Deng](https://github.com/zemian),
 [Robin Verduijn](https://github.com/robinverduijn),
 [Sandu Turcan](https://github.com/idlsoft),
+[Emmanuel Guérin](https://github.com/emmanuelguerin),
 and [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Upgrade Instructions
@@ -162,6 +164,12 @@ TBD
 On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. 
 For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. 
 The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
+
+## Unavailable files are handled more gracefully
+
+Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files) found in inputs and outputs of tasks are handled gracefully from now on: as if they don't exist.
+
+For example copying into a directory with a leftover named pipe or broken symbolic link won't break the build anymore.
 
 ## Fail the build on deprecation warnings
 

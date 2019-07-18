@@ -47,10 +47,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     public boolean maybeAdd(Object element) {
         if (element instanceof ProviderInternal) {
             ProviderInternal provider = (ProviderInternal) element;
-            // When a provider is an element of a file collection and its producing tasks are not known, unpack its value if the value is declared as Buildable
-            if (!provider.maybeVisitBuildDependencies(taskContext) && provider.getType() != null && Buildable.class.isAssignableFrom(provider.getType())) {
-                taskContext.add(provider.get());
-            }
+            return provider.maybeVisitBuildDependencies(taskContext);
         } else if (element instanceof TaskDependencyContainer || element instanceof Buildable) {
             taskContext.add(element);
         } else if (!(element instanceof MinimalFileCollection)) {

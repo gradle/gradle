@@ -38,7 +38,7 @@ class FileCollectionCodec(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Codec<FileCollectionInternal> {
 
-    override fun WriteContext.encode(value: FileCollectionInternal) {
+    override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         runCatching {
             val visitor = CollectingVisitor(directoryFileTreeFactory)
             value.visitLeafCollections(visitor)
@@ -55,7 +55,7 @@ class FileCollectionCodec(
         }
     }
 
-    override fun ReadContext.decode(): FileCollectionInternal =
+    override suspend fun ReadContext.decode(): FileCollectionInternal =
         if (readBoolean()) fileCollectionFactory.fixed(fileSetSerializer.read(this))
         else fileCollectionFactory.create(ErrorFileSet(readString()))
 }

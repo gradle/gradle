@@ -81,6 +81,14 @@ public abstract class ClassLoaderUtils {
         return CLASS_DEFINER.defineDecoratorClass(decoratedClass, targetClassLoader, className, clazzBytes);
     }
 
+    public static Class<?> classFromContextLoader(String className) {
+        try {
+            return Thread.currentThread().getContextClassLoader().loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
     /**
      * Define a class into a class loader.
      *

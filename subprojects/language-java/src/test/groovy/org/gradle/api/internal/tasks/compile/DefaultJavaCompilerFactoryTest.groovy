@@ -66,7 +66,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler instanceof AnnotationProcessorDiscoveringCompiler
         compiler.delegate instanceof NormalizingJavaCompiler
         compiler.delegate.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.delegate.delegateClass == JdkJavaCompiler.class
+        compiler.delegate.delegate.compilerClass == JdkJavaCompiler.class
     }
 
     def "creates in-process compiler when ForkingJavaCompileSpec is provided and joint compilation"() {

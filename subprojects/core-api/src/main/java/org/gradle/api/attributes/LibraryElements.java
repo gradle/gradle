@@ -44,6 +44,11 @@ public interface LibraryElements extends Named {
     String RESOURCES = "resources";
 
     /**
+     * The JVM class files and resources
+     */
+    String CLASSES_AND_RESOURCES = "classes+resources";
+
+    /**
      * Header files for C++
      */
     String HEADERS_CPLUSPLUS = "headers-cplusplus";

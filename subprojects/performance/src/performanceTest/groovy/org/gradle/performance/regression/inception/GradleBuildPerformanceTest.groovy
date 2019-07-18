@@ -36,7 +36,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.performance.regression.inception.GradleInceptionPerformanceTest.extraGradleBuildArguments
-
 /**
  * Test Gradle's build performance against current Gradle.
  *

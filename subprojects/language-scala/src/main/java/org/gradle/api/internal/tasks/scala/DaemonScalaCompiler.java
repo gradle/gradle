@@ -55,19 +55,28 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 import java.io.File;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
+    private final Class<? extends Compiler<T>> compilerClass;
+    private final Object[] compilerConstructorArguments;
     private final Iterable<File> zincClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> delegateClass, Object[] delegateParameters, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
-        super(delegateClass, delegateParameters, workerDaemonFactory, actionExecutionSpecFactory);
+    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compilerClass, Object[] compilerConstructorArguments, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        super(workerDaemonFactory, actionExecutionSpecFactory);
+        this.compilerClass = compilerClass;
+        this.compilerConstructorArguments = compilerConstructorArguments;
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
+    }
+
+    @Override
+    protected CompilerParameters getCompilerParameters(T spec) {
+        return new ScalaCompilerParameters<T>(compilerClass.getName(), compilerConstructorArguments, spec);
     }
 
     @Override
@@ -100,6 +109,20 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         gradleApiAndScalaSpec.allowPackage("com.google");
 
         return gradleApiAndScalaSpec;
+    }
+
+    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerParameters {
+        private final T compileSpec;
+
+        public ScalaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {
+            super(compilerClassName, compilerInstanceParameters);
+            this.compileSpec = compileSpec;
+        }
+
+        @Override
+        public T getCompileSpec() {
+            return compileSpec;
+        }
     }
 }
 
