@@ -29,6 +29,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.IvyModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -118,7 +119,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     @Override
     public void setId(ModuleComponentIdentifier componentId) {
         this.componentId = componentId;
-        this.moduleVersionId = DefaultModuleVersionIdentifier.newId(componentId);
+        if (componentId instanceof IvyModuleComponentIdentifier) {
+            this.moduleVersionId = IvyModuleVersionIdentifier.newId(componentId);
+        }
+        else {
+            this.moduleVersionId = DefaultModuleVersionIdentifier.newId(componentId);
+        }
     }
 
     @Override

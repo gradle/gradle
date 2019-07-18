@@ -176,6 +176,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @param configuration the optional configuration of the module to be added as a dependency.
                      * @param classifier the optional classifier of the module artifact to be added as a dependency.
                      * @param ext the optional extension of the module artifact to be added as a dependency.
+                     * @param branch the optional branch of the module artifact to be added as a dependency.
                      * @param dependencyConfiguration expression to use to configure the dependency.
                      * @return The dependency.
                      *
@@ -189,9 +190,10 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         configuration: String? = null,
                         classifier: String? = null,
                         ext: String? = null,
+                        branch: String? = null,
                         dependencyConfiguration: Action<ExternalModuleDependency>? = null
                     ): ExternalModuleDependency = addExternalModuleDependencyTo(
-                        this, "$stringLiteral", group, name, version, configuration, classifier, ext, dependencyConfiguration
+                        this, "$stringLiteral", group, name, version, configuration, classifier, ext, branch, dependencyConfiguration
                     )
                 """
             },
@@ -200,10 +202,10 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    (1..7).forEach { ALOAD(it) }
+                    (1..8).forEach { ALOAD(it) }
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
-                        "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                        "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                     )
                     ARETURN()
                 }
@@ -220,6 +222,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     "$propertyName\$default",
                     "(" +
                         "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
+                        "Ljava/lang/String;" +
                         "Ljava/lang/String;" +
                         "Ljava/lang/String;" +
                         "Ljava/lang/String;" +
@@ -247,6 +250,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         visitOptionalParameter("configuration", KotlinType.string)
                         visitOptionalParameter("classifier", KotlinType.string)
                         visitOptionalParameter("ext", KotlinType.string)
+                        visitOptionalParameter("branch", KotlinType.string)
                         visitOptionalParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                     },
                     signature = signature
@@ -254,7 +258,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             signature = JvmMethodSignature(
                 propertyName,
-                "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
             )
         ),
         AccessorFragment(

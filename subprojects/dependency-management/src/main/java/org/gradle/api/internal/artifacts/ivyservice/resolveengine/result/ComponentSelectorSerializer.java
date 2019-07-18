@@ -32,6 +32,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -81,6 +83,8 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             return new DefaultProjectComponentSelector(buildIdentifier, identityPath, projectPath, projectPath.getName(), readAttributes(decoder), readCapabilities(decoder));
         } else if (Implementation.MODULE.getId() == id) {
             return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), readVersionConstraint(decoder), readAttributes(decoder), readCapabilities(decoder));
+        } else if (Implementation.EXTENDED_IVY_MODULE.getId() == id) {
+            return IvyModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), readVersionConstraint(decoder), readAttributes(decoder), readCapabilities(decoder), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
@@ -135,7 +139,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
 
         encoder.writeByte(implementation.getId());
 
-        if (implementation == Implementation.MODULE) {
+        if (implementation == Implementation.MODULE || implementation == Implementation.EXTENDED_IVY_MODULE) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) value;
             encoder.writeString(moduleComponentSelector.getGroup());
             encoder.writeString(moduleComponentSelector.getModule());
@@ -143,6 +147,9 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             writeVersionConstraint(encoder, versionConstraint);
             writeAttributes(encoder, moduleComponentSelector.getAttributes());
             writeCapabilities(encoder, moduleComponentSelector.getRequestedCapabilities());
+            if (implementation == Implementation.EXTENDED_IVY_MODULE) {
+                encoder.writeString(((IvyModuleComponentSelector) moduleComponentSelector).getBranch());
+            }
         } else if (implementation == Implementation.ROOT_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
@@ -196,7 +203,9 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
     private ComponentSelectorSerializer.Implementation resolveImplementation(ComponentSelector value) {
         Implementation implementation;
 
-        if (value instanceof DefaultModuleComponentSelector) {
+        if (value instanceof IvyModuleComponentSelector) {
+            implementation = Implementation.EXTENDED_IVY_MODULE;
+        } else if (value instanceof DefaultModuleComponentSelector) {
             implementation = Implementation.MODULE;
         } else if (value instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
@@ -222,7 +231,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
     }
 
     private enum Implementation {
-        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7);
+        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7), EXTENDED_IVY_MODULE(8);
 
         private final byte id;
 

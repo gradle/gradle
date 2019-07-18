@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -28,13 +29,17 @@ import org.gradle.internal.component.external.model.MetadataSourcedComponentArti
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -45,6 +50,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     private boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
+    private static final Logger LOGGER = LoggerFactory.getLogger(IvyResolver.class);
 
     public IvyResolver(String name,
                        RepositoryTransport transport,
@@ -89,6 +95,12 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     @Override
     protected Class<IvyModuleResolveMetadata> getSupportedMetadataType() {
         return IvyModuleResolveMetadata.class;
+    }
+
+    @Override
+    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        LOGGER.debug("{}", moduleComponentIdentifier);
+        super.doResolveComponentMetaData(moduleComponentIdentifier,prescribedMetaData,result);
     }
 
     @Override

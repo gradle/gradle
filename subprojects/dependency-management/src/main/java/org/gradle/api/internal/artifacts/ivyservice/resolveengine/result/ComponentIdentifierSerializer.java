@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -60,6 +61,8 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, identityPath.getName());
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
+        } else if (Implementation.EXTENDED_IVY_MODULE.getId() == id) {
+            return new IvyModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
         } else if (Implementation.SNAPSHOT.getId() == id) {
             return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
@@ -79,10 +82,13 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
 
         encoder.writeByte(implementation.getId());
 
-        if (implementation == Implementation.MODULE) {
+        if (implementation == Implementation.MODULE || implementation == Implementation.EXTENDED_IVY_MODULE) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) value;
             encoder.writeString(moduleComponentIdentifier.getGroup());
             encoder.writeString(moduleComponentIdentifier.getModule());
+            if (implementation == Implementation.EXTENDED_IVY_MODULE) {
+                encoder.writeString(((IvyModuleComponentIdentifier) moduleComponentIdentifier).getBranch());
+            }
             encoder.writeString(moduleComponentIdentifier.getVersion());
         } else if (implementation == Implementation.SNAPSHOT) {
             MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = (MavenUniqueSnapshotComponentIdentifier) value;
@@ -139,6 +145,8 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
     private Implementation resolveImplementation(ComponentIdentifier value) {
         if (value instanceof MavenUniqueSnapshotComponentIdentifier) {
             return Implementation.SNAPSHOT;
+        } else if (value instanceof IvyModuleComponentIdentifier) {
+            return Implementation.EXTENDED_IVY_MODULE;
         } else if (value instanceof ModuleComponentIdentifier) {
             return Implementation.MODULE;
         } else if (value instanceof DefaultProjectComponentIdentifier) {
@@ -163,7 +171,7 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
     }
 
     private enum Implementation {
-        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7);
+        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7), EXTENDED_IVY_MODULE(8);
 
         private final byte id;
 

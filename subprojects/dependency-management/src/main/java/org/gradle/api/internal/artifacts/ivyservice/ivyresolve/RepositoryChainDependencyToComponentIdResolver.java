@@ -30,6 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
@@ -61,7 +63,12 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
             } else {
                 String version = acceptor.getSelector();
                 ModuleIdentifier moduleId = module.getModuleIdentifier();
-                ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(moduleId, version);
+                ModuleComponentIdentifier id;
+                if (componentSelector instanceof IvyModuleComponentSelector) {
+                    id = IvyModuleComponentIdentifier.newId(moduleId, version, ((IvyModuleComponentSelector) componentSelector).getBranch());
+                } else {
+                    id = DefaultModuleComponentIdentifier.newId(moduleId, version);
+                }
                 ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(moduleId, version);
                 if (rejector != null && rejector.accept(version)) {
                     result.rejected(id, mvId);

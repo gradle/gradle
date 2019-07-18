@@ -37,6 +37,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -418,7 +420,13 @@ public class DynamicVersionResolver {
             this.repository = repository;
             this.attemptCollector = attemptCollector;
             ModuleComponentSelector requested = dependencyMetadata.getSelector();
-            this.identifier = DefaultModuleComponentIdentifier.newId(requested.getModuleIdentifier(), version);
+            if (requested instanceof IvyModuleComponentSelector) {
+                this.identifier = IvyModuleComponentIdentifier.newId(requested.getModuleIdentifier(), version,
+                    ((IvyModuleComponentSelector) requested).getBranch());
+            }
+            else {
+                this.identifier = DefaultModuleComponentIdentifier.newId(requested.getModuleIdentifier(), version);
+            }
         }
 
         @Override

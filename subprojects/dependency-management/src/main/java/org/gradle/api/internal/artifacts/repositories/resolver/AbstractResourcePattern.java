@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -37,6 +38,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     private final boolean classifierIsOptional;
     private final boolean extensionIsOptional;
     private final boolean typeIsOptional;
+    private final boolean branchIsOptional;
 
     public AbstractResourcePattern(String pattern) {
         this(new ExternalResourceName(pattern));
@@ -55,6 +57,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         this.classifierIsOptional = isOptionalToken(CLASSIFIER_KEY);
         this.extensionIsOptional = isOptionalToken(IvyPatternHelper.EXT_KEY);
         this.typeIsOptional = isOptionalToken(IvyPatternHelper.TYPE_KEY);
+        this.branchIsOptional = isOptionalToken(IvyPatternHelper.BRANCH_KEY);
     }
 
     @Override
@@ -82,6 +85,12 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         return attributes;
     }
 
+    protected Map<String, String> toAttributes(ModuleIdentifier module, String branch, IvyArtifactName ivyArtifactName) {
+        Map<String, String> attributes = toAttributes(module, ivyArtifactName);
+        attributes.put(IvyPatternHelper.BRANCH_KEY, branch);
+        return attributes;
+    }
+
     protected Map<String, String> toAttributes(IvyArtifactName ivyArtifact) {
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
@@ -103,6 +112,9 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         attributes.put(IvyPatternHelper.ORGANISATION_KEY, componentIdentifier.getGroup());
         attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getModule());
         attributes.put(IvyPatternHelper.REVISION_KEY, componentIdentifier.getVersion());
+        if (componentIdentifier instanceof IvyModuleComponentIdentifier) {
+            attributes.put(IvyPatternHelper.BRANCH_KEY, ((IvyModuleComponentIdentifier) componentIdentifier).getBranch());
+        }
         return attributes;
     }
 
@@ -123,6 +135,11 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     public boolean isComplete(ModuleComponentArtifactMetadata artifactIdentifier) {
         IvyArtifactName artifactName = artifactIdentifier.getName();
         ModuleComponentIdentifier componentIdentifier = artifactIdentifier.getId().getComponentIdentifier();
+        if (componentIdentifier instanceof IvyModuleComponentIdentifier) {
+            if (!isValidSubstitute(((IvyModuleComponentIdentifier) componentIdentifier).getBranch(), branchIsOptional)) {
+                return false;
+            }
+        }
         return isValidSubstitute(componentIdentifier.getModule(), false)
             && isValidSubstitute(componentIdentifier.getGroup(), organisationIsOptional)
             && isValidSubstitute(componentIdentifier.getVersion(), revisionIsOptional)

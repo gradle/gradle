@@ -39,7 +39,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final ImmutableList<Capability> requestedCapabilities;
     private final int hashCode;
 
-    private DefaultModuleComponentSelector(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableList<Capability> requestedCapabilities) {
+    protected DefaultModuleComponentSelector(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableList<Capability> requestedCapabilities) {
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
         assert attributes != null : "attributes cannot be null";
@@ -172,7 +172,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         assert version != null : "version cannot be null";
         assert requestedCapabilities != null : "capabilities cannot be null";
         assertModuleIdentifier(id);
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal)attributes).asImmutable(), ImmutableList.copyOf(requestedCapabilities));
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal) attributes).asImmutable(), ImmutableList.copyOf(requestedCapabilities));
     }
 
     private static void assertModuleIdentifier(ModuleIdentifier id) {

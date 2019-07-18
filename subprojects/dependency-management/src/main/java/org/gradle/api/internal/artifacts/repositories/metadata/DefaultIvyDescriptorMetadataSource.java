@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -57,6 +58,13 @@ public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetada
     public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         IvyArtifactName metaDataArtifact = metadataArtifactProvider.getMetaDataArtifactName(module.getName());
-        versionLister.listVersions(module, metaDataArtifact, ivyPatterns, result);
+        if (dependency.getSelector() instanceof IvyModuleComponentSelector) {
+            versionLister.listVersions(module, metaDataArtifact,
+                ((IvyModuleComponentSelector)dependency.getSelector()).getBranch(),
+                ivyPatterns, result);
+        }
+        else {
+            versionLister.listVersions(module, metaDataArtifact, ivyPatterns, result);
+        }
     }
 }

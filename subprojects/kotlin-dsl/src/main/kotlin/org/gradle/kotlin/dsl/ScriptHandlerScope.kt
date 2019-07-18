@@ -89,6 +89,7 @@ private constructor(
      * @param configuration the optional configuration of the module to be added as a dependency.
      * @param classifier the optional classifier of the module artifact to be added as a dependency.
      * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param branch the optional branch of the module artifact to be added as a dependency.
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
@@ -99,8 +100,9 @@ private constructor(
         version: String? = null,
         configuration: String? = null,
         classifier: String? = null,
-        ext: String? = null
-    ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+        ext: String? = null,
+        branch: String? = null
+    ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext, branch).also {
         add(CLASSPATH_CONFIGURATION, it)
     }
 
@@ -113,6 +115,7 @@ private constructor(
      * @param configuration the optional configuration of the module to be added as a dependency.
      * @param classifier the optional classifier of the module artifact to be added as a dependency.
      * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param branch the optional branch of the module artifact to be added as a dependency.
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      *
@@ -126,8 +129,9 @@ private constructor(
         configuration: String? = null,
         classifier: String? = null,
         ext: String? = null,
+        branch: String? = null,
         dependencyConfiguration: ExternalModuleDependency.() -> Unit
-    ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+    ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext, branch).also {
         add(CLASSPATH_CONFIGURATION, it, dependencyConfiguration)
     }
 

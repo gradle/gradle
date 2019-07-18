@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Attribu
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -51,7 +52,13 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
         ImmutableAttributes attributes = readAttributes(decoder);
         List<Capability> capabilities = readCapabilities(decoder);
-        return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilities);
+        String branch = decoder.readNullableString();
+        if (branch == null) {
+            return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilities);
+        }
+        else {
+            return IvyModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilities, branch);
+        }
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
@@ -73,6 +80,11 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         writeVersionConstraint(encoder, value.getVersionConstraint());
         writeAttributes(encoder, ((AttributeContainerInternal)value.getAttributes()).asImmutable());
         writeCapabilities(encoder, value.getRequestedCapabilities());
+        String branch = null;
+        if (value instanceof IvyModuleComponentSelector) {
+            branch = ((IvyModuleComponentSelector) value).getBranch();
+        }
+        encoder.writeNullableString(branch);
     }
 
     public void write(Encoder encoder, String group, String module, VersionConstraint version, ImmutableAttributes attributes, Collection<Capability> capabilities) throws IOException {

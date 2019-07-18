@@ -19,10 +19,12 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Map;
 
@@ -49,7 +51,14 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
 
     @Override
     public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
-        Map<String, String> attributes = toAttributes(module, artifact);
+        return toVersionListPattern(module, null, artifact);
+    }
+
+    @Override
+    public ExternalResourceName toVersionListPattern(ModuleIdentifier module, @Nullable String branch, IvyArtifactName artifact) {
+        Map<String, String> attributes = branch == null ?
+            toAttributes(module, artifact) :
+            toAttributes(module, branch, artifact);
         return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
@@ -64,7 +73,8 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
             "organisation", componentIdentifier.getGroup(),
             "module", componentIdentifier.getModule(),
             "artifact", componentIdentifier.getModule(),
-            "revision", componentIdentifier.getVersion()
+            "revision", componentIdentifier.getVersion(),
+            "branch", ((IvyModuleComponentIdentifier)componentIdentifier).getBranch()
         );
         ExternalResourceName resolve = getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
         return resolve;

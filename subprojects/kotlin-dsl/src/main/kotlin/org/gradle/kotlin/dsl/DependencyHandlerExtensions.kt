@@ -41,6 +41,7 @@ import org.gradle.kotlin.dsl.support.uncheckedCast
  * @param configuration the optional configuration of the module to be added as a dependency.
  * @param classifier the optional classifier of the module artifact to be added as a dependency.
  * @param ext the optional extension of the module artifact to be added as a dependency.
+ * @param branch the optional branch of the module artifact to be added as a dependency.
  *
  * @return The dependency.
  *
@@ -52,7 +53,8 @@ fun DependencyHandler.create(
     version: String? = null,
     configuration: String? = null,
     classifier: String? = null,
-    ext: String? = null
+    ext: String? = null,
+    branch: String? = null
 ): ExternalModuleDependency = externalModuleDependencyFor(
     this,
     group,
@@ -60,7 +62,8 @@ fun DependencyHandler.create(
     version,
     configuration,
     classifier,
-    ext
+    ext,
+    branch
 )
 
 
@@ -73,6 +76,7 @@ fun DependencyHandler.create(
  * @param configuration the optional configuration of the module to be added as a dependency.
  * @param classifier the optional classifier of the module artifact to be added as a dependency.
  * @param ext the optional extension of the module artifact to be added as a dependency.
+ * @param branch the optional branch of the module artifact to be added as a dependency.
  *
  * @return The dependency.
  *
@@ -84,7 +88,8 @@ fun DependencyHandler.module(
     version: String? = null,
     configuration: String? = null,
     classifier: String? = null,
-    ext: String? = null
+    ext: String? = null,
+    branch: String? = null
 ): ClientModule =
 
     module(
@@ -94,7 +99,8 @@ fun DependencyHandler.module(
             "version" to version,
             "configuration" to configuration,
             "classifier" to classifier,
-            "ext" to ext)) as ClientModule
+            "ext" to ext,
+            "branch" to branch)) as ClientModule
 
 
 /**
@@ -106,6 +112,7 @@ fun DependencyHandler.module(
  * @param configuration the optional configuration of the module to be added as a dependency.
  * @param classifier the optional classifier of the module artifact to be added as a dependency.
  * @param ext the optional extension of the module artifact to be added as a dependency.
+ * @param branch the optional branch of the module artifact to be added as a dependency.
  * @param clientModuleConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  *
@@ -118,6 +125,7 @@ fun DependencyHandler.module(
     configuration: String? = null,
     classifier: String? = null,
     ext: String? = null,
+    branch: String? = null,
     clientModuleConfiguration: ClientModuleScope.() -> Unit
 ): ClientModule =
 
@@ -129,7 +137,8 @@ fun DependencyHandler.module(
                 "version" to version,
                 "configuration" to configuration,
                 "classifier" to classifier,
-                "ext" to ext)) as ClientModule,
+                "ext" to ext,
+                "branch" to branch)) as ClientModule,
         clientModuleConfiguration)
 
 
@@ -176,11 +185,12 @@ class ClientModuleScope(
         configuration: String? = null,
         classifier: String? = null,
         ext: String? = null,
+        branch: String? = null,
         setup: ClientModuleScope.() -> Unit
     ) {
 
         clientModule.addDependency(
-            dependencyHandler.module(group, name, version, configuration, classifier, ext, setup))
+            dependencyHandler.module(group, name, version, configuration, classifier, ext, branch, setup))
     }
 
     fun dependency(notation: Any) {

@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
@@ -42,11 +44,23 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-                DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+        String branch = null;
+        if (dependency instanceof DefaultExternalModuleDependency) {
+            branch = ((DefaultExternalModuleDependency) dependency).getBranch();
+        }
+        ModuleComponentSelector selector;
+        if (branch == null) {
+            selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
                 ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
                 dependency.getAttributes(),
                 dependency.getRequestedCapabilities());
+        } else {
+            selector = IvyModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+                ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
+                dependency.getAttributes(),
+                dependency.getRequestedCapabilities(),
+                branch);
+        }
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

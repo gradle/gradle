@@ -21,12 +21,20 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 
 public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
 
+    private final String branch;
+
     public DefaultExternalModuleDependency(String group, String name, String version) {
         this(group, name, version, null);
     }
 
     public DefaultExternalModuleDependency(String group, String name, String version, String configuration) {
         super(assertModuleId(group, name), version, configuration);
+        this.branch = null;
+    }
+
+    public DefaultExternalModuleDependency(String group, String name, String version, String configuration, String branch) {
+        super(assertModuleId(group, name), version, configuration);
+        this.branch = branch;
     }
 
     @Override
@@ -50,9 +58,13 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
 
     }
 
+    public String getBranch() {
+        return branch;
+    }
+
     @Override
     public String toString() {
-        return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s'}",
-                getGroup(), getName(), getVersion(), getTargetConfiguration() != null ? getTargetConfiguration() : Dependency.DEFAULT_CONFIGURATION);
+        return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s', branch='%s'}",
+                getGroup(), getName(), getVersion(), getTargetConfiguration() != null ? getTargetConfiguration() : Dependency.DEFAULT_CONFIGURATION, branch);
     }
 }

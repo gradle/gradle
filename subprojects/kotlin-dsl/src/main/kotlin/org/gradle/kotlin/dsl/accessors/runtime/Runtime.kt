@@ -70,6 +70,7 @@ fun addExternalModuleDependencyTo(
     configuration: String?,
     classifier: String?,
     ext: String?,
+    branch: String?,
     action: Action<ExternalModuleDependency>?
 ): ExternalModuleDependency = externalModuleDependencyFor(
     dependencyHandler,
@@ -78,7 +79,8 @@ fun addExternalModuleDependencyTo(
     version,
     configuration,
     classifier,
-    ext
+    ext,
+    branch
 ).also {
     action?.execute(it)
     dependencyHandler.add(targetConfiguration, it)
@@ -92,7 +94,8 @@ fun externalModuleDependencyFor(
     version: String?,
     configuration: String?,
     classifier: String?,
-    ext: String?
+    ext: String?,
+    branch: String?
 ): ExternalModuleDependency = dependencyHandler.create(
     mapOfNonNullValuesOf(
         "group" to group,
@@ -100,6 +103,7 @@ fun externalModuleDependencyFor(
         "version" to version,
         "configuration" to configuration,
         "classifier" to classifier,
-        "ext" to ext
+        "ext" to ext,
+        "branch" to branch
     )
 ) as ExternalModuleDependency

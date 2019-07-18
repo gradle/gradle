@@ -40,6 +40,12 @@ public interface ResourcePattern {
     ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
+     * Returns the pattern which can be used to search for versions of the given artifact.
+     * The returned pattern should include at least one [revision] placeholder.
+     */
+    ExternalResourceName toVersionListPattern(ModuleIdentifier module, String branch, IvyArtifactName artifact);
+
+    /**
      * Returns the path for the given module.
      */
     ExternalResourceName toModulePath(ModuleIdentifier moduleIdentifier);

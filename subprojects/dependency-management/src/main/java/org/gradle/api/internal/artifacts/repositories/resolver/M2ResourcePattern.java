@@ -64,6 +64,12 @@ public class M2ResourcePattern extends AbstractResourcePattern {
     }
 
     @Override
+    public ExternalResourceName toVersionListPattern(ModuleIdentifier module, String branch, IvyArtifactName artifact) {
+        // Maven doesn't handle branches, so ignore the branch
+        return toVersionListPattern(module, artifact);
+    }
+
+    @Override
     public ExternalResourceName toModulePath(ModuleIdentifier module) {
         String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {

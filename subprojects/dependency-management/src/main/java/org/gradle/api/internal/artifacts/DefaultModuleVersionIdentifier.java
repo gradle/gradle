@@ -25,7 +25,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     private final String version;
     private final int hashCode;
 
-    private DefaultModuleVersionIdentifier(String group, String name, String version) {
+    protected DefaultModuleVersionIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         assert version != null : "version cannot be null";
@@ -34,7 +34,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         this.hashCode = 31 * id.hashCode() ^ version.hashCode();
     }
 
-    private DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
+    protected DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
         assert version != null : "version cannot be null";
         this.id = id;
         this.version = version;

@@ -27,4 +27,6 @@ public interface VersionLister {
      * Uses resource listing to attempt to get the list of versions for a module across a set of patterns.
      */
     void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result);
+
+    void listVersions(ModuleIdentifier module, IvyArtifactName artifact, String branch, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result);
 }

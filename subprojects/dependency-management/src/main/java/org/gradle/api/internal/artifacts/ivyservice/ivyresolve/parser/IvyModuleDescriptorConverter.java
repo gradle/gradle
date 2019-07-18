@@ -40,6 +40,7 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -108,7 +109,12 @@ public class IvyModuleDescriptorConverter {
 
     private void addDependency(List<IvyDependencyDescriptor> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
-        ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(revisionId.getOrganisation(), revisionId.getName()), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
+        ModuleComponentSelector requested;
+        if (revisionId.getBranch() == null) {
+            requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(revisionId.getOrganisation(), revisionId.getName()), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
+        } else {
+            requested = IvyModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(revisionId.getOrganisation(), revisionId.getName()), new DefaultImmutableVersionConstraint(revisionId.getRevision()), revisionId.getBranch());
+        }
 
         ListMultimap<String, String> configMappings = ArrayListMultimap.create();
         for (Map.Entry<String, List<String>> entry : readConfigMappings(dependencyDescriptor).entrySet()) {

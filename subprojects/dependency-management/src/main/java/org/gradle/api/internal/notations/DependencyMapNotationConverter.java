@@ -44,12 +44,15 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
                          @MapKey("version") @Nullable String version,
                          @MapKey("configuration") @Nullable String configuration,
                          @MapKey("ext") @Nullable String ext,
-                         @MapKey("classifier") @Nullable String classifier) {
+                         @MapKey("classifier") @Nullable String classifier,
+                         @MapKey("branch") @Nullable String branch) {
         T dependency;
         if (configuration == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version);
-        } else {
+        } else if (branch == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
+        } else {
+            dependency = instantiator.newInstance(resultingType, group, name, version, configuration, branch);
         }
         if (dependency instanceof ExternalDependency) {
             ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) dependency, ext, classifier);
