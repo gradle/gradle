@@ -466,7 +466,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Override
     public void debugOptions(Closure closure) {
-        debugOptions(ConfigureUtil.<JavaDebugOptions>configureUsing(closure)); // TODO why doesn't it work with static import®
+        debugOptions(ConfigureUtil.<JavaDebugOptions>configureUsing(closure));
     }
 
     /**

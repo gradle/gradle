@@ -107,4 +107,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         then:
         true // test successfully executed with debugger attached
     }
+
+    def "Overwrites debug options"() {}
+
 }

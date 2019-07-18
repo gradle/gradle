@@ -18,11 +18,14 @@
 package org.gradle.api.internal.tasks.util
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaDebugOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -357,7 +360,11 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.setMaxHeapSize('1g')
         1 * target.setBootstrapClasspath(options.bootstrapClasspath)
         1 * target.setEnableAssertions(false)
-        1 * target.debugOptions(_) // TODO
+        1 * target.debugOptions({ action ->
+            JavaDebugOptions debugOptions = new DefaultJavaDebugOptions()
+            action.execute(debugOptions)
+            !debugOptions.enabled
+        })
 
         then:
         1 * target.jvmArgs(['argFromProvider'])
