@@ -173,4 +173,20 @@ class A2{}
         outputContains('changes to non-Groovy files are not supported by incremental compilation')
         !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('MyClass')
     }
+
+    def 'merge old class source mappings if no recompilation required'() {
+        given:
+        File a =source('class A { }')
+        source('class B { }')
+        run 'compileGroovy'
+
+        when:
+        a.delete()
+        run 'compileGroovy'
+
+        then:
+        skipped(':compileGroovy')
+        !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('A.groovy')
+        file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('B.groovy')
+    }
 }
