@@ -121,8 +121,8 @@ import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -242,7 +242,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<ReasonedContext, CachingResult> createWorkExecutor(
+        WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
@@ -253,6 +253,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
+            // @formatter:off
             return new DefaultWorkExecutor<>(
                 new LoadPreviousExecutionStateStep<>(
                 new ValidateStep<>(
@@ -270,6 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new CleanupOutputsStep<>(
                 new ExecuteStep<>()
             )))))))))))))));
+            // @formatter:on
         }
     }
 
@@ -359,7 +361,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<ReasonedContext, CachingResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,

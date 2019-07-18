@@ -49,7 +49,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, [:])
 
         then:
-        outcome.get() == ExecutionOutcome.EMPTY
+        outcome.get() == ExecutionOutcome.SHORT_CIRCUITED
 
         and:
         1 * sourceFiles.empty >> true
@@ -97,7 +97,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
 
         then:
-        outcome.get() == ExecutionOutcome.EMPTY
+        outcome.get() == ExecutionOutcome.SHORT_CIRCUITED
 
         and:
         1 * sourceFiles.empty >> true

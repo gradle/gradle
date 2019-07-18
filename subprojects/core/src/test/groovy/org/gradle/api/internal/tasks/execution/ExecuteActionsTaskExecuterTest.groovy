@@ -145,6 +145,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null)
 
+    // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
         new LoadPreviousExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
@@ -161,6 +162,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new CleanupOutputsStep<>(
         new ExecuteStep<>()
     ))))))))))))))
+    // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
         false,

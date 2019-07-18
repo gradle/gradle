@@ -57,7 +57,7 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
             ExecutionOutcome skipOutcome;
             if (outputFileSnapshots.isEmpty()) {
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
-                skipOutcome = ExecutionOutcome.EMPTY;
+                skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
             } else {
                 outputChangeListener.beforeOutputChange();
                 OutputsCleaner outputsCleaner = new OutputsCleaner(
@@ -75,7 +75,7 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
                     LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
                     skipOutcome = ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
                 } else {
-                    skipOutcome = ExecutionOutcome.EMPTY;
+                    skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
                 }
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));

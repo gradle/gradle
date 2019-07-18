@@ -23,8 +23,8 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
@@ -44,7 +44,7 @@ import java.util.Optional;
 
 public class WorkExecutorTestFixture {
 
-    private final WorkExecutor<ReasonedContext, CachingResult> workExecutor;
+    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
 
     WorkExecutorTestFixture(
         DefaultFileSystemMirror fileSystemMirror,
@@ -124,7 +124,7 @@ public class WorkExecutorTestFixture {
         );
     }
 
-    public WorkExecutor<ReasonedContext, CachingResult> getWorkExecutor() {
+    public WorkExecutor<ExecutionRequestContext, CachingResult> getWorkExecutor() {
         return workExecutor;
     }
 }

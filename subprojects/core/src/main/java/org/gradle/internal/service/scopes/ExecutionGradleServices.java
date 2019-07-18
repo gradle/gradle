@@ -32,8 +32,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -122,7 +122,7 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<ReasonedContext, CachingResult> createWorkExecutor(
+    public WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -136,6 +136,7 @@ public class ExecutionGradleServices {
         TimeoutHandler timeoutHandler,
         ValueSnapshotter valueSnapshotter
     ) {
+        // @formatter:off
         return new DefaultWorkExecutor<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
@@ -159,5 +160,6 @@ public class ExecutionGradleServices {
             new CleanupOutputsStep<>(
             new ExecuteStep<>()
         )))))))))))))))))))));
+        // @formatter:on
     }
 }

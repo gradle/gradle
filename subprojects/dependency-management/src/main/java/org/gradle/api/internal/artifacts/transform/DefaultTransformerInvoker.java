@@ -33,8 +33,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.InputChangesContext;
-import org.gradle.internal.execution.ReasonedContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -86,7 +86,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<ReasonedContext, CachingResult> workExecutor;
+    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
@@ -94,7 +94,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final ProjectFinder projectFinder;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTransformerInvoker(WorkExecutor<ReasonedContext, CachingResult> workExecutor,
+    public DefaultTransformerInvoker(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -200,7 +200,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                         outputFingerprinter
                     );
 
-                    CachingResult outcome = workExecutor.execute(new ReasonedContext() {
+                    CachingResult outcome = workExecutor.execute(new ExecutionRequestContext() {
                         @Override
                         public UnitOfWork getWork() {
                             return execution;

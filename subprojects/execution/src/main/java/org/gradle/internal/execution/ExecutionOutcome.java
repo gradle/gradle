@@ -30,9 +30,10 @@ public enum ExecutionOutcome {
     FROM_CACHE,
 
     /**
-     * The work's inputs required no work to be executed.
+     * Executing the work was not necessary to produce the outputs.
+     * This is usually due to the work having no inputs to process.
      */
-    EMPTY,
+    SHORT_CIRCUITED,
 
     /**
      * The work has been executed with information about the changes that happened since the previous execution.

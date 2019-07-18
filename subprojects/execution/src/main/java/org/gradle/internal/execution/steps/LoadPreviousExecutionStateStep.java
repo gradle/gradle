@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
-import org.gradle.internal.execution.ReasonedContext;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
@@ -25,7 +25,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public class LoadPreviousExecutionStateStep<C extends ReasonedContext, R extends Result> implements Step<C, R> {
+public class LoadPreviousExecutionStateStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
     private final Step<? super AfterPreviousExecutionContext, ? extends R> delegate;
 
     public LoadPreviousExecutionStateStep(Step<? super AfterPreviousExecutionContext, ? extends R> delegate) {

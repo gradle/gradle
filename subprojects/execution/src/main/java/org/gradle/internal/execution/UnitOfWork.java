@@ -93,7 +93,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     /**
      * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
-     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#EMPTY} is
+     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
      * returned depending on whether cleanup of existing outputs had to be performed.
      */
     default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {

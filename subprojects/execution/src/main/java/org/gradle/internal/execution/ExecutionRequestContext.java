@@ -18,7 +18,7 @@ package org.gradle.internal.execution;
 
 import java.util.Optional;
 
-public interface ReasonedContext extends Context {
+public interface ExecutionRequestContext extends Context {
     /**
      * If incremental mode is disabled, this returns the reason, otherwise it's empty.
      */

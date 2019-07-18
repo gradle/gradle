@@ -132,7 +132,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
 
-    WorkExecutor<ReasonedContext, CachingResult> getExecutor() {
+    WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
+        // @formatter:off
         new DefaultWorkExecutor<>(
             new LoadPreviousExecutionStateStep<>(
             new ValidateStep<>(
@@ -150,6 +151,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new CleanupOutputsStep<>(
             new ExecuteStep<InputChangesContext>()
         )))))))))))))))
+        // @formatter:on
     }
 
     def "outputs are created"() {
@@ -626,7 +628,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     UpToDateResult execute(UnitOfWork unitOfWork) {
         fileSystemMirror.beforeBuildFinished()
 
-        executor.execute(new ReasonedContext() {
+        executor.execute(new ExecutionRequestContext() {
             @Override
             UnitOfWork getWork() {
                 unitOfWork

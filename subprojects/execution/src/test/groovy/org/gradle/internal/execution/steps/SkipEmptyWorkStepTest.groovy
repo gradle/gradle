@@ -70,6 +70,6 @@ class SkipEmptyWorkStepTest extends StepSpec {
         0 * _
 
         where:
-        outcome << [ExecutionOutcome.EMPTY, ExecutionOutcome.EXECUTED_NON_INCREMENTALLY]
+        outcome << [ExecutionOutcome.SHORT_CIRCUITED, ExecutionOutcome.EXECUTED_NON_INCREMENTALLY]
     }
 }
