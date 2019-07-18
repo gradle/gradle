@@ -38,7 +38,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         then:
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
-        result.executionReasons.empty
+        !result.executionReasons.present
 
         1 * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
@@ -56,7 +56,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         then:
         result.executionReasons == ["change"]
-        result.reusedOutputOriginMetadata.empty
+        !result.reusedOutputOriginMetadata.present
 
         1 * context.getWork() >> work
         1 * context.changes >> Optional.of(changes)

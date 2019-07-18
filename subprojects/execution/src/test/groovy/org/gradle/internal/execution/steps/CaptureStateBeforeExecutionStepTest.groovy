@@ -82,7 +82,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.implementation == implementationSnapshot
             assert state.additionalImplementations == additionalImplementations
         }
@@ -103,7 +103,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
@@ -127,7 +127,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties == ImmutableSortedMap.<String, ValueSnapshot>of('inputString', valueSnapshot)
         }
         0 * _
@@ -145,7 +145,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.inputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('inputFile', fingerprint)
         }
         0 * _
@@ -161,7 +161,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
@@ -185,7 +185,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
@@ -214,7 +214,7 @@ class CaptureStateBeforeExecutionStepTest extends Specification {
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
-            assert state.detectedOverlappingOutputs.empty
+            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileProperties == ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of('outputDir', AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint)
         }
         0 * _
