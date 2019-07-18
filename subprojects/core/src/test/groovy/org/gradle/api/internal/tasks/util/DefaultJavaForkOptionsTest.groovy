@@ -18,7 +18,6 @@
 package org.gradle.api.internal.tasks.util
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
