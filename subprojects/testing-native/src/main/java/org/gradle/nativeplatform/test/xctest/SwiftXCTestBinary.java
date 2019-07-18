@@ -60,6 +60,9 @@ public interface SwiftXCTestBinary extends SwiftBinary, TestComponent {
      */
     Provider<? extends AbstractLinkTask> getLinkTask();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     Provider<? extends XCTest> getRunTask();
 }
