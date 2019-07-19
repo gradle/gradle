@@ -16,7 +16,6 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -38,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static org.gradle.util.ConfigureUtil.*;
-
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
@@ -51,10 +48,10 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final JavaForkOptions javaOptions;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptionsFactory javaForkOptionsFactory) {
         super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
-        javaOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
+        this.javaOptions = javaForkOptionsFactory.newJavaForkOptions();
         executable(javaOptions.getExecutable());
     }
 
@@ -209,13 +206,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public void debugOptions(Closure closure) {
-        debugOptions(configureUsing(closure));
-    }
-
-    @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
-        
         javaOptions.debugOptions(action);
     }
 

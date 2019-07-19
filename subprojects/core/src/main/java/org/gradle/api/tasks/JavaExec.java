@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -41,8 +40,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * Executes a Java application in a child process.
@@ -313,11 +310,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public JavaDebugOptions getDebugOptions() {
         return javaExecHandleBuilder.getDebugOptions();
-    }
-
-    @Override
-    public void debugOptions(Closure closure) {
-        debugOptions(configureUsing(closure));
     }
 
     @Override

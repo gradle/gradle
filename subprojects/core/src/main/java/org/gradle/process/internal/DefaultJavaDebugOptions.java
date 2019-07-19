@@ -16,49 +16,38 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.process.JavaDebugOptions;
 
+import javax.inject.Inject;
 import java.util.Objects;
 
 public class DefaultJavaDebugOptions implements JavaDebugOptions {
+    private final Property<Boolean> enabled;
+    private final Property<Integer> port;
+    private final Property<Boolean> server;
+    private final Property<Boolean> suspend;
 
-    private boolean enabled = false;
-    private int port = 5005;
-    private boolean server = true;
-    private boolean suspend = true;
+    @Inject
+    public DefaultJavaDebugOptions(ObjectFactory objectFactory) {
+        this.enabled = objectFactory.property(Boolean.class).value(false);
+        this.port = objectFactory.property(Integer.class).value(5005);
+        this.server = objectFactory.property(Boolean.class).value(true);
+        this.suspend = objectFactory.property(Boolean.class).value(true);
+    }
+
+    public DefaultJavaDebugOptions() {
+        // Ugly, but there are a few places where we need to instantiate a JavaDebugOptions and a regular ObjectFactory service
+        // is not available.
+        this(new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE));
+    }
 
     @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @Override
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public boolean isServer() {
-        return server;
-    }
-
-    public void setServer(boolean server) {
-        this.server = server;
-    }
-
-    public boolean isSuspend() {
-        return suspend;
-    }
-
-    public void setSuspend(boolean suspend) {
-        this.suspend = suspend;
+    public int hashCode() {
+        return Objects.hash(getEnabled().get(), getPort().get(), getServer().get(), getSuspend().get());
     }
 
     @Override
@@ -70,22 +59,29 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
             return false;
         }
         DefaultJavaDebugOptions that = (DefaultJavaDebugOptions) o;
-        return enabled == that.enabled &&
-            port == that.port &&
-            server == that.server &&
-            suspend == that.suspend;
+        return enabled.get() == that.enabled.get()
+                && port.get().equals(that.port.get())
+                && server.get()  == that.server.get()
+                && suspend.get()  == that.suspend.get();
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(enabled, port, server, suspend);
+    public Property<Boolean> getEnabled() {
+        return enabled;
     }
 
-    public void applyTo(JavaDebugOptions options) {
-        DefaultJavaDebugOptions defaultOptions = (DefaultJavaDebugOptions) options;
-        defaultOptions.setEnabled(isEnabled());
-        defaultOptions.setServer(isServer());
-        defaultOptions.setSuspend(isSuspend());
-        defaultOptions.setPort(getPort());
+    @Override
+    public Property<Integer> getPort() {
+        return port;
+    }
+
+    @Override
+    public Property<Boolean> getServer() {
+        return server;
+    }
+
+    @Override
+    public Property<Boolean> getSuspend() {
+        return suspend;
     }
 }

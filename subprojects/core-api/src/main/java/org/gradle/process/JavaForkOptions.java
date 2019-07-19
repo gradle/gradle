@@ -16,7 +16,6 @@
 
 package org.gradle.process;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -242,17 +241,6 @@ public interface JavaForkOptions extends ProcessForkOptions {
     @Nested
     @Incubating
     JavaDebugOptions getDebugOptions();
-
-    /**
-     * Configures Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
-     * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
-     *
-     * @param closure the Java debug configuration
-     * @since 5.6
-     */
-    @Incubating
-    void debugOptions(Closure closure);
-
 
     /**
      * Configures Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then

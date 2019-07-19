@@ -142,6 +142,7 @@ class JvmOptionsTest extends Specification {
         1 * target.systemProperties({
             it == new TreeMap(["file.encoding": "UTF-16"] + localeProperties())
         })
+        1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
     }
 
     @Unroll
@@ -212,9 +213,9 @@ class JvmOptionsTest extends Specification {
 
         when:
         opts.debug = true
-        opts.debugOptions.port = port
-        opts.debugOptions.server = server
-        opts.debugOptions.suspend = suspend
+        opts.debugOptions.port.set(port)
+        opts.debugOptions.server.set(server)
+        opts.debugOptions.suspend.set(suspend)
 
         then:
         opts.allJvmArgs.findAll { it.contains 'jdwp' } == [expected]

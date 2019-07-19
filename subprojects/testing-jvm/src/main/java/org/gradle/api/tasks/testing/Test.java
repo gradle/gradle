@@ -463,12 +463,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return forkOptions.getDebugOptions();
     }
 
-
-    @Override
-    public void debugOptions(Closure closure) {
-        debugOptions(ConfigureUtil.<JavaDebugOptions>configureUsing(closure));
-    }
-
     /**
      * {@inheritDoc}
      */

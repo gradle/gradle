@@ -63,14 +63,14 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             task.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
             InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
             if (debugOptions.isDebugMode()) {
-                task.setDebug(true);
                 task.debugOptions(new Action<JavaDebugOptions>() {
                     @Override
                     public void execute(JavaDebugOptions javaDebugOptions) {
                         DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
-                        options.setPort(debugOptions.getPort());
-                        options.setServer(false);
-                        options.setSuspend(false);
+                        options.getEnabled().set(true);
+                        options.getPort().set(debugOptions.getPort());
+                        options.getServer().set(false);
+                        options.getSuspend().set(false);
                     }
                 });
             }

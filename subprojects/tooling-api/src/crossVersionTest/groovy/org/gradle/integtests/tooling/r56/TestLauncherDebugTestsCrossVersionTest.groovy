@@ -77,7 +77,6 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
     }
 
     def "can launch tests in debug mode"() {
-        setup:
         jdwpClient.listen()
 
         when:
@@ -113,7 +112,4 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         then:
         true // test successfully executed with debugger attached
     }
-
-    def "Overwrites debug options"() {}
-
 }
