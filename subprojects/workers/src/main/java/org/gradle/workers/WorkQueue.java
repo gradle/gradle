@@ -22,6 +22,8 @@ import org.gradle.api.Incubating;
 /**
  * Represents a queue of work items with a uniform set of worker requirements.
  *
+ * Note that this object is not thread-safe.
+ *
  * @since 5.6
  */
 @Incubating

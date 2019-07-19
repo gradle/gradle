@@ -19,6 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.Contextual;
@@ -39,6 +40,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.util.CollectionUtils;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.ProcessWorkerSpec;
@@ -50,6 +52,7 @@ import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkerParameters;
 import org.gradle.workers.WorkerSpec;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -269,6 +272,23 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
+    private void await(List<AsyncWorkCompletion> workItems) throws WorkExecutionException {
+        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+        try {
+            if (CollectionUtils.any(workItems, new Spec<AsyncWorkCompletion>() {
+                @Override
+                public boolean isSatisfiedBy(AsyncWorkCompletion workItem) {
+                    return !workItem.isComplete();
+                }
+            })) {
+                executionQueue.expand();
+            }
+            asyncWorkTracker.waitForCompletion(currentOperation, workItems, RETAIN_PROJECT_LOCKS);
+        } catch (DefaultMultiCauseException e) {
+            throw workerExecutionException(e.getCauses());
+        }
+    }
+
     private WorkerExecutionException workerExecutionException(List<? extends Throwable> failures) {
         if (failures.size() == 1) {
             throw new WorkerExecutionException("There was a failure while executing work items", failures);
@@ -399,6 +419,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
+    @NotThreadSafe
     static class DefaultWorkQueue implements WorkQueue {
         private final DefaultWorkerExecutor workerExecutor;
         private final WorkerSpecInternal spec;
@@ -416,7 +437,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         @Override
         public void await() throws WorkerExecutionException {
-
-        }
+            workerExecutor.await(workItems);
+         }
     }
 }

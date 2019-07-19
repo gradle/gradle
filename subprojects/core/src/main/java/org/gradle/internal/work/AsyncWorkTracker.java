@@ -18,6 +18,8 @@ package org.gradle.internal.work;
 
 import org.gradle.internal.operations.BuildOperationRef;
 
+import java.util.List;
+
 /**
  * Allows asynchronous work to be tracked based on the build operation it is associated with.
  */
@@ -44,6 +46,17 @@ public interface AsyncWorkTracker {
      * @param lockRetention - How project locks should be treated while waiting on work
      */
     void waitForCompletion(BuildOperationRef operation, ProjectLockRetention lockRetention);
+
+    /**
+     * Blocks waiting for the completion of the specified items of asynchronous work.
+     * Only waits for work in the list at the moment the method is called.  In the event that there are failures in
+     * the asynchronous work, a {@link org.gradle.internal.exceptions.MultiCauseException} will be thrown with any exceptions
+     * thrown.
+     *
+     * @param workCompletions - The items of work that should be waited on
+     * @param lockRetention - How project locks should be treated while waiting on work
+     */
+    void waitForCompletion(BuildOperationRef operation, List<AsyncWorkCompletion> workCompletions, ProjectLockRetention lockRetention);
 
     /**
      * Returns true if the given operation has work registered that has not completed.
