@@ -26,6 +26,6 @@ import org.gradle.api.attributes.Attribute;
  * It <b>mustn't</b> be used directly by users, typically on dependency
  * declarations.
  */
-public interface Classifier {
-    Attribute<String> CLASSIFIER_ATTRIBUTE = Attribute.of("org.gradle.compat.classifier", String.class);
+public interface ArtifactSelection {
+    Attribute<String> ARTIFACT_SELECTOR_ATTRIBUTE = Attribute.of("org.gradle.compat.artifactselector", String.class);
 }

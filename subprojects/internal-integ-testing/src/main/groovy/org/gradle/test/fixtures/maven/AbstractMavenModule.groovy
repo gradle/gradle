@@ -20,7 +20,7 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.attributes.Classifier
+import org.gradle.api.internal.attributes.ArtifactSelection
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -470,7 +470,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                             if (attributes == null) {
                                 attributes = [:]
                             }
-                            attributes[Classifier.CLASSIFIER_ATTRIBUTE.name] = d.classifier
+                            attributes[ArtifactSelection.ARTIFACT_SELECTOR_ATTRIBUTE.name] = "${d.artifactId}:${d.type?:'jar'}:${d.extension?:'jar'}:${d.classifier}".toString()
                         }
                         new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, attributes)
                     },

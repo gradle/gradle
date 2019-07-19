@@ -42,7 +42,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.Classifier;
+import org.gradle.api.internal.attributes.ArtifactSelection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -483,12 +483,21 @@ public class GradleModuleMetadataWriter {
         // TODO CC: What does it mean if there's more than one artifact? How is it possible?
         if (artifacts.size() == 1) {
             DependencyArtifact artifact = artifacts.iterator().next();
-            String classifier = artifact.getClassifier();
-            if (classifier != null) {
-                return Collections.singletonMap(Classifier.CLASSIFIER_ATTRIBUTE.getName(), classifier);
-            }
+            String name = nonNullString(artifact.getName());
+            String type = nonNullString(artifact.getType());
+            String extension = nonNullString(artifact.getExtension());
+            String classifier = nonNullString(artifact.getClassifier());
+            return Collections.singletonMap(ArtifactSelection.ARTIFACT_SELECTOR_ATTRIBUTE.getName(),
+                name + ":" + type + ":" + extension + ":" + classifier);
         }
         return Collections.emptyMap();
+    }
+
+    private static String nonNullString(String str) {
+        if (str == null) {
+            return "";
+        }
+        return str;
     }
 
     private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter, VersionMappingStrategyInternal versionMappingStrategy) throws IOException {

@@ -239,7 +239,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 // second dependency
                 next()
                 exists()
-                hasAttribute("org.gradle.compat.classifier", "classy")
+                hasAttribute("org.gradle.compat.artifactselector", "foo:jar:jar:classy")
                 isLast()
             }
         }

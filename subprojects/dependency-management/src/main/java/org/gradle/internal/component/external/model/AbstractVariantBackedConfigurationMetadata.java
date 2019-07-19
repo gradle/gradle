@@ -24,7 +24,7 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.Classifier;
+import org.gradle.api.internal.attributes.ArtifactSelection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -59,7 +59,7 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         boolean forcedDependencies = PlatformSupport.hasForcedDependencies(variant);
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ImmutableAttributes attributes = dependency.getAttributes();
-            List<IvyArtifactName> artifacts = extractArtifacts(dependency.getModule(), attributes);
+            List<IvyArtifactName> artifacts = extractArtifacts(attributes);
             if (!artifacts.isEmpty()) {
                 attributes = removeClassifierAttribute(attributes);
             }
@@ -85,19 +85,34 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         return attributes;
     }
 
-    private List<IvyArtifactName> extractArtifacts(String name, ImmutableAttributes attributes) {
-        AttributeValue<String> entry = Cast.uncheckedCast(attributes.findEntry(Classifier.CLASSIFIER_ATTRIBUTE.getName()));
+    private static  List<IvyArtifactName> extractArtifacts(ImmutableAttributes attributes) {
+        AttributeValue<String> entry = Cast.uncheckedCast(attributes.findEntry(ArtifactSelection.ARTIFACT_SELECTOR_ATTRIBUTE.getName()));
         if (entry.isPresent()) {
+            String[] values = entry.get().split(":");
             return ImmutableList.of(
                 new DefaultIvyArtifactName(
-                    name,
-                    "jar",
-                    "jar",
-                    entry.get()
+                    values[0],
+                    defaultType(values[1]),
+                    maybeNull(values[2]),
+                    maybeNull(values[3])
                 )
             );
         }
         return ImmutableList.of();
+    }
+
+    private static String defaultType(String value) {
+        if (value.isEmpty()) {
+            return "jar";
+        }
+        return value;
+    }
+
+    private static String maybeNull(String value) {
+        if (value.isEmpty()) {
+            return null;
+        }
+        return value;
     }
 
     AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableList<GradleDependencyMetadata> dependencies) {
