@@ -213,7 +213,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String operationId = scriptTarget.getId();
             CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, targetScope.getExportClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 scriptTarget.attachScript(runner.getScript());
             }
