@@ -65,7 +65,7 @@ class BuildScriptTransformerSpec extends Specification {
         def transformer = new BuildScriptTransformer(source, target)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
-        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }
 
     def "empty script does not contain any code"() {

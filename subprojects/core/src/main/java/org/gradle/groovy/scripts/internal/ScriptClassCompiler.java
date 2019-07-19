@@ -23,5 +23,5 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptClassCompiler {
-    <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoaderScope targetScope, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> transformer, Class<T> scriptBaseClass, Action<? super ClassNode> verifier);
+    <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoaderScope targetScope, ClassLoaderId classLoaderId, CompileOperation<M> transformer, Class<T> scriptBaseClass, Action<? super ClassNode> verifier);
 }

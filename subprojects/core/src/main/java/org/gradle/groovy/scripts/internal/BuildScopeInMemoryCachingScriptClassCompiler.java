@@ -44,11 +44,11 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoaderScope targetScope, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
-        ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoaderScope targetScope, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+        ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
-            compiledScript = cache.getOrCompile(source, targetScope, classLoader, classLoaderId, operation, scriptBaseClass, verifier, scriptClassCompiler);
+            compiledScript = cache.getOrCompile(source, targetScope, classLoaderId, operation, scriptBaseClass, verifier, scriptClassCompiler);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;

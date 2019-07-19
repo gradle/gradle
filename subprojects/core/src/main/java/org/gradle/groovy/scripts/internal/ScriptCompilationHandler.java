@@ -30,6 +30,6 @@ public interface ScriptCompilationHandler {
     void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> transformer,
                       Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
 
-    <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassLoader classLoader, File scriptCacheDir,
+    <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir,
                                                            File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass, ClassLoaderId classLoaderId);
 }

@@ -35,10 +35,11 @@ class DefaultScriptCompilerFactoryTest extends Specification {
         getResource() >> Stub(TextResource)
     }
     final ScriptRunner<TestScript, ?> runner = Mock()
+    final ClassLoader classLoader = Mock()
     final ClassLoaderScope targetScope = Stub() {
         createChild(_) >> Stub(ClassLoaderScope)
+        getExportClassLoader() >> classLoader
     }
-    final ClassLoader classLoader = Mock()
     final CompileOperation<?> operation = Mock() {
         getId() >> "id"
     }
@@ -51,12 +52,12 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     def "compiles script into class and wraps instance in script runner"() {
         when:
         def compiler = factory.createCompiler(source)
-        def result = compiler.compile(Script, operation, targetScope, classLoader, verifier)
+        def result = compiler.compile(Script, operation, targetScope, verifier)
 
         then:
         result == runner
 
-        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, targetScope, classLoader, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
+        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, targetScope, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
         1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._

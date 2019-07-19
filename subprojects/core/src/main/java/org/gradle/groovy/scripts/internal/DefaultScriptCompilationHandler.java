@@ -198,7 +198,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassLoader classLoader, File scriptCacheDir,
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir,
                                                                   File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass,
                                                                   ClassLoaderId classLoaderId) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
@@ -217,7 +217,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 } else {
                     data = null;
                 }
-                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, targetScope, classLoader, source, sourceHashCode, data);
+                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
             } finally {
                 decoder.close();
             }
@@ -296,20 +296,18 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final Class<T> scriptBaseClass;
         private final File scriptCacheDir;
         private final ClassLoaderScope targetScope;
-        private final ClassLoader classLoader;
         private final ScriptSource source;
         private final HashCode sourceHashCode;
         private final M metadata;
         private Class<? extends T> scriptClass;
 
-        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ClassLoader classLoader, ScriptSource source, HashCode sourceHashCode, M metadata) {
+        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
             this.isEmpty = isEmpty;
             this.hasMethods = hasMethods;
             this.classLoaderId = classLoaderId;
             this.scriptBaseClass = scriptBaseClass;
             this.scriptCacheDir = scriptCacheDir;
             this.targetScope = targetScope;
-            this.classLoader = classLoader;
             this.source = source;
             this.sourceHashCode = sourceHashCode;
             this.metadata = metadata;
@@ -344,7 +342,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                         .local(scriptClassPath)
                         .lock();
                     // Classloader will be handled by the cache, class will be released when the classloader is.
-                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, classLoader, scriptClassPath, sourceHashCode));
+                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, targetScope.getExportClassLoader(), scriptClassPath, sourceHashCode));
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");

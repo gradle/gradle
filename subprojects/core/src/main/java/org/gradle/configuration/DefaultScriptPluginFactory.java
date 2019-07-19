@@ -196,7 +196,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
             CompileOperation<?> initialOperation = new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
 
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, baseScope.getExportClassLoader(), Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
@@ -213,7 +213,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String operationId = scriptTarget.getId();
             CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, targetScope.getExportClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 scriptTarget.attachScript(runner.getScript());
             }
