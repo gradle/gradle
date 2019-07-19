@@ -45,11 +45,7 @@ interface WriteContext : IsolateContext, Encoder {
 
     fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter
 
-    fun writeActionFor(value: Any?): Encoding?
-
-    suspend fun write(value: Any?) {
-        writeActionFor(value)!!(value)
-    }
+    suspend fun write(value: Any?)
 }
 
 

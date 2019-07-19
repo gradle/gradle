@@ -68,11 +68,22 @@ class BeanPropertyReader(
 
     private
     val constructorForSerialization by lazy {
+        // Initialize the super types of the bean type, as this does not seem to happen via the generated constructors
+        maybeInit(beanType)
         if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
             // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
             newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
         } else {
             newConstructorForSerialization(beanType, Object::class.java.getConstructor())
+        }
+    }
+
+    private
+    fun maybeInit(beanType: Class<*>) {
+        val superclass = beanType.superclass
+        if (superclass?.classLoader != null) {
+            Class.forName(superclass.name, true, superclass.classLoader)
+            maybeInit(superclass)
         }
     }
 

@@ -49,8 +49,10 @@ class DefaultWriteContext(
     override val isolate: WriteIsolate
         get() = getIsolate()
 
-    override fun writeActionFor(value: Any?): Encoding? = encodings.run {
-        encodingFor(value)
+    override suspend fun write(value: Any?) {
+        encodings.run {
+            encode(value)
+        }
     }
 
     // TODO: consider interning strings
@@ -68,7 +70,7 @@ class DefaultWriteContext(
 
 internal
 interface EncodingProvider {
-    fun WriteContext.encodingFor(candidate: Any?): Encoding?
+    suspend fun WriteContext.encode(candidate: Any?)
 }
 
 

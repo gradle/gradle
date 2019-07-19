@@ -318,6 +318,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "SomeEnum"                       | "SomeEnum.Two"                                                | "Two"
         "SomeEnum[]"                     | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
         "List<String>"                   | "['a', 'b', 'c']"                                             | "[a, b, c]"
+        "ArrayList<String>"              | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
+        "LinkedList<String>"             | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
         "Set<String>"                    | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
         "HashSet<String>"                | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
         "LinkedHashSet<String>"          | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
