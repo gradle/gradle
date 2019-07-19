@@ -28,8 +28,8 @@ import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.workers.WorkerExecution
-import org.gradle.workers.WorkerParameters
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerSpec
 import spock.lang.Specification
 import org.gradle.util.RedirectStdOutAndErr
@@ -63,13 +63,13 @@ class DefaultWorkerExecutorTest extends Specification {
     def worker = Mock(BuildOperationAwareWorker)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
-    def parameters = Mock(AdapterWorkerParameters)
+    def parameters = Mock(AdapterWorkParameters)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
+        _ * instantiator.newInstance(AdapterWorkParameters) >> parameters
         _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec) >> { args -> new DefaultProcessWorkerSpec(forkOptionsFactory, objectFactory) }
@@ -214,7 +214,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
     }
 
-    abstract static class TestExecutable implements WorkerExecution<WorkerParameters.None> {
+    abstract static class TestExecutable implements WorkAction<WorkParameters.None> {
         @Override
         void execute() {
             println "executing"

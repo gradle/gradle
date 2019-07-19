@@ -46,10 +46,10 @@ import org.gradle.workers.IsolationMode;
 import org.gradle.workers.ProcessWorkerSpec;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerConfiguration;
-import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerSpec;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -140,9 +140,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
         configAction.execute(configuration);
 
-        Action<AdapterWorkerParameters> parametersAction = new Action<AdapterWorkerParameters>() {
+        Action<AdapterWorkParameters> parametersAction = new Action<AdapterWorkParameters>() {
             @Override
-            public void execute(AdapterWorkerParameters parameters) {
+            public void execute(AdapterWorkParameters parameters) {
                 parameters.setImplementationClassName(actionClass.getName());
                 parameters.setParams(configuration.getParams());
             }
@@ -163,7 +163,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             default:
                 throw new IllegalArgumentException("Unknown isolation mode: " + configuration.getIsolationMode());
         }
-        workQueue.submit(AdapterWorkerExecution.class, parametersAction);
+        workQueue.submit(AdapterWorkAction.class, parametersAction);
     }
 
     <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
@@ -175,23 +175,23 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         };
     }
 
-    private <T extends WorkerParameters> AsyncWorkCompletion submitWork(Class<? extends WorkerExecution<T>> workerExecutionClass, WorkerSpecInternal workerSpec, Action<T> parameterAction) {
-        ParameterizedType superType = (ParameterizedType) TypeToken.of(workerExecutionClass).getSupertype(WorkerExecution.class).getType();
+    private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, WorkerSpecInternal workerSpec, Action<T> parameterAction) {
+        ParameterizedType superType = (ParameterizedType) TypeToken.of(workActionClass).getSupertype(WorkAction.class).getType();
         Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
-        if (parameterType == WorkerParameters.class) {
-            throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkerParameters.class).getDisplayName(), ModelType.of(WorkerParameters.None.class).getDisplayName()));
+        if (parameterType == WorkParameters.class) {
+            throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkParameters.class).getDisplayName(), ModelType.of(WorkParameters.None.class).getDisplayName()));
         }
-        T parameters = (parameterType == WorkerParameters.None.class) ? null : instantiator.newInstance(parameterType);
+        T parameters = (parameterType == WorkParameters.None.class) ? null : instantiator.newInstance(parameterType);
         if (parameters != null) {
             parameterAction.execute(parameters);
         }
 
         ActionExecutionSpec spec;
-        String description = getWorkerDisplayName(workerSpec, workerExecutionClass, parameters);
-        DaemonForkOptions forkOptions = getDaemonForkOptions(workerExecutionClass, workerSpec, parameters);
+        String description = getWorkerDisplayName(workerSpec, workActionClass, parameters);
+        DaemonForkOptions forkOptions = getDaemonForkOptions(workActionClass, workerSpec, parameters);
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workerExecutionClass, parameters, forkOptions.getClassLoaderStructure());
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, forkOptions.getClassLoaderStructure());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -219,15 +219,15 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return execution;
     }
 
-    private static String getWorkerDisplayName(WorkerSpec workerSpec, Class<?> workerExecutionClass, WorkerParameters parameters) {
+    private static String getWorkerDisplayName(WorkerSpec workerSpec, Class<?> workActionClass, WorkParameters parameters) {
         if (workerSpec.getDisplayName() != null) {
             return workerSpec.getDisplayName();
         }
 
-        if (workerExecutionClass == AdapterWorkerExecution.class) {
-            return ((AdapterWorkerParameters) parameters).getImplementationClassName();
+        if (workActionClass == AdapterWorkAction.class) {
+            return ((AdapterWorkParameters) parameters).getImplementationClassName();
         } else {
-            return workerExecutionClass.getName();
+            return workActionClass.getName();
         }
     }
 
@@ -297,7 +297,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    DaemonForkOptions getDaemonForkOptions(Class<?> executionClass, WorkerSpec configuration, WorkerParameters parameters) {
+    DaemonForkOptions getDaemonForkOptions(Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
         DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
                 .keepAliveMode(KeepAliveMode.DAEMON);
 
@@ -318,20 +318,20 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return builder.build();
     }
 
-    private Class<?>[] getParamClasses(Class<?> executionClass, WorkerParameters parameters) {
-        Class<?> actionClass;
+    private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
+        Class<?> implementationClass;
         Object[] params;
-        if (parameters instanceof AdapterWorkerParameters) {
-            AdapterWorkerParameters adapterWorkerParameters = (AdapterWorkerParameters) parameters;
-            actionClass = classFromContextLoader(adapterWorkerParameters.getImplementationClassName());
-            params = adapterWorkerParameters.getParams();
+        if (parameters instanceof AdapterWorkParameters) {
+            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
+            implementationClass = classFromContextLoader(adapterWorkParameters.getImplementationClassName());
+            params = adapterWorkParameters.getParams();
         } else {
-            actionClass = executionClass;
+            implementationClass = actionClass;
             params = new Object[] {parameters};
         }
 
         List<Class<?>> classes = Lists.newArrayList();
-        classes.add(actionClass);
+        classes.add(implementationClass);
         for (Object param : params) {
             if (param != null) {
                 classes.add(param.getClass());
@@ -431,8 +431,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         @Override
-        public <T extends WorkerParameters> void submit(Class<? extends WorkerExecution<T>> workerExecutionClass, Action<T> parameterAction) {
-            workItems.add(workerExecutor.submitWork(workerExecutionClass, spec, parameterAction));
+        public <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<T> parameterAction) {
+            workItems.add(workerExecutor.submitWork(workActionClass, spec, parameterAction));
         }
 
         @Override

@@ -18,7 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkAction;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -30,18 +30,18 @@ import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextL
  * parameter api.  It allows us to maintain backwards compatibility at the api layer, but use
  * only typed parameters under the covers.  This can be removed once the old api is retired.
  */
-public abstract class AdapterWorkerExecution implements WorkerExecution<AdapterWorkerParameters>, ProvidesWorkResult {
+public abstract class AdapterWorkAction implements WorkAction<AdapterWorkParameters>, ProvidesWorkResult {
     private final Instantiator instantiator;
     private DefaultWorkResult workResult;
 
     @Inject
-    public AdapterWorkerExecution(Instantiator instantiator) {
+    public AdapterWorkAction(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
     @Override
     public void execute() {
-        AdapterWorkerParameters parameters = getParameters();
+        AdapterWorkParameters parameters = getParameters();
         String implementationClassName = parameters.getImplementationClassName();
         Class<?> actionClass = classFromContextLoader(implementationClassName);
 

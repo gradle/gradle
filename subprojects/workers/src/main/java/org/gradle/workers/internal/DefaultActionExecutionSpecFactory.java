@@ -23,8 +23,8 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.workers.WorkerExecution;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -41,7 +41,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkerParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec) {
+    public <T extends WorkParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof IsolatedParametersActionExecutionSpec) {
             IsolatedParametersActionExecutionSpec isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
             return new TransportableActionExecutionSpec<T>(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure());
@@ -53,12 +53,12 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkerParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkerExecution<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure) {
+    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure) {
         return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, isolatableFactory.isolate(params), classLoaderStructure);
     }
 
     @Override
-    public <T extends WorkerParameters> SimpleActionExecutionSpec<T> newSimpleSpec(ActionExecutionSpec<T> spec) {
+    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof TransportableActionExecutionSpec) {
             TransportableActionExecutionSpec<T> transportableSpec = (TransportableActionExecutionSpec<T>) spec;
             T params = Cast.uncheckedCast(deserialize(transportableSpec.getSerializedParameters()).isolate());

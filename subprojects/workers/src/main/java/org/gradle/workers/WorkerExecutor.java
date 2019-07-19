@@ -90,6 +90,7 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
+    @Incubating
     WorkQueue noIsolation(Action<WorkerSpec> action);
 
     /**
@@ -97,6 +98,7 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
+    @Incubating
     WorkQueue classLoaderIsolation(Action<ClassLoaderWorkerSpec> action);
 
     /**
@@ -106,6 +108,7 @@ public interface WorkerExecutor {
      *
      * @since 5.6
      */
+    @Incubating
     WorkQueue processIsolation(Action<ProcessWorkerSpec> action);
 
     /**

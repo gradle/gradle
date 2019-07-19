@@ -26,11 +26,10 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
-import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkQueue;
-import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkerExecutor;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerSpec;
 
 import javax.annotation.Nonnull;
@@ -92,12 +91,12 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
-    interface PrefixHeaderFileParameters extends WorkerParameters {
+    interface PrefixHeaderFileParameters extends WorkParameters {
         Property<String> getHeader();
         RegularFileProperty getPrefixHeaderFile();
     }
 
-    static abstract class GeneratePrefixHeaderFile implements WorkerExecution<PrefixHeaderFileParameters> {
+    static abstract class GeneratePrefixHeaderFile implements WorkAction<PrefixHeaderFileParameters> {
         @Inject
         public GeneratePrefixHeaderFile() { }
 

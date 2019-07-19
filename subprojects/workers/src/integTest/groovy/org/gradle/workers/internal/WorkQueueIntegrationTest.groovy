@@ -25,19 +25,19 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
-    WorkerExecutorFixture.ParameterClass parallelParameterType
-    WorkerExecutorFixture.ExecutionClass parallelWorkerExecution
+    WorkerExecutorFixture.WorkParameterClass parallelParameterType
+    WorkerExecutorFixture.WorkActionClass parallelWorkAction
 
     def setup() {
         blockingHttpServer.start()
 
-        parallelParameterType = fixture.parameterClass("ParallelParameter", "org.gradle.test").withFields([
+        parallelParameterType = fixture.workParameterClass("ParallelParameter", "org.gradle.test").withFields([
                 "itemName": "String",
                 "shouldFail": "Boolean"
         ])
 
-        parallelWorkerExecution = fixture.executionClass("ParallelWorkerExecution", "org.gradle.test", parallelParameterType)
-        parallelWorkerExecution.with {
+        parallelWorkAction = fixture.workActionClass("ParallelWorkAction", "org.gradle.test", parallelParameterType)
+        parallelWorkAction.with {
             imports += ["java.net.URI", "org.gradle.test.FileHelper"]
             extraFields = "private static final String id = UUID.randomUUID().toString()"
             action = """
@@ -51,7 +51,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                 FileHelper.write(id, outputFile)
             """
         }
-        parallelWorkerExecution.writeToBuildFile()
+        parallelWorkAction.writeToBuildFile()
 
         buildFile << """
             ${workItemTask}
@@ -63,8 +63,8 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         buildFile << """
             task runWork(type: WorkItemTask) {
                 doLast {
-                    def workQueue1 = submit(ParallelWorkerExecution.class, [ "item1", "item2"])
-                    def workQueue2 = submit(ParallelWorkerExecution.class, [ "item3" ])
+                    def workQueue1 = submit(ParallelWorkAction.class, [ "item1", "item2"])
+                    def workQueue2 = submit(ParallelWorkAction.class, [ "item3" ])
                     
                     signal("submitted")
 
@@ -111,8 +111,8 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         buildFile << """
             task runWork(type: WorkItemTask) {
                 doLast {
-                    def workQueue1 = submitFailure(ParallelWorkerExecution.class, [ "item1", "item2"])
-                    def workQueue2 = submit(ParallelWorkerExecution.class, [ "item3" ])
+                    def workQueue1 = submitFailure(ParallelWorkAction.class, [ "item1", "item2"])
+                    def workQueue2 = submit(ParallelWorkAction.class, [ "item3" ])
                     
                     signal("submitted")
 
@@ -166,8 +166,8 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         buildFile << """
             task runWork(type: WorkItemTask) {
                 doLast {
-                    def workQueue1 = submitFailure(ParallelWorkerExecution.class, [ "item1", "item2"])
-                    def workQueue2 = submitFailure(ParallelWorkerExecution.class, [ "item3" ])
+                    def workQueue1 = submitFailure(ParallelWorkAction.class, [ "item1", "item2"])
+                    def workQueue2 = submitFailure(ParallelWorkAction.class, [ "item3" ])
                     
                     signal("submitted")
 

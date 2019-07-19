@@ -241,8 +241,6 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     String getOptionVerifyingRunnable() {
-        boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled
-
         return """
             import java.util.regex.Pattern;
             import java.util.List;

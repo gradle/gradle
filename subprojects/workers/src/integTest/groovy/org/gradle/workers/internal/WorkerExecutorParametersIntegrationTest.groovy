@@ -44,7 +44,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void doWork() {
                     def parameterAction = paramConfig != null ? paramConfig : {}
-                    workerExecutor."\${getWorkerMethod(isolationMode)}"().submit(ParameterWorkerExecution.class, parameterAction)
+                    workerExecutor."\${getWorkerMethod(isolationMode)}"().submit(ParameterWorkAction.class, parameterAction)
                 }
                 
                 void parameters(Closure closure) {
@@ -61,7 +61,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             interface Foo extends Named { }
             ext.testObject = objects.named(Foo.class, "bar")
 
-            ${parameterWorkerExecution('Named', 'println parameters.testParam.name', true)}
+            ${parameterWorkAction('Named', 'println parameters.testParam.name', true)}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -83,7 +83,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide property parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('Property<String>', 'println parameters.testParam.get()')}
+            ${parameterWorkAction('Property<String>', 'println parameters.testParam.get()')}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -105,7 +105,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide file collection parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('ConfigurableFileCollection', 'parameters.testParam.files.each { println it.name }')}
+            ${parameterWorkAction('ConfigurableFileCollection', 'parameters.testParam.files.each { println it.name }')}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -129,7 +129,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ext.testObject = ["foo", "bar"] as String[]
 
-            ${parameterWorkerExecution('String[]', 'println "param = " + Arrays.asList(parameters.testParam)', true) }
+            ${parameterWorkAction('String[]', 'println "param = " + Arrays.asList(parameters.testParam)', true) }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -153,7 +153,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ext.testObject = [] as String[]
 
-            ${parameterWorkerExecution('String[]', 'println "param = " + Arrays.asList(parameters.testParam)', true) }
+            ${parameterWorkAction('String[]', 'println "param = " + Arrays.asList(parameters.testParam)', true) }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -175,7 +175,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide list property parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('ListProperty<String>', 'println parameters.testParam.get().join(",")') }
+            ${parameterWorkAction('ListProperty<String>', 'println parameters.testParam.get().join(",")') }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -198,7 +198,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide set property parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('SetProperty<String>', 'println parameters.testParam.get().join(",")') }
+            ${parameterWorkAction('SetProperty<String>', 'println parameters.testParam.get().join(",")') }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -221,7 +221,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide map property parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('MapProperty<String, String>', 'println parameters.testParam.get().collect { it.key + ":" + it.value }.join(",")') }
+            ${parameterWorkAction('MapProperty<String, String>', 'println parameters.testParam.get().collect { it.key + ":" + it.value }.join(",")') }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -244,7 +244,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide file property parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('RegularFileProperty', 'println parameters.testParam.get().getAsFile().name')}
+            ${parameterWorkAction('RegularFileProperty', 'println parameters.testParam.get().getAsFile().name')}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -266,7 +266,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide directory property parameters with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('DirectoryProperty', 'println parameters.testParam.get().getAsFile().name')}
+            ${parameterWorkAction('DirectoryProperty', 'println parameters.testParam.get().getAsFile().name')}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -301,7 +301,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             ext.testObject = getServices().get(InstantiatorFactory.class).inject().newInstance(SomeExtension)
             ext.testObject.value = "bar"
 
-            ${parameterWorkerExecution('SomeExtension', 'println parameters.testParam.value', true) }
+            ${parameterWorkAction('SomeExtension', 'println parameters.testParam.value', true) }
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -323,7 +323,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "can provide a null parameter with isolation mode #isolationMode"() {
         buildFile << """
-            ${parameterWorkerExecution('String', 'println "testParam is " + parameters.testParam', true)}
+            ${parameterWorkAction('String', 'println "testParam is " + parameters.testParam', true)}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -343,9 +343,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
-    def "can use a worker execution with a None parameter and isolation mode #isolationMode"() {
+    def "can use a work action with a None parameter and isolation mode #isolationMode"() {
         buildFile << """
-            ${noneParameterWorkerExecution('println "there is no parameter"')}
+            ${noneParameterWorkAction('println "there is no parameter"')}
 
             task runWork(type: ParameterTask) {
                 isolationMode = ${isolationMode}
@@ -362,17 +362,17 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
-    String parameterWorkerExecution(String type, String action, boolean requiresSetter = false) {
+    String parameterWorkAction(String type, String action, boolean requiresSetter = false) {
         return """
-            import org.gradle.workers.WorkerExecution
-            import org.gradle.workers.WorkerParameters
+            import org.gradle.workers.WorkAction
+            import org.gradle.workers.WorkParameters
 
-            interface TestParameters extends WorkerParameters {
+            interface TestParameters extends WorkParameters {
                 ${type} getTestParam();
                 ${-> requiresSetter ? "void setTestParam(${type} testParam);" : ''}
             }
             
-            abstract class ParameterWorkerExecution implements WorkerExecution<TestParameters> {
+            abstract class ParameterWorkAction implements WorkAction<TestParameters> {
                 void execute() {
                     ${action}
                 }
@@ -380,12 +380,12 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    String noneParameterWorkerExecution(String action) {
+    String noneParameterWorkAction(String action) {
         return """
-            import org.gradle.workers.WorkerExecution
-            import org.gradle.workers.WorkerParameters
+            import org.gradle.workers.WorkAction
+            import org.gradle.workers.WorkParameters
 
-            abstract class ParameterWorkerExecution implements WorkerExecution<WorkerParameters.None> {
+            abstract class ParameterWorkAction implements WorkAction<WorkParameters.None> {
                 void execute() {
                     ${action}
                 }

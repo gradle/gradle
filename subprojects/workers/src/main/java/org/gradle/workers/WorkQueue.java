@@ -39,7 +39,7 @@ public interface WorkQueue {
      *
      *
      */
-    <T extends WorkerParameters> void submit(Class<? extends WorkerExecution<T>> workerExecutionClass, Action<T> parameterAction);
+    <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<T> parameterAction);
 
     /**
      * Blocks until all work associated with this queue is complete.  Note that when using this method inside

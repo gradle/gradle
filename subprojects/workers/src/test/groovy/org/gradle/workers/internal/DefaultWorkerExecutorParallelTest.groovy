@@ -31,9 +31,9 @@ import org.gradle.process.internal.JavaForkOptionsInternal
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
-import org.gradle.workers.WorkerExecution
+import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkerExecutionException
-import org.gradle.workers.WorkerParameters
+import org.gradle.workers.WorkParameters
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
@@ -125,7 +125,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         }
     }
 
-    abstract static class TestExecution implements WorkerExecution<WorkerParameters.None> {
+    abstract static class TestExecution implements WorkAction<WorkParameters.None> {
         @Override
         void execute() {
 
