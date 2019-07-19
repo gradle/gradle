@@ -91,7 +91,15 @@ import java.util.stream.Collectors;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
-    private static final ImmutableSet<Class<?>> LAZY_PROPERTY_TYPES = ImmutableSet.of(ConfigurableFileCollection.class, ListProperty.class, SetProperty.class, MapProperty.class, RegularFileProperty.class, DirectoryProperty.class, Property.class);
+    private static final ImmutableSet<Class<?>> LAZY_PROPERTY_TYPES = ImmutableSet.of(
+        ConfigurableFileCollection.class,
+        ListProperty.class,
+        SetProperty.class,
+        MapProperty.class,
+        RegularFileProperty.class,
+        DirectoryProperty.class,
+        Property.class
+    );
 
     private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
