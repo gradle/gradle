@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.IsolationMode
-
+import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -579,7 +579,55 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         where:
         isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.PROCESS]
+    }
 
+    def "workers that change the context classloader don't affect future work in #isolationMode"() {
+        fixture.withWorkerExecutionClassInBuildScript()
+
+        WorkerExecutorFixture.ExecutionClass workerThatChangesContextClassLoader = fixture.getWorkerExecutionThatCreatesFiles("ClassLoaderChangingWorker")
+        workerThatChangesContextClassLoader.with {
+            action += """
+                URL[] urls = parameters.files.collect { new File(getParameters().getOutputDir(), it).toURI().toURL() }
+                ClassLoader classloader = new URLClassLoader(urls)
+                Thread.currentThread().setContextClassLoader(classloader)
+                println "Thread id: " + Thread.currentThread().id
+            """
+        }
+        workerThatChangesContextClassLoader.writeToBuildFile()
+
+        WorkerExecutorFixture.ExecutionClass workerThatChecksClassLoader = fixture.getWorkerExecutionThatCreatesFiles("ClassLoaderVerifyingWorker")
+        workerThatChecksClassLoader.with {
+            action += """
+                File outputDir = new File(getParameters().getOutputDir().absolutePath.replace("checkClassLoader", "changeClassloader"))
+                URL[] urls = parameters.files.collect { new File(outputDir, it).toURI().toURL() }
+                assert !urls.any { Thread.currentThread().getContextClassLoader().URLs.contains(it) }
+                println "Thread id: " + Thread.currentThread().id
+            """
+        }
+        workerThatChecksClassLoader.writeToBuildFile()
+
+        buildFile << """
+            task changeClassloader(type: WorkerTask) {
+                isolationMode = $isolationMode
+                workerExecutionClass = ${workerThatChangesContextClassLoader.name}.class
+            }
+            
+            task checkClassLoader(type: WorkerTask) {
+                dependsOn changeClassloader
+                isolationMode = $isolationMode
+                workerExecutionClass = ${workerThatChecksClassLoader.name}.class
+            }
+        """
+
+        expect:
+        succeeds "checkClassLoader"
+
+        and:
+        assertWorkerExecuted("changeClassloader")
+        assertWorkerExecuted("checkClassLoader")
+
+        where:
+        isolationMode << ISOLATION_MODES
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {

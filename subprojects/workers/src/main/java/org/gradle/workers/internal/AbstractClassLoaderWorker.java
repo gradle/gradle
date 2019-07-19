@@ -16,7 +16,12 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
+
+import javax.annotation.Nullable;
+
+import static org.gradle.internal.classloader.ClassLoaderUtils.*;
 
 public abstract class AbstractClassLoaderWorker implements Worker {
     private final WorkerProtocol worker;
@@ -28,18 +33,18 @@ public abstract class AbstractClassLoaderWorker implements Worker {
     }
 
     public DefaultWorkResult executeInClassLoader(ActionExecutionSpec spec, ClassLoader workerClassLoader) {
-        ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(workerClassLoader);
-            // Serialize the incoming class and parameters (if necessary)
-            TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
+        return executeInClassloader(workerClassLoader, new Factory<DefaultWorkResult>() {
+            @Nullable
+            @Override
+            public DefaultWorkResult create() {
+                // Serialize the incoming class and parameters (if necessary)
+                TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
 
-            // Deserialize the class and parameters in the workerClassLoader (the context classloader)
-            ActionExecutionSpec effectiveSpec = actionExecutionSpecFactory.newSimpleSpec(transportableSpec);
+                // Deserialize the class and parameters in the workerClassLoader (the context classloader)
+                ActionExecutionSpec effectiveSpec = actionExecutionSpecFactory.newSimpleSpec(transportableSpec);
 
-            return worker.execute(effectiveSpec);
-        } finally {
-            Thread.currentThread().setContextClassLoader(previousContextLoader);
-        }
+                return worker.execute(effectiveSpec);
+            }
+        });
     }
 }
