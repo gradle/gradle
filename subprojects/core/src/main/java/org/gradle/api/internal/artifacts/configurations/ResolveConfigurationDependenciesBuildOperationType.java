@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -69,6 +70,11 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
         @Nullable
         String getRepositoryId(ResolvedComponentResult resolvedComponentResult);
 
+        /**
+         * Which attributes the resolved configuration was requested with, if any.
+         * @since 5.6
+         */
+        AttributeContainer getRequestedAttributes();
     }
 
     /**
