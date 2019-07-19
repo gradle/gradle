@@ -1,0 +1,4 @@
+task url(type: UrlProcess) {
+    hostAndPath.hostName = "gradle.org"
+    hostAndPath.path =  "training"
+}
