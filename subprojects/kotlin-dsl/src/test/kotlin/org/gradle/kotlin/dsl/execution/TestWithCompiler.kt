@@ -33,7 +33,7 @@ import org.gradle.plugin.management.PluginManagementSpec
 import java.io.File
 
 
-abstract class TestWithCompiler: TestWithTempFiles() {
+abstract class TestWithCompiler : TestWithTempFiles() {
 
     internal
     inline fun withExecutableProgramFor(
@@ -90,6 +90,7 @@ inline fun mockSettings(stubbing: KStubbing<Settings>.(Settings) -> Unit = {}) =
 
         stubbing(it)
     }
+
 
 /**
  * Makes a mock instance of the [ExecutableProgram.Host] that will throw an exception if

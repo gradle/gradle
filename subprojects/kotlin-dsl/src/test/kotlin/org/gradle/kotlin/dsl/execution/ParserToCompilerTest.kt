@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.junit.Test
 
+
 class ParserToCompilerTest : TestWithCompiler() {
 
     @Test
@@ -40,7 +41,10 @@ class ParserToCompilerTest : TestWithCompiler() {
         buildscript { println("stage 1 buildscript") }
         """.trimIndent()
         )
-        assertStageOneOutput(source, "stage 1 pluginManagement\nstage 1 buildscript")
+        assertStageOneOutput(
+            source,
+            "stage 1 pluginManagement\nstage 1 buildscript\n"
+        )
     }
 
     private
@@ -69,5 +73,4 @@ class ParserToCompilerTest : TestWithCompiler() {
         val program = ProgramParser.parse(source, programKind, programTarget)
         return PartialEvaluator(programKind, programTarget).reduce(program)
     }
-
 }

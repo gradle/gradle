@@ -67,8 +67,6 @@ class PartialEvaluator(
         else -> throw IllegalArgumentException("Unsupported `$program'")
     }
 
-
-
     private
     fun reduceEmptyProgram(): Static =
 
@@ -188,7 +186,8 @@ class PartialEvaluator(
             )
         }
 
-    private fun stage1WithPluginManagement(program: Program.PluginManagement): Static {
+    private
+    fun stage1WithPluginManagement(program: Program.PluginManagement): Static {
         return Static(
             SetupEmbeddedKotlin,
             Eval(fragmentHolderSourceFor(program)),

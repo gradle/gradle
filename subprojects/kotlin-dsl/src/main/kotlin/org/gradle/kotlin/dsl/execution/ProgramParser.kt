@@ -75,7 +75,7 @@ object ProgramParser {
         val stage1 = when {
             stage1Components.isEmpty() -> null
             stage1Components.size == 1 -> stage1Components.first()
-            else -> Program.Stage1Sequence(pluginManagement, buildscript, plugins )
+            else -> Program.Stage1Sequence(pluginManagement, buildscript, plugins)
         }
 
         val remainingSource =

@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import com.nhaarman.mockito_kotlin.KStubbing
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
@@ -30,8 +29,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
-import org.gradle.groovy.scripts.ScriptSource
-
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 
@@ -44,14 +41,8 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
-import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
-import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
-import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
-
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.plugin.management.PluginManagementSpec
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
@@ -61,8 +52,6 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 import org.mockito.InOrder
-
-import java.io.File
 
 import java.util.Arrays.fill
 
@@ -639,7 +628,6 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
     private
     val stage2SettingsTemplateId = "Settings/TopLevel/stage2"
-
 }
 
 

@@ -79,6 +79,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.initialization.Settings",
+            "member": "Method org.gradle.api.initialization.Settings.pluginManagement(org.gradle.api.Action)",
+            "acceptation": "Removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Class org.gradle.kotlin.dsl.SettingsScriptApi",
+            "acceptation": "Removed",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.SettingsDelegate.pluginManagement(org.gradle.api.Action)"
+            ]
         }
     ]
 }

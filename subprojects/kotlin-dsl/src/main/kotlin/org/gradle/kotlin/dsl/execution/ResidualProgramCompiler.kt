@@ -240,11 +240,11 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitStage1Sequence(stage1Seq: List<Program.Stage1>) {
-
-        val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull() ?: stage1Seq.first()
+        val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
+        val firstElement = stage1Seq.first()
         val precompiledBuildscriptWithPluginsBlock =
             compileStage1(
-                plugins.fragment.source.map {
+                firstElement.fragment.source.map {
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
                 buildscriptWithPluginsScriptDefinition,
@@ -258,6 +258,7 @@ class ResidualProgramCompiler(
             NEW(precompiledBuildscriptWithPluginsBlock)
             ALOAD(Vars.ScriptHost)
             // ${plugins}(temp.createSpec(lineNumber))
+            // TODO: JLL: Passing null here feels like a hack.
             emitPluginRequestCollectorCreateSpecFor(plugins)
             INVOKESPECIAL(
                 precompiledBuildscriptWithPluginsBlock,
@@ -380,9 +381,9 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitPluginRequestCollectorCreateSpecFor(plugins: Program.Plugins) {
+    fun MethodVisitor.emitPluginRequestCollectorCreateSpecFor(plugins: Program.Plugins?) {
         ALOAD(Vars.PluginRequestCollector)
-        LDC(plugins.fragment.lineNumber)
+        LDC(plugins?.fragment?.lineNumber ?: 0)
         INVOKEVIRTUAL(
             pluginRequestCollectorType,
             "createSpec",
