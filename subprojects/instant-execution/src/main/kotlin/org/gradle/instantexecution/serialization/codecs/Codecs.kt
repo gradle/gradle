@@ -94,7 +94,8 @@ class Codecs(
         bind(ClassCodec)
         bind(MethodCodec)
 
-        bind(listCodec)
+        bind(arrayListCodec)
+        bind(linkedListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
         bind(linkedHashSetCodec)
@@ -147,9 +148,14 @@ class Codecs(
     private
     val encodings = HashMap<Class<*>, Encoding?>()
 
-    override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
+    override suspend fun WriteContext.encode(candidate: Any?) {
+        encodingFor(candidate)(candidate)
+    }
+
+    private
+    fun encodingFor(candidate: Any?): Encoding = when (candidate) {
         null -> nullEncoding
-        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
+        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)!!
     }
 
     override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {

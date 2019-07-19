@@ -29,7 +29,6 @@ import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
-import org.gradle.instantexecution.serialization.logPropertyWarning
 import java.io.IOException
 import java.util.concurrent.Callable
 import java.util.function.Supplier
@@ -81,17 +80,9 @@ class BeanPropertyWriter(
  */
 suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
     withPropertyTrace(kind, name) {
-        val writeValue = writeActionFor(value)
-        if (writeValue == null) {
-            logPropertyWarning("serialize") {
-                text("there's no serializer for type")
-                reference(unpackedTypeNameOf(value!!))
-            }
-            return false
-        }
         writeString(name)
         try {
-            writeValue(value)
+            write(value)
         } catch (passThrough: IOException) {
             throw passThrough
         } catch (passThrough: InstantExecutionException) {
