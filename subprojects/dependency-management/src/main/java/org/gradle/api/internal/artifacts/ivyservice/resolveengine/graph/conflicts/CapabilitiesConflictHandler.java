@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
@@ -39,6 +40,7 @@ public interface CapabilitiesConflictHandler extends ConflictHandler<Capabilitie
         void evict();
         void select();
         void reject();
+        void byReason(Describable description);
     }
 
     interface Resolver {

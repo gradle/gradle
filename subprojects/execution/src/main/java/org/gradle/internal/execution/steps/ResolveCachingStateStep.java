@@ -38,6 +38,7 @@ import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,8 +74,11 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         } else {
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
-                .orElseGet(() -> (buildCache.isEnabled() ? work.shouldDisableCaching() : Optional.of(BUILD_CACHE_DISABLED_REASON))
-                    .map(disabledReason -> CachingState.disabledWithoutInputs(disabledReason))
+                .orElseGet(() -> (buildCache.isEnabled()
+                        ? work.shouldDisableCaching(null)
+                        : Optional.of(BUILD_CACHE_DISABLED_REASON)
+                    )
+                    .map(CachingState::disabledWithoutInputs)
                     .orElse(CachingState.NOT_DETERMINED)
                 );
         }
@@ -130,13 +134,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public OriginMetadata getOriginMetadata() {
-                return result.getOriginMetadata();
-            }
-
-            @Override
-            public boolean isReused() {
-                return result.isReused();
+            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                return result.getReusedOutputOriginMetadata();
             }
 
             @Override
@@ -154,9 +153,10 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
         if (!buildCache.isEnabled()) {
             builder.markNotCacheable(BUILD_CACHE_DISABLED_REASON);
         }
-        work.shouldDisableCaching().ifPresent(noCacheReason -> {
-            builder.markNotCacheable(noCacheReason);
-        });
+        OverlappingOutputs detectedOverlappingOutputs = executionState.getDetectedOverlappingOutputs()
+            .orElse(null);
+        work.shouldDisableCaching(detectedOverlappingOutputs)
+            .ifPresent(builder::markNotCacheable);
 
         builder.withImplementation(executionState.getImplementation());
         builder.withAdditionalImplementations(executionState.getAdditionalImplementations());

@@ -57,6 +57,9 @@ Provides support for building Swift applications on Linux and macOS.
 <<swift_library_plugin.adoc#,Swift Library>>::
 Provides support for building Swift libraries on Linux and macOS.
 
+<<xctest_plugin.adoc#,XCTest>>::
+Provides support for building and running XCTest-based tests on Linux and macOS.
+
 == Packaging and distribution
 
 <<application_plugin.adoc#,Application>>::

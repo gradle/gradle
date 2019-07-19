@@ -115,11 +115,11 @@ As far as configurations go, the main ones of interest are:
  * `nativeLink__Variant__` - for dependencies that are necessary to link your code but shouldn’t be part of the compilation or runtime process
  * `nativeRuntime__Variant__` - for dependencies that are necessary to run your component but shouldn’t be part of the compilation or linking process
 
-You can learn more about these and how they relate to one another in the native plugin reference chapter.
+You can learn more about these and how they relate to one another in the <<plugin_reference.adoc#native_languages,native plugin reference chapter>>.
 
 Be aware that the <<cpp_library_plugin.adoc#,{cpp} Library Plugin>> creates an additional configuration - `api` - for dependencies that are required for compiling and linking both the module and any modules that depend on it.
 
-We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you’re comfortable with the basics of building {cpp} projects with Gradle.
+We have only scratched the surface here, so we recommend that you read the <<introduction_dependency_management.adoc#,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
 
 Some common scenarios that require further reading include:
 
@@ -184,7 +184,7 @@ The {cpp} plugins will discover GCC or Clang using the system PATH.
 
 Imagine you have a legacy library project that uses an _src_ directory for the production code and private headers and _include_ directory for exported headers.
 The conventional directory structure won’t work, so you need to tell Gradle where to find the source and header files.
-You do that via the `library` script block.
+You do that via the `application` or `library` script block.
 
 Each component script block, as well as each binary, defines where it’s source code resides.
 You can override the convention values by using the following syntax:

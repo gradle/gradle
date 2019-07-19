@@ -35,6 +35,11 @@ import java.util.Set;
  * <pre class='autoTested'>
  *     apply plugin: "java-gradle-plugin"
  *
+ *     sourceSets {
+ *         customMain
+ *         functionalTest
+ *     }
+ *
  *     gradlePlugin {
  *         pluginSourceSet project.sourceSets.customMain
  *         testSourceSets project.sourceSets.functionalTest

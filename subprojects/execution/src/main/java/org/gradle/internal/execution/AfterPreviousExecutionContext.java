@@ -20,12 +20,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public interface AfterPreviousExecutionContext extends Context {
-    /**
-     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
-     */
-    Optional<String> getRebuildReason();
-
+public interface AfterPreviousExecutionContext extends ExecutionRequestContext {
     /**
      * Returns the execution state after the previous execution if available.
      * Empty when execution history is not available.

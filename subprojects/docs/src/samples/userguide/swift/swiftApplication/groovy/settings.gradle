@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-rootProject.name = "basic-cpp"
+rootProject.name = "basic-swift"

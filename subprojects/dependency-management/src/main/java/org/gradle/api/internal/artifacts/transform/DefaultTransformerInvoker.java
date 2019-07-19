@@ -32,21 +32,23 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionRequestContext;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.OutputNormalizer;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -84,7 +86,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
+    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
@@ -92,7 +94,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final ProjectFinder projectFinder;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTransformerInvoker(WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
+    public DefaultTransformerInvoker(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -180,7 +182,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     String transformIdentity = "transform/" + identityString;
                     ExecutionHistoryStore executionHistoryStore = workspaceProvider.getExecutionHistoryStore();
 
-                    Optional<AfterPreviousExecutionState> afterPreviousExecutionState = executionHistoryStore.load(transformIdentity);
                     ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution = snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
 
                     TransformerExecution execution = new TransformerExecution(
@@ -199,7 +200,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                         outputFingerprinter
                     );
 
-                    CachingResult outcome = workExecutor.execute(new AfterPreviousExecutionContext() {
+                    CachingResult outcome = workExecutor.execute(new ExecutionRequestContext() {
                         @Override
                         public UnitOfWork getWork() {
                             return execution;
@@ -208,11 +209,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                         @Override
                         public Optional<String> getRebuildReason() {
                             return Optional.empty();
-                        }
-
-                        @Override
-                        public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                            return afterPreviousExecutionState;
                         }
                     });
 
@@ -332,7 +328,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
 
@@ -419,13 +415,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, fileCollectionFactory.fixed(workspace.getOutputDirectory()));
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, fileCollectionFactory.fixed(workspace.getResultsFile()));
-        }
-
-        @Override
-        public boolean hasOverlappingOutputs() {
-            return false;
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableList.of(workspace.getOutputDirectory()));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableList.of(workspace.getResultsFile()));
         }
 
         @Override
@@ -443,7 +434,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching() {
+        public void validate() {
+        }
+
+        @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             return transformer.isCacheable()
                 ? Optional.empty()
                 : Optional.of(NOT_CACHEABLE);
@@ -460,16 +455,26 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
             return outputFileSnapshotsBeforeExecution;
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+            return snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
+        }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
+            ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+            ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
+            boolean hasDetectedOverlappingOutputs
+        ) {
             //noinspection ConstantConditions
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(
-                    snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace),
+                    afterExecutionOutputSnapshots,
                     (key, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value))
                 )
             );

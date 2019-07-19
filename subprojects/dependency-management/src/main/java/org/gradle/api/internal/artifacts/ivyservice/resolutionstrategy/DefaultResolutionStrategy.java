@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.CapabilitiesResolution;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -64,6 +65,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final VcsResolver vcsResolver;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencyLockingProvider dependencyLockingProvider;
+    private final CapabilitiesResolutionInternal capabilitiesResolution;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean dependencyLockingEnabled = false;
@@ -71,11 +73,17 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
-    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider) {
-        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider);
+    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules,
+                                     VcsResolver vcsResolver,
+                                     ComponentIdentifierFactory componentIdentifierFactory,
+                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                     ComponentSelectorConverter componentSelectorConverter,
+                                     DependencyLockingProvider dependencyLockingProvider,
+                                     CapabilitiesResolutionInternal capabilitiesResolution) {
+        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolution);
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider, CapabilitiesResolutionInternal capabilitiesResolution) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
@@ -84,6 +92,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.vcsResolver = vcsResolver;
         this.componentSelectorConverter = componentSelectorConverter;
         this.dependencyLockingProvider = dependencyLockingProvider;
+        this.capabilitiesResolution = capabilitiesResolution;
         // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
@@ -126,6 +135,17 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public void sortArtifacts(SortOrder sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    @Override
+    public ResolutionStrategy capabilitiesResolution(Action<? super CapabilitiesResolution> action) {
+        action.execute(capabilitiesResolution);
+        return this;
+    }
+
+    @Override
+    public CapabilitiesResolution getCapabilitiesResolution() {
+        return capabilitiesResolution;
     }
 
     @Override
@@ -232,7 +252,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     @Override
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider);
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolution);
 
         if (conflictResolution == ConflictResolution.strict) {
             out.failOnVersionConflict();
@@ -261,5 +281,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public boolean isDependencyLockingEnabled() {
         return dependencyLockingEnabled;
+    }
+
+    @Override
+    public CapabilitiesResolutionInternal getCapabilitiesResolutionRules() {
+        return capabilitiesResolution;
     }
 }

@@ -879,6 +879,9 @@
             <tr>
                 <td>org.gradle.language.swift.SwiftLibrary</td>
             </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite</td>
+            </tr>
         </table>
     </section>
 
@@ -903,10 +906,19 @@
                 <td>org.gradle.nativeplatform.tasks.CreateStaticLibrary</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.tasks.LinkMachOBundle</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativeplatform.tasks.InstallExecutable</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativeplatform.test.tasks.RunTestExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.test.xctest.tasks.XCTest</td>
             </tr>
         </table>
     </section>

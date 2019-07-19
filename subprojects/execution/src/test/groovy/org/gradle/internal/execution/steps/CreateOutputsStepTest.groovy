@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import com.google.common.collect.ImmutableList
 import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
@@ -34,10 +34,10 @@ class CreateOutputsStepTest extends StepSpec {
 
         then:
         1 * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("outDir")))
-            visitor.visitOutputProperty("dirs", TreeType.DIRECTORY, ImmutableFileCollection.of(file("outDir1"), file("outDir2")))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(file("parent/outFile")))
-            visitor.visitOutputProperty("files", TreeType.FILE, ImmutableFileCollection.of(file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(file("outDir")))
+            visitor.visitOutputProperty("dirs", TreeType.DIRECTORY, ImmutableList.of(file("outDir1"), file("outDir2")))
+            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(file("parent/outFile")))
+            visitor.visitOutputProperty("files", TreeType.FILE, ImmutableList.of(file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")))
         }
 
         then:

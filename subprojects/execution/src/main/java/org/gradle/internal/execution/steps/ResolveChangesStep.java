@@ -55,7 +55,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
                 new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState
-                    .map(beforeExecution -> beforeExecution.getInputFileProperties())
+                    .map(BeforeExecutionState::getInputFileProperties)
                     .orElse(null),
                     createIncrementalInputProperties(work))
             )
@@ -111,6 +111,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
         switch (inputChangeTrackingStrategy) {
             case NONE:
                 return IncrementalInputProperties.NONE;
+            //noinspection deprecation
             case ALL_PARAMETERS:
                 // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
                 return IncrementalInputProperties.ALL;

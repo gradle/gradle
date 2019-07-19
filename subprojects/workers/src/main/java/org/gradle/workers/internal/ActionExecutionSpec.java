@@ -17,16 +17,18 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Describable;
+import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkerParameters;
 
 import java.io.Serializable;
 
-public interface ActionExecutionSpec extends Serializable, Describable {
-    Class<?> getImplementationClass();
+public interface ActionExecutionSpec<T extends WorkerParameters> extends Serializable, Describable {
+    Class<? extends WorkerExecution<T>> getImplementationClass();
 
     @Override
     String getDisplayName();
 
-    Object[] getParams();
+    T getParameters();
 
     ClassLoaderStructure getClassLoaderStructure();
 }

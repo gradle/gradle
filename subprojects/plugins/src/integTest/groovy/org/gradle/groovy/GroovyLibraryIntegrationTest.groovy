@@ -71,37 +71,22 @@ class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        if (expectFailure) {
-            fails ':compileGroovy'
-        } else {
-            run ':compileGroovy'
-        }
+        run ':compileGroovy'
 
         then:
-        if (expectFailure) {
-            failure.assertHasCause("Compilation failed; see the compiler error output for details")
-        }
-
-        // NONE of these combinations should fail.
-        // However the JavaLib + CompileStatic version fails
-        // because the Groovy compiler will NOT see the extension
-        // module descriptor if we use the java library plugin on
-        // the producer, because the "classes" variant is selected.
-        // It's only a problem with CompileStatic because it _requires_
-        // the descriptor to validate the existence of the methods.
-        // but the same problem exists if the producer is, for example,
-        // a provider of AST transformations
+        executedAndNotSkipped(":groovy-lib:jar")
+        
         where:
-        consumerIsJavaLib | producerIsJavaLib | cs    | expectFailure
-        false             | false             | false | false
-        false             | true              | false | false
-        false             | false             | true  | false
-        false             | true              | true  | true // this one should pass
+        consumerIsJavaLib | producerIsJavaLib | cs
+        false             | false             | false
+        false             | true              | false
+        false             | false             | true
+        false             | true              | true
 
-        true              | false             | false | false
-        true              | true              | false | false
-        true              | false             | true  | false
-        true              | true              | true  | true // this one should pass
+        true              | false             | false
+        true              | true              | false
+        true              | false             | true
+        true              | true              | true
     }
 
 }

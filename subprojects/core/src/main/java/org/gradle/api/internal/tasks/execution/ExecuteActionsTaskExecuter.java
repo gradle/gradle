@@ -15,38 +15,52 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
+import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.ExecutionRequestContext;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -55,12 +69,14 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
+import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -77,12 +93,13 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
@@ -103,8 +120,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
+    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ListenerManager listenerManager;
+    private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
+    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
+    private final FileCollectionFactory fileCollectionFactory;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -117,8 +137,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskCacheabilityResolver taskCacheabilityResolver,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor,
-        ListenerManager listenerManager
+        WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+        ListenerManager listenerManager,
+        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+        EmptySourceTaskSkipper emptySourceTaskSkipper,
+        FileCollectionFactory fileCollectionFactory
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.scanPluginApplied = scanPluginApplied;
@@ -132,12 +155,24 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.workExecutor = workExecutor;
         this.listenerManager = listenerManager;
+        this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
+        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
-        CachingResult result = workExecutor.execute(new AfterPreviousExecutionContext() {
+        try {
+            return executeIfValid(task, state, context, work);
+        } catch (TaskValidationException ex) {
+            state.setOutcome(ex);
+            return TaskExecuterResult.WITHOUT_OUTPUTS;
+        }
+    }
+
+    private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
+        CachingResult result = workExecutor.execute(new ExecutionRequestContext() {
             @Override
             public UnitOfWork getWork() {
                 return work;
@@ -147,48 +182,22 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             public Optional<String> getRebuildReason() {
                 return context.getTaskExecutionMode().getRebuildReason();
             }
-
-            @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return Optional.ofNullable(context.getAfterPreviousExecution());
-            }
         });
         result.getOutcome().ifSuccessfulOrElse(
-            new Consumer<ExecutionOutcome>() {
-                @Override
-                public void accept(ExecutionOutcome outcome) {
-                    state.setOutcome(TaskExecutionOutcome.valueOf(outcome));
-                }
-            },
-            new Consumer<Throwable>() {
-                @Override
-                public void accept(Throwable failure) {
-                    state.setOutcome(new TaskExecutionException(task, failure));
-                }
-            }
+            outcome -> state.setOutcome(TaskExecutionOutcome.valueOf(outcome)),
+            failure -> state.setOutcome(new TaskExecutionException(task, failure))
         );
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return result.isReused()
-                    ? Optional.of(result.getOriginMetadata())
-                    : Optional.empty();
+                return result.getReusedOutputOriginMetadata();
             }
 
             @Override
             public boolean executedIncrementally() {
                 return result.getOutcome()
-                    .map(new Function<ExecutionOutcome, Boolean>() {
-                        @Override
-                        public Boolean apply(ExecutionOutcome executionOutcome) {
-                            return executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY;
-                        }
-                    }).orElseMapFailure(new Function<Throwable, Boolean>() {
-                        @Override
-                        public Boolean apply(Throwable throwable) {
-                            return false;
-                        }
-                    });
+                    .map(executionOutcome -> executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY)
+                    .orElseMapFailure(throwable -> false);
             }
 
             @Override
@@ -229,7 +238,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+            FileCollection previousFiles = context.getAfterPreviousExecutionState()
+                .map(afterPreviousExecutionState -> (FileCollection) new PreviousOutputFileCollection(task, afterPreviousExecutionState))
+                .orElseGet(fileCollectionFactory::empty);
+            TaskOutputsInternal outputs = task.getOutputs();
+            outputs.setPreviousOutputFiles(previousFiles);
+            try {
+                return executeWithPreviousOutputFiles(inputChanges);
+            } finally {
+                outputs.setPreviousOutputFiles(null);
+            }
+        }
+
+        private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
@@ -315,8 +337,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean hasOverlappingOutputs() {
-            return context.getOverlappingOutputs().isPresent();
+        public OverlappingOutputHandling getOverlappingOutputHandling() {
+            return OverlappingOutputHandling.DETECT_OVERLAPS;
         }
 
         @Override
@@ -330,7 +352,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<CachingDisabledReason> shouldDisableCaching() {
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
             }
@@ -341,7 +363,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task,
                 task.getOutputs().getCacheIfSpecs(),
                 task.getOutputs().getDoNotCacheIfSpecs(),
-                context.getOverlappingOutputs().orElse(null)
+                detectedOverlappingOutputs
             );
         }
 
@@ -375,25 +397,34 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
-            return context.getOutputFilesBeforeExecution();
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
+            return snapshotOutputs();
         }
 
         @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            ImmutableSortedMap<String, FileSystemSnapshot> outputsAfterExecution = taskSnapshotter.snapshotTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
-            return createFilteredOutputFingerprints(afterPreviousExecutionState, context.getOutputFilesBeforeExecution(), outputsAfterExecution, context.getOverlappingOutputs().isPresent());
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+            return snapshotOutputs();
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createFilteredOutputFingerprints(@Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots, ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots, boolean hasOverlappingOutputs) {
-            ImmutableSortedMap<String, FileCollectionFingerprint> afterLastExecutionFingerprints = afterPreviousExecutionState == null ? ImmutableSortedMap.of() : afterPreviousExecutionState.getOutputFileProperties();
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
+            ImmutableSortedSet<OutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
+            return taskSnapshotter.snapshotTaskFiles(task, outputFilePropertySpecs);
+        }
 
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
+            ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+            ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
+            boolean hasDetectedOverlappingOutputs
+        ) {
             return ImmutableSortedMap.copyOfSorted(
                 Maps.transformEntries(afterExecutionOutputSnapshots, (propertyName, afterExecutionOutputSnapshot) -> {
-                        FileCollectionFingerprint afterLastExecutionFingerprint = afterLastExecutionFingerprints.get(propertyName);
+                        FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
                         FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
-                        return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasOverlappingOutputs);
+                        // This can never be null as it comes from an ImmutableMap's value
+                        assert afterExecutionOutputSnapshot != null;
+                        return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasDetectedOverlappingOutputs);
                     }
                 )
             );
@@ -412,18 +443,58 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void markSnapshottingInputsFinished(CachingState cachingState) {
-            // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
+        public void markLegacySnapshottingInputsStarted() {
+            // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)
             if (buildCacheEnabled || scanPluginApplied) {
-                context.removeSnapshotTaskInputsBuildOperation()
-                    .ifPresent(new Consumer<ExecutingBuildOperation>() {
-                        @Override
-                        public void accept(ExecutingBuildOperation operation) {
-                            operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState));
-                        }
-                    });
+                ExecutingBuildOperation operation = buildOperationExecutor.start(BuildOperationDescriptor
+                    .displayName("Snapshot task inputs for " + task.getIdentityPath())
+                    .name("Snapshot task inputs")
+                    .details(SnapshotTaskInputsBuildOperationType.Details.INSTANCE));
+                context.setSnapshotTaskInputsBuildOperation(operation);
             }
+        }
+
+        @Override
+        public void markLegacySnapshottingInputsFinished(CachingState cachingState) {
+            context.removeSnapshotTaskInputsBuildOperation()
+                .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState)));
+        }
+
+        @Override
+        public void ensureLegacySnapshottingInputsClosed() {
+            // If the operation hasn't finished normally (because of a shortcut or an error), we close it without a cache key
+            context.removeSnapshotTaskInputsBuildOperation()
+                .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(CachingState.NOT_DETERMINED)));
+        }
+
+        @Override
+        public void validate() {
+            List<String> messages = new ArrayList<>();
+            FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
+            TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, reservedFileSystemLocationRegistry, messages);
+
+            context.getTaskProperties().validate(validationContext);
+            if (!messages.isEmpty()) {
+                String errorMessage = messages.size() == 1
+                    ? String.format("A problem was found with the configuration of %s.", task)
+                    : String.format("Some problems were found with the configuration of %s.", task);
+                List<InvalidUserDataException> causes = messages.stream()
+                    .limit(5)
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(Collectors.toList());
+                throw new TaskValidationException(errorMessage, causes);
+            }
+        }
+
+        @Override
+        public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
+            TaskProperties properties = context.getTaskProperties();
+            FileCollection inputFiles = properties.getInputFiles();
+            FileCollection sourceFiles = properties.getSourceFiles();
+            boolean hasSourceFiles = properties.hasSourceFiles();
+            return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, outputFilesAfterPreviousExecution);
         }
 
         @Override
@@ -517,6 +588,33 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static class MultipleTaskActionFailures extends DefaultMultiCauseException {
         public MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
             super(message, causes);
+        }
+    }
+
+    private class PreviousOutputFileCollection extends LazilyInitializedFileCollection {
+        private final TaskInternal task;
+        private final AfterPreviousExecutionState previousExecution;
+
+        public PreviousOutputFileCollection(TaskInternal task, AfterPreviousExecutionState previousExecution) {
+            this.task = task;
+            this.previousExecution = previousExecution;
+        }
+
+        @Override
+        public FileCollection createDelegate() {
+            ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
+            Set<File> outputs = new HashSet<>();
+            for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
+                for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
+                    outputs.add(new File(absolutePath));
+                }
+            }
+            return fileCollectionFactory.fixed(outputs);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "previous output files of " + task.toString();
         }
     }
 }

@@ -20,16 +20,27 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentFileCollectionFingerprint> implements BeforeExecutionState {
+    private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots;
+    @Nullable
+    private final OverlappingOutputs detectedOutputOverlaps;
+
     public DefaultBeforeExecutionState(
-            ImplementationSnapshot implementation,
-            ImmutableList<ImplementationSnapshot> additionalImplementations,
-            ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties
+        ImplementationSnapshot implementation,
+        ImmutableList<ImplementationSnapshot> additionalImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots,
+        @Nullable OverlappingOutputs detectedOutputOverlaps
     ) {
         super(
                 implementation,
@@ -38,5 +49,17 @@ public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentF
                 inputFileProperties,
                 outputFileProperties
         );
+        this.outputFileSnapshots = outputFileSnapshots;
+        this.detectedOutputOverlaps = detectedOutputOverlaps;
+    }
+
+    @Override
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshots() {
+        return outputFileSnapshots;
+    }
+
+    @Override
+    public Optional<OverlappingOutputs> getDetectedOverlappingOutputs() {
+        return Optional.ofNullable(detectedOutputOverlaps);
     }
 }

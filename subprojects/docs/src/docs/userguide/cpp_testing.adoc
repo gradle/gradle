@@ -43,8 +43,9 @@ When you’re using the <<cpp_unit_test_plugin.adoc#,{cpp} Unit Test Plugin>> yo
 
 The test plugins configure the required pieces of information appropriately.
 In addition, they attach the `run` task to the `check` lifecycle task.
-They also create the `testImplementation` dependency configuration.  Dependencies that are only needed for test compilation, linking and runtime may be added to this configuration.
-The `unitTest` script block behave similarly to a `application` script block.
+It also create the `testImplementation` dependency configuration.
+Dependencies that are only needed for test compilation, linking and runtime may be added to this configuration.
+The `unitTest` script block behave similarly to a `application` or `library` script block.
 
 The link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable] task has many configuration options.
 We cover a number of them in the rest of the chapter.

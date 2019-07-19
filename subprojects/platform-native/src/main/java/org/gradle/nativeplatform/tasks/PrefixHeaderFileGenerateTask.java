@@ -20,13 +20,17 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 import org.gradle.workers.IsolationMode;
-import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecution;
 import org.gradle.workers.WorkerExecutor;
+import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkerSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -52,11 +56,17 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
 
     @TaskAction
     void generatePrefixHeaderFile() {
-        workerExecutor.submit(GeneratePrefixHeaderFile.class, new Action<WorkerConfiguration>() {
+        workerExecutor.execute(GeneratePrefixHeaderFile.class, new Action<WorkerSpec<PrefixHeaderFileParameters>>() {
             @Override
-            public void execute(WorkerConfiguration config) {
+            public void execute(WorkerSpec<PrefixHeaderFileParameters> config) {
                 config.setIsolationMode(IsolationMode.NONE);
-                config.setParams(header, prefixHeaderFile);
+                config.parameters(new Action<PrefixHeaderFileParameters>() {
+                    @Override
+                    public void execute(PrefixHeaderFileParameters parameters) {
+                        parameters.getHeader().set(header);
+                        parameters.getPrefixHeaderFile().set(prefixHeaderFile);
+                    }
+                });
             }
         });
     }
@@ -79,19 +89,18 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
-    private static class GeneratePrefixHeaderFile implements Runnable {
-        private final String header;
-        private final File prefixHeaderFile;
+    interface PrefixHeaderFileParameters extends WorkerParameters {
+        Property<String> getHeader();
+        RegularFileProperty getPrefixHeaderFile();
+    }
 
+    static abstract class GeneratePrefixHeaderFile implements WorkerExecution<PrefixHeaderFileParameters> {
         @Inject
-        public GeneratePrefixHeaderFile(String header, File prefixHeaderFile) {
-            this.header = header;
-            this.prefixHeaderFile = prefixHeaderFile;
-        }
+        public GeneratePrefixHeaderFile() { }
 
         @Override
-        public void run() {
-            PCHUtils.generatePrefixHeaderFile(Lists.newArrayList(header), prefixHeaderFile);
+        public void execute() {
+            PCHUtils.generatePrefixHeaderFile(Lists.newArrayList(getParameters().getHeader().get()), getParameters().getPrefixHeaderFile().getAsFile().get());
         }
     }
 }

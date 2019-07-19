@@ -17,7 +17,6 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -25,6 +24,8 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -39,7 +40,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    WorkResult execute(@Nullable InputChangesInternal inputChanges);
+    WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
 
     Optional<Duration> getTimeout();
 
@@ -68,7 +69,7 @@ public interface UnitOfWork extends CacheableEntity {
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, FileCollection roots);
+        void visitOutputProperty(String propertyName, TreeType type, Iterable<File> roots);
     }
 
     void visitLocalState(LocalStateVisitor visitor);
@@ -80,15 +81,24 @@ public interface UnitOfWork extends CacheableEntity {
     long markExecutionTime();
 
     /**
+     * Validate the work's inputs and outputs, and throws an exception if violations are found.
+     */
+    void validate();
+
+    /**
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
-    Optional<CachingDisabledReason> shouldDisableCaching();
+    Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs);
 
     /**
-     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
+     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
+     * returned depending on whether cleanup of existing outputs had to be performed.
      */
-    default void markSnapshottingInputsFinished(CachingState cachingState) {}
+    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
+        return Optional.empty();
+    }
 
     /**
      * Returns whether the execution history should be stored.
@@ -116,9 +126,23 @@ public interface UnitOfWork extends CacheableEntity {
     Optional<? extends Iterable<String>> getChangingOutputs();
 
     /**
-     * Whether the current execution detected that there are overlapping outputs.
+     * Whether overlapping outputs should be allowed or ignored.
      */
-    boolean hasOverlappingOutputs();
+    default OverlappingOutputHandling getOverlappingOutputHandling() {
+        return OverlappingOutputHandling.IGNORE_OVERLAPS;
+    }
+
+    enum OverlappingOutputHandling {
+        /**
+         * Overlapping outputs are detected and handled.
+         */
+        DETECT_OVERLAPS,
+
+        /**
+         * Overlapping outputs are not detected.
+         */
+        IGNORE_OVERLAPS
+    }
 
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
@@ -126,9 +150,24 @@ public interface UnitOfWork extends CacheableEntity {
     boolean shouldCleanupOutputsOnNonIncrementalExecution();
 
     /**
-     * Returns the output snapshots after the current execution.
+     * Takes a snapshot of the outputs before execution.
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution();
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution();
+
+    /**
+     * Takes a snapshot of the outputs after execution.
+     */
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution();
+
+    /**
+     * Convert to fingerprints and filter out missing roots.
+     */
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
+        boolean hasDetectedOverlappingOutputs
+    );
 
     enum WorkResult {
         DID_WORK,
@@ -149,6 +188,7 @@ public interface UnitOfWork extends CacheableEntity {
          *
          * @deprecated Only used for {@code IncrementalTaskInputs}. Should be removed once {@code IncrementalTaskInputs} is gone.
          */
+        @SuppressWarnings("DeprecatedIsStillUsed")
         @Deprecated
         ALL_PARAMETERS(true);
 
@@ -165,5 +205,18 @@ public interface UnitOfWork extends CacheableEntity {
 
     ExecutionHistoryStore getExecutionHistoryStore();
 
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void markLegacySnapshottingInputsStarted() {}
+
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void markLegacySnapshottingInputsFinished(CachingState cachingState) {}
+
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void ensureLegacySnapshottingInputsClosed() {}
 }

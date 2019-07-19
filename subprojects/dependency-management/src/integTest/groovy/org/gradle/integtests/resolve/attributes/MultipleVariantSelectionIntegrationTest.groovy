@@ -237,6 +237,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
+            
+                        
+            configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
         """
 
         when:

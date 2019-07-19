@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.BinaryCollection;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.nativeplatform.test.TestSuiteComponent;
 
@@ -33,4 +34,12 @@ public interface SwiftXCTestSuite extends SwiftComponent, TestSuiteComponent {
      */
     @Override
     Provider<? extends SwiftXCTestBinary> getTestBinary();
+
+    /**
+     * Returns the binaries for this library.
+     *
+     * @since 5.6
+     */
+    @Override
+    BinaryCollection<? extends SwiftXCTestBinary> getBinaries();
 }

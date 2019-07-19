@@ -16,11 +16,9 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +38,9 @@ public class CreateOutputsStep<C extends Context, R extends Result> implements S
 
     @Override
     public R execute(C context) {
-        context.getWork().visitOutputProperties(new UnitOfWork.OutputPropertyVisitor() {
-            @Override
-            public void visitOutputProperty(String name, TreeType type, FileCollection roots) {
-                for (File root : roots) {
-                    ensureOutput(name, root, type);
-                }
+        context.getWork().visitOutputProperties((name, type, roots) -> {
+            for (File root : roots) {
+                ensureOutput(name, root, type);
             }
         });
         return delegate.execute(context);

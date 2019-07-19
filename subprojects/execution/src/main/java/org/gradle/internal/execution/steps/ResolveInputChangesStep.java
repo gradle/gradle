@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.work.InputChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
 
             @Override
             public boolean isIncrementalExecution() {
-                return inputChanges.map(changes -> changes.isIncremental()).orElse(false);
+                return inputChanges.map(InputChanges::isIncremental).orElse(false);
             }
 
             @Override

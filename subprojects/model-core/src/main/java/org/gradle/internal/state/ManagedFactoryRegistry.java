@@ -20,10 +20,5 @@ public interface ManagedFactoryRegistry {
     /**
      * Looks up a {@link ManagedFactory} that can provide the given type.
      */
-    <T> ManagedFactory lookup(int id);
-
-    /**
-     * Registers a new factory
-     */
-    void register(ManagedFactory factory);
+    ManagedFactory lookup(int id);
 }
