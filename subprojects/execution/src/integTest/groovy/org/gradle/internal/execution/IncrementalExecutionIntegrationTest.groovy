@@ -20,14 +20,12 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
@@ -39,6 +37,7 @@ import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -46,11 +45,15 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreSnapshotsStep
+import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -127,35 +130,28 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def unitOfWork = builder.build()
 
     def changeDetector = new DefaultExecutionStateChangeDetector()
+    def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
 
-    WorkExecutor<AfterPreviousExecutionContext, CachingResult> getExecutor() {
+    WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
+        // @formatter:off
         new DefaultWorkExecutor<>(
-            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter,
-                new ResolveCachingStateStep<>(buildCacheController, false,
-                    new ResolveChangesStep<>(changeDetector,
-                        new SkipUpToDateStep<>(
-                            new RecordOutputsStep<>(outputFilesRepository,
-                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                    new StoreSnapshotsStep<>(
-                                        new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
-                                            new CreateOutputsStep<>(
-                                                new CatchExceptionStep<>(
-                                                    new ResolveInputChangesStep<>(
-                                                        new CleanupOutputsStep<>(
-                                                            new ExecuteStep<InputChangesContext>()
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
+            new LoadPreviousExecutionStateStep<>(
+            new ValidateStep<>(
+            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new ResolveCachingStateStep<>(buildCacheController, false,
+            new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+            new RecordOutputsStep<>(outputFilesRepository,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new StoreSnapshotsStep<>(
+            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new CreateOutputsStep<>(
+            new CatchExceptionStep<>(
+            new ResolveInputChangesStep<>(
+            new CleanupOutputsStep<>(
+            new ExecuteStep<InputChangesContext>()
+        )))))))))))))))
+        // @formatter:on
     }
 
     def "outputs are created"() {
@@ -174,7 +170,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
 
         def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
         def allFiles = ["parent/outFile", "parent1/outFile1", "parent2/outFile1", "parent2/outFile2"].collect { file(it) }
@@ -193,11 +189,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
 
         result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
         result.finalOutputs["dir"].rootHashes.size() == 1
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
         afterExecution.outputFileProperties.values()*.rootHashes == result.finalOutputs.values()*.rootHashes
@@ -209,9 +204,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
 
-        def origin = result.originMetadata.buildInvocationId
         def finalOutputs = result.finalOutputs
 
         when:
@@ -222,9 +216,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == UP_TO_DATE
-        result.reused
-        result.originMetadata.buildInvocationId == origin
-        result.originMetadata.buildInvocationId != buildInvocationScopeId.id.asString()
         result.finalOutputs.values()*.rootHashes == finalOutputs.values()*.rootHashes
     }
 
@@ -234,20 +225,14 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
-
-        def origin = result.originMetadata.buildInvocationId
+        !result.reusedOutputOriginMetadata.present
 
         when:
         buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
         outputFile.text = "outdated"
-        result = outOfDate(builder.build(), outputFilesChanged(file: [outputFile]))
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        result.originMetadata.buildInvocationId != origin
+        outOfDate(builder.build(), outputFilesChanged(file: [outputFile]))
     }
 
     def "failed executions are never up-to-date"() {
@@ -259,8 +244,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         }.build())
         then:
         result.outcome.failure.get() == failure
-        !result.reused
-        def origin = result.originMetadata.buildInvocationId
+        !result.reusedOutputOriginMetadata.present
 
         when:
         buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -268,9 +252,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
-        result.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        result.originMetadata.buildInvocationId != origin
+        !result.reusedOutputOriginMetadata.present
     }
 
     def "out of date when no history"() {
@@ -279,7 +261,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["No history is available."]
     }
 
@@ -293,7 +275,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has been removed."]
     }
 
@@ -307,7 +289,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has been removed."]
     }
 
@@ -322,7 +304,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         !result.outcome.successful
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
 
@@ -337,7 +319,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         !result.outcome.successful
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
 
@@ -350,7 +332,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
 
@@ -363,7 +345,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
 
@@ -387,7 +369,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        !result.reused
+        !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' has been removed for ${outputFilesRemovedUnitOfWork.displayName}"]
     }
 
@@ -570,6 +552,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
         upToDate noOutputs
     }
 
+    def "invalid work is not executed"() {
+        def validationError = new RuntimeException("Validation error")
+        def invalidWork = builder
+            .withValidationError(validationError)
+            .withWork({ throw new RuntimeException("Should not get executed") })
+            .build()
+
+        when:
+        execute(invalidWork)
+
+        then:
+        def ex = thrown Exception
+        ex == validationError
+    }
+
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
         filesRemoved('Input', removedFiles)
     }
@@ -617,7 +614,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
         def result = execute(unitOfWork)
         assert result.outcome.get() == EXECUTED_NON_INCREMENTALLY
-        assert !result.reused
+        !result.reusedOutputOriginMetadata.present
         assert result.executionReasons == expectedReasons
         return result
     }
@@ -631,9 +628,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     UpToDateResult execute(UnitOfWork unitOfWork) {
         fileSystemMirror.beforeBuildFinished()
 
-        def afterPreviousExecutionState = executionHistoryStore.load(unitOfWork.identity)
-
-        executor.execute(new AfterPreviousExecutionContext() {
+        executor.execute(new ExecutionRequestContext() {
             @Override
             UnitOfWork getWork() {
                 unitOfWork
@@ -643,11 +638,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
             Optional<String> getRebuildReason() {
                 Optional.empty()
             }
-
-            @Override
-            Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                afterPreviousExecutionState
-            }
         })
     }
 
@@ -656,12 +646,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     static class OutputPropertySpec {
-        FileCollection roots
+        Iterable<File> roots
         TreeType treeType
 
         OutputPropertySpec(Iterable<File> roots, TreeType treeType) {
             this.treeType = treeType
-            this.roots = ImmutableFileCollection.of(roots)
+            this.roots = ImmutableList.copyOf(roots)
         }
     }
 
@@ -690,7 +680,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private
+        private Exception validationError
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -745,6 +735,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
+        UnitOfWorkBuilder withValidationError(Exception validationError) {
+            this.validationError = validationError
+            return this
+        }
+
         UnitOfWork build() {
             Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(*value) } )
             Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(*value) } )
@@ -754,7 +749,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 boolean executed
 
                 @Override
-                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges) {
+                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
                     executed = true
                     return work.get()
                 }
@@ -803,13 +798,20 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshotsBeforeExecution() {
+                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
                     snapshotOutputs(outputs)
                 }
 
                 @Override
-                boolean hasOverlappingOutputs() {
-                    return false
+                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+                    snapshotOutputs(outputs)
+                }
+
+                @Override
+                void validate() {
+                    if (validationError != null) {
+                        throw validationError
+                    }
                 }
 
                 @Override
@@ -828,7 +830,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                Optional<CachingDisabledReason> shouldDisableCaching() {
+                Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
                     throw new UnsupportedOperationException()
                 }
 
@@ -858,16 +860,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
-                    fingerprintOutputs(outputs)
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
+                    ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
+                    ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
+                    ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
+                    boolean hasDetectedOverlappingOutputs
+                ) {
+                    fingerprintOutputs(afterExecutionOutputSnapshots)
                 }
             }
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(Map<String, OutputPropertySpec> outputs) {
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
             def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
-            outputs.each { propertyName, spec ->
-                builder.put(propertyName, outputFingerprinter.fingerprint(spec.roots))
+            outputSnapshots.each { propertyName, snapshot ->
+                builder.put(propertyName, outputFingerprinter.fingerprint([snapshot]))
             }
             return builder.build()
         }
@@ -875,7 +882,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(Map<String, OutputPropertySpec> outputs) {
             def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
             outputs.each { propertyName, spec ->
-                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(spec.roots)))
+                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(ImmutableFileCollection.of(spec.roots))))
             }
             return builder.build()
         }

@@ -18,9 +18,13 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskExecutionMode
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
+import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -37,9 +41,6 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
-import org.gradle.internal.execution.AfterPreviousExecutionContext
-import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -51,14 +52,19 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
+import org.gradle.internal.execution.steps.SkipEmptyWorkStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
+import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -81,6 +87,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
+    def taskOutputs = Mock(TaskOutputsInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", HashCode.fromInt(1234))
     }
@@ -100,7 +107,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def executionContext = Stub(TaskExecutionContext) {
         getTaskProperties() >> taskProperties
-        getAfterPreviousExecution() >> previousState
     }
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
@@ -134,30 +140,30 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         }
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
+    def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
+    def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
+    def overlappingOutputDetector = Stub(OverlappingOutputDetector)
+    def fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null)
 
-    def workExecutor = new DefaultWorkExecutor<AfterPreviousExecutionContext, CachingResult>(
-        new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter,
-            new ResolveCachingStateStep(buildCacheController, false,
-                new ResolveChangesStep<>(changeDetector,
-                    new SkipUpToDateStep<>(
-                        new BroadcastChangingOutputsStep<>(outputChangeListener,
-                            new SnapshotOutputsStep<>(buildId,
-                                new CatchExceptionStep<>(
-                                    new CancelExecutionStep<>(cancellationToken,
-                                        new ResolveInputChangesStep<>(
-                                            new CleanupOutputsStep<>(
-                                                new ExecuteStep<InputChangesContext>()
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
+    // @formatter:off
+    def workExecutor = new DefaultWorkExecutor<>(
+        new LoadPreviousExecutionStateStep<>(
+        new SkipEmptyWorkStep<>(
+        new ValidateStep<>(
+        new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+        new ResolveCachingStateStep(buildCacheController, false,
+        new ResolveChangesStep<>(changeDetector,
+        new SkipUpToDateStep<>(
+        new BroadcastChangingOutputsStep<>(outputChangeListener,
+        new SnapshotOutputsStep<>(buildId,
+        new CatchExceptionStep<>(
+        new CancelExecutionStep<>(cancellationToken,
+        new ResolveInputChangesStep<>(
+        new CleanupOutputsStep<>(
+        new ExecuteStep<>()
+    ))))))))))))))
+    // @formatter:on
+
     def executer = new ExecuteActionsTaskExecuter(
         false,
         false,
@@ -170,20 +176,24 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         fingerprinterRegistry,
         classloaderHierarchyHasher,
         workExecutor,
-        listenerManager
+        listenerManager,
+        reservedFileSystemLocationRegistry,
+        emptySourceTaskSkipper,
+        fileCollectionFactory
     )
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
         task.getProject() >> project
         task.getState() >> state
+        task.getOutputs() >> taskOutputs
+        task.getPath() >> "task"
+        taskOutputs.setPreviousOutputFiles(_ as FileCollection)
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
-        executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
-        executionContext.getOverlappingOutputs() >> Optional.empty()
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
-
         executionContext.getTaskProperties() >> taskProperties
+        executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }
 

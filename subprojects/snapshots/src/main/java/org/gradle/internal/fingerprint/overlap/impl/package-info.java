@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+@NonNullInternalApi
+package org.gradle.internal.fingerprint.overlap.impl;
 
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-
-import java.util.Optional;
-
-public interface AfterPreviousExecutionContext extends ExecutionRequestContext {
-    /**
-     * Returns the execution state after the previous execution if available.
-     * Empty when execution history is not available.
-     */
-    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
-}
+import org.gradle.internal.NonNullInternalApi;

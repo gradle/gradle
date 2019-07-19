@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
+import java.util.Map;
 import java.util.Optional;
 
-public interface AfterPreviousExecutionContext extends ExecutionRequestContext {
-    /**
-     * Returns the execution state after the previous execution if available.
-     * Empty when execution history is not available.
-     */
-    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
+public interface EmptySourceTaskSkipper {
+    Optional<ExecutionOutcome> skipIfEmptySources(TaskInternal task, boolean hasSourceFiles, FileCollection inputFiles, FileCollection sourceFiles, Map<String, FileCollectionFingerprint> outputFileSnapshots);
 }

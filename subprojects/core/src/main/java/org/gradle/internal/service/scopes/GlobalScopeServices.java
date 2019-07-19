@@ -74,6 +74,8 @@ import org.gradle.internal.execution.history.changes.DefaultExecutionStateChange
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -334,5 +336,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
         // Use DirectInstantiator here to avoid setting up the instantiation infrastructure early
         return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport, DirectInstantiator.INSTANCE);
+    }
+
+    OverlappingOutputDetector createOverlappingOutputDetector() {
+        return new DefaultOverlappingOutputDetector();
     }
 }

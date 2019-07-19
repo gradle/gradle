@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.fingerprint.overlap;
 
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
-public interface AfterPreviousExecutionContext extends ExecutionRequestContext {
-    /**
-     * Returns the execution state after the previous execution if available.
-     * Empty when execution history is not available.
-     */
-    Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState();
+public interface OverlappingOutputDetector {
+    @Nullable
+    OverlappingOutputs detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, FileSystemSnapshot> current);
 }

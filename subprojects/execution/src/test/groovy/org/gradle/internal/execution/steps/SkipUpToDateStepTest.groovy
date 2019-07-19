@@ -18,11 +18,10 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.SnapshotResult
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
@@ -39,7 +38,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         then:
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
-        result.executionReasons.empty
+        !result.executionReasons.present
 
         1 * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
@@ -48,9 +47,8 @@ class SkipUpToDateStepTest extends StepSpec {
     }
 
     def "executes when outputs are not up to date"() {
-        def delegateResult = Mock(SnapshotResult)
+        def delegateResult = Mock(CurrentSnapshotResult)
         def delegateOutcome = Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
-        def delegateOriginMetadata = Mock(OriginMetadata)
         def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
 
         when:
@@ -58,6 +56,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         then:
         result.executionReasons == ["change"]
+        !result.reusedOutputOriginMetadata.present
 
         1 * context.getWork() >> work
         1 * context.changes >> Optional.of(changes)
@@ -72,15 +71,6 @@ class SkipUpToDateStepTest extends StepSpec {
         outcome == delegateOutcome
 
         1 * delegateResult.outcome >> delegateOutcome
-        0 * _
-
-        when:
-        def originMetadata = result.originMetadata
-
-        then:
-        originMetadata == delegateOriginMetadata
-
-        1 * delegateResult.originMetadata >> delegateOriginMetadata
         0 * _
 
         when:

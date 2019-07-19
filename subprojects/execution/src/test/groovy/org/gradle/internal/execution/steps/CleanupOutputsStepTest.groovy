@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.execution.InputChangesContext
@@ -24,9 +25,10 @@ import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.OutputPropertyVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
-import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -38,13 +40,8 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
     def context = Mock(InputChangesContext)
     def work = Mock(UnitOfWork)
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+    def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
-    def incrementalInputChanges = Stub(InputChangesInternal) {
-        isIncremental() >> true
-    }
-    def nonIncrementalInputChanges = Stub(InputChangesInternal) {
-        isIncremental() >> false
-    }
 
     def step = new CleanupOutputsStep<InputChangesContext, Result>(delegate)
 
@@ -152,7 +149,7 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
         when:
         step.execute(context)
         then:
-        1 * context.inputChanges >> Optional.of(incrementalInputChanges)
+        1 * context.incrementalExecution >> true
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
@@ -161,7 +158,7 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
         when:
         step.execute(context)
         then:
-        1 * context.inputChanges >> Optional.empty()
+        1 * context.incrementalExecution >> false
         1 * context.work >> work
         1 * work.shouldCleanupOutputsOnNonIncrementalExecution() >> false
         1 * delegate.execute(_) >> delegateResult
@@ -176,17 +173,18 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
         step.execute(context)
         then:
         interaction {
-            cleanupExclusiveOutputs(outputs, Optional.empty())
+            cleanupExclusiveOutputs(outputs, false)
         }
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
 
     void cleanupOverlappingOutputs(WorkOutputs outputs) {
-        1 * context.inputChanges >> Optional.of(nonIncrementalInputChanges)
+        1 * context.incrementalExecution >> false
         1 * context.work >> work
         1 * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
-        1 * work.hasOverlappingOutputs() >> true
+        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
         1 * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file))
@@ -195,14 +193,15 @@ class CleanupOutputsStepTest extends Specification implements FingerprinterFixtu
         1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
     }
 
-    void cleanupExclusiveOutputs(WorkOutputs outputs, Optional<InputChangesInternal> inputChanges = Optional.of(nonIncrementalInputChanges)) {
-        1 * context.inputChanges >> inputChanges
+    void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {
+        1 * context.incrementalExecution >> incrementalExecution
         1 * context.work >> work
         1 * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
-        1 * work.hasOverlappingOutputs() >> false
+        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
         1 * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(outputs.dir))
+            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(outputs.file))
         }
     }
 

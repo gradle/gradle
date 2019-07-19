@@ -30,6 +30,12 @@ public enum ExecutionOutcome {
     FROM_CACHE,
 
     /**
+     * Executing the work was not necessary to produce the outputs.
+     * This is usually due to the work having no inputs to process.
+     */
+    SHORT_CIRCUITED,
+
+    /**
      * The work has been executed with information about the changes that happened since the previous execution.
      */
     EXECUTED_INCREMENTALLY,

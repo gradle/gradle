@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.fingerprint.overlap.impl;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -28,28 +30,21 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import javax.annotation.Nullable;
 import java.util.Map;
-import java.util.Optional;
 
-public class OverlappingOutputs {
-    private final String propertyName;
-    private final String overlappedFilePath;
-
-    public OverlappingOutputs(String propertyName, String overlappedFilePath) {
-        this.propertyName = propertyName;
-        this.overlappedFilePath = overlappedFilePath;
-    }
-
-    public static Optional<OverlappingOutputs> detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
+public class DefaultOverlappingOutputDetector implements OverlappingOutputDetector {
+    @Override
+    @Nullable
+    public OverlappingOutputs detect(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
         for (Map.Entry<String, FileSystemSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
             FileSystemSnapshot beforeExecution = entry.getValue();
             FileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previous, propertyName);
-            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
+            OverlappingOutputs overlappingOutputs = detect(propertyName, afterPreviousExecution, beforeExecution);
             if (overlappingOutputs != null) {
-                return Optional.of(overlappingOutputs);
+                return overlappingOutputs;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous, String propertyName) {
@@ -61,7 +56,6 @@ public class OverlappingOutputs {
         }
         return FileCollectionFingerprint.EMPTY;
     }
-
 
     @Nullable
     private static OverlappingOutputs detect(String propertyName, FileCollectionFingerprint previous, FileSystemSnapshot before) {
@@ -80,18 +74,6 @@ public class OverlappingOutputs {
     private static boolean createdSincePreviousExecution(@Nullable HashCode previousContentHash) {
         // created since last execution, possibly by another task
         return previousContentHash == null;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public String getOverlappedFilePath() {
-        return overlappedFilePath;
-    }
-
-    public String toString() {
-        return String.format("output property '%s' with path '%s'", propertyName, overlappedFilePath);
     }
 
     private static class OverlappingOutputsDetectingVisitor implements FileSystemSnapshotVisitor {

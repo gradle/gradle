@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.internal.execution.steps.legacy;
 
 import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 
-import java.util.Optional;
-
-public class BroadcastChangingOutputsStep<C extends Context, R extends Result> implements Step<C, R> {
-
-    private final OutputChangeListener outputChangeListener;
+/**
+ * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+ */
+public class MarkSnapshottingInputsStartedStep<C extends Context, R extends Result> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
-    public BroadcastChangingOutputsStep(
-        OutputChangeListener outputChangeListener,
-        Step<? super C, ? extends R> delegate
-    ) {
-        this.outputChangeListener = outputChangeListener;
+    public MarkSnapshottingInputsStartedStep(Step<? super C, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(C context) {
         UnitOfWork work = context.getWork();
-
-        Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
-        changingOutputs.ifPresent(outputChangeListener::beforeOutputChange);
-        if (!changingOutputs.isPresent()) {
-            outputChangeListener.beforeOutputChange();
+        work.markLegacySnapshottingInputsStarted();
+        try {
+            return delegate.execute(context);
+        } finally {
+            work.ensureLegacySnapshottingInputsClosed();
         }
-        return delegate.execute(context);
     }
 }

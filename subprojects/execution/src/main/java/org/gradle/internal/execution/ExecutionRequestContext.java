@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,11 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.caching.internal.origin.OriginMetadata;
-
 import java.util.Optional;
 
-public interface UpToDateResult extends SnapshotResult {
+public interface ExecutionRequestContext extends Context {
     /**
-     * A list of messages describing the first few reasons encountered that caused the work to be executed.
-     * An empty list means the work was up-to-date and hasn't been executed.
+     * If incremental mode is disabled, this returns the reason, otherwise it's empty.
      */
-    ImmutableList<String> getExecutionReasons();
-
-    /**
-     * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
-     */
-    Optional<OriginMetadata> getReusedOutputOriginMetadata();
+    Optional<String> getRebuildReason();
 }

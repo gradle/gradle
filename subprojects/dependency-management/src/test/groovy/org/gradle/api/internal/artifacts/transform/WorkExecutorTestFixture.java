@@ -22,13 +22,14 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
@@ -43,7 +44,7 @@ import java.util.Optional;
 
 public class WorkExecutorTestFixture {
 
-    private final WorkExecutor<AfterPreviousExecutionContext, CachingResult> workExecutor;
+    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
 
     WorkExecutorTestFixture(
         DefaultFileSystemMirror fileSystemMirror,
@@ -110,19 +111,20 @@ public class WorkExecutorTestFixture {
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheCommandFactory,
             buildCacheController,
-            buildScanPluginApplied,
             cancellationToken,
             buildInvocationScopeId,
-            new DefaultExecutionStateChangeDetector(),
+            buildScanPluginApplied,
             classLoaderHierarchyHasher,
-            valueSnapshotter,
+            new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,
-            new DefaultTimeoutHandler(null)
+            new DefaultOverlappingOutputDetector(),
+            new DefaultTimeoutHandler(null),
+            valueSnapshotter
         );
     }
 
-    public WorkExecutor<AfterPreviousExecutionContext, CachingResult> getWorkExecutor() {
+    public WorkExecutor<ExecutionRequestContext, CachingResult> getWorkExecutor() {
         return workExecutor;
     }
 }
