@@ -23,11 +23,15 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.Classifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -54,9 +58,14 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         // metadata as well.
         boolean forcedDependencies = PlatformSupport.hasForcedDependencies(variant);
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
+            ImmutableAttributes attributes = dependency.getAttributes();
+            List<IvyArtifactName> artifacts = extractArtifacts(dependency.getModule(), attributes);
+            if (!artifacts.isEmpty()) {
+                attributes = removeClassifierAttribute(attributes);
+            }
+            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), attributes, dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), forcedDependencies));
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), forcedDependencies, artifacts));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
@@ -65,10 +74,30 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
                 true,
                 false,
                 dependencyConstraint.getReason(),
-                forcedDependencies
+                forcedDependencies,
+                Collections.emptyList()
             ));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
+    }
+
+    private ImmutableAttributes removeClassifierAttribute(ImmutableAttributes attributes) {
+        return attributes;
+    }
+
+    private List<IvyArtifactName> extractArtifacts(String name, ImmutableAttributes attributes) {
+        AttributeValue<String> entry = Cast.uncheckedCast(attributes.findEntry(Classifier.CLASSIFIER_ATTRIBUTE.getName()));
+        if (entry.isPresent()) {
+            return ImmutableList.of(
+                new DefaultIvyArtifactName(
+                    name,
+                    "jar",
+                    "jar",
+                    entry.get()
+                )
+            );
+        }
+        return ImmutableList.of();
     }
 
     AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableList<GradleDependencyMetadata> dependencies) {

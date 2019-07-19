@@ -231,6 +231,18 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             assert deps[0].classifier == null
             assert deps[1].classifier == "classy"
         }
+        repoModule.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org:foo:1.0") {
+                // first dependency
+                exists()
+                noAttributes()
+                // second dependency
+                next()
+                exists()
+                hasAttribute("org.gradle.compat.classifier", "classy")
+                isLast()
+            }
+        }
     }
 
 }

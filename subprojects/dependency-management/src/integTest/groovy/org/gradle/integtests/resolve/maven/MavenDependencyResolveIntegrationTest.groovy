@@ -229,4 +229,48 @@ dependencies {
         }
     }
 
+    def "resolves a dependency with classifier"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+            }
+            'org:bar:1.0' {
+                withModule {
+                    artifact(type: 'jar', classifier: 'classy')
+                }
+            }
+        }
+
+        and:
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact(classifier: 'classy')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("org:foo:1.0") {
+                    module("org:bar:1.0") {
+                        artifact(classifier: 'classy')
+                    }
+                }
+            }
+        }
+
+    }
 }

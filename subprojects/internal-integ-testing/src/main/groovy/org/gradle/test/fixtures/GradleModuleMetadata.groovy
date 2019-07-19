@@ -243,18 +243,37 @@ class GradleModuleMetadata {
             final String module
             final String version
             final Set<String> checkedExcludes = []
+            final Iterator<Dependency> candidates
+
+            Dependency current
 
             DependencyView(String gid, String mid, String v) {
                 group = gid
                 module = mid
                 version = v
+                candidates = dependencies.findAll { it.group == group && it.module == module && it.version == version }.iterator()
+                next()
+            }
+
+            DependencyView isLast() {
+                assert !candidates.hasNext()
+                this
+            }
+
+            DependencyView next() {
+                if (candidates.hasNext()) {
+                    checkedExcludes.clear()
+                    current = candidates.next()
+                } else {
+                    current = null
+                }
+                return this
             }
 
             Dependency find() {
-                def dep = dependencies.find { it.group == group && it.module == module && it.version == version }
-                assert dep : "dependency ${group}:${module}:${version} not found in $dependencies"
-                checkedDependencies << dep
-                dep
+                assert current : "dependency ${group}:${module}:${version} not found in $dependencies"
+                checkedDependencies << current
+                current
             }
 
             DependencyView exists() {
@@ -311,8 +330,13 @@ class GradleModuleMetadata {
 
             DependencyView hasAttribute(String attribute, Object value) {
                 String expected = value?.toString()
-                assert find()?.attributes[attribute] == expected
+                assert find()?.attributes?.get(attribute) == expected
                 this
+            }
+
+            DependencyView noAttributes() {
+                def actualAttributes = find()?.attributes ?: [:]
+                assert actualAttributes == [:]
             }
 
             DependencyView hasAttributes(Map<String, Object> fullAttributeSet) {

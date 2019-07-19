@@ -20,6 +20,7 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.attributes.Classifier
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -464,7 +465,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
-                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, d.attributes)
+                        def attributes = d.attributes
+                        if (d.classifier) {
+                            if (attributes == null) {
+                                attributes = [:]
+                            }
+                            attributes[Classifier.CLASSIFIER_ATTRIBUTE.name] = d.classifier
+                        }
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, attributes)
                     },
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.reason, d.attributes)

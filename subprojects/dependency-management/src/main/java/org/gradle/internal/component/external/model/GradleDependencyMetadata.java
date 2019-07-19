@@ -44,19 +44,21 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final boolean inheriting;
     private final String reason;
     private final boolean force;
+    private final List<IvyArtifactName> artifacts;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean inheriting, String reason, boolean force) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean inheriting, String reason, boolean force, List<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
         this.constraint = constraint;
         this.inheriting = inheriting;
         this.force = force;
+        this.artifacts = artifacts;
     }
 
     @Override
     public List<IvyArtifactName> getArtifacts() {
-        return ImmutableList.of();
+        return artifacts;
     }
 
     @Override
@@ -64,7 +66,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities()), excludes, constraint, inheriting, reason, force);
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities()), excludes, constraint, inheriting, reason, force, artifacts);
     }
 
     @Override
@@ -72,7 +74,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (Objects.equal(reason, this.reason)) {
             return this;
         }
-        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force);
+        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force, artifacts);
     }
 
     @Override
@@ -80,13 +82,13 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (inheriting == this.inheriting) {
             return this;
         }
-        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force);
+        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force, artifacts);
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, inheriting, reason, force);
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, inheriting, reason, force, artifacts);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
@@ -146,7 +148,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, true);
+        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, true, artifacts);
     }
 
     @Override
