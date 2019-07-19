@@ -56,6 +56,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     }
 
     //This is the current behavior. Snapshotting might become not-a-task-action in the future.
+    // NOTE: This operation captures more than just snapshotting, and will be removed in a later release in favor of separate snapshotting operations
     def "snapshot task inputs action has an informative name"() {
         given:
         buildFile << "task custom { doLast {} }"
@@ -84,7 +85,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Execute doSomethingAmazing for :custom')
+        task.descendant('Execute doSomethingAmazing for :custom')
     }
 
     def "task actions defined in doFirst and doLast blocks of Groovy build scripts have informative names"() {
@@ -101,8 +102,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Execute doFirst {} action for :custom')
-        task.child('Execute doLast {} action for :custom')
+        task.descendant('Execute doFirst {} action for :custom')
+        task.descendant('Execute doLast {} action for :custom')
     }
 
     @Requires([KOTLIN_SCRIPT])
@@ -120,8 +121,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Execute doFirst {} action for :custom')
-        task.child('Execute doLast {} action for :custom')
+        task.descendant('Execute doFirst {} action for :custom')
+        task.descendant('Execute doLast {} action for :custom')
     }
 
     def "task actions defined in doFirst and doLast blocks of Groovy build scripts can be named"() {
@@ -138,8 +139,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Execute A first step for :custom')
-        task.child('Execute One last thing... for :custom')
+        task.descendant('Execute A first step for :custom')
+        task.descendant('Execute One last thing... for :custom')
     }
 
     @Requires([KOTLIN_SCRIPT])
@@ -157,8 +158,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def task = events.operation("Task :custom")
-        task.child('Execute A first step for :custom')
-        task.child('Execute One last thing... for :custom')
+        task.descendant('Execute A first step for :custom')
+        task.descendant('Execute One last thing... for :custom')
     }
 
     private runCustomTask() {
