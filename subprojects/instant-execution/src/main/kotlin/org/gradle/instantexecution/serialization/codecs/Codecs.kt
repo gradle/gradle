@@ -105,6 +105,7 @@ class Codecs(
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
+        bind(ImmutableMapCodec)
 
         bind(arrayCodec)
 
