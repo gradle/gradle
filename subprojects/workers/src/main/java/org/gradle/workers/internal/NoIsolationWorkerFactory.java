@@ -16,12 +16,16 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
+
+import javax.annotation.Nullable;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
@@ -45,6 +49,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     @Override
     public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
+        final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         return new AbstractWorker(buildOperationExecutor) {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
@@ -53,7 +58,13 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
-                            result = workerServer.execute(spec);
+                            result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
+                                @Nullable
+                                @Override
+                                public DefaultWorkResult create() {
+                                    return workerServer.execute(spec);
+                                }
+                            });
                         } finally {
                             //TODO the async work tracker should wait for children of an operation to finish first.
                             //It should not be necessary to call it here.
