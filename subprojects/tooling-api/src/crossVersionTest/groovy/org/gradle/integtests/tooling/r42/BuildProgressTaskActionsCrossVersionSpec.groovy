@@ -70,6 +70,30 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.child('Snapshot task inputs for :custom')
     }
 
+    @TargetGradleVersion(">=5.7")
+    def "snapshot task inputs and outputs operations have an informative names"() {
+        given:
+        file("input.txt").createFile()
+        buildFile << """
+            task custom {
+                inputs.file("input.txt")
+                outputs.file("output.txt")
+                doLast {
+                    file("output.txt").text = "output"
+                }
+            }
+        """
+        file("gradle.properties") << "org.gradle.caching=true"
+
+        when:
+        runCustomTask()
+
+        then:
+        def task = events.operation("Task :custom")
+        task.descendant("Snapshot inputs and outputs before executing task ':custom'")
+        task.descendant("Snapshot outputs after executing task ':custom'")
+    }
+
     def "task actions implemented in annotated methods are named after the method"() {
         given:
         buildFile << """

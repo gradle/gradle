@@ -106,7 +106,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return beforeExecutionState;
             }, BuildOperationDescriptor
-                .displayName("Snapshot inputs and outputs of " + executionContext.getWork().getDisplayName() + " before execution")
+                .displayName("Snapshot inputs and outputs before executing " + executionContext.getWork().getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
     }
