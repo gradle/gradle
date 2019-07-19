@@ -75,7 +75,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class DefaultTransformerInvoker implements TransformerInvoker {
+public class DefaultTransformerInvocationFactory implements TransformerInvocationFactory {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
@@ -94,14 +94,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final ProjectFinder projectFinder;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTransformerInvoker(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-                                     FileSystemSnapshotter fileSystemSnapshotter,
-                                     ArtifactTransformListener artifactTransformListener,
-                                     CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
-                                     FileCollectionFactory fileCollectionFactory,
-                                     FileCollectionSnapshotter fileCollectionSnapshotter,
-                                     ProjectFinder projectFinder,
-                                     BuildOperationExecutor buildOperationExecutor
+    public DefaultTransformerInvocationFactory(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+                                               FileSystemSnapshotter fileSystemSnapshotter,
+                                               ArtifactTransformListener artifactTransformListener,
+                                               CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
+                                               FileCollectionFactory fileCollectionFactory,
+                                               FileCollectionSnapshotter fileCollectionSnapshotter,
+                                               ProjectFinder projectFinder,
+                                               BuildOperationExecutor buildOperationExecutor
     ) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
@@ -114,17 +114,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        return createInvocation(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry).invoke();
-    }
-
-    @Override
     public CacheableInvocation<ImmutableList<File>> createInvocation(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
 
         FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactNormalizer());
-        // These could be injected directly to DefaultTransformerInvoker, too
+        // These could be injected directly to DefaultTransformerInvocationFactory, too
         FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
 
@@ -227,13 +222,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }));
     }
 
-    private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
             ? getImmutableTransformationIdentity(inputArtifactPath, inputArtifactSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(inputArtifactSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(String inputArtifactPath, FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static TransformationWorkspaceIdentity getImmutableTransformationIdentity(String inputArtifactPath, FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new ImmutableTransformationWorkspaceIdentity(
             inputArtifactPath,
             inputArtifactSnapshot.getHash(),
@@ -242,7 +237,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformationWorkspaceIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static TransformationWorkspaceIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new MutableTransformationWorkspaceIdentity(
             inputArtifactSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash(),

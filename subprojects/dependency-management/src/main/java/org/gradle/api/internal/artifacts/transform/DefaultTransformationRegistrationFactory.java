@@ -55,7 +55,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final TransformerInvoker transformerInvoker;
+    private final TransformerInvocationFactory transformerInvocationFactory;
     private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker parametersPropertyWalker;
     private final DomainObjectProjectStateHandler domainObjectProjectStateHandler;
@@ -68,7 +68,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     public DefaultTransformationRegistrationFactory(
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        TransformerInvoker transformerInvoker,
+        TransformerInvocationFactory transformerInvocationFactory,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFactory fileCollectionFactory,
         FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
@@ -78,7 +78,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     ) {
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.transformerInvoker = transformerInvoker;
+        this.transformerInvocationFactory = transformerInvocationFactory;
         this.valueSnapshotter = valueSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
@@ -134,14 +134,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             parametersPropertyWalker,
             actionInstantiationScheme);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
     }
 
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {

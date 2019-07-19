@@ -26,8 +26,8 @@ class TransformationMatchingSpec extends Specification {
 
     def "different TransformationStep does not contain each other"() {
         given:
-        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
 
         expect:
         !step1.endsWith(step2)
@@ -36,7 +36,7 @@ class TransformationMatchingSpec extends Specification {
 
     def "TransformationStep contains itself"() {
         given:
-        def step = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
 
         expect:
         step.endsWith(step)
@@ -44,8 +44,8 @@ class TransformationMatchingSpec extends Specification {
 
     def "chain contains its final step"() {
         given:
-        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
         def chain = new TransformationChain(step1, step2)
 
         expect:
@@ -58,8 +58,8 @@ class TransformationMatchingSpec extends Specification {
 
     def "chain contains itself"() {
         given:
-        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
         def chain = new TransformationChain(step1, step2)
 
         expect:
@@ -68,9 +68,9 @@ class TransformationMatchingSpec extends Specification {
 
     def "longer chain contains shorter chain"() {
         given:
-        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step3 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step3 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
         def subChain = new TransformationChain(step2, step3)
         def longChain = new TransformationChain(new TransformationChain(step1, step2), step3)
 
@@ -81,9 +81,9 @@ class TransformationMatchingSpec extends Specification {
 
     def "different chains do not contain each other"() {
         given:
-        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
-        def step3 = new TransformationStep(Mock(Transformer), Mock(TransformerInvoker), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step1 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step2 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
+        def step3 = new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), projectStateHandler, fileCollectionFingerprinterRegistry)
         def chain1 = new TransformationChain(step2, step3)
         def chain2 = new TransformationChain(step1, step2)
         def chain3 = new TransformationChain(step1, step3)

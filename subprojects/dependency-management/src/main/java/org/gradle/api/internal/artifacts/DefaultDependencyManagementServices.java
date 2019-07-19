@@ -77,7 +77,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterSch
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
@@ -88,7 +88,7 @@ import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
+import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -362,16 +362,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-                                                    FileSystemSnapshotter fileSystemSnapshotter,
-                                                    ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
-                                                    ArtifactTransformListener artifactTransformListener,
-                                                    FileCollectionFactory fileCollectionFactory,
-                                                    FileCollectionSnapshotter fileCollectionSnapshotter,
-                                                    ProjectFinder projectFinder,
-                                                    BuildOperationExecutor buildOperationExecutor
+        TransformerInvocationFactory createTransformerInvoker(
+            WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+            FileSystemSnapshotter fileSystemSnapshotter,
+            ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
+            ArtifactTransformListener artifactTransformListener,
+            FileCollectionFactory fileCollectionFactory,
+            FileCollectionSnapshotter fileCollectionSnapshotter,
+            ProjectFinder projectFinder,
+            BuildOperationExecutor buildOperationExecutor
         ) {
-            return new DefaultTransformerInvoker(
+            return new DefaultTransformerInvocationFactory(
                 workExecutor,
                 fileSystemSnapshotter,
                 artifactTransformListener,
@@ -386,7 +387,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         TransformationRegistrationFactory createTransformationRegistrationFactory(
             IsolatableFactory isolatableFactory,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            TransformerInvoker transformerInvoker,
+            TransformerInvocationFactory transformerInvocationFactory,
             ValueSnapshotter valueSnapshotter,
             ProjectStateRegistry projectStateRegistry,
             DomainObjectContext domainObjectContext,
@@ -399,7 +400,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultTransformationRegistrationFactory(
                 isolatableFactory,
                 classLoaderHierarchyHasher,
-                transformerInvoker,
+                transformerInvocationFactory,
                 valueSnapshotter,
                 fileCollectionFactory,
                 fileCollectionFingerprinterRegistry,
