@@ -339,6 +339,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 try {
                     ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
                     // Create scope for recording purpose only
+                    // TODO:instant-execution use the scope to create the script classes loader
                     targetScope.createChild("groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName())
                         .local(scriptClassPath)
                         .lock();
