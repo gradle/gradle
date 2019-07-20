@@ -20,11 +20,13 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
+import org.gradle.workers.internal.DefaultWorkResult;
 
 import java.io.File;
 import java.util.Collection;
@@ -89,6 +91,14 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
+    @Override
+    public WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult) {
+        if(!recompilationSpec.isFullRebuildNeeded()) {
+            return new GroovyIncrementalCompileResult((DefaultWorkResult) workResult);
+        }
+        return workResult;
+    }
+
     private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
         for (String relativeSourcePath : relativeSourcePathsToCompile) {
             filesToRecompilePatterns.include(relativeSourcePath);
@@ -101,13 +111,13 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     private void processOtherChanges(PreviousCompilation previous, RecompilationSpec spec) {
-        if (spec.getFullRebuildCause() != null) {
+        if (spec.isFullRebuildNeeded()) {
             return;
         }
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
 
         for (FileChange fileChange : sourceChanges) {
-            if (spec.getFullRebuildCause() != null) {
+            if (spec.isFullRebuildNeeded()) {
                 return;
             }
 
@@ -125,7 +135,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
 
         for (String className : spec.getClassesToCompile()) {
-            if (spec.getFullRebuildCause() != null) {
+            if (spec.isFullRebuildNeeded()) {
                 return;
             }
 

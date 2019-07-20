@@ -31,4 +31,8 @@ public interface GroovyCompileSpec extends JvmLanguageCompileSpec {
     File getCompilationMappingFile();
 
     void setCompilationMappingFile(File compilationMappingFile);
+
+    default boolean incrementalCompilationEnabled() {
+        return getCompilationMappingFile() != null;
+    }
 }
