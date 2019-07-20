@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.workers.internal.DefaultWorkResult;
 
-public class RecompilationNotNecessary implements WorkResult, IncrementalCompilationResult {
-    @Override
-    public boolean getDidWork() {
-        return false;
+/**
+ * Marks a Groovy compilation is performed incrementally.
+ */
+public class GroovyIncrementalCompileResult extends DefaultWorkResult implements IncrementalCompilationResult {
+    public GroovyIncrementalCompileResult(DefaultWorkResult workResult) {
+        super(workResult.getDidWork(), workResult.getException());
     }
 }
