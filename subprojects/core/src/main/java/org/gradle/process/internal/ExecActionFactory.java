@@ -26,7 +26,6 @@ public interface ExecActionFactory {
     /**
      * Creates a {@link JavaExecAction} that is not decorated. Use this when the action is not made visible to the DSL.
      * If you need to make the action visible to the DSL, use {@link DslExecActionFactory#newDecoratedJavaExecAction()} instead.
-     * @return
      */
     JavaExecAction newJavaExecAction();
 }
