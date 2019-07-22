@@ -425,4 +425,130 @@ $append
 """
 
     }
+
+    // This is a weird test case, because why would you have a substitution rule
+    // for a first level dependency? However it may be that you implicitly get a
+    // substitution rule (via a plugin for example) that you are not aware of.
+    // Ideally we should warn when such things happen (linting).
+    @Unroll
+    def "substituted dependencies are also substituted in the generated Ivy file"() {
+        javaLibrary(ivyRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(ivyRepo.module("org", "bar", "1.0"))
+            .dependsOn("org", "baz", "1.0")
+            .withModuleMetadata()
+            .publish()
+        javaLibrary(ivyRepo.module("org", "baz", "1.0")).withModuleMetadata().publish()
+
+        given:
+        createBuildScripts("""
+            dependencies {
+                implementation 'org:foo:1.0'
+                implementation 'org:bar:1.0'
+            }
+
+            $substitution
+            
+            publishing {
+                publications {
+                    maven(IvyPublication) {
+                        from components.java
+                        versionMapping {
+                            ${apiUsingUsage()}
+                            ${runtimeUsingUsage()}
+                        }
+                    }
+            
+                }
+            }
+        """)
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('runtime', 'org:baz:1.0', 'org:bar:1.0')
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org", "baz", "1.0")
+            dependency("org", "bar", "1.0")
+            noMoreDependencies()
+        }
+
+        where:
+        substitution << [
+            """
+            dependencies {
+                modules {
+                    module("org:foo") {
+                        replacedBy("org:baz")
+                    }
+                }
+            }""",
+            """
+            configurations.all {
+                resolutionStrategy.eachDependency { details ->
+                    if (details.requested.name == 'foo') {
+                        details.useTarget("org:baz:1.0")
+                    }
+                }
+            }
+            """,
+            """
+            configurations.all {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')).with(module('org:baz:1.0'))
+                }
+            }
+            """
+        ]
+    }
+
+    def "can substitute with a project dependency"() {
+        given:
+        settingsFile << """
+            include 'lib'
+        """
+        createBuildScripts("""
+            dependencies {
+                implementation 'org:foo:1.0'
+            }
+
+            configurations.all {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')) with(project(':lib'))
+                }
+            }
+            
+            publishing {
+                publications {
+                    maven(IvyPublication) {
+                        from components.java
+                        versionMapping {
+                            ${apiUsingUsage()}
+                            ${runtimeUsingUsage()}
+                        }
+                    }
+            
+                }
+            }
+        """)
+
+        file("lib/build.gradle") << """
+            apply plugin: 'java-library'
+            
+            group = 'com.acme'
+            version = '1.45'
+        """
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedIvy.assertConfigurationDependsOn("runtime", "com.acme:lib:1.45")
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("com.acme", "lib", "1.45")
+            noMoreDependencies()
+        }
+    }
 }

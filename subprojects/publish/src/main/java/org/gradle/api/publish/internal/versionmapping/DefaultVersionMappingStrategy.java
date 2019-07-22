@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.maven.internal.versionmapping;
+package org.gradle.api.publish.internal.versionmapping;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -29,8 +29,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import javax.inject.Inject;

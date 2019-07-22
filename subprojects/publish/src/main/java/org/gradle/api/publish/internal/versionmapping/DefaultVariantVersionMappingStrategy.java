@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.ivy.internal.versionmapping;
+package org.gradle.api.publish.internal.versionmapping;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.Set;
 
@@ -28,7 +31,7 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
     private boolean usePublishedVersions;
     private Configuration targetConfiguration;
 
-    DefaultVariantVersionMappingStrategy(ConfigurationContainer configurations) {
+    public DefaultVariantVersionMappingStrategy(ConfigurationContainer configurations) {
         this.configurations = configurations;
     }
 
@@ -49,13 +52,31 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
     }
 
     @Override
-    public String maybeResolveVersion(String group, String module) {
+    public ModuleVersionIdentifier maybeResolveVersion(String group, String module) {
         if (usePublishedVersions && targetConfiguration != null) {
-            Set<? extends ResolvedComponentResult> resolvedComponentResults = targetConfiguration.getIncoming().getResolutionResult().getAllComponents();
+            ResolutionResult resolutionResult = targetConfiguration
+                .getIncoming()
+                .getResolutionResult();
+            Set<? extends ResolvedComponentResult> resolvedComponentResults = resolutionResult.getAllComponents();
             for (ResolvedComponentResult selected : resolvedComponentResults) {
                 ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
                 if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
-                    return moduleVersion.getVersion();
+                    return moduleVersion;
+                }
+            }
+            // If we reach this point it means we have a dependency which doesn't belong to the resolution result
+            // Which can mean two things:
+            // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
+            // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
+            Set<? extends DependencyResult> allDependencies = resolutionResult.getAllDependencies();
+            for (DependencyResult dependencyResult : allDependencies) {
+                if (dependencyResult instanceof ResolvedDependencyResult) {
+                    if (dependencyResult.getRequested() instanceof ModuleComponentSelector) {
+                        ModuleComponentSelector requested = (ModuleComponentSelector) dependencyResult.getRequested();
+                        if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
+                            return ((ResolvedDependencyResult) dependencyResult).getSelected().getModuleVersion();
+                        }
+                    }
                 }
             }
         }
