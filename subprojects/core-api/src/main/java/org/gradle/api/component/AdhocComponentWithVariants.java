@@ -16,7 +16,6 @@
 package org.gradle.api.component;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.artifacts.Configuration;
  *
  * @since 5.3
  */
-@Incubating
 public interface AdhocComponentWithVariants extends SoftwareComponent {
 
     /**

@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
@@ -74,7 +73,6 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      *
      * @since 4.7.
      */
-    @Incubating
     void capability(Object notation);
 
     /**
@@ -84,6 +82,5 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      *
      * @since 4.7
      */
-    @Incubating
     Collection<? extends Capability> getCapabilities();
 }

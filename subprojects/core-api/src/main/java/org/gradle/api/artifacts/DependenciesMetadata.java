@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.Collection;
 import java.util.Map;
@@ -28,7 +27,6 @@ import java.util.Map;
  * @param <T> type of the dependency metadata in this collection
  * @since 4.4
  */
-@Incubating
 public interface DependenciesMetadata<T extends DependencyMetadata> extends Collection<T> {
 
     /**

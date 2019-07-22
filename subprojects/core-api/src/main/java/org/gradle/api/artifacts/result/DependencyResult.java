@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -53,7 +52,6 @@ public interface DependencyResult {
      * @return true if the dependency is a constraint.
      * @since 5.1
      */
-    @Incubating
     boolean isConstraint();
 
 }

@@ -17,7 +17,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
@@ -86,7 +85,6 @@ public interface SourceSet extends ExtensionAware {
      * @return The annotation processor path. Never returns null.
      * @since 4.6
      */
-    @Incubating
     FileCollection getAnnotationProcessorPath();
 
     /**
@@ -98,7 +96,6 @@ public interface SourceSet extends ExtensionAware {
      * @param annotationProcessorPath The annotation processor path. Should not be null.
      * @since 4.6
      */
-    @Incubating
     void setAnnotationProcessorPath(FileCollection annotationProcessorPath);
 
     /**
@@ -281,7 +278,6 @@ public interface SourceSet extends ExtensionAware {
      * @return the name of the annotation processor configuration.
      * @since 4.6
      */
-    @Incubating
     String getAnnotationProcessorConfigurationName();
 
     /**

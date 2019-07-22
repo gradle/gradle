@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
@@ -152,7 +151,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.0
      */
-    @Incubating
     void setTargetConfiguration(@Nullable String name);
 
     /**
@@ -170,7 +168,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 4.8
      */
     @Override
-    @Incubating
     AttributeContainer getAttributes();
 
     /**
@@ -182,7 +179,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 4.8
      */
     @Override
-    @Incubating
     ModuleDependency attributes(Action<? super AttributeContainer> configureAction);
 
     /**
@@ -191,7 +187,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 5.3
      */
-    @Incubating
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
 
     /**
@@ -200,6 +195,5 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 5.3
      */
-    @Incubating
     List<Capability> getRequestedCapabilities();
 }

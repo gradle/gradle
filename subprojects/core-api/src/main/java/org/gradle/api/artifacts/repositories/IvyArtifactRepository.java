@@ -18,7 +18,6 @@ package org.gradle.api.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 
 import java.net.URI;
@@ -212,7 +211,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @param config The action used to configure the layout.
      * @since 5.0
      */
-    @Incubating
     void patternLayout(Action<? super  IvyPatternRepositoryLayout> config);
 
     /**
@@ -244,7 +242,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @since 4.0
      */
     @Override
-    @Incubating
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
 
     /**
@@ -256,7 +253,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @since 4.0
      */
     @Override
-    @Incubating
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
@@ -267,7 +263,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * @since 4.5
      */
-    @Incubating
     void metadataSources(Action<? super MetadataSources> configureAction);
 
     /**
@@ -276,7 +271,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @since 4.5
      *
      */
-    @Incubating
     interface MetadataSources {
         /**
          * Indicates that this repository will contain Gradle metadata.

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -44,6 +43,5 @@ public interface ProjectComponentIdentifier extends ComponentIdentifier {
      *
      * @since 4.5
      */
-    @Incubating
     String getProjectName();
 }

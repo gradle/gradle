@@ -15,14 +15,11 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.Incubating;
-
 /**
  * Extends the repository content descriptor with Maven repositories specific options.
  *
  * @since 5.1
  */
-@Incubating
 public interface MavenRepositoryContentDescriptor extends RepositoryContentDescriptor {
     /**
      * Declares that this repository only contains releases.
