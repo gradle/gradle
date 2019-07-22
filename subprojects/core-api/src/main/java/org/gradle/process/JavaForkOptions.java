@@ -225,16 +225,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port
      * 5005.
      * <p>
-     * Since Gradle 5.6, you can configure the port and other Java debug properties via
-     * {@link #debugOptions(Action)}.
+     * The debug properties (e.g. the port number) can be configured in {@link #debugOptions(Action)}.
      *
      * @param enabled true to enable debugging, false to disable.
      */
     void setDebug(boolean enabled);
 
     /**
-     * Returns the Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
-     * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
+     * Returns the Java Debug Wire Protocol properties for the process. If enabled then the {@code -agentlib:jdwp=...}
+     * will be appended to the JVM arguments with the configuration from the parameter.
      *
      * @since 5.6
      */

@@ -81,6 +81,20 @@ import java.util.Map;
  * <pre>
  * gradle someJavaExecTask --debug-jvm
  * </pre>
+ * <p>
+ * Also, debug configuration can be explicitly set in {@link #debugOptions(Action)}:
+ * <pre>
+ * task runApp(type: JavaExec) {
+ *    ...
+ *
+ *    debugOptions {
+ *        enabled = true
+ *        port = 5566
+ *        server = true
+ *        suspend = false
+ *    }
+ * }
+ * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
