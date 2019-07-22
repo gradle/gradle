@@ -29,12 +29,12 @@ import org.gradle.api.tasks.Input;
 public interface JavaDebugOptions {
 
     /**
-     * @return Whether to attach a debug agent to the forked process.
+     * Whether to attach a debug agent to the forked process.
      */
     @Input Property<Boolean> getEnabled();
 
     /**
-     * @return The debug port.
+     * The debug port.
      */
     @Input Property<Integer> getPort();
 
@@ -50,7 +50,7 @@ public interface JavaDebugOptions {
     @Input Property<Boolean> getServer();
 
     /**
-     * @return Whether the forked process should be suspended until the connection to the debugger is established.
+     * Whether the forked process should be suspended until the connection to the debugger is established.
      */
     @Input Property<Boolean> getSuspend();
 }
