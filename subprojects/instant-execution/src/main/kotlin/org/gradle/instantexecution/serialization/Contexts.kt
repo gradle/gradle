@@ -43,6 +43,9 @@ class DefaultWriteContext(
     private
     val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
 
+    private
+    val classes = hashMapOf<Class<*>, Int>()
+
     override fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
 
@@ -52,6 +55,18 @@ class DefaultWriteContext(
     override suspend fun write(value: Any?) {
         encodings.run {
             encode(value)
+        }
+    }
+
+    override fun writeClass(type: Class<*>) {
+        val id = classes[type]
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val newId = classes.size
+            classes[type] = newId
+            writeSmallInt(newId)
+            writeString(type.name)
         }
     }
 
@@ -94,6 +109,9 @@ class DefaultReadContext(
     val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
 
     private
+    val classes = hashMapOf<Int, Class<*>>()
+
+    private
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
@@ -117,6 +135,17 @@ class DefaultReadContext(
 
     override fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader =
         beanPropertyReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
+
+    override fun readClass(): Class<*> {
+        val id = readSmallInt()
+        val type = classes[id]
+        if (type != null) {
+            return type
+        }
+        val newType = Class.forName(readString(), false, classLoader)
+        classes[id] = newType
+        return newType
+    }
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)
