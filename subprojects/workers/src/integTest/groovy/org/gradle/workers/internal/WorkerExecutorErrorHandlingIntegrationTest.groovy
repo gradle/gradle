@@ -28,19 +28,19 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    WorkerExecutorFixture.WorkActionClass executionThatFailsInstantiation
-    WorkerExecutorFixture.WorkActionClass executionThatThrowsUnserializableMemberException
+    WorkerExecutorFixture.WorkActionClass actionThatFailsInstantiation
+    WorkerExecutorFixture.WorkActionClass actionThatThrowsUnserializableMemberException
 
     def setup() {
-        executionThatFailsInstantiation = fixture.getWorkActionThatCreatesFiles("ActionThatFailsInstantiation")
-        executionThatFailsInstantiation.with {
+        actionThatFailsInstantiation = fixture.getWorkActionThatCreatesFiles("ActionThatFailsInstantiation")
+        actionThatFailsInstantiation.with {
             constructorAction = """
                 throw new IllegalArgumentException("You shall not pass!");
             """
         }
 
-        executionThatThrowsUnserializableMemberException = fixture.getWorkActionThatCreatesFiles("ActionThatFails")
-        executionThatThrowsUnserializableMemberException.with {
+        actionThatThrowsUnserializableMemberException = fixture.getWorkActionThatCreatesFiles("ActionThatFails")
+        actionThatThrowsUnserializableMemberException.with {
             extraFields = """
                 private class Bar { }
                     
@@ -210,7 +210,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     @Unroll
     def "produces a sensible error even if the action failure cannot be fully serialized in #isolationMode"() {
         fixture.withWorkActionClassInBuildSrc()
-        def failureExecution = executionThatThrowsUnserializableMemberException.writeToBuildSrc()
+        def failureExecution = actionThatThrowsUnserializableMemberException.writeToBuildSrc()
         def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
 
         buildFile << """
@@ -236,6 +236,30 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         and:
         executedAndNotSkipped(":runAgainInWorker")
         assertWorkerExecuted("runAgainInWorker")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Unroll
+    def "produces a sensible error when the runnable cannot be instantiated in #isolationMode"() {
+        fixture.withWorkActionClassInBuildSrc()
+        def failureExecution = actionThatFailsInstantiation.writeToBuildSrc()
+
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                workActionClass = ${failureExecution.name}.class
+            }
+        """.stripIndent()
+
+        when:
+        fails("runInWorker")
+
+        then:
+        failureHasCause("A failure occurred while executing ${failureExecution.packageName}.${failureExecution.name}")
+        failureHasCause("Could not create an instance of type ${failureExecution.packageName}.${failureExecution.name}.")
+        failureHasCause("You shall not pass!")
 
         where:
         isolationMode << ISOLATION_MODES

@@ -145,6 +145,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public void execute(AdapterWorkParameters parameters) {
                 parameters.setImplementationClassName(actionClass.getName());
                 parameters.setParams(configuration.getParams());
+                parameters.setDisplayName(configuration.getDisplayName());
             }
         };
 
@@ -187,7 +188,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         ActionExecutionSpec spec;
-        String description = getWorkerDisplayName(workerSpec, workActionClass, parameters);
+        String description = getWorkerDisplayName(workActionClass, parameters);
         DaemonForkOptions forkOptions = getDaemonForkOptions(workActionClass, workerSpec, parameters);
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
@@ -219,13 +220,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return execution;
     }
 
-    private static String getWorkerDisplayName(WorkerSpec workerSpec, Class<?> workActionClass, WorkParameters parameters) {
-        if (workerSpec.getDisplayName() != null) {
-            return workerSpec.getDisplayName();
-        }
-
+    private static String getWorkerDisplayName(Class<?> workActionClass, WorkParameters parameters) {
         if (workActionClass == AdapterWorkAction.class) {
-            return ((AdapterWorkParameters) parameters).getImplementationClassName();
+            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
+            if (adapterWorkParameters.getDisplayName() != null) {
+                return adapterWorkParameters.getDisplayName();
+            } else {
+                return adapterWorkParameters.getImplementationClassName();
+            }
         } else {
             return workActionClass.getName();
         }

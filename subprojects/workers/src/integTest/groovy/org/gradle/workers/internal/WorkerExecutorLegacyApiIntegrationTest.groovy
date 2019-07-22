@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -175,6 +176,39 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
          """.stripIndent().trim()
     }
 
+    def "can set a custom display name for work items in #isolationMode"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        given:
+        buildFile << """
+            ${legacyWorkerTypeAndTask}
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                displayName = "Test Work"
+
+                text = "foo"
+                arrayOfThings = ["foo", "bar", "baz"]
+                listOfThings = ["foo", "bar", "baz"]
+            }
+        """
+
+        when:
+        succeeds("runInWorker")
+
+        then:
+        def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
+        operation.displayName == "Test Work"
+        with (operation.details) {
+            className == "TestRunnable"
+            displayName == "Test Work"
+        }
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+
     String getLegacyWorkerTypeAndTask() {
         return """
             import javax.inject.Inject
@@ -205,6 +239,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 ListProperty<String> listOfThings
                 IsolationMode isolationMode = IsolationMode.AUTO
                 Class<?> runnableClass = TestRunnable.class
+                String displayName
                 Closure workerConfiguration
                 
                 @Inject
@@ -217,6 +252,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 void doWork() {
                     workerExecutor.submit(runnableClass) { config ->
                         config.isolationMode = this.isolationMode
+                        config.displayName = this.displayName
                         config.params = [text, arrayOfThings, listOfThings]
                         if (workerConfiguration != null) {
                             workerConfiguration.delegate = config

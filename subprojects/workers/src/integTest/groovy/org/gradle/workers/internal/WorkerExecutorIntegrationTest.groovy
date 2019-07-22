@@ -297,13 +297,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         workerMethod << WORKER_METHODS.values().toUnique()
     }
 
-    def "can set a custom display name for work items in #isolationMode"() {
+    def "uses an inferred display name for work items in #isolationMode"() {
         given:
         fixture.withWorkActionClassInBuildSrc()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                displayName = "Test Work"
             }
         """
 
@@ -312,10 +311,10 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         then:
         def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
-        operation.displayName == "Test Work"
+        operation.displayName == "org.gradle.test.TestWorkAction"
         with (operation.details) {
             className == "org.gradle.test.TestWorkAction"
-            displayName == "Test Work"
+            displayName == "org.gradle.test.TestWorkAction"
         }
 
         where:

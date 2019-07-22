@@ -244,12 +244,8 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("workItem1", ${failingWorkAction.name}.class, $isolationMode1) { config ->
-                        config.displayName = "work item 1"
-                    }
-                    submitWorkItem("workItem2", ${failingWorkAction.name}.class, $isolationMode2) { config ->
-                        config.displayName = "work item 2"
-                    }
+                    submitWorkItem("workItem1", ${failingWorkAction.name}.class, $isolationMode1) 
+                    submitWorkItem("workItem2", ${failingWorkAction.name}.class, $isolationMode2) 
                 }
             }
         """
@@ -262,11 +258,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("Multiple task action failures occurred")
 
         and:
-        failureHasCause("A failure occurred while executing work item 1")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem1")
 
         and:
-        failureHasCause("A failure occurred while executing work item 2")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem2")
 
         where:
@@ -287,9 +283,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 isolationMode = $isolationMode
                 doLast { 
-                    submitWorkItem("workItem1", ${failingWorkAction.name}.class) { config ->
-                        config.displayName = "work item 1"
-                    }
+                    submitWorkItem("workItem1", ${failingWorkAction.name}.class)
                     throw new RuntimeException("Failure from task action")
                 }
             }
@@ -306,7 +300,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("Failure from task action")
 
         and:
-        failureHasCause("A failure occurred while executing work item 1")
+        failureHasCause("A failure occurred while executing ${failingWorkAction.name}")
         failureHasCause("Failure from workItem1")
 
         where:
@@ -327,9 +321,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { 
                     submitWorkItem("workItem1", workActionClass)
 
-                    submitWorkItem("workItem2", ${failingWorkAction.name}.class) { config ->
-                        config.displayName = "work item 2"
-                    }
+                    submitWorkItem("workItem2", ${failingWorkAction.name}.class)
 
                     try {
                         workerExecutor.await()
@@ -348,7 +340,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         and:
-        output.contains("A failure occurred while executing work item 2")
+        output.contains("A failure occurred while executing ${failingWorkAction.name}")
 
         where:
         isolationMode << ISOLATION_MODES

@@ -135,17 +135,13 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     }
 
     void adaptTo(WorkerSpec workerSpec) {
-        workerSpec.setDisplayName(getDisplayName());
-
         if (workerSpec instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderWorkerSpec = (ClassLoaderWorkerSpec) workerSpec;
-            classLoaderWorkerSpec.setDisplayName(getDisplayName());
             classLoaderWorkerSpec.getClasspath().from(getClasspath());
         }
 
         if (workerSpec instanceof ProcessWorkerSpec) {
             ProcessWorkerSpec processWorkerSpec = (ProcessWorkerSpec) workerSpec;
-            processWorkerSpec.setDisplayName(getDisplayName());
             processWorkerSpec.getClasspath().from(getClasspath());
             getForkOptions().copyTo(processWorkerSpec.getForkOptions());
         }

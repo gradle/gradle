@@ -30,7 +30,6 @@ import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkParameters;
-import org.gradle.workers.WorkerSpec;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -57,12 +56,7 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
 
     @TaskAction
     void generatePrefixHeaderFile() {
-        WorkQueue workQueue = workerExecutor.noIsolation(new Action<WorkerSpec>() {
-            @Override
-            public void execute(WorkerSpec config) {
-                config.setDisplayName("Generate prefix header for " + header);
-            }
-        });
+        WorkQueue workQueue = workerExecutor.noIsolation();
 
         workQueue.submit(GeneratePrefixHeaderFile.class, new Action<PrefixHeaderFileParameters>() {
             @Override

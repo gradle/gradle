@@ -17,6 +17,7 @@
 package org.gradle.workers;
 
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Describable;
 
 import java.io.File;
 
@@ -42,7 +43,7 @@ import java.io.File;
  *
  * @since 3.5
  */
-public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerSpec {
+public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerSpec, Describable {
     /**
      * Gets the isolation mode for this worker, see {@link IsolationMode}.
      *
@@ -98,4 +99,10 @@ public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerS
     @Deprecated
     void setForkMode(ForkMode forkMode);
 
+    /**
+     * Sets the name to use when displaying this item of work.
+     *
+     * @param displayName the name of this item of work
+     */
+    void setDisplayName(String displayName);
 }

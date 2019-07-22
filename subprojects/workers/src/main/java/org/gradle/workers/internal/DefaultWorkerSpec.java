@@ -22,7 +22,6 @@ import javax.inject.Inject;
 
 public class DefaultWorkerSpec implements WorkerSpecInternal {
     private final IsolationMode isolationMode;
-    private String displayName;
 
     @Inject
     public DefaultWorkerSpec() {
@@ -36,15 +35,5 @@ public class DefaultWorkerSpec implements WorkerSpecInternal {
     @Override
     public IsolationMode getIsolationMode() {
         return isolationMode;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
     }
 }

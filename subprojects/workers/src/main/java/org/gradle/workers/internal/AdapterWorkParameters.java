@@ -26,6 +26,10 @@ import org.gradle.workers.WorkParameters;
 public interface AdapterWorkParameters extends WorkParameters {
     void setImplementationClassName(String implementationClassName);
     String getImplementationClassName();
+
     void setParams(Object[] params);
     Object[] getParams();
+
+    void setDisplayName(String displayName);
+    String getDisplayName();
 }
