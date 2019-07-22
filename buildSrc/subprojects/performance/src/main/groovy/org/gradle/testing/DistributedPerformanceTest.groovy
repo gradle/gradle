@@ -311,12 +311,21 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private boolean checkResult(String jobId) {
-        Map response = httpGet(path: "builds/id:$jobId", requestContentType: ContentType.JSON)
-        boolean finished = response.state == "finished"
-        if (finished) {
-            collectPerformanceTestResults(response, jobId)
+        try {
+            Map response = httpGet(path: "builds/id:$jobId", requestContentType: ContentType.JSON)
+            boolean finished = response.state == "finished"
+            if (finished) {
+                collectPerformanceTestResults(response, jobId)
+            }
+            finished
+        } catch (HttpResponseException e) {
+            if (e.response.status == 404) {
+                collectErrorResult(jobId, "Get 404 status when fetching build data")
+                return true
+            } else {
+                throw e
+            }
         }
-        finished
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -327,8 +336,12 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             fireTestListener(testSuite, response)
         } catch (e) {
             e.printStackTrace(System.err)
-            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, buildResult: response, testSuite: testSuiteWithFailureText(response.statusText)))
+            collectErrorResult(jobId, response.statusText, response)
         }
+    }
+
+    private void collectErrorResult(String jobId, String failureText, Map response = [:]) {
+        finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, buildResult: response, testSuite: testSuiteWithFailureText(failureText)))
     }
 
     private static JUnitTestSuite testSuiteWithFailureText(String failureText) {
