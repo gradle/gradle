@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -46,8 +47,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
-        super(id, classLoaderCache);
+    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+        super(id, classLoaderCache, listener);
         this.parent = parent;
     }
 
@@ -183,6 +184,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             local = local.plus(classPath);
         }
 
+        listener.localClasspathAdded(id.getName(), classPath);
         return this;
     }
 
@@ -199,6 +201,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             export = export.plus(classPath);
         }
 
+        listener.exportClasspathAdded(id.getName(), classPath);
         return this;
     }
 
@@ -236,7 +239,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     @Override
     public ClassLoaderScope deprecated() {
-        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache, export.plus(local));
+        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache, export.plus(local), listener);
         if (isLocked()) {
             deprecatedScope.lock();
         }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
@@ -26,14 +27,15 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     private ClassLoader deprecatedExportClassloader;
     private ClassLoader deprecatedLocalClassloader;
 
-    public DeprecatedClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassPath deprecatedClasspath) {
-        super(id, parent, classLoaderCache);
+    public DeprecatedClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassPath deprecatedClasspath, ClassLoaderScopeRegistryListener listener) {
+        super(id, parent, classLoaderCache, listener);
         this.deprecatedClasspath = deprecatedClasspath;
     }
 
     @Override
     public ClassLoaderScope export(ClassPath classPath) {
         export = export.plus(classPath);
+        listener.exportClasspathAdded(id.getName(), classPath);
         return this;
     }
 
@@ -64,6 +66,7 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
 
     @Override
     public ClassLoaderScope createChild(String name) {
-        return new DeprecatedClassLoaderScope(id.child(name), this, classLoaderCache, deprecatedClasspath);
+        listener.childScopeCreated(id.getName(), name);
+        return new DeprecatedClassLoaderScope(id.child(name), this, classLoaderCache, deprecatedClasspath, listener);
     }
 }

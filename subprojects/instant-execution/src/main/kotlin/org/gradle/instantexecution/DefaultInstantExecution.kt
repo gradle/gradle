@@ -22,8 +22,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.InstantExecution
-import org.gradle.initialization.RecordingClassLoaderScopeRegistry
-import org.gradle.initialization.RecordingClassLoaderScopeRegistry.RecordedClassLoaderScopeSpec
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateContext
@@ -67,8 +65,9 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
 
 
-class DefaultInstantExecution(
-    private val host: Host
+class DefaultInstantExecution internal constructor(
+    private val host: Host,
+    private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener
 ) : InstantExecution {
 
     interface Host {
@@ -252,7 +251,7 @@ class DefaultInstantExecution(
     }
 
     private
-    fun DefaultWriteContext.writeClassLoaderScopeSpecs(classLoaderScopeSpecs: List<RecordedClassLoaderScopeSpec>) {
+    fun DefaultWriteContext.writeClassLoaderScopeSpecs(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>) {
         writeCollection(classLoaderScopeSpecs) { spec ->
             writeString(spec.id)
             writeClassPath(spec.localClassPath)
@@ -262,14 +261,13 @@ class DefaultInstantExecution(
     }
 
     private
-    fun DefaultReadContext.readClassLoaderScopeSpecs(): List<RecordedClassLoaderScopeSpec> =
+    fun DefaultReadContext.readClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
         readList {
-            RecordedClassLoaderScopeSpec(
-                readString(),
-                readClassPath(),
-                readClassPath(),
-                readClassLoaderScopeSpecs()
-            )
+            ClassLoaderScopeSpec(readString()).apply {
+                localClassPath = readClassPath()
+                exportClassPath = readClassPath()
+                children.addAll(readClassLoaderScopeSpecs())
+            }
         }
 
     private
@@ -302,7 +300,7 @@ class DefaultInstantExecution(
         host.service<T>()
 
     private
-    fun classLoaderFor(classLoaderScopeSpecs: List<RecordedClassLoaderScopeSpec>): ClassLoader =
+    fun classLoaderFor(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>): ClassLoader =
         service<ClassLoaderScopeRegistry>().let { scopeRegistry ->
 
             val scopes = mutableListOf<ClassLoaderScope>()
@@ -321,11 +319,8 @@ class DefaultInstantExecution(
         }
 
     private
-    fun collectClassLoaderScopeSpecs(): List<RecordedClassLoaderScopeSpec> =
-        service<ClassLoaderScopeRegistry>().let { scopeRegistry ->
-            scopeRegistry as RecordingClassLoaderScopeRegistry
-            scopeRegistry.coreAndPluginsChildrenSpec
-        }
+    fun collectClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
+        scopeRegistryListener.coreAndPluginsSpec.children
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {

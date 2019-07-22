@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.initialization;
 
-import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.classpath.ClassPath;
 
 
-class InstantExecutionServices : AbstractPluginServiceRegistry() {
+public interface ClassLoaderScopeRegistryListener {
 
-    override fun registerBuildServices(registration: ServiceRegistration) {
-        registration.add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
-    }
+    void rootScopeCreated(String scopeId);
 
-    override fun registerGradleServices(registration: ServiceRegistration) {
-        registration.add(InstantExecutionHost::class.java)
-        registration.add(DefaultInstantExecution::class.java)
-    }
+    void childScopeCreated(String parentId, String childId);
+
+    void localClasspathAdded(String scopeId, ClassPath localClassPath);
+
+    void exportClasspathAdded(String scopeId, ClassPath exportClassPath);
 }

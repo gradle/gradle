@@ -22,12 +22,17 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 
 public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
 
+    public static final String CORE_NAME = "core";
+    public static final String CORE_AND_PLUGINS_NAME = "coreAndPlugins";
+
     private final ClassLoaderScope coreAndPluginsScope;
     private final ClassLoaderScope coreScope;
 
-    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache) {
-        this.coreScope = new RootClassLoaderScope(loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache);
-        this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache);
+    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+        this.coreScope = new RootClassLoaderScope(CORE_NAME, loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache, listener);
+        this.coreAndPluginsScope = new RootClassLoaderScope(CORE_AND_PLUGINS_NAME, loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache, listener);
+        listener.rootScopeCreated(CORE_NAME);
+        listener.rootScopeCreated(CORE_AND_PLUGINS_NAME);
     }
 
     @Override

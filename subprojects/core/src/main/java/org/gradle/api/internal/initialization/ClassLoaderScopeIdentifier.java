@@ -36,6 +36,10 @@ class ClassLoaderScopeIdentifier {
         return new ClassLoaderScopeIdentifier(this, name);
     }
 
+    String getName() {
+        return name;
+    }
+
     ClassLoaderId localId() {
         return new Id(this, false);
     }
