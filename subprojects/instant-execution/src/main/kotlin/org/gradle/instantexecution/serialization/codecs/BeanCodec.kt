@@ -22,9 +22,7 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.withPropertyTrace
-import org.gradle.instantexecution.serialization.writeClass
 
 
 internal

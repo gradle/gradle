@@ -94,6 +94,7 @@ class Codecs(
         bind(ClassCodec)
         bind(MethodCodec)
 
+        // Only serialize certain List implementations
         bind(arrayListCodec)
         bind(linkedListCodec)
 

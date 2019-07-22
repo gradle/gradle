@@ -46,6 +46,8 @@ interface WriteContext : IsolateContext, Encoder {
     fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter
 
     suspend fun write(value: Any?)
+
+    fun writeClass(type: Class<*>)
 }
 
 
@@ -63,6 +65,8 @@ interface ReadContext : IsolateContext, Decoder {
     fun getProject(path: String): ProjectInternal
 
     suspend fun read(): Any?
+
+    fun readClass(): Class<*>
 }
 
 

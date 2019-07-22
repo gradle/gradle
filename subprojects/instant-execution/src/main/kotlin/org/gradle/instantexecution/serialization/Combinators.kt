@@ -168,17 +168,6 @@ data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
 
 
 internal
-fun WriteContext.writeClass(value: Class<*>) {
-    writeString(value.name)
-}
-
-
-internal
-fun ReadContext.readClass(): Class<*> =
-    Class.forName(readString(), false, classLoader)
-
-
-internal
 fun WriteContext.writeClassArray(values: Array<Class<*>>) {
     writeArray(values) { writeClass(it) }
 }
