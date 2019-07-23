@@ -42,7 +42,8 @@ class BuildOperationListenersCodec {
 
         private
         val classNameWhitelist = setOf(
-            "org.gradle.trace.buildops.BuildOperationTrace${'$'}RecordingListener"
+            "org.gradle.trace.buildops.BuildOperationTrace${'$'}RecordingListener",
+            "org.gradle.trace.buildops.BuildOperationTrace${'$'}TimeToFirstTaskRecordingListener"
         )
     }
 
