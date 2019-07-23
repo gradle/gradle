@@ -626,6 +626,32 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         DefaultConfigurationContainer.name | ConfigurationContainer.name | "project.configurations"
     }
 
+    def "restores task abstract properties"() {
+        buildFile << """
+
+            abstract class SomeTask extends DefaultTask {
+
+                abstract Property<String> getValue()
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = "42"
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = 42")
+    }
+
     def "task can reference itself"() {
         buildFile << """
             class SomeBean {
