@@ -108,7 +108,7 @@ abstract class KotlinSettingsScript(
      * Configures the plugin dependencies for the project's settings.
      *
      * @see [PluginDependenciesSpec]
-     * @since 5.6
+     * @since 5.7
      */
     @Incubating
     @Suppress("unused")
@@ -437,7 +437,7 @@ abstract class SettingsScriptApi(
      * Configures the plugin management for the entire build.
      *
      * @see [Settings.getPluginManagement]
-     * @since 5.6
+     * @since 5.7
      */
     @Incubating
     @Suppress("unused")
