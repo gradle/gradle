@@ -19,8 +19,10 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
@@ -92,6 +94,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
+    @IgnoreIf({ OperatingSystem.current().isWindows() })
     def "Can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
         setup:
         sampleProject"""    

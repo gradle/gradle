@@ -64,14 +64,14 @@ class JDWPUtil implements TestRule {
 
     def connect() {
         if (vm == null) {
-        def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
-        def connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
-        def connectionArgs = connection.defaultArguments()
-        connectionArgs.get("port").setValue(port as String)
-        connectionArgs.get("hostname").setValue(host)
-        this.vm = connection.attach(connectionArgs)
-    }
-    vm
+            def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
+            def connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
+            def connectionArgs = connection.defaultArguments()
+            connectionArgs.get("port").setValue(port as String)
+            connectionArgs.get("hostname").setValue(host)
+            this.vm = connection.attach(connectionArgs)
+        }
+        vm
 }
 
     def listen() {
