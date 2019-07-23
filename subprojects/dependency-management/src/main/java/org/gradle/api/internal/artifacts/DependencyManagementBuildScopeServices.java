@@ -246,7 +246,7 @@ class DependencyManagementBuildScopeServices {
 
     TextResourceLoader createTextResourceLoaderProvider(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
         final HashSet<String> schemas = Sets.newHashSet("https", "http");
-        RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.<Authentication>emptyList(), true);
+        RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.<Authentication>emptyList(), false);
         ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
         return new CachingTextResourceLoader(externalResourceAccessor, schemas, new DefaultTextResourceLoader());
     }
