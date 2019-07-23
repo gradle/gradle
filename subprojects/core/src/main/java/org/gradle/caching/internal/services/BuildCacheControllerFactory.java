@@ -29,6 +29,8 @@ import org.gradle.caching.internal.controller.DefaultBuildCacheController;
 import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
+import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -77,7 +79,7 @@ public final class BuildCacheControllerFactory {
                     return NoOpBuildCacheController.INSTANCE;
                 }
 
-                BuildCache local = buildCacheConfiguration.getLocal();
+                DirectoryBuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
                 boolean localEnabled = local.isEnabled();
@@ -88,11 +90,11 @@ public final class BuildCacheControllerFactory {
                     LOGGER.warn("Remote build cache is disabled when running with --offline.");
                 }
 
-                DescribedBuildCacheService localDescribedService = localEnabled
+                DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> localDescribedService = localEnabled
                     ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instantiator)
                     : null;
 
-                DescribedBuildCacheService remoteDescribedService = remoteEnabled
+                DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService = remoteEnabled
                     ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instantiator)
                     : null;
 
@@ -109,8 +111,8 @@ public final class BuildCacheControllerFactory {
                     return NoOpBuildCacheController.INSTANCE;
                 } else {
                     BuildCacheServicesConfiguration config = toConfiguration(
-                        local, localDescribedService == null ? null : localDescribedService.service,
-                        remote, remoteDescribedService == null ? null : remoteDescribedService.service
+                        localDescribedService,
+                        remoteDescribedService
                     );
 
                     return new DefaultBuildCacheController(
@@ -132,28 +134,36 @@ public final class BuildCacheControllerFactory {
     }
 
     private static BuildCacheServicesConfiguration toConfiguration(
-        BuildCache local, @Nullable BuildCacheService localService,
-        @Nullable BuildCache remote, @Nullable BuildCacheService remoteService
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
+        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
     ) {
-        boolean remotePush = remote != null && remote.isPush();
-        boolean localPush = local.isPush();
-        return new BuildCacheServicesConfiguration(localService, localPush, remoteService, remotePush);
+        boolean localPush = local != null && local.config.isPush();
+        boolean remotePush = remote != null && remote.config.isPush();
+        return new BuildCacheServicesConfiguration(
+            local != null ? local.service : null, localPush,
+            remote != null ? remote.service : null, remotePush);
     }
 
-    private static <T extends BuildCache> DescribedBuildCacheService createBuildCacheService(final T configuration, BuildCacheServiceRole role, Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, Instantiator instantiator) {
-        Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
+    private static <C extends BuildCache, S> DescribedBuildCacheService<C, S> createBuildCacheService(
+        C configuration,
+        BuildCacheServiceRole role,
+        Path buildIdentityPath,
+        BuildCacheConfigurationInternal buildCacheConfiguration,
+        Instantiator instantiator
+    ) {
+        Class<? extends BuildCacheServiceFactory<C>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
 
-        BuildCacheServiceFactory<T> factory = instantiator.newInstance(castFactoryType);
+        BuildCacheServiceFactory<C> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
-        BuildCacheService service = factory.createBuildCacheService(configuration, describer);
+        S service = Cast.uncheckedNonnullCast(factory.createBuildCacheService(configuration, describer));
         ImmutableSortedMap<String, String> config = ImmutableSortedMap.copyOf(describer.configParams);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, config);
 
         logConfig(buildIdentityPath, role, description);
 
-        return new DescribedBuildCacheService(service, description);
+        return new DescribedBuildCacheService<>(configuration, service, description);
     }
 
     private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
@@ -252,12 +262,13 @@ public final class BuildCacheControllerFactory {
         }
     }
 
-    private static class DescribedBuildCacheService {
-
-        private final BuildCacheService service;
+    private static class DescribedBuildCacheService<C, S> {
+        private final C config;
+        private final S service;
         private final BuildCacheDescription description;
 
-        private DescribedBuildCacheService(BuildCacheService service, BuildCacheDescription description) {
+        public DescribedBuildCacheService(C config, S service, BuildCacheDescription description) {
+            this.config = config;
             this.service = service;
             this.description = description;
         }

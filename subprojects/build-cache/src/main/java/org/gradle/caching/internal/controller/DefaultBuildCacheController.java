@@ -27,7 +27,6 @@ import org.gradle.caching.internal.controller.operations.PackOperationDetails;
 import org.gradle.caching.internal.controller.operations.PackOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
 import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
-import org.gradle.caching.internal.controller.service.BaseBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
@@ -58,9 +57,6 @@ import java.util.Optional;
 public class DefaultBuildCacheController implements BuildCacheController {
 
     @VisibleForTesting
-    final BuildCacheServiceHandle legacyLocal;
-
-    @VisibleForTesting
     final BuildCacheServiceHandle remote;
 
     @VisibleForTesting
@@ -81,19 +77,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.emitDebugLogging = emitDebugLogging;
-
-        if (config.local instanceof LocalBuildCacheService) {
-            LocalBuildCacheService castLocal = (LocalBuildCacheService) config.local;
-            this.local = toHandle(castLocal, config.localPush);
-            this.tmp = castLocal;
-            this.legacyLocal = NullBuildCacheServiceHandle.INSTANCE;
-        } else {
-            this.local = NullLocalBuildCacheServiceHandle.INSTANCE;
-            this.legacyLocal = toHandle(config.local, config.localPush, BuildCacheServiceRole.LOCAL, buildOperationExecutor, logStackTraces);
-            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"));
-        }
-
-        this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
+        this.local = toLocalHandle(config.local, config.localPush);
+        this.remote = toRemoteHandle(config.remote, config.remotePush, buildOperationExecutor, logStackTraces);
+        this.tmp = toTempFileStore(config.local, gradleUserHomeDir);
     }
 
     @Override
@@ -122,26 +108,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
             }
         }
 
-        if (legacyLocal.canLoad() || remote.canLoad()) {
+        if (remote.canLoad()) {
             tmp.withTempFile(command.getKey(), file -> {
                 LoadTarget loadTarget = new LoadTarget(file);
-                BuildCacheServiceRole loadedRole = null;
-                if (legacyLocal.canLoad()) {
-                    loadedRole = BuildCacheServiceRole.LOCAL;
-                    legacyLocal.load(command.getKey(), loadTarget);
-                }
-
-                if (remote.canLoad() && !loadTarget.isLoaded()) {
-                    loadedRole = BuildCacheServiceRole.REMOTE;
-                    remote.load(command.getKey(), loadTarget);
-                }
+                remote.load(command.getKey(), loadTarget);
 
                 if (loadTarget.isLoaded()) {
                     try {
                         unpack.execute(file);
                     } catch (Exception e) {
-                        @SuppressWarnings("ConstantConditions") String roleDisplayName = loadedRole.getDisplayName();
-                        throw new GradleException("Build cache entry " + command.getKey().getHashCode() + " from " + roleDisplayName + " build cache is invalid", e);
+                        throw new GradleException("Build cache entry " + command.getKey().getHashCode() + " from remote build cache is invalid", e);
                     }
                     if (local.canStore()) {
                         local.store(command.getKey(), file);
@@ -193,21 +169,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(final BuildCacheStoreCommand command) {
-        boolean anyStore = local.canStore() || legacyLocal.canStore() || remote.canStore();
-        if (!anyStore) {
+    public void store(BuildCacheStoreCommand command) {
+        if (!local.canStore() && !remote.canStore()) {
             return;
         }
 
-        final BuildCacheKey key = command.getKey();
-        final Pack pack = new Pack(command);
+        BuildCacheKey key = command.getKey();
+        Pack pack = new Pack(command);
 
         tmp.withTempFile(command.getKey(), file -> {
             pack.execute(file);
-
-            if (legacyLocal.canStore()) {
-                legacyLocal.store(key, new StoreTarget(file));
-            }
 
             if (remote.canStore()) {
                 remote.store(key, new StoreTarget(file));
@@ -258,29 +229,27 @@ public class DefaultBuildCacheController implements BuildCacheController {
         if (!closed) {
             closed = true;
             Closer closer = Closer.create();
-            closer.register(legacyLocal);
             closer.register(local);
             closer.register(remote);
             closer.close();
         }
     }
 
-    private static BuildCacheServiceHandle toHandle(@Nullable BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
+    private static BuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
         return service == null
             ? NullBuildCacheServiceHandle.INSTANCE
-            : toNonNullHandle(service, push, role, buildOperationExecutor, logStackTraces);
+            : new OpFiringBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
     }
 
-    private static BuildCacheServiceHandle toNonNullHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
-        if (role == BuildCacheServiceRole.LOCAL) {
-            return new BaseBuildCacheServiceHandle(service, push, role, logStackTraces);
-        } else {
-            return new OpFiringBuildCacheServiceHandle(service, push, role, buildOperationExecutor, logStackTraces);
-        }
+    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush) {
+        return local == null
+            ? NullLocalBuildCacheServiceHandle.INSTANCE
+            : new DefaultLocalBuildCacheServiceHandle(local, localPush);
     }
 
-    private static LocalBuildCacheServiceHandle toHandle(LocalBuildCacheService local, boolean localPush) {
-        return new DefaultLocalBuildCacheServiceHandle(local, localPush);
+    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, File gradleUserHomeDir) {
+        return local != null
+            ? local
+            : new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"));
     }
-
 }

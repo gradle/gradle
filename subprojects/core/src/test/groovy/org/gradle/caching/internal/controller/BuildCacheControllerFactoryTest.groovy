@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.services
+package org.gradle.caching.internal.controller
 
 import org.gradle.api.Action
 import org.gradle.caching.BuildCacheEntryReader
@@ -27,9 +27,7 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
-import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.DefaultBuildCacheController
-import org.gradle.caching.internal.controller.NoOpBuildCacheController
+import org.gradle.caching.internal.services.BuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -83,7 +81,6 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.legacyLocal.service == null
         c.remote.service == null
         c.local.service != null
 
@@ -119,7 +116,6 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.legacyLocal.service == null
         c.local.service == null
         c.remote.service instanceof TestRemoteBuildCacheService
         with(buildOpResult()) {
@@ -136,7 +132,6 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.legacyLocal.service == null
         c.local.service != null
         c.remote.service != null
         with(buildOpResult()) {
@@ -169,28 +164,13 @@ class BuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def "legacy local is used if local is not a local build cache service"() {
-        when:
-        config.local(TestOtherRemoteBuildCache)
-        def c = createController()
-
-        then:
-        c.legacyLocal.service instanceof TestRemoteBuildCacheService
-        c.local.service == null
-        c.remote.service == null
-        with(buildOpResult()) {
-            local.type == "other-remote"
-            remote == null
-        }
-    }
-
     static class TestRemoteBuildCache extends AbstractBuildCache {
         String value
     }
 
     static class TestRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestRemoteBuildCache> {
         @Override
-        BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
+        BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, Describer describer) {
             def chain = describer.type("remote")
             if (configuration.value != null) {
                 chain.config("value", configuration.value)
@@ -205,7 +185,7 @@ class BuildCacheControllerFactoryTest extends Specification {
 
     static class TestOtherRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestOtherRemoteBuildCache> {
         @Override
-        BuildCacheService createBuildCacheService(TestOtherRemoteBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
+        BuildCacheService createBuildCacheService(TestOtherRemoteBuildCache configuration, Describer describer) {
             def chain = describer.type("other-remote")
             if (configuration.value != null) {
                 chain.config("value", configuration.value)
@@ -234,7 +214,7 @@ class BuildCacheControllerFactoryTest extends Specification {
 
     static class TestDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
         @Override
-        BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
+        BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
             def chain = describer.type("directory")
             if (configuration.directory != null) {
                 chain.config("location", configuration.directory.toString())
