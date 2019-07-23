@@ -115,6 +115,62 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    def "transform can receive a file input from a nested bean on the parameter object"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        buildFile << """
+            allprojects {
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
+                }
+            }
+        """
+        setupBuildWithColorTransform {
+            params("""
+                nestedBean.inputFiles.from(tasks.tool)
+            """)
+        }
+        buildFile << """
+            interface NestedInputFiles {
+                @InputFiles
+                ConfigurableFileCollection getInputFiles()
+            }
+
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    @Nested
+                    NestedInputFiles getNestedBean()
+                }
+            
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                void transform(TransformOutputs outputs) {
+                    def inputFiles = parameters.nestedBean.inputFiles
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} using \${inputFiles*.name}"
+                    def output = outputs.file(input.name + ".green")
+                    def paramContent = inputFiles.collect { it.file ? it.text : it.list().length }.join("")
+                    output.text = input.text + paramContent + ".green"
+                }
+            }
+        """
+
+        when:
+        run(":a:resolve")
+
+        then:
+        outputContains("processing b.jar using [tool-a.jar]")
+        outputContains("result = [b.jar.green]")
+    }
+
     def "transform can receive a file collection containing task outputs as parameter"() {
         settingsFile << """
                 include 'a', 'b', 'c'

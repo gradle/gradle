@@ -115,6 +115,14 @@ New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallo
 
 New methods `Provider.orElse(T)` and `Provider.orElse(Provider<T>)` has been added. These allow you to perform an 'or' operation on a provider and some other value.
 
+### Managed nested properties
+
+A custom type, such as a task type, plugin or project extension can be implemented as an abstract class or, in the case of project extensions and other data types, an interface.
+Under some conditions, Gradle can provide an implementation for abstract properties.
+
+Now, if the custom type has an abstract getter annotated with `@Nested`, Gradle will provide an implementation for the getter method and also create a value for the property.
+See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_properties) for more information.
+
 ### Worker API improvements
 
 TBD
