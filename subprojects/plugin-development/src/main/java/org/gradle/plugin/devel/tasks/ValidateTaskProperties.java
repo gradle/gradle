@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -66,6 +65,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Validates task property annotations.
@@ -107,7 +107,6 @@ import java.util.Map;
  * @since 3.0
  */
 @CacheableTask
-@SuppressWarnings("deprecation")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask, org.gradle.plugin.devel.tasks.internal.ValidateTaskPropertiesBackwardsCompatibleAdapter {
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
@@ -165,18 +164,12 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                     Class<?> clazz;
                     try {
                         clazz = classLoader.loadClass(className);
-                    } catch (IllegalAccessError e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    } catch (ClassNotFoundException e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    } catch (NoClassDefFoundError e) {
+                    } catch (IllegalAccessError | NoClassDefFoundError | ClassNotFoundException e) {
                         throw new GradleException("Could not load class: " + className, e);
                     }
                     try {
                         validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {
+                    } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -234,13 +227,9 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
-        return Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public InvalidUserDataException apply(String problemMessage) {
-                return new InvalidUserDataException(problemMessage);
-            }
-        });
+        return problemMessages.stream()
+            .map(InvalidUserDataException::new)
+            .collect(Collectors.toList());
     }
 
     /**
