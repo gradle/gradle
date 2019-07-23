@@ -144,7 +144,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
     def 'push to the local cache by default'() {
         settingsFile.text = """
             buildCache {        
-                local(DirectoryBuildCache) {
+                local {
                     directory = '${localCache.cacheDir.toURI()}'                    
                 }
                 remote(DirectoryBuildCache) {
