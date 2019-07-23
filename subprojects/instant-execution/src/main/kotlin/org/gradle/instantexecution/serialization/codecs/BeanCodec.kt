@@ -37,8 +37,8 @@ class BeanCodec : Codec<Any> {
             val beanType = GeneratedSubclasses.unpackType(value)
             writeClass(beanType)
             withBeanTrace(beanType) {
-                beanPropertyWriterFor(beanType).run {
-                    writeFieldsOf(value)
+                beanStateWriterFor(beanType).run {
+                    writeStateOf(value)
                 }
             }
         }
@@ -52,10 +52,10 @@ class BeanCodec : Codec<Any> {
         }
         val beanType = readClass()
         return withBeanTrace(beanType) {
-            beanPropertyReaderFor(beanType).run {
+            beanStateReaderFor(beanType).run {
                 val bean = newBean()
                 isolate.identities.putInstance(id, bean)
-                readFieldsOf(bean)
+                readStateOf(bean)
                 bean
             }
         }

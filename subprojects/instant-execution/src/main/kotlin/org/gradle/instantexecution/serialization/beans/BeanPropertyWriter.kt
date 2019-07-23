@@ -36,7 +36,7 @@ import java.util.function.Supplier
 
 class BeanPropertyWriter(
     beanType: Class<*>
-) {
+) : BeanStateWriter {
 
     private
     val relevantFields = relevantStateOf(beanType).toList()
@@ -44,7 +44,7 @@ class BeanPropertyWriter(
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
-    suspend fun WriteContext.writeFieldsOf(bean: Any) {
+    override suspend fun WriteContext.writeStateOf(bean: Any) {
         writingProperties {
             for (field in relevantFields) {
                 val fieldName = field.name

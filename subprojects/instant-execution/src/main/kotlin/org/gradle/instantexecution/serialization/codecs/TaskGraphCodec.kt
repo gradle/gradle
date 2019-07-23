@@ -101,9 +101,9 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
         writeStrings(dependencies.map { it.path })
 
         withTaskOf(taskType, task) {
-            beanPropertyWriterFor(taskType).run {
-                writeFieldsOf(task)
-                writeRegisteredPropertiesOf(task, this)
+            beanStateWriterFor(taskType).run {
+                writeStateOf(task)
+                writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
             }
         }
     }
@@ -118,8 +118,8 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
         val task = createTask(projectPath, taskName, taskType)
 
         withTaskOf(taskType, task) {
-            beanPropertyReaderFor(taskType).run {
-                readFieldsOf(task)
+            beanStateReaderFor(taskType).run {
+                readStateOf(task)
                 readRegisteredPropertiesOf(task)
             }
         }
