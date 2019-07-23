@@ -107,7 +107,7 @@ In addition, the property must have one of the following types:
 
 To declare a read-only managed nested property, add an abstract getter method for the property to the type annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 The property should not have any setter methods.
-This pattern is useful the if current type has a nested complex type which has the same lifecycle.
+This pattern is useful if the current type has a nested complex type which has the same lifecycle.
 If the lifecycle is different, consider using `Property<NestedType>` instead.
 
 Here is an example of a task type with a `hostAndPath` property:
