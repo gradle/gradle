@@ -57,8 +57,14 @@ tasks {
         includeEmptyDirs = false
     }
 
-    processResources {
-        from(compileKotlin2Js.map { it.outputFile })
+    val assembleReport by registering(Copy::class) {
+        from(processResources)
         from(unpackKotlinJsStdlib)
+        from(compileKotlin2Js.map { it.outputFile })
+        into("$buildDir/report")
+    }
+
+    assemble {
+        dependsOn(assembleReport)
     }
 }
