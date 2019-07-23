@@ -300,6 +300,41 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         failure.assertHasCause("Cannot create 'tasks.foo' using creation rule 'MyPlugin#addTask(ModelMap<Task>) > create(foo)' as the rule 'Project.<init>.tasks.foo()' is already registered to create this model element.")
     }
 
+    def "registering creation rules to create a task using legacy container DSL that is already defined using container DSL"() {
+        when:
+        buildFile << """
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void addTaskInContainer(TaskContainer tasks) {
+                    println("create task in container")
+                    tasks.create("foo") {
+                        doLast {
+                            println("created on TaskContainer")
+                        }
+                    }
+                }
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks) {
+                    println("create task in model map")
+                    tasks.create("foo") {
+                        doLast {
+                            println("created on ModelMap")
+                        }
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+        """
+
+        then:
+        fails "foo"
+
+        and:
+        failure.assertHasCause("Cannot add task 'foo' as a task with that name already exists.")
+    }
+
     def "a non-rule-source task can depend on a rule-source task"() {
         given:
         buildFile << """
