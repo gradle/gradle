@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestPrecondition
+import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
 
@@ -32,7 +33,6 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
 
     WorkerExecutorFixture.WorkActionClass workActionThatPrintsWorkingDirectory
-    WorkerExecutorFixture.WorkActionClass workActionThatVerifiesOptions
 
     def setup() {
         workActionThatPrintsWorkingDirectory = fixture.getWorkActionThatCreatesFiles("WorkingDirAction")
@@ -47,31 +47,6 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             """
             action += """
                 println "Execution working dir: " + System.getProperty("user.dir")
-            """
-        }
-
-        workActionThatVerifiesOptions = fixture.getWorkActionThatCreatesFiles("OptionVerifyingWorkAction")
-        workActionThatVerifiesOptions.with {
-            imports += [
-                    "java.util.regex.Pattern",
-                    "java.lang.management.ManagementFactory",
-                    "java.lang.management.RuntimeMXBean"
-            ]
-            action += """
-                RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-                List<String> arguments = runtimeMxBean.getInputArguments();
-                assert arguments.contains("-Dfoo=bar");
-                assert arguments.contains("-Dbar=baz");
-                assert arguments.contains("-Xmx128m");
-                assert arguments.contains("-Xms128m");
-                assert arguments.contains("-Dfile.encoding=UTF-8");
-                assert arguments.contains("-ea");
-    
-                if (${isOracleJDK}) {
-                    assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("/foo");
-                }
-    
-                assert System.getenv("foo").equals("bar")
             """
         }
     }
@@ -125,9 +100,24 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
     }
 
     def "interesting worker daemon fork options are honored"() {
+        OptionsVerifier optionsVerifier = new OptionsVerifier(file('process.json'))
+        optionsVerifier.with {
+            minHeap("128m")
+            maxHeap("128m")
+            systemProperty("foo", "bar")
+            jvmArgs("-Dbar=baz")
+            defaultCharacterEncoding("UTF-8")
+            enableAssertions()
+            environmentVariable("foo", "bar")
+            if (isOracleJDK) {
+                bootstrapClasspath(normaliseFileSeparators(systemSpecificAbsolutePath('foo')))
+            }
+        }
+
         fixture.withWorkActionClassInBuildSrc()
-        workActionThatVerifiesOptions.writeToBuildFile()
+        def workActionThatVerifiesOptions = getWorkActionThatVerifiesOptions(optionsVerifier).writeToBuildFile()
         outputFileDir.createDir()
+
         buildFile << """
             import org.gradle.internal.jvm.Jvm
 
@@ -136,17 +126,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                 workActionClass = ${workActionThatVerifiesOptions.name}.class
                 additionalForkOptions = { options ->
                     options.with {
-                        minHeapSize = "128m"
-                        maxHeapSize = "128m"
-                        systemProperty("foo", "bar")
-                        jvmArgs("-Dbar=baz")
-                        if (${isOracleJDK}) {
-                            bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
-                            bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath(testDirectory.file("foo").absolutePath))}"))
-                        }
-                        defaultCharacterEncoding = "UTF-8"
-                        enableAssertions = true
-                        environment "foo", "bar"
+                        ${optionsVerifier.toDsl()}
                     }
                 }
             }
@@ -156,6 +136,9 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         succeeds("runInDaemon")
 
         then:
+        optionsVerifier.verifyAllOptions()
+
+        and:
         assertWorkerExecuted("runInDaemon")
     }
 
@@ -193,5 +176,20 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             assert new File('${normaliseFileSeparators(differentJvm.jre.homeDir.absolutePath)}').canonicalPath.equals(new File(System.getProperty("java.home")).canonicalPath);
         """
         return workerClass
+    }
+
+    WorkerExecutorFixture.WorkActionClass getWorkActionThatVerifiesOptions(OptionsVerifier optionsVerifier) {
+        def workActionThatVerifiesOptions = fixture.getWorkActionThatCreatesFiles("OptionVerifyingWorkAction")
+        workActionThatVerifiesOptions.with {
+            imports += [
+                    "java.util.regex.Pattern",
+                    "java.lang.management.ManagementFactory",
+                    "java.lang.management.RuntimeMXBean"
+            ]
+            action += """
+                ${optionsVerifier.dumpProcessEnvironment(isOracleJDK)}
+            """
+        }
+        return workActionThatVerifiesOptions
     }
 }

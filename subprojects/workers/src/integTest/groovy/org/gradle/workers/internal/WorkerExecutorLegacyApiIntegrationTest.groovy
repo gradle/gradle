@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestPrecondition
+import org.gradle.workers.fixtures.OptionsVerifier
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
@@ -132,11 +133,25 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "interesting worker daemon fork options are honored"() {
+        OptionsVerifier optionsVerifier = new OptionsVerifier(file('process.json'))
+        optionsVerifier.with {
+            minHeap("128m")
+            maxHeap("128m")
+            systemProperty("foo", "bar")
+            jvmArgs("-Dbar=baz")
+            defaultCharacterEncoding("UTF-8")
+            enableAssertions()
+            environmentVariable("foo", "bar")
+            if (isOracleJDK) {
+                bootstrapClasspath(normaliseFileSeparators(systemSpecificAbsolutePath('foo')))
+            }
+        }
+
         buildFile << """
             import org.gradle.internal.jvm.Jvm
 
             ${legacyWorkerTypeAndTask}
-            ${optionVerifyingRunnable}
+            ${getOptionVerifyingRunnable(optionsVerifier)}
 
             task runInDaemon(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
@@ -144,17 +159,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 workerConfiguration = {
                     forkOptions { options ->
                         options.with {
-                            minHeapSize = "128m"
-                            maxHeapSize = "128m"
-                            systemProperty("foo", "bar")
-                            jvmArgs("-Dbar=baz")
-                            if (${isOracleJDK}) {
-                                bootstrapClasspath = fileTree(new File(Jvm.current().jre.homeDir, "lib")).include("*.jar")
-                                bootstrapClasspath(new File("${normaliseFileSeparators(systemSpecificAbsolutePath('foo'))}"))
-                            }
-                            defaultCharacterEncoding = "UTF-8"
-                            enableAssertions = true
-                            environment "foo", "bar"
+                            ${optionsVerifier.toDsl()}
                         }
                     }
                 }
@@ -169,6 +174,9 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runInDaemon")
 
         then:
+        optionsVerifier.verifyAllOptions()
+
+        and:
         result.groupedOutput.task(":runInDaemon").output.contains """
             text = foo
             array = [foo, bar, baz]
@@ -276,7 +284,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    String getOptionVerifyingRunnable() {
+    String getOptionVerifyingRunnable(OptionsVerifier optionsVerifier) {
         return """
             import java.util.regex.Pattern;
             import java.util.List;
@@ -291,24 +299,13 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 public void run() {
-                    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-                    List<String> arguments = runtimeMxBean.getInputArguments();
-                    assert arguments.contains("-Dfoo=bar");
-                    assert arguments.contains("-Dbar=baz");
-                    assert arguments.contains("-Xmx128m");
-                    assert arguments.contains("-Xms128m");
-                    assert arguments.contains("-Dfile.encoding=UTF-8");
-                    assert arguments.contains("-ea");
-
-                    if (${isOracleJDK}) {
-                        assert runtimeMxBean.getBootClassPath().replaceAll(Pattern.quote(File.separator),'/').endsWith("/foo");
-                    }
-
-                    assert System.getenv("foo").equals("bar")
+                    ${optionsVerifier.dumpProcessEnvironment(isOracleJDK)}
 
                     super.run();
                 }
             }
         """
     }
+
+
 }
