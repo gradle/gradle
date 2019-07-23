@@ -58,6 +58,10 @@ import java.nio.file.Files
 import java.util.ArrayList
 import java.util.SortedSet
 
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
+
 
 class DefaultInstantExecution(
     private val host: Host
@@ -107,29 +111,22 @@ class DefaultInstantExecution(
         }
 
         buildOperationExecutor.withStoreOperation {
-            try {
+
+            val report = instantExecutionReport()
+            val instantExecutionException = report.withExceptionHandling {
                 KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
-                    writeContextFor(encoder).run {
-
-                        val build = host.currentBuild
-                        writeString(build.rootProject.name)
-
-                        writeClassPath(collectClassPath())
-
-                        writeGradleState(build.rootProject.gradle)
-
-                        val scheduledTasks = build.scheduledTasks
-                        writeRelevantProjectsFor(scheduledTasks)
-
-                        TaskGraphCodec(service()).run {
-                            writeTaskGraphOf(build, scheduledTasks)
+                    writeContextFor(encoder, report).run {
+                        runToCompletion {
+                            encodeTaskGraph()
                         }
                     }
                 }
-            } catch (e: Throwable) {
-                // Discard the state file on failure
-                instantExecutionStateFile.delete()
-                throw e
+            }
+
+            // Discard the state file on errors
+            if (instantExecutionException != null) {
+                discardInstantExecutionState()
+                throw instantExecutionException
             }
         }
     }
@@ -141,37 +138,76 @@ class DefaultInstantExecution(
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
                 readContextFor(decoder).run {
-
-                    val rootProjectName = readString()
-                    val build = host.createBuild(rootProjectName)
-
-                    val classPath = readClassPath()
-                    val classLoader = classLoaderFor(classPath)
-                    initClassLoader(classLoader)
-
-                    readGradleState(build.gradle)
-
-                    readRelevantProjects(build)
-
-                    build.autoApplyPlugins()
-                    build.registerProjects()
-
-                    initProjectProvider(build::getProject)
-
-                    val scheduledTasks = TaskGraphCodec(service()).run {
-                        readTaskGraph()
+                    runToCompletion {
+                        decodeTaskGraph()
                     }
-                    build.scheduleTasks(scheduledTasks)
                 }
             }
         }
     }
 
     private
-    fun writeContextFor(encoder: KryoBackedEncoder) = DefaultWriteContext(
+    suspend fun DefaultWriteContext.encodeTaskGraph() {
+        val build = host.currentBuild
+        writeString(build.rootProject.name)
+
+        writeClassPath(collectClassPath())
+
+        writeGradleState(build.rootProject.gradle)
+
+        val scheduledTasks = build.scheduledTasks
+        writeRelevantProjectsFor(scheduledTasks)
+
+        TaskGraphCodec(service()).run {
+            writeTaskGraphOf(build, scheduledTasks)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.decodeTaskGraph() {
+        val rootProjectName = readString()
+        val build = host.createBuild(rootProjectName)
+
+        val classPath = readClassPath()
+        val classLoader = classLoaderFor(classPath)
+        initClassLoader(classLoader)
+
+        readGradleState(build.gradle)
+
+        readRelevantProjects(build)
+
+        build.autoApplyPlugins()
+        build.registerProjects()
+
+        initProjectProvider(build::getProject)
+
+        val scheduledTasks = TaskGraphCodec(service()).run {
+            readTaskGraph()
+        }
+        build.scheduleTasks(scheduledTasks)
+    }
+
+    private
+    fun instantExecutionReport() = InstantExecutionReport(
+        reportOutputDir,
+        logger,
+        maxProblems()
+    )
+
+    private
+    fun discardInstantExecutionState() {
+        instantExecutionStateFile.delete()
+    }
+
+    private
+    fun writeContextFor(
+        encoder: KryoBackedEncoder,
+        report: InstantExecutionReport
+    ) = DefaultWriteContext(
         codecs(),
         encoder,
-        logger
+        logger,
+        report::add
     )
 
     private
@@ -192,7 +228,7 @@ class DefaultInstantExecution(
     )
 
     private
-    fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
+    suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradle(gradle) {
             BuildOperationListenersCodec().run {
                 writeBuildOperationListeners(service())
@@ -201,7 +237,7 @@ class DefaultInstantExecution(
     }
 
     private
-    fun DefaultReadContext.readGradleState(gradle: Gradle) {
+    suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
         withGradle(gradle) {
             val listeners = BuildOperationListenersCodec().run {
                 readBuildOperationListeners()
@@ -271,12 +307,6 @@ class DefaultInstantExecution(
         Files.createDirectories(parentFile.toPath())
     }
 
-    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
-    private
-    val isInstantExecutionEnabled: Boolean
-        get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null && !host.currentBuild.buildSrc
-
-
     private
     val instantExecutionStateFile by lazy {
         val currentGradleVersion = GradleVersion.current().version
@@ -285,6 +315,28 @@ class DefaultInstantExecution(
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
+
+    private
+    val reportOutputDir by lazy {
+        instantExecutionStateFile.run {
+            resolveSibling(nameWithoutExtension)
+        }
+    }
+
+    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
+    private
+    val isInstantExecutionEnabled: Boolean
+        get() = systemProperty(SystemProperties.isEnabled) != null && !host.currentBuild.buildSrc
+
+    private
+    fun maxProblems(): Int =
+        systemProperty(SystemProperties.maxProblems)
+            ?.let(Integer::valueOf)
+            ?: 512
+
+    private
+    fun systemProperty(propertyName: String) =
+        host.getSystemProperty(propertyName)
 }
 
 
@@ -325,5 +377,24 @@ inline fun <T> T.withGradle(
         withPropertyTrace(PropertyTrace.Gradle) {
             action()
         }
+    }
+}
+
+
+/**
+ * [Starts][startCoroutine] the suspending [block], asserts it runs
+ * to completion and returns its result.
+ */
+internal
+fun <R> runToCompletion(block: suspend () -> R): R {
+    var completion: Result<R>? = null
+    block.startCoroutine(Continuation(EmptyCoroutineContext) {
+        completion = it
+    })
+    return completion.let {
+        require(it != null) {
+            "Coroutine didn't run to completion."
+        }
+        it.getOrThrow()
     }
 }

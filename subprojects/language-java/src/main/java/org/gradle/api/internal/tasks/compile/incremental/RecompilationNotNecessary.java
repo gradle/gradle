@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.tasks.WorkResult;
 
-public class RecompilationNotNecessary implements WorkResult {
-
+public class RecompilationNotNecessary implements WorkResult, IncrementalCompilationResult {
     @Override
     public boolean getDidWork() {
         return false;

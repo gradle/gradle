@@ -157,7 +157,7 @@ You'll find that the new Gradle build includes the following:
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
  * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins)
- 
+
 See the <<build_init_plugin#sec:pom_maven_conversion_,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
 
 One thing to bear in mind is that assemblies are not automatically converted.
@@ -183,7 +183,7 @@ This will run the tests and produce the required artifacts without any extra int
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 
-Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<managing_dependency_configurations#managing_dependency_configurations,dependency configurations>> in Gradle), and transitive dependencies.
+Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
 In fact, Gradle works perfectly with Maven-compatible repositories, which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
@@ -288,13 +288,13 @@ include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[
 include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=repositories]"]
 ====
 
-You can also use the `repositories {}` block to configure custom repositories, as described in the <<repository_types#sub:maven_repo,Repository Types>> chapter.
+You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories.adoc#sec:maven_repo,Repository Types>> chapter.
 
-Lastly, Gradle allows you to resolve dependencies against the <<repository_types#sub:maven_local,local Maven cache/repository>>.
+Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sec:maven_local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
-If you want to share published artifacts via the filesystem, consider configuring a <<repository_types#sub:maven_repo,custom Maven repository>> with a file:// URL.
+If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a file:// URL.
 
-You might also be interested in learning about Gradle's own <<dependency_cache#dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
+You might also be interested in learning about Gradle's own <<declaring_repositories.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
 [[migmvn:controlling_dep_versions]]
 === Controlling dependency versions
@@ -333,7 +333,7 @@ If you're more interested in controlling which version of a dependency is actual
 [[migmvn:optional_deps]]
 === Handling optional dependencies
 
-You are likely to encounter two situations regarding optional dependencies: 
+You are likely to encounter two situations regarding optional dependencies:
 
  * Some of your transitive dependencies are declared as optional
  * You want to declare some of your direct dependencies as optional in your project's published POM
@@ -483,7 +483,7 @@ The Java plugin for Gradle provides a `processResources` task to do the same thi
 This is a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task that copies files from the configured resources directory -- `src/main/resources` by default -- to an output directory.
 And as with any `Copy` task, you can configure it to perform <<working_with_files#filtering_files,file filtering>>, <<working_with_files#sec:renaming_files,renaming>>, and <<working_with_files#sec:filtering_files,content filtering>>.
 
-As an example, here's a configuration that treats the source files as http://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_simpletemplateengine[Groovy `SimpleTemplateEngine`] templates, providing `version` and `buildNumber` properties to those templates:
+As an example, here's a configuration that treats the source files as https://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_simpletemplateengine[Groovy `SimpleTemplateEngine`] templates, providing `version` and `buildNumber` properties to those templates:
 
 .Filtering the content of resources via the `processResources` task
 ====

@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationOutputAnalyzer;
@@ -39,7 +38,6 @@ public class IncrementalCompilerDecorator<T extends JavaCompileSpec> {
     private final ClasspathSnapshotMaker classpathSnapshotMaker;
     private final TaskScopedCompileCaches compileCaches;
     private final CleaningJavaCompilerSupport<T> cleaningCompiler;
-    private final CompilationSourceDirs sourceDirs;
     private final Compiler<T> rebuildAllCompiler;
     private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
     private StringInterner interner;
@@ -47,33 +45,28 @@ public class IncrementalCompilerDecorator<T extends JavaCompileSpec> {
     public IncrementalCompilerDecorator(ClasspathSnapshotMaker classpathSnapshotMaker,
                                         TaskScopedCompileCaches compileCaches,
                                         CleaningJavaCompilerSupport<T> cleaningCompiler,
-                                        CompilationSourceDirs sourceDirs,
                                         Compiler<T> rebuildAllCompiler,
                                         PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer,
                                         StringInterner interner) {
         this.classpathSnapshotMaker = classpathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.cleaningCompiler = cleaningCompiler;
-        this.sourceDirs = sourceDirs;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
         this.interner = interner;
     }
 
     public Compiler<T> prepareCompiler(RecompilationSpecProvider recompilationSpecProvider) {
-        Compiler<T> compiler = getCompiler(recompilationSpecProvider, sourceDirs);
+        Compiler<T> compiler = getCompiler(recompilationSpecProvider);
         return new IncrementalResultStoringCompiler<T>(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
     }
 
-    private Compiler<T> getCompiler(RecompilationSpecProvider recompilationSpecProvider, CompilationSourceDirs sourceDirs) {
+    private Compiler<T> getCompiler(RecompilationSpecProvider recompilationSpecProvider) {
         if (!recompilationSpecProvider.isIncremental()) {
             LOG.info("Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
             return rebuildAllCompiler;
         }
-        if (!sourceDirs.canInferSourceRoots()) {
-            LOG.info("Full recompilation is required because the source roots could not be inferred.");
-            return rebuildAllCompiler;
-        }
+
         PreviousCompilationData data = compileCaches.getPreviousCompilationStore().get();
         if (data == null) {
             LOG.info("Full recompilation is required because no previous compilation result is available.");

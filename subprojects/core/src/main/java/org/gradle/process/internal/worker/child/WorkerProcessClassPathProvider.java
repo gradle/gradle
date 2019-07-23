@@ -79,7 +79,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "gradle-core",
             "gradle-logging",
             "gradle-messaging",
-            "gradle-pineapple",
             "gradle-base-services",
             "gradle-cli",
             "gradle-native",
@@ -91,6 +90,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "gradle-model-core",
             "gradle-jvm-services",
             "gradle-files",
+            "gradle-file-collections",
+            "gradle-hashing",
             "gradle-snapshots"
     };
 

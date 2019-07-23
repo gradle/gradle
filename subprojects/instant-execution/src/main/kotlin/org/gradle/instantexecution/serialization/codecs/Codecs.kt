@@ -28,16 +28,17 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DecodingProvider
 import org.gradle.instantexecution.serialization.Encoding
 import org.gradle.instantexecution.serialization.EncodingProvider
-import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logUnsupported
 import org.gradle.instantexecution.serialization.ownerService
+import org.gradle.instantexecution.serialization.reentrant
+import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -73,6 +74,12 @@ class Codecs(
     private
     val bindings = bindings {
 
+        bind(unsupported<Project>())
+        bind(unsupported<Gradle>())
+        bind(unsupported<Settings>())
+        bind(unsupported<TaskContainer>())
+        bind(unsupported<ConfigurationContainer>())
+
         bind(STRING_SERIALIZER)
         bind(BOOLEAN_SERIALIZER)
         bind(INTEGER_SERIALIZER)
@@ -98,6 +105,7 @@ class Codecs(
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
+        bind(ImmutableMapCodec)
 
         bind(arrayCodec)
 
@@ -125,7 +133,10 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
 
-        bind(BeanCodec())
+        // This protects the BeanCodec against StackOverflowErrors but
+        // we can still get them for the other codecs, for instance,
+        // with deeply nested Lists, deeply nested Maps, etc.
+        bind(reentrant(BeanCodec()))
     }
 
     private
@@ -138,15 +149,10 @@ class Codecs(
 
     override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
         null -> nullEncoding
-        is Project -> unsupportedState(Project::class)
-        is Gradle -> unsupportedState(Gradle::class)
-        is Settings -> unsupportedState(Settings::class)
-        is TaskContainer -> unsupportedState(TaskContainer::class)
-        is ConfigurationContainer -> unsupportedState(ConfigurationContainer::class)
         else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
     }
 
-    override fun ReadContext.decode(): Any? = when (val tag = readByte()) {
+    override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {
         NULL_VALUE -> null
         else -> bindings[tag.toInt()].codec.run { decode() }
     }
@@ -155,16 +161,11 @@ class Codecs(
     fun computeEncoding(type: Class<*>): Encoding? =
         bindings.find { it.type.isAssignableFrom(type) }?.run {
             encoding { value ->
+                require(value != null)
                 writeByte(tag)
-                codec.run { encode(value!!) }
+                codec.run { encode(value) }
             }
         }
-
-    private
-    fun IsolateContext.unsupportedState(type: KClass<*>): Encoding? {
-        logUnsupported(type)
-        return null
-    }
 
     private
     fun encoding(e: Encoding) = e
@@ -201,9 +202,8 @@ class BindingsBuilder {
         require(bindings.none { it.type === type })
         val tag = bindings.size
         require(tag < Byte.MAX_VALUE)
-        @Suppress("unchecked_cast")
         bindings.add(
-            Binding(tag.toByte(), type, codec as Codec<Any>)
+            Binding(tag.toByte(), type, codec.uncheckedCast())
         )
     }
 

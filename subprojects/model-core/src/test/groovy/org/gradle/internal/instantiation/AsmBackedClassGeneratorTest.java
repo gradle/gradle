@@ -43,6 +43,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -53,7 +54,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Rule;
@@ -102,7 +102,7 @@ import static org.junit.Assert.fail;
 public class AsmBackedClassGeneratorTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), new DefaultManagedFactoryRegistry());
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -1781,6 +1781,11 @@ public class AsmBackedClassGeneratorTest {
 
     public interface InterfaceFileCollectionBean {
         ConfigurableFileCollection getProp();
+    }
+
+    public interface InterfaceNestedBean {
+        @Nested
+        InterfaceFileCollectionBean getProp();
     }
 
     public interface InterfacePropertyBean {

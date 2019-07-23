@@ -285,7 +285,8 @@ include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[
 [[sec:java_plugin_and_dependency_management]]
 == Dependency management
 
-The Java plugin adds a number of <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configurations>> to your project, as shown below. Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
+The Java plugin adds a number of <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> to your project, as shown below.
+Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
 
 [[tab:configurations]]
 === Dependency configurations

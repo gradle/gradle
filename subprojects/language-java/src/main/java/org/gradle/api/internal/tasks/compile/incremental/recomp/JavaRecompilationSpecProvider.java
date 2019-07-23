@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -35,12 +36,10 @@ import java.util.Map;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final IncrementalTaskInputs inputs;
-    private final CompilationSourceDirs sourceDirs;
-    private final SourceFileClassNameConverter sourceFileClassNameConverter;
+    private final JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, IncrementalTaskInputs inputs) {
+    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         super(fileOperations, sources);
-        this.sourceDirs = new CompilationSourceDirs(sources);
         this.sourceFileClassNameConverter = new JavaConventionalSourceFileClassNameConverter(sourceDirs);
         this.inputs = inputs;
     }
@@ -48,11 +47,6 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     @Override
     public boolean isIncremental() {
         return inputs.isIncremental();
-    }
-
-    @Override
-    public CompilationSourceDirs getSourceDirs() {
-        return sourceDirs;
     }
 
     @Override
@@ -91,6 +85,11 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory());
     }
 
+    @Override
+    public WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult) {
+        return workResult;
+    }
+
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
         return sourceTree.matching(sourceToCompile);
     }
@@ -107,10 +106,10 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous, sourceFileClassNameConverter);
+        SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous);
         AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor = new AnnotationProcessorChangeProcessor(current, previous);
         ResourceChangeProcessor resourceChangeProcessor = new ResourceChangeProcessor(current.getAnnotationProcessorPath());
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor);
+        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor, sourceFileClassNameConverter);
         inputs.outOfDate(action);
         inputs.removed(action);
     }

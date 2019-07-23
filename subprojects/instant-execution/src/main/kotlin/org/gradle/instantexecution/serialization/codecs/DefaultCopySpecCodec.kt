@@ -31,13 +31,13 @@ class DefaultCopySpecCodec(
     private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
 
-    override fun WriteContext.encode(value: DefaultCopySpec) {
+    override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         val allSourcePaths = ArrayList<File>()
         collectSourcePathsFrom(value, allSourcePaths)
         write(allSourcePaths)
     }
 
-    override fun ReadContext.decode(): DefaultCopySpec {
+    override suspend fun ReadContext.decode(): DefaultCopySpec {
         @Suppress("unchecked_cast")
         val sourceFiles = read() as List<File>
         val copySpec = DefaultCopySpec(fileResolver, instantiator)

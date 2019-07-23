@@ -1,0 +1,23 @@
+[[publishing-components]]
+= Publishing
+
+[[published-vs-local-deps]]
+== Published vs local dependencies
+
+[[ivy-and-maven-publish-plugins]]
+== Using the maven-publish and ivy-publish plugins
+
+[[understanding-gradle-module-md]]
+== Understanding Gradle Module Metadata
+
+[[mapping-with-other-formats]]
+=== Mapping with other formats
+
+[[interactions-other-build-tools]]
+=== Interactions with other build tools
+
+[[disabling-gmm-publication]]
+=== Disabling Gradle Module Metadata publication
+
+[[publishing-custom-components]]
+== Publishing custom components

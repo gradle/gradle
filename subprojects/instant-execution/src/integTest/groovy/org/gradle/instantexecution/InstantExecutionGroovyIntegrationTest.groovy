@@ -21,6 +21,7 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterReposito
 
 
 class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
     def "build on Groovy build with JUnit tests"() {
 
         def instantExecution = newInstantExecutionFixture()

@@ -105,6 +105,8 @@ abstract class FileContentGenerator {
             }
             """ 
             ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
+
+            ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
             """
         }
     }
@@ -120,6 +122,9 @@ abstract class FileContentGenerator {
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
+        ${->
+            config.systemProperties.entrySet().collect { "systemProp.${it.key}=${it.value}" }.join("\n")
+        }
         """
     }
 

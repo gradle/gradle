@@ -207,7 +207,8 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                         'org.gradle.dependency.bundling':'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                         'org.gradle.status':'release',
-                        'org.gradle.usage': 'java-api-jars']
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar']
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
                             'org.gradle.category':'platform',
@@ -223,7 +224,8 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                             'org.gradle.dependency.bundling':'external',
                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                             'org.gradle.status':'release',
-                            'org.gradle.usage': 'java-api-jars']
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.libraryelements': 'jar']
                         byConstraint("platform alignment")
                     }
                 }
@@ -233,7 +235,8 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                         'org.gradle.dependency.bundling':'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                         'org.gradle.status':'release',
-                        'org.gradle.usage': 'java-api-jars']
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar']
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
                             'org.gradle.category':'platform',

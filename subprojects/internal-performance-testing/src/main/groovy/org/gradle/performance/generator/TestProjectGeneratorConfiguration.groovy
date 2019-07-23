@@ -47,6 +47,8 @@ class TestProjectGeneratorConfiguration {
     String daemonMemory
     String compilerMemory
     String testRunnerMemory
+    Map<String, String> systemProperties
+    String[] featurePreviews
     boolean parallel
     int maxWorkers
     int maxParallelForks
@@ -82,6 +84,8 @@ class TestProjectGeneratorConfigurationBuilder {
         this.dsl = GradleDsl.GROOVY
         this.buildSrc = true
         this.fileToChangeByScenario = [:]
+        this.systemProperties = [:]
+        this.featurePreviews = [] as String[]
     }
 
     TestProjectGeneratorConfigurationBuilder assembleChangeFile(int project = 0, int pkg = 0, int file = 0) {
@@ -131,6 +135,8 @@ class TestProjectGeneratorConfigurationBuilder {
         config.compilerMemory = this.compilerMemory
         config.testRunnerMemory = '256m'
         config.parallel = this.subProjects > 0
+        config.systemProperties = this.systemProperties
+        config.featurePreviews = this.featurePreviews
 
         config.maxWorkers = 4
         config.maxParallelForks = this.subProjects > 0 ? 1 : 4

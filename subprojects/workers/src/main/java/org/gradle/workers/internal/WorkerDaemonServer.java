@@ -16,8 +16,9 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -26,6 +27,7 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -78,8 +80,8 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
-        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
-            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry, InstantiatorFactory instantiatorFactory) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry, instantiatorFactory);
         }
 
         DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
@@ -92,7 +94,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new ClassLoaderHierarchyHasher() {
                 @Nullable
                 @Override
-                public HashCode getClassLoaderHash(ClassLoader classLoader) {
+                public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
                     throw new UnsupportedOperationException();
                 }
             };

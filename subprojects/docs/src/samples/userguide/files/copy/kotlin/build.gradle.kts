@@ -173,7 +173,10 @@ tasks.register("copyMethod") {
 tasks.register("copyMethodWithExplicitDependencies") {
     // up-to-date check for inputs, plus add copyTask as dependency
     inputs.files(copyTask)
+        .withPropertyName("inputs")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir("some-dir") // up-to-date check for outputs
+        .withPropertyName("outputDir")
     doLast {
         copy {
             // Copy the output of copyTask

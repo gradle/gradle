@@ -207,7 +207,7 @@ Usually, there's a better way to model the requirement.
 The appropriate approach depends on the problem at hand. Here're some options:
 
 * Model the build as <<multi_project_builds.adoc#multi_project_builds,multi-project build>> if the intention is to execute tasks from different modules as unified build.
-* Use <<composite_builds.adoc#composite_builds,composite builds>> for projects that are physically separated but should occasionally be built as a single unit.
+* Use <<composite_builds.adoc#composite-builds,composite builds>> for projects that are physically separated but should occasionally be built as a single unit.
 
 [[sec:avoiding_inter_project_configuration]]
 == Avoid inter-project configuration
@@ -220,7 +220,7 @@ The following practices should be avoided:
 * Explicitly depending on a task from another project via link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object++...++)].
 * Setting property values or calling methods on domain objects from another project.
 * Executing another portion of the build with <<#sec:avoiding_use_of_gradlebuild,GradleBuild>>.
-* Declaring unnecessary <<declaring_dependencies.adoc#sec:declaring_project_dependency,project dependencies>>.
+* Declaring unnecessary <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>>.
 
 [[sec:avoiding_passwords_in_plain_text]]
 == Avoid storing passwords in plain text

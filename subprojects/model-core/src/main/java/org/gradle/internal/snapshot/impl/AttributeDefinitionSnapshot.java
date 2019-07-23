@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
 
 public class AttributeDefinitionSnapshot extends AbstractIsolatableScalarValue<Attribute<?>> {

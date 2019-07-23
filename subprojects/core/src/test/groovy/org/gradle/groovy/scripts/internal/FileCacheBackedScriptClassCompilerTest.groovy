@@ -24,7 +24,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory

@@ -1254,6 +1254,7 @@ task generate(type: TransformerTask) {
     
     task myTask (type: MyTask){
         project.ext.inputDirs.split(',').each { inputs.dir(it) }
+        outputs.upToDateWhen { true }
     }
 '''
 

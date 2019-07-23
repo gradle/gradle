@@ -68,11 +68,11 @@ The following types/formats are supported:
                 from 'src'
                 into 'dest'
             }
-'''
+        '''
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
         failure.assertHasDescription("Execution failed for task ':copy'.")
-        failure.assertHasCause("Could not list contents of '${link}'.")
+        failure.assertHasCause("Couldn't follow symbolic link '${link}'.")
     }
 
     @Test

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
     implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":jvmServices"))
     implementation(project(":coreApi"))

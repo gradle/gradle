@@ -60,22 +60,42 @@ public class SingleMessageLogger {
         deprecatedFeatureHandler.reportSuppressedDeprecations();
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} plugin instead.
+     */
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
         if (isEnabled()) {
             nagUserOfDeprecatedPlugin(pluginName, String.format("Please use the %s plugin instead.", replacement));
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. Consider using the ${replacement} plugin instead.
+     */
     public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
         if (isEnabled()) {
             nagUserOfDeprecatedPlugin(pluginName, String.format("Consider using the %s plugin instead.", replacement));
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static void nagUserOfDeprecatedPlugin(String pluginName) {
         nagUserOfDeprecatedPlugin(pluginName, null);
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
+     */
     public static void nagUserOfDeprecatedPlugin(String pluginName, @Nullable String advice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s plugin has been deprecated.", pluginName),
@@ -86,6 +106,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${toolName} has been deprecated. This is scheduled to be removed in Gradle X. Consider using ${replacement} instead.
+     */
     public static void nagUserOfToolReplacedWithExternalOne(String toolName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
@@ -97,6 +122,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${taskName} task has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} task instead.
+     */
     public static void nagUserOfReplacedTask(String taskName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s task has been deprecated.", taskName),
@@ -106,6 +136,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${taskName} task type has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} instead.
+     */
     public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
         if (isEnabled()) {
             nagUserWith(
@@ -116,6 +151,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} method instead.
+     */
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (isEnabled()) {
             nagUserWith(
@@ -128,24 +168,35 @@ public class SingleMessageLogger {
 
     /**
      * Use for a method that is not deprecated, but something about the method parameters or state is deprecated.
+     * Output format:
+     * <p>
+     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
      */
     public static void nagUserOfDiscontinuedMethodInvocation(String invocation) {
         nagUserOfDiscontinuedMethodInvocation(invocation, null);
     }
 
+    /**
+     * Output format:
+     * <p>
+     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X. ${advice}
+     */
     public static void nagUserOfDiscontinuedMethodInvocation(String invocation, String advice) {
         if (isEnabled()) {
             nagUserWith(
-                    String.format("Using method %s has been deprecated.", invocation),
-                    thisWillBecomeAnError(),
-                    advice,
-                    null,
-                    DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+                String.format("Using method %s has been deprecated.", invocation),
+                thisWillBecomeAnError(),
+                advice,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     /**
      * Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
+     * Output format:
+     * <p>
+     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X.
      */
     public static void nagUserOfDiscontinuedInvocation(String invocation) {
         if (isEnabled()) {
@@ -160,6 +211,9 @@ public class SingleMessageLogger {
 
     /**
      * Use for a method that is not deprecated, but something about the method parameters or state is deprecated.
+     * Output format:
+     * <p>
+     * Using method ${invocation} has been deprecated. This will fail with an error in Gradle X. Please use the ${replacement} method instead.
      */
     public static void nagUserOfReplacedMethodInvocation(String invocation, String replacement) {
         if (isEnabled()) {
@@ -172,13 +226,11 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
-        if (isEnabled()) {
-            nagUserWith(String.format(
-                "The %s property has been deprecated.", propertyName), thisWillBeRemovedMessage(), String.format("Please use the %s property instead.", replacement), null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
-        }
-    }
-
+    /**
+     * Output format:
+     * <p>
+     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X.
+     */
     public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s method has been deprecated.", methodName),
@@ -189,6 +241,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
+     */
     public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s method has been deprecated.", methodName),
@@ -199,6 +256,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${methodName} method has been deprecated. This is scheduled to be removed in Gradle X. ${contextualAdvice} ${advice}
+     */
     public static void nagUserOfDiscontinuedMethod(String methodName, String advice, String contextualAdvice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s method has been deprecated.", methodName),
@@ -209,6 +271,23 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} property instead.
+     */
+    public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
+        if (isEnabled()) {
+            nagUserWith(String.format(
+                "The %s property has been deprecated.", propertyName), thisWillBeRemovedMessage(), String.format("Please use the %s property instead.", replacement), null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    /**
+     * Output format:
+     * <p>
+     * The ${propertyName} property has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
+     */
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s property has been deprecated.", propertyName),
@@ -219,6 +298,11 @@ public class SingleMessageLogger {
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * The ${parameterName} named parameter has been deprecated. This is scheduled to be removed in Gradle X. Please use the ${replacement} named parameter instead.
+     */
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s named parameter has been deprecated.", parameterName),
@@ -230,7 +314,40 @@ public class SingleMessageLogger {
     }
 
     /**
+     * Output format:
+     * <p>
+     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
+     */
+    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String advice) {
+        nagUserWithDeprecatedBuildInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
+    }
+
+
+    /**
+     * Output format:
+     * <p>
+     * ${summary} has been deprecated. ${removeDetails} ${advice}
+     */
+    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String removalDetails, String advice) {
+        nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, null, DeprecatedFeatureUsage.Type.BUILD_INVOCATION);
+    }
+
+    /**
+     * Output format:
+     * <p>
+     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X. ${advice}
+     */
+    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice) {
+        if (isEnabled()) {
+            nagUserWithDeprecatedIndirectUserCodeCause(summary, advice, null);
+        }
+    }
+
+    /**
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
+     * Output format:
+     * <p>
+     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X.
      */
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary) {
         if (isEnabled()) {
@@ -238,31 +355,55 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String advice) {
-        nagUserWithDeprecatedBuildInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
-    }
-
-    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String removalDetails, String advice) {
-        nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, null, DeprecatedFeatureUsage.Type.BUILD_INVOCATION);
-    }
-
-    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice) {
-        if (isEnabled()) {
-            nagUserWithDeprecatedIndirectUserCodeCause(summary, advice, null);
-        }
-    }
-
+    /**
+     * Output format:
+     * <p>
+     * ${summary} has been deprecated. This is scheduled to be removed in Gradle X. ${contextualAdvice} ${advice}
+     */
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice, @Nullable String contextualAdvice) {
         if (isEnabled()) {
             nagUserWith(String.format("%s has been deprecated.", summary), thisWillBeRemovedMessage(), advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
         }
     }
 
+    /**
+     * Output format:
+     * <p>
+     * ${summary} has been deprecated. ${removeDetails} ${contextualAdvice} ${advice}
+     */
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String removalDetails, String advice, String contextualAdvice) {
         if (isEnabled()) {
             nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
         }
     }
+
+    /**
+     * Output format:
+     * <p>
+     * ${behaviour} This has been deprecated and is scheduled to be removed in Gradle {X}.
+     */
+    public static void nagUserOfDeprecatedBehaviour(String behaviour) {
+        if (isEnabled()) {
+            nagUserWith(behaviour, String.format("This behaviour has been deprecated and %s", getRemovalDetails()), null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    /**
+     * Output format:
+     * <p>
+     * ${thing} This has been deprecated and is scheduled to be removed in Gradle {X}. ${advice}
+     */
+    public static void nagUserOfDeprecatedThing(String thing, @Nullable String advice) {
+        if (isEnabled()) {
+            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    public static void nagUserOfDeprecatedThing(String thing) {
+        nagUserOfDeprecatedThing(thing, null);
+    }
+
+    /**------------ Try to avoid using the methods below ----------------*/
 
     /**
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
@@ -318,21 +459,6 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserOfDeprecatedBehaviour(String behaviour) {
-        if (isEnabled()) {
-            nagUserWith(behaviour, String.format("This behaviour has been deprecated and %s", getRemovalDetails()), null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
-        }
-    }
-
-    public static void nagUserOfDeprecatedThing(String thing) {
-        nagUserOfDeprecatedThing(thing, null);
-    }
-
-    public static void nagUserOfDeprecatedThing(String thing, @Nullable String advice) {
-        if (isEnabled()) {
-            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
-        }
-    }
 
     @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
@@ -367,5 +493,10 @@ public class SingleMessageLogger {
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
         nagUserWith(incubatingFeatureHandler, new IncubatingFeatureUsage(incubatingFeature, SingleMessageLogger.class));
+    }
+
+    @Nullable
+    public static Throwable getDeprecationFailure() {
+        return deprecatedFeatureHandler.getDeprecationFailure();
     }
 }

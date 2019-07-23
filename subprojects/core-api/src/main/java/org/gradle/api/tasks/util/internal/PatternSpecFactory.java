@@ -19,8 +19,8 @@ package org.gradle.api.tasks.util.internal;
 import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.RelativePathSpec;
+import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -101,15 +101,11 @@ public class PatternSpecFactory {
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
         if (patterns.isEmpty()) {
-            return include ? Specs.<FileTreeElement>satisfyAll() : Specs.<FileTreeElement>satisfyNone();
+            return include ? Specs.satisfyAll() : Specs.satisfyNone();
         }
 
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>(patterns.size());
-        for (String pattern : patterns) {
-            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(include, caseSensitive, pattern);
-            matchers.add(patternMatcher);
-        }
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(include, caseSensitive, patterns);
 
-        return new RelativePathSpec(Specs.union(matchers));
+        return new RelativePathSpec(matcher);
     }
 }

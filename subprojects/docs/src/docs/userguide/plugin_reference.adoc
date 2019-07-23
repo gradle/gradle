@@ -29,7 +29,7 @@ Provides support for building a Java library.
 Provides support for building a Java platform.
 
 <<groovy_plugin.adoc#,Groovy>>::
-Provides support for building any type of http://groovy-lang.org/[Groovy] project.
+Provides support for building any type of https://groovy-lang.org/[Groovy] project.
 
 <<scala_plugin.adoc#,Scala>>::
 Provides support for building any type of https://www.scala-lang.org/[Scala] project.
@@ -40,6 +40,7 @@ Provides support for building, testing and running https://www.playframework.com
 <<antlr_plugin.adoc#,ANTLR>>::
 Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 
+[[native_languages]]
 == Native languages
 
 <<cpp_application_plugin.adoc#,C++ Application>>::
@@ -50,6 +51,15 @@ Provides support for building C++ libraries on Windows, Linux, and macOS.
 
 <<cpp_unit_test_plugin.adoc#,C++ Unit Test>>::
 Provides support for building and running C++ executable-based tests on Windows, Linux, and macOS.
+
+<<swift_application_plugin.adoc#,Swift Application>>::
+Provides support for building Swift applications on Linux and macOS.
+
+<<swift_library_plugin.adoc#,Swift Library>>::
+Provides support for building Swift libraries on Linux and macOS.
+
+<<xctest_plugin.adoc#,XCTest>>::
+Provides support for building and running XCTest-based tests on Linux and macOS.
 
 == Packaging and distribution
 

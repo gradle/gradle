@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
@@ -278,6 +278,25 @@ class IsolatableSerializerRegistryTest extends Specification {
 
         then:
         newIsolatables[0].isolate() == array
+
+        and:
+        newIsolatables[0].isolate().class == String[].class
+    }
+
+    def "can serialize/deserialize isolated zero-length Array"() {
+        String[] array = []
+
+        when:
+        serialize(isolatableFactory.isolate(array))
+
+        and:
+        Isolatable<?>[] newIsolatables = deserialize()
+
+        then:
+        newIsolatables[0].isolate() == array
+
+        and:
+        newIsolatables[0].isolate().class == String[].class
     }
 
     def "can serialize/deserialize isolated List"() {

@@ -52,6 +52,13 @@ Creating `SignOperation` instances directly is now deprecated. Instead, the meth
 
 This will become an error in Gradle 6.0.
 
+==== Declaring an incremental task without outputs
+
+Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now deprecated.
+Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+
+This will become an error in Gradle 6.0.
+
 === Potential breaking changes
 
 ==== Task dependencies are honored for task `@Input` properties whose value is a `Property`
@@ -96,6 +103,27 @@ Previously, all copies of a configuration always had the name `<OriginConfigurat
 ==== Changed classpath filtering for Eclipse
 
 Gradle 5.6 no longer supplies custom classpath attributes in the Eclipse model. Instead, it provides the attributes for link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[Eclipse test sources]. This change requires Buildship version 3.1.1 or later.
+
+==== Embedded Kotlin upgraded to 1.3.41
+
+Gradle Kotlin DSL scripts and Gradle Plugins authored using the `kotlin-dsl` plugin are now compiled using Kotlin 1.3.41.
+
+Please see the Kotlin link:https://blog.jetbrains.com/kotlin/2019/06/kotlin-1-3-40-released/[blog post] and link:https://github.com/JetBrains/kotlin/blob/1.3.40/ChangeLog.md[changelog] for more information about the included changes.
+
+The minimum supported Kotlin Gradle Plugin version is now 1.2.31. Previously it was 1.2.21.
+
+==== Automatic capability conflict resolution
+
+Previous versions of Gradle would automatically select, in case of capability conflicts, the module which has the highest capability version.
+Starting from 5.6, this is an opt-in behavior that can be activated using:
+
+```
+configurations.all {
+   resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
+}
+```
+
+See <<controlling_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
@@ -297,7 +325,9 @@ The incubating `operatingSystems` property on native components has been replace
 
 ==== Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
 
-The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#provider-files-api-reference,Provider API>>. Plugins that extend these types and override methods from the base class may no longer behave the same way. Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
+The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#sec:lazy_configuration_reference,Provider API>>.
+Plugins that extend these types and override methods from the base class may no longer behave the same way.
+Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
 

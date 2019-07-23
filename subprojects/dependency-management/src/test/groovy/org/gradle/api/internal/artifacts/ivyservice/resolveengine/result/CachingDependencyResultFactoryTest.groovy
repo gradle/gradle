@@ -34,15 +34,16 @@ class CachingDependencyResultFactoryTest extends Specification {
     def "creates and caches resolved dependencies"() {
         def fromModule = newModule('from')
         def selectedModule = newModule('selected')
+        def variant = newVariant("foo")
 
         when:
-        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, false)
-        def same = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, false)
+        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, variant, false)
+        def same = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, variant, false)
 
-        def differentRequested = factory.createResolvedDependency(selector('xxx'), fromModule, selectedModule, false)
-        def differentFrom = factory.createResolvedDependency(selector('requested'), newModule('xxx'), selectedModule, false)
-        def differentSelected = factory.createResolvedDependency(selector('requested'), fromModule, newModule('xxx'), false)
-        def differentConstraint = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, true)
+        def differentRequested = factory.createResolvedDependency(selector('xxx'), fromModule, selectedModule, variant, false)
+        def differentFrom = factory.createResolvedDependency(selector('requested'), newModule('xxx'), selectedModule, variant, false)
+        def differentSelected = factory.createResolvedDependency(selector('requested'), fromModule, newModule('xxx'), variant, false)
+        def differentConstraint = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, variant, true)
 
         then:
         dep.is(same)
@@ -55,14 +56,15 @@ class CachingDependencyResultFactoryTest extends Specification {
     def "creates and caches resolved dependencies with attributes"() {
         def fromModule = newModule('from')
         def selectedModule = newModule('selected', 'a', '1', selectedByRule(), newVariant('custom', [attr1: 'foo', attr2: 'bar']))
+        def variant = newVariant("foo")
 
         when:
-        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, false)
-        def same = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, false)
+        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, variant, false)
+        def same = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule, variant, false)
 
-        def differentRequested = factory.createResolvedDependency(selector('xxx'), fromModule, selectedModule, false)
-        def differentFrom = factory.createResolvedDependency(selector('requested'), newModule('xxx'), selectedModule, false)
-        def differentSelected = factory.createResolvedDependency(selector('requested'), fromModule, newModule('xxx'), false)
+        def differentRequested = factory.createResolvedDependency(selector('xxx'), fromModule, selectedModule, variant, false)
+        def differentFrom = factory.createResolvedDependency(selector('requested'), newModule('xxx'), selectedModule, variant, false)
+        def differentSelected = factory.createResolvedDependency(selector('requested'), fromModule, newModule('xxx'), variant, false)
 
         then:
         dep.is(same)
@@ -93,11 +95,11 @@ class CachingDependencyResultFactoryTest extends Specification {
         dep.is(differentFailure) //the same dependency edge cannot have different failures
     }
 
-    def selector(String group='a', String module='a', String version='1') {
+    def selector(String group = 'a', String module = 'a', String version = '1') {
         DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version))
     }
 
-    def moduleVersionSelector(String group='a', String module='a', String version='1') {
+    def moduleVersionSelector(String group = 'a', String module = 'a', String version = '1') {
         newSelector(DefaultModuleIdentifier.newId(group, module), version)
     }
 

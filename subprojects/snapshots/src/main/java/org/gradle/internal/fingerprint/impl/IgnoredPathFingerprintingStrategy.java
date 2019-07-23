@@ -60,7 +60,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(fileSnapshot.getType(), fileSnapshot.getHash()));

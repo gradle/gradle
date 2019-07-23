@@ -16,39 +16,20 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface TaskExecutionContext {
 
     LocalTaskNode getLocalTaskNode();
 
-    @Nullable
-    AfterPreviousExecutionState getAfterPreviousExecution();
-
-    void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
-
     TaskExecutionMode getTaskExecutionMode();
 
-    Optional<BeforeExecutionState> getBeforeExecutionState();
-
-    void setBeforeExecutionState(BeforeExecutionState beforeExecutionState);
-
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
-
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
-
-    void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.
@@ -66,17 +47,6 @@ public interface TaskExecutionContext {
     void setTaskProperties(TaskProperties properties);
 
     TaskProperties getTaskProperties();
-
-    /**
-     * Returns if caching for this task is enabled.
-     */
-    boolean isTaskCachingEnabled();
-
-    void setTaskCachingEnabled(boolean enabled);
-
-    Optional<OverlappingOutputs> getOverlappingOutputs();
-
-    void setOverlappingOutputs(OverlappingOutputs overlappingOutputs);
 
     /**
      * Gets and clears the build operation designed to measure the time taken

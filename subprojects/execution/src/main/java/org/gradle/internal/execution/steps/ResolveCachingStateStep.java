@@ -22,10 +22,10 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -38,6 +38,7 @@ import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
 
-public class ResolveCachingStateStep implements Step<IncrementalContext, CachingResult> {
+public class ResolveCachingStateStep implements Step<BeforeExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
     private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
     private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
@@ -65,7 +66,7 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
     }
 
     @Override
-    public CachingResult execute(IncrementalContext context) {
+    public CachingResult execute(BeforeExecutionContext context) {
         UnitOfWork work = context.getWork();
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
@@ -73,8 +74,11 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
         } else {
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
-                .orElseGet(() -> (buildCache.isEnabled() ? work.shouldDisableCaching() : Optional.of(BUILD_CACHE_DISABLED_REASON))
-                    .map(disabledReason -> CachingState.disabledWithoutInputs(disabledReason))
+                .orElseGet(() -> (buildCache.isEnabled()
+                        ? work.shouldDisableCaching(null)
+                        : Optional.of(BUILD_CACHE_DISABLED_REASON)
+                    )
+                    .map(CachingState::disabledWithoutInputs)
                     .orElse(CachingState.NOT_DETERMINED)
                 );
         }
@@ -130,13 +134,8 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
             }
 
             @Override
-            public OriginMetadata getOriginMetadata() {
-                return result.getOriginMetadata();
-            }
-
-            @Override
-            public boolean isReused() {
-                return result.isReused();
+            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                return result.getReusedOutputOriginMetadata();
             }
 
             @Override
@@ -154,9 +153,10 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
         if (!buildCache.isEnabled()) {
             builder.markNotCacheable(BUILD_CACHE_DISABLED_REASON);
         }
-        work.shouldDisableCaching().ifPresent(noCacheReason -> {
-            builder.markNotCacheable(noCacheReason);
-        });
+        OverlappingOutputs detectedOverlappingOutputs = executionState.getDetectedOverlappingOutputs()
+            .orElse(null);
+        work.shouldDisableCaching(detectedOverlappingOutputs)
+            .ifPresent(builder::markNotCacheable);
 
         builder.withImplementation(executionState.getImplementation());
         builder.withAdditionalImplementations(executionState.getAdditionalImplementations());

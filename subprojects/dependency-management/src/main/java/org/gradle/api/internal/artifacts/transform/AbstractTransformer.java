@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
 
 public abstract class AbstractTransformer<T> implements Transformer {

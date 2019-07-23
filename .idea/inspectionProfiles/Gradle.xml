@@ -1,31 +1,30 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Gradle" />
-    <inspection_tool class="Anonymous2MethodRef" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="AnonymousHasLambdaAlternative" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="CodeBlock2Expr" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="ComparatorCombinators" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Convert2Diamond" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Convert2Lambda" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Convert2MethodRef" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="CatchMayIgnoreException" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="Convert2streamapi" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="EqualsReplaceableByObjectsCall" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="FoldExpressionIntoStream" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="Guava" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Java8ArraySetAll" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="Java8CollectionRemoveIf" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Java8ListSort" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Java8MapApi" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Java8MapForEach" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="LambdaCanBeMethodCall" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="SafeVarargsDetector" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="SimplifyForEach" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="Since15" enabled="true" level="ERROR" enabled_by_default="true">
-      <effectiveLL value="JDK_1_8" />
+    <inspection_tool class="FieldNamingConvention" enabled="true" level="ERROR" enabled_by_default="true">
+      <extension name="InstanceVariableNamingConvention" enabled="true">
+        <option name="m_regex" value="[a-z][A-Za-z\d]*" />
+        <option name="m_minLength" value="2" />
+        <option name="m_maxLength" value="999" />
+      </extension>
     </inspection_tool>
-    <inspection_tool class="StaticPseudoFunctionalStyleMethod" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="TryFinallyCanBeTryWithResources" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="TryWithIdenticalCatches" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="FoldExpressionIntoStream" enabled="false" level="INFORMATION" enabled_by_default="false" />
+    <inspection_tool class="NewMethodNamingConvention" enabled="true" level="ERROR" enabled_by_default="true">
+      <extension name="InstanceMethodNamingConvention" enabled="true">
+        <option name="m_regex" value="[a-z][A-Za-z\d]*" />
+        <option name="m_minLength" value="2" />
+        <option name="m_maxLength" value="999" />
+      </extension>
+      <extension name="StaticMethodNamingConvention" enabled="true">
+        <option name="m_regex" value="[a-z][A-Za-z\d]*" />
+        <option name="m_minLength" value="2" />
+        <option name="m_maxLength" value="999" />
+      </extension>
+    </inspection_tool>
+    <inspection_tool class="SafeVarargsDetector" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="UNUSED_IMPORT" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="UnstableApiUsage" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="unstableApiAnnotations">
         <set>

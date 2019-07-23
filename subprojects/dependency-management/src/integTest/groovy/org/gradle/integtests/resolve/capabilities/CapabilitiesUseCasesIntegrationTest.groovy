@@ -396,6 +396,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             if ($failOnVersionConflict) {
                configurations.conf.resolutionStrategy.failOnVersionConflict()
             }
+            configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
         """
 
         when:

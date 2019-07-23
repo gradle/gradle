@@ -19,6 +19,8 @@ package org.gradle.api.tasks
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -193,5 +195,29 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/𩸽.txt').exists()
         file('dest/😀.txt').exists()
         false // TODO This test can pass on Windows with proper locale, this force the test to fail, remove once fixed
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Issue("https://github.com/gradle/gradle/issues/2552")
+    def "can copy files to output with named pipes"() {
+        def input = file("input.txt").createFile()
+
+        def outputDirectory = file("output").createDir()
+        def pipe = outputDirectory.file("testPipe").createNamedPipe()
+
+        buildFile << """
+            task copy(type: Copy) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+            }
+        """
+
+        when:
+        run "copy"
+        then:
+        outputDirectory.list().contains input.name
+
+        cleanup:
+        pipe.delete()
     }
 }

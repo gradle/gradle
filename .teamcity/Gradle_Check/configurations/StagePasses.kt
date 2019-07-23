@@ -16,7 +16,7 @@ import model.TestType
 import model.Trigger
 import projects.FunctionalTestProject
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean, rootProjectUuid: String) : BaseGradleBuildType(model, init = {
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean) : BaseGradleBuildType(model, init = {
     uuid = stageTriggerUuid(model, stage)
     id = stageTriggerId(model, stage)
     name = stage.stageName.stageName + " (Trigger)"
@@ -64,7 +64,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             param("revisionRule", "lastFinished")
             param("branchFilter", masterReleaseFilter)
         }
-
     }
 
     params {
@@ -117,10 +116,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
                 model.subProjects.forEach { subProject ->
-                    if (shouldBeSkipped(subProject, testCoverage)) {
-                        return@forEach
-                    }
-                    if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+                    if (shouldBeSkipped(subProject, testCoverage) ||
+                        stage.shouldOmitSlowProject(subProject) ||
+                        !subProject.hasSeparateTestBuild(testCoverage.testType)) {
                         return@forEach
                     }
                     if (subProject.unitTests && testCoverage.testType.unitTests) {
@@ -130,6 +128,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                     } else if (subProject.crossVersionTests && testCoverage.testType.crossVersionTests) {
                         dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
                     }
+                }
+                if (model.subProjects.any { it.includeInMergedTestBuild(testCoverage.testType) }) {
+                    dependency(AbsoluteId(testCoverage.asConfigurationId(model, FunctionalTestProject.allUnitTestsBuildTypeName))) { snapshot {} }
                 }
             } else {
                 dependency(AbsoluteId(testCoverage.asConfigurationId(model))) {

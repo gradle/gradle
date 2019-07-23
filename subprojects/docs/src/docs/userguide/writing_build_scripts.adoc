@@ -205,7 +205,7 @@ include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/configureOb
 [TIP]
 Looking for some Kotlin basics, the link:https://kotlinlang.org/docs/reference/[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
 
-The http://docs.groovy-lang.org/latest/html/documentation/index.html[Groovy language] provides plenty of features for creating DSLs, and the Gradle build language takes advantage of these. Understanding how the build language works will help you when you write your build script, and in particular, when you start to write custom plugins and tasks.
+The https://docs.groovy-lang.org/latest/html/documentation/index.html[Groovy language] provides plenty of features for creating DSLs, and the Gradle build language takes advantage of these. Understanding how the build language works will help you when you write your build script, and in particular, when you start to write custom plugins and tasks.
 
 
 [[sec:groovy_jdk]]
@@ -218,7 +218,7 @@ Groovy adds lots of useful methods to the standard Java classes. For example, `I
 include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=groovyJdk]"]
 ====
 
-Have a look at http://groovy-lang.org/gdk.html[] for more details.
+Have a look at https://groovy-lang.org/gdk.html[] for more details.
 
 [[sec:property_accessors]]
 === Property accessors
@@ -255,7 +255,7 @@ include::sample[dir="userguide/tutorial/groovy",files="build.gradle[tags=listAnd
 [[sec:closures_as_the_last_parameter_in_a_method]]
 === Closures as the last parameter in a method
 
-The Gradle DSL uses closures in many places. You can find out more about closures http://docs.groovy-lang.org/latest/html/documentation/index.html#_closures[here]. When the last parameter of a method is a closure, you can place the closure after the method call:
+The Gradle DSL uses closures in many places. You can find out more about closures https://docs.groovy-lang.org/latest/html/documentation/index.html#_closures[here]. When the last parameter of a method is a closure, you can place the closure after the method call:
 
 .Closure as method parameter
 ====
@@ -282,5 +282,5 @@ Listed below are the imports added to each script:
 .Gradle default imports
 [source,groovy]
 ----
-include::../../../build/generated-resources/main/default-imports.txt[]
+include::main/default-imports.txt[]
 ----

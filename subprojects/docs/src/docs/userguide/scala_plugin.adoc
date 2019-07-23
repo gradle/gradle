@@ -168,7 +168,7 @@ include::sample[dir="userguide/scala/zincOverride/groovy",files="build.gradle[ta
 include::sample[dir="userguide/scala/zincOverride/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
 ====
 
-You can diagnose problems with the version of the Zinc compiler selected by running <<inspecting_dependencies.adoc#inspecting_dependencies,dependencyInsight>> for the `zinc` configuration.
+You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#,dependencyInsight>> for the `zinc` configuration.
 
 
 [[sec:scala_convention_properties]]

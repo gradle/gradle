@@ -61,6 +61,8 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -73,6 +75,7 @@ import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.mak
  * Packages build cache entries to a POSIX TAR file.
  */
 public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
+
     @SuppressWarnings("OctalInteger")
     private interface UnixPermissions {
         int FILE_FLAG =         0100000;
@@ -82,6 +85,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         int PERM_MASK           = 07777;
     }
 
+    private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
     private static final int BUFFER_SIZE = 64 * 1024;
@@ -110,7 +114,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         } else {
             bufferedOutput = new BufferedOutputStream(output);
         }
-        try (TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(bufferedOutput, "utf-8")) {
+        try (TarArchiveOutputStream tarOutput = new TarArchiveOutputStream(bufferedOutput, ENCODING.name())) {
             tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
@@ -156,7 +160,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     @Override
     public UnpackResult unpack(CacheableEntity entity, InputStream input, OriginReader readOrigin) throws IOException {
-        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(input)) {
+        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(input, ENCODING.name())) {
             return unpack(entity, tarInput, readOrigin);
         }
     }
@@ -311,7 +315,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 builder.preVisitDirectory(internedAbsolutePath, internedDirName);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
-                builder.visit(fileSnapshot);
+                builder.visitFile(fileSnapshot);
             }
         }
 
@@ -329,7 +333,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private static String escape(String name) {
         try {
-            return URLEncoder.encode(name, "utf-8");
+            return URLEncoder.encode(name, ENCODING.name());
         } catch (UnsupportedEncodingException ignored) {
             throw new AssertionError();
         }
@@ -337,7 +341,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private static String unescape(String name) {
         try {
-            return URLDecoder.decode(name, "utf-8");
+            return URLDecoder.decode(name, ENCODING.name());
         } catch (UnsupportedEncodingException e) {
             throw new AssertionError(e);
         }
@@ -364,25 +368,28 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         @Override
         public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-            boolean root = relativePathStringTracker.isRoot();
+            boolean isRoot = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(directorySnapshot);
-            assertCorrectType(root, directorySnapshot);
-            String targetPath = getTargetPath(root);
-            int mode = root ? UnixPermissions.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
+            assertCorrectType(isRoot, directorySnapshot);
+            String targetPath = getTargetPath(isRoot);
+            int mode = isRoot ? UnixPermissions.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
             storeDirectoryEntry(targetPath, mode, tarOutput);
             entries++;
             return true;
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
-            boolean root = relativePathStringTracker.isRoot();
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            boolean isRoot = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(fileSnapshot);
-            String targetPath = getTargetPath(root);
+            String targetPath = getTargetPath(isRoot);
             if (fileSnapshot.getType() == FileType.Missing) {
+                if (!isRoot) {
+                    throw new GradleException(String.format("Couldn't read content of file '%s'", fileSnapshot.getAbsolutePath()));
+                }
                 storeMissingTree(targetPath, tarOutput);
             } else {
-                assertCorrectType(root, fileSnapshot);
+                assertCorrectType(isRoot, fileSnapshot);
                 File file = new File(fileSnapshot.getAbsolutePath());
                 int mode = fileSystem.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);

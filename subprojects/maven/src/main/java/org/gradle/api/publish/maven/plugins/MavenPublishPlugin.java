@@ -43,7 +43,7 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
-import org.gradle.api.publish.maven.internal.versionmapping.DefaultVersionMappingStrategy;
+import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
@@ -178,8 +178,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 // If the Java plugin is applied, we want to express that the "compile" and "runtime" variants
                 // are mapped to some attributes, which can be used in the version mapping strategy.
                 // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
-                generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_JARS)))
-                        .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
+                generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
+                        .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
             });
         });
         publication.setPomGenerator(generatorTask);

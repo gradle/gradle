@@ -18,6 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.operations.BuildOperationRef
+import org.gradle.workers.WorkerExecution
+import org.gradle.workers.WorkerParameters
 import spock.lang.Specification
 
 class WorkerDaemonClientTest extends Specification {
@@ -64,6 +66,11 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def spec() {
-        return new SimpleActionExecutionSpec(Runnable.class, "test", [] as Object[], null)
+        return new SimpleActionExecutionSpec(TestWorkerExecution, "test", null, null)
+    }
+
+    static abstract class TestWorkerExecution implements WorkerExecution<WorkerParameters.None> {
+        @Override
+        void execute() { }
     }
 }

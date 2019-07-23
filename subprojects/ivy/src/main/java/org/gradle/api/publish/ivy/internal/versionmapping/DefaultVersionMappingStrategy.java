@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
+import org.gradle.api.publish.internal.versionmapping.DefaultVariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.component.model.AttributeMatcher;

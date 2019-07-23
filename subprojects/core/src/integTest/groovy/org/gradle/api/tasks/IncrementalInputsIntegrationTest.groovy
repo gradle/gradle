@@ -131,6 +131,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @InputFile
                 abstract RegularFileProperty getNonIncrementalInput()
 
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @Override
                 void execute(InputChanges inputChanges) {
                     inputChanges.getFileChanges(nonIncrementalInput)
@@ -156,6 +160,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
                 @InputFile
                 File nonIncrementalInput
+
+                @Optional
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
 
                 @Override
                 void execute(InputChanges changes) {

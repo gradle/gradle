@@ -181,14 +181,14 @@ They each require a different technique for the migration to Gradle, but you wil
 
 When you are attempting to migrate a build that stores its dependencies on the filesystem, either locally or on the network, you should consider whether you want to eventually move to managed dependencies using remote repositories. That's because you can incorporate filesystem dependencies into a Gradle build in one of two ways:
 
- * Define a <<repository_types#sec:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
+ * Define a <<declaring_repositories.adoc.adoc#sub:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
  * Attach the files directly to the appropriate dependency configurations (<<declaring_dependencies#sec:declaring_file_dependency,file dependencies>>)
 
 It's easier to migrate to managed dependencies served from Maven- or Ivy-compatible repositories if you take the first approach, but doing so requires all your files to conform to the naming convention "<moduleName>-<version>.<extension>".
 
 [NOTE]
 ====
-If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories#sec:declaring_custom_repository,custom Maven repository>> with a "file://" URL.
+If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories.adoc#sec:declaring_custom_repository,custom Maven repository>> with a "file://" URL.
 ====
 
 To demonstrate the two techniques, consider a project that has the following library JARs in its `libs` directory:
@@ -240,7 +240,7 @@ This similarity means that it's usually quite straightforward to migrate from Iv
  * Transcribe any configuration declarations from your module descriptors into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[configurations {}] block of the build script for any custom configurations that can't be replaced by Gradle's standard ones.
  * Transcribe the resolvers from your Ivy settings file into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[repositories {}] block of the build script.
 
-See the chapters on <<declaring_dependencies#declaring_dependencies,Declaring Dependencies>>, <<managing_dependency_configurations#managing_dependency_configurations,Managing Dependency Configurations>> and <<declaring_repositories#declaring_repositories,Declaring Repositories>> for more information.
+See the chapters on <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,Managing Dependency Configurations>>, <<declaring_dependencies.adoc#sec:dependency-types,Declaring Dependencies>> and <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>> for more information.
 
 Ivy provides several Ant tasks that handle Ivy's process for fetching dependencies. The basic steps of that process consist of:
 
@@ -260,7 +260,8 @@ Some Ivy configuration options have no equivalent in Gradle. For example, there 
 See the chapters on <<managing_transitive_dependencies#managing_transitive_dependencies,Managing Transitive Dependencies>> and <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> for more information on this aspect of Gradle.
 
 Resolution::
-At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache. It searches the repositories for those dependencies, with the search order defined by <<declaring_repositories#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
+At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache.
+It searches the repositories for those dependencies, with the search order defined by <<declaring_repositories.adoc#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
 +
 It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use versions like `1.0.+`. You can also use the special `latest.integration` and `latest.release` labels if you wish. If you decide to use such <<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic>> and <<declaring_dependencies#sub:declaring_dependency_with_changing_version,changing>> dependencies, you can configure the caching behavior for them via link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[resolutionStrategy].
 +

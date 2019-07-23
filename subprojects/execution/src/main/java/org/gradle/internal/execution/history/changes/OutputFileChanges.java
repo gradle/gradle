@@ -22,15 +22,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class OutputFileChanges extends AbstractFingerprintChanges {
 
-    private final boolean includeAdded;
-
-    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, boolean includeAdded) {
+    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
         super(previous, current, "Output");
-        this.includeAdded = includeAdded;
-    }
-
-    @Override
-    public boolean accept(ChangeVisitor visitor) {
-        return accept(visitor, includeAdded);
     }
 }

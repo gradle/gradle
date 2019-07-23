@@ -23,10 +23,12 @@ import org.kohsuke.github.GHIssue
 import org.kohsuke.github.GHIssueState
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.util.environment.RestoreSystemProperties
 
 import static org.gradle.ci.github.GitHubIssuesClient.CI_TRACKED_FLAKINESS_LABEL
 import static DefaultPerformanceFlakinessAnalyzer.GITHUB_FIX_IT_LABEL
 import static DefaultPerformanceFlakinessAnalyzer.GITHUB_IN_PERFORMANCE_LABEL
+import static org.gradle.performance.results.DefaultPerformanceFlakinessAnalyzer.*
 
 class DefaultPerformanceFlakinessAnalyzerTest extends Specification {
     GitHubIssuesClient issuesClient = Mock(GitHubIssuesClient)
@@ -47,8 +49,10 @@ class DefaultPerformanceFlakinessAnalyzerTest extends Specification {
         ]
     )
 
+    @RestoreSystemProperties
     def 'known flaky issue gets commented, reopened and labeled as fix-it'() {
         given:
+        System.setProperty(BRANCH_PROPERTY_NAME, 'my-branch')
         GHIssue issue = Mock(GHIssue)
         1 * flakyTestProvider.knownInvalidFailures >> [new FlakyTest(name: 'my.AwesomeClass.otherScenario'), new FlakyTest(name: 'my.AwesomeClass.myScenario', issue: issue)]
         1 * issue.state >> GHIssueState.CLOSED
@@ -64,6 +68,7 @@ class DefaultPerformanceFlakinessAnalyzerTest extends Specification {
 FROM-BOT
 
 Coordinator url: https://builds.gradle.org/viewLog.html?buildId=${System.getenv("BUILD_ID")}
+Branch: my-branch
 Worker url: myUrl
 Agent: [myAgent](myAgentUrl)
 Details:
@@ -97,6 +102,7 @@ MESSAGE: we're slower than
 FROM-BOT
 
 Coordinator url: https://builds.gradle.org/viewLog.html?buildId=${System.getenv("BUILD_ID")}
+Branch: ${System.getProperty('org.gradle.performance.execution.branch')}
 Worker url: myUrl
 Agent: [myAgent](myAgentUrl)
 Details:

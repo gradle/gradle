@@ -21,12 +21,14 @@ import library
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.api.plugins.JavaTestFixturesPlugin
-import org.gradle.api.plugins.internal.JavaPluginsHelper
+import org.gradle.api.plugins.internal.JvmPluginsHelper
 import org.gradle.language.jvm.tasks.ProcessResources
 import testLibrary
 import java.io.File
@@ -92,8 +94,11 @@ open class TestFixturesPlugin : Plugin<Project> {
         // as this is required at least by one project (idePlay)
         val processResources = tasks.named<ProcessResources>("processTestFixturesResources")
         testFixturesRuntimeElements.outgoing.variants.maybeCreate("resources").run {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME_RESOURCES))
-            artifact(object : JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
+            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
+
+            artifact(object : JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
                 override fun getFile(): File {
                     return processResources.get().destinationDir
                 }

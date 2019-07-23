@@ -76,7 +76,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             }
         }
 
-        return new TaskClassInfo(incremental, taskActionFactoriesBuilder.build(), cacheable);
+        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable);
     }
 
     @Nullable

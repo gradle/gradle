@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":baseServicesGroovy")) // for 'Specs'
+    implementation(project(":fileCollections"))
     implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":buildCache"))
@@ -57,10 +58,13 @@ dependencies {
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
+    implementation(futureKotlin("scripting-compiler-impl-embeddable")) {
+        isTransitive = false
+    }
     implementation(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.1.0") {
         isTransitive = false
     }
 
@@ -97,7 +101,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.8" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.9" // TODO:kotlin-dsl
 
 tasks {
 

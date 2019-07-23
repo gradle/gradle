@@ -29,9 +29,9 @@ digraph cppLibraryConfigurations {
 
   subgraph left {
     node[style=filled, fillcolor="#cfe2f3"]
-    cppCompilerVariant -> nativeLinkVariant -> nativeRuntimeVariant [style=invis, weight=1000]
+    cppCompileVariant -> nativeLinkVariant -> nativeRuntimeVariant [style=invis, weight=1000]
 
-    cppCompilerVariant[label=<cppCompiler<i>Variant</i> (R)>]
+    cppCompileVariant[label=<cppCompile<i>Variant</i> (R)>]
     nativeLinkVariant[label=<nativeLink<i>Variant</i> (R)>]
     nativeRuntimeVariant[label=<nativeRuntime<i>Variant</i> (R)>]
   }
@@ -46,10 +46,10 @@ digraph cppLibraryConfigurations {
   }
 
   // Ensure the order is preserved
-  {rank=same cppCompilerVariant implementation cppApiElements}
+  {rank=same cppCompileVariant implementation cppApiElements}
   {rank=same variantLinkElements mainVariantImplementation nativeLinkVariant}
   nativeLinkVariant -> mainVariantImplementation -> variantLinkElements [style=invis]
 
-  {cppCompilerVariant, nativeLinkVariant, nativeRuntimeVariant} -> mainVariantImplementation [headport=w, tailport=e]
+  {cppCompileVariant, nativeLinkVariant, nativeRuntimeVariant} -> mainVariantImplementation [headport=w, tailport=e]
   {cppApiElements, variantLinkElements, variantRuntimeElements} -> mainVariantImplementation [headport=e, tailport=w]
 }

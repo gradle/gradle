@@ -29,5 +29,5 @@ public interface FingerprintCompareStrategy {
      *
      * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
      */
-    boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, boolean includeAdded, ChangeVisitor visitor);
+    boolean visitChangesSince(FileCollectionFingerprint current, FileCollectionFingerprint previous, String propertyTitle, ChangeVisitor visitor);
 }

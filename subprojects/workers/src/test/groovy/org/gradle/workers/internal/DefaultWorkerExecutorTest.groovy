@@ -17,14 +17,18 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
 import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.workers.WorkerParameters
+import org.gradle.workers.WorkerSpec
 import spock.lang.Specification
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
@@ -45,6 +49,9 @@ class DefaultWorkerExecutorTest extends Specification {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def forkOptionsFactory = TestFiles.execFactory(temporaryFolder.testDirectory)
+    def objectFactory = Stub(ObjectFactory) {
+        fileCollection() >> { TestFiles.fileCollectionFactory().configurableFiles() }
+    }
     def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
         getWorkingDirectory() >> { temporaryFolder.testDirectory }
     }
@@ -54,12 +61,16 @@ class DefaultWorkerExecutorTest extends Specification {
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def worker = Mock(BuildOperationAwareWorker)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
+    def instantiator = Mock(Instantiator)
+    def parameters = Mock(AdapterWorkerParameters)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory)
+        _ * instantiator.newInstance(AdapterWorkerParameters) >> parameters
+        _ * instantiator.newInstance(DefaultWorkerSpec, _) >> { args -> new DefaultWorkerSpec<>(forkOptionsFactory, objectFactory, args[1][0]) }
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
@@ -96,7 +107,7 @@ class DefaultWorkerExecutorTest extends Specification {
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
-        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory)
+        WorkerSpec configuration = new DefaultWorkerSpec<WorkerParameters.None>(forkOptionsFactory, objectFactory, null)
 
         given:
         configuration.forkOptions { options ->
@@ -122,9 +133,9 @@ class DefaultWorkerExecutorTest extends Specification {
 
     def "can add to classpath on executor"() {
         given:
-        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory)
-        def foo = new File("/foo")
-        configuration.classpath([foo])
+        WorkerSpec configuration = new DefaultWorkerSpec<WorkerParameters.None>(forkOptionsFactory, objectFactory, null)
+        def foo = temporaryFolder.createFile("foo")
+        configuration.classpath.from([foo])
 
         when:
         DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
@@ -144,6 +155,8 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         then:
+        _ * parameters.implementationClassName >> TestRunnable.class.getName()
+        _ * parameters.params >> []
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -166,6 +179,8 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         then:
+        _ * parameters.implementationClassName >> TestRunnable.class.getName()
+        _ * parameters.params >> []
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -188,6 +203,8 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         then:
+        _ * parameters.implementationClassName >> TestRunnable.class.getName()
+        _ * parameters.params >> []
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -207,7 +224,7 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
             configuration.isolationMode = IsolationMode.NONE
             configuration.params = []
-            configuration.classpath([new File("foo")])
+            configuration.classpath([temporaryFolder.createFile("foo")])
         }
 
         then:

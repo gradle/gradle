@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.instantiation;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
@@ -56,8 +55,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
-import org.gradle.internal.state.ManagedFactory;
-import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.util.CollectionUtils;
@@ -109,7 +106,7 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
-public class AsmBackedClassGenerator extends AbstractClassGenerator implements ManagedFactory {
+public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<ObjectCreationDetails>();
     private static final AtomicReference<CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
     private final boolean decorate;
@@ -122,17 +119,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         return SERVICES_FOR_NEXT_OBJECT.get().services;
     }
 
-    private AsmBackedClassGenerator(boolean decorate, String suffix, Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses) {
+    // Used by generated code
+    @SuppressWarnings("unused")
+    public static Instantiator getInstantiatorForNext() {
+        return SERVICES_FOR_NEXT_OBJECT.get().instantiator;
+    }
+
+    private AsmBackedClassGenerator(boolean decorate, String suffix, Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses, int factoryId) {
         super(allKnownAnnotations, enabledAnnotations, generatedClasses);
         this.decorate = decorate;
         this.suffix = suffix;
-        this.factoryId = Objects.hashCode(getClass().getName(), suffix, allKnownAnnotations, enabledAnnotations, generatedClasses);
+        this.factoryId = factoryId;
     }
 
     /**
      * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
-    static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, ManagedFactoryRegistry managedFactoryRegistry) {
+    static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, int factoryId) {
         String suffix;
         CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
         if (enabledAnnotations.isEmpty()) {
@@ -153,29 +156,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             generatedClasses = cacheFactory.newClassMap();
         }
 
-        AsmBackedClassGenerator generator = new AsmBackedClassGenerator(true, suffix, allKnownAnnotations, enabledAnnotations, generatedClasses);
-        registerManagedFactory(managedFactoryRegistry, generator);
-        return generator;
+        return new AsmBackedClassGenerator(true, suffix, allKnownAnnotations, enabledAnnotations, generatedClasses, factoryId);
     }
 
     /**
      * Returns a generator that applies service injection only for generated classes, and will generate classes only if required.
      */
-    static ClassGenerator injectOnly(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, ManagedFactoryRegistry managedFactoryRegistry) {
+    static ClassGenerator injectOnly(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCacheFactory cacheFactory, int factoryId) {
         // TODO - the suffix should be a deterministic function of the known and enabled annotations
         // For now, just assign using a counter
         String suffix = ClassGeneratorSuffixRegistry.assign("$Inject");
-        AsmBackedClassGenerator generator = new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledAnnotations, cacheFactory.newClassMap());
-        registerManagedFactory(managedFactoryRegistry, generator);
-        return generator;
-    }
-
-    private static void registerManagedFactory(ManagedFactoryRegistry managedFactoryRegistry, AsmBackedClassGenerator generator) {
-        // Don't register the generator if there is already one registered with the same criteria.
-        // (e.g. we reuse the same cache and suffix for decorated generators with empty annotations)
-        if (managedFactoryRegistry.lookup(generator.getId()) == null) {
-            managedFactoryRegistry.register(generator);
-        }
+        return new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledAnnotations, cacheFactory.newClassMap(), factoryId);
     }
 
     @Override
@@ -199,19 +190,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             formatter.append(" is not a class or interface.");
             throw new ClassGenerationException(formatter.toString());
         }
-        return new ClassInspectionVisitorImpl(type, decorate, suffix, getId());
-    }
-
-    @Nullable
-    @Override
-    public <T> T fromState(Class<T> type, Object state) {
-        Class<?> generatedClass = generate(type).getGeneratedClass();
-        return new ManagedTypeFactory(generatedClass).fromState(type, state);
-    }
-
-    @Override
-    public int getId() {
-        return factoryId;
+        return new ClassInspectionVisitorImpl(type, decorate, suffix, factoryId);
     }
 
     private static class ClassInspectionVisitorImpl implements ClassInspectionVisitor {
@@ -225,6 +204,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         private boolean managed;
         private boolean providesOwnDynamicObjectImplementation;
         private boolean providesOwnServicesImplementation;
+        private boolean instantiatesNestedObjects;
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
             this.type = type;
@@ -268,6 +248,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
+        public void instantiatesNestedObjects() {
+            instantiatesNestedObjects = true;
+        }
+
+        @Override
         public ClassGenerationVisitor builder() {
             if (!decorate && !serviceInjection && !Modifier.isAbstract(type.getModifiers())) {
                 // Don't need to generate a subclass
@@ -288,7 +273,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
                 throw new ClassGenerationException(formatter.toString());
             }
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
-            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresServicesMethod);
+            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresServicesMethod, instantiatesNestedObjects);
             builder.startClass();
             return builder;
         }
@@ -303,6 +288,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         private static final String SERVICES_FIELD = "_gr_svcs_";
         private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_ID_FIELD = "_gr_factory_";
+        private static final String INSTANTIATOR_FIELD = "_gr_insttr_";
+        private static final String INSTANTIATOR_METHOD = "$gradleInstantiator";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = Type.getType(MetaClass.class);
@@ -325,6 +312,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         private static final Type CLOSURE_TYPE = Type.getType(Closure.class);
         private static final Type SERVICE_REGISTRY_TYPE = Type.getType(ServiceRegistry.class);
         private static final Type SERVICE_LOOKUP_TYPE = Type.getType(ServiceLookup.class);
+        private static final Type INSTANTIATOR_TYPE = Type.getType(Instantiator.class);
         private static final Type JAVA_LANG_REFLECT_TYPE = Type.getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = Type.getType(Object.class);
         private static final Type CLASS_TYPE = Type.getType(Class.class);
@@ -368,10 +356,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         private static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(META_CLASS_REGISTRY_TYPE);
         private static final String RETURN_SERVICE_REGISTRY = Type.getMethodDescriptor(SERVICE_REGISTRY_TYPE);
         private static final String RETURN_SERVICE_LOOKUP = Type.getMethodDescriptor(SERVICE_LOOKUP_TYPE);
+        private static final String RETURN_INSTANTIATOR = Type.getMethodDescriptor(INSTANTIATOR_TYPE);
         private static final String RETURN_META_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE);
         private static final String RETURN_VOID_FROM_META_CLASS = Type.getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
+        private static final String RETURN_OBJECT_FROM_CLASS_OBJECT_ARRAY = Type.getMethodDescriptor(OBJECT_TYPE, CLASS_TYPE, OBJECT_ARRAY_TYPE);
         private static final String RETURN_CONFIGURABLE_FILE_COLLECTION = Type.getMethodDescriptor(CONFIGURABLE_FILE_COLLECTION_TYPE);
         private static final String RETURN_REGULAR_FILE_PROPERTY = Type.getMethodDescriptor(REGULAR_FILE_PROPERTY_TYPE);
         private static final String RETURN_DIRECTORY_PROPERTY = Type.getMethodDescriptor(DIRECTORY_PROPERTY_TYPE);
@@ -397,20 +387,33 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         private final boolean extensible;
         private final boolean providesOwnDynamicObject;
         private final boolean requiresServicesMethod;
+        private final boolean requiresInstantiator;
 
-        private ClassBuilderImpl(Class<?> type, boolean decorated, String suffix, int factoryId, boolean extensible, boolean conventionAware, boolean managed, boolean providesOwnDynamicObject, boolean requiresServicesMethod) {
+        private ClassBuilderImpl(
+            Class<?> type,
+            boolean decorated,
+            String suffix,
+            int factoryId,
+            boolean extensible,
+            boolean conventionAware,
+            boolean managed,
+            boolean providesOwnDynamicObject,
+            boolean requiresServicesMethod,
+            boolean requiresInstantiator
+        ) {
             this.type = type;
             this.factoryId = factoryId;
             this.managed = managed;
-            classGenerator = new AsmClassGenerator(type, suffix);
-            visitor = classGenerator.getVisitor();
-            generatedType = classGenerator.getGeneratedType();
-            superclassType = Type.getType(type);
-            mixInDsl = decorated;
+            this.classGenerator = new AsmClassGenerator(type, suffix);
+            this.visitor = classGenerator.getVisitor();
+            this.generatedType = classGenerator.getGeneratedType();
+            this.superclassType = Type.getType(type);
+            this.mixInDsl = decorated;
             this.extensible = extensible;
             this.conventionAware = conventionAware;
             this.providesOwnDynamicObject = providesOwnDynamicObject;
             this.requiresServicesMethod = requiresServicesMethod;
+            this.requiresInstantiator = requiresInstantiator;
         }
 
         public void startClass() {
@@ -449,6 +452,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
 
             if (requiresServicesMethod) {
                 generateServiceRegistrySupportMethods();
+            }
+            if (requiresInstantiator) {
+                generateInstantiatorSupportMethods();
             }
             generatePublicTypeMethod();
         }
@@ -509,6 +515,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getServicesForNext", RETURN_SERVICE_LOOKUP, false);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), SERVICES_FIELD, SERVICE_LOOKUP_TYPE.getDescriptor());
+            }
+            if (requiresInstantiator) {
+                // this.instantiator = AsmBackedClassGenerator.getInstantiatorForNext()
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getInstantiatorForNext", RETURN_INSTANTIATOR, false);
+                methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), INSTANTIATOR_FIELD, INSTANTIATOR_TYPE.getDescriptor());
             }
         }
 
@@ -747,7 +759,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         /**
          * Adds a getter that returns the value of the given field, initializing it if null using the given code. The code should leave the value on the top of the stack.
          */
-        private void addLazyGetter(String methodName, Type returnType, String methodDescriptor, String signature, final String fieldName, final Type fieldType, final MethodCodeBody initializer) {
+        private void addLazyGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, final String fieldName, final Type fieldType, final MethodCodeBody initializer) {
             addGetter(methodName, returnType, methodDescriptor, signature, new MethodCodeBody() {
                 @Override
                 public void add(MethodVisitor visitor) {
@@ -774,7 +786,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         /**
          * Adds a getter that returns the value that the given code leaves on the top of the stack.
          */
-        private void addGetter(String methodName, Type returnType, String methodDescriptor, String signature, MethodCodeBody body) {
+        private void addGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, MethodCodeBody body) {
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, methodName, methodDescriptor, signature, EMPTY_STRINGS);
             methodVisitor.visitCode();
             body.add(methodVisitor);
@@ -800,8 +812,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
 
                     methodVisitor.visitVarInsn(ALOAD, 1);
-                    String getPropertyDesc = RETURN_OBJECT_FROM_STRING;
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "getProperty", getPropertyDesc, true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "getProperty", RETURN_OBJECT_FROM_STRING, true);
 
                     // END
                 }
@@ -838,8 +849,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
 
                         methodVisitor.visitVarInsn(ALOAD, 1);
                         methodVisitor.visitVarInsn(ALOAD, 2);
-                        String setPropertyDesc = RETURN_VOID_FROM_STRING_OBJECT;
-                        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "setProperty", setPropertyDesc, true);
+                        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "setProperty", RETURN_VOID_FROM_STRING_OBJECT, true);
 
                         // END
                     }
@@ -922,7 +932,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
-        public void applyServiceInjectionToGetter(PropertyMetadata property, final Class<? extends Annotation> annotation, MethodMetadata getter) {
+        public void applyServiceInjectionToGetter(PropertyMetadata property, @Nullable final Class<? extends Annotation> annotation, MethodMetadata getter) {
             // GENERATE public <type> <getter>() { if (<field> == null) { <field> = <services>>.get(<service-type>>); } return <field> }
             final String getterName = getter.getName();
             Type returnType = Type.getType(getter.getReturnType());
@@ -1050,6 +1060,26 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
+        public void applyNestedManagedStateToGetter(PropertyMetadata property, Method getter) {
+            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = getInstantiator().newInstance(type); } return <field> }
+            Type propType = Type.getType(property.getType());
+            Type returnType = Type.getType(getter.getReturnType());
+            addLazyGetter(getter.getName(), returnType, Type.getMethodDescriptor(returnType), null, propFieldName(property), propType, methodVisitor -> {
+                // GENERATE getInstantiator()
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), INSTANTIATOR_METHOD, RETURN_INSTANTIATOR, false);
+
+                // GENERATE instantiator.newInstance(type)
+                Type propertyType = Type.getType(property.getType());
+                methodVisitor.visitLdcInsn(propertyType);
+                methodVisitor.visitInsn(Opcodes.ICONST_0);
+                methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, INSTANTIATOR_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_CLASS_OBJECT_ARRAY, true);
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, propertyType.getInternalName());
+            });
+        }
+
+        @Override
         public void applyManagedStateToGetter(PropertyMetadata property, Method getter) {
             // GENERATE public <type> <getter>() { return <field> }
             Type returnType = Type.getType(getter.getReturnType());
@@ -1103,7 +1133,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
-        public void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties) {
+        public void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties) {
             visitor.visitField(ACC_PRIVATE | ACC_STATIC, FACTORY_ID_FIELD, Type.INT_TYPE.getDescriptor(), null, null);
 
             // Generate: <init>(Object[] state) { }
@@ -1114,26 +1144,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             } else {
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", RETURN_VOID, false);
             }
-            for (int i = 0; i < mutableProperties.size(); i++) {
-                PropertyMetadata propertyMetaData = mutableProperties.get(i);
+            int propertyIndex = 0;
+            for (PropertyMetadata propertyMetaData : mutableProperties) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitLdcInsn(i);
+                methodVisitor.visitLdcInsn(propertyIndex);
                 methodVisitor.visitInsn(AALOAD);
                 unboxOrCast(methodVisitor, propertyMetaData.getType(), Type.getType(propertyMetaData.getType()));
                 String propFieldName = propFieldName(propertyMetaData);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
+                propertyIndex++;
             }
-            for (int i = 0; i < readOnlyProperties.size(); i++) {
-                PropertyMetadata propertyMetaData = readOnlyProperties.get(i);
+            int mutablePropertySize = propertyIndex;
+            propertyIndex = 0;
+            for (PropertyMetadata propertyMetaData : readOnlyProperties) {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitLdcInsn(i + mutableProperties.size());
+                methodVisitor.visitLdcInsn(propertyIndex + mutablePropertySize);
                 methodVisitor.visitInsn(AALOAD);
                 unboxOrCast(methodVisitor, propertyMetaData.getType(), Type.getType(propertyMetaData.getType()));
                 String propFieldName = propFieldName(propertyMetaData);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
+                propertyIndex++;
             }
+            int readOnlyPropertySize = propertyIndex;
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
@@ -1141,36 +1175,38 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             // Generate: Class immutable() { return <properties.empty> && <read-only-properties.empty> }
             methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
             // Could return true if all of the read only properties point to immutable objects, but at this stage there are no such types supported
-            methodVisitor.visitLdcInsn(mutableProperties.isEmpty() && readOnlyProperties.isEmpty());
+            methodVisitor.visitLdcInsn(mutablePropertySize == 0 && readOnlyPropertySize == 0);
             methodVisitor.visitInsn(IRETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
             // Generate: Object[] unpackState() { state = new Object[<size>]; state[x] = <prop-field>; return state; }
             methodVisitor = visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT, null, EMPTY_STRINGS);
-            methodVisitor.visitLdcInsn(mutableProperties.size() + readOnlyProperties.size());
+            methodVisitor.visitLdcInsn(mutablePropertySize + readOnlyPropertySize);
             methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
             // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
-            for (int i = 0; i < mutableProperties.size(); i++) {
-                PropertyMetadata property = mutableProperties.get(i);
+            propertyIndex = 0;
+            for (PropertyMetadata property : mutableProperties) {
                 String propFieldName = propFieldName(property);
                 methodVisitor.visitInsn(DUP);
-                methodVisitor.visitLdcInsn(i);
+                methodVisitor.visitLdcInsn(propertyIndex);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 Type propertyType = Type.getType(property.getType());
                 methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), propFieldName, propertyType.getDescriptor());
                 maybeBox(methodVisitor, property.getType(), propertyType);
                 methodVisitor.visitInsn(Opcodes.AASTORE);
+                propertyIndex++;
             }
-            for (int i = 0; i < readOnlyProperties.size(); i++) {
-                PropertyMetadata property = readOnlyProperties.get(i);
+            propertyIndex = 0;
+            for (PropertyMetadata property : readOnlyProperties) {
                 methodVisitor.visitInsn(DUP);
-                methodVisitor.visitLdcInsn(i + mutableProperties.size());
+                methodVisitor.visitLdcInsn(propertyIndex + mutablePropertySize);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 MethodMetadata getter = property.getMainGetter();
                 methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(Type.getType(getter.getReturnType())), false);
                 maybeBox(methodVisitor, property.getType(), Type.getType(property.getType()));
                 methodVisitor.visitInsn(Opcodes.AASTORE);
+                propertyIndex++;
             }
             methodVisitor.visitInsn(ARETURN);
             methodVisitor.visitMaxs(0, 0);
@@ -1429,6 +1465,32 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
             generateGetServices();
         }
 
+        private void generateInstantiatorSupportMethods() {
+            generateInstantiatorField();
+            generateGetInstantiator();
+        }
+
+        private void generateInstantiatorField() {
+            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, INSTANTIATOR_FIELD, INSTANTIATOR_TYPE.getDescriptor(), null, null);
+        }
+
+        private void generateGetInstantiator() {
+            MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, INSTANTIATOR_METHOD, RETURN_INSTANTIATOR, null, null);
+            mv.visitCode();
+            // GENERATE if (instantiator != null) { return instantiator; } else { return AsmBackedClassGenerator.getInstantiatorForNext(); }
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitFieldInsn(GETFIELD, generatedType.getInternalName(), INSTANTIATOR_FIELD, INSTANTIATOR_TYPE.getDescriptor());
+            mv.visitInsn(DUP);
+            Label label = new Label();
+            mv.visitJumpInsn(IFNULL, label);
+            mv.visitInsn(ARETURN);
+            mv.visitLabel(label);
+            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getInstantiatorForNext", RETURN_INSTANTIATOR, false);
+            mv.visitInsn(ARETURN);
+            mv.visitMaxs(0, 0);
+            mv.visitEnd();
+        }
+
         private void includeNotInheritedAnnotations() {
             for (Annotation annotation : type.getDeclaredAnnotations()) {
                 if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
@@ -1653,6 +1715,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
+        public void applyNestedManagedStateToGetter(PropertyMetadata property, Method getter) {
+        }
+
+        @Override
         public void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter) {
         }
 
@@ -1665,7 +1731,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator implements M
         }
 
         @Override
-        public void addManagedMethods(List<PropertyMetadata> properties, List<PropertyMetadata> readOnlyProperties) {
+        public void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties) {
         }
 
         @Override

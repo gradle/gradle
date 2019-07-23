@@ -68,7 +68,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
                 repositories { maven { url "${mavenRepo.uri}" } }
                 dependencies {
                     conf "org:foo:1.0"
-                    conf "org.gradle:gradle-core:1.0"
+                    conf "org.gradle:gradle-core:1.4"
                     conf "org:bar:default"
                     conf "org.software:some-library:1.2"
                     conf "org.codehaus:groovy-all:2.4.10"
@@ -83,7 +83,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
                 repositories { maven { url = uri("${mavenRepo.uri}") } }
                 dependencies {
                     "conf"("org:foo:1.0")
-                    "conf"("org.gradle:gradle-core:1.0")
+                    "conf"("org.gradle:gradle-core:1.4")
                     "conf"("org:bar:default")
                     "conf"("org.software:some-library:1.2")
                     "conf"("org.codehaus:groovy-all:2.4.10")

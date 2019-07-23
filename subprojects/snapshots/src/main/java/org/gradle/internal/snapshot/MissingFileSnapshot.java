@@ -21,7 +21,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
 /**
- * A snapshot of a missing file.
+ * A snapshot of a missing file or a broken symbolic link or a named pipe.
  */
 public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
@@ -47,6 +47,6 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
 
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visit(this);
+        visitor.visitFile(this);
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.reflect.Instantiator;
@@ -51,16 +50,6 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     private <S extends Task> S process(S task) {
         TaskClassInfo taskClassInfo = taskClassInfoStore.getTaskClassInfo(task.getClass());
-
-        if (taskClassInfo.isIncremental()) {
-            // Add a dummy upToDateWhen spec: this will force TaskOutputs.hasOutputs() to be true.
-            task.getOutputs().upToDateWhen(new Spec<Task>() {
-                @Override
-                public boolean isSatisfiedBy(Task element) {
-                    return true;
-                }
-            });
-        }
 
         for (TaskActionFactory actionFactory : taskClassInfo.getTaskActionFactories()) {
             ((TaskInternal) task).prependParallelSafeAction(actionFactory.create(instantiator));

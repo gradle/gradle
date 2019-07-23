@@ -92,7 +92,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             dependencies {
                 ${dependencyDeclarationsFor(
                     "implementation",
-                    listOf("compiler-embeddable", "scripting-compiler-embeddable")
+                    listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
                 )}
             }
 
@@ -104,7 +104,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         val result = build("dependencies")
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
-        listOf("stdlib", "reflect", "compiler-embeddable", "scripting-compiler-embeddable").forEach {
+        listOf("stdlib", "reflect", "compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable").forEach {
             assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
         }
     }

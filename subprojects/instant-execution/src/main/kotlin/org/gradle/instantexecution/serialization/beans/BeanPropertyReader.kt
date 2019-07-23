@@ -22,21 +22,24 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
+import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.logProperty
+import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
 import sun.reflect.ReflectionFactory
 import java.io.File
+import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.util.concurrent.Callable
@@ -76,14 +79,13 @@ class BeanPropertyReader(
     fun newBean(): Any =
         constructorForSerialization.newInstance()
 
-    fun ReadContext.readFieldsOf(bean: Any) {
+    suspend fun ReadContext.readFieldsOf(bean: Any) {
         readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)
         }
     }
 
-    @Suppress("unchecked_cast")
     private
     fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit =
 
@@ -96,6 +98,11 @@ class BeanPropertyReader(
             RegularFileProperty::class.java -> { bean, value ->
                 field.set(bean, filePropertyFactory.newFileProperty().apply {
                     set(value as File?)
+                })
+            }
+            MapProperty::class.java -> { bean, value ->
+                field.set(bean, DefaultMapProperty(Any::class.java, Any::class.java).apply {
+                    set(value as Map<Any?, Any?>)
                 })
             }
             ListProperty::class.java -> { bean, value ->
@@ -130,7 +137,12 @@ class BeanPropertyReader(
                 if (isAssignableTo(type, value)) {
                     field.set(bean, value)
                 } else if (value != null) {
-                    logPropertyWarning("deserialize", "value $value is not assignable to $type")
+                    logPropertyWarning("deserialize") {
+                        text("value ")
+                        reference(value.toString())
+                        text(" is not assignable to ")
+                        reference(type)
+                    }
                 } // else null value -> ignore
             }
         }
@@ -150,7 +162,7 @@ class BeanPropertyReader(
 /**
  * Reads a sequence of properties written with [writingProperties].
  */
-fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> Unit) {
+suspend fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> Unit) {
     while (true) {
 
         val name = readString()
@@ -162,9 +174,13 @@ fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> U
             val value =
                 try {
                     read().also {
-                        logProperty("deserialize", it)
+                        logPropertyInfo("deserialize", it)
                     }
-                } catch (e: Throwable) {
+                } catch (passThrough: IOException) {
+                    throw passThrough
+                } catch (passThrough: GradleException) {
+                    throw passThrough
+                } catch (e: Exception) {
                     throw GradleException("Could not load the value of $trace.", e)
                 }
             action(name, value)

@@ -23,4 +23,10 @@ class FeaturePreviewsFixture {
 enableFeaturePreview("GRADLE_METADATA")
 """
     }
+
+    static void enableGroovyCompilationAvoidance(File settings) {
+        settings << """
+enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
+"""
+    }
 }

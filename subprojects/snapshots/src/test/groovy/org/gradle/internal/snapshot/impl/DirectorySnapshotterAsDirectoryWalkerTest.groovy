@@ -104,7 +104,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 visited << fileSnapshot.absolutePath
             }
 

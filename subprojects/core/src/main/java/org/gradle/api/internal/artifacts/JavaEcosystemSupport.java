@@ -26,6 +26,7 @@ import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
@@ -41,6 +42,7 @@ import java.util.Set;
 public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
+        configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
     }
@@ -74,12 +76,17 @@ public abstract class JavaEcosystemSupport {
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API_JARS));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_CLASSES));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
+        });
+    }
+
+    private static void configureLibraryElements(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        AttributeMatchingStrategy<LibraryElements> libraryElementsSchema = attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        libraryElementsSchema.getCompatibilityRules().add(LibraryElementsCompatibilityRules.class);
+        libraryElementsSchema.getDisambiguationRules().add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
+            actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
     }
 
@@ -88,10 +95,7 @@ public abstract class JavaEcosystemSupport {
         final Usage javaApi;
         final Usage javaRuntime;
         final Usage javaApiJars;
-        final Usage javaApiClasses;
         final Usage javaRuntimeJars;
-        final Usage javaRuntimeClasses;
-        final Usage javaRuntimeResources;
 
         final ImmutableSet<Usage> apiVariants;
         final ImmutableSet<Usage> runtimeVariants;
@@ -99,20 +103,14 @@ public abstract class JavaEcosystemSupport {
         @Inject
         UsageDisambiguationRules(Usage javaApi,
                                  Usage javaApiJars,
-                                 Usage javaApiClasses,
                                  Usage javaRuntime,
-                                 Usage javaRuntimeJars,
-                                 Usage javaRuntimeClasses,
-                                 Usage javaRuntimeResources) {
+                                 Usage javaRuntimeJars) {
             this.javaApi = javaApi;
             this.javaApiJars = javaApiJars;
-            this.javaApiClasses = javaApiClasses;
-            this.apiVariants = ImmutableSet.of(javaApi, javaApiJars, javaApiClasses);
+            this.apiVariants = ImmutableSet.of(javaApi, javaApiJars);
             this.javaRuntime = javaRuntime;
             this.javaRuntimeJars = javaRuntimeJars;
-            this.javaRuntimeClasses = javaRuntimeClasses;
-            this.javaRuntimeResources = javaRuntimeResources;
-            this.runtimeVariants = ImmutableSet.of(javaRuntime, javaRuntimeJars, javaRuntimeClasses, javaRuntimeResources);
+            this.runtimeVariants = ImmutableSet.of(javaRuntime, javaRuntimeJars);
         }
 
         @Override
@@ -128,26 +126,20 @@ public abstract class JavaEcosystemSupport {
                     details.closestMatch(javaRuntime);
                 }
             } else {
-                if (candidateValues.contains(consumerValue)) {
-                    details.closestMatch(consumerValue);
-                } else if (apiVariants.contains(consumerValue)) {
-                    // we're asking for an API variant, but no exact match was found
-                    if (candidateValues.contains(javaApiClasses)) {
-                        // prefer the most lightweight API
-                        details.closestMatch(javaApiClasses);
-                    } else if (candidateValues.contains(javaApiJars)) {
-                        details.closestMatch(javaApiJars);
-                    } else if (candidateValues.contains(javaApi)) {
-                        // Prefer the API over the runtime when the API has been requested
-                        details.closestMatch(javaApi);
-                    } else if (candidateValues.contains(javaRuntimeClasses)) {
-                        details.closestMatch(javaRuntimeClasses);
-                    } else if (candidateValues.contains(javaRuntimeJars)) {
-                        details.closestMatch(javaRuntimeJars);
-                    }
-                } else if (runtimeVariants.contains(consumerValue)) {
-                    // we're asking for a runtime variant, but no exact match was found
+                if (javaRuntime.equals(consumerValue)) {
+                    // we're asking for a runtime variant, prefer -jars first
                     if (candidateValues.contains(javaRuntimeJars)) {
+                        details.closestMatch(javaRuntimeJars);
+                    } else if (candidateValues.contains(javaRuntime)) {
+                        details.closestMatch(javaRuntime);
+                    }
+                } else if (candidateValues.contains(consumerValue)) {
+                    details.closestMatch(consumerValue);
+                } else if (javaApi.equals(consumerValue)) {
+                    // we're asking for an API variant, prefer -jars first for runtime
+                    if (candidateValues.contains(javaApiJars)) {
+                        details.closestMatch(javaApiJars);
+                    } else if (candidateValues.contains(javaRuntimeJars)) {
                         details.closestMatch(javaRuntimeJars);
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
@@ -161,32 +153,9 @@ public abstract class JavaEcosystemSupport {
     public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
                 Usage.JAVA_API_JARS,
-                Usage.JAVA_API_CLASSES,
-                Usage.JAVA_RUNTIME_JARS,
-                Usage.JAVA_RUNTIME_CLASSES,
-                Usage.JAVA_RUNTIME
-        );
-        private static final Set<String> COMPATIBLE_WITH_JAVA_API_JARS = ImmutableSet.of(
-                Usage.JAVA_API,
                 Usage.JAVA_RUNTIME_JARS,
                 Usage.JAVA_RUNTIME
         );
-        private static final Set<String> COMPATIBLE_WITH_JAVA_API_CLASSES = ImmutableSet.of(
-                Usage.JAVA_API,
-                Usage.JAVA_API_JARS,
-                Usage.JAVA_RUNTIME_JARS,
-                Usage.JAVA_RUNTIME_CLASSES,
-                Usage.JAVA_RUNTIME
-        );
-        private static final Set<String> COMPATIBLE_WITH_JAVA_RUNTIME_CLASSES = ImmutableSet.of(
-                Usage.JAVA_RUNTIME,
-                Usage.JAVA_RUNTIME_JARS
-        );
-        private static final Set<String> COMPATIBLE_WITH_JAVA_RUNTIME_RESOURCES = ImmutableSet.of(
-                Usage.JAVA_RUNTIME,
-                Usage.JAVA_RUNTIME_JARS
-        );
-
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             String consumerValue = details.getConsumerValue().getName();
@@ -197,39 +166,58 @@ public abstract class JavaEcosystemSupport {
                 }
                 return;
             }
-            if (consumerValue.equals(Usage.JAVA_API_CLASSES)) {
-                if (COMPATIBLE_WITH_JAVA_API_CLASSES.contains(producerValue)) {
-                    details.compatible();
-                }
-                return;
-            }
-            if (consumerValue.equals(Usage.JAVA_API_JARS)) {
-                if (COMPATIBLE_WITH_JAVA_API_JARS.contains(producerValue)) {
-                    details.compatible();
-                }
-                return;
-            }
             if (consumerValue.equals(Usage.JAVA_RUNTIME) && producerValue.equals(Usage.JAVA_RUNTIME_JARS)) {
                 details.compatible();
                 return;
             }
-            if (consumerValue.equals(Usage.JAVA_RUNTIME_CLASSES)) {
-                if (COMPATIBLE_WITH_JAVA_RUNTIME_CLASSES.contains(producerValue)) {
-                    // Can use the Java runtime jars if present, but prefer Java runtime classes
-                    details.compatible();
-                    return;
+        }
+    }
+
+    @VisibleForTesting
+    public static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
+        final LibraryElements jar;
+
+        @Inject
+        LibraryElementsDisambiguationRules(LibraryElements jar) {
+            this.jar = jar;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesDetails<LibraryElements> details) {
+            Set<LibraryElements> candidateValues = details.getCandidateValues();
+            LibraryElements consumerValue = details.getConsumerValue();
+            if (consumerValue == null) {
+                if (candidateValues.contains(jar)) {
+                    // Use the jar when nothing has been requested
+                    details.closestMatch(jar);
                 }
+            } else if (candidateValues.contains(consumerValue)) {
+                // Classes or resources requested, some Jars found, let's prefer these
+                details.closestMatch(consumerValue);
             }
-            if (consumerValue.equals(Usage.JAVA_RUNTIME_RESOURCES)) {
-                if (COMPATIBLE_WITH_JAVA_RUNTIME_RESOURCES.contains(producerValue)) {
-                    // Can use the Java runtime jars if present, but prefer Java runtime resources
-                    details.compatible();
-                    return;
-                }
-            }
-            if (consumerValue.equals(Usage.JAVA_RUNTIME_JARS) && producerValue.equals(Usage.JAVA_RUNTIME)) {
-                // Can use the Java runtime if present, but prefer Java runtime jar
+        }
+    }
+
+    @VisibleForTesting
+    public static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements>, ReusableAction {
+
+        @Override
+        public void execute(CompatibilityCheckDetails<LibraryElements> details) {
+            LibraryElements consumerValue = details.getConsumerValue();
+            LibraryElements producerValue = details.getProducerValue();
+            if (consumerValue == null) {
+                // consumer didn't express any preferences, everything fits
                 details.compatible();
+                return;
+            }
+            String consumerValueName = consumerValue.getName();
+            String producerValueName = producerValue.getName();
+            if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
+                // JAR is compatible with classes or resources
+                if (LibraryElements.JAR.equals(producerValueName)) {
+                    details.compatible();
+                    return;
+                }
             }
         }
     }

@@ -25,7 +25,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.6'
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["5.7-20190722220035+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
@@ -53,6 +53,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
+        runner.targetVersions = ['5.6-20190707000033+0000']
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
         runner.addBuildExperimentListener(new ChangeSwiftFileMutator(fileToChange))
 

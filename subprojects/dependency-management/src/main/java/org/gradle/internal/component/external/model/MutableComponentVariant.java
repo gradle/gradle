@@ -31,4 +31,8 @@ public interface MutableComponentVariant {
     void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes);
 
     void addCapability(String group, String name, String version);
+
+    ImmutableAttributes getAttributes();
+
+    void setAttributes(ImmutableAttributes updatedAttributes);
 }

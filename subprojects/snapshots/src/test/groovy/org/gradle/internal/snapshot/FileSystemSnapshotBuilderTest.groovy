@@ -17,10 +17,10 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.file.DefaultFileMetadata
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -63,7 +63,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                 files.add(fileSnapshot.absolutePath)
                 relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))

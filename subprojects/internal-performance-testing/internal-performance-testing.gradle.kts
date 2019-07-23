@@ -42,7 +42,7 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
     implementation(project(":buildOption"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":snapshots"))
     implementation(project(":resources"))
     implementation(project(":persistentCache"))
@@ -86,6 +86,9 @@ java.sourceSets.main { output.dir(mapOf("builtBy" to reportResources), generated
 
 tasks.jar {
     inputs.files(flamegraph)
+        .withPropertyName("flamegraph")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 

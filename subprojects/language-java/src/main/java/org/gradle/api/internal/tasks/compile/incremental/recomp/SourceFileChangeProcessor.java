@@ -23,16 +23,13 @@ import java.io.File;
 import java.util.Collection;
 
 class SourceFileChangeProcessor {
-    private final SourceFileClassNameConverter sourceToNameConverter;
     private final PreviousCompilation previousCompilation;
 
-    public SourceFileChangeProcessor(PreviousCompilation previousCompilation, SourceFileClassNameConverter sourceToNameConverter) {
+    public SourceFileChangeProcessor(PreviousCompilation previousCompilation) {
         this.previousCompilation = previousCompilation;
-        this.sourceToNameConverter = sourceToNameConverter;
     }
 
-    public void processChange(File inputFile, RecompilationSpec spec) {
-        Collection<String> classNames = sourceToNameConverter.getClassNames(inputFile);
+    public void processChange(File inputFile, Collection<String> classNames, RecompilationSpec spec) {
         spec.getClassesToCompile().addAll(classNames);
 
         for (String className : classNames) {

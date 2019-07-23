@@ -17,18 +17,20 @@
 package org.gradle.instantexecution.serialization.beans
 
 import groovy.lang.Closure
-import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.InstantExecutionException
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logProperty
+import org.gradle.instantexecution.serialization.logPropertyError
+import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import java.io.IOException
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
@@ -38,12 +40,12 @@ class BeanPropertyWriter(
 ) {
 
     private
-    val relevantFields = relevantStateOf(beanType)
+    val relevantFields = relevantStateOf(beanType).toList()
 
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
-    fun WriteContext.writeFieldsOf(bean: Any) {
+    suspend fun WriteContext.writeFieldsOf(bean: Any) {
         writingProperties {
             for (field in relevantFields) {
                 val fieldName = field.name
@@ -77,23 +79,38 @@ class BeanPropertyWriter(
  * Returns whether the given property could be written. A property can only be written when there's
  * a suitable [Codec] for its [value].
  */
-fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
+suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
     withPropertyTrace(kind, name) {
         val writeValue = writeActionFor(value)
         if (writeValue == null) {
-            logPropertyWarning("serialize", "there's no serializer for type '${GeneratedSubclasses.unpackType(value!!).name}'")
+            logPropertyWarning("serialize") {
+                text("there's no serializer for type")
+                reference(unpackedTypeNameOf(value!!))
+            }
             return false
         }
         writeString(name)
         try {
             writeValue(value)
-        } catch (e: Throwable) {
-            throw GradleException("Could not save the value of $trace with type ${value?.javaClass?.name}.", e)
+        } catch (passThrough: IOException) {
+            throw passThrough
+        } catch (passThrough: InstantExecutionException) {
+            throw passThrough
+        } catch (e: Exception) {
+            logPropertyError("write", e) {
+                text("error writing value of type ")
+                reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
+            }
+            return false
         }
-        logProperty("serialize", value)
+        logPropertyInfo("serialize", value)
         return true
     }
 }
+
+
+private
+fun unpackedTypeNameOf(value: Any) = GeneratedSubclasses.unpackType(value).name
 
 
 /**

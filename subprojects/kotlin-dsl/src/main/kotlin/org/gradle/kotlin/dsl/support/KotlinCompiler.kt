@@ -60,8 +60,9 @@ import org.jetbrains.kotlin.name.NameUtils
 
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
-import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.scripting.definitions.KotlinScriptDefinition
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
+import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
 
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -309,7 +310,8 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_3,
     specificFeatures = mapOf(
         LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
-        LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
+        LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED,
+        LanguageFeature.SamConversionPerArgument to LanguageFeature.State.ENABLED
     ),
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true
@@ -334,7 +336,7 @@ fun CompilerConfiguration.addScriptingCompilerComponents() {
 
 private
 fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
-    add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
+    add(SCRIPT_DEFINITIONS, scriptDef)
 }
 
 

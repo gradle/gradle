@@ -348,7 +348,9 @@ The `file()` method can be used to configure any task that has a property of typ
 [[sec:file_collections]]
 === File collections
 
-A _file collection_ is simply a set of file paths that's represented by the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] interface. _Any_ file paths. It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory. You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configurations>>.
+A _file collection_ is simply a set of file paths that's represented by the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] interface. _Any_ file paths.
+It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory.
+You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>>.
 
 The recommended way to specify a collection of files is to use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)] method, which returns a `FileCollection` instance.
 This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of ``File``s, and more.
@@ -633,7 +635,7 @@ The `filter()` method has two variants, which behave differently:
 
 Note that both variants assume the source files are text based. When you use the `ReplaceTokens` class with `filter()`, the result is a template engine that replaces tokens of the form `@tokenName@` (the Ant-style token) with values that you define.
 
-The `expand()` method treats the source files as http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates], which evaluate and expand expressions of the form `${expression}`. You can pass in property names and values that are then expanded in the source files. `expand()` allows for more than basic token substitution as the embedded expressions are full-blown Groovy expressions.
+The `expand()` method treats the source files as https://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates], which evaluate and expand expressions of the form `${expression}`. You can pass in property names and values that are then expanded in the source files. `expand()` allows for more than basic token substitution as the embedded expressions are full-blown Groovy expressions.
 
 NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#getFilteringCharset--[CopySpec.getFilteringCharset()] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
 

@@ -55,6 +55,11 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
     @Override
     public WorkResult execute(T spec) {
+        if (spec.getSourceRoots().isEmpty()) {
+            LOG.info("Full recompilation is required because the source roots could not be inferred.");
+            return rebuildAllCompiler.execute(spec);
+        }
+
         Timer clock = Time.startTimer();
         CurrentCompilation currentCompilation = new CurrentCompilation(spec, classpathSnapshotProvider);
 
@@ -73,7 +78,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
         }
 
         try {
-            return cleaningCompiler.getCompiler().execute(spec);
+            return recompilationSpecProvider.decorateResult(recompilationSpec, cleaningCompiler.getCompiler().execute(spec));
         } finally {
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
             LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());

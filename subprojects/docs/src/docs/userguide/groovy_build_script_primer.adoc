@@ -163,7 +163,7 @@ Both are based on Groovy language features and we explain them in the following 
 You can easily identify a method as the implementation behind a block by its signature, or more specifically, its argument types. If a method corresponds to a block:
 
  * It must have at least one argument.
- * The _last_ argument must be of type http://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html[`groovy.lang.Closure`] or link:{javadocPath}/org/gradle/api/Action.html[org.gradle.api.Action].
+ * The _last_ argument must be of type https://docs.groovy-lang.org/latest/html/gapi/groovy/lang/Closure.html[`groovy.lang.Closure`] or link:{javadocPath}/org/gradle/api/Action.html[org.gradle.api.Action].
 
 For example, link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(Action)] matches these requirements, so you can use the syntax:
 

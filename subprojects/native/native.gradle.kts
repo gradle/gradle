@@ -9,6 +9,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":files"))
+
     implementation(project(":baseServices"))
 
     implementation(library("nativePlatform"))
@@ -19,6 +21,8 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
+
+    jmhImplementation(project(":files"))
 }
 
 gradlebuildJava {

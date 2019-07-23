@@ -63,12 +63,11 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * taskContext.setTaskProperties(_)
         1 * repository.getExecutionMode(task, _) >> executionMode
         1 * taskContext.setTaskExecutionMode(executionMode)
-        2 * task.getOutputs() >> outputs
+        1 * task.getOutputs() >> outputs
         1 * task.getInputs() >> inputs
         1 * task.getDestroyables() >> destroyables
         1 * task.getLocalState() >> localState
         2 * fileCollectionFactory.resolving(_, _) >> Stub(FileCollectionInternal)
-        1 * outputs.setPreviousOutputFiles(_)
         1 * propertyWalker.visitProperties(task, _, _)
         1 * inputs.visitRegisteredProperties(_)
         1 * outputs.visitRegisteredProperties(_)
@@ -77,7 +76,6 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
 
         then: 'task artifact state is removed from taskContext'
-        1 * outputs.setPreviousOutputFiles(null)
         1 * taskContext.setTaskExecutionMode(null)
         1 * taskContext.setTaskProperties(null)
 

@@ -15,11 +15,17 @@
  */
 package org.gradle.build.docs
 
+import groovy.transform.CompileStatic
 import org.asciidoctor.gradle.AsciidoctorTask
+import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -29,9 +35,17 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.process.ExecResult
+import org.gradle.process.JavaExecSpec
 
 @CacheableTask
+@CompileStatic
 class CacheableAsciidoctorTask extends AsciidoctorTask {
+
+    private ProjectInternal decoratedProject
+
+    @Input
+    ListProperty<String> jvmArgs = super.project.objects.listProperty(String).convention([])
 
     @Internal
     @Override
@@ -134,5 +148,68 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     FileCollection getResourceFileCollection() {
         super.getResourceFileCollection()
+    }
+
+    @Internal
+    @Override
+    Project getProject() {
+        if (decoratedProject == null) {
+            decoratedProject = new ProjectDecorator((ProjectInternal) super.project)
+        }
+        decoratedProject
+    }
+
+    class ProjectDecorator implements ProjectInternal {
+        final @Delegate
+        ProjectInternal delegate
+
+        ProjectDecorator(ProjectInternal delegate) {
+            this.delegate = delegate
+        }
+
+        // override to make the Groovy compiler happy
+        PluginManagerInternal getPluginManager() {
+            (PluginManagerInternal) delegate.pluginManager
+        }
+
+        @Override
+        ExecResult javaexec(Action<? super JavaExecSpec> action) {
+            delegate.javaexec(new Action<JavaExecSpec>() {
+                @Override
+                void execute(JavaExecSpec javaExecSpec) {
+                    javaExecSpec.jvmArgs(jvmArgs.get())
+                    action.execute(javaExecSpec)
+                }
+            })
+        }
+
+        @Override
+        ExecResult javaexec(Closure action) {
+            delegate.javaexec { JavaExecSpec spec ->
+                spec.jvmArgs(jvmArgs.get())
+                action(spec)
+            }
+        }
+
+        boolean equals(o) {
+            if (this.is(o)) {
+                return true
+            }
+            if (getClass() != o.class) {
+                return false
+            }
+
+            ProjectDecorator that = (ProjectDecorator) o
+
+            if (delegate != that.delegate) {
+                return false
+            }
+
+            return true
+        }
+
+        int hashCode() {
+            return delegate.hashCode()
+        }
     }
 }

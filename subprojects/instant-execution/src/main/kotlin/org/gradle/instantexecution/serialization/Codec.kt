@@ -25,6 +25,7 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import kotlin.reflect.KClass
 
 
 /**
@@ -32,9 +33,9 @@ import org.gradle.internal.serialize.Encoder
  */
 interface Codec<T> {
 
-    fun WriteContext.encode(value: T)
+    suspend fun WriteContext.encode(value: T)
 
-    fun ReadContext.decode(): T?
+    suspend fun ReadContext.decode(): T?
 }
 
 
@@ -46,13 +47,13 @@ interface WriteContext : IsolateContext, Encoder {
 
     fun writeActionFor(value: Any?): Encoding?
 
-    fun write(value: Any?) {
+    suspend fun write(value: Any?) {
         writeActionFor(value)!!(value)
     }
 }
 
 
-typealias Encoding = WriteContext.(value: Any?) -> Unit
+typealias Encoding = suspend WriteContext.(value: Any?) -> Unit
 
 
 interface ReadContext : IsolateContext, Decoder {
@@ -65,7 +66,7 @@ interface ReadContext : IsolateContext, Decoder {
 
     fun getProject(path: String): ProjectInternal
 
-    fun read(): Any?
+    suspend fun read(): Any?
 }
 
 
@@ -76,6 +77,81 @@ interface IsolateContext {
     val isolate: Isolate
 
     var trace: PropertyTrace
+
+    fun onProblem(problem: PropertyProblem)
+}
+
+
+sealed class PropertyProblem {
+
+    abstract val trace: PropertyTrace
+
+    abstract val message: StructuredMessage
+
+    /**
+     * A problem that does not necessarily compromise the execution of the build.
+     */
+    data class Warning(
+        override val trace: PropertyTrace,
+        override val message: StructuredMessage
+    ) : PropertyProblem()
+
+    /**
+     * A problem that compromises the execution of the build.
+     * Instant execution state should be discarded.
+     */
+    data class Error(
+        override val trace: PropertyTrace,
+        override val message: StructuredMessage,
+        val exception: Throwable
+    ) : PropertyProblem()
+}
+
+
+data class StructuredMessage(val fragments: List<Fragment>) {
+
+    override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
+        when (fragment) {
+            is Fragment.Text -> fragment.text
+            is Fragment.Reference -> "'${fragment.name}'"
+        }
+    }
+
+    sealed class Fragment {
+
+        data class Text(val text: String) : Fragment()
+
+        data class Reference(val name: String) : Fragment()
+    }
+
+    companion object {
+
+        fun build(builder: Builder.() -> Unit) = StructuredMessage(
+            Builder().apply(builder).fragments
+        )
+    }
+
+    class Builder {
+
+        internal
+        val fragments = mutableListOf<Fragment>()
+
+        fun text(string: String) {
+            fragments.add(Fragment.Text(string))
+        }
+
+        fun reference(name: String) {
+            fragments.add(Fragment.Reference(name))
+        }
+
+        fun reference(type: Class<*>) {
+            reference(type.name)
+        }
+
+        fun reference(type: KClass<*>) {
+            reference(type.qualifiedName!!)
+        }
+    }
 }
 
 
@@ -101,13 +177,63 @@ sealed class PropertyTrace {
         val trace: PropertyTrace
     ) : PropertyTrace()
 
-    override fun toString(): String = when (this) {
-        is Gradle -> "Gradle state"
-        is Property -> "$kind `$name` of $trace"
-        is Bean -> "`${type.name}` bean found in $trace"
-        is Task -> "task `$path` of type `${type.name}`"
-        is Unknown -> "unknown property"
+    override fun toString(): String =
+        StringBuilder().apply {
+            sequence.forEach {
+                appendStringOf(it)
+            }
+        }.toString()
+
+    private
+    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
+        when (trace) {
+            is Gradle -> {
+                append("Gradle state")
+            }
+            is Property -> {
+                append(trace.kind)
+                append(" ")
+                quoted(trace.name)
+                append(" of ")
+            }
+            is Bean -> {
+                quoted(trace.type.name)
+                append(" bean found in ")
+            }
+            is Task -> {
+                append("task ")
+                quoted(trace.path)
+                append(" of type ")
+                quoted(trace.type.name)
+            }
+            is Unknown -> {
+                append("unknown property")
+            }
+        }
     }
+
+    private
+    fun StringBuilder.quoted(s: String) {
+        append('`')
+        append(s)
+        append('`')
+    }
+
+    val sequence: Sequence<PropertyTrace>
+        get() = sequence {
+            var trace = this@PropertyTrace
+            while (true) {
+                yield(trace)
+                trace = trace.tail ?: break
+            }
+        }
+
+    val tail: PropertyTrace?
+        get() = when (this) {
+            is Bean -> trace
+            is Property -> trace
+            else -> null
+        }
 }
 
 
@@ -173,10 +299,10 @@ interface MutableIsolateContext {
 
 
 internal
-inline fun <T : MutableIsolateContext> T.withIsolate(owner: IsolateOwner, block: T.() -> Unit) {
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
     enterIsolate(owner)
     try {
-        block()
+        return block()
     } finally {
         leaveIsolate()
     }

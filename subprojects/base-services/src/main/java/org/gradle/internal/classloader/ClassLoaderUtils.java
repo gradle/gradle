@@ -17,6 +17,7 @@ package org.gradle.internal.classloader;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.JavaMethod;
@@ -79,6 +80,25 @@ public abstract class ClassLoaderUtils {
 
     public static <T> Class<T> defineDecorator(Class<?> decoratedClass, ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
         return CLASS_DEFINER.defineDecoratorClass(decoratedClass, targetClassLoader, className, clazzBytes);
+    }
+
+    public static Class<?> classFromContextLoader(String className) {
+        try {
+            return Thread.currentThread().getContextClassLoader().loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Nullable
+    public static <T> T executeInClassloader(ClassLoader classLoader, Factory<T> factory) {
+        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(classLoader);
+            return factory.create();
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
     }
 
     /**

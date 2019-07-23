@@ -1,0 +1,23 @@
+// tag::test-report[]
+subprojects {
+    apply plugin: 'xctest'
+
+    xctest {
+        binaries.configureEach {
+            runTask.get().configure {
+                // Disable the test report for the individual test task
+                reports.html.enabled = false
+            }
+        }
+    }
+}
+
+tasks.register('testReport', TestReport) {
+    destinationDir = file("$buildDir/reports/allTests")
+
+    // Include the results from the XCTest tasks in all subprojects
+    reportOn subprojects.collect {
+        it.tasks.withType(XCTest)
+    }
+}
+// end::test-report[]

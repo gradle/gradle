@@ -102,7 +102,10 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                 return new TaskDependencyContainer() {
                     @Override
                     public void visitDependencies(TaskDependencyResolveContext context) {
-                        context.add(valueSupplier.get());
+                        Object dependency = valueSupplier.get();
+                        if (dependency != null) {
+                            context.add(dependency);
+                        }
                     }
                 };
             }

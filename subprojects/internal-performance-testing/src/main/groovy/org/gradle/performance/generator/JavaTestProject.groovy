@@ -50,6 +50,8 @@ enum JavaTestProject {
         .withSubProjects(0)
         .withDaemonMemory('3g')
         .withCompilerMemory('6g')
+        .withSystemProperties(['org.gradle.groovy.compilation.avoidance': 'true'])
+        .withFeaturePreviews('GROOVY_COMPILATION_AVOIDANCE')
         .assembleChangeFile(-1)
         .testChangeFile(-1).create()),
     LARGE_GROOVY_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeGroovyMultiProject", Language.GROOVY)
@@ -57,6 +59,8 @@ enum JavaTestProject {
         .withSubProjects(500)
         .withDaemonMemory('1536m')
         .withCompilerMemory('256m')
+        .withSystemProperties(['org.gradle.groovy.compilation.avoidance': 'true'])
+        .withFeaturePreviews('GROOVY_COMPILATION_AVOIDANCE')
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000).create()),
     LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC(

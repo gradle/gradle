@@ -47,7 +47,7 @@ class PreferJavaRuntimeVariantTest extends Specification {
         null               | [Usage.JAVA_RUNTIME, Usage.JAVA_API]            | true
         null               | [Usage.JAVA_API, Usage.JAVA_RUNTIME]            | true
         null               | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | true
-        null               | [Usage.JAVA_API, Usage.JAVA_API_CLASSES]        | false
+        null               | [Usage.JAVA_API, "unknown"]                     | false
         Usage.JAVA_API     | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
         Usage.JAVA_RUNTIME | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
         "unknown"          | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false

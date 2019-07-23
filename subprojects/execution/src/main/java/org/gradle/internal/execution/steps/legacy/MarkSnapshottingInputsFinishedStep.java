@@ -32,7 +32,7 @@ public class MarkSnapshottingInputsFinishedStep<R extends Result> implements Ste
 
     @Override
     public R execute(CachingContext context) {
-        context.getWork().markSnapshottingInputsFinished(context.getCachingState());
+        context.getWork().markLegacySnapshottingInputsFinished(context.getCachingState());
         return delegate.execute(context);
     }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -54,7 +52,6 @@ import java.lang.annotation.Target;
  *
  * @since 5.3
  */
-@Incubating
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface CacheableTransform {

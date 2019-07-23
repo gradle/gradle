@@ -16,31 +16,26 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -271,17 +266,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public List<ResolvedVariantDetails> getResolvedVariants() {
-        List<ResolvedVariantDetails> result = null;
-        ResolvedVariantDetails cur = null;
+    public List<ResolvedVariantResult> getResolvedVariants() {
+        List<ResolvedVariantResult> result = null;
+        ResolvedVariantResult cur = null;
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                ConfigurationMetadata metadata = node.getMetadata();
-                DisplayName name = Describables.of(metadata.getName());
-                List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
-                AttributeContainer attributes = node.desugar(metadata.getAttributes());
-                List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(implicitCapability) : ImmutableList.copyOf(capabilities);
-                ResolvedVariantDetails details = new DefaultVariantDetails(name, attributes, resolvedVariantCapabilities);
+                ResolvedVariantResult details = node.getResolvedVariant();
                 if (result != null) {
                     result.add(details);
                 } else if (cur != null) {
@@ -300,18 +290,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return Collections.singletonList(cur);
         }
         return Collections.emptyList();
-    }
-
-    /**
-     * Returns the _first_ selected node. There may be multiple.
-     */
-    private NodeState getSelectedNode() {
-        for (NodeState node : nodes) {
-            if (node.isSelected()) {
-                return node;
-            }
-        }
-        return null;
     }
 
     @Override

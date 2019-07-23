@@ -39,7 +39,7 @@ class ExecuteStepTest extends Specification {
 
         1 * context.work >> work
         1 * context.inputChanges >> Optional.empty()
-        1 * work.execute(null) >> workResult
+        1 * work.execute(null, context) >> workResult
         0 * _
 
         where:
@@ -59,7 +59,7 @@ class ExecuteStepTest extends Specification {
 
         1 * context.work >> work
         1 * context.inputChanges >> Optional.empty()
-        1 * work.execute(null) >> { throw failure }
+        1 * work.execute(null, context) >> { throw failure }
         0 * _
 
         where:
@@ -77,7 +77,7 @@ class ExecuteStepTest extends Specification {
         1 * context.work >> work
         1 * context.inputChanges >> Optional.of(inputChanges)
         1 * inputChanges.incremental >> incrementalExecution
-        1 * work.execute(inputChanges) >> workResult
+        1 * work.execute(inputChanges, context) >> workResult
         0 * _
 
         where:

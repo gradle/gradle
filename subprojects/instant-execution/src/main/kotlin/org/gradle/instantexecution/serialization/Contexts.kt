@@ -33,7 +33,10 @@ class DefaultWriteContext(
     private
     val encoder: Encoder,
 
-    override val logger: Logger
+    override val logger: Logger,
+
+    private
+    val problemHandler: (PropertyProblem) -> Unit
 
 ) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
 
@@ -56,6 +59,10 @@ class DefaultWriteContext(
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
+
+    override fun onProblem(problem: PropertyProblem) {
+        problemHandler(problem)
+    }
 }
 
 
@@ -99,7 +106,7 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
-    override fun read(): Any? = decoding.run {
+    override suspend fun read(): Any? = decoding.run {
         decode()
     }
 
@@ -114,12 +121,16 @@ class DefaultReadContext(
 
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
+
+    override fun onProblem(problem: PropertyProblem) {
+        // ignore problems
+    }
 }
 
 
 internal
 interface DecodingProvider {
-    fun ReadContext.decode(): Any?
+    suspend fun ReadContext.decode(): Any?
 }
 
 

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
@@ -32,11 +33,13 @@ import java.util.Set;
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private Factory<ResolvedComponentResult> rootSource;
+    private final Factory<ResolvedComponentResult> rootSource;
+    private final AttributeContainer requestedAttributes;
 
-    public DefaultResolutionResult(Factory<ResolvedComponentResult> rootSource) {
+    public DefaultResolutionResult(Factory<ResolvedComponentResult> rootSource, AttributeContainer requestedAttributes) {
         assert rootSource != null;
         this.rootSource = rootSource;
+        this.requestedAttributes = requestedAttributes;
     }
 
     @Override
@@ -96,6 +99,11 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public void allComponents(final Closure closure) {
         allComponents(ConfigureUtil.configureUsing(closure));
+    }
+
+    @Override
+    public AttributeContainer getRequestedAttributes() {
+        return requestedAttributes;
     }
 
 }

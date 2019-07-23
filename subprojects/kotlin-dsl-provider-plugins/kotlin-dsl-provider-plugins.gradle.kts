@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import build.futureKotlin
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -35,11 +36,15 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":files"))
+    implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":plugins"))
     implementation(project(":pluginDevelopment"))
 
+    implementation(futureKotlin("scripting-compiler-impl-embeddable")) {
+        isTransitive = false
+    }
+    
     implementation(library("slf4j_api"))
 
     testImplementation(project(":kotlinDslTestFixtures"))

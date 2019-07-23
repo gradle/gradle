@@ -2,7 +2,7 @@
 = Developing Custom Gradle Types
 
 There are several different kinds of "add-ons" to Gradle that you can develop, such as <<custom_plugins.adoc#custom_plugins,plugins>>, <<custom_tasks.adoc#custom_tasks,tasks>>,
-<<custom_plugins.adoc#sec:getting_input_from_the_build,project extensions>> or <<dependency_management_attribute_based_matching.adoc#implementing_artifact_transforms,artifact transforms>>,
+<<custom_plugins.adoc#sec:getting_input_from_the_build,project extensions>> or <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>>,
 that are all implemented as classes and other types that can run on the JVM.
 This chapter discusses some of the features and concepts that are common to these types.
 You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.
@@ -101,6 +101,39 @@ In addition, the property must have one of the following types:
 - `SetProperty`
 - `MapProperty`
 - `ConfigurableFileCollection`
+
+[[sec:managed_nested_properties]]
+==== Read-only managed nested properties
+
+To declare a read-only managed nested property, add an abstract getter method for the property to the type annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
+The property should not have any setter methods.
+This pattern is useful if the current type has a nested complex type which has the same lifecycle.
+If the lifecycle is different, consider using `Property<NestedType>` instead.
+
+Here is an example of a task type with a `hostAndPath` property:
+
+.Read-only managed nested property
+====
+[source.multi-language-sample,java]
+.UrlProcess.java
+----
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/UrlProcess.java[tags=url-process]
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/HostAndPath.java[tags=host-and-path]
+----
+[source.multi-language-sample,kotlin]
+.UrlProcess.kt
+----
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[tags=url-process]
+----
+[source.multi-language-sample,groovy]
+.UrlProcess.groovy
+----
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[tags=url-process]
+----
+====
+
+Note that for a property to be considered a read only managed nested property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
+In addition, the property getter must be annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 
 [[managed_types]]
 === Managed types

@@ -17,7 +17,7 @@ gradlebuildJava {
 }
 
 dependencies {
-    api(project(":pineapple"))
+    api(project(":hashing"))
     api(library("jsr305"))
 
     implementation(library("slf4j_api"))

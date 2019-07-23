@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -130,10 +129,10 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * work.displayName >> "work"
         1 * work.visitOutputProperties(_) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("outputFile", TreeType.FILE, ImmutableFileCollection.of(loadedOutputFile))
-            visitor.visitOutputProperty("outputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(loadedOutputDir))
-            visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableFileCollection.of(file("missing.txt")))
-            visitor.visitOutputProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("missing")))
+            visitor.visitOutputProperty("outputFile", TreeType.FILE, ImmutableList.of(loadedOutputFile))
+            visitor.visitOutputProperty("outputDir", TreeType.DIRECTORY, ImmutableList.of(loadedOutputDir))
+            visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableList.of(file("missing.txt")))
+            visitor.visitOutputProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableList.of(file("missing")))
         }
         loadedOutputFile.assertDoesNotExist()
         loadedOutputDir.assertIsEmptyDir()

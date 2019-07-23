@@ -466,7 +466,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         project.configureSampleGenerators {
             // TODO: Remove this hack https://github.com/gradle/gradle-native/issues/864
-            (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled {
+            (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled<DefaultTaskContainer> {
                 all(registerInputs)
             }
         }

@@ -18,7 +18,7 @@ package org.gradle.internal.execution;
 
 import org.gradle.internal.execution.caching.CachingState;
 
-public interface CachingContext extends IncrementalContext {
+public interface CachingContext extends BeforeExecutionContext {
     /**
      * The resolved state of caching for the work.
      */

@@ -73,6 +73,9 @@
             <tr>
                 <td>logging</td>
             </tr>
+            <tr>
+                <td>timeout</td>
+            </tr>
         </table>
     </section>
     <section>

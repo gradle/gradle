@@ -225,15 +225,18 @@ public class ProviderConnection {
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
         LoggingManagerInternal loggingManager;
         BuildActionExecuter<BuildActionParameters> executer;
+        InputStream standardInput = operationParameters.getStandardInput();
+        if (standardInput == null) {
+            standardInput = SafeStreams.emptyInput();
+        }
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = embeddedExecutor;
+            executer = new StdInSwapExecuter(standardInput, embeddedExecutor);
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-            InputStream standardInput = operationParameters.getStandardInput();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput == null ? SafeStreams.emptyInput() : standardInput);
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, params.daemonParams), loggingManager);

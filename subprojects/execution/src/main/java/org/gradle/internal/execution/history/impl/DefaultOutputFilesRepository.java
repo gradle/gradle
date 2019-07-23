@@ -73,7 +73,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                 }
 
                 @Override
-                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     if (fileSnapshot.getType() == FileType.RegularFile) {
                         recordOutputSnapshot(fileSnapshot);
                     }

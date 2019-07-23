@@ -51,11 +51,10 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
      * <ul>
      *     <li>Determining which content fingerprints are only in the previous or current fingerprint collection.</li>
      *     <li>Those only in the previous fingerprint collection are reported as removed.</li>
-     *     <li>If {@code includeAdded} is {@code true}, the files with content fingerprints which are only in the current collection are reported as added.</li>
      * </ul>
      */
     @Override
-    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle) {
         ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
@@ -69,11 +68,9 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
             HashCode normalizedContentHash = currentFingerprint.getNormalizedContentHash();
             List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
             if (previousFilesForContent.isEmpty()) {
-                if (includeAdded) {
-                    DefaultFileChange added = DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH);
-                    if (!visitor.visitChange(added)) {
-                        return false;
-                    }
+                DefaultFileChange added = DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                if (!visitor.visitChange(added)) {
+                    return false;
                 }
             } else {
                 previousFilesForContent.remove(0);

@@ -659,4 +659,48 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents2.size() == 2
         resolvedComponents2.'org.foo:good:1.0'.repoName == 'withoutCreds'
     }
+
+    def "resolved component op includes configuration requested attributes"() {
+        setup:
+        mavenHttpRepo.module('org.foo', 'stuff').publish().allowAll()
+
+        settingsFile << "include 'fixtures'"
+        buildFile << """                
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "java-test-fixtures"
+                repositories {
+                    maven { url '${mavenHttpRepo.uri}' }
+                }
+            }
+            dependencies {
+                testImplementation(testFixtures(project(':fixtures')))
+            }
+
+            project(':fixtures') {
+                dependencies {
+                    testFixturesApi('org.foo:stuff:1.0')
+                }
+            }
+        """
+        file("fixtures/src/testFixtures/java/SomeClass.java") << "class SomeClass {}"
+        file("src/test/java/SomeTest.java") << "class SomeClass {}"
+
+        when:
+        succeeds ':test'
+
+        then:
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('Classpath') }).result.every {
+            it.requestedAttributes.find { it.name == 'org.gradle.dependency.bundling' }.value == 'external'
+            it.requestedAttributes.find { it.name == 'org.gradle.jvm.version' }.value
+        }
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('CompileClasspath') }).result.every {
+            it.requestedAttributes.find { it.name == 'org.gradle.usage' }.value == 'java-api'
+            it.requestedAttributes.find { it.name == 'org.gradle.libraryelements' }.value == 'classes'
+        }
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('RuntimeClasspath') }).result.every {
+            it.requestedAttributes.find { it.name == 'org.gradle.usage' }.value == 'java-runtime'
+            it.requestedAttributes.find { it.name == 'org.gradle.libraryelements' }.value == 'jar'
+        }
+    }
 }

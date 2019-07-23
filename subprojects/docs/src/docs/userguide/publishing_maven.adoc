@@ -15,7 +15,9 @@
 [[publishing_maven]]
 = Maven Publish Plugin
 
-The Maven Publish Plugin provides the ability to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository. A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format. You can learn about the fundamentals of publishing in <<publishing_overview.adoc#publishing_overview,Publishing Overview>>.
+The Maven Publish Plugin provides the ability to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository.
+A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#,Declaring Dependencies>>) and other tools that understand the Maven repository format.
+You can learn about the fundamentals of publishing in <<publishing_overview.adoc#publishing_overview,Publishing Overview>>.
 
 
 [[publishing_maven:usage]]

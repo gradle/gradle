@@ -634,7 +634,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(cachedResolverResults.getResolutionResult()));
+                ResolutionResult resolutionResult = cachedResolverResults.getResolutionResult();
+                context.setResult(ResolveConfigurationResolutionBuildOperationResult.create(resolutionResult, attributesFactory));
             }
 
             @Override
@@ -1554,6 +1555,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
+            public AttributeContainer getRequestedAttributes() {
+                return delegate.getRequestedAttributes();
+            }
+
+            @Override
             public int hashCode() {
                 resolve();
                 return delegate.hashCode();
@@ -1742,4 +1748,5 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return getAllArtifacts();
         }
     }
+
 }

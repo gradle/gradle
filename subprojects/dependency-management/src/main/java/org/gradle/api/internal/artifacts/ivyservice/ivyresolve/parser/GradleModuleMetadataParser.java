@@ -74,6 +74,14 @@ public class GradleModuleMetadataParser {
         this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return attributesFactory;
+    }
+
+    public NamedObjectInstantiator getInstantiator() {
+        return instantiator;
+    }
+
     public void parse(final LocallyAvailableExternalResource resource, final MutableModuleComponentResolveMetadata metadata) {
         resource.withContent(new Transformer<Void, InputStream>() {
             @Override

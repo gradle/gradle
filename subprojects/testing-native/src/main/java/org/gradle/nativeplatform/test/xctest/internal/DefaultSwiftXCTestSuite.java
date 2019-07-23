@@ -41,7 +41,7 @@ import javax.inject.Inject;
 /**
  * Abstract software component representing an XCTest suite.
  */
-public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
+public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent<SwiftXCTestBinary> implements SwiftXCTestSuite {
     private final ObjectFactory objectFactory;
     private final Property<SwiftXCTestBinary> testBinary;
     private final Property<SwiftComponent> testedComponent;
@@ -49,7 +49,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
 
     @Inject
     public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory) {
-        super(name, objectFactory);
+        super(name, SwiftXCTestBinary.class, objectFactory);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
         this.objectFactory = objectFactory;
         this.testBinary = objectFactory.property(SwiftXCTestBinary.class);

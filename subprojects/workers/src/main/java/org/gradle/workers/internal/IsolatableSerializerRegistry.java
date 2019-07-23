@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.Decoder;
@@ -54,6 +54,8 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.internal.classloader.ClassLoaderUtils.*;
 
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
@@ -185,7 +187,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     }
 
     private Class<?> fromClassName(String className) throws Exception {
-        return Thread.currentThread().getContextClassLoader().loadClass(className);
+        return classFromContextLoader(className);
     }
 
     private class StringValueSnapshotSerializer implements IsolatableSerializer<StringValueSnapshot> {
@@ -475,14 +477,16 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         @Override
         public void write(Encoder encoder, IsolatedArray value) throws Exception {
             encoder.writeByte(ISOLATED_ARRAY);
+            encoder.writeString(value.getArrayType().getName());
             writeIsolatableSequence(encoder, value.getElements());
         }
 
         @Override
         public IsolatedArray read(Decoder decoder) throws Exception {
             ImmutableList.Builder<Isolatable<?>> builder = ImmutableList.builder();
+            Class<?> arrayType = fromClassName(decoder.readString());
             readIsolatableSequence(decoder, builder);
-            return new IsolatedArray(builder.build());
+            return new IsolatedArray(builder.build(), arrayType);
         }
 
         @Override

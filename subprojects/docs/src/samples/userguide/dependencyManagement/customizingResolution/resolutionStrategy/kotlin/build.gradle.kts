@@ -1,14 +1,3 @@
-// tag::releasable-unit[]
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.gradle") {
-            useVersion("1.4")
-            because("API breakage in higher versions")
-        }
-    }
-}
-// end::releasable-unit[]
-
 // tag::custom-versioning-scheme[]
 configurations.all {
     resolutionStrategy.eachDependency {

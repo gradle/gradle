@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import javax.annotation.processing.Processor;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
-import javax.tools.StandardJavaFileManager;
+import java.io.Closeable;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
@@ -30,9 +30,9 @@ import java.util.Locale;
  */
 class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
     private final JavaCompiler.CompilationTask delegate;
-    private final StandardJavaFileManager fileManager;
+    private final Closeable fileManager;
 
-    ResourceCleaningCompilationTask(JavaCompiler.CompilationTask delegate, StandardJavaFileManager fileManager) {
+    ResourceCleaningCompilationTask(JavaCompiler.CompilationTask delegate, Closeable fileManager) {
         this.delegate = delegate;
         this.fileManager = fileManager;
     }

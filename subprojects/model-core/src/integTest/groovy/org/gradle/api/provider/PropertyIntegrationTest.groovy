@@ -97,6 +97,42 @@ task thing(type: SomeTask) {
         "Param<String>" | "new Param<String>(display: 'abc')" | "abc"
     }
 
+    def "can define task with abstract nested property"() {
+        given:
+        buildFile << """
+            interface NestedType {
+                @Input
+                Property<String> getProp()
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract NestedType getNested()
+                
+                void nested(Action<NestedType> action) {
+                    action.execute(nested)
+                }
+                
+                @TaskAction
+                void go() {
+                    println("prop = \${nested.prop.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                nested {
+                    prop = "value"
+                }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("prop = value")
+    }
+
     def "can finalize the value of a property using API"() {
         given:
         buildFile << """

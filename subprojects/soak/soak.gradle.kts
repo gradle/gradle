@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.api.plugins.internal.JavaPluginsHelper
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -64,6 +63,3 @@ tasks.register("soakTest", org.gradle.gradlebuild.test.integrationtests.SoakTest
 classycle {
     excludePatterns.set(listOf("META-INF/*.kotlin_module"))
 }
-
-// Make sure the Groovy test fixtures are visible to the Kotlin compile tasks
-JavaPluginsHelper.registerClassesDirVariant(tasks.compileTestFixturesGroovy, project.getObjects(), configurations.testFixturesApiElements.get())

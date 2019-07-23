@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -49,8 +49,8 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
     def outputFile = file("output.txt").text = "output"
     def finalOutputs = fingerprintsOf(output: outputFile)
 
-    def context = Mock(IncrementalContext)
-    def step = new StoreSnapshotsStep<IncrementalContext>(delegate)
+    def context = Mock(BeforeExecutionContext)
+    def step = new StoreSnapshotsStep<BeforeExecutionContext>(delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
 
     def "output snapshots are stored after successful execution"() {

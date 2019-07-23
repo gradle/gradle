@@ -15,6 +15,10 @@
  */
 package org.gradle.internal.nativeintegration.filesystem;
 
+import org.gradle.internal.file.Chmod;
+import org.gradle.internal.file.FileException;
+import org.gradle.internal.file.Stat;
+
 import java.io.File;
 
 /**

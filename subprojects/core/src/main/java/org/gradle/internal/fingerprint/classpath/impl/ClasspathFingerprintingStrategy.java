@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.classpath.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
@@ -148,12 +149,14 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         }
 
         @Override
-        public void visit(FileSystemLocationSnapshot fileSnapshot) {
-            if (fileSnapshot.getType() == FileType.RegularFile) {
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            if (fileSnapshot instanceof RegularFileSnapshot) {
                 HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
+            } else if (!relativePathSegmentsTracker.isRoot()) {
+                throw new GradleException(String.format("Couldn't read file content: '%s'.", fileSnapshot.getAbsolutePath()));
             }
         }
 
