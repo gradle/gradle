@@ -16,5 +16,7 @@
 
 package org.gradle.internal.classloader;
 
-public interface DeprecatedClassloader extends ClassLoaderHierarchy {
+import java.io.Closeable;
+
+public interface DeprecatedClassloader extends ClassLoaderHierarchy, Closeable {
 }

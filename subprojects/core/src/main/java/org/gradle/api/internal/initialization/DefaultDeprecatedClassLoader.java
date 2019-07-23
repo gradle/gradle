@@ -20,6 +20,8 @@ import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.DeprecatedClassloader;
 import org.gradle.util.DeprecationLogger;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.URL;
 
 public class DefaultDeprecatedClassLoader extends ClassLoader implements DeprecatedClassloader {
@@ -88,6 +90,19 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
     public void visit(ClassLoaderVisitor visitor) {
         visitor.visit(deprecatedUsageLoader);
         visitor.visit(nonDeprecatedParent);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if(deprecatedUsageLoader instanceof Closeable){
+            ((Closeable) deprecatedUsageLoader).close();
+        }
+
+        // not sure if this is required as its the parent of
+        // deprecatedUsageLoader already
+        if(nonDeprecatedParent instanceof Closeable){
+            ((Closeable) nonDeprecatedParent).close();
+        }
     }
 }
 
