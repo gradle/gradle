@@ -41,6 +41,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 
 public class DefaultTransformationRegistrationFactory implements TransformationRegistrationFactory {
 
+    private final BuildOperationExecutor buildOperationExecutor;
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TransformerInvocationFactory transformerInvocationFactory;
@@ -66,6 +68,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final InstantiationScheme legacyActionInstantiationScheme;
 
     public DefaultTransformationRegistrationFactory(
+        BuildOperationExecutor buildOperationExecutor,
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         TransformerInvocationFactory transformerInvocationFactory,
@@ -76,6 +79,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         ArtifactTransformParameterScheme parameterScheme,
         ArtifactTransformActionScheme actionScheme
     ) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.transformerInvocationFactory = transformerInvocationFactory;
@@ -127,6 +131,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
             FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
             cacheable,
+            buildOperationExecutor,
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,

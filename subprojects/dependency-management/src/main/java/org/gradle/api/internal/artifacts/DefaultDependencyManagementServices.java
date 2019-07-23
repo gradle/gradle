@@ -385,6 +385,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformationRegistrationFactory createTransformationRegistrationFactory(
+            BuildOperationExecutor buildOperationExecutor,
             IsolatableFactory isolatableFactory,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             TransformerInvocationFactory transformerInvocationFactory,
@@ -398,6 +399,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             FileCollectionFactory fileCollectionFactory
         ) {
             return new DefaultTransformationRegistrationFactory(
+                buildOperationExecutor,
                 isolatableFactory,
                 classLoaderHierarchyHasher,
                 transformerInvocationFactory,
