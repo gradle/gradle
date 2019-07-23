@@ -19,7 +19,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 
-public class BasicTextResourceLoader implements TextResourceLoader {
+public class DefaultTextResourceLoader implements TextResourceLoader {
     @Override
     public TextResource loadFile(String description, @Nullable File sourceFile) {
         if (sourceFile == null) {
@@ -32,7 +32,7 @@ public class BasicTextResourceLoader implements TextResourceLoader {
     }
 
     @Override
-    public TextResource loadUri(String description, URI sourceUri) {
-        return new UriTextResource(description, sourceUri);
+    public TextResource loadUri(String description, URI source) {
+        return new UriTextResource(description, source);
     }
 }

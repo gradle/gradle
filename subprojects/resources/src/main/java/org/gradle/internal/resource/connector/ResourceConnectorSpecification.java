@@ -16,12 +16,14 @@
 
 package org.gradle.internal.resource.connector;
 
-import java.util.Collection;
-
 import org.gradle.authentication.Authentication;
+
+import java.util.Collection;
 
 public interface ResourceConnectorSpecification {
     <T> T getCredentials(Class<T> type);
 
     Collection<Authentication> getAuthentications();
+
+    boolean allowInsecureProtocol();
 }

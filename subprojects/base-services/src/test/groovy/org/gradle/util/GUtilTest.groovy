@@ -316,4 +316,18 @@ class GUtilTest extends Specification {
         STANDARD_OUT
     }
 
+
+    def "identifies insecure urls"() {
+        expect:
+        // HTTP is insecure
+        !isSecureUrl(new URI("http://example.com"))
+        !isSecureUrl(new URI("http://localhost"))
+        // Except, we allow 127.0.0.1 to be seen as secure
+        isSecureUrl(new URI("http://127.0.0.1"))
+
+        // HTTPS is secure
+        isSecureUrl(new URI("https://example.com"))
+        isSecureUrl(new URI("https://localhost"))
+        isSecureUrl(new URI("https://127.0.0.1"))
+    }
 }

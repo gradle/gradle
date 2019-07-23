@@ -30,6 +30,12 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Improving integrity of builds
+
+Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
+
+TBD
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.

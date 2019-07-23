@@ -35,14 +35,14 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
         file.text = "contents"
         reader = new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())
 
-        textResourceLoader.loadUri("textResource", new URI("http://www.gradle.org/unknown.txt")) >> textResource
+        textResourceLoader.loadUri("textResource", new URI("https://www.gradle.org/unknown.txt")) >> textResource
         textResource.getFile() >>> [file, null]
         textResource.getDisplayName() >> "Text resource display name"
         textResource.getText() >>> ["contents", "more contents"]
         textResource.getCharset() >> StandardCharsets.UTF_8
         textResource.getAsReader() >> reader
 
-        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("http://www.gradle.org/unknown.txt"),)
+        resource = new ApiTextResourceAdapter(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("https://www.gradle.org/unknown.txt"), true)
     }
 
     def cleanup() {
@@ -71,7 +71,7 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     def "get input properties"() {
         expect:
-        resource.getInputProperties() == new URI("http://www.gradle.org/unknown.txt")
+        resource.getInputProperties() == new URI("https://www.gradle.org/unknown.txt")
     }
 
     def "read as file when file in depending resource is null"() {

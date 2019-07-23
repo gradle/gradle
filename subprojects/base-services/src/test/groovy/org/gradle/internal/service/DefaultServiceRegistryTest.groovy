@@ -715,7 +715,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == 'Could not create service of type ClassWithBrokenConstructor.'
+        e.message == 'Could not create service of type DefaultServiceRegistryTest$ClassWithBrokenConstructor.'
         e.cause == ClassWithBrokenConstructor.failure
     }
 

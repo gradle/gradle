@@ -72,7 +72,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/"]
+        runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://127.0.0.1:${serverPort}/"]
 
         when:
         def result = runner.run()
@@ -91,7 +91,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/", '--parallel']
+        runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://127.0.0.1:${serverPort}/", '--parallel']
 
         when:
         def result = runner.run()

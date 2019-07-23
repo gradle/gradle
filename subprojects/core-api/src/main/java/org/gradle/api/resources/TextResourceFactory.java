@@ -97,4 +97,19 @@ public interface TextResourceFactory {
      */
     @Incubating
     TextResource fromUri(Object uri);
+
+    /**
+     * Creates a text resource backed by the given uri.
+     *
+     * <b>NOTE:</b> This method allows insecure protocols (like HTTP) to be used. Only use this method if you're comfortable with the dangers.
+     *
+     * @param uri a URI as evaluated by {@link org.gradle.api.Project#uri(Object)}
+     *
+     * @return a text resource backed by the given uri
+     * @since 5.6
+     * @see #fromUri(Object)
+     */
+    @Incubating
+    TextResource fromInsecureUri(Object uri);
+
 }

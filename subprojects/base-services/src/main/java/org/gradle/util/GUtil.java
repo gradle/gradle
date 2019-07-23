@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -540,6 +541,34 @@ public class GUtil {
             }
         }
         return true;
+    }
+
+    public static boolean isSecureUrl(URI url) {
+        /*
+         * TL;DR: http://127.0.0.1 will bypass this validation, http://localhost will fail this validation.
+         *
+         * Hundreds of Gradle's integration tests use a local web-server to test logic that relies upon
+         * this behavior.
+         *
+         * Changing all of those tests so that they use a KeyStore would have been impractical.
+         * Instead, the test fixture was updated to use 127.0.0.1 when making HTTP requests.
+         *
+         * This allows tests that still want to exercise the deprecation logic to use http://localhost
+         * which will bypass this check and trigger the validation.
+         *
+         * It's important to note that the only way to create a certificate for an IP address is to bind
+         * the IP address as a 'Subject Alternative Name' which was deemed far too complicated for our test
+         * use case.
+         *
+         * Additionally, in the rare case that a user or a plugin author truly needs to test with a localhost
+         * server, they can use http://127.0.0.1
+         */
+        if ("127.0.0.1".equals(url.getHost())) {
+            return true;
+        }
+
+        final String scheme = url.getScheme();
+        return !"http".equalsIgnoreCase(scheme);
     }
 
 }
