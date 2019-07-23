@@ -74,6 +74,16 @@ public interface MutableVersionConstraint extends VersionConstraint {
     void prefer(String version);
 
     /**
+     * Apply the version constraint to other occurrences of the same module in the subgraph of dependencies.
+     * This effectively gives this constraint a higher weight to accept previously rejected versions
+     * (e.g. to downgrade the version of a transitive dependency)
+     *
+     * @since 5.7
+     */
+    @Incubating
+    void forSubgraph();
+
+    /**
      * Sets the version as strict.
      * <p>
      * Any version not matched by this version notation will be excluded. This is the strongest version declaration.

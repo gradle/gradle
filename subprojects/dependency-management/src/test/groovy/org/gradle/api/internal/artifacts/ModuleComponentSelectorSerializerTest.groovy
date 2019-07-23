@@ -38,26 +38,30 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes"() {
         when:
-        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")]), serializer)
+        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects, forSubgraph), attributes(foo: 'bar'), [capability("foo")]), serializer)
 
         then:
-        result == newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")])
+        result == newSelector(UTIL, constraint(version, strict, rejects, forSubgraph), attributes(foo: 'bar'), [capability("foo")])
 
         where:
-        version | strict   | rejects
-        '5.0'   | ''       | []
-        '5.0'   | ''       | ['1.0']
-        '5.0'   | ''       | ['1.0', '2.0']
-        '5.0'   | '[1.0,)' | []
+        version | strict   | rejects        | forSubgraph
+        '5.0'   | ''       | []             | false
+        '5.0'   | ''       | ['1.0']        | false
+        '5.0'   | ''       | ['1.0', '2.0'] | false
+        '5.0'   | '[1.0,)' | []             | false
+        '5.0'   | ''       | []             | true
     }
 
-    private static MutableVersionConstraint constraint(String version, String strictVersion, List<String> rejectedVersions) {
+    private static MutableVersionConstraint constraint(String version, String strictVersion, List<String> rejectedVersions, boolean forSubgraph) {
         MutableVersionConstraint constraint = new DefaultMutableVersionConstraint(version)
         if (strictVersion != null) {
             constraint.strictly(strictVersion)
         }
         for (String reject : rejectedVersions) {
             constraint.reject(reject)
+        }
+        if (forSubgraph) {
+            constraint.forSubgraph()
         }
         return constraint
     }

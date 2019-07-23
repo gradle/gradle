@@ -170,6 +170,10 @@ public class GradleModuleMetadataWriter {
             }
             jsonWriter.endArray();
         }
+        if (versionConstraint.isForSubgraph()) {
+            jsonWriter.name("forSubgraph");
+            jsonWriter.value(true);
+        }
         jsonWriter.endObject();
     }
 

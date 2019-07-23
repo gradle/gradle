@@ -52,11 +52,11 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     }
 
     VersionConstraint strictly(String version) {
-        DefaultImmutableVersionConstraint.of("", "", version, [])
+        DefaultImmutableVersionConstraint.of("", "", version, [], false)
     }
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
-        DefaultImmutableVersionConstraint.of(version, "", "", rejects)
+        DefaultImmutableVersionConstraint.of(version, "", "", rejects, false)
     }
 
     @Rule

@@ -34,21 +34,24 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     private final ImmutableList<String> rejectedVersions;
     @Nullable
     private final String requiredBranch;
+    private final boolean forSubgraph;
 
     private final int hashCode;
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              String requiredVersion,
                                              String strictVersion,
-                                             List<String> rejectedVersions) {
-        this(preferredVersion, requiredVersion, strictVersion, rejectedVersions, null);
+                                             List<String> rejectedVersions,
+                                             boolean forSubgraph) {
+        this(preferredVersion, requiredVersion, strictVersion, rejectedVersions, null, forSubgraph);
     }
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              String requiredVersion,
                                              String strictVersion,
                                              List<String> rejectedVersions,
-                                             @Nullable String requiredBranch) {
+                                             @Nullable String requiredBranch,
+                                             boolean forSubgraph) {
         if (preferredVersion == null) {
             throw new IllegalArgumentException("Preferred version must not be null");
         }
@@ -71,6 +74,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.strictVersion = strictVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
         this.requiredBranch = requiredBranch;
+        this.forSubgraph = forSubgraph;
         this.hashCode = super.hashCode();
     }
 
@@ -83,6 +87,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.strictVersion = "";
         this.rejectedVersions = ImmutableList.of();
         this.requiredBranch = null;
+        this.forSubgraph = false;
         this.hashCode = super.hashCode();
     }
 
@@ -117,11 +122,16 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         return rejectedVersions;
     }
 
+    @Override
+    public boolean isForSubgraph() {
+        return forSubgraph;
+    }
+
     public static ImmutableVersionConstraint of(VersionConstraint versionConstraint) {
         if (versionConstraint instanceof ImmutableVersionConstraint) {
             return (ImmutableVersionConstraint) versionConstraint;
         }
-        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
+        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.isForSubgraph());
     }
 
     public static ImmutableVersionConstraint of(String version) {
@@ -131,8 +141,8 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         return new DefaultImmutableVersionConstraint(version);
     }
 
-    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects);
+    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects, boolean forSubgraph) {
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects, forSubgraph);
     }
 
     public static ImmutableVersionConstraint of() {
