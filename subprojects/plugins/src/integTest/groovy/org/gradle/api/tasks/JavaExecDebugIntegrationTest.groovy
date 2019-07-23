@@ -66,7 +66,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        def failure = fails(taskName)
+        def failure = executer.withTasks(taskName).withStackTraceChecksDisabled().runWithFailure()
         failure.assertHasErrorOutput('ERROR: transport error 202: connect failed: Connection refused')
 
         where:
