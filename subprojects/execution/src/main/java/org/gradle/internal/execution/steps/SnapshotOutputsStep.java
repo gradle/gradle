@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.Incubating;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.BeforeExecutionContext;
@@ -113,6 +114,9 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
         );
     }
 
+    /*
+     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
+     */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
             Details INSTANCE = new Details() {};

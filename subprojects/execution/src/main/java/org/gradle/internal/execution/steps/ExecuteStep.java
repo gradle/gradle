@@ -59,6 +59,9 @@ public class ExecuteStep<C extends InputChangesContext> extends BuildOperationSt
         }
     }
 
+    /*
+     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
+     */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
             Details INSTANCE = new Details() {};

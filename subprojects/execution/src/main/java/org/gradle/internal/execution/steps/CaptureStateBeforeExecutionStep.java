@@ -105,7 +105,8 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 BeforeExecutionState beforeExecutionState = captureExecutionState(executionContext);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return beforeExecutionState;
-            }, BuildOperationDescriptor
+            },
+            BuildOperationDescriptor
                 .displayName("Snapshot inputs and outputs before executing " + executionContext.getWork().getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
@@ -258,13 +259,18 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
         }
     }
 
+    /*
+     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
+     */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Details INSTANCE = new Details() {};
+            Details INSTANCE = new Details() {
+            };
         }
 
         interface Result {
-            Result INSTANCE = new Result() {};
+            Result INSTANCE = new Result() {
+            };
         }
     }
 }
