@@ -51,7 +51,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         this.parent = parent;
     }
 
-    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath) {
+    protected ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return parent.getExportClassLoader();
         }
@@ -91,7 +91,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return new MultiParentClassLoader(parents);
     }
 
-    private void buildEffectiveLoaders() {
+    protected void buildEffectiveLoaders() {
         if (effectiveLocalClassLoader == null) {
             boolean hasExports = !export.isEmpty() || exportLoaders != null;
             boolean hasLocals = !local.isEmpty();
@@ -236,12 +236,11 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     @Override
     public ClassLoaderScope deprecated() {
-        DefaultClassLoaderScope clonedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache);
-        clonedScope.export(export);
-        if(isLocked()) {
-            clonedScope.lock();
+        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache, export);
+        if (isLocked()) {
+            deprecatedScope.lock();
         }
-        return clonedScope;
+        return deprecatedScope;
     }
 
 }

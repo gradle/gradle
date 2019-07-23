@@ -411,8 +411,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             println(org.apache.commons.lang3.StringUtils.reverse("Gradle"))
         """)
 
-        executer.expectDeprecationWarnings(1)
-
         assertThat(
             build("help").output,
             containsString("eldarG"))

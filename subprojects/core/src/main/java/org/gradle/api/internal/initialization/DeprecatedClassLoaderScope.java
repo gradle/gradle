@@ -18,28 +18,43 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DeprecatedClasspath;
 
 public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
 
-    public DeprecatedClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
+    private ClassPath deprecatedClasspath;
+    private ClassLoader deprecatedExportClassloader;
+    private ClassLoader deprecatedLocalClassloader;
+
+    public DeprecatedClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassPath deprecatedClasspath) {
         super(id, parent, classLoaderCache);
+        this.deprecatedClasspath = deprecatedClasspath;
     }
 
     @Override
     public ClassLoaderScope export(ClassPath classPath) {
-        export = DeprecatedClasspath.of(export.plus(classPath));
+        export = export.plus(classPath);
         return this;
-    }
-
-    @Override
-    public ClassLoaderScope createChild(String name) {
-        return super.createChild(name).deprecated();
     }
 
     @Override
     public ClassLoaderScope deprecated() {
         return this;
+    }
+
+    @Override
+    public ClassLoader getExportClassLoader() {
+        if (deprecatedExportClassloader == null) {
+            deprecatedExportClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id.exportId(), deprecatedClasspath), super.getExportClassLoader());
+        }
+        return deprecatedExportClassloader;
+    }
+
+    @Override
+    public ClassLoader getLocalClassLoader() {
+        if (deprecatedLocalClassloader == null) {
+            deprecatedLocalClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id.localId(), deprecatedClasspath), super.getLocalClassLoader());
+        }
+        return deprecatedLocalClassloader;
     }
 
 }

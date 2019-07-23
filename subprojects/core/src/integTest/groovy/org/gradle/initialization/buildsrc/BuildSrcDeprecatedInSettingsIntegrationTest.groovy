@@ -79,6 +79,60 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
         outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
     }
 
+    def "Using buildscript classes in settings is not deprecated"() {
+        when:
+        file('buildSrc/build.gradle') << """
+            apply plugin: 'groovy'
+            
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {  
+                compile 'org.apache.commons:commons-math3:3.6.1'                
+            }
+        """
+
+        file('buildSrc/src/main/java/org/acme/build/SomeBuildSrcClass.java') << """
+        package org.acme.build;
+        
+        public class SomeBuildSrcClass {
+            public static void foo(String foo){
+                System.out.println(foo);
+            }
+        }
+        """
+        file('buildSrc/src/main/java/org/acme/build/SomeOtherBuildSrcClass.java') << """
+        package org.acme.build;
+        
+        public class SomeOtherBuildSrcClass {
+            public static void foo(String foo){
+                System.out.println(foo);
+            }
+        }
+        """
+        settingsFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                
+                dependencies {  
+                    classpath 'org.apache.commons:commons-lang3:3.9'                
+                }
+            }
+
+            org.apache.commons.lang3.StringUtils.capitalize("bar")
+        """
+
+        buildFile << """
+            org.acme.build.SomeOtherBuildSrcClass.foo("from build.gradle")
+        """
+        then:
+        succeeds("tasks")
+    }
+
+
     def "Using buildSrc resources in settings is deprecated"() {
         file('buildSrc/src/main/resources/org/acme/build/SomeResource.txt') << """
         // some resource content
