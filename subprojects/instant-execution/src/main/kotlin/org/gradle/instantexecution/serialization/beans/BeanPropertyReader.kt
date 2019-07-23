@@ -49,7 +49,7 @@ import java.util.function.Supplier
 class BeanPropertyReader(
     private val beanType: Class<*>,
     private val filePropertyFactory: FilePropertyFactory
-) {
+) : BeanStateReader {
 
     companion object {
 
@@ -87,10 +87,10 @@ class BeanPropertyReader(
         }
     }
 
-    fun newBean(): Any =
+    override suspend fun ReadContext.newBean() =
         constructorForSerialization.newInstance()
 
-    suspend fun ReadContext.readFieldsOf(bean: Any) {
+    override suspend fun ReadContext.readStateOf(bean: Any) {
         readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)
