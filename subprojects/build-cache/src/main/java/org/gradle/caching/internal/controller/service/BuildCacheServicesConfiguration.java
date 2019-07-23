@@ -18,6 +18,8 @@ package org.gradle.caching.internal.controller.service;
 
 import org.gradle.caching.BuildCacheService;
 
+import javax.annotation.Nullable;
+
 public final class BuildCacheServicesConfiguration {
 
     public final BuildCacheService local;
@@ -27,9 +29,9 @@ public final class BuildCacheServicesConfiguration {
     public final boolean remotePush;
 
     public BuildCacheServicesConfiguration(
-        BuildCacheService local,
+        @Nullable BuildCacheService local,
         boolean localPush,
-        BuildCacheService remote,
+        @Nullable BuildCacheService remote,
         boolean remotePush
     ) {
         this.remote = remote;

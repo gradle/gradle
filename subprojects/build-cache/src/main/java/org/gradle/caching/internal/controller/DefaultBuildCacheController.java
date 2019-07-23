@@ -47,6 +47,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -106,8 +107,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public <T> Optional<T> load(final BuildCacheLoadCommand<T> command) {
-        final Unpack<T> unpack = new Unpack<T>(command);
+    public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
+        final Unpack<T> unpack = new Unpack<>(command);
 
         if (local.canLoad()) {
             try {
@@ -122,31 +123,28 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         if (legacyLocal.canLoad() || remote.canLoad()) {
-            tmp.withTempFile(command.getKey(), new Action<File>() {
-                @Override
-                public void execute(File file) {
-                    LoadTarget loadTarget = new LoadTarget(file);
-                    BuildCacheServiceRole loadedRole = null;
-                    if (legacyLocal.canLoad()) {
-                        loadedRole = BuildCacheServiceRole.LOCAL;
-                        legacyLocal.load(command.getKey(), loadTarget);
-                    }
+            tmp.withTempFile(command.getKey(), file -> {
+                LoadTarget loadTarget = new LoadTarget(file);
+                BuildCacheServiceRole loadedRole = null;
+                if (legacyLocal.canLoad()) {
+                    loadedRole = BuildCacheServiceRole.LOCAL;
+                    legacyLocal.load(command.getKey(), loadTarget);
+                }
 
-                    if (remote.canLoad() && !loadTarget.isLoaded()) {
-                        loadedRole = BuildCacheServiceRole.REMOTE;
-                        remote.load(command.getKey(), loadTarget);
-                    }
+                if (remote.canLoad() && !loadTarget.isLoaded()) {
+                    loadedRole = BuildCacheServiceRole.REMOTE;
+                    remote.load(command.getKey(), loadTarget);
+                }
 
-                    if (loadTarget.isLoaded()) {
-                        try {
-                            unpack.execute(file);
-                        } catch (Exception e) {
-                            @SuppressWarnings("ConstantConditions") String roleDisplayName = loadedRole.getDisplayName();
-                            throw new GradleException("Build cache entry " + command.getKey().getHashCode() + " from " + roleDisplayName + " build cache is invalid", e);
-                        }
-                        if (local.canStore()) {
-                            local.store(command.getKey(), file);
-                        }
+                if (loadTarget.isLoaded()) {
+                    try {
+                        unpack.execute(file);
+                    } catch (Exception e) {
+                        @SuppressWarnings("ConstantConditions") String roleDisplayName = loadedRole.getDisplayName();
+                        throw new GradleException("Build cache entry " + command.getKey().getHashCode() + " from " + roleDisplayName + " build cache is invalid", e);
+                    }
+                    if (local.canStore()) {
+                        local.store(command.getKey(), file);
                     }
                 }
             });
@@ -170,7 +168,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         @Override
-        public void execute(final File file) {
+        public void execute(File file) {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
@@ -204,22 +202,19 @@ public class DefaultBuildCacheController implements BuildCacheController {
         final BuildCacheKey key = command.getKey();
         final Pack pack = new Pack(command);
 
-        tmp.withTempFile(command.getKey(), new Action<File>() {
-            @Override
-            public void execute(File file) {
-                pack.execute(file);
+        tmp.withTempFile(command.getKey(), file -> {
+            pack.execute(file);
 
-                if (legacyLocal.canStore()) {
-                    legacyLocal.store(key, new StoreTarget(file));
-                }
+            if (legacyLocal.canStore()) {
+                legacyLocal.store(key, new StoreTarget(file));
+            }
 
-                if (remote.canStore()) {
-                    remote.store(key, new StoreTarget(file));
-                }
+            if (remote.canStore()) {
+                remote.store(key, new StoreTarget(file));
+            }
 
-                if (local.canStore()) {
-                    local.store(key, file);
-                }
+            if (local.canStore()) {
+                local.store(key, file);
             }
         });
     }
@@ -270,7 +265,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static BuildCacheServiceHandle toHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
+    private static BuildCacheServiceHandle toHandle(@Nullable BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
         return service == null
             ? NullBuildCacheServiceHandle.INSTANCE
             : toNonNullHandle(service, push, role, buildOperationExecutor, logStackTraces);

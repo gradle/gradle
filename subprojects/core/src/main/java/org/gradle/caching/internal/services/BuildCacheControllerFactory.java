@@ -16,10 +16,8 @@
 
 package org.gradle.caching.internal.services;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -46,6 +44,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class BuildCacheControllerFactory {
 
@@ -81,7 +80,7 @@ public final class BuildCacheControllerFactory {
                 BuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
-                boolean localEnabled = local != null && local.isEnabled();
+                boolean localEnabled = local.isEnabled();
                 boolean remoteEnabled = remote != null && remote.isEnabled();
 
                 if (remoteEnabled && remoteAccessMode == RemoteAccessMode.OFFLINE) {
@@ -99,7 +98,7 @@ public final class BuildCacheControllerFactory {
 
                 context.setResult(new ResultImpl(
                     true,
-                    local != null && local.isEnabled(),
+                    local.isEnabled(),
                     remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
@@ -132,12 +131,14 @@ public final class BuildCacheControllerFactory {
         });
     }
 
-    private static BuildCacheServicesConfiguration toConfiguration(BuildCache local, BuildCacheService localService, BuildCache remote, BuildCacheService remoteService) {
+    private static BuildCacheServicesConfiguration toConfiguration(
+        BuildCache local, @Nullable BuildCacheService localService,
+        @Nullable BuildCache remote, @Nullable BuildCacheService remoteService
+    ) {
         boolean remotePush = remote != null && remote.isPush();
-        boolean localPush = local != null && local.isPush();
+        boolean localPush = local.isPush();
         return new BuildCacheServicesConfiguration(localService, localPush, remoteService, remotePush);
     }
-
 
     private static <T extends BuildCache> DescribedBuildCacheService createBuildCacheService(final T configuration, BuildCacheServiceRole role, Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, Instantiator instantiator) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
@@ -162,7 +163,7 @@ public final class BuildCacheControllerFactory {
             if (!description.config.isEmpty() || pullOnly) {
                 Map<String, String> configMap;
                 if (pullOnly) {
-                    configMap = new LinkedHashMap<String, String>();
+                    configMap = new LinkedHashMap<>();
                     // Pull-only always comes first
                     configMap.put("pull-only", null);
                     configMap.putAll(description.config);
@@ -170,16 +171,13 @@ public final class BuildCacheControllerFactory {
                     configMap = description.config;
                 }
                 config.append(" (");
-                Joiner.on(", ").appendTo(config, Iterables.transform(configMap.entrySet(), new Function<Map.Entry<String, String>, String>() {
-                    @Override
-                    public String apply(Map.Entry<String, String> input) {
-                        if (input.getValue() == null) {
-                            return input.getKey();
-                        } else {
-                            return input.getKey() + " = " + input.getValue();
-                        }
+                config.append(configMap.entrySet().stream().map(input -> {
+                    if (input.getValue() == null) {
+                        return input.getKey();
+                    } else {
+                        return input.getKey() + " = " + input.getValue();
                     }
-                }));
+                }).collect(Collectors.joining(", ")));
                 config.append(")");
             }
 
@@ -237,27 +235,18 @@ public final class BuildCacheControllerFactory {
     private static class Describer implements BuildCacheServiceFactory.Describer {
 
         private String type;
-        private Map<String, String> configParams = new HashMap<String, String>();
+        private Map<String, String> configParams = new HashMap<>();
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {
-            if (type == null) {
-                throw new IllegalArgumentException("'type' argument cannot be null");
-            }
-
-            this.type = type;
+            this.type = Preconditions.checkNotNull(type, "'type' argument cannot be null");
             return this;
         }
 
         @Override
         public BuildCacheServiceFactory.Describer config(String name, String value) {
-            if (name == null) {
-                throw new IllegalArgumentException("'name' argument cannot be null");
-            }
-            if (value == null) {
-                throw new IllegalArgumentException("'value' argument cannot be null");
-            }
-
+            Preconditions.checkNotNull(name, "'name' argument cannot be null");
+            Preconditions.checkNotNull(value, "'value' argument cannot be null");
             configParams.put(name, value);
             return this;
         }
