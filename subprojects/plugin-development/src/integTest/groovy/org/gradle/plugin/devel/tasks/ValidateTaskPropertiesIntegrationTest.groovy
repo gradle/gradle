@@ -41,7 +41,6 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -393,7 +392,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "report setters for property of mutable type #type"() {
-        @Language("JAVA") myTask = """
+        def myTask = """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.InputFiles;
 
@@ -804,24 +803,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
             Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()
-    }
-
-    @Unroll
-    def "reports deprecated #property setter"() {
-        buildFile << """
-            validateTaskProperties.${property} = sourceSets.main.${value}
-        """
-
-        when:
-        executer.expectDeprecationWarnings(1)
-        succeeds("validateTaskProperties")
-        then:
-        output.contains("The set${property.capitalize()}(FileCollection) method has been deprecated. This is scheduled to be removed in Gradle 6.0. Please use the get${property.capitalize()}().setFrom(FileCollection) method instead.")
-
-        where:
-        property    | value
-        'classes'   | 'output.classesDirs'
-        'classpath' | ' compileClasspath '
     }
 
     def "reports conflicting types when property is replaced but keeps old annotations"() {

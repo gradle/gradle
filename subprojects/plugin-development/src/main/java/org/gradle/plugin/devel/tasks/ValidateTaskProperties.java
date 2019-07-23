@@ -29,7 +29,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
@@ -52,7 +51,6 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -262,35 +260,12 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     /**
-     * Sets the classes to validate.
-     *
-     * @since 4.0
-     * @deprecated Use {@link #getClasses()}.setFrom instead.
-     */
-    @Deprecated
-    public void setClasses(FileCollection classes) {
-        DeprecationLogger.nagUserOfReplacedMethod("setClasses(FileCollection)", "getClasses().setFrom(FileCollection)");
-        this.classes.setFrom(classes);
-    }
-
-    /**
      * The classpath used to load the classes under validation.
      */
     @Override
     @Classpath
     public ConfigurableFileCollection getClasspath() {
         return classpath;
-    }
-
-    /**
-     * Sets the classpath used to load the classes under validation.
-     *
-     * @deprecated Use {@link #getClasspath()}.setFrom instead.
-     */
-    @Deprecated
-    public void setClasspath(FileCollection classpath) {
-        DeprecationLogger.nagUserOfReplacedMethod("setClasspath(FileCollection)", "getClasspath().setFrom(FileCollection)");
-        this.classpath.setFrom(classpath);
     }
 
     /**
