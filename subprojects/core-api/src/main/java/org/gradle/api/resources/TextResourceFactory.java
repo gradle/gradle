@@ -106,7 +106,7 @@ public interface TextResourceFactory {
      * @param uri a URI as evaluated by {@link org.gradle.api.Project#uri(Object)}
      *
      * @return a text resource backed by the given uri
-     * @since 5.6
+     * @since 5.7
      * @see #fromUri(Object)
      */
     @Incubating

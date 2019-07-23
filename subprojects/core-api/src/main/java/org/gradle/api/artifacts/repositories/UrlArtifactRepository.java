@@ -23,7 +23,7 @@ import java.net.URI;
 /**
  * A repository that supports resolving artifacts from a URL.
  *
- * @since 5.6
+ * @since 5.7
  */
 @Incubating
 public interface UrlArtifactRepository {

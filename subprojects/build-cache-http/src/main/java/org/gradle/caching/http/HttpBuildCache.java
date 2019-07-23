@@ -142,7 +142,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * </a>
      * </b>
      *
-     * @since 5.6
+     * @since 5.7
      */
     @Incubating
     public boolean isAllowInsecureProtocol() {
@@ -163,7 +163,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * </a>
      * </b>
      *
-     * @since 5.6
+     * @since 5.7
      */
     @Incubating
     public void setAllowInsecureProtocol(boolean allowUntrustedProtocol) {
