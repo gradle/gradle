@@ -77,11 +77,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
                 
-                local(CustomBuildCache)
+                remote(CustomBuildCache)
             }
         """
         executer.withBuildCacheEnabled()
-        executer.expectDeprecationWarning()
 
         when:
         succeeds("help")
@@ -90,12 +89,11 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def result = result()
 
         result.enabled
-        result.localEnabled
-        !result.remoteEnabled
+        result.remoteEnabled
 
-        result.local.className == 'CustomBuildCache'
-        result.local.config.directory == directory
-        result.local.type == type
+        result.remote.className == 'CustomBuildCache'
+        result.remote.config.directory == directory
+        result.remote.type == type
 
     }
 

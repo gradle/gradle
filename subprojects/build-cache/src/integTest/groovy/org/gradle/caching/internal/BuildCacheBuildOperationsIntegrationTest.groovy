@@ -301,7 +301,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         true       | false             | "remote($remoteCacheClass) { push = true }"
         false      | false             | "local.push = false; remote($remoteCacheClass) { push = true }"
         false      | false             | "local.enabled = false; remote($remoteCacheClass) { push = true }"
-        false      | true              | "local($remoteCacheClass) { push = true }; remote($remoteCacheClass) { push = true }; "
     }
 
     def "records ops for remote hit"() {
@@ -370,7 +369,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << """
             buildCache {
-                local($remoteCacheClass)   
                 remote($remoteCacheClass)   
             }
         """
@@ -379,8 +377,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "base"
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
-
-        executer.expectDeprecationWarning()
 
         when:
         succeeds("t")
@@ -391,7 +387,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         packOp.details.cacheKey == remoteMissLoadOp.details.cacheKey
         def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
-        !localCacheArtifact.exists()
+        localCacheArtifact.exists()
 
         packOp.result.archiveEntryCount == 5
 

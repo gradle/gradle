@@ -16,8 +16,6 @@
 
 package org.gradle.caching.configuration;
 
-import org.gradle.caching.local.DirectoryBuildCache;
-
 /**
  * Compatibility support for BuildCacheConfiguration. To be removed in Gradle 7.0.
  */
