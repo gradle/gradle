@@ -81,7 +81,7 @@ abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
 /**
  * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
  *
- * @constructor Must match the constructor or the object!
+ * @constructor Must match the constructor of the [KotlinPluginManagementBuildscriptAndPluginsBlock] object!
  */
 abstract class KotlinBuildscriptAndPluginsBlock(
     private val host: KotlinScriptHost<Project>,
