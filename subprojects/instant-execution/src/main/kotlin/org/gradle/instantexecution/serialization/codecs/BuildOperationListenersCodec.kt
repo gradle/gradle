@@ -42,6 +42,7 @@ class BuildOperationListenersCodec {
 
         private
         val classNameWhitelist = setOf(
+            // Remove whitelisting this listener class when https://github.com/gradle/gradle-profiler/pull/140 has been merged
             "org.gradle.trace.buildops.BuildOperationTrace${'$'}RecordingListener",
             "org.gradle.trace.buildops.BuildOperationTrace${'$'}TimeToFirstTaskRecordingListener"
         )
