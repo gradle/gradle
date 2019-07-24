@@ -83,21 +83,24 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, List<?> files) {
-        if (files.isEmpty()) {
+    public FileCollectionInternal resolving(String displayName, List<?> sources) {
+        if (sources.isEmpty()) {
             return new EmptyFileCollection(displayName);
         }
-        return new ResolvingFileCollection(displayName, fileResolver, ImmutableList.copyOf(files));
+        return new ResolvingFileCollection(displayName, fileResolver, ImmutableList.copyOf(sources));
     }
 
     @Override
-    public FileCollectionInternal resolving(Object... files) {
-        return resolving(DEFAULT_DISPLAY_NAME, files);
+    public FileCollectionInternal resolving(String displayName, Object... sources) {
+        return resolving(displayName, ImmutableList.copyOf(sources));
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, Object... files) {
-        return resolving(displayName, ImmutableList.copyOf(files));
+    public FileCollectionInternal resolving(Object... sources) {
+        if (sources.length == 1 && sources[0] instanceof FileCollectionInternal) {
+            return (FileCollectionInternal) sources[0];
+        }
+        return resolving(DEFAULT_DISPLAY_NAME, sources);
     }
 
     @Override
@@ -112,11 +115,14 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal fixed(File... files) {
+        if (files.length == 0) {
+            return empty();
+        }
         return fixed(DEFAULT_DISPLAY_NAME, files);
     }
 
     @Override
-    public FileCollectionInternal fixed(final String displayName, File... files) {
+    public FileCollectionInternal fixed(String displayName, File... files) {
         if (files.length == 0) {
             return new EmptyFileCollection(displayName);
         }
@@ -125,6 +131,9 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal fixed(Collection<File> files) {
+        if (files.isEmpty()) {
+            return empty();
+        }
         return fixed(DEFAULT_DISPLAY_NAME, files);
     }
 

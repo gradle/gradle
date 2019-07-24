@@ -77,21 +77,21 @@ public interface FileCollectionFactory {
      *
      * The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(String displayName, List<?> files);
+    FileCollectionInternal resolving(String displayName, List<?> sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(String displayName, Object... files);
+    FileCollectionInternal resolving(String displayName, Object... sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(Object... files);
+    FileCollectionInternal resolving(Object... sources);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.
