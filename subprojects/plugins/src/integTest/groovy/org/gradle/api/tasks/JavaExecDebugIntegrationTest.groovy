@@ -29,7 +29,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     JDWPUtil debugClient = new JDWPUtil()
 
-    def "Debug is disabled by default"(String taskName) {
+    def "debug is disabled by default"(String taskName) {
         setup:
         sampleProject"""
             debugOptions {
@@ -43,7 +43,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Debug mode can be disabled"(String taskName) {
+    def "debug mode can be disabled"(String taskName) {
         setup:
         sampleProject"""
             debugOptions {
@@ -58,7 +58,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Debug session fails without debugger"(String taskName) {
+    def "debug session fails without debugger"(String taskName) {
         setup:
         sampleProject"""
             debugOptions {
@@ -75,7 +75,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Can debug Java exec with socket listen type debugger (server = false)"(String taskName) {
+    def "can debug Java exec with socket listen type debugger (server = false)"(String taskName) {
         setup:
         sampleProject"""    
             debugOptions {
@@ -95,7 +95,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({ OperatingSystem.current().isWindows() })
-    def "Can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
+    def "can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
         setup:
         sampleProject"""    
             debugOptions {
@@ -122,7 +122,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "Debug options overrides debug property"(String taskName) {
+    def "cebug options overrides debug property"(String taskName) {
         setup:
         sampleProject"""    
             debug = true
@@ -140,7 +140,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "If custom debug argument is passed to the build then debug options is ignored"(String taskName) {
+    def "if custom debug argument is passed to the build then debug options is ignored"(String taskName) {
         setup:
         sampleProject"""    
             debugOptions {
