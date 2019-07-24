@@ -85,12 +85,12 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         run "classes", "testClasses"
 
         then:
-        generatedJars
-            .collect { new ZipFile(it) }
-            .findAll {
+        generatedJars.findAll {
+            new ZipFile(it).withCloseable {
                 def names = it.entries()*.name
                 names.size() != names.toUnique().size()
-            } == []
+            }
+        } == []
     }
 
     private TestFile productionCode() {
