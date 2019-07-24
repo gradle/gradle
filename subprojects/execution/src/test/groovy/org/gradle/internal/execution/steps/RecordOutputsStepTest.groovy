@@ -16,13 +16,12 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.history.OutputFilesRepository
 
 class RecordOutputsStepTest extends StepSpec implements FingerprinterFixture {
     def outputFilesRepository = Mock(OutputFilesRepository)
-    def step = new RecordOutputsStep<Context>(outputFilesRepository, delegate)
+    def step = new RecordOutputsStep<>(outputFilesRepository, delegate)
 
     def outputFile = file("output.txt").text = "output"
     def finalOutputs = fingerprintsOf(output: outputFile)

@@ -17,13 +17,12 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
 class CreateOutputsStepTest extends StepSpec {
-    def step = new CreateOutputsStep<Context, Result>(delegate)
+    def step = new CreateOutputsStep<>(delegate)
 
     def "outputs are created"() {
         when:

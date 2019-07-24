@@ -26,11 +26,14 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 
-class SkipUpToDateStepTest extends StepSpec {
-    def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
-    final IncrementalChangesContext context = Stub()
-
+class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
+    def step = new SkipUpToDateStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
+
+    @Override
+    protected IncrementalChangesContext createContext() {
+        Stub(IncrementalChangesContext)
+    }
 
     def "skips when outputs are up to date"() {
         when:

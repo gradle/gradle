@@ -25,14 +25,18 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import spock.lang.Unroll
 
-class SkipEmptyWorkStepTest extends StepSpec {
-    def step = new SkipEmptyWorkStep<AfterPreviousExecutionContext>(delegate)
+class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
+    def step = new SkipEmptyWorkStep<>(delegate)
     def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
-    final AfterPreviousExecutionContext context = Stub()
 
     def delegateResult = Mock(CachingResult)
     def outputFingerprints = ImmutableSortedMap.<String, FileCollectionFingerprint>of()
     def executionHistoryStore = Mock(ExecutionHistoryStore)
+
+    @Override
+    protected AfterPreviousExecutionContext createContext() {
+        Stub(AfterPreviousExecutionContext)
+    }
 
     def setup() {
         _ * work.executionHistoryStore >> executionHistoryStore

@@ -27,12 +27,16 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec {
+class ResolveChangesStepTest extends StepSpec<CachingContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
-    def step = new ResolveChangesStep<Result>(changeDetector, delegate)
-    final CachingContext context = Stub()
+    def step = new ResolveChangesStep<>(changeDetector, delegate)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
+
+    @Override
+    protected CachingContext createContext() {
+        Stub(CachingContext)
+    }
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:

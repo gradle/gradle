@@ -30,15 +30,19 @@ import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class CleanupOutputsStepTest extends StepSpec implements FingerprinterFixture {
+class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final InputChangesContext context = Stub()
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
 
-    def step = new CleanupOutputsStep<InputChangesContext, Result>(delegate)
+    def step = new CleanupOutputsStep<>(delegate)
+
+    @Override
+    protected InputChangesContext createContext() {
+        Stub(InputChangesContext)
+    }
 
     def "deletes only the previous outputs"() {
         def outputs = new WorkOutputs()

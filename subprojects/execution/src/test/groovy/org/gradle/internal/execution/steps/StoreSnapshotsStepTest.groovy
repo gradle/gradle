@@ -30,7 +30,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
-class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
+class StoreSnapshotsStepTest extends StepSpec<BeforeExecutionContext> implements FingerprinterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
@@ -48,9 +48,13 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
     def outputFile = file("output.txt").text = "output"
     def finalOutputs = fingerprintsOf(output: outputFile)
 
-    final BeforeExecutionContext context = Stub()
-    def step = new StoreSnapshotsStep<BeforeExecutionContext>(delegate)
+    def step = new StoreSnapshotsStep<>(delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
+
+    @Override
+    protected BeforeExecutionContext createContext() {
+        Stub(BeforeExecutionContext)
+    }
 
     def setup() {
         _ * work.executionHistoryStore >> executionHistoryStore

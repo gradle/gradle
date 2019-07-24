@@ -37,15 +37,19 @@ import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 import static org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.Operation.Result
 
-class CaptureStateBeforeExecutionStepTest extends StepSpec {
+class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def valueSnapshotter = Mock(ValueSnapshotter)
-    final AfterPreviousExecutionContext context = Stub()
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector, delegate)
+
+    @Override
+    protected AfterPreviousExecutionContext createContext() {
+        Stub(AfterPreviousExecutionContext)
+    }
 
     def "no state is captured when task history is not maintained"() {
         when:

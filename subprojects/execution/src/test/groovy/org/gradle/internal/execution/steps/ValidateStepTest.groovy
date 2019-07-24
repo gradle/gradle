@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 
 class ValidateStepTest extends StepSpec {
-    def step = new ValidateStep<Context, Result>(delegate)
+    def step = new ValidateStep<>(delegate)
     def delegateResult = Mock(Result)
 
     def "executes work when there are no violations"() {

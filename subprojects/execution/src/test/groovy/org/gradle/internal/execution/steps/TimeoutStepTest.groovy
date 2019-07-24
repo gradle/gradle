@@ -16,9 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.api.InvalidUserDataException
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.timeout.Timeout
 import org.gradle.internal.execution.timeout.TimeoutHandler
@@ -28,7 +26,7 @@ import java.time.temporal.ChronoUnit
 
 class TimeoutStepTest extends StepSpec {
     def timeoutHandler = Mock(TimeoutHandler)
-    def step = new TimeoutStep<Context>(timeoutHandler, delegate)
+    def step = new TimeoutStep<>(timeoutHandler, delegate)
     def delegateResult = Mock(Result)
 
     def "negative timeout is reported"() {

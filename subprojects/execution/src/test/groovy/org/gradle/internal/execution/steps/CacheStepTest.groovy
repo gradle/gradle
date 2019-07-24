@@ -36,7 +36,7 @@ import org.gradle.internal.file.TreeType
 import spock.lang.Shared
 import spock.lang.Unroll
 
-class CacheStepTest extends StepSpec implements FingerprinterFixture {
+class CacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 
@@ -48,7 +48,11 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
 
     def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
-    final IncrementalChangesContext context = Stub()
+
+    @Override
+    protected IncrementalChangesContext createContext() {
+        Stub(IncrementalChangesContext)
+    }
 
     def loadCommand = Mock(BuildCacheLoadCommand)
 

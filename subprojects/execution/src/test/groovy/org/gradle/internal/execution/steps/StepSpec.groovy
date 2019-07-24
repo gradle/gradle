@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps
 
-import groovy.transform.Memoized
 import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
@@ -29,7 +28,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-abstract class StepSpec extends Specification {
+abstract class StepSpec<C extends Context> extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
     final buildOperationExecutor = new TestBuildOperationExecutor()
@@ -38,10 +37,10 @@ abstract class StepSpec extends Specification {
     final identity = ":test"
     final delegate = Mock(Step)
     final work = Stub(UnitOfWork)
+    final C context = createContext()
 
-    @Memoized
-    protected Context getContext() {
-        Stub(Context)
+    protected C createContext() {
+        (C) Stub(Context)
     }
 
     def setup() {

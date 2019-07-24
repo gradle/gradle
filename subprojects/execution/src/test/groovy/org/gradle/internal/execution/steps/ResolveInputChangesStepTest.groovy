@@ -23,14 +23,18 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 
-class ResolveInputChangesStepTest extends StepSpec {
+class ResolveInputChangesStepTest extends StepSpec<IncrementalChangesContext> {
 
-    def step = new ResolveInputChangesStep<IncrementalChangesContext>(delegate)
-    final IncrementalChangesContext context = Stub()
+    def step = new ResolveInputChangesStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
     def optionalChanges = Optional.of(changes)
     def inputChanges = Mock(InputChangesInternal)
     def result = Mock(Result)
+
+    @Override
+    protected IncrementalChangesContext createContext() {
+        Stub(IncrementalChangesContext)
+    }
 
     def "resolves input changes when required"() {
         when:

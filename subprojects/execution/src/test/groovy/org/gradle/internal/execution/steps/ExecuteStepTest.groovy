@@ -22,10 +22,14 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import spock.lang.Unroll
 
-class ExecuteStepTest extends StepSpec {
-    def step = new ExecuteStep<InputChangesContext>(buildOperationExecutor)
+class ExecuteStepTest extends StepSpec<InputChangesContext> {
+    def step = new ExecuteStep<>(buildOperationExecutor)
     def inputChanges = Mock(InputChangesInternal)
-    final InputChangesContext context = Stub()
+
+    @Override
+    protected InputChangesContext createContext() {
+        Stub(InputChangesContext)
+    }
 
     @Unroll
     def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
