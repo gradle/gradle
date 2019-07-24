@@ -41,10 +41,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     private final PatternSet patternSet;
-    private final Stat stat;
 
-    public PatternSetSnapshottingFilter(PatternSet patternSet, Stat stat) {
-        this.stat = stat;
+    public PatternSetSnapshottingFilter(PatternSet patternSet) {
         this.patternSet = patternSet;
     }
 
@@ -54,13 +52,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     }
 
     @Override
-    public FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+    public FileSystemSnapshotPredicate getAsSnapshotPredicate(Stat stat) {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (snapshot, relativePath) -> spec.isSatisfiedBy(new LogicalFileTreeElement(snapshot, relativePath, stat));
     }
 
     @Override
-    public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+    public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate(Stat stat) {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         return (Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) ->
             spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, stat));

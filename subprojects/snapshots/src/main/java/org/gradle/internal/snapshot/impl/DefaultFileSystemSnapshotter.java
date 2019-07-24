@@ -146,7 +146,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case Directory:
                 SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
                     ? null
-                    : filter.getAsDirectoryWalkerPredicate();
+                    : filter.getAsDirectoryWalkerPredicate(stat);
                 return directorySnapshotter.snapshot(absolutePath, predicate, hasBeenFiltered);
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
@@ -188,7 +188,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (filter.isEmpty()) {
             return snapshot;
         }
-        return FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
+        return FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(stat), snapshot);
     }
 
     private class InternableString {

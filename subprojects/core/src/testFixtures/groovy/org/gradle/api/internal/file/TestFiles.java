@@ -116,7 +116,7 @@ public class TestFiles {
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter());
     }
 
     public static DefaultFileSystemSnapshotter fileSystemSnapshotter() {

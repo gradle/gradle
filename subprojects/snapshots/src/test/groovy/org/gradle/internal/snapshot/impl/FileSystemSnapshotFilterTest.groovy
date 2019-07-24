@@ -65,7 +65,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "filters empty tree"() {
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*")).asSnapshotPredicate, FileSystemSnapshot.EMPTY) == FileSystemSnapshot.EMPTY
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*")).getAsSnapshotPredicate(fileSystem), FileSystemSnapshot.EMPTY) == FileSystemSnapshot.EMPTY
     }
 
     def "root directory is always matched"() {
@@ -94,12 +94,12 @@ class FileSystemSnapshotFilterTest extends Specification {
         def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
 
         expect:
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered).is(unfiltered)
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).getAsSnapshotPredicate(fileSystem), unfiltered).is(unfiltered)
     }
 
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotVisitor() {
+        FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).getAsSnapshotPredicate(fileSystem), unfiltered).accept(new FileSystemSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
@@ -122,7 +122,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         new PatternSet().include(pattern)
     }
 
-    private SnapshottingFilter snapshottingFilter(PatternSet patternSet) {
-        return new PatternSetSnapshottingFilter(patternSet, fileSystem)
+    private static SnapshottingFilter snapshottingFilter(PatternSet patternSet) {
+        return new PatternSetSnapshottingFilter(patternSet)
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
+import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
@@ -284,7 +285,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         }
 
         @Override
-        FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+        FileSystemSnapshotPredicate getAsSnapshotPredicate(Stat stat) {
             return new FileSystemSnapshotPredicate() {
                 @Override
                 boolean test(FileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
@@ -294,7 +295,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         }
 
         @Override
-        DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+        DirectoryWalkerPredicate getAsDirectoryWalkerPredicate(Stat stat) {
             return new DirectoryWalkerPredicate() {
                 @Override
                 boolean test(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {

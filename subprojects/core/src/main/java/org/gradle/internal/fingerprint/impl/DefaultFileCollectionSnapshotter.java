@@ -37,11 +37,9 @@ import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final Stat stat;
 
-    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {
+    public DefaultFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-        this.stat = stat;
     }
 
     @Override
@@ -69,7 +67,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitFileTree(File root, PatternSet patterns) {
-            roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, new PatternSetSnapshottingFilter(patterns, stat)));
+            roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, new PatternSetSnapshottingFilter(patterns)));
         }
 
         public List<FileSystemSnapshot> getRoots() {

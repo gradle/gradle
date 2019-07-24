@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner()), TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner()))
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def listener = Mock(ChangeListener)
 
