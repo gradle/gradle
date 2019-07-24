@@ -200,7 +200,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         def jars = collectJars(unpackDistribution())
         def invalidArchives = jars.findAll {
             def names = new ZipFile(it).entries()*.name
-            names.size() != names.toSet().size()
+            names.size() != names.toUnique().size()
         }*.name
 
         then:
