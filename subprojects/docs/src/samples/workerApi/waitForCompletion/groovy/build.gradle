@@ -45,6 +45,7 @@ class ReverseFiles extends SourceTask {
     @TaskAction
     void reverseFiles() {
         // tag::wait-for-completion[]
+        // Create a WorkQueue to submit work items
         WorkQueue workQueue = workerExecutor.noIsolation()
 
         // Create and submit a unit of work for each file

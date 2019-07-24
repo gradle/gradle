@@ -49,6 +49,7 @@ class ReverseFiles extends SourceTask {
     @TaskAction
     void reverseFiles() {
         // tag::worker-daemon[]
+        // Create a WorkQueue with process isolation
         WorkQueue workQueue = workerExecutor.processIsolation() { ProcessWorkerSpec spec ->
             // Configure the options for the forked process
             forkOptions { JavaForkOptions options ->

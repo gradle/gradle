@@ -42,6 +42,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
     @TaskAction
     fun reverseFiles() {
         // tag::worker-daemon[]
+        // Create a WorkQueue with process isolation
         val workQueue = workerExecutor.processIsolation() {
             // Configure the options for the forked process
             forkOptions {

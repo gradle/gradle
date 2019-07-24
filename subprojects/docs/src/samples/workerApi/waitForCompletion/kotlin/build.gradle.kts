@@ -24,6 +24,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
     @TaskAction
     fun reverseFiles() {
         // tag::wait-for-completion[]
+        // Create a WorkQueue to submit work items
         val workQueue = workerExecutor.noIsolation()
 
         // Create and submit a unit of work for each file
