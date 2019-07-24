@@ -557,4 +557,4 @@ It's often a good approach to package custom task types in a custom Gradle plugi
 The plugin can provide useful defaults and conventions for the task type, and provides a convenient way to use the task type from a build script or another plugin.
 Please see <<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>> for more details.
 
-Gradle provides a number of features that are helpful when developing Gradle types, including tasks. Please see <<custom_gradle_types.adoc,Developing Custom Gradle Types>> for more details.
+Gradle provides a number of features that are helpful when developing Gradle types, including tasks. Please see <<custom_gradle_types.adoc#,Developing Custom Gradle Types>> for more details.

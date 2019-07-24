@@ -257,10 +257,10 @@ As a consequence, Maven modules are derived into 6 distinct variants, which allo
 
 * 2 "library" variants (attribute `org.gradle.category` = `library`)
 ** the `compile` variant maps the `<scope>compile</scope>` dependencies.
-   This variant is equivalent to the `apiElements` variant of the <<java_library_plugin.adoc,Java Library plugin>>.
+   This variant is equivalent to the `apiElements` variant of the <<java_library_plugin.adoc#,Java Library plugin>>.
    All dependencies of this scope are considered _API dependencies_.
 ** the `runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependencies.
-   This variant is equivalent to the `runtimeElements` variant of the <<java_library_plugin.adoc,Java Library plugin>>.
+   This variant is equivalent to the `runtimeElements` variant of the <<java_library_plugin.adoc#,Java Library plugin>>.
    All dependencies of those scopes are considered _runtime dependencies_.
    - in both cases, the `<dependencyManagement>` dependencies are _not converted to constraints_
 * 4 "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):
@@ -490,7 +490,7 @@ And that's it! Now we have:
 - explained that the consumer needs this variant _only for test runtime_
 
 Gradle therefore offers a powerful mechanism to select the right variants based on preferences and compatibility.
-More details can be found in the <<variant_aware_plugins.adoc, variant aware plugins section of the documentation>>.
+More details can be found in the <<variant_aware_plugins.adoc#, variant aware plugins section of the documentation>>.
 
 [WARNING]
 ====

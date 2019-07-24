@@ -173,6 +173,7 @@ include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=def
 include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
 ====
 
+[[source_sets]]
 == Source sets
 
 The plugin adds the following <<building_java_projects.adoc#sec:java_source_sets,source sets>>:

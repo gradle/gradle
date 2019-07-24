@@ -29,7 +29,9 @@ Artifacts are typically designed to be used or consumed by users or other projec
 
 Any single version of a <<dependency_management_terminology.adoc#sub:terminology_module,module>>.
 
-Components are defined by plugins and provide a simple way to define a publication for publishing. They comprise one or more <<#glossary:artifact,artifacts>> as well as the appropriate metadata. For example, the `java` component consists of the production JAR — produced by the `jar` task — and its dependency information.
+Components are defined by plugins and provide a simple way to define a publication for publishing.
+They comprise one or more <<#sub:terminology_artifact,artifacts>> as well as the appropriate metadata.
+For example, the `java` component consists of the production JAR — produced by the `jar` task — and its dependency information.
 
 [[sub:terminology_configuration]]
 == Configuration
@@ -81,11 +83,11 @@ A platform is a set of modules aimed to be used together. There are different ca
 - runtime environment: a set of libraries known to work well together. e.g., the Spring Platform, recommending versions for both Spring and components that work well with Spring.
 - deployment environment: Java runtime, application server, ...
 
-In addition Gradle defines <<managing_transitive_dependencies#sec:virtual_platform,virtual platforms>>.
+In addition Gradle defines <<controlling_transitive_dependencies#sec:virtual_platform,virtual platforms>>.
 
 [NOTE]
 ====
-Maven's BOM (bill-of-material) is a popular kind of platform that <<sec:bom_import, Gradle supports>>.
+Maven's BOM (bill-of-material) is a popular kind of platform that <<controlling_transitive_dependencies.adoc#sec:bom_import, Gradle supports>>.
 ====
 
 [[sub:terminology_publication]]

@@ -30,7 +30,8 @@ import java.io.File
 @CacheableTask
 open class FindBrokenInternalLinks : DefaultTask() {
     companion object {
-        val linkPattern = Regex("<<([a-zA-Z_0-9-]+[.]adoc)#([^,>]*),[^>]+>")
+        val linkPattern = Regex("<<([^,>]+)[^>]*>>")
+        val linkWithHashPattern = Regex("([a-zA-Z_0-9-.]*)#(.*)")
     }
 
     @get:InputDirectory
@@ -83,22 +84,40 @@ open class FindBrokenInternalLinks : DefaultTask() {
         sourceFile.forEachLine { line ->
             lineNumber++
             linkPattern.findAll(line).forEach {
-                val fileName = it.groupValues[1]
-                val referencedFile = File(baseDir, fileName)
-                if (!referencedFile.exists()) {
-                    errorsForFile.add(Error(lineNumber, fileName))
-                } else {
-                    val idName = it.groupValues[2]
-                    if (idName.isNotEmpty()) {
-                        if (!referencedFile.readText().contains("[[" + idName + "]]")) {
-                            errorsForFile.add(Error(lineNumber, fileName + " " + idName))
+                val link = it.groupValues[1]
+                if (link.contains('#')) {
+                    linkWithHashPattern.find(link)!!.apply {
+                        val fileName = getFileName(this.groupValues[1], sourceFile)
+                        val referencedFile = File(baseDir, fileName)
+                        if (!referencedFile.exists() || referencedFile.isDirectory) {
+                            errorsForFile.add(Error(lineNumber, fileName))
+                        } else {
+                            val idName = this.groupValues[2]
+                            if (idName.isNotEmpty()) {
+                                if (!referencedFile.readText().contains("[[$idName]]")) {
+                                    errorsForFile.add(Error(lineNumber, "$fileName $idName"))
+                                }
+                            }
                         }
+                    }
+                } else {
+                    if (!sourceFile.readText().contains("[[$link]]")) {
+                        errorsForFile.add(Error(lineNumber, "${sourceFile.name} $link"))
                     }
                 }
             }
         }
         if (errorsForFile.isNotEmpty()) {
-            errors.put(sourceFile.name, errorsForFile)
+            errors[sourceFile.name] = errorsForFile
+        }
+    }
+
+    private
+    fun getFileName(match: String, currentFile: File): String {
+        return if (match.isNotEmpty()) {
+            if (match.endsWith(".adoc")) match else "$match.adoc"
+        } else {
+            currentFile.name
         }
     }
 

@@ -171,7 +171,7 @@ While going through these steps, keep in mind <<#sec:task_configuration_avoidanc
 
 [NOTE]
 ====
-Using the new API in a plugin will require users to use Gradle 4.9 or later. Plugin authors should refer to <<sec:task_configuration_avoidance_backward_compatibility_migration>> section.
+Using the new API in a plugin will require users to use Gradle 4.9 or later. Plugin authors should refer to <<#sec:task_configuration_avoidance_backward_compatibility_migration>> section.
 ====
 
 1. **Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(...) {}`).**
@@ -347,7 +347,7 @@ This section describes two ways to keep your plugin backward compatible with old
 Although backward compatibility is good for users, we still recommended to upgrade to newer Gradle releases in a timely manner. This will reduce your maintenance burden.
 ====
 
-The first method to maintain compatibility is to compile your plugin against the Gradle 4.9 API and conditionally call the right APIs with Groovy (https://github.com/melix/jmh-gradle-plugin/blob/a034aa88805b7a06fa9c5a825d573554b2aa23e2/src/main/groovy/me/champeau/gradle/JMHPlugin.groovy#L289-L296[example]). 
+The first method to maintain compatibility is to compile your plugin against the Gradle 4.9 API and conditionally call the right APIs with Groovy (https://github.com/melix/jmh-gradle-plugin/blob/a034aa88805b7a06fa9c5a825d573554b2aa23e2/src/main/groovy/me/champeau/gradle/JMHPlugin.groovy#L289-L296[example]).
 
 The second method is to use Java reflection to cope with the fact that the APIs are unavailable during compilation (https://github.com/tbroyer/gradle-apt-plugin/tree/432509ec85d1ab49296d4f9b21fad876523c6a8a/src/main/java/net/ltgt/gradle/apt[example]).
 

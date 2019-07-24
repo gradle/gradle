@@ -23,7 +23,7 @@ It is the preferred method to express constraints that should be applied to all 
 When Gradle attempts to resolve a dependency to a module version, all <<rich_versions.adoc#,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration.
 The highest version that matches all conditions is selected.
 If no such version is found, Gradle fails with an error showing the conflicting declarations.
-If this happens you can adjust your dependencies or dependency constraints declarations, or <<#managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed.
+If this happens you can adjust your dependencies or dependency constraints declarations, or make other adjustments to the transitive dependencies if needed.
 Similar to dependency declarations, dependency constraint declarations are <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build.
 If a dependency constraint influenced the resolution result, any type of <<#sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
@@ -71,7 +71,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 In the example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
 This way, if you are developing for a platform like Spring Boot, you do not have to declare any versions yourself but can rely on the versions the platform provides.
 
-Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<#sec:dependency_constraints,Gradle's dependency constraints>>.
+Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<#sec:adding-constraints-transitive-deps,Gradle's dependency constraints>>.
 This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result.
 In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
 
@@ -116,7 +116,7 @@ Either because they are actually published as a whole (when one of the members o
 === Aligning versions natively with Gradle
 
 Gradle natively supports alignment of modules produced by Gradle.
-This is a direct consequence of the transitivity of <<sec:dependency_constraints, dependency constraints>>.
+This is a direct consequence of the transitivity of <<sec:adding-constraints-transitive-deps, dependency constraints>>.
 So if you have a multi-project build, and that you wish that consumers get the same version of all your modules, Gradle provides a simple way to do this using the <<java_platform_plugin.adoc#,Java Platform Plugin>>.
 
 For example, if you have a project that consists of 3 modules:

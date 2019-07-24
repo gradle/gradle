@@ -76,7 +76,7 @@ The following breaking changes are not from deprecations, but the result of chan
  * The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
    Please use `afterEvaluate {}` if you need to defer evaluation.
  * The link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] and link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[`Groovydoc`] tasks now delete the destination dir for the documentation before executing. This has been added to remove stale output files from the last task execution.
- * The <<#java_library_distribution_plugin, Java Library Distribution Plugin>> is now based on the <<#java_library_plugin, Java Library Plugin>> instead of the <<#java_plugin, Java Plugin>>.
+ * The <<java_library_distribution_plugin.adoc#, Java Library Distribution Plugin>> is now based on the <<java_library_plugin.adoc#, Java Library Plugin>> instead of the <<java_plugin.adoc#, Java Plugin>>.
 +
 While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration). Thus, make sure to check whether your build behaves as expected after upgrading.
  * The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a https://docs.gradle.org/current/dsl/org.gradle.api.reporting.CustomizableHtmlReport.html[`CustomizableHtmlReport`] instance that is easier to configure from statically typed languages like Java and Kotlin.
@@ -228,7 +228,7 @@ Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Gro
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
- * Consider migrating to the built-in <<dependency_locking#dependency_locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
+ * Consider migrating to the built-in <<dependency_locking#,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
 === Potential breaking changes
@@ -597,15 +597,15 @@ pluginManagement {
 [[rel5.0:java_library_distribution_plugin]]
 === Java Library Distribution Plugin utilizes Java Library Plugin
 
-The <<#java_library_distribution_plugin, Java Library Distribution Plugin>> is now based on the
-<<#java_library_plugin, Java Library Plugin>> instead of the <<#java_plugin, Java Plugin>>.
+The <<java_library_distribution_plugin.adoc#,Java Library Distribution Plugin>> is now based on the
+<<java_library_plugin.adoc#, Java Library Plugin>> instead of the <<java_plugin.adoc#, Java Plugin>>.
 
 Additionally, the default distribution created by the plugin will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
 
 [[rel5.0:configuration_avoidance]]
 === Configuration Avoidance API disallows common configuration errors
 
-The <<#task_configuration_avoidance, configuration avoidance API>> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+The <<task_configuration_avoidance.adoc#, configuration avoidance API>> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
 
 With the existing API, this example adds two tasks (`foo` and `bar`):
 
@@ -693,7 +693,7 @@ The S3 repository transport protocol allows Gradle to publish artifacts to AWS S
 }
 ----
 
-See <<repository_types#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<declaring_repositories.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration

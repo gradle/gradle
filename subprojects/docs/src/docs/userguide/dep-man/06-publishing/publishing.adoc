@@ -26,7 +26,7 @@ Let's take a look at those steps in more detail:
 [[publishing_overview:what]]
 What to publish::
 Gradle needs to know what files and information to publish so that consumers can use your project.
-This is typically a combination of <<#glossary:artifact,artifacts>> and metadata that Gradle calls a <<#glossary:publication,publication>>.
+This is typically a combination of <<dependency_management_terminology.adoc#sub:terminology_artifact,artifacts>> and metadata that Gradle calls a <<dependency_management_terminology.adoc#sub:terminology_publication,publication>>.
 Exactly what a publication contains depends on the type of repository it's being published to.
 +
 For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies.
@@ -68,7 +68,8 @@ include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradl
 include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-publishing]"]
 ====
 
-This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<#glossary:component,component>> of the project.
+This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].
+This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<dependency_management_terminology.adoc#sub:terminology_component,component>> of the project.
 
 NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent], while the War Plugin defines `components.web`.
 
@@ -118,7 +119,7 @@ To some extent, you can see those extra artifacts as being published "out of con
 The only way to address them as a consumer is to either to download them directly or use a _classifier_ notation.
 
 Gradle, via _Gradle Module Metadata_, supports the publication of _additional variants_ which make those artifacts known to the dependency resolution engine.
-Please refer to the <<modeling_features.adoc#sec:variant-aware-sharing, variant-aware sharing>> section of the documentation to see how to declare such variants and <<#sec:publishing-custom-components, check out how to publish custom components>>.
+Please refer to the <<modeling_features.adoc#sec:variant-aware-sharing, variant-aware sharing>> section of the documentation to see how to declare such variants and <<#publishing-custom-components, check out how to publish custom components>>.
 ====
 
 [[understanding-gradle-module-md]]
@@ -142,9 +143,9 @@ Publication of Gradle Module Metadata will enable better dependency management f
 - early discovery of problems by detecting <<modeling_features.adoc#declaring-component-capabilities,incompatible modules>>
 - consistent selection of <<modeling_features.adoc#targeting-different-platforms,platform-specific dependencies>>
 - native <<controlling_transitive_dependencies#sec:version_alignment, dependency version alignement>>
-- automatically getting dependencies for specific <<feature_variants.adoc,features of your library>>
+- automatically getting dependencies for specific <<feature_variants.adoc#,features of your library>>
 
-Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc,Maven Publish plugin>> or the <<publishing_ivy.adoc#Ivy Publish plugin>>.
+Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#,Maven Publish plugin>> or the <<publishing_ivy.adoc#,Ivy Publish plugin>>.
 It is _not_ supported on the legacy `maven` and `ivy` plugins.
 
 The specification for Gradle Module Metadata specification can be found {metadata-file-spec}[here].
@@ -179,7 +180,7 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 |Not published
 |Component capabilities are unique to Gradle
 
-|<<feature_variants.adoc,Feature variants>>
+|<<feature_variants.adoc#,Feature variants>>
 |Variant artifacts are uploaded, dependencies are published as _optional dependencies
 |Variant artifacts are uploaded, dependencies are not published
 |Feature variants are a good replacement for optional dependencies
@@ -305,7 +306,7 @@ If your project doesn't need to be consumed by other projects and that the only 
 
 We still recommend to use <<#sec:software_component_factory,adhoc component publication>> which is safer and future-proof, but here's how you can do it.
 
-First, start by defining a custom artifact and attaching it to a Gradle <<#glossary:configuration,configuration>> of your choice.
+First, start by defining a custom artifact and attaching it to a Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configuration>> of your choice.
 The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
 
 .Defining a custom artifact for a configuration

@@ -131,7 +131,9 @@ include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=c
 
 You'll get the same behavior as before except with one extra level of directory in the destination, i.e. `toArchive/reports`.
 
-One thing to note is how the `include()` directive applies only to the `from()`, whereas the directive in the previous section applied to the whole task. These different levels of granularity in the copy specification allow you to easily handle most requirements that you will come across. You can learn more about this in the section on <<Using child specifications,child specifications>>.
+One thing to note is how the `include()` directive applies only to the `from()`, whereas the directive in the previous section applied to the whole task.
+These different levels of granularity in the copy specification allow you to easily handle most requirements that you will come across.
+You can learn more about this in the section on <<sub:using_child_copy_specifications,child specifications>>.
 
 [[sec:creating_archives_example]]
 == Creating archives (zip, tar, etc.)
@@ -163,7 +165,8 @@ As you can see, you can have multiple `from()` declarations in a copy specificat
 [[sec:unpacking_archives_example]]
 == Unpacking archives
 
-Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<File trees,file trees>>).
+Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. \
+Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<sec:file_trees,file trees>>).
 
 The two functions of interest are link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[Project.zipTree(java.lang.Object)] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:tarTree(java.lang.Object)[Project.tarTree(java.lang.Object)], which produce a link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
@@ -562,6 +565,7 @@ include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=c
 
 Note that the lazy configuration of `into()` is different from a <<#sub:using_child_copy_specifications,child specification>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
 
+[[filtering_files]]
 === Filtering files
 
 You've already seen that you can filter file collections and file trees directly in a `Copy` task, but you can also apply filtering in any copy specification through the link:{javadocPath}/org/gradle/api/file/CopySpec.html#include-java.lang.String++...++-[CopySpec.include(java.lang.String...)] and link:{javadocPath}/org/gradle/api/file/CopySpec.html#exclude-java.lang.String++...++-[CopySpec.exclude(java.lang.String...)] methods.
@@ -582,7 +586,7 @@ A question you may ask yourself at this point is what happens when inclusion and
 
 Bear these rules in mind when creating combined inclusion and exclusion specifications so that you end up with the exact behavior you want.
 
-Note that the inclusions and exclusions in the above example will apply to _all_ `from()` configurations. If you want to apply filtering to a subset of the copied files, you'll need to use <<Using child specifications,child specifications>>.
+Note that the inclusions and exclusions in the above example will apply to _all_ `from()` configurations. If you want to apply filtering to a subset of the copied files, you'll need to use <<sub:using_child_copy_specifications,child specifications>>.
 
 [[sec:renaming_files]]
 === Renaming files
