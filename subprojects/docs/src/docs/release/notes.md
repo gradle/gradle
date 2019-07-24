@@ -125,7 +125,58 @@ See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_prop
 
 ### Worker API improvements
 
-TBD
+This release introduces a number of improvements to the Worker API.
+
+First, the classpath is now cleaner when submitting work with `IsolationMode.CLASSLOADER` or `IsolationMode.PROCESS`.  Extra jars (such as external jars used by Gradle itself) should no longer appear on the worker classpath.  
+
+Second, new classes have been introduced to make defining the unit of work implementation more straightforward and type safe.  It also makes it simpler to handle null values in work parameters.  Instead of a `Runnable`, the unit of work is defined by extending the `WorkAction` and `WorkParameters` interfaces.  For example:
+
+```groovy
+// Define an interface that represents the parameters of your WorkAction.  Gradle will generate a parameters object from this interface.
+interface ReverseParameters extends WorkParameters {
+    Property<File> getFileToReverse()
+    Property<File> getDestinationFile()
+}
+
+// Define an abstract class that represents your unit of work and uses the parameters defined above.
+// No need to define the getParameters() method - this will be injected by Gradle.
+abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    @Override
+    public void execute() {
+        File fileToReverse = parameters.fileToReverse.get()
+        parameters.destinationFile.get().text = fileToReverse.text.reverse()
+        if (Boolean.getBoolean("org.gradle.sample.showFileSize")) {
+            println "Reversed ${fileToReverse.size()} bytes from ${fileToReverse.name}"
+        }
+    }
+}
+```
+
+Last, new methods have been added to `WorkerExecutor` that should make the API simpler and easier to use.  The `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods all return a `WorkQueue` object that can be used to submit multiple items of work that have the same requirements.  For example:
+
+```groovy
+// Create a WorkQueue with requirements for all work that is submitted to it
+WorkQueue workQueue = workerExecutor.processIsolation() { ProcessWorkerSpec spec ->
+    // Configure the options for the forked process
+    forkOptions { JavaForkOptions options ->
+        options.maxHeapSize = "512m"
+        options.systemProperty "org.gradle.sample.showFileSize", "true"
+    }
+}
+
+// Create and submit a unit of work for each file
+sourceFiles.each { file ->
+    workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
+        parameters.fileToReverse = file
+        parameters.destinationFile = project.file("$outputDir/${file.name}")
+    }
+}
+
+```
+
+See the [user manual](userguide/custom_tasks.html#sec:using_the_worker_api) for more information on using the new API.  
+
+The existing `WorkerExecutor.submit()` method can still be used, but will be deprecated in Gradle 6.0 and removed in Gradle 7.0.
 
 ## Improved handling of ZIP archives on classpaths
 
