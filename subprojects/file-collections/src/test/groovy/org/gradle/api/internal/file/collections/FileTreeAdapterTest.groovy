@@ -156,7 +156,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns())
+        1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns(), adapter)
         0 * visitor._
     }
 
