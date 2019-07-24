@@ -20,7 +20,7 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.execution.Result
 
-class CancelExecutionStepTest extends StepSpec {
+class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
     def cancellationToken = Mock(BuildCancellationToken)
     def step = new CancelExecutionStep<>(cancellationToken, delegate)
     def delegateResult = Mock(Result)

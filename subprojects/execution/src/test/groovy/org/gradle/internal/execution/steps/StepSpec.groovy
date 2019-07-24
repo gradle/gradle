@@ -39,9 +39,7 @@ abstract class StepSpec<C extends Context> extends Specification {
     final work = Stub(UnitOfWork)
     final C context = createContext()
 
-    protected C createContext() {
-        (C) Stub(Context)
-    }
+    abstract protected C createContext()
 
     def setup() {
         _ * context.work >> work

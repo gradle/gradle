@@ -24,7 +24,7 @@ import org.gradle.internal.execution.timeout.TimeoutHandler
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-class TimeoutStepTest extends StepSpec {
+class TimeoutStepTest extends ContextInsensitiveStepSpec {
     def timeoutHandler = Mock(TimeoutHandler)
     def step = new TimeoutStep<>(timeoutHandler, delegate)
     def delegateResult = Mock(Result)

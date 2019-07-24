@@ -21,7 +21,7 @@ import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends StepSpec {
+class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
     def step = new CreateOutputsStep<>(delegate)
 
     def "outputs are created"() {

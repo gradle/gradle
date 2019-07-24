@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Result
 
-class ValidateStepTest extends StepSpec {
+class ValidateStepTest extends ContextInsensitiveStepSpec {
     def step = new ValidateStep<>(delegate)
     def delegateResult = Mock(Result)
 

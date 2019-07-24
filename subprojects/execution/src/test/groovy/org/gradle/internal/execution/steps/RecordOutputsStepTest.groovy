@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.history.OutputFilesRepository
 
-class RecordOutputsStepTest extends StepSpec implements FingerprinterFixture {
+class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements FingerprinterFixture {
     def outputFilesRepository = Mock(OutputFilesRepository)
     def step = new RecordOutputsStep<>(outputFilesRepository, delegate)
 

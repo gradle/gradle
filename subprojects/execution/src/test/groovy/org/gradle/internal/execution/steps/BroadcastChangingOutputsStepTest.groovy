@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
 
-class BroadcastChangingOutputsStepTest extends StepSpec {
+class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
     def outputChangeListener = Mock(OutputChangeListener)
     def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
     def delegateResult = Mock(Result)

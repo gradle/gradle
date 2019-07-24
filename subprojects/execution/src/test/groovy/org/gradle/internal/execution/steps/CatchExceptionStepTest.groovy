@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.Result
 import spock.lang.Unroll
 
-class CatchExceptionStepTest extends StepSpec {
+class CatchExceptionStepTest extends ContextInsensitiveStepSpec {
     def step = new CatchExceptionStep<>(delegate)
 
     def "successful result is preserved"() {
