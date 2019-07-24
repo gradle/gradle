@@ -16,14 +16,12 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
@@ -48,10 +46,10 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final JavaForkOptions javaOptions;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptionsFactory javaForkOptionsFactory) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
-        this.javaOptions = javaForkOptionsFactory.newJavaForkOptions();
+        javaOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
         executable(javaOptions.getExecutable());
     }
 
@@ -198,16 +196,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     public void setDebug(boolean enabled) {
         javaOptions.setDebug(enabled);
-    }
-
-    @Override
-    public JavaDebugOptions getDebugOptions() {
-        return javaOptions.getDebugOptions();
-    }
-
-    @Override
-    public void debugOptions(Action<JavaDebugOptions> action) {
-        javaOptions.debugOptions(action);
     }
 
     @Override

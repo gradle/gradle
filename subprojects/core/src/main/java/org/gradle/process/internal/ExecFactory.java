@@ -19,7 +19,6 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -30,10 +29,10 @@ public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaE
     /**
      * Creates a new factory for the given context.
      */
-    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory);
+    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator);
 
     /**
      * Creates a new factory for the given context.
      */
-    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory);
+    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken);
 }

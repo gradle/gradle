@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -35,7 +34,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -73,13 +71,13 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     @Override
-    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory);
+    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken);
     }
 
     @Override
-    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory) {
-        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken, objectFactory);
+    public ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken) {
+        return new DecoratingExecActionFactory(fileResolver, fileCollectionFactory, instantiator, executor, buildCancellationToken);
     }
 
     @Override
@@ -94,7 +92,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
     }
 
     @Override
@@ -111,7 +109,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, executor, buildCancellationToken, this);
+        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
     }
 
     @Override
@@ -121,7 +119,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, executor, buildCancellationToken, this);
+        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
     }
 
     @Override
@@ -151,12 +149,10 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     private static class DecoratingExecActionFactory extends DefaultExecActionFactory {
         private final Instantiator instantiator;
-        private final ObjectFactory objectFactory;
 
-        DecoratingExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory) {
+        DecoratingExecActionFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken) {
             super(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
             this.instantiator = instantiator;
-            this.objectFactory = objectFactory;
         }
 
         @Override
@@ -166,13 +162,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public JavaExecAction newDecoratedJavaExecAction() {
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, executor, buildCancellationToken, this);
-        }
-
-        @Override
-        public JavaForkOptionsInternal newJavaForkOptions() {
-            JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-            return instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, executor, buildCancellationToken);
         }
     }
 
@@ -364,16 +354,6 @@ public class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public JavaDebugOptions getDebugOptions() {
-            return delegate.getDebugOptions();
-        }
-
-        @Override
-        public void debugOptions(Action<JavaDebugOptions> action) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public List<String> getAllJvmArgs() {
             return ImmutableList.copyOf(delegate.getAllJvmArgs());
         }
@@ -391,6 +371,11 @@ public class DefaultExecActionFactory implements ExecFactory {
         @Override
         public JavaForkOptions copyTo(JavaForkOptions options) {
             return delegate.copyTo(options);
+        }
+
+        @Override
+        public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
+            return new ImmutableJavaForkOptions(delegate.mergeWith(options));
         }
 
         @Override

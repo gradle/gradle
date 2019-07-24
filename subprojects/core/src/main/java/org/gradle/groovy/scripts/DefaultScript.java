@@ -37,7 +37,6 @@ import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -100,7 +99,7 @@ public abstract class DefaultScript extends BasicScript {
                 FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
                 DefaultFileCollectionFactory fileCollectionFactoryWithBase = new DefaultFileCollectionFactory(resolver, null);
                 fileOperations = new DefaultFileOperations(resolver, null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactoryWithBase, fileSystem, clock);
-                processOperations = services.get(ExecFactory.class).forContext(resolver, fileCollectionFactoryWithBase, instantiator, new InstantiatorBackedObjectFactory(instantiator));
+                processOperations = services.get(ExecFactory.class).forContext(resolver, fileCollectionFactoryWithBase, instantiator);
             } else {
                 fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory, fileSystem, clock);
                 processOperations = services.get(ExecFactory.class);

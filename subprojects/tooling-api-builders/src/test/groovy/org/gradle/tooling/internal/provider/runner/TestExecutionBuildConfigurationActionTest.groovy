@@ -26,7 +26,6 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestFilter
 import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
-import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
@@ -48,7 +47,6 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     BuildExecutionContext buildContext
     TaskExecutionGraphInternal taskGraph
     TestExecutionRequestAction testExecutionRequest
-    InternalDebugOptions debugOptions
 
     def setup() {
         outputsInternal = Mock()
@@ -60,10 +58,6 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         testExecutionRequest = Mock()
         testTask = Mock()
         testFilter = Mock()
-
-        debugOptions = Mock()
-        debugOptions.isDebugMode() >> false
-        testExecutionRequest.getDebugOptions() >> debugOptions
 
         setupProject()
         setupTestTask()
