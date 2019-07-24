@@ -76,18 +76,20 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         testCode()
 
         def version = distribution.version.version
-        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
-        def generatedJars = ["$generatedJarsDirectory/gradle-api-${version}.jar", "$generatedJarsDirectory/gradle-test-kit-${version}.jar"]
+        def generatedJars = [
+            'gradle-api',
+            'gradle-test-kit'
+        ].collect { file("user-home/caches/$version/generated-gradle-jars/${it}-${version}.jar" )}
 
         when:
         run "classes", "testClasses"
 
         then:
         generatedJars
-            .collect { new ZipFile(file(it)) }
+            .collect { new ZipFile(it) }
             .findAll {
                 def names = it.entries()*.name
-                names.size() != names.toSet().size()
+                names.size() != names.toUnique().size()
             } == []
     }
 
