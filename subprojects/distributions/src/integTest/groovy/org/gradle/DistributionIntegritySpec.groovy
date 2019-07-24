@@ -205,7 +205,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         then:
         jars != []
-        invalidArchives == [] // TODO fails with: [groovy-all-1.0-2.5.4.jar]
+        invalidArchives == []
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {
