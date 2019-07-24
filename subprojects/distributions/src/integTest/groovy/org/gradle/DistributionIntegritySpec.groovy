@@ -17,8 +17,9 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import spock.lang.Issue
+
+import java.util.zip.ZipFile
 
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
@@ -193,31 +194,19 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         assert errors.empty
     }
 
-    @Requires(TestPrecondition.LINUX)
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
     def "validate dependency archives"() {
-        given:
-        def unzipFolder = new File('/tmp/unzip_6.0-24')
-        def unzip = new File(unzipFolder, '/usr/bin/unzip')
-        if (!unzip.exists()) {
-            execute """
-                cd /tmp &&
-                wget 'http://ftp.debian.org/debian/pool/main/u/unzip/unzip_6.0-24_amd64.deb' &&
-                dpkg-deb -R unzip_6.0-24_amd64.deb ${unzipFolder.name}
-            """
-            assert unzip.exists()
-        }
-
         when:
         def jars = collectJars(unpackDistribution())
-        def invalidArchives = jars
-            .findAll { execute("${unzip} -tq '${it}'").contains("possible zip bomb") }
-            *.name
+        def invalidArchives = jars.findAll {
+            def names = new ZipFile(it).entries()*.name
+            names.size() != names.toSet().size()
+        }*.name
+
         then:
         jars != []
         invalidArchives == [] // TODO fails with: [groovy-all-1.0-2.5.4.jar]
     }
-
-    static execute = { ["/bin/bash", "-c", it].execute().text }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {
         if (file.name.endsWith('.jar')) {
