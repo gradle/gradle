@@ -23,13 +23,11 @@ import javax.annotation.Nullable;
 
 public final class BuildCacheServicesConfiguration {
 
-    @Nullable
-    public final LocalBuildCacheService local;
-    public final boolean localPush;
+    private final LocalBuildCacheService local;
+    private final boolean localPush;
 
-    @Nullable
-    public final BuildCacheService remote;
-    public final boolean remotePush;
+    private final BuildCacheService remote;
+    private final boolean remotePush;
 
     public BuildCacheServicesConfiguration(
         @Nullable LocalBuildCacheService local,
@@ -41,5 +39,23 @@ public final class BuildCacheServicesConfiguration {
         this.remotePush = remotePush;
         this.local = local;
         this.localPush = localPush;
+    }
+
+    @Nullable
+    public LocalBuildCacheService getLocal() {
+        return local;
+    }
+
+    public boolean isLocalPush() {
+        return localPush;
+    }
+
+    @Nullable
+    public BuildCacheService getRemote() {
+        return remote;
+    }
+
+    public boolean isRemotePush() {
+        return remotePush;
     }
 }

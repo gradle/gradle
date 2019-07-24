@@ -77,9 +77,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.emitDebugLogging = emitDebugLogging;
-        this.local = toLocalHandle(config.local, config.localPush);
-        this.remote = toRemoteHandle(config.remote, config.remotePush, buildOperationExecutor, logStackTraces);
-        this.tmp = toTempFileStore(config.local, gradleUserHomeDir);
+        this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
+        this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces);
+        this.tmp = toTempFileStore(config.getLocal(), gradleUserHomeDir);
     }
 
     @Override
