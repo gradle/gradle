@@ -22,7 +22,7 @@ import java.io.File;
 
 /**
  * Used with {@link FileCollectionInternal#visitLeafCollections(FileCollectionLeafVisitor)} this visitor
- * gets called for each element in a file collection that represents a root of a file tree.
+ * is called for each element in a file collection that represents a root of a file tree.
  */
 public interface FileCollectionLeafVisitor {
     /**
@@ -38,5 +38,5 @@ public interface FileCollectionLeafVisitor {
     /**
      * Visits a file tree at a root file on the file system (potentially filtered).
      */
-    void visitFileTree(File root, PatternSet patterns);
+    void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree);
 }

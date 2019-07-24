@@ -68,7 +68,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns) {
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, new PatternSetSnapshottingFilter(patterns, stat)));
         }
 

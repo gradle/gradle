@@ -124,10 +124,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         if (tree instanceof DirectoryFileTree) {
             DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
-            visitor.visitFileTree(directoryFileTree.getDir(), directoryFileTree.getPatterns());
+            visitor.visitFileTree(directoryFileTree.getDir(), directoryFileTree.getPatterns(), this);
         } else if (tree instanceof SingletonFileTree) {
             SingletonFileTree singletonFileTree = (SingletonFileTree) tree;
-            visitor.visitFileTree(singletonFileTree.getFile(), singletonFileTree.getPatterns());
+            visitor.visitFileTree(singletonFileTree.getFile(), singletonFileTree.getPatterns(), this);
         } else if (tree instanceof ArchiveFileTree) {
             ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
             File backingFile = archiveFileTree.getBackingFile();
