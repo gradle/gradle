@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.tooling.events.test.internal;
 
-import org.gradle.process.JavaForkOptions;
+import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 
-public interface JavaForkOptionsInternal extends JavaForkOptions {
+import java.io.Serializable;
 
-    /**
-     * Returns true if the given options are compatible with this set of options.
-     */
-    boolean isCompatibleWith(JavaForkOptions options);
+public class DefaultDebugOptions implements InternalDebugOptions, Serializable {
 
+    private int port = -1;
+
+    @Override
+    public int getPort() {
+        return this.port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    @Override
+    public boolean isDebugMode() {
+        return port > 0;
+    }
 }

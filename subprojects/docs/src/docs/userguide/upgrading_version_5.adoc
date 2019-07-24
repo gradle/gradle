@@ -130,6 +130,11 @@ configurations.all {
 }
 ```
 
+=== Disabled debug argument parsing in JavaExec
+
+Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<JavaDebugOptions>)`) to configure debug properties for forked Java processes. Due to this change, Gradle no longer parses debug-related JVM arguments. Consequently, `JavaForkOptions.getDebu()` no longer returns `true` if the `-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005` or the `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` argument is specified to the process.
+
+
 See <<managing_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
 
 [[changes_5.5]]
