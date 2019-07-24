@@ -188,21 +188,6 @@ include 'a', 'b'
         executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
 
         when:
-        // add public constructor to replace the default, should not change
-        sourceFile.text = """
-            public class ToolImpl { 
-                public ToolImpl() { }
-                public static ToolImpl instance; 
-                public void execute() { String s = toString(); } 
-            }
-"""
-
-        then:
-        succeeds ":b:${language.compileTaskName}"
-        executedAndNotSkipped ":a:${language.compileTaskName}"
-        skipped ":b:${language.compileTaskName}"
-
-        when:
         // add public constructor, should change
         sourceFile.text = """
             public class ToolImpl { 
@@ -293,39 +278,7 @@ public class ToolImpl {
                 public Object s = "12";
                 public void execute() { String s = toString(); }
             }
-"""
-
-        then:
-        succeeds ":b:${language.compileTaskName}"
-        executedAndNotSkipped ":a:${language.compileTaskName}"
-        skipped ":b:${language.compileTaskName}"
-
-        when:
-        // add static initializer and constructor
-        sourceFile.text = """
-            public class ToolImpl {
-                static { }
-                public ToolImpl() { }
-                public Object s = "12";
-                public void execute() { String s = toString(); }
-            }
-"""
-
-        then:
-        succeeds ":b:${language.compileTaskName}"
-        executedAndNotSkipped ":a:${language.compileTaskName}"
-        skipped ":b:${language.compileTaskName}"
-
-        when:
-        // change static initializer and constructor
-        sourceFile.text = """
-            public class ToolImpl {
-                static { int i = 123; }
-                public ToolImpl() { System.out.println("created!"); }
-                public Object s = "12";
-                public void execute() { String s = toString(); }
-            }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
