@@ -38,6 +38,13 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
+==== BuildSrc usage in Gradle settings
+
+Access to the buildSrc project and its dependencies in gradle settings scripts is now deprecated.
+This is due to plans to make initialization of gradle builds more efficient.
+
+This will become an error in Gradle 6.0.
+
 ==== Changing the contents of `ConfigurableFileCollection` task properties after task starts execution
 
 When a task property has type `ConfigurableFileCollection`, then the file collection referenced by the property will ignore changes made to the contents of the collection once the task

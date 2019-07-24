@@ -142,8 +142,9 @@ class KotlinScriptClassPathProvider(
         cachedScopeCompilationClassPath.computeIfAbsent(scope, ::computeCompilationClassPath)
 
     private
-    fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath =
-        gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
+    fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath {
+        return gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
+    }
 
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
         require(scope.isLocked) {

@@ -131,10 +131,12 @@ try {
         buildFile << 'task doStuff'
 
         when:
+        executer.expectDeprecationWarning()
         run('doStuff')
 
         then:
         output.contains('quiet message')
+        output.contains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
         errorOutput.contains('error message')
     }
 
