@@ -863,4 +863,22 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             equalTo("default-value")
         )
     }
+
+    @Test
+    fun `can apply script plugin with package name`() {
+
+        withFile("gradle/script.gradle.kts", """
+            package gradle
+            task("ok") { doLast { println("ok!") } }
+        """)
+
+        withBuildScript("""
+            apply(from = "gradle/script.gradle.kts")
+        """)
+
+        assertThat(
+            build("-q", "ok").output.trim(),
+            equalTo("ok!")
+        )
+    }
 }

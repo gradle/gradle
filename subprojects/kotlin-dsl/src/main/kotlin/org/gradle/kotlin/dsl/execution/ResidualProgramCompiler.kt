@@ -103,7 +103,8 @@ class ResidualProgramCompiler(
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
-    private val pluginAccessorsClassPath: ClassPath = ClassPath.EMPTY
+    private val pluginAccessorsClassPath: ClassPath = ClassPath.EMPTY,
+    private val packageName: String? = null
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -608,7 +609,7 @@ class ResidualProgramCompiler(
         scriptDefinition: KotlinScriptDefinition,
         stage: String,
         compileClassPath: ClassPath = classPath
-    ) = InternalName(
+    ) = InternalName.from(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
@@ -620,6 +621,10 @@ class ResidualProgramCompiler(
                     else path
                 }
             )
+        }.let { compiledScriptClassName ->
+            packageName
+                ?.let { "$it.$compiledScriptClassName" }
+                ?: compiledScriptClassName
         }
     )
 

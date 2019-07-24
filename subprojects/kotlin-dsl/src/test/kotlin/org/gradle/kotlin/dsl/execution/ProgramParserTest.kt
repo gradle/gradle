@@ -195,7 +195,7 @@ class ProgramParserTest {
         programTarget: ProgramTarget = ProgramTarget.Project
     ) {
         val program = ProgramParser.parse(source, programKind, programTarget)
-        assertThat(program, equalTo(expected))
+        assertThat(program.document, equalTo(expected))
     }
 
     private
