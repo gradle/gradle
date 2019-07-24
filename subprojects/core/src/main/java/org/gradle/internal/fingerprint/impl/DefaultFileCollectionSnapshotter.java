@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.DefaultFileMetadata;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
@@ -51,7 +50,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
 
     private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
-        private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+        private final List<FileSystemSnapshot> roots = new ArrayList<>();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {

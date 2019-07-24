@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.collections.AbstractDirectoryWalkerTest
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
@@ -115,6 +116,6 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
     }
 
     private static SnapshottingFilter.DirectoryWalkerPredicate directoryWalkerPredicate(PatternSet patternSet) {
-        return SnapshottingFilter.getAsDirectoryWalkerPredicate
+        return new PatternSetSnapshottingFilter(patternSet).getAsDirectoryWalkerPredicate(TestFiles.fileSystem())
     }
 }
