@@ -25,6 +25,22 @@ import java.io.File;
  * is called for each element in a file collection that represents a root of a file tree.
  */
 public interface FileCollectionLeafVisitor {
+    enum CollectionType {
+        ArtifactTransformResult, Other
+    }
+
+    /**
+     * Called prior to visiting a file collection of the given type, and allows this visitor to skip the collection.
+     *
+     * This is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
+     * contain files that are expensive to visit, or task/transform outputs that don't yet exist.
+     *
+     * @return true to indicate that the collection should be visited, false to indicate it should be skipped.
+     */
+    default boolean beforeVisit(CollectionType type) {
+        return true;
+    }
+
     /**
      * Visits a {@link FileCollectionInternal} element that cannot be visited in further detail.
      */

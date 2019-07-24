@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -65,6 +66,12 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
             TransformationResult result = createTransformationResult(initialSubject);
             artifactResults.put(artifactId, result);
         }
+    }
+
+    @Override
+    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+        // Visit everything
+        return true;
     }
 
     @Override

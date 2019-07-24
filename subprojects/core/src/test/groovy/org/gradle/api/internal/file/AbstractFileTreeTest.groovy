@@ -23,10 +23,8 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
-@UsesNativeServices
 class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
@@ -133,7 +131,7 @@ class AbstractFileTreeTest extends Specification {
         sum.files.sort() == [file1, file2]
     }
 
-    public void "can visit root elements"() {
+    void "visits self as leaf collection"() {
         def tree = new TestFileTree([])
         def visitor = Mock(FileCollectionLeafVisitor)
 
@@ -141,7 +139,20 @@ class AbstractFileTreeTest extends Specification {
         tree.visitLeafCollections(visitor)
 
         then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
         1 * visitor.visitGenericFileTree(tree)
+        0 * visitor._
+    }
+
+    void "does not visit self when visitor is not interested"() {
+        def tree = new TestFileTree([])
+        def visitor = Mock(FileCollectionLeafVisitor)
+
+        when:
+        tree.visitLeafCollections(visitor)
+
+        then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
         0 * visitor._
     }
 

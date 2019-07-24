@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 
 import java.io.File;
@@ -30,6 +31,15 @@ import java.util.Set;
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<File> files = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
+    private final boolean visitScheduledTransforms;
+
+    public ResolvedFilesCollectingVisitor() {
+        this(true);
+    }
+
+    public ResolvedFilesCollectingVisitor(boolean visitScheduledTransforms) {
+        this.visitScheduledTransforms = visitScheduledTransforms;
+    }
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
@@ -39,6 +49,11 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
         } catch (Exception t) {
             failures.add(t);
         }
+    }
+
+    @Override
+    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+        return collectionType != FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult || visitScheduledTransforms;
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -72,6 +73,8 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe as they are notified from multiple threads concurrently.
      */
     interface AsyncArtifactListener {
+        boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType);
+
         /**
          * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
          */

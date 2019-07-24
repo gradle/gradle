@@ -328,7 +328,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")))
     }
 
-    void canVisitRootElements() {
+    void visitsSelfAsLeafCollection() {
         def collection = new TestFileCollection()
         def visitor = Mock(FileCollectionLeafVisitor)
 
@@ -336,7 +336,20 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection.visitLeafCollections(visitor)
 
         then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
         1 * visitor.visitCollection(collection)
+        0 * visitor._
+    }
+
+    void doesNotVisitSelfWhenVisitorIsNotInterested() {
+        def collection = new TestFileCollection()
+        def visitor = Mock(FileCollectionLeafVisitor)
+
+        when:
+        collection.visitLeafCollections(visitor)
+
+        then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
         0 * visitor._
     }
 

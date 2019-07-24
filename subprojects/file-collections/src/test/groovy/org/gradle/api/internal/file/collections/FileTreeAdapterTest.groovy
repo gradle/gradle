@@ -167,7 +167,22 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
         1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns(), adapter)
+        0 * visitor._
+    }
+
+    def doesNotVisitsBackingDirectoryTreeWhenListenerIsNotInterested() {
+        def visitor = Mock(FileCollectionLeafVisitor)
+        def directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory()
+        def tree = directoryFileTreeFactory.create(new File("dir"))
+        def adapter = new FileTreeAdapter(tree)
+
+        when:
+        adapter.visitLeafCollections(visitor)
+
+        then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
         0 * visitor._
     }
 
@@ -180,7 +195,21 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
         1 * visitor.visitGenericFileTree(adapter)
+        0 * visitor._
+    }
+
+    def doesNotVisitsSelfWhenListenerIsNotInterested() {
+        def visitor = Mock(FileCollectionLeafVisitor)
+        def tree = Mock(MinimalFileTree)
+        def adapter = new FileTreeAdapter(tree)
+
+        when:
+        adapter.visitLeafCollections(visitor)
+
+        then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
         0 * visitor._
     }
 

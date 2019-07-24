@@ -246,12 +246,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal, 
 
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        final Predicate<File> predicate = new Predicate<File>() {
-            @Override
-            public boolean apply(@Nullable File input) {
-                return filterSpec.isSatisfiedBy(input);
-            }
-        };
+        final Predicate<File> predicate = filterSpec::isSatisfiedBy;
         return new AbstractFileCollection() {
             @Override
             public String getDisplayName() {
@@ -282,7 +277,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal, 
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        visitor.visitCollection(this);
+        if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other)) {
+            visitor.visitCollection(this);
+        }
     }
 
     @Override

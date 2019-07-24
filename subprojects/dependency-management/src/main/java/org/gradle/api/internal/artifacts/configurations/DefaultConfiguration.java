@@ -84,7 +84,9 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
@@ -1232,13 +1234,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<File> getFiles() {
             ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
+            visitFiles(visitor);
+            return visitor.getFiles();
+        }
+
+        @Override
+        public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+            ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFilesCollectingVisitor(visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult));
+            visitFiles(collectingVisitor);
+            visitor.visitCollection(ImmutableFileCollection.of(collectingVisitor.getFiles()));
+        }
+
+        private void visitFiles(ResolvedFilesCollectingVisitor visitor) {
             getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             if (!lenient) {
                 rethrowFailure("files", visitor.getFailures());
             }
-
-            return visitor.getFiles();
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {

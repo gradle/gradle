@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.component.AmbiguousVariantSelectionException
@@ -187,6 +188,7 @@ class DefaultArtifactTransformsTest extends Specification {
         1 * invocation2.getCachedResult() >> Optional.empty()
         1 * invocation2.invoke() >> Try.successful(TransformationSubject.initial(sourceFile).createSubjectFromResult(ImmutableList.of(outFile3, outFile4)))
 
+        1 * listener.startVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) >> true
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), variant1DisplayName, targetAttributes, outFile3)
