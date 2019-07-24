@@ -91,7 +91,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         true // test successfully executed with debugger attached
     }
 
-    def "Forks only one JVM to debug"() {
+    def "forks only one JVM to debug"() {
         setup:
         buildFile << """
              tasks.withType(Test) {
