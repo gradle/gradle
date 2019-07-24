@@ -119,6 +119,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+        if (!visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other)) {
+            return;
+        }
         if (tree instanceof DirectoryFileTree) {
             DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
             visitor.visitFileTree(directoryFileTree.getDir(), directoryFileTree.getPatterns(), this);

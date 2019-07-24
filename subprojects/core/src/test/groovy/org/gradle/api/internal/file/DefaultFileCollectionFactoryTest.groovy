@@ -92,6 +92,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.empty("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
+        collection.visitLeafCollections(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 

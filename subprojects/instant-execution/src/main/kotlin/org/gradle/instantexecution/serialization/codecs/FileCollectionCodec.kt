@@ -62,6 +62,11 @@ private
 class CollectingVisitor : FileCollectionLeafVisitor {
     val files: MutableSet<File> = mutableSetOf()
 
+    override fun beforeVisit(type: FileCollectionLeafVisitor.CollectionType): Boolean {
+        // Ignore scheduled transforms for now
+        return type != FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult
+    }
+
     override fun visitCollection(fileCollection: FileCollectionInternal) {
         files.addAll(fileCollection.files)
     }

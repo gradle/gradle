@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -302,6 +303,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                 //ignore
             }
+        }
+
+        @Override
+        public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+            return true;
         }
 
         @Override
