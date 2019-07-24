@@ -211,11 +211,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         appendActionImplementation(getImplementationClass(), hasher, classLoaderHierarchyHasher);
 
         if (parameterObject != null) {
-            // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
             TransformParameters isolatedTransformParameters = isolatedParameterObject.isolate();
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
+                    // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
                     fingerprintParameters(
                         valueSnapshotter,
                         fingerprinterRegistry,
@@ -434,7 +434,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         private final HashCode secondaryInputsHash;
         private final Isolatable<? extends TransformParameters> isolatedParameterObject;
 
-        public IsolatedParameters(@Nullable Isolatable<? extends TransformParameters> isolatedParameterObject, HashCode secondaryInputsHash) {
+        public IsolatedParameters(Isolatable<? extends TransformParameters> isolatedParameterObject, HashCode secondaryInputsHash) {
             this.secondaryInputsHash = secondaryInputsHash;
             this.isolatedParameterObject = isolatedParameterObject;
         }

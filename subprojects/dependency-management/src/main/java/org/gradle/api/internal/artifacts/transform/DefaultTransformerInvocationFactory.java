@@ -94,14 +94,15 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final ProjectFinder projectFinder;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTransformerInvocationFactory(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-                                               FileSystemSnapshotter fileSystemSnapshotter,
-                                               ArtifactTransformListener artifactTransformListener,
-                                               CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
-                                               FileCollectionFactory fileCollectionFactory,
-                                               FileCollectionSnapshotter fileCollectionSnapshotter,
-                                               ProjectFinder projectFinder,
-                                               BuildOperationExecutor buildOperationExecutor
+    public DefaultTransformerInvocationFactory(
+        WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+        FileSystemSnapshotter fileSystemSnapshotter,
+        ArtifactTransformListener artifactTransformListener,
+        CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
+        FileCollectionFactory fileCollectionFactory,
+        FileCollectionSnapshotter fileCollectionSnapshotter,
+        ProjectFinder projectFinder,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
