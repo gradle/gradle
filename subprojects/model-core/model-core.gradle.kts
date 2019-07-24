@@ -23,11 +23,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":coreApi"))
 
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":persistentCache"))
-    implementation(project(":coreApi"))
     implementation(project(":baseServicesGroovy"))
     implementation(project(":messaging"))
     implementation(project(":snapshots"))
@@ -53,9 +53,9 @@ dependencies {
     testImplementation(testFixtures(project(":coreApi")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-    
+
     integTestImplementation(project(":platformBase"))
-    
+
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
