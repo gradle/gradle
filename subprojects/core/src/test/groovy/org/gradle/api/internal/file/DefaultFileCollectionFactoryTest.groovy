@@ -110,7 +110,23 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection2.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with a list containing nothing"() {
+    def "constructs empty collection with display name"() {
+        expect:
+        def collection = factory.empty("some collection")
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.toString() == "some collection"
+    }
+
+    def "returns empty collection when constructed with no sources"() {
+        expect:
+        def collection = factory.resolving()
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.toString() == "file collection"
+    }
+
+    def "returns empty collection when constructed with display name and a list containing nothing"() {
         expect:
         def collection = factory.resolving("some collection", [])
         collection.files.empty
@@ -118,7 +134,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with an array containing nothing"() {
+    def "returns empty collection when constructed with display name and an array containing nothing"() {
         expect:
         def collection = factory.resolving("some collection")
         collection.files.empty
