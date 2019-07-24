@@ -33,10 +33,10 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
 
     @Inject
     public DefaultJavaDebugOptions(ObjectFactory objectFactory) {
-        this.enabled = objectFactory.property(Boolean.class).value(false);
-        this.port = objectFactory.property(Integer.class).value(5005);
-        this.server = objectFactory.property(Boolean.class).value(true);
-        this.suspend = objectFactory.property(Boolean.class).value(true);
+        this.enabled = objectFactory.property(Boolean.class).convention(false);
+        this.port = objectFactory.property(Integer.class).convention(5005);
+        this.server = objectFactory.property(Boolean.class).convention(true);
+        this.suspend = objectFactory.property(Boolean.class).convention(true);
     }
 
     public DefaultJavaDebugOptions() {
