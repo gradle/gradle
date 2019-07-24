@@ -17,6 +17,9 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import java.util.zip.ZipFile
 
 class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
@@ -29,17 +32,20 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         setup:
         productionCode()
 
+        def version = distribution.version.version
+        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+
         when:
         succeeds("tasks")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
+        file(generatedJarsDirectory).assertIsEmptyDir()
 
         when:
         succeeds("classes")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar").assertExists()
+        file("$generatedJarsDirectory/gradle-api-${version}.jar").assertExists()
 
     }
 
@@ -47,17 +53,42 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         setup:
         testCode()
 
+        def version = distribution.version.version
+        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+
         when:
         succeeds("classes")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
+        file(generatedJarsDirectory).assertIsEmptyDir()
 
         when:
         succeeds("testClasses")
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-test-kit-${distribution.version.version}.jar").assertExists()
+        file("$generatedJarsDirectory/gradle-test-kit-${version}.jar").assertExists()
+    }
+
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
+    def "generated jars (api & test-kit) are valid archives"() {
+        setup:
+        productionCode()
+        testCode()
+
+        def version = distribution.version.version
+        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+        def generatedJars = ["$generatedJarsDirectory/gradle-api-${version}.jar", "$generatedJarsDirectory/gradle-test-kit-${version}.jar"]
+
+        when:
+        run "classes", "testClasses"
+
+        then:
+        generatedJars
+            .collect { new ZipFile(file(it)) }
+            .findAll {
+                def names = it.entries()*.name
+                names.size() != names.toSet().size()
+            } == []
     }
 
     private TestFile productionCode() {
