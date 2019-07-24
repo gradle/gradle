@@ -27,7 +27,7 @@ import java.io.File;
  */
 public interface ArtifactVisitor {
     /**
-     * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
+     * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
      */
     void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact);
 
