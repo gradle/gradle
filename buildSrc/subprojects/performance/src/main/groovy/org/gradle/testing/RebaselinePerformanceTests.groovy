@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.annotations.VisibleForTesting
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.SourceTask
@@ -40,6 +41,7 @@ class RebaselinePerformanceTests extends SourceTask {
         this.baseline = baseline
     }
 
+    @VisibleForTesting
     static String rebaselineContent(String fileContent, String baseline) {
         fileContent.replaceAll('targetVersions = \\[".*"]', "targetVersions = [\"$baseline\"]")
     }
