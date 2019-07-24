@@ -129,17 +129,12 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
             File backingFile = archiveFileTree.getBackingFile();
             if (backingFile != null) {
-                visitor.visitCollection(ImmutableFileCollection.of(backingFile));
+                visitor.visitFileTreeBackedByFile(backingFile, this);
             } else {
                 visitor.visitGenericFileTree(this);
             }
         } else {
             visitor.visitGenericFileTree(this);
         }
-    }
-
-    @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        tree.visitTreeOrBackingFile(visitor);
     }
 }

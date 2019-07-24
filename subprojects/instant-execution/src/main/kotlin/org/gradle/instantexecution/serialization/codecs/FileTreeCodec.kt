@@ -67,5 +67,7 @@ class FileTreeCodec(
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
             roots.add(root)
         }
+
+        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) = throw UnsupportedOperationException()
     }
 }

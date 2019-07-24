@@ -34,6 +34,4 @@ public interface MinimalFileTree extends MinimalFileCollection {
     void visit(FileVisitor visitor);
 
     void registerWatchPoints(FileSystemSubset.Builder builder);
-
-    void visitTreeOrBackingFile(FileVisitor visitor);
 }

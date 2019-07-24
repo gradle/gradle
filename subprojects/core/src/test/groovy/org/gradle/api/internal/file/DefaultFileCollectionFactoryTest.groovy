@@ -297,5 +297,10 @@ class DefaultFileCollectionFactoryTest extends Specification {
         void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             Assert.fail()
         }
+
+        @Override
+        void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+            Assert.fail()
+        }
     }
 }

@@ -39,4 +39,9 @@ public interface FileCollectionLeafVisitor {
      * Visits a file tree at a root file on the file system (potentially filtered).
      */
     void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree);
+
+    /**
+     * Visits a file tree whose content is backed by the contents of a file.
+     */
+    void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree);
 }

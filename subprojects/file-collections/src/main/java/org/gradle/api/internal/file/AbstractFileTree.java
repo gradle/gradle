@@ -167,11 +167,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
-    }
-
-    @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         visitor.visitGenericFileTree(this);
     }
@@ -219,11 +214,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         public void registerWatchPoints(FileSystemSubset.Builder builder) {
             // TODO: we aren't considering the filter
             fileTree.registerWatchPoints(builder);
-        }
-
-        @Override
-        public void visitTreeOrBackingFile(FileVisitor visitor) {
-            fileTree.visitTreeOrBackingFile(visitor);
         }
     }
 }
