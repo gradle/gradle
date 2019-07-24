@@ -23,8 +23,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -191,8 +191,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return fileTree.getBuildDependencies();
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(fileTree);
         }
 
         @Override

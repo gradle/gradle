@@ -18,14 +18,13 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.UnpackingVisitor;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.file.PathToFileResolver;
@@ -66,13 +65,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal create(final TaskDependency builtBy, MinimalFileSet contents) {
-        if (contents instanceof Buildable) {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        }
         return new FileCollectionAdapter(contents) {
             @Override
-            public TaskDependency getBuildDependencies() {
-                return builtBy;
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                super.visitDependencies(context);
+                context.add(builtBy);
             }
         };
     }
@@ -158,11 +155,6 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return TaskDependencyInternal.EMPTY;
-        }
-
-        @Override
         public Set<File> getFiles() {
             return ImmutableSet.of();
         }
@@ -189,11 +181,6 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         public Set<File> getFiles() {
             return files;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return TaskDependencyInternal.EMPTY;
         }
     }
 

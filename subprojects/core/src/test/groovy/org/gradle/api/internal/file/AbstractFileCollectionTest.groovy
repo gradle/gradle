@@ -19,7 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
-import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.test.fixtures.file.TestFile
@@ -364,11 +364,6 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         Set<File> getFiles() {
             return files
         }
-
-        @Override
-        TaskDependency getBuildDependencies() {
-            TaskDependencyInternal.EMPTY
-        }
     }
 
     private class TestFileCollectionWithDependency extends TestFileCollection {
@@ -377,8 +372,8 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         }
 
         @Override
-        TaskDependency getBuildDependencies() {
-            return dependency
+        void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(dependency)
         }
     }
 }

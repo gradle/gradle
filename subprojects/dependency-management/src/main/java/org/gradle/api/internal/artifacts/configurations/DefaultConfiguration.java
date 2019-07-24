@@ -87,7 +87,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -736,9 +735,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         assertIsResolvable();
-        return intrinsicFiles.getBuildDependencies();
+        context.add(intrinsicFiles);
     }
 
     /**
@@ -1210,9 +1209,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
+        public void visitDependencies(TaskDependencyResolveContext context) {
             assertIsResolvable();
-            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, lenient);
+            ResolverResults results = resolveGraphForBuildDependenciesIfRequired();
+            SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
+            FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+            selected.visitDependencies(collectingContext);
+            if (!lenient) {
+                rethrowFailure("task dependencies", collectingContext.getFailures());
+            }
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -1710,33 +1715,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             if (!lenient) {
                 rethrowFailure("artifacts", failures);
-            }
-        }
-    }
-
-    private class ConfigurationTaskDependency extends AbstractTaskDependency {
-        private final Spec<? super Dependency> dependencySpec;
-        private final AttributeContainerInternal requestedAttributes;
-        private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
-        private final boolean lenient;
-        private final boolean allowNoMatchingVariants;
-
-        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants, boolean lenient) {
-            this.dependencySpec = dependencySpec;
-            this.requestedAttributes = requestedAttributes;
-            this.componentIdentifierSpec = componentIdentifierSpec;
-            this.allowNoMatchingVariants = allowNoMatchingVariants;
-            this.lenient = lenient;
-        }
-
-        @Override
-        public void visitDependencies(final TaskDependencyResolveContext context) {
-            ResolverResults results = resolveGraphForBuildDependenciesIfRequired();
-            SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-            FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
-            selected.visitDependencies(collectingContext);
-            if (!lenient) {
-                rethrowFailure("task dependencies", collectingContext.getFailures());
             }
         }
     }
