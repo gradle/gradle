@@ -365,7 +365,7 @@ public interface Gradle extends PluginAware {
      * Returns the shared resources registered to this build.
      *
      * @return the collection of shared resources.
-     * @since 5.6
+     * @since 5.7
      */
     @Incubating
     SharedResourceContainer getSharedResources();
@@ -382,7 +382,7 @@ public interface Gradle extends PluginAware {
      * }
      * </pre>
      * @param action The action to execute.
-     * @since 5.6
+     * @since 5.7
      */
     @Incubating
     void sharedResources(Action<? super SharedResourceContainer> action);

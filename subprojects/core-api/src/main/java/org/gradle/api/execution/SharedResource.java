@@ -30,7 +30,7 @@ import org.gradle.api.Task;
  * executed at any given time.
  *
  * @see Task#requiresResource(String)
- * @since 5.6
+ * @since 5.7
  */
 @Incubating
 public interface SharedResource extends Named {
@@ -40,7 +40,7 @@ public interface SharedResource extends Named {
      *
      * @param leases Number of leases.
      *
-     * @since 5.6
+     * @since 5.7
      */
     void setLeases(int leases);
 
@@ -52,7 +52,7 @@ public interface SharedResource extends Named {
      *
      * @return Number of leases.
      *
-     * @since 5.6
+     * @since 5.7
      */
     int getLeases();
 }
