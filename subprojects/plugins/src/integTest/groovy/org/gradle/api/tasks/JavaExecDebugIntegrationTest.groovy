@@ -43,21 +43,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "debug mode can be disabled"(String taskName) {
-        setup:
-        sampleProject"""
-            debugOptions {
-                enabled = false
-            }
-        """
-
-        expect:
-        succeeds(taskName)
-
-        where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
-    }
-
     def "debug session fails without debugger"(String taskName) {
         setup:
         sampleProject"""
