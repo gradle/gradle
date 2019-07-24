@@ -372,9 +372,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 == Handling mutually exclusive dependencies
 
 [[sec:capabilities]]
-=== Component capabilities
-
-==== Introduction to capabilities
+=== Introduction to component capabilities
 
 Often a dependency graph would accidentally contain multiple implementations of the same API.
 This is particularly common with logging frameworks, where multiple bindings are available, and that one library chooses a binding when another transitive dependency chooses another.
@@ -385,29 +383,52 @@ It's illegal to find two components providing the same _capability_ in a single 
 Intuitively, it means that if Gradle finds two components that provide the same thing on classpath, it's going to fail with an error indicating what modules are in conflict.
 In our example, it means that different bindings of a logging framework provide the same capability.
 
-==== Capability coordinates
+=== Capability coordinates
 
 A _capability_ is defined by a `(group, module, version)` triplet.
 Each component defines an implicit capability corresponding to its GAV coordinates (group, artifact, version).
 For example, the `org.apache.commons:commons-lang3:3.8` module has an implicit capability with group `org.apache.commons`, name `commons-lang3` and version `3.8`.
 It is important to realize that capabilities are _versioned_.
 
-==== Solving capability conflicts
+=== Declaring component capabilities
 
 By default, Gradle will fail if two components in the dependency graph provide the same capability.
-It is however possible to tell it to choose the component with the highest capability version instead, just like regular version conflict resolution provides.
-This can be useful whenever a component is relocated at different coordinates in a new release.
+Because most modules are currently published without Gradle Module Metadata, capabilities are not always automatically discovered by Gradle.
+It is however interesting to use _rules_ to declare component capabilities in order to discover conflicts as soon as possible, during the build instead of runtime.
+
+A typical example is whenever a component is relocated at different coordinates in a new release.
 For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1`, then changed to `org.ow2.asm:asm` since `4.0`.
 It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
-Because each component has an implicit capability corresponding to its GAV coordinates, we can fix this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
+Because each component has an implicit capability corresponding to its GAV coordinates, we can "fix" this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
 
-.Conflict resolution by capability versioning
+.Conflict resolution by capability
 ====
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
 ====
 
-And then we can say that we will solve the conflict by automatically choosing the component which has the highest capability version:
+Now the build is going to _fail_ whenever the two components are found in the same dependency graph.
+
+[NOTE]
+====
+At this stage, Gradle will _only_ make more builds fail.
+It will **not** automatically fix the problem for you, but it helps you realize that you have a problem.
+It is recommended to write such rules in _plugins_ which are then applied to your builds.
+Then, users _have to_ express their preferences, if possible, or fix the problem of having incompatible things on the classpath, as explained in the following section.
+====
+
+[[selecting-between-candidates]]
+=== Selecting between candidates
+
+At some point, a dependency graph is going to include either _incompatible modules_, or modules which are _mutually exclusive_.
+For example, you may have different logger implementations and you need to choose one binding.
+<<#sec:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
+
+[[sec:selecting-preferred-capability-provider]]
+==== Selecting between different capability candidates
+
+In the relocation example above, Gradle was able to tell you that you have two versions of the same API on classpath: an "old" module and a "relocated" one.
+Now we can solve the conflict by automatically choosing the component which has the highest capability version:
 
 .Conflict resolution by capability versioning
 ====
@@ -416,7 +437,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 ====
 
 However, fixing by choosing the highest capability version conflict resolution is not always suitable.
-In our logging example, it doesn't matter what version of the logging frameworks we use, we should always select the slf4j bridge.
+For a logging framework, for example, it doesn't matter what version of the logging frameworks we use, we should always select Slf4j.
 
 In this case, we can fix it by explicitly selecting slf4j as the winner:
 
@@ -426,13 +447,18 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_slf4j]"]
 ====
 
-=== Declaring component capabilities
+Note that this approach works also well if you have multiple _Slf4j bindings_ on the classpath:
+bindings are basically different logger implementations and you need only one.
+However, the selected implementation may depend on the configuration being resolved.
+For example, for tests, `slf4j-simple` may be enough but for production, `slf4-over-log4j` may be better.
 
-[[selecting-between-candidates]]
-=== Selecting between candidates
+For more information, check out the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#capabilitiesResolution[the capabilities resolution API].
 
 [[sec:module_replacement]]
-==== Module replacement rules
+=== Module replacement rules
+
+It is preferable to express module conflicts in terms of <<sec:capabilities, capabilities conflicts>>.
+However, if there's no such rule declared or that you are working on versions of Gradle which do not support capabilities, Gradle provides tooling to work around those issues.
 
 Module replacement rules allow a build to declare that a legacy library has been replaced by a new one.
 A good example when a new library replaced a legacy one is the `google-collections` -&gt; `guava` migration.
@@ -476,7 +502,7 @@ Currently it is not possible to declare that a given module is replaced by a set
 However, it is possible to declare that multiple modules are replaced by a single module.
 
 [[sec:dependency_substitution_rules]]
-==== Using dependency substitution rules
+=== Using dependency substitution rules
 
 Dependency substitution rules work similarly to dependency resolve rules.
 In fact, many capabilities of dependency resolve rules can be implemented with dependency substitution rules.
@@ -499,7 +525,7 @@ This makes it easy to determine the full set of project dependencies for a confi
 With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
 
 [[sec:module_to_project_substitution]]
-===== Substituting an external module dependency with a project dependency
+==== Substituting an external module dependency with a project dependency
 
 One use case for dependency substitution is to use a locally developed version of a module in place of one that is downloaded from an external repository.
 This could be useful for testing a local, patched version of a dependency.
@@ -516,7 +542,7 @@ Note that a project that is substituted must be included in the multi-project bu
 Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
 
 [[sec:project_to_module_substitution]]
-===== Substituting a project dependency with a module replacement
+==== Substituting a project dependency with a module replacement
 
 Another way to use substitution rules is to replace a project dependency with a module in a multi-project build.
 This can be useful to speed up development with a large multi-project build, by allowing a subset of the project dependencies to be downloaded from a repository rather than being built.
@@ -533,7 +559,7 @@ When a project dependency has been replaced with a module dependency, that proje
 However, tasks to build the replaced dependency will not be executed in order to resolve the depending `Configuration`.
 
 [[sec:conditional_dependency_substitution]]
-===== Conditionally substituting a dependency
+==== Conditionally substituting a dependency
 
 A common use case for dependency substitution is to allow more flexible assembly of sub-projects within a multi-project build.
 This can be useful for developing a local, patched version of an external dependency or for building a subset of the modules within a large multi-project build.
@@ -552,5 +578,5 @@ Dependency substitution rules take care of replacing the module dependency with 
 [[fixing-bad-metadata]]
 == Fixing bad metadata
 
-include:component-metadata-rules[leveloffset=+2]
+include::component_metadata_rules.adoc[leveloffset=+2]
 
