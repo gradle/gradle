@@ -105,7 +105,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    def "cebug options overrides debug property"(String taskName) {
+    def "debug options overrides debug property"(String taskName) {
         setup:
         sampleProject"""    
             debug = true
