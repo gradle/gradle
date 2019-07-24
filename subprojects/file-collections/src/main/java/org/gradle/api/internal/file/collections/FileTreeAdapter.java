@@ -21,8 +21,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -82,12 +81,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         if (tree instanceof Buildable) {
-            Buildable buildable = (Buildable) tree;
-            return buildable.getBuildDependencies();
+            context.add(tree);
         }
-        return TaskDependencyInternal.EMPTY;
     }
 
     @Override

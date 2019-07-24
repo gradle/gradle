@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.util.UsesNativeServices
@@ -91,13 +92,15 @@ class AbstractFileTreeTest extends Specification {
 
     def filteredTreeHasSameDependenciesAsThis() {
         TaskDependency buildDependencies = Mock()
+        TaskDependencyResolveContext context = Mock()
         def tree = new TestFileTree([], buildDependencies)
 
         when:
         def filtered = tree.matching { include '*.txt' }
+        filtered.visitDependencies(context)
 
         then:
-        filtered.buildDependencies == buildDependencies
+        1 * context.add(tree)
     }
 
     def "can add file trees together"() {
@@ -150,15 +153,20 @@ class AbstractFileTreeTest extends Specification {
 
     class TestFileTree extends AbstractFileTree {
         List contents
-        TaskDependency buildDependencies
+        TaskDependency builtBy
 
         def TestFileTree(List files, TaskDependency dependencies = null) {
             this.contents = files
-            this.buildDependencies = dependencies
+            this.builtBy = dependencies
         }
 
         String getDisplayName() {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(builtBy)
         }
 
         FileTree visit(FileVisitor visitor) {
