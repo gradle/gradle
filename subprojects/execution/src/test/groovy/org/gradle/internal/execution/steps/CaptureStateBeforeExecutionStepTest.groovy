@@ -41,8 +41,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def valueSnapshotter = Mock(ValueSnapshotter)
-    // Spock 1.3 fails when using the inherited Stub here
-    final UnitOfWork work = Mock()
     final AfterPreviousExecutionContext context = Stub()
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
@@ -54,7 +52,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         step.execute(context)
         then:
         assertNoOperation()
-        1 * work.isTaskHistoryMaintained() >> false
+        _ * work.isTaskHistoryMaintained() >> false
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             assert !beforeExecution.beforeExecutionState.present
         }
@@ -71,7 +69,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         step.execute(context)
 
         then:
-        1 * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
+        _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
             additionalImplementations.each {
                 visitor.visitAdditionalImplementation(it)
@@ -86,10 +84,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "input properties are snapshotted"() {
@@ -99,7 +94,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         when:
         step.execute(context)
         then:
-        1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
+        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
             visitor.visitInputProperty("inputString", inputPropertyValue)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
@@ -111,10 +106,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "uses previous input property snapshots"() {
@@ -125,10 +117,10 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         when:
         step.execute(context)
         then:
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of("inputString", valueSnapshot)
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of()
-        1 * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
+        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
             visitor.visitInputProperty("inputString", inputPropertyValue)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
@@ -140,10 +132,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "input file properties are fingerprinted"() {
@@ -153,7 +142,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         step.execute(context)
 
         then:
-        1 * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
+        _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
             visitor.visitInputFileProperty("inputFile", "ignored", false, { -> fingerprint })
         }
         interaction { fingerprintInputs() }
@@ -164,10 +153,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "output file properties are fingerprinted"() {
@@ -177,7 +163,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         step.execute(context)
 
         then:
-        1 * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
@@ -186,10 +172,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "uses before output snapshot when there are no overlapping outputs"() {
@@ -200,11 +183,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         when:
         step.execute(context)
         then:
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of()
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("outputDir", afterPreviousOutputFingerprint)
 
-        1 * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         1 * outputFileSnapshot.accept(_)
 
         interaction { fingerprintInputs() }
@@ -215,10 +198,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "detects overlapping outputs when instructed"() {
@@ -231,12 +211,12 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         when:
         step.execute(context)
         then:
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
         1 * afterPreviousExecutionState.outputFileProperties >> afterPreviousOutputFingerprints
-        1 * work.snapshotOutputsBeforeExecution() >> beforeExecutionOutputFingerprints
+        _ * work.snapshotOutputsBeforeExecution() >> beforeExecutionOutputFingerprints
 
-        1 * work.overlappingOutputHandling >> DETECT_OVERLAPS
+        _ * work.overlappingOutputHandling >> DETECT_OVERLAPS
         1 * overlappingOutputDetector.detect(afterPreviousOutputFingerprints, beforeExecutionOutputFingerprints) >> null
 
         1 * beforeExecutionOutputFingerprint.accept(_)
@@ -249,10 +229,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     def "filters before output snapshot when there are overlapping outputs"() {
@@ -266,12 +243,12 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         when:
         step.execute(context)
         then:
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
         1 * afterPreviousExecutionState.outputFileProperties >> afterPreviousOutputFingerprints
-        1 * work.snapshotOutputsBeforeExecution() >> beforeExecutionOutputFingerprints
+        _ * work.snapshotOutputsBeforeExecution() >> beforeExecutionOutputFingerprints
 
-        1 * work.overlappingOutputHandling >> DETECT_OVERLAPS
+        _ * work.overlappingOutputHandling >> DETECT_OVERLAPS
         1 * overlappingOutputDetector.detect(afterPreviousOutputFingerprints, beforeExecutionOutputFingerprints) >> overlappingOutputs
 
         1 * afterPreviousOutputFingerprint.fingerprints >> [:]
@@ -285,14 +262,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         }
         0 * _
 
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs of job ':test' before execution"
-            assert it.result == Result.INSTANCE
-        }
+        assertOperationForInputsBeforeExecution()
     }
 
     void fingerprintInputs() {
-        context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.afterPreviousExecutionState >> Optional.empty()
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
@@ -300,8 +274,13 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec {
         _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.of()
-        _ * work.displayName >> displayName
         _ * work.taskHistoryMaintained >> true
     }
 
+    private void assertOperationForInputsBeforeExecution() {
+        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
+            assert it.descriptor.displayName == "Snapshot inputs and outputs before executing job ':test'"
+            assert it.result == Result.INSTANCE
+        }
+    }
 }

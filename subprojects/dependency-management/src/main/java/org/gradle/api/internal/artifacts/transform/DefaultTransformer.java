@@ -443,7 +443,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             return secondaryInputsHash;
         }
 
-        @Nullable
         public Isolatable<? extends TransformParameters> getIsolatedParameterObject() {
             return isolatedParameterObject;
         }

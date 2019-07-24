@@ -144,7 +144,7 @@ class CleanupOutputsStepTest extends StepSpec implements FingerprinterFixture {
         when:
         step.execute(context)
         then:
-        context.incrementalExecution >> true
+        _ * context.incrementalExecution >> true
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
@@ -153,9 +153,8 @@ class CleanupOutputsStepTest extends StepSpec implements FingerprinterFixture {
         when:
         step.execute(context)
         then:
-        context.incrementalExecution >> false
-        context.work >> work
-        work.shouldCleanupOutputsOnNonIncrementalExecution() >> false
+        _ * context.incrementalExecution >> false
+        _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> false
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
@@ -175,24 +174,24 @@ class CleanupOutputsStepTest extends StepSpec implements FingerprinterFixture {
     }
 
     void cleanupOverlappingOutputs(WorkOutputs outputs) {
-        context.incrementalExecution >> false
-        work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.incrementalExecution >> false
+        _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
-        work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file))
         }
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {
-        context.incrementalExecution >> incrementalExecution
-        work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.incrementalExecution >> incrementalExecution
+        _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
-        work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(outputs.file))
         }

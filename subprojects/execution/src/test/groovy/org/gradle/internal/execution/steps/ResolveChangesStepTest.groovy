@@ -41,7 +41,7 @@ class ResolveChangesStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
@@ -53,8 +53,8 @@ class ResolveChangesStepTest extends StepSpec {
             }
             return delegateResult
         }
-        context.rebuildReason >> Optional.of("Forced rebuild.")
-        context.beforeExecutionState >> Optional.empty()
+        _ * context.rebuildReason >> Optional.of("Forced rebuild.")
+        _ * context.beforeExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -69,8 +69,8 @@ class ResolveChangesStepTest extends StepSpec {
             assert !delegateContext.changes.present
             return delegateResult
         }
-        context.rebuildReason >> Optional.empty()
-        context.beforeExecutionState >> Optional.empty()
+        _ * context.rebuildReason >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -81,17 +81,17 @@ class ResolveChangesStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert changes.allChangeMessages == ImmutableList.of("No history is available.")
             return delegateResult
         }
-        context.rebuildReason >> Optional.empty()
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.rebuildReason >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
-        context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.afterPreviousExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -110,10 +110,10 @@ class ResolveChangesStepTest extends StepSpec {
             assert delegateContext.changes.get() == changes
             return delegateResult
         }
-        context.rebuildReason >> Optional.empty()
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * context.rebuildReason >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, _) >> changes
         0 * _
     }

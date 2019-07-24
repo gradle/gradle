@@ -53,7 +53,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
     def delegateResult = Mock(CurrentSnapshotResult)
 
     def setup() {
-        work.executionHistoryStore >> executionHistoryStore
+        _ * work.executionHistoryStore >> executionHistoryStore
     }
 
     def "output snapshots are stored after successful execution"() {
@@ -66,7 +66,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
@@ -84,11 +84,11 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.afterPreviousExecutionState >> Optional.empty()
 
         then:
         interaction { expectStore(false, finalOutputs) }
@@ -107,11 +107,11 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> fingerprintsOf([:])
 
         then:
@@ -131,11 +131,11 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> finalOutputs
         0 * _
     }

@@ -40,9 +40,9 @@ class SkipUpToDateStepTest extends StepSpec {
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
         !result.executionReasons.present
 
-        context.changes >> Optional.of(changes)
+        _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
-        context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
+        _ * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
 
@@ -58,7 +58,7 @@ class SkipUpToDateStepTest extends StepSpec {
         result.executionReasons == ["change"]
         !result.reusedOutputOriginMetadata.present
 
-        context.changes >> Optional.of(changes)
+        _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of("change")
         1 * delegate.execute(context) >> delegateResult
         0 * _
@@ -89,7 +89,7 @@ class SkipUpToDateStepTest extends StepSpec {
         then:
         result.executionReasons == ["Change tracking is disabled."]
 
-        context.changes >> Optional.empty()
+        _ * context.changes >> Optional.empty()
         1 * delegate.execute(context)
         0 * _
     }

@@ -38,7 +38,7 @@ class TimeoutStepTest extends StepSpec {
         then:
         thrown InvalidUserDataException
 
-        work.timeout >> Optional.of(Duration.of(-1, ChronoUnit.SECONDS))
+        _ * work.timeout >> Optional.of(Duration.of(-1, ChronoUnit.SECONDS))
         0 * _
     }
 
@@ -49,7 +49,7 @@ class TimeoutStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        work.timeout >> Optional.empty()
+        _ * work.timeout >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -66,7 +66,7 @@ class TimeoutStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        work.timeout >> Optional.of(duration)
+        _ * work.timeout >> Optional.of(duration)
 
         then:
         timeoutHandler.start(_ as Thread, duration) >> timeout
@@ -87,7 +87,7 @@ class TimeoutStepTest extends StepSpec {
         step.execute(context)
 
         then:
-        work.timeout >> Optional.of(duration)
+        _ * work.timeout >> Optional.of(duration)
 
         then:
         1 * timeoutHandler.start(_ as Thread, duration) >> timeout

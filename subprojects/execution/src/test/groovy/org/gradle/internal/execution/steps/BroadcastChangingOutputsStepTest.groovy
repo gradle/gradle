@@ -31,7 +31,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        work.changingOutputs >> Optional.empty()
+        _ * work.changingOutputs >> Optional.empty()
 
         then:
         1 * outputChangeListener.beforeOutputChange()
@@ -50,7 +50,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        work.changingOutputs >> Optional.of(changingOutputs)
+        _ * work.changingOutputs >> Optional.of(changingOutputs)
 
         then:
         1 * outputChangeListener.beforeOutputChange(changingOutputs)

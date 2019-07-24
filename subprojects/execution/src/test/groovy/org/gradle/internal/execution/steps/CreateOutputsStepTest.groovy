@@ -30,7 +30,7 @@ class CreateOutputsStepTest extends StepSpec {
         step.execute(context)
 
         then:
-        work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(file("outDir")))
             visitor.visitOutputProperty("dirs", TreeType.DIRECTORY, ImmutableList.of(file("outDir1"), file("outDir2")))
             visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(file("parent/outFile")))
@@ -61,7 +61,7 @@ class CreateOutputsStepTest extends StepSpec {
         then:
         result == expected
 
-        work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
         1 * delegate.execute(context) >> expected
         0 * _
     }

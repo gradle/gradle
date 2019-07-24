@@ -362,7 +362,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvocationFactory createTransformerInvoker(
+        TransformerInvocationFactory createTransformerInvocationFactory(
             WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
             FileSystemSnapshotter fileSystemSnapshotter,
             ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,

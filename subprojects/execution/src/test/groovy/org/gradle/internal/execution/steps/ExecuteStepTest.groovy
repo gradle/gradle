@@ -35,8 +35,8 @@ class ExecuteStepTest extends StepSpec {
         then:
         result.outcome.get() == expectedOutcome
 
-        context.inputChanges >> Optional.empty()
-        work.execute(null, context) >> workResult
+        _ * context.inputChanges >> Optional.empty()
+        _ * work.execute(null, context) >> workResult
         0 * _
 
         withOnlyOperation(ExecuteStep.Operation) {
@@ -59,8 +59,8 @@ class ExecuteStepTest extends StepSpec {
         def ex = thrown Throwable
         ex == failure
 
-        context.inputChanges >> Optional.empty()
-        work.execute(null, context) >> { throw failure }
+        _ * context.inputChanges >> Optional.empty()
+        _ * work.execute(null, context) >> { throw failure }
         0 * _
 
         withOnlyOperation(ExecuteStep.Operation) {
@@ -80,9 +80,9 @@ class ExecuteStepTest extends StepSpec {
         then:
         result.outcome.get() == expectedOutcome
 
-        context.inputChanges >> Optional.of(inputChanges)
+        _ * context.inputChanges >> Optional.of(inputChanges)
         1 * inputChanges.incremental >> incrementalExecution
-        work.execute(inputChanges, context) >> workResult
+        _ * work.execute(inputChanges, context) >> workResult
         0 * _
 
         withOnlyOperation(ExecuteStep.Operation) {

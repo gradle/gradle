@@ -36,7 +36,7 @@ class ResolveCachingStateStepTest extends StepSpec {
         step.execute(context)
         then:
         _ * buildCache.enabled >> false
-        context.beforeExecutionState >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.empty()
         1 * delegateStep.execute(_) >> { CachingContext context ->
             assert context.cachingState.disabledReasons.get(0).category == CachingDisabledReasonCategory.BUILD_CACHE_DISABLED
         }
@@ -49,8 +49,8 @@ class ResolveCachingStateStepTest extends StepSpec {
         step.execute(context)
         then:
         _ * buildCache.enabled >> true
-        context.beforeExecutionState >> Optional.empty()
-        work.shouldDisableCaching(null) >> Optional.of(disabledReason)
+        _ * context.beforeExecutionState >> Optional.empty()
+        _ * work.shouldDisableCaching(null) >> Optional.of(disabledReason)
         1 * delegateStep.execute(_) >> { CachingContext context ->
             assert context.cachingState.disabledReasons.get(0) == disabledReason
         }

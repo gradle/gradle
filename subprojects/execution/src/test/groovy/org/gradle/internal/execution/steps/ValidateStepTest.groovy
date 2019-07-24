@@ -34,7 +34,7 @@ class ValidateStepTest extends StepSpec {
         1 * delegate.execute(_) >> { ctx ->
             delegateResult
         }
-        work.validate() >> { validated = true }
+        _ * work.validate() >> { validated = true }
 
         then:
         validated
@@ -51,7 +51,7 @@ class ValidateStepTest extends StepSpec {
         def ex = thrown Exception
         ex == failure
 
-        work.validate() >> {
+        _ * work.validate() >> {
             throw failure
         }
         0 * _

@@ -35,7 +35,7 @@ class SkipEmptyWorkStepTest extends StepSpec {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def setup() {
-        work.executionHistoryStore >> executionHistoryStore
+        _ * work.executionHistoryStore >> executionHistoryStore
     }
 
     def "delegates when work is not skipped"() {
@@ -45,9 +45,9 @@ class SkipEmptyWorkStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
+        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -62,9 +62,9 @@ class SkipEmptyWorkStepTest extends StepSpec {
         then:
         result.outcome.get() == outcome
 
-        context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
+        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
 
         then:
         1 * executionHistoryStore.remove(identity)

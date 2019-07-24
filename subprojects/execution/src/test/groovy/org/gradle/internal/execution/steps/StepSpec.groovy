@@ -37,20 +37,17 @@ abstract class StepSpec extends Specification {
     final displayName = "job ':test'"
     final identity = ":test"
     final delegate = Mock(Step)
+    final work = Stub(UnitOfWork)
 
     @Memoized
-    UnitOfWork getWork() {
-        Stub(UnitOfWork)
-    }
-    @Memoized
-    Context getContext() {
+    protected Context getContext() {
         Stub(Context)
     }
 
     def setup() {
-        context.work >> work
-        work.displayName >> displayName
-        work.identity >> identity
+        _ * context.work >> work
+        _ * work.displayName >> displayName
+        _ * work.identity >> identity
     }
 
     protected TestFile file(Object... path) {

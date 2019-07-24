@@ -36,8 +36,8 @@ class ResolveInputChangesStepTest extends StepSpec {
         when:
         def returnedResult = step.execute(context)
         then:
-        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS
-        context.changes >> optionalChanges
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS
+        _ * context.changes >> optionalChanges
         1 * changes.createInputChanges() >> inputChanges
         1 * inputChanges.incremental >> true
         1 * delegate.execute(_) >> { InputChangesContext context ->
@@ -53,7 +53,7 @@ class ResolveInputChangesStepTest extends StepSpec {
         when:
         def returnedResult = step.execute(context)
         then:
-        work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { InputChangesContext context ->
             assert context.inputChanges == Optional.empty()
             return result
