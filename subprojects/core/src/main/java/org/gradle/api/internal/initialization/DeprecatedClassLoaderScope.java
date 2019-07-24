@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
@@ -44,7 +45,9 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     @Override
     public ClassLoader getExportClassLoader() {
         if (deprecatedExportClassloader == null) {
-            deprecatedExportClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id.exportId(), deprecatedClasspath), super.getExportClassLoader());
+            ClassLoaderId id = this.id.exportId();
+            deprecatedExportClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id, deprecatedClasspath), super.getExportClassLoader());
+            classLoaderCache.put(id, deprecatedExportClassloader);
         }
         return deprecatedExportClassloader;
     }
@@ -52,7 +55,9 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     @Override
     public ClassLoader getLocalClassLoader() {
         if (deprecatedLocalClassloader == null) {
-            deprecatedLocalClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id.localId(), deprecatedClasspath), super.getLocalClassLoader());
+            ClassLoaderId id = this.id.localId();
+            deprecatedLocalClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id, deprecatedClasspath), super.getLocalClassLoader());
+            classLoaderCache.put(id, deprecatedLocalClassloader);
         }
         return deprecatedLocalClassloader;
     }
@@ -60,13 +65,5 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     @Override
     public ClassLoaderScope createChild(String name) {
         return new DeprecatedClassLoaderScope(id.child(name), this, classLoaderCache, deprecatedClasspath);
-//
-//        super.createChild()
-//        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache, export.plus(local));
-//        if (isLocked()) {
-//            deprecatedScope.lock();
-//        }
-//        return deprecatedScope;
-
     }
 }
