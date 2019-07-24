@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Ignore
 
+@Ignore
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -77,7 +78,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
-    @Ignore
     def "can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
         setup:
         sampleProject"""    
@@ -92,14 +92,24 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         when:
         def handle = executer.withTasks(taskName).start()
         ConcurrentTestUtil.poll {
+            System.err.println("Before poll")
             assert handle.standardOutput.contains('Listening for transport dt_socket at address')
+            System.err.println("After poll")
         }
+        System.err.println("Before connect")
+        debugClient.connect()
+        System.err.println("After connect")
 
         then:
-        debugClient.connect().dispose()
+        System.err.println("Before finish")
+        handle.waitForFinish()
+        System.err.println("After finish")
+
 
         cleanup:
-        handle.waitForFinish()
+        System.err.println("Before dispose")
+        debugClient.dispose()
+        System.err.println("After dispose")
 
         where:
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']

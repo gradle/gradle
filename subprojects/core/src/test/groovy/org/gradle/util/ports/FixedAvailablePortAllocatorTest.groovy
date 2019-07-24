@@ -16,8 +16,10 @@
 
 package org.gradle.util.ports
 
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
     @Unroll
