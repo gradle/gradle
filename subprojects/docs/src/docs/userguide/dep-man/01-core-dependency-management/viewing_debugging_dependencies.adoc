@@ -130,7 +130,7 @@ Gradle resolves version conflicts by picking the highest version of a module. li
 
 * Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. See <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,Enforcing a particular dependency version>> for examples.
 * Configuring dependency resolution to _prefer modules that are part of your build_ (transitive or not). This approach is useful if your build contains custom forks of modules (as part of <<multi_project_builds.adoc#multi_project_builds,multi-project builds>> or as include in <<composite_builds.adoc#,composite builds>>). See link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:preferProjectModules()[ResolutionStrategy.preferProjectModules()] for more information.
-* Using <<customizing_dependency_resolution_behavior.adoc#sec:dependency_resolve_rules,dependency resolve rules>> for fine-grained control over the version selected for a particular dependency.
+* Using <<controlling_transitive_dependencies.adoc#sec:dependency_resolve_rules,dependency resolve rules>> for fine-grained control over the version selected for a particular dependency.
 
 [[sec:locking_dependency_versions]]
 == Locking dependency versions

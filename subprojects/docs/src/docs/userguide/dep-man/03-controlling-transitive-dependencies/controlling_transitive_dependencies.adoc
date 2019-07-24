@@ -25,7 +25,7 @@ The highest version that matches all conditions is selected.
 If no such version is found, Gradle fails with an error showing the conflicting declarations.
 If this happens you can adjust your dependencies or dependency constraints declarations, or <<#managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed.
 Similar to dependency declarations, dependency constraint declarations are <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build.
-If a dependency constraint influenced the resolution result, any type of <<customizing_dependency_resolution_behavior.adoc#sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
+If a dependency constraint influenced the resolution result, any type of <<#sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
 .Define dependency constraints
 ====
@@ -274,8 +274,57 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
 ====
 
-[[dependency-resolve-rules]]
+[[sec:dependency_resolve_rules]]
 === Dependency resolve rules
+
+A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved.
+The feature currently offers the ability to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely different module during resolution.
+
+Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management.
+Some of these patterns are outlined below.
+or more information and code samples see the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] class in the API documentation.
+
+[[sec:custom_versioning_scheme]]
+=== Implementing a custom versioning scheme
+
+In some corporate environments, the list of module versions that can be declared in Gradle builds is maintained and audited externally.
+Dependency resolve rules provide a neat implementation of this pattern:
+
+* In the build script, the developer declares dependencies with the module group and name, but uses a placeholder version, for example: `default`.
+* The `default` version is resolved to a specific version via a dependency resolve rule, which looks up the version in a corporate catalog of approved modules.
+
+This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
+
+.Using a custom versioning scheme
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+====
+
+[[sec:blacklisting_version]]
+=== Blacklisting a particular version with a replacement
+
+Dependency resolve rules provide a mechanism for blacklisting a particular version of a dependency and providing a replacement version.
+This can be useful if a certain dependency version is broken and should not be used, where a dependency resolve rule causes this version to be replaced with a known good version.
+One example of a broken module is one that declares a dependency on a library that cannot be found in any of the public repositories, but there are many other reasons why a particular module version is unwanted and a different version is preferred.
+
+In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`.
+The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`.
+Note that this is different from a forced version as described above, in that any other versions of this module would not be affected.
+This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
+
+.Example: Blacklisting a version with a replacement
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
+====
+
+[NOTE]
+====
+There's a difference with using the _reject_ directive of <<rich_versions.adoc#rich-version-constraints,rich version constraints>>: rich versions will cause the build to fail if a rejected version is found in the graph, or select a non rejected version when using dynamic dependencies.
+Here, we _manipulate the requested versions_ in order to select a different version when we find a rejected one.
+In other words, this is a _solution_ to rejected versions, while rich version constraints allow declaring the _intent_ (you should not use this version).
+====
 
 [[excluding-transitive-deps]]
 == Excluding transitive dependencies
@@ -580,3 +629,15 @@ Dependency substitution rules take care of replacing the module dependency with 
 
 include::component_metadata_rules.adoc[leveloffset=+2]
 
+[[sec:ivy_dynamic_resolve_mode]]
+== Enabling Ivy dynamic resolve mode
+
+Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file. In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition. If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
+
+To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
+
+.Enabling dynamic resolve mode
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+====
