@@ -404,15 +404,21 @@ class ProgressEvents implements ProgressListener {
             found
         }
 
-        Operation descendant(String displayName) {
-            def found = descendants { it.descriptor.displayName == displayName }
+        Operation descendant(String... displayNames) {
+            def found = descendants { it.descriptor.displayName in displayNames }
             if (found.size() == 1) {
                 return found[0]
             }
             if (found.empty) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
+                throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
             }
-            throw new AssertionFailedError("More than one operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
+            throw new AssertionFailedError("More than one operation with display name '${displayNames[0]}' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
+        }
+
+        boolean hasAncestor(Operation ancestor) {
+            return parent == null
+                ? false
+                : (parent == ancestor || parent.hasAncestor(ancestor))
         }
     }
 

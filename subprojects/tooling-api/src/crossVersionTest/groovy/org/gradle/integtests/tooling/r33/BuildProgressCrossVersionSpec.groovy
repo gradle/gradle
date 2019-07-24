@@ -104,15 +104,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def test = events.operation("Task :test")
 
         def compileClasspath = events.operation("Resolve dependencies :compileClasspath", "Resolve dependencies of :compileClasspath")
-        compileClasspath.parent == compileJava
+        compileClasspath.hasAncestor compileJava
 
         def testCompileClasspath = events.operation("Resolve dependencies :testCompileClasspath", "Resolve dependencies of :testCompileClasspath")
-        testCompileClasspath.parent == compileTestJava
+        testCompileClasspath.hasAncestor compileTestJava
 
         def testRuntimeClasspath = events.operation(
             "Resolve dependencies :testRuntime", "Resolve dependencies :testRuntimeClasspath",
             "Resolve dependencies of :testRuntime", "Resolve dependencies of :testRuntimeClasspath")
-        testRuntimeClasspath.parent == test
+        testRuntimeClasspath.hasAncestor test
     }
 
     def "generates events for failed dependency resolution"() {
