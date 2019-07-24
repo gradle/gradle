@@ -198,13 +198,17 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
     def "validate dependency archives"() {
         when:
         def jars = collectJars(unpackDistribution())
-        def invalidArchives = jars.findAll {
-            def names = new ZipFile(it).entries()*.name
-            names.size() != names.toUnique().size()
-        }*.name
-
         then:
         jars != []
+
+        when:
+        def invalidArchives = jars.findAll {
+            new ZipFile(it).withCloseable {
+                def names = it.entries()*.name
+                names.size() != names.toUnique().size()
+            }
+        }
+        then:
         invalidArchives == []
     }
 
