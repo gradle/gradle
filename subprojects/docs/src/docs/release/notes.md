@@ -127,7 +127,7 @@ See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_prop
 
 This release introduces a number of improvements to the Worker API.
 
-First, the classpath is now cleaner when submitting work with `IsolationMode.CLASSLOADER` or `IsolationMode.PROCESS`.  Extra jars (such as external jars used by Gradle itself) should no longer appear on the worker classpath.  
+First, the classpath is now cleaner when submitting work using classloader or process isolation.  Extra jars (such as external jars used by Gradle itself) should no longer appear on the worker classpath.  
 
 Second, new classes have been introduced to make defining the unit of work implementation more straightforward and type safe.  It also makes it simpler to handle null values in work parameters.  Instead of a `Runnable`, the unit of work is defined by extending the `WorkAction` and `WorkParameters` interfaces.  For example:
 
@@ -174,7 +174,7 @@ sourceFiles.each { file ->
 
 ```
 
-See the [user manual](userguide/custom_tasks.html#sec:using_the_worker_api) for more information on using the new API.  
+See the [user manual](userguide/custom_tasks.html#using-the-worker-api) for more information on using the new API.  
 
 The existing `WorkerExecutor.submit()` method can still be used, but will be deprecated in Gradle 6.0 and removed in Gradle 7.0.
 
