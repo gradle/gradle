@@ -151,7 +151,7 @@ public final class BuildCacheControllerFactory {
         BuildCacheConfigurationInternal buildCacheConfiguration,
         Instantiator instantiator
     ) {
-        Class<? extends BuildCacheServiceFactory<C>> castFactoryType = Cast.uncheckedCast(
+        Class<? extends BuildCacheServiceFactory<C>> castFactoryType = Cast.uncheckedNonnullCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
 

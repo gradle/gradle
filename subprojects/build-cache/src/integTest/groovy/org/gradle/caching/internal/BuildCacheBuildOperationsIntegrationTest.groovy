@@ -360,38 +360,4 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         ]
     }
 
-    def "does not emit operations for custom local cache implementations"() {
-        def localCache = new TestBuildCache(file("local-cache"))
-        settingsFile << localCache.localCacheConfiguration()
-
-        given:
-        remote("", "writer.writeTo(new ${NullOutputStream.name}())")
-
-        settingsFile << """
-            buildCache {
-                remote($remoteCacheClass)   
-            }
-        """
-
-        buildFile << cacheableTask() << """
-            apply plugin: "base"
-            tasks.create("t", CustomTask).paths << "out1" << "out2"
-        """
-
-        when:
-        succeeds("t")
-
-        then:
-        def remoteMissLoadOp = operations.only(BuildCacheRemoteLoadBuildOperationType)
-        def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
-
-        packOp.details.cacheKey == remoteMissLoadOp.details.cacheKey
-        def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
-        localCacheArtifact.exists()
-
-        packOp.result.archiveEntryCount == 5
-
-        operations.orderedSerialSiblings(remoteMissLoadOp, packOp)
-    }
-
 }
