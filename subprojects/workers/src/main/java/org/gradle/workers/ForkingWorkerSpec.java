@@ -17,36 +17,16 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
-import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
 /**
- * Represents the common configuration of a worker.  Used when submitting an item of work
- * to the {@link WorkerExecutor}.
+ * A worker spec providing the requirements of a forked process.
  *
  * @since 5.6
  */
 @Incubating
-public interface BaseWorkerSpec extends Describable {
-    /**
-     * Gets the isolation mode for this worker, see {@link IsolationMode}.
-     *
-     * @return the isolation mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
-     *
-     * @since 4.0
-     */
-    IsolationMode getIsolationMode();
-
-    /**
-     * Sets the isolation mode for this worker, see {@link IsolationMode}.
-     *
-     * @param isolationMode the forking mode for this worker, see {@link IsolationMode}
-     *
-     * @since 4.0
-     */
-    void setIsolationMode(IsolationMode isolationMode);
-
+public interface ForkingWorkerSpec extends WorkerSpec {
     /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
      *
@@ -60,11 +40,4 @@ public interface BaseWorkerSpec extends Describable {
      * @return the {@link JavaForkOptions} of this builder
      */
     JavaForkOptions getForkOptions();
-
-    /**
-     * Sets the name to use when displaying this item of work.
-     *
-     * @param displayName the name of this item of work
-     */
-    void setDisplayName(String displayName);
 }

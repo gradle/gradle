@@ -18,29 +18,23 @@ package org.gradle.workers.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.BaseWorkerSpec;
+import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.IsolationMode;
+import org.gradle.workers.ProcessWorkerSpec;
 
-public class DefaultBaseWorkerSpec implements BaseWorkerSpec {
+import javax.inject.Inject;
+
+public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec implements ProcessWorkerSpec, ClassLoaderWorkerSpec {
     protected final JavaForkOptions forkOptions;
-    protected IsolationMode isolationMode = IsolationMode.AUTO;
-    private String displayName;
 
-    public DefaultBaseWorkerSpec(JavaForkOptionsFactory forkOptionsFactory) {
-        this.forkOptions = forkOptionsFactory.newJavaForkOptions();
+    @Inject
+    public DefaultProcessWorkerSpec(JavaForkOptionsFactory javaForkOptionsFactory, ObjectFactory objectFactory) {
+        super(IsolationMode.PROCESS, objectFactory);
+        this.forkOptions = javaForkOptionsFactory.newJavaForkOptions();
         getForkOptions().setEnvironment(Maps.<String, Object>newHashMap());
-    }
-
-    @Override
-    public IsolationMode getIsolationMode() {
-        return isolationMode;
-    }
-
-    @Override
-    public void setIsolationMode(IsolationMode isolationMode) {
-        this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
     }
 
     @Override
@@ -51,15 +45,5 @@ public class DefaultBaseWorkerSpec implements BaseWorkerSpec {
     @Override
     public void forkOptions(Action<? super JavaForkOptions> forkOptionsAction) {
         forkOptionsAction.execute(forkOptions);
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
     }
 }

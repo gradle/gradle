@@ -16,24 +16,28 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.IsolationMode;
 
 import javax.inject.Inject;
 
-public class DefaultWorkerSpec implements WorkerSpecInternal {
-    private final IsolationMode isolationMode;
+public class DefaultClassLoaderWorkerSpec extends DefaultWorkerSpec implements ClassLoaderWorkerSpec {
+    private final ConfigurableFileCollection classpath;
 
     @Inject
-    public DefaultWorkerSpec() {
-        this(IsolationMode.NONE);
+    public DefaultClassLoaderWorkerSpec(ObjectFactory objectFactory) {
+        this(IsolationMode.CLASSLOADER, objectFactory);
     }
 
-    protected DefaultWorkerSpec(IsolationMode isolationMode) {
-        this.isolationMode = isolationMode;
+    protected DefaultClassLoaderWorkerSpec(IsolationMode isolationMode, ObjectFactory objectFactory) {
+        super(isolationMode);
+        this.classpath = objectFactory.fileCollection();
     }
 
     @Override
-    public IsolationMode getIsolationMode() {
-        return isolationMode;
+    public ConfigurableFileCollection getClasspath() {
+        return classpath;
     }
 }

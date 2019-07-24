@@ -57,8 +57,8 @@ public abstract class AbstractWorker implements BuildOperationAwareWorker {
     }
 
     private static String getImplementationClassName(ActionExecutionSpec spec) {
-        if (spec.getImplementationClass() == AdapterWorkerExecution.class) {
-            AdapterWorkerParameters parameters = (AdapterWorkerParameters) spec.getParameters();
+        if (spec.getImplementationClass() == AdapterWorkAction.class) {
+            AdapterWorkParameters parameters = (AdapterWorkParameters) spec.getParameters();
             return parameters.getImplementationClassName();
         } else {
             return spec.getImplementationClass().getName();

@@ -28,19 +28,19 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    WorkerExecutorFixture.ExecutionClass executionThatFailsInstantiation
-    WorkerExecutorFixture.ExecutionClass executionThatThrowsUnserializableMemberException
+    WorkerExecutorFixture.WorkActionClass actionThatFailsInstantiation
+    WorkerExecutorFixture.WorkActionClass actionThatThrowsUnserializableMemberException
 
     def setup() {
-        executionThatFailsInstantiation = fixture.getWorkerExecutionThatCreatesFiles("ExecutionThatFailsInstantiation")
-        executionThatFailsInstantiation.with {
+        actionThatFailsInstantiation = fixture.getWorkActionThatCreatesFiles("ActionThatFailsInstantiation")
+        actionThatFailsInstantiation.with {
             constructorAction = """
                 throw new IllegalArgumentException("You shall not pass!");
             """
         }
 
-        executionThatThrowsUnserializableMemberException = fixture.getWorkerExecutionThatCreatesFiles("ExecutionThatFails")
-        executionThatThrowsUnserializableMemberException.with {
+        actionThatThrowsUnserializableMemberException = fixture.getWorkActionThatCreatesFiles("ActionThatFails")
+        actionThatThrowsUnserializableMemberException.with {
             extraFields = """
                 private class Bar { }
                     
@@ -60,13 +60,13 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when there is a failure in the worker runnable in #isolationMode"() {
-        def failureExecution = fixture.workerExecutionThatFails.writeToBuildFile()
-        fixture.withWorkerExecutionClassInBuildSrc()
+        def failureExecution = fixture.workActionThatFails.writeToBuildFile()
+        fixture.withWorkActionClassInBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                workerExecutionClass = ${failureExecution.name}.class
+                workActionClass = ${failureExecution.name}.class
             }
         """.stripIndent()
 
@@ -77,7 +77,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("A failure occurred while executing ${failureExecution.name}")
 
         and:
-        failureHasCause("Failure from worker execution")
+        failureHasCause("Failure from work action")
 
         where:
         isolationMode << ISOLATION_MODES
@@ -85,15 +85,15 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when there is a failure in the worker runnable and work completes before the task in #isolationMode"() {
-        def failureExecution = fixture.workerExecutionThatFails.writeToBuildFile()
-        fixture.withWorkerExecutionClassInBuildSrc()
+        def failureExecution = fixture.workActionThatFails.writeToBuildFile()
+        fixture.withWorkActionClassInBuildSrc()
 
         buildFile << """
             $workerTaskThatWaits
 
             task runInWorker(type: WorkerTaskThatWaits) {
                 isolationMode = $isolationMode
-                workerExecutionClass = ${failureExecution.name}.class
+                workActionClass = ${failureExecution.name}.class
             }
         """.stripIndent()
 
@@ -104,7 +104,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("A failure occurred while executing ${failureExecution.name}")
 
         and:
-        failureHasCause("Failure from worker execution")
+        failureHasCause("Failure from work action")
 
         where:
         isolationMode << ISOLATION_MODES
@@ -112,7 +112,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     def "produces a sensible error when there is a failure starting a worker daemon"() {
         executer.withStackTraceChecksDisabled()
-        def workerExecution = fixture.workerExecutionThatCreatesFiles.writeToBuildSrc()
+        def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
@@ -130,7 +130,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failure.assertHasErrorOutput(unrecognizedOptionError)
 
         and:
-        failureHasCause("A failure occurred while executing ${workerExecution.packageName}.${workerExecution.name}")
+        failureHasCause("A failure occurred while executing ${workAction.packageName}.${workAction.name}")
 
         and:
         failureHasCause("Failed to run Gradle Worker Daemon")
@@ -138,14 +138,14 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
-        def workerExecution = fixture.workerExecutionThatCreatesFiles.writeToBuildSrc()
-        def alternateExecution = fixture.alternateWorkerExecution.writeToBuildSrc()
+        def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
+        def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
         withParameterMemberThatFailsSerialization()
 
         buildFile << """
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                workerExecutionClass = ${alternateExecution.name}.class
+                workActionClass = ${alternateExecution.name}.class
             }
             
             task runInWorker(type: WorkerTask) {
@@ -159,7 +159,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fails("runInWorker")
 
         then:
-        failureHasCause("A failure occurred while executing ${workerExecution.packageName}.${workerExecution.name}")
+        failureHasCause("A failure occurred while executing ${workAction.packageName}.${workAction.name}")
         failureHasCause("Could not isolate value")
         failureHasCause("Could not serialize value of type 'org.gradle.other.FooWithUnserializableBar'")
 
@@ -174,14 +174,14 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     @Unroll
     def "produces a sensible error when a parameter can't be de-serialized in the worker in #isolationMode"() {
         def parameterJar = file("parameter.jar")
-        def workerExecution = fixture.workerExecutionThatCreatesFiles.writeToBuildSrc()
-        def alternateExecution = fixture.alternateWorkerExecution.writeToBuildSrc()
+        def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
+        def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
         withParameterMemberThatFailsDeserialization()
 
         buildFile << """  
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.$isolationMode
-                workerExecutionClass = ${alternateExecution.name}.class
+                workActionClass = ${alternateExecution.name}.class
             }
 
             task runInWorker(type: WorkerTask) {
@@ -196,7 +196,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fails("runInWorker")
 
         then:
-        failureHasCause("A failure occurred while executing ${workerExecution.packageName}.${workerExecution.name}")
+        failureHasCause("A failure occurred while executing ${workAction.packageName}.${workAction.name}")
         failureHasCause("Couldn't populate class org.gradle.other.FooWithUnserializableBar")
 
         and:
@@ -209,19 +209,19 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error even if the action failure cannot be fully serialized in #isolationMode"() {
-        fixture.withWorkerExecutionClassInBuildSrc()
-        def failureExecution = executionThatThrowsUnserializableMemberException.writeToBuildSrc()
-        def alternateExecution = fixture.alternateWorkerExecution.writeToBuildSrc()
+        fixture.withWorkActionClassInBuildSrc()
+        def failureExecution = actionThatThrowsUnserializableMemberException.writeToBuildSrc()
+        def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
 
         buildFile << """
             task runAgainInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                workerExecutionClass = ${alternateExecution.name}.class
+                workActionClass = ${alternateExecution.name}.class
             }
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                workerExecutionClass = ${failureExecution.name}.class
+                workActionClass = ${failureExecution.name}.class
                 finalizedBy runAgainInWorker
             }
         """
@@ -243,13 +243,13 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
     @Unroll
     def "produces a sensible error when the runnable cannot be instantiated in #isolationMode"() {
-        fixture.withWorkerExecutionClassInBuildSrc()
-        def failureExecution = executionThatFailsInstantiation.writeToBuildSrc()
+        fixture.withWorkActionClassInBuildSrc()
+        def failureExecution = actionThatFailsInstantiation.writeToBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                workerExecutionClass = ${failureExecution.name}.class
+                workActionClass = ${failureExecution.name}.class
             }
         """.stripIndent()
 
@@ -265,32 +265,9 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
-    def "produces a sensible error when worker configuration is incorrect in #isolationMode"() {
-        fixture.withWorkerExecutionClassInBuildSrc()
-
-        buildFile << """
-            task runInWorker(type: WorkerTask) {
-                isolationMode = IsolationMode.$isolationMode
-                additionalForkOptions = {
-                    it.systemProperty("FOO", "bar")
-                }
-            }
-        """.stripIndent()
-
-        when:
-        fails("runInWorker")
-
-        then:
-        failureHasCause("The worker system properties cannot be set when using isolation mode $isolationMode")
-
-        where:
-        isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.NONE]
-    }
-
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "produces a sensible error when worker fails before logging is initialized"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -309,20 +286,20 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         result.assertHasErrorOutput("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
-    def "produces a sensible error when the worker execution is not implemented properly"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+    def "produces a sensible error when the work action is not implemented properly"() {
+        fixture.withWorkActionClassInBuildScript()
 
         buildFile << """
-            abstract class BadWorkerExecution implements WorkerExecution<WorkerParameters> {
+            abstract class BadWorkAction implements WorkAction<WorkParameters> {
                 @Inject
-                BadWorkerExecution() { }
+                BadWorkAction() { }
                 
                 void execute() { }
             }
             
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
-                workerExecutionClass = BadWorkerExecution.class
+                workActionClass = BadWorkAction.class
             }
         """.stripIndent()
 
@@ -331,7 +308,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fails("runInWorker")
 
         then:
-        failure.assertHasCause("Could not create worker parameters: must use a sub-type of WorkerParameters as parameter type. Use WorkerParameters.None for executions without parameters.")
+        failure.assertHasCause("Could not create worker parameters: must use a sub-type of WorkParameters as parameter type. Use WorkParameters.None for executions without parameters.")
     }
 
     String getUnrecognizedOptionError() {

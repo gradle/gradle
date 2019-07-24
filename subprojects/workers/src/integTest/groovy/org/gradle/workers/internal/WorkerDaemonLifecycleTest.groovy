@@ -28,7 +28,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     String logSnapshot = ""
 
     def "worker daemons are reused across builds"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         buildFile << """
             import org.gradle.workers.internal.WorkerDaemonFactory
             
@@ -57,7 +57,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     }
 
     def "worker daemons can be restarted when daemon is stopped"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
@@ -82,7 +82,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     }
 
     def "worker daemons are stopped when daemon is stopped"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
@@ -105,7 +105,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     }
 
     def "worker daemons are stopped and not reused when log level is changed"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
@@ -135,7 +135,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     }
 
     def "worker daemons are not reused when classpath changes"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker1(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
@@ -200,7 +200,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     }
 
     def "only compiler daemons are stopped with the build session"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         file('src/main/java').createDir()
         file('src/main/java/Test.java') << "public class Test {}"
         buildFile << """
@@ -234,7 +234,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
     @Requires(TestPrecondition.UNIX)
     def "worker daemons exit when the parent build daemon is killed"() {
-        fixture.withWorkerExecutionClassInBuildScript()
+        fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
@@ -274,8 +274,8 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         return daemons.daemon.log - logSnapshot
     }
 
-    WorkerExecutorFixture.ExecutionClass getWorkerExecutorThatCanFailUnexpectedly() {
-        def executionClass = fixture.workerExecutionThatCreatesFiles
+    WorkerExecutorFixture.WorkActionClass getWorkerExecutorThatCanFailUnexpectedly() {
+        def executionClass = fixture.workActionThatCreatesFiles
         executionClass.action += """
             if (getParameters().getFiles().contains("poisonPill")) {
                 System.exit(127);

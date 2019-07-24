@@ -26,7 +26,7 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
     @Unroll
     def "workers cannot inject #forbiddenType"() {
         buildFile << """
-            ${getWorkerExecutionInjecting(forbiddenType.name)}
+            ${getWorkActionInjecting(forbiddenType.name)}
             task runInWorker(type: InjectingWorkerTask)
         """.stripIndent()
 
@@ -41,14 +41,14 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
         forbiddenType << [Project]
     }
 
-    String getWorkerExecutionInjecting(String injectedClass) {
+    String getWorkActionInjecting(String injectedClass) {
         return """
             import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
-            import org.gradle.workers.WorkerExecution
-            import org.gradle.workers.WorkerParameters
+            import org.gradle.workers.WorkAction
+            import org.gradle.workers.WorkParameters
 
-            abstract class InjectingExecution implements WorkerExecution<WorkerParameters.None> {
+            abstract class InjectingExecution implements WorkAction<WorkParameters.None> {
                 
                 @Inject
                 public InjectingExecution($injectedClass injected) {
@@ -69,9 +69,7 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
 
                 @TaskAction
                 public void runInWorker() {
-                    executor.execute(InjectingExecution) {
-                        isolationMode = IsolationMode.NONE
-                    }
+                    executor.noIsolation().submit(InjectingExecution) { }
                 }
             }
         """.stripIndent()

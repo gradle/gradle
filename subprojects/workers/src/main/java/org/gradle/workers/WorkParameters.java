@@ -19,14 +19,14 @@ package org.gradle.workers;
 import org.gradle.api.Incubating;
 
 /**
- * Marker interface for parameter objects to {@link WorkerExecution}s.
+ * Marker interface for parameter objects to {@link WorkAction}s.
  *
  * <p>
  *     Parameter types should be interfaces, only declaring getters for {@link org.gradle.api.provider.Property}-like objects.
  *     Example:
  * </p>
  * <pre class='autoTested'>
- * public interface MyParameters extends WorkerParameters {
+ * public interface MyParameters extends WorkParameters {
  *     Property&lt;String&gt; getStringParameter();
  *     ConfigurableFileCollection getFiles();
  * }
@@ -35,18 +35,16 @@ import org.gradle.api.Incubating;
  * @since 5.6
  */
 @Incubating
-public interface WorkerParameters {
+public interface WorkParameters {
     /**
-     * Used for worker executions without parameters.
+     * Used for work actions without parameters.
      *
-     * <p>When {@link None} is used as parameters, calling {@link WorkerExecution#getParameters()} throws an exception.</p>
+     * <p>When {@link None} is used as parameters, calling {@link WorkAction#getParameters()} throws an exception.</p>
      *
      * @since 5.6
      */
     @Incubating
-    final class None implements WorkerParameters {
+    final class None implements WorkParameters {
         private None() {}
     }
-
-    WorkerParameters.None NONE = new WorkerParameters.None();
 }

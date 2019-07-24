@@ -60,12 +60,21 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         lock.lock();
         try {
             workItems = ImmutableList.copyOf(items.get(operation));
-            items.removeAll(operation);
-            startWaiting(operation);
+            startWaiting(operation, workItems);
         } finally {
             lock.unlock();
         }
 
+        waitForAll(operation, workItems, lockRetention);
+    }
+
+    @Override
+    public void waitForCompletion(BuildOperationRef operation, List<AsyncWorkCompletion> workItems, ProjectLockRetention lockRetention) {
+        startWaiting(operation, workItems);
+        waitForAll(operation, workItems, lockRetention);
+    }
+
+    private void waitForAll(BuildOperationRef operation, List<AsyncWorkCompletion> workItems, ProjectLockRetention lockRetention) {
         try {
             if (!workItems.isEmpty()) {
                 waitForItemsAndGatherFailures(workItems, lockRetention);
@@ -150,9 +159,10 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void startWaiting(BuildOperationRef operation) {
+    private void startWaiting(BuildOperationRef operation, List<AsyncWorkCompletion> workItems) {
         lock.lock();
         try {
+            items.get(operation).removeAll(workItems);
             waiting.add(operation);
         } finally {
             lock.unlock();
