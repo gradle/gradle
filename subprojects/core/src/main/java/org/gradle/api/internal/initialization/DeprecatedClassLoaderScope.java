@@ -57,4 +57,16 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
         return deprecatedLocalClassloader;
     }
 
+    @Override
+    public ClassLoaderScope createChild(String name) {
+        return new DeprecatedClassLoaderScope(id.child(name), this, classLoaderCache, deprecatedClasspath);
+//
+//        super.createChild()
+//        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache, export.plus(local));
+//        if (isLocked()) {
+//            deprecatedScope.lock();
+//        }
+//        return deprecatedScope;
+
+    }
 }
