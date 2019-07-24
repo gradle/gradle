@@ -51,6 +51,10 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         }
     }
 
+    protected T createResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
+        return producer.create(key, coordinationService, getLockAction(), getUnlockAction());
+    }
+
     @Override
     public Collection<? extends ResourceLock> getResourceLocksByCurrentThread() {
         final Long threadId = Thread.currentThread().getId();

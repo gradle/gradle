@@ -35,7 +35,10 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
 
     public ResourceLock getResourceLock(final String sharedResource, final int leases) {
         String displayName = "Lease of " + leases + " for " + sharedResource;
-        return getOrRegisterResourceLock(displayName, new ResourceLockProducer<String, SharedResourceLease>() {
+
+        // We don't want to cache lock instances here since it's valid for multiple threads to hold a lock on a given resource for a given number of leases.
+        // For that reason we don't want to reuse lock instances, as it's very possible they can be concurrently held by multiple threads.
+        return createResourceLock(displayName, new ResourceLockProducer<String, SharedResourceLease>() {
             @Override
             public SharedResourceLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
                 return new SharedResourceLease(displayName, coordinationService, lockAction, unlockAction, sharedResource, leases);
@@ -62,7 +65,7 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
                 ownerThread = Thread.currentThread();
             }
 
-            return active;
+            return doIsLockedByCurrentThread();
         }
 
         @Override
