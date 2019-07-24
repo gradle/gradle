@@ -17,11 +17,9 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
-    static nextMajor = GradleVersion.current().nextMajor.version
 
     static final VALID = "_VALID"
     static final FORBIDDEN = "_FORBIDDEN"
@@ -59,7 +57,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives) || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use the $alternatives configuration instead.")
+        !deprecated(alternatives) || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the $alternatives configuration instead.")
         !valid(alternatives)      || !output.contains("> Configure project :")
 
         where:
@@ -114,7 +112,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives) || output.contains("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle $nextMajor. Please use attributes to consume the ${alternatives} configuration instead.")
+        !deprecated(alternatives) || output.contains("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the ${alternatives} configuration instead.")
         !valid(alternatives)      || output.contains("> Task :resolve\n\n")
         !forbidden(alternatives)  || errorOutput.contains("Selected configuration '$configuration' on 'project :sub' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
 
@@ -168,7 +166,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        !deprecated(alternatives) || output.contains("The $configuration configuration has been deprecated for resolution. This will fail with an error in Gradle $nextMajor. Please resolve the ${alternatives} configuration instead.")
+        !deprecated(alternatives) || output.contains("The $configuration configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. Please resolve the ${alternatives} configuration instead.")
         !valid(alternatives)      || output.contains("> Task :resolve\n\n")
         !forbidden(alternatives)  || errorOutput.contains("Resolving configuration '$configuration' directly is not allowed")
 

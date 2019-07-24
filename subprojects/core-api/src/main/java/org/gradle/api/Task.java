@@ -762,7 +762,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param name The name of the shared resource.
      * @see org.gradle.api.execution.SharedResource
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void requiresResource(String name);
@@ -777,7 +777,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param leases The number of required leases.
      * @see org.gradle.api.execution.SharedResource
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void requiresResource(String name, int leases);
