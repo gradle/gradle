@@ -39,6 +39,11 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
     }
 
     steps {
+        script {
+            name = "CLEAN_DAEMONS"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = cleanDaemonsBeforePerformanceTest
+        }
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = ""
