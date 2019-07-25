@@ -34,7 +34,6 @@ import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -128,11 +127,8 @@ class DefaultArtifactTransformsTest extends Specification {
         def sourceArtifactId = Stub(ComponentArtifactIdentifier)
         def sourceArtifact = Stub(TestArtifact)
         def sourceArtifactFile = new File("thing-1.0.jar")
-        def sourceFile = new File("thing-file.jar")
         def outFile1 = new File("out1.classes")
         def outFile2 = new File("out2.classes")
-        def outFile3 = new File("out3.classes")
-        def outFile4 = new File("out4.classes")
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
         def transformation = Mock(Transformation)
@@ -167,12 +163,10 @@ class DefaultArtifactTransformsTest extends Specification {
 
         _ * variant1Artifacts.startVisit(_, _) >> { BuildOperationQueue q, ResolvedArtifactSet.AsyncArtifactListener l ->
             l.artifactAvailable(sourceArtifact)
-            l.fileAvailable(sourceFile)
             return new ResolvedArtifactSet.Completion() {
                 @Override
                 void visit(ArtifactVisitor v) {
                     v.visitArtifact(variant1DisplayName, targetAttributes, sourceArtifact)
-                    v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), variant1DisplayName, targetAttributes, sourceFile)
                 }
             }
         }
@@ -184,15 +178,9 @@ class DefaultArtifactTransformsTest extends Specification {
         1 * invocation1.getCachedResult() >> Optional.empty()
         1 * invocation1.invoke() >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2))) >> invocation1
 
-        1 * transformation.createInvocation({ it.files == [sourceFile] }, _ as ExecutionGraphDependenciesResolver, _) >> invocation2
-        1 * invocation2.getCachedResult() >> Optional.empty()
-        1 * invocation2.invoke() >> Try.successful(TransformationSubject.initial(sourceFile).createSubjectFromResult(ImmutableList.of(outFile3, outFile4)))
-
         1 * listener.startVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) >> true
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), variant1DisplayName, targetAttributes, outFile3)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), variant1DisplayName, targetAttributes, outFile4)
         0 * visitor._
         0 * transformation._
     }

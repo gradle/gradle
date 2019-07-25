@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -46,7 +45,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractFileCollection implements FileCollectionInternal, TaskDependencyContainer {
+public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *

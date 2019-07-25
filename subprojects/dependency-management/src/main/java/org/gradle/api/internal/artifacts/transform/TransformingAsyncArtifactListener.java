@@ -29,7 +29,6 @@ import java.util.Optional;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
-    private final Map<File, TransformationResult> fileResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
@@ -41,7 +40,6 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         ResolvedArtifactSet.AsyncArtifactListener delegate,
         BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
-        Map<File, TransformationResult> fileResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
         TransformationNodeRegistry transformationNodeRegistry
     ) {
@@ -49,7 +47,6 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         this.actions = actions;
         this.transformation = transformation;
         this.delegate = delegate;
-        this.fileResults = fileResults;
         this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
     }
@@ -83,13 +80,6 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public boolean includeFileDependencies() {
         return delegate.includeFileDependencies();
-    }
-
-    @Override
-    public void fileAvailable(File file) {
-        TransformationSubject initialSubject = TransformationSubject.initial(file);
-        TransformationResult transformationResult = createTransformationResult(initialSubject);
-        fileResults.put(file, transformationResult);
     }
 
     private TransformationResult createTransformationResult(TransformationSubject initialSubject) {

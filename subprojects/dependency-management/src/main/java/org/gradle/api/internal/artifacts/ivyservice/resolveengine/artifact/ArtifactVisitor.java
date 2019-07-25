@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
-
-import java.io.File;
 
 /**
  * A visitor over the contents of a {@link ResolvedArtifactSet}.
@@ -42,14 +39,9 @@ public interface ArtifactVisitor {
     boolean requireArtifactFiles();
 
     /**
-     * Should {@link #visitFile(ComponentArtifactIdentifier, DisplayName, AttributeContainer, File)} be called?
+     * Should {@link #visitArtifact(DisplayName, AttributeContainer, ResolvableArtifact)} be called for local file dependencies?
      */
     boolean includeFiles();
-
-    /**
-     * Visits a file. Should be considered an artifact but is separate as a migration step.
-     */
-    void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file);
 
     /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.

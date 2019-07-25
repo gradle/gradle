@@ -21,8 +21,8 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.api.tasks.TaskDependency
 
 import java.util.concurrent.Callable
 
@@ -346,7 +346,6 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def fileCollectionMock = Mock(FileCollectionInternal)
         def taskA = Mock(Task)
         def taskB = Mock(Task)
-        def dependency = Mock(TaskDependency)
 
         when:
         collection.from(fileCollectionMock)
@@ -356,8 +355,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         _ * fileResolver.resolve("f") >> new File("f")
-        _ * fileCollectionMock.getBuildDependencies() >> dependency
-        _ * dependency.getDependencies(null) >> ([taskA] as Set)
+        _ * fileCollectionMock.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(taskA) }
         _ * taskResolver.resolveTask("b") >> taskB
         dependencies == [taskA, taskB] as Set<? extends Task>
     }

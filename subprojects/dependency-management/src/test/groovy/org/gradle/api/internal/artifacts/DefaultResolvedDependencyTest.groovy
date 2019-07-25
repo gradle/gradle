@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -41,7 +41,7 @@ class DefaultResolvedDependencyTest extends Specification {
         String someVersion = "someVersion"
         String someConfiguration = "someConfiguration"
         DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(newId(someGroup, someName, someVersion, someConfiguration), buildOperationProcessor)
-        
+
         then:
         resolvedDependency.name == someGroup + ":" + someName + ":" + someVersion
         resolvedDependency.moduleGroup == someGroup
@@ -209,8 +209,6 @@ class DefaultResolvedDependencyTest extends Specification {
         final Factory artifactSource = Mock() {
             create() >> new File("pathTo" + name)
         }
-        return new DefaultResolvedArtifact(id, artifactStub, Mock(ComponentArtifactIdentifier), Mock(TaskDependency), artifactSource)
+        return new DefaultResolvedArtifact(id, artifactStub, Mock(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource)
     }
-
-
 }

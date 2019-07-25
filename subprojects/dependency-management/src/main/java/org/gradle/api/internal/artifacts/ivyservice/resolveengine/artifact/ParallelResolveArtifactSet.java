@@ -22,8 +22,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-
 /**
  * A wrapper that prepares artifacts in parallel when visiting the delegate.
  * This is done by collecting all artifacts to prepare and/or visit in a first step.
@@ -91,11 +89,6 @@ public abstract class ParallelResolveArtifactSet {
             @Override
             public boolean includeFileDependencies() {
                 return visitor.includeFiles();
-            }
-
-            @Override
-            public void fileAvailable(File file) {
-                // Don't care, collect the files later (in the correct order)
             }
         }
 
