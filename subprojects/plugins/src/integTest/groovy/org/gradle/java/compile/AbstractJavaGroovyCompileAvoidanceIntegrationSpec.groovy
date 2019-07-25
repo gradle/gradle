@@ -138,7 +138,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
             public class ToolImpl { 
                 private Number thing() { return null; }
                 private Object t = this;
-                private static void someMethod() { }
+                private static void someMethod() {}
                 private String s;
             }
         """
@@ -189,8 +189,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         // add public constructor, should change
         sourceFile.text = """
             public class ToolImpl { 
-                public ToolImpl() { }
-                public ToolImpl(String s) { }
+                public ToolImpl() {}
+                public ToolImpl(String s) {}
                 public static ToolImpl instance; 
                 public void execute() { String s = toString(); } 
             }
@@ -212,7 +212,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
-            public class ToolImpl { }
+            public class ToolImpl {}
         """
         file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { ToolImpl t = new ToolImpl(); }
@@ -344,7 +344,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         def sourceFile = file("a/src/main/${language.name}/org/ToolImpl.${language.name}")
         sourceFile << """
             package org;
-            public class ToolImpl { void m() { } }
+            public class ToolImpl { void m() {} }
         """
         file("b/src/main/${language.name}/org/Main.${language.name}") << """
             package org;
@@ -614,15 +614,15 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-        public class A extends B { 
-            void a() { 
-                b(); 
-                String c = c(); 
-            } 
-            @Override String c() { 
-                return null; 
-            } 
-        }
+            public class A extends B { 
+                void a() { 
+                    b(); 
+                    String c = c(); 
+                } 
+                @Override String c() { 
+                    return null; 
+                } 
+            }
         """
         file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { d(); } }"
         file("c/src/main/${language.name}/C.${language.name}") << "public class C { String c() { return null; }; void d() {} }"
@@ -672,17 +672,17 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-        public class A extends B { 
-            void a() { 
-                b(); 
-            } 
-            @Override String d() { 
-                return null; 
-            } 
-        }
+            public class A extends B { 
+                void a() { 
+                    b(); 
+                } 
+                @Override String d() { 
+                    return null; 
+                } 
+            }
         """
-        file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { } }"
-        file("c/src/main/${language.name}/C.${language.name}") << "public class C extends D { void c() { }; }"
+        file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() {} }"
+        file("c/src/main/${language.name}/C.${language.name}") << "public class C extends D { void c() {}; }"
         file("d/src/main/${language.name}/D.${language.name}") << "public class D { String d() { return null; } }"
 
         when:
@@ -695,7 +695,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":d:${language.compileTaskName}"
 
         when:
-        file("d/src/main/${language.name}/D.${language.name}").text = "public class D { void d() { } }"
+        file("d/src/main/${language.name}/D.${language.name}").text = "public class D { void d() {} }"
 
         then:
         fails ":a:${language.compileTaskName}"
@@ -760,7 +760,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
             """
         file("b/src/main/${language.name}/Base.${language.name}") << """
                 public class Base {
-                    public void foo() { }
+                    public void foo() {}
                 }
             """
         buildFile << """
