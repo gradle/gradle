@@ -113,7 +113,7 @@ class BeanPropertyReader(
             }
             MapProperty::class.java -> { bean, value ->
                 field.set(bean, DefaultMapProperty(Any::class.java, Any::class.java).apply {
-                    set(value as Map<Any?, Any?>)
+                    set(value as Map<*, *>)
                 })
             }
             ListProperty::class.java -> { bean, value ->
