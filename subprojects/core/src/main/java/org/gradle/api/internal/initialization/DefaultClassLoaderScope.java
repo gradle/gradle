@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,14 +67,14 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return new CachingClassLoader(new MultiParentClassLoader(additional, loader(id, classPath)));
     }
 
-    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {
+    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath, @Nullable List<ClassLoader> loaders) {
         if (loaders != null) {
             return new CachingClassLoader(buildMultiLoader(id, classPath, loaders));
         }
         return buildLockedLoader(id, classPath);
     }
 
-    private MultiParentClassLoader buildMultiLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {
+    private MultiParentClassLoader buildMultiLoader(ClassLoaderId id, ClassPath classPath, @Nullable List<ClassLoader> loaders) {
         int numParents = 1;
         if (loaders != null) {
             numParents += loaders.size();
