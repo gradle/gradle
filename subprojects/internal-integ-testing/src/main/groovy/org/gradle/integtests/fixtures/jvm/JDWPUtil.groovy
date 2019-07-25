@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.jvm
 
+import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.ports.DefaultPortDetector
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.Assume
@@ -64,7 +66,7 @@ class JDWPUtil implements TestRule {
 
     def connect() {
         if (vm == null) {
-            def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
+            def vmm = bootstrapClass.virtualMachineManager()
             def connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
             def connectionArgs = connection.defaultArguments()
             connectionArgs.get("port").setValue(port as String)
@@ -72,10 +74,11 @@ class JDWPUtil implements TestRule {
             this.vm = connection.attach(connectionArgs)
         }
         vm
-}
+    }
 
     def listen() {
-        connection = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager().listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
+        def vmm = bootstrapClass.virtualMachineManager()
+        connection = vmm.listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
         connectionArgs = connection.defaultArguments()
         connectionArgs.get("port").setValue(port as String)
         connectionArgs.get("timeout").setValue('3000')
@@ -110,5 +113,16 @@ class JDWPUtil implements TestRule {
         }
 
         FixedAvailablePortAllocator.instance.releasePort(port)
+    }
+
+    // We do this to work around an issue in JDK 8 where tools.jar doesn't show up on the classpath and we
+    // get a ClassDefNotFound error.
+    static def getBootstrapClass() {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return Class.forName("com.sun.jdi.Bootstrap")
+        } else {
+            ClassLoader classLoader = new URLClassLoader(Jvm.current().toolsJar.toURI().toURL())
+            return classLoader.loadClass("com.sun.jdi.Bootstrap")
+        }
     }
 }
