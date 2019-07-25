@@ -29,7 +29,6 @@ import spock.lang.Timeout
 @TargetGradleVersion(">=5.6")
 @Timeout(60)
 class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
-
     @Rule
     JDWPUtil jdwpClient = new JDWPUtil()
 
@@ -59,7 +58,8 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
 
     def "build fails if debugger is not ready"() {
         setup:
-        def port = FixedAvailablePortAllocator.instance.assignPort()
+        // port is assigned but not connected
+        def port = jdwpClient.port
 
         when:
         withConnection { connection ->
@@ -71,9 +71,6 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-
-        cleanup:
-        FixedAvailablePortAllocator.instance.releasePort(port)
     }
 
     def "can launch tests in debug mode"() {
