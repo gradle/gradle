@@ -104,5 +104,32 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
             ((Closeable) nonDeprecatedParent).close();
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultDeprecatedClassLoader that = (DefaultDeprecatedClassLoader) o;
+
+        if (deprecationFired != that.deprecationFired) {
+            return false;
+        }
+        if (!deprecatedUsageLoader.equals(that.deprecatedUsageLoader)) {
+            return false;
+        }
+        return nonDeprecatedParent.equals(that.nonDeprecatedParent);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = deprecatedUsageLoader.hashCode();
+        result = 31 * result + nonDeprecatedParent.hashCode();
+        return result;
+    }
 }
 
