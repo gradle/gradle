@@ -6,6 +6,8 @@ import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, init = {

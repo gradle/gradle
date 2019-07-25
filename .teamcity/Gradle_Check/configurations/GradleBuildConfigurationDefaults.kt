@@ -29,7 +29,7 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
 
 val cleanDaemonsBeforePerformanceTest = """
     free -m
-    ps aux | grep GradleDaemon | grep -v grep | awk '{print ${'$'}2}' | xargs kill -9
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
     free -m
 """.trimIndent()
 
