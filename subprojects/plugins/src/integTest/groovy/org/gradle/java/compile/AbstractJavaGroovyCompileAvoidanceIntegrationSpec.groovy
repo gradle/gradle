@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
-
-
     abstract boolean isUseJar()
 
     abstract boolean isIncremental()
@@ -32,8 +30,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def setup() {
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+        """
         buildFile << """
             allprojects {
                 if (name in []) apply plugin: 'java-library'
@@ -44,7 +42,7 @@ include 'a', 'b'
                     includeEmptyDirs = true
                 }
             }
-            
+
             ${language.projectGroovyDependencies()}
         """
 
@@ -75,7 +73,7 @@ include 'a', 'b'
                     from emptyDirs
                 }
             }
-"""
+        """
     }
 
     def useClassesDir(CompiledLanguage language) {
@@ -127,7 +125,7 @@ include 'a', 'b'
                 private Number thing() { return null; }
                 private Object t = this;
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -143,7 +141,7 @@ include 'a', 'b'
                 private static void someMethod() { }
                 private String s;
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -155,7 +153,7 @@ include 'a', 'b'
         sourceFile.text = """
             public class ToolImpl { 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -168,7 +166,7 @@ include 'a', 'b'
             public class ToolImpl { 
                 public void execute() { String s = toString(); } 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -181,7 +179,7 @@ include 'a', 'b'
                 public static ToolImpl instance; 
                 public void execute() { String s = toString(); } 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -196,7 +194,7 @@ include 'a', 'b'
                 public static ToolImpl instance; 
                 public void execute() { String s = toString(); } 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -230,13 +228,13 @@ include 'a', 'b'
         when:
         // add comments, change whitespace
         sourceFile.text = """
-/**
- * A thing
- */
-public class ToolImpl {
-    // TODO - add some stuff
-}
-"""
+            /**
+            * A thing
+            */
+            public class ToolImpl {
+                // TODO - add some stuff
+            }
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -317,7 +315,7 @@ public class ToolImpl {
         sourceFile.text = """
             package org;
             public interface ToolImpl { void m(); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -329,7 +327,7 @@ public class ToolImpl {
         sourceFile.text = """
             package org;
             ${language == CompiledLanguage.GROOVY ? "@groovy.transform.PackageScope" : ""} interface ToolImpl { void m(); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -341,7 +339,7 @@ public class ToolImpl {
         sourceFile.text = """
             package org;
             interface ToolImpl extends Runnable { void m(); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -377,7 +375,7 @@ public class ToolImpl {
         // change to constant value
         sourceFile.text = """
             public class ToolImpl { public static final int CONST = 10; }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -413,7 +411,7 @@ public class ToolImpl {
         // add type parameters to interface
         sourceFile.text = """
             public interface ToolImpl<T> { void m(java.util.List<String> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -424,7 +422,7 @@ public class ToolImpl {
         // add type parameters to method
         sourceFile.text = """
             public interface ToolImpl<T> { public <S extends T> void m(java.util.List<S> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -435,7 +433,7 @@ public class ToolImpl {
         // change type parameters on interface
         sourceFile.text = """
             public interface ToolImpl<T extends CharSequence> { public <S extends T> void m(java.util.List<S> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -446,7 +444,7 @@ public class ToolImpl {
         // change type parameters on method
         sourceFile.text = """
             public interface ToolImpl<T extends CharSequence> { public <S extends Number> void m(java.util.List<S> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -568,16 +566,16 @@ public class ToolImpl {
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-public class A extends B { 
-    void a() { 
-        b(); 
-        String c = c(); 
-    } 
-    @Override String c() { 
-        return null; 
-    } 
-}
-"""
+        public class A extends B { 
+            void a() { 
+                b(); 
+                String c = c(); 
+            } 
+            @Override String c() { 
+                return null; 
+            } 
+        }
+        """
         file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { d(); } }"
         file("c/src/main/${language.name}/C.${language.name}") << "public class C { String c() { return null; }; void d() {} }"
 
@@ -626,15 +624,15 @@ public class A extends B {
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-public class A extends B { 
-    void a() { 
-        b(); 
-    } 
-    @Override String d() { 
-        return null; 
-    } 
-}
-"""
+        public class A extends B { 
+            void a() { 
+                b(); 
+            } 
+            @Override String d() { 
+                return null; 
+            } 
+        }
+        """
         file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { } }"
         file("c/src/main/${language.name}/C.${language.name}") << "public class C extends D { void c() { }; }"
         file("d/src/main/${language.name}/D.${language.name}") << "public class D { String d() { return null; } }"
