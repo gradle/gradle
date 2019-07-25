@@ -28,6 +28,7 @@ import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import java.io.Serializable
+import java.lang.reflect.Method
 
 
 internal
@@ -58,16 +59,23 @@ class DefaultWriteContext(
     private
     fun createWriterFor(beanType: Class<*>): BeanStateWriter {
         // When the type is serializable and has a writeReplace() method, then use this method to unpack the state of the object and serialize the result
-        if (Serializable::class.java.isAssignableFrom(beanType)) {
-            val details = ClassInspector.inspect(beanType)
-            val method = details.allMethods.find { it.name == "writeReplace" && it.parameters.isEmpty() }
-            if (method != null) {
-                return SerializableWriteReplaceWriter(method)
-            }
+        val writeReplaceMethod = serializableWriteReplaceMethodFor(beanType)
+        if (writeReplaceMethod != null) {
+            return SerializableWriteReplaceWriter(writeReplaceMethod)
         }
         // Otherwise, serialize the fields of the bean
         return BeanPropertyWriter(beanType)
     }
+
+    private
+    fun serializableWriteReplaceMethodFor(beanType: Class<*>): Method? =
+        beanType
+            .takeIf { Serializable::class.java.isAssignableFrom(it) }
+            ?.let { serializableBeanType ->
+                ClassInspector.inspect(serializableBeanType)
+                    .allMethods
+                    .find { it.name == "writeReplace" && it.parameters.isEmpty() }
+            }
 
     override val isolate: WriteIsolate
         get() = getIsolate()
