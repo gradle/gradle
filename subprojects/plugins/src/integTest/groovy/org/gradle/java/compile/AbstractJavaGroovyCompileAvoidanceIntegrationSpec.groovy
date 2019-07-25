@@ -284,7 +284,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    def "doesn't recompile when empty initializer, static initializer or constructor is added"() {
+    def "doesn't recompile when initializer, static initializer or constructor is changed"() {
         given:
         buildFile << """
             project(':b') {
