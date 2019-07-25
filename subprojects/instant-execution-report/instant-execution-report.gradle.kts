@@ -15,7 +15,7 @@
  */
 
 plugins {
-    kotlin("js")
+    id("kotlin2js")
 }
 
 dependencies {
@@ -24,7 +24,7 @@ dependencies {
 
 tasks {
 
-    compileKotlinJs {
+    compileKotlin2Js {
         kotlinOptions {
             outputFile = "$buildDir/js/instant-execution-report.js"
             metaInfo = false
@@ -54,7 +54,7 @@ tasks {
     val assembleReport by registering(Copy::class) {
         from(processResources)
         from(unpackKotlinJsStdlib)
-        from(compileKotlinJs.map { it.outputFile })
+        from(compileKotlin2Js.map { it.outputFile })
         into("$buildDir/report")
     }
 
