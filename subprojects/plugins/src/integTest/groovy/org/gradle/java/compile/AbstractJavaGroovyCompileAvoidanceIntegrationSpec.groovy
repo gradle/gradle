@@ -299,8 +299,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
                 {}
                 static {}
                 public ToolImpl() {}
-                public Object s = String.valueOf(12);
-                public void execute() { int i = 12; }
             }
         """
         file("b/src/main/${language.name}/Main.${language.name}") << """
@@ -321,8 +319,6 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
                 { "".trim(); }
                 static { int i = 123; }
                 public ToolImpl() { System.out.println("created!"); }
-                public Object s = "12";
-                public void execute() { String s = toString(); }
             }
         """
 
