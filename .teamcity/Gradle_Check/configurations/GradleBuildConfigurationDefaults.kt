@@ -27,10 +27,12 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
-val cleanDaemonsBeforePerformanceTest = """
+val killAllGradleProcesses = """
     free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
     ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
     free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
 """.trimIndent()
 
 val m2CleanScriptUnixLike = """
