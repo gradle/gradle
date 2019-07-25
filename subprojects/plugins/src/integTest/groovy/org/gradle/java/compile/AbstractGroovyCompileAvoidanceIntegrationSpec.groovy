@@ -24,49 +24,49 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
 
     private String goodAstTransformation() {
         """
-import org.codehaus.groovy.transform.*;
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.control.*;
-@GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class MyASTTransformation extends AbstractASTTransformation {
-    @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-            System.out.println("Hello from AST transformation!");
-    }
-}
-    """
+            import org.codehaus.groovy.transform.*;
+            import org.codehaus.groovy.ast.*;
+            import org.codehaus.groovy.control.*;
+            @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
+            public class MyASTTransformation extends AbstractASTTransformation {
+                @Override
+                public void visit(ASTNode[] nodes, SourceUnit source) {
+                    System.out.println("Hello from AST transformation!");
+                }
+            }
+        """
     }
 
     private String goodAstTransformationWithABIChange() {
         """
-import org.codehaus.groovy.transform.*;
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.control.*;
-@GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class MyASTTransformation extends AbstractASTTransformation {
-    @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-            System.out.println("Hello from AST transformation!");
-    }
-    public void foo() { }
-}
-    """
+            import org.codehaus.groovy.transform.*;
+            import org.codehaus.groovy.ast.*;
+            import org.codehaus.groovy.control.*;
+            @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
+            public class MyASTTransformation extends AbstractASTTransformation {
+                @Override
+                public void visit(ASTNode[] nodes, SourceUnit source) {
+                    System.out.println("Hello from AST transformation!");
+                }
+                public void foo() { }
+            }
+        """
     }
 
     private String badAstTransformationNonABIChange() {
         """
-import org.codehaus.groovy.transform.*;
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.control.*;
-@GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class MyASTTransformation extends AbstractASTTransformation {
-    @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-        assert false: "Bad AST transformation!"
-    }
-    public void foo() { }
-}
-    """
+        import org.codehaus.groovy.transform.*;
+        import org.codehaus.groovy.ast.*;
+        import org.codehaus.groovy.control.*;
+        @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
+        public class MyASTTransformation extends AbstractASTTransformation {
+            @Override
+            public void visit(ASTNode[] nodes, SourceUnit source) {
+                assert false: "Bad AST transformation!"
+            }
+            public void foo() { }
+        }
+        """
     }
 
     private String astTransformationDeclaration() {
@@ -86,11 +86,11 @@ public class MyASTTransformation extends AbstractASTTransformation {
 
     private String astTransformationAnnotation() {
         """
-import java.lang.annotation.*;
-@Retention(RetentionPolicy.RUNTIME)
-@Target([ElementType.TYPE])
-@org.codehaus.groovy.transform.GroovyASTTransformationClass("MyASTTransformation")
-public @interface MyAnnotation { }
+        import java.lang.annotation.*;
+        @Retention(RetentionPolicy.RUNTIME)
+        @Target([ElementType.TYPE])
+        @org.codehaus.groovy.transform.GroovyASTTransformationClass("MyASTTransformation")
+        public @interface MyAnnotation { }
         """
     }
 
