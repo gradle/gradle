@@ -19,6 +19,7 @@ package org.gradle.execution.plan
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -854,6 +855,36 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         filtered(b)
     }
 
+    def "task cannot require a shared resource which has not been defined"() {
+        given:
+        Task a = task('a', resources: ['resource': 1])
+
+        when:
+        addToGraphAndPopulate([a])
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "The task :a requires the shared resource 'resource' but no such shared resource exists."
+    }
+
+    def "task cannot require more leases than shared resource maximum leases"() {
+        given:
+        root.gradle.sharedResources {
+            resource {
+                leases = 5
+            }
+        }
+
+        Task a = task('a', resources: ['resource': 10])
+
+        when:
+        addToGraphAndPopulate([a])
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "The task :a requires 10 leases from shared resource 'resource' but maximum leases is 5"
+    }
+
     private void addToGraphAndPopulate(List tasks) {
         executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
@@ -940,6 +971,9 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         relationships(options, task)
         if (options.failure) {
             failure(task, options.failure)
+        }
+        if (options.resources) {
+            task.getSharedResources() >> options.resources
         }
         task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
         task.getOutputs() >> emptyTaskOutputs()
