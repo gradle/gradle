@@ -31,6 +31,10 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":dependencyManagement"))
 
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":internalIntegTesting"))
 
