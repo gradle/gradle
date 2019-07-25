@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
+import spock.lang.Ignore
 
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
@@ -76,6 +77,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
+    @Ignore
     def "can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
         setup:
         sampleProject"""    
