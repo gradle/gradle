@@ -185,7 +185,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             local = local.plus(classPath);
         }
 
-        listener.localClasspathAdded(id.getName(), classPath);
+        localClasspathAdded(classPath);
         return this;
     }
 
@@ -202,7 +202,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             export = export.plus(classPath);
         }
 
-        listener.exportClasspathAdded(id.getName(), classPath);
+        exportClasspathAdded(classPath);
         return this;
     }
 
@@ -240,11 +240,20 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     @Override
     public ClassLoaderScope deprecated() {
-        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child("deprecated"), parent, classLoaderCache, export.plus(local), listener);
+        String deprecatedClassLoaderScopeName = "deprecated";
+        childScopeCreated(deprecatedClassLoaderScopeName);
+        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child(deprecatedClassLoaderScopeName), parent, classLoaderCache, export.plus(local), listener);
         if (isLocked()) {
             deprecatedScope.lock();
         }
         return deprecatedScope;
     }
 
+    protected void exportClasspathAdded(ClassPath classPath) {
+        listener.exportClasspathAdded(id.getName(), classPath);
+    }
+
+    protected void localClasspathAdded(ClassPath classPath) {
+        listener.localClasspathAdded(id.getName(), classPath);
+    }
 }

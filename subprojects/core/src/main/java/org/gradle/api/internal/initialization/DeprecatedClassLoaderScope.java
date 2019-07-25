@@ -35,7 +35,7 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     @Override
     public ClassLoaderScope export(ClassPath classPath) {
         export = export.plus(classPath);
-        listener.exportClasspathAdded(id.getName(), classPath);
+        exportClasspathAdded(classPath);
         return this;
     }
 
@@ -66,7 +66,7 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
 
     @Override
     public ClassLoaderScope createChild(String name) {
-        listener.childScopeCreated(id.getName(), name);
+        childScopeCreated(name);
         return new DeprecatedClassLoaderScope(id.child(name), this, classLoaderCache, deprecatedClasspath, listener);
     }
 }

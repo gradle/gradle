@@ -46,8 +46,11 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
         }
-        listener.childScopeCreated(id.getName(), name);
+        childScopeCreated(name);
         return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
     }
 
+    protected void childScopeCreated(String name) {
+        listener.childScopeCreated(id.getName(), name);
+    }
 }
