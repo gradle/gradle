@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.UsesNativeServices
 
@@ -76,12 +76,18 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         def tree2 = Stub(FileTreeInternal)
 
         given:
-        tree1.buildDependencies >> Stub(TaskDependency) { getDependencies(_) >> [task1, task2] }
-        tree2.buildDependencies >> Stub(TaskDependency) { getDependencies(_) >> [task2, task3] }
+        tree1.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(task1)
+            context.add(task2)
+        }
+        tree2.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(task2)
+            context.add(task3)
+        }
 
         expect:
         def composite = new DefaultCompositeFileTree([tree1, tree2])
-        composite.buildDependencies.getDependencies(null) == [task1, task2, task3] as LinkedHashSet
+        composite.buildDependencies.getDependencies(null) as List == [task1, task2, task3]
     }
 
 }

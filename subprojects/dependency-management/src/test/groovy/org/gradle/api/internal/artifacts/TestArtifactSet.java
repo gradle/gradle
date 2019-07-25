@@ -102,6 +102,11 @@ public class TestArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
+        public ResolvableArtifact transformedTo(File file) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public ResolvedArtifact toPublicView() {
             return artifact;
         }

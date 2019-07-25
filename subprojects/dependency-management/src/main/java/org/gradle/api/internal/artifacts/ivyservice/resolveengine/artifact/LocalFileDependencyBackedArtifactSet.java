@@ -19,12 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
@@ -32,6 +34,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -104,18 +107,18 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
-        private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
         private final AttributeContainerInternal variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
+        private final ResolvableArtifact artifact;
 
         SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
-            this.file = file;
             this.artifactIdentifier = artifactIdentifier;
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
+            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, file, (TaskDependencyContainer) this.dependencyMetadata.getFiles());
         }
 
         @Override
@@ -140,7 +143,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public Set<ResolvedVariant> getVariants() {
-            return Collections.<ResolvedVariant>singleton(this);
+            return Collections.singleton(this);
         }
 
         @Override
@@ -156,7 +159,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
             if (listener.includeFileDependencies()) {
-                listener.fileAvailable(file);
+                listener.artifactAvailable(artifact);
                 return this;
             }
             return EMPTY_RESULT;
@@ -168,7 +171,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            visitor.visitFile(artifactIdentifier, variantName, variantAttributes, file);
+            visitor.visitArtifact(variantName, variantAttributes, artifact);
         }
 
         @Override

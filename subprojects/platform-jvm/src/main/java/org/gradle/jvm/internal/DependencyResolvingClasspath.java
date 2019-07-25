@@ -19,7 +19,6 @@ package org.gradle.jvm.internal;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
@@ -132,11 +131,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             @Override
             public boolean requireArtifactFiles() {
                 return true;
-            }
-
-            @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-                result.add(file);
             }
         });
         return result;

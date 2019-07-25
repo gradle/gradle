@@ -22,8 +22,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
@@ -88,15 +86,9 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         boolean requireArtifactFiles();
 
         /**
-         * Should file dependency artifacts be included in the result?
+         * Should local file dependency artifacts be included in the result?
          */
         boolean includeFileDependencies();
-
-        /**
-         * Visits a file. Only called when {@link #includeFileDependencies()} returns true. Should be considered an artifact but is separate as a migration step.
-         * Called from any thread and in any order.
-         */
-        void fileAvailable(File file);
     }
 
     interface LocalArtifactVisitor {
