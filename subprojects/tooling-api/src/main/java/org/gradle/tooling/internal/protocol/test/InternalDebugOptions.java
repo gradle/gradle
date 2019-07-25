@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.tooling.internal.protocol.test;
 
-import org.gradle.process.JavaForkOptions;
-
-public interface JavaForkOptionsInternal extends JavaForkOptions {
-
-    /**
-     * Returns true if the given options are compatible with this set of options.
-     */
-    boolean isCompatibleWith(JavaForkOptions options);
-
+/**
+ * Preferences for test debugging.
+ *
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 5.6
+ */
+public interface InternalDebugOptions {
+    boolean isDebugMode();
+    int getPort();
 }

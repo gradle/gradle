@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.debug
+package org.gradle.integtests.fixtures.jvm
 
 import org.gradle.util.ports.DefaultPortDetector
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.Assume
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -29,6 +30,12 @@ class JDWPUtil implements TestRule {
     String host
     Integer port
     def vm
+    def connection
+    def connectionArgs
+
+    JDWPUtil() {
+        this(FixedAvailablePortAllocator.instance.assignPort())
+    }
 
     JDWPUtil(Integer port) {
         this("127.0.0.1", port)
@@ -51,6 +58,10 @@ class JDWPUtil implements TestRule {
         }
     }
 
+    def getPort() {
+        port
+    }
+
     def connect() {
         if (vm == null) {
             def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
@@ -60,10 +71,31 @@ class JDWPUtil implements TestRule {
             connectionArgs.get("hostname").setValue(host)
             this.vm = connection.attach(connectionArgs)
         }
-        return vm
+        vm
+}
+
+    def listen() {
+        connection = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager().listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
+        connectionArgs = connection.defaultArguments()
+        connectionArgs.get("port").setValue(port as String)
+        connectionArgs.get("timeout").setValue('3000')
+        connection.startListening(connectionArgs)
+
+        Thread.start {
+            while (!vm) {
+                try {
+                    vm = connection.accept(connectionArgs)
+                } catch (Exception e) {
+                }
+            }
+        }
     }
 
     void close() {
+        if (connection && connectionArgs) {
+            connection.stopListening(connectionArgs)
+        }
+
         if (vm != null) {
             try {
                 vm.dispose()
@@ -76,5 +108,7 @@ class JDWPUtil implements TestRule {
                 }
             }
         }
+
+        FixedAvailablePortAllocator.instance.releasePort(port)
     }
 }

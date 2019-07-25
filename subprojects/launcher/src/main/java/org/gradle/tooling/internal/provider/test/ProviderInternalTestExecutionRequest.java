@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.test;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 
 import java.util.Collection;
@@ -28,4 +29,5 @@ public interface ProviderInternalTestExecutionRequest {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
     Collection<String> getTestClassNames();
     Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults);
+    InternalDebugOptions getDebugOptions();
 }
