@@ -284,6 +284,54 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
+    def "doesn't recompile when empty initializer, static initializer or constructor is added"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            public class ToolImpl {
+                {}
+                static {}
+                public ToolImpl() {}
+                public Object s = String.valueOf(12);
+                public void execute() { int i = 12; }
+            }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        executedAndNotSkipped ":b:${language.compileTaskName}"
+
+        when:
+        // change initializer, static initializer and constructor
+        sourceFile.text = """
+            public class ToolImpl {
+                { "".trim(); }
+                static { int i = 123; }
+                public ToolImpl() { System.out.println("created!"); }
+                public Object s = "12";
+                public void execute() { String s = toString(); }
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        skipped ":b:${language.compileTaskName}"
+    }
+
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """

@@ -287,7 +287,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
     }
 
     // Note: In Groovy the generated constructor is not the same anymore as the empty one (it's annotated now)
-    def "doesn't recompile when constructor or static initializer changes"() {
+    def "doesn't recompile when empty initializer, static initializer or constructor is added"() {
         given:
         buildFile << """
             project(':b') {
@@ -319,25 +319,8 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         sourceFile.text = """
             public class ToolImpl {
                 {}
-                static { }
-                public ToolImpl() { }
-                public Object s = "12";
-                public void execute() { String s = toString(); }
-            }
-        """
-
-        then:
-        succeeds ":b:${language.compileTaskName}"
-        executedAndNotSkipped ":a:${language.compileTaskName}"
-        skipped ":b:${language.compileTaskName}"
-
-        when:
-        // change initializer, static initializer and constructor
-        sourceFile.text = """
-            public class ToolImpl {
-                { "".trim(); }
-                static { int i = 123; }
-                public ToolImpl() { System.out.println("created!"); }
+                static {}
+                public ToolImpl() {}
                 public Object s = "12";
                 public void execute() { String s = toString(); }
             }
