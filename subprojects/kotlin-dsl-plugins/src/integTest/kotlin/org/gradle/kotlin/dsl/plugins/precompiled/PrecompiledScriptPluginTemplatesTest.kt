@@ -221,13 +221,15 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         """)
 
+        executer.expectDeprecationWarning()
         assertThat(
             build("help").output,
             allOf(
                 containsString("my-init-plugin applied!"),
                 containsString("my-settings-plugin applied!"),
                 containsString("my-plugin applied!"),
-                containsString("my-other-plugin applied!")
+                containsString("my-other-plugin applied!"),
+                containsString("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
             )
         )
     }

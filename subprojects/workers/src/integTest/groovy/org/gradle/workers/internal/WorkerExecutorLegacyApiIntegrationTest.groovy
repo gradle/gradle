@@ -17,11 +17,19 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.jvm.Jvm
+import org.gradle.util.TestPrecondition
+import org.gradle.workers.fixtures.OptionsVerifier
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
+    boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
+
     @Unroll
     def "can submit an item of work with the legacy API using isolation mode #isolationMode"() {
         buildFile << """
@@ -94,6 +102,8 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         "ForkMode.ALWAYS" | ">"
     }
 
+
+
     @Unroll
     def "produces a sensible error when parameters are incorrect in #isolationMode"() {
         buildFile << """
@@ -121,6 +131,91 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         where:
         isolationMode << ISOLATION_MODES
     }
+
+    def "interesting worker daemon fork options are honored"() {
+        OptionsVerifier optionsVerifier = new OptionsVerifier(file('process.json'))
+        optionsVerifier.with {
+            minHeap("128m")
+            maxHeap("128m")
+            systemProperty("foo", "bar")
+            jvmArgs("-Dbar=baz")
+            defaultCharacterEncoding("UTF-8")
+            enableAssertions()
+            environmentVariable("foo", "bar")
+            if (isOracleJDK) {
+                bootstrapClasspath(normaliseFileSeparators(systemSpecificAbsolutePath('foo')))
+            }
+        }
+
+        buildFile << """
+            import org.gradle.internal.jvm.Jvm
+
+            ${legacyWorkerTypeAndTask}
+            ${getOptionVerifyingRunnable(optionsVerifier)}
+
+            task runInDaemon(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+                runnableClass = OptionVerifyingRunnable.class
+                workerConfiguration = {
+                    forkOptions { options ->
+                        options.with {
+                            ${optionsVerifier.toDsl()}
+                        }
+                    }
+                }
+                
+                text = "foo"
+                arrayOfThings = ["foo", "bar", "baz"]
+                listOfThings = ["foo", "bar", "baz"]
+            }
+        """
+
+        when:
+        succeeds("runInDaemon")
+
+        then:
+        optionsVerifier.verifyAllOptions()
+
+        and:
+        result.groupedOutput.task(":runInDaemon").output.contains """
+            text = foo
+            array = [foo, bar, baz]
+            list = [foo, bar, baz]
+         """.stripIndent().trim()
+    }
+
+    def "can set a custom display name for work items in #isolationMode"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        given:
+        buildFile << """
+            ${legacyWorkerTypeAndTask}
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                displayName = "Test Work"
+
+                text = "foo"
+                arrayOfThings = ["foo", "bar", "baz"]
+                listOfThings = ["foo", "bar", "baz"]
+            }
+        """
+
+        when:
+        succeeds("runInWorker")
+
+        then:
+        def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
+        operation.displayName == "Test Work"
+        with (operation.details) {
+            className == "TestRunnable"
+            displayName == "Test Work"
+        }
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
 
     String getLegacyWorkerTypeAndTask() {
         return """
@@ -152,6 +247,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 ListProperty<String> listOfThings
                 IsolationMode isolationMode = IsolationMode.AUTO
                 Class<?> runnableClass = TestRunnable.class
+                String displayName
                 Closure workerConfiguration
                 
                 @Inject
@@ -164,6 +260,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 void doWork() {
                     workerExecutor.submit(runnableClass) { config ->
                         config.isolationMode = this.isolationMode
+                        config.displayName = this.displayName
                         config.params = [text, arrayOfThings, listOfThings]
                         if (workerConfiguration != null) {
                             workerConfiguration.delegate = config
@@ -186,4 +283,29 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
+    String getOptionVerifyingRunnable(OptionsVerifier optionsVerifier) {
+        return """
+            import java.util.regex.Pattern;
+            import java.util.List;
+            import java.lang.management.ManagementFactory;
+            import java.lang.management.RuntimeMXBean;
+            import javax.inject.Inject;
+
+            public class OptionVerifyingRunnable extends TestRunnable {
+                @Inject
+                public OptionVerifyingRunnable(String text, String[] arrayOfThings, ListProperty<String> listOfThings) {
+                    super(text, arrayOfThings, listOfThings);
+                }
+
+                public void run() {
+                    ${optionsVerifier.dumpProcessEnvironment(isOracleJDK)}
+
+                    super.run();
+                }
+            }
+        """
+    }
+
+
 }

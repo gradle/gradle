@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.workers.fixtures.WorkerExecutorFixture.ExecutionClass
+import org.gradle.workers.fixtures.WorkerExecutorFixture.WorkActionClass
 import spock.lang.Timeout
 import spock.lang.Unroll
 
@@ -24,10 +24,10 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @Timeout(120)
 class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    ExecutionClass executionWithLogging
+    WorkActionClass executionWithLogging
 
     def setup() {
-        executionWithLogging = fixture.workerExecutionThatCreatesFiles
+        executionWithLogging = fixture.workActionThatCreatesFiles
         executionWithLogging.with {
             imports.add("org.gradle.api.logging.Logging")
             action = """
@@ -54,7 +54,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     @Unroll
     def "worker lifecycle is logged in #isolationMode"() {
-        def workerExecution = fixture.workerExecutionThatCreatesFiles.writeToBuildSrc()
+        def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -70,8 +70,8 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         gradle.waitForFinish()
 
         and:
-        gradle.standardOutput.contains("Build operation '${workerExecution.packageName}.${workerExecution.name}' started")
-        gradle.standardOutput.contains("Build operation '${workerExecution.packageName}.${workerExecution.name}' completed")
+        gradle.standardOutput.contains("Build operation '${workAction.packageName}.${workAction.name}' started")
+        gradle.standardOutput.contains("Build operation '${workAction.packageName}.${workAction.name}' completed")
 
         where:
         isolationMode << ISOLATION_MODES

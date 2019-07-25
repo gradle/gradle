@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.workers;
+package org.gradle.internal.classloader;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import java.io.Closeable;
 
-/**
- * Represents the common configuration of a worker.  Used when submitting an item of work
- * to the {@link WorkerExecutor}.
- *
- * @since 5.6
- */
-@Incubating
-@HasInternalProtocol
-public interface WorkerSpec {
+public interface DeprecatedClassloader extends ClassLoaderHierarchy, Closeable {
 }

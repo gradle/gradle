@@ -394,7 +394,8 @@ It is important to realize that capabilities are _versioned_.
 
 ==== Solving capability conflicts
 
-By default, Gradle will automatically choose the component with the highest version of a capability.
+By default, Gradle will fail if two components in the dependency graph provide the same capability.
+It is however possible to tell it to choose the component with the highest capability version instead, just like regular version conflict resolution provides.
 This can be useful whenever a component is relocated at different coordinates in a new release.
 For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1`, then changed to `org.ow2.asm:asm` since `4.0`.
 It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
