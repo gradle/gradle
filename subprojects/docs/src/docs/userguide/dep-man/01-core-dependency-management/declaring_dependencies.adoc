@@ -118,33 +118,6 @@ In short, a configuration role is determined by the `canBeResolved` and `canBeCo
 
 For backwards compatibility, those flags have both `true` as the default value, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
 
-[[sec:abm_configuration_attributes]]
-== Configuration attributes
-
-TODO: FIND BETTER PLACE FOR THIS
-
-We have explained that we have 3 configuration roles, and explained that we may want to resolve the compile and runtime classpath differently, but there's nothing in what we've written which allows explaining the difference.
-This is where _attributes_ come into play.
-The role of attributes is to perform the selection of the right _variant_ of a component.
-In our example, the `lib` library exposes 2 variants: its API (via `exposedApi`) and its runtime (via `exposedRuntime`).
-There's no restriction on the number of variants a component can expose.
-We may, for example, want to expose the test fixtures of a component too.
-But then, the consumer needs to explain _what_ configuration to consume, and this is done by setting _attributes_ on both the _consumer_ and _producer_ ends.
-
-Attributes consist of a _name_ and a _value_ pair.
-Gradle comes with a standard attribute named `org.gradle.usage` specifically to deal with the concept of selecting the right variant of a component based on the usage of the consumer (compile, runtime ...).
-It is however possible to define an arbitrary number of attributes.
-As a producer, I can express that a consumable configuration represents the API of a component by attaching the `(org.gradle.usage,JAVA_API)` attribute to the configuration.
-As a consumer, I can express that I need the API of the dependencies of a resolvable configuration by attaching the `(org.gradle.usage,JAVA_API)` attribute to it.
-Now Gradle has a way to _automatically select the appropriate variant_ by looking at the configuration attributes:
-
-- the consumer wants `org.gradle.usage=JAVA_API`
-- the dependent project exposes 2 different variants. One with `org.gradle.usage=JAVA_API`, the other with `org.gradle.usage=JAVA_RUNTIME`.
-- Gradle selects the `org.gradle.usage=JAVA_API` variant
-
-In other words: attributes are used to perform the selection based on the values of the attributes.
-It doesn't matter what the names of the configurations are: only the attributes matter.
-
 [[sec:choosing-configuration]]
 == Choosing the right configuration for dependencies
 
