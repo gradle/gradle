@@ -65,7 +65,15 @@ public enum ComponentSelectionCause {
     /**
      * This component was selected because of a dependency constraint
      */
-    CONSTRAINT("constraint");
+    CONSTRAINT("constraint"),
+
+    /**
+     * This component was selected because it was requested by a parent with {@link org.gradle.api.artifacts.MutableVersionConstraint#forSubgraph()}.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    BY_ANCESTOR("by ancestor");
 
     private final String defaultReason;
 

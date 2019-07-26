@@ -789,8 +789,8 @@ allprojects {
             this
         }
 
-        NodeBuilder byParent() {
-            byReason(ComponentSelectionCause.BY_PARENT.defaultReason)
+        NodeBuilder byAncestor() {
+            byReason(ComponentSelectionCause.BY_ANCESTOR.defaultReason)
         }
 
         /**
