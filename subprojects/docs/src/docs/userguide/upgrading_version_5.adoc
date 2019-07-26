@@ -13,9 +13,9 @@
 // limitations under the License.
 
 [[upgrading_version_5]]
-= Upgrading your build from Gradle 5.x
+= Upgrading your build from Gradle 5.x to 6.0
 
-This chapter provides the information you need to migrate your Gradle 5.x builds to Gradle {gradleVersion}. For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading_version_4, 4.x to 5.0 guide>> first.
+This chapter provides the information you need to migrate your Gradle 5.x builds to Gradle 6.0. For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading_version_4, 4.x to 5.0 guide>> first.
 
 We recommend the following steps for all users:
 
@@ -32,6 +32,17 @@ Some plugins will break with this new version of Gradle, for example because the
 +
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_6.0]]
+== Upgrading from 5.6 and earlier
+
+=== Deprecations
+
+=== Potential breaking changes
+
+==== `@Nullable` annotation is gone
+
+The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
