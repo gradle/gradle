@@ -44,6 +44,11 @@ Some plugins will break with this new version of Gradle, for example because the
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
 
+==== Task validation changes
+
+- `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
+- `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
+
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
 
