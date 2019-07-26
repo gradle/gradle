@@ -546,6 +546,11 @@ A daemon is considered compatible only if the default character encoding is set 
 
 Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce. When available system memory is low, Gradle will begin stopping worker daemons in an attempt to minimize memory consumption.
 
+== Cancellation and timeouts
+
+In order to support cancellation (e.g. when the user stops the build with CTRL+C) and task timeouts, custom tasks should react to their executing thread being interrupted.
+The same is true for work items submitted via the worker API. If a task does not respond to an interrupt within 10s, the daemon will shut down in order to free up system resources.
+
 == More details
 
 It's often a good approach to package custom task types in a custom Gradle plugin.

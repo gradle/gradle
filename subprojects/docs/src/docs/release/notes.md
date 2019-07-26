@@ -9,7 +9,10 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 <!-- 
-## 1
+## Cancellable custom tasks
+
+When a build is cancelled (e.g. using CTRL+C), the threads executing each task are interrupted.
+Task authors only need to make their tasks respond to interrupts in order for the task to be cancellable.
 
 details of 1
 
