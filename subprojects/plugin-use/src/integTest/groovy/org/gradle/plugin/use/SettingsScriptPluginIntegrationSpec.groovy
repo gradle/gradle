@@ -73,7 +73,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         where:
         settingScriptExtension | use
         '.gradle.kts'          | "plugins { } \n plugins { }"
-        '.gradle'              | "plugins { } \n plugins { }"
     }
 
     @Unroll

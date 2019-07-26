@@ -88,8 +88,6 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
         if (!scriptTarget.getSupportsPluginsBlock()) {
             failMessage = pluginBlockMetadataCompiler.formatErrorMessage("Only Project or Settings build scripts can contain plugins {} blocks");
-        } else if (seenPluginsBlock) {
-            failMessage = pluginBlockMetadataCompiler.formatErrorMessage("Only one plugins {} block allowed per script.");
         } else {
             seenPluginsBlock = true;
 
