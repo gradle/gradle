@@ -24,21 +24,31 @@ import org.gradle.internal.classpath.ClassPath
 internal
 class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener {
 
-    lateinit var coreAndPluginsSpec: ClassLoaderScopeSpec
+    var coreAndPluginsSpec: ClassLoaderScopeSpec? = null
 
     private
     val scopeSpecs = mutableMapOf<String, ClassLoaderScopeSpec>()
+
+    private
+    var disabled = false
+
+    fun disable() {
+        disabled = true
+        coreAndPluginsSpec = null
+        scopeSpecs.clear()
+    }
 
     override fun rootScopeCreated(scopeId: String) {
         if (scopeId === DefaultClassLoaderScopeRegistry.CORE_AND_PLUGINS_NAME) {
             ClassLoaderScopeSpec(scopeId).let { root ->
                 coreAndPluginsSpec = root
-                scopeSpecs[scopeId] = coreAndPluginsSpec
+                scopeSpecs[scopeId] = root
             }
         }
     }
 
     override fun childScopeCreated(parentId: String, childId: String) {
+        if (disabled) return
         scopeSpecs[parentId]?.let { scopeSpec ->
             ClassLoaderScopeSpec(childId).let { child ->
                 scopeSpec.children.add(child)
@@ -48,15 +58,13 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun localClasspathAdded(scopeId: String, localClassPath: ClassPath) {
-        scopeSpecs[scopeId]?.let { scopeSpec ->
-            scopeSpec.localClassPath.add(localClassPath)
-        }
+        if (disabled) return
+        scopeSpecs[scopeId]?.localClassPath?.add(localClassPath)
     }
 
     override fun exportClasspathAdded(scopeId: String, exportClassPath: ClassPath) {
-        scopeSpecs[scopeId]?.let { scopeSpec ->
-            scopeSpec.exportClassPath.add(exportClassPath)
-        }
+        if (disabled) return
+        scopeSpecs[scopeId]?.exportClassPath?.add(exportClassPath)
     }
 }
 

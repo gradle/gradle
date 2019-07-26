@@ -435,13 +435,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ListenerManager listenerManager,
         List<ClassLoaderScopeRegistryListener> listeners
     ) {
-        for (ClassLoaderScopeRegistryListener listener : listeners) {
-            listenerManager.addListener(listener);
-        }
         return new DefaultClassLoaderScopeRegistry(
             classLoaderRegistry,
             classLoaderCache,
-            listenerManager.getBroadcaster(ClassLoaderScopeRegistryListener.class)
+            listeners.get(0) // TODO:instant-execution
         );
     }
 

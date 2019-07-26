@@ -110,6 +110,7 @@ class DefaultInstantExecution internal constructor(
     override fun saveTaskGraph() {
 
         if (!isInstantExecutionEnabled) {
+            scopeRegistryListener.disable() // TODO:instant-execution
             return
         }
 
@@ -137,6 +138,7 @@ class DefaultInstantExecution internal constructor(
     override fun loadTaskGraph() {
 
         require(isInstantExecutionEnabled)
+        scopeRegistryListener.disable() // TODO:instant-execution
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
@@ -324,7 +326,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun collectClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
-        scopeRegistryListener.coreAndPluginsSpec.children
+        scopeRegistryListener.coreAndPluginsSpec!!.children
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
