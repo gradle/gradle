@@ -280,8 +280,103 @@ Contrary to <<#sec:maven-mapping-to-variants, Maven>>, there is no derivation st
 This means that when you have a dependency on an Ivy module, Gradle does _not_ perform variant aware resolution.
 Instead, it uses a legacy "compatibility" mode.
 
-[[adding-more-variants]]
-== Adding more variants to a component
+[[cross-project-publications]]
+== Sharing artifacts between projects
+
+A common pattern, in multi-project builds, is that one project consumes the artifacts of another project.
+In general, the simplest consumption form in the Java ecosystem is that when `A` depends on `B`, then `A` would depend on the `jar` produced by project `B`.
+As previously described in this chapter, this is modeled by `A` depending on a _variant of_ `B`, where the variant is selected based on the needs of `A`.
+For compilation, we need the API dependencies of `B`, provided by the `apiElements` variant.
+For runtime, we need the runtime dependencies of `B`, provided by the `runtimeElements` variant.
+
+However, what if you need a _different_ artifact than the main one?
+Gradle provides, for example, built-in support for depending on the <<java_testing.adoc#sec:java_test_fixtures,test fixtures>> of another project, but sometimes the artifact you need to depend on simply isn't exposed as a variant.
+
+In order to be _safe to share_ between projects and allow maximum performance (parallelism), such artifacts must be exposed via _outgoing configurations_.
+
+[WARNING]
+.Don't reference other project tasks directly
+====
+A frequent anti-pattern to declare cross-project dependencies is:
+
+```groovy
+dependencies {
+   // this is unsafe!
+   implementation project(":other").tasks.someOtherJar
+}
+```
+
+This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
+This section explains how to _properly create cross-project boundaries_ by defining "exchanges" between projects by using _variants_.
+====
+
+There are two, complementary, options to share artifacts between projects.
+The <<#sec:simple-sharing-artifacts-between-projects,simplified version>> is only suitable if what you need to share is a simple artifact that doesn't depend on the consumer.
+The simple solution is also limited to cases where this artifact is not published to a repository.
+This also implies that the consumer does not publish a dependency to this artifact.
+In cases where the consumer resolves to different artifacts in different contexts (e.g., different target platforms) or that publication is required, you need to use the <<#sec:variant-aware-sharing,advanced version>>.
+
+[[sec:simple-sharing-artifacts-between-projects]]
+=== Simple sharing of artifacts between projects
+
+First, a producer needs to declare a configuration which is going to be _exposed_ to consumers.
+As explained in the <<declaring_dependencies.adoc#sub:resolvable-consumable-configs, configurations chapter>>, this corresponds to a _consumable configuration_.
+
+Let's imagine that the consumer requires _instrumented classes_ from the producer, but that this artifact is _not_ the main one.
+The producer can expose its instrumented classes by creating a configuration that will "carry" this artifact:
+
+.Declaring an outgoing variant
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/kotlin",files="producer/build.gradle.kts[tags=declare-outgoing-configuration]"]
+====
+
+This configuration is _consumable_, which means it's an "exchange" meant for consumers.
+We're now going to add artifacts to this configuration, that consumers would get when they consume it:
+
+.Attaching an artifact to an outgoing configuration
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact]"]
+====
+
+Here the "artifact" we're attaching is a _task_ that actually generates a Jar.
+Doing so, Gradle can automatically track dependencies of this task and build them as needed.
+This is possible because the `Jar` task extends `AbstractArchiveTask`.
+If it's not the case, you will need to explicitly declare how the artifact is generated.
+
+.Expliciting the task dependency of an artifact
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact-explicit]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact-explicit]"]
+====
+
+Now the _consumer_ needs to depend on this configuration in order to get the right artifact:
+
+.An explicit configuration dependency
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/groovy",files="consumer/build.gradle[tags=explicit-configuration-dependency]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/kotlin",files="consumer/build.gradle.kts[tags=explicit-configuration-dependency]"]
+====
+
+[WARNING]
+====
+Declaring a dependency on an explicit target configuration is _not recommended_ if you plan to publish the component which has this dependency:
+this would likely lead to broken metadata.
+If you need to publish the component on a remote repository, follow the instructions of the <<#sec:variant-aware-sharing,variant-aware cross publication documentation>>.
+====
+
+In this case, we're adding the dependency to the _instrumentedClasspath_ configuration, which is a _consumer specific configuration_.
+In Gradle terminology, this is called a <<declaring_dependencies.adoc#sub:resolvable-consumable-configs,resolvable configuration>>, which is defined this way:
+
+.Declaring a resolvable configuration on the consumer
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/groovy",files="consumer/build.gradle[tags=resolvable-configuration]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/kotlin",files="consumer/build.gradle.kts[tags=resolvable-configuration]"]
+====
+
+[[sec:variant-aware-sharing]]
+=== Variant-aware sharing of artifacts between projects
 
 [[targeting-different-platforms]]
 === Targeting different platforms
