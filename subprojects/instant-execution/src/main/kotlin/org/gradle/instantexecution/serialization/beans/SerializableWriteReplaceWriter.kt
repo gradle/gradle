@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.instantexecution.serialization.beans
 
-import org.gradle.workers.WorkerParameters;
+import org.gradle.instantexecution.serialization.WriteContext
+import java.lang.reflect.Method
 
-/**
- * This is used to bridge between the "old" worker api with untyped parameters and the typed
- * parameter api.  It allows us to maintain backwards compatibility at the api layer, but use
- * only typed parameters under the covers.  This can be removed once the old api is retired.
- */
-public interface AdapterWorkerParameters extends WorkerParameters {
-    void setImplementationClassName(String implementationClassName);
-    String getImplementationClassName();
-    void setParams(Object[] params);
-    Object[] getParams();
+
+class SerializableWriteReplaceWriter(private val writeReplaceMethod: Method) : BeanStateWriter {
+    init {
+        writeReplaceMethod.isAccessible = true
+    }
+
+    override suspend fun WriteContext.writeStateOf(bean: Any) {
+        write(writeReplaceMethod.invoke(bean))
+    }
 }

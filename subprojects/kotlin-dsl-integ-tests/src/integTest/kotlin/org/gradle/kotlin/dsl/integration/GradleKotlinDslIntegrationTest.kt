@@ -468,9 +468,14 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             apply<my.SettingsPlugin>()
         """)
 
+        executer.expectDeprecationWarnings(1)
+        val output = build("help").output
         assertThat(
-            build("help").output,
+            output,
             containsString("Settings plugin applied!"))
+        assertThat(
+            output,
+            containsString("Access to the buildSrc project and its dependencies in settings script has been deprecated."))
     }
 
     @Test
@@ -856,6 +861,24 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(
             build("-q", "test").output.trim(),
             equalTo("default-value")
+        )
+    }
+
+    @Test
+    fun `can apply script plugin with package name`() {
+
+        withFile("gradle/script.gradle.kts", """
+            package gradle
+            task("ok") { doLast { println("ok!") } }
+        """)
+
+        withBuildScript("""
+            apply(from = "gradle/script.gradle.kts")
+        """)
+
+        assertThat(
+            build("-q", "ok").output.trim(),
+            equalTo("ok!")
         )
     }
 }

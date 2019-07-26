@@ -21,8 +21,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
-import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
+import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import kotlin.reflect.KClass
@@ -43,13 +43,11 @@ interface WriteContext : IsolateContext, Encoder {
 
     override val isolate: WriteIsolate
 
-    fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter
+    fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter
 
-    fun writeActionFor(value: Any?): Encoding?
+    suspend fun write(value: Any?)
 
-    suspend fun write(value: Any?) {
-        writeActionFor(value)!!(value)
-    }
+    fun writeClass(type: Class<*>)
 }
 
 
@@ -62,11 +60,13 @@ interface ReadContext : IsolateContext, Decoder {
 
     val classLoader: ClassLoader
 
-    fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader
+    fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 
     fun getProject(path: String): ProjectInternal
 
     suspend fun read(): Any?
+
+    fun readClass(): Class<*>
 }
 
 

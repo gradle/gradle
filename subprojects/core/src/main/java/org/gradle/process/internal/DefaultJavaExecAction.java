@@ -27,8 +27,8 @@ import java.util.concurrent.Executor;
  * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
  */
 public class DefaultJavaExecAction extends JavaExecHandleBuilder implements JavaExecAction {
-    public DefaultJavaExecAction(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
-        super(fileResolver, fileCollectionFactory, executor, buildCancellationToken);
+    public DefaultJavaExecAction(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptionsFactory javaForkOptionsFactory) {
+        super(fileResolver, fileCollectionFactory, executor, buildCancellationToken, javaForkOptionsFactory);
     }
 
     @Override

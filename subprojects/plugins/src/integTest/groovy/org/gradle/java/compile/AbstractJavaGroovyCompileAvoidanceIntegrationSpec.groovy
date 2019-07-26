@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
-
-
     abstract boolean isUseJar()
 
     abstract boolean isIncremental()
@@ -32,8 +30,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     def setup() {
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+        """
         buildFile << """
             allprojects {
                 if (name in []) apply plugin: 'java-library'
@@ -44,7 +42,7 @@ include 'a', 'b'
                     includeEmptyDirs = true
                 }
             }
-            
+
             ${language.projectGroovyDependencies()}
         """
 
@@ -75,7 +73,7 @@ include 'a', 'b'
                     from emptyDirs
                 }
             }
-"""
+        """
     }
 
     def useClassesDir(CompiledLanguage language) {
@@ -127,7 +125,7 @@ include 'a', 'b'
                 private Number thing() { return null; }
                 private Object t = this;
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -140,10 +138,10 @@ include 'a', 'b'
             public class ToolImpl { 
                 private Number thing() { return null; }
                 private Object t = this;
-                private static void someMethod() { }
+                private static void someMethod() {}
                 private String s;
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -155,7 +153,7 @@ include 'a', 'b'
         sourceFile.text = """
             public class ToolImpl { 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -168,7 +166,7 @@ include 'a', 'b'
             public class ToolImpl { 
                 public void execute() { String s = toString(); } 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -181,37 +179,22 @@ include 'a', 'b'
                 public static ToolImpl instance; 
                 public void execute() { String s = toString(); } 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
         executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
 
         when:
-        // add public constructor to replace the default, should not change
-        sourceFile.text = """
-            public class ToolImpl { 
-                public ToolImpl() { }
-                public static ToolImpl instance; 
-                public void execute() { String s = toString(); } 
-            }
-"""
-
-        then:
-        succeeds ":b:${language.compileTaskName}"
-        executedAndNotSkipped ":a:${language.compileTaskName}"
-        skipped ":b:${language.compileTaskName}"
-
-        when:
         // add public constructor, should change
         sourceFile.text = """
             public class ToolImpl { 
-                public ToolImpl() { }
-                public ToolImpl(String s) { }
+                public ToolImpl() {}
+                public ToolImpl(String s) {}
                 public static ToolImpl instance; 
                 public void execute() { String s = toString(); } 
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -229,7 +212,7 @@ include 'a', 'b'
         """
         def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
         sourceFile << """
-            public class ToolImpl { }
+            public class ToolImpl {}
         """
         file("b/src/main/${language.name}/Main.${language.name}") << """
             public class Main { ToolImpl t = new ToolImpl(); }
@@ -245,13 +228,13 @@ include 'a', 'b'
         when:
         // add comments, change whitespace
         sourceFile.text = """
-/**
- * A thing
- */
-public class ToolImpl {
-    // TODO - add some stuff
-}
-"""
+            /**
+            * A thing
+            */
+            public class ToolImpl {
+                // TODO - add some stuff
+            }
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -293,39 +276,51 @@ public class ToolImpl {
                 public Object s = "12";
                 public void execute() { String s = toString(); }
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
         executedAndNotSkipped ":a:${language.compileTaskName}"
         skipped ":b:${language.compileTaskName}"
+    }
 
-        when:
-        // add static initializer and constructor
-        sourceFile.text = """
-            public class ToolImpl {
-                static { }
-                public ToolImpl() { }
-                public Object s = "12";
-                public void execute() { String s = toString(); }
+    def "doesn't recompile when initializer, static initializer or constructor is changed"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
             }
-"""
-
-        then:
-        succeeds ":b:${language.compileTaskName}"
-        executedAndNotSkipped ":a:${language.compileTaskName}"
-        skipped ":b:${language.compileTaskName}"
+        """
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            public class ToolImpl {
+                {}
+                static {}
+                public ToolImpl() {}
+            }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
 
         when:
-        // change static initializer and constructor
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        executedAndNotSkipped ":b:${language.compileTaskName}"
+
+        when:
+        // change initializer, static initializer and constructor
         sourceFile.text = """
             public class ToolImpl {
+                { "".trim(); }
                 static { int i = 123; }
                 public ToolImpl() { System.out.println("created!"); }
-                public Object s = "12";
-                public void execute() { String s = toString(); }
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -345,7 +340,7 @@ public class ToolImpl {
         def sourceFile = file("a/src/main/${language.name}/org/ToolImpl.${language.name}")
         sourceFile << """
             package org;
-            public class ToolImpl { void m() { } }
+            public class ToolImpl { void m() {} }
         """
         file("b/src/main/${language.name}/org/Main.${language.name}") << """
             package org;
@@ -364,7 +359,7 @@ public class ToolImpl {
         sourceFile.text = """
             package org;
             public interface ToolImpl { void m(); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -376,7 +371,7 @@ public class ToolImpl {
         sourceFile.text = """
             package org;
             ${language == CompiledLanguage.GROOVY ? "@groovy.transform.PackageScope" : ""} interface ToolImpl { void m(); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -388,7 +383,7 @@ public class ToolImpl {
         sourceFile.text = """
             package org;
             interface ToolImpl extends Runnable { void m(); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -424,7 +419,7 @@ public class ToolImpl {
         // change to constant value
         sourceFile.text = """
             public class ToolImpl { public static final int CONST = 10; }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -460,7 +455,7 @@ public class ToolImpl {
         // add type parameters to interface
         sourceFile.text = """
             public interface ToolImpl<T> { void m(java.util.List<String> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -471,7 +466,7 @@ public class ToolImpl {
         // add type parameters to method
         sourceFile.text = """
             public interface ToolImpl<T> { public <S extends T> void m(java.util.List<S> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -482,7 +477,7 @@ public class ToolImpl {
         // change type parameters on interface
         sourceFile.text = """
             public interface ToolImpl<T extends CharSequence> { public <S extends T> void m(java.util.List<S> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -493,7 +488,7 @@ public class ToolImpl {
         // change type parameters on method
         sourceFile.text = """
             public interface ToolImpl<T extends CharSequence> { public <S extends Number> void m(java.util.List<S> s); }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -615,16 +610,16 @@ public class ToolImpl {
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-public class A extends B { 
-    void a() { 
-        b(); 
-        String c = c(); 
-    } 
-    @Override String c() { 
-        return null; 
-    } 
-}
-"""
+            public class A extends B { 
+                void a() { 
+                    b(); 
+                    String c = c(); 
+                } 
+                @Override String c() { 
+                    return null; 
+                } 
+            }
+        """
         file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { d(); } }"
         file("c/src/main/${language.name}/C.${language.name}") << "public class C { String c() { return null; }; void d() {} }"
 
@@ -673,17 +668,17 @@ public class A extends B {
         """
 
         file("a/src/main/${language.name}/A.${language.name}") << """
-public class A extends B { 
-    void a() { 
-        b(); 
-    } 
-    @Override String d() { 
-        return null; 
-    } 
-}
-"""
-        file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() { } }"
-        file("c/src/main/${language.name}/C.${language.name}") << "public class C extends D { void c() { }; }"
+            public class A extends B { 
+                void a() { 
+                    b(); 
+                } 
+                @Override String d() { 
+                    return null; 
+                } 
+            }
+        """
+        file("b/src/main/${language.name}/B.${language.name}") << "public class B extends C { void b() {} }"
+        file("c/src/main/${language.name}/C.${language.name}") << "public class C extends D { void c() {}; }"
         file("d/src/main/${language.name}/D.${language.name}") << "public class D { String d() { return null; } }"
 
         when:
@@ -696,7 +691,7 @@ public class A extends B {
         executedAndNotSkipped ":d:${language.compileTaskName}"
 
         when:
-        file("d/src/main/${language.name}/D.${language.name}").text = "public class D { void d() { } }"
+        file("d/src/main/${language.name}/D.${language.name}").text = "public class D { void d() {} }"
 
         then:
         fails ":a:${language.compileTaskName}"
@@ -761,7 +756,7 @@ public class A extends B {
             """
         file("b/src/main/${language.name}/Base.${language.name}") << """
                 public class Base {
-                    public void foo() { }
+                    public void foo() {}
                 }
             """
         buildFile << """

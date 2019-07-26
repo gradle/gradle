@@ -21,6 +21,7 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.launcher.cli.action.BuildActionSerializer
 import org.gradle.launcher.cli.action.ExecuteBuildAction
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.test.internal.DefaultDebugOptions
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.BuildModelAction
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
@@ -58,7 +59,7 @@ class BuildActionSerializerTest extends SerializerSpec {
         where:
         action << [
             new ClientProvidedBuildAction(new StartParameterInternal(), new SerializedPayload(null, []), true, new BuildClientSubscriptions(EnumSet.allOf(OperationType))),
-            new TestExecutionRequestAction(new BuildClientSubscriptions(EnumSet.allOf(OperationType)), new StartParameterInternal(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet()),
+            new TestExecutionRequestAction(new BuildClientSubscriptions(EnumSet.allOf(OperationType)), new StartParameterInternal(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions()),
             new BuildModelAction(new StartParameterInternal(), "model", false, new BuildClientSubscriptions(EnumSet.allOf(OperationType)))
         ]
     }

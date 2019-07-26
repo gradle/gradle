@@ -62,10 +62,12 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarnings(1)
         settingsFile << "apply plugin: 'simple-plugin'"
 
         then:
         succeeds(':moduleA:dependencies')
+        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
     }
 
     def "can apply script with relative path"() {

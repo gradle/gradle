@@ -22,22 +22,30 @@ object ProjectGroups {
     private
     val Project.internalProjects
         get() = rootProject.subprojects.filter {
-            it.name.startsWith("internal") || it.name in internalProjectNames
+            it.name.startsWith("internal")
+                || it.name in internalProjectNames
+                || it.name in kotlinJsProjectNames
         }.toSet()
 
     private
     val internalProjectNames = setOf(
         "integTest", "distributions", "performance", "buildScanPerformance",
-        "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests",
+        "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests"
+    )
+
+    private
+    val kotlinJsProjectNames = setOf(
         "instantExecutionReport"
     )
 
+    val Project.kotlinJsProjects
+        get() = kotlinJsProjectNames.map { project(":$it") }
+
     val Project.javaProjects
-        get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
+        get() = rootProject.subprojects - kotlinJsProjects - listOf(project(":distributionsDependencies"))
 
     val Project.publicJavaProjects
         get() = javaProjects - internalProjects
-
 
     val Project.pluginProjects
         get() = setOf("announce", "antlr", "plugins", "codeQuality", "wrapper", "osgi", "maven",

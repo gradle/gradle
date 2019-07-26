@@ -161,8 +161,10 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MyPlugin") }')
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds('assemble')
         assertRepoCheckedOut()
+        output.contains('Access to the buildSrc project and its dependencies in settings script has been deprecated.')
     }
 
     def 'injected plugin can apply other plugins to source dependency build'() {
@@ -198,8 +200,10 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MyPlugin") }')
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds('assemble')
         assertRepoCheckedOut()
+        output.contains('Access to the buildSrc project and its dependencies in settings script has been deprecated.')
     }
 
     def 'produces reasonable message when injected plugin does not exist'() {

@@ -114,11 +114,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
-    }
-
-    @Override
     public void visit(FileVisitor visitor) {
         visitFrom(visitor, dir, RelativePath.EMPTY_ROOT);
     }

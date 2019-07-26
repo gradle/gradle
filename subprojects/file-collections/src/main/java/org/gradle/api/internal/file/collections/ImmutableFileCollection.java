@@ -19,8 +19,6 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.Set;
@@ -69,11 +67,6 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     @Override
     public String getDisplayName() {
         return "file collection";
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
     }
 
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {

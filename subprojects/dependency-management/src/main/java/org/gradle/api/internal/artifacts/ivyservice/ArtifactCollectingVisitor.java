@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 
@@ -47,6 +48,11 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public void visitFailure(Throwable failure) {
         throw UncheckedException.throwAsUncheckedException(failure);
+    }
+
+    @Override
+    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+        return true;
     }
 
     @Override

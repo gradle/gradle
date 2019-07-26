@@ -131,10 +131,7 @@ public class DefaultTypeConverter implements TypeConverter {
             if (notation instanceof CharSequence) {
                 try {
                     convertNumberToNumber(new BigDecimal(notation.toString().trim()), result);
-                } catch (ArithmeticException e) {
-                    throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
-                        notation, type.getSimpleName()), e);
-                } catch (NumberFormatException e) {
+                } catch (ArithmeticException | NumberFormatException e) {
                     throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
                         notation, type.getSimpleName()), e);
                 }

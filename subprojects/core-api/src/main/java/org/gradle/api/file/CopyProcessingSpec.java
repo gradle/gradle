@@ -46,7 +46,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      */
     CopyProcessingSpec rename(Closure closure);
 
-    //TODO:rbo Change the parameter type to `Transformer<String, @Nullable String>` once we migrate to Java 8
     /**
      * Renames a source file. The function will be called with a single parameter, the name of the file.
      * The function should return a new target name. The function may return null,

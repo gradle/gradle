@@ -91,6 +91,7 @@ import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.DUP;
@@ -547,7 +548,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // GENERATE private DynamicObject dynamicObjectHelper
-            visitor.visitField(Opcodes.ACC_PRIVATE, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE.getDescriptor(), null, null);
+            visitor.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_TRANSIENT, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE.getDescriptor(), null, null);
 
             // END
 
@@ -637,7 +638,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void mixInConventionAware() {
             // GENERATE private ConventionMapping mapping
 
-            visitor.visitField(Opcodes.ACC_PRIVATE, MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR, null, null);
+            visitor.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_TRANSIENT, MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR, null, null);
             hasMappingField = true;
 
             // END
@@ -684,7 +685,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE private MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
 
-            visitor.visitField(Opcodes.ACC_PRIVATE, META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR, null, null);
+            visitor.visitField(Opcodes.ACC_PRIVATE | ACC_TRANSIENT, META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR, null, null);
 
             // GENERATE public MetaClass getMetaClass() {
             //     if (metaClass == null) {
@@ -902,7 +903,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void applyServiceInjectionToProperty(PropertyMetadata property) {
             // GENERATE private <type> <property-field-name>;
             String fieldName = propFieldName(property);
-            visitor.visitField(Opcodes.ACC_PRIVATE, fieldName, Type.getDescriptor(property.getType()), null, null);
+            visitor.visitField(Opcodes.ACC_PRIVATE | ACC_TRANSIENT, fieldName, Type.getDescriptor(property.getType()), null, null);
         }
 
         private void generateServicesField() {
@@ -910,7 +911,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateGetServices() {
-            MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, SERVICES_METHOD, RETURN_SERVICE_LOOKUP, null, null);
+            MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, SERVICES_METHOD, RETURN_SERVICE_LOOKUP, null, null);
             mv.visitCode();
             // GENERATE if (services != null) { return services; } else { return AsmBackedClassGenerator.getServicesForNext(); }
             mv.visitVarInsn(ALOAD, 0);
@@ -1228,7 +1229,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE private boolean <flag-name>;
             String flagName = propFieldName(property);
-            visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
+            visitor.visitField(Opcodes.ACC_PRIVATE | ACC_TRANSIENT, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
         }
 
         private String propFieldName(PropertyMetadata property) {
@@ -1471,7 +1472,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateInstantiatorField() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, INSTANTIATOR_FIELD, INSTANTIATOR_TYPE.getDescriptor(), null, null);
+            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, INSTANTIATOR_FIELD, INSTANTIATOR_TYPE.getDescriptor(), null, null);
         }
 
         private void generateGetInstantiator() {
@@ -1556,9 +1557,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private Object getAnnotationParameterValue(Annotation annotation, Method method) {
             try {
                 return method.invoke(annotation);
-            } catch (IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } catch (InvocationTargetException e) {
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }

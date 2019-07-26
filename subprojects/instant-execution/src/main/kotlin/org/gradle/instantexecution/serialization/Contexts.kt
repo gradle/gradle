@@ -20,8 +20,14 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
+import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.beans.BeanStateWriter
+import org.gradle.instantexecution.serialization.beans.SerializableReadReplaceReader
+import org.gradle.instantexecution.serialization.beans.SerializableWriteReplaceWriter
+import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import java.io.Serializable
 
 
 internal
@@ -41,16 +47,47 @@ class DefaultWriteContext(
 ) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
 
     private
-    val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
+    val beanPropertyWriters = hashMapOf<Class<*>, BeanStateWriter>()
 
-    override fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter =
-        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
+    private
+    val classes = hashMapOf<Class<*>, Int>()
+
+    override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
+        beanPropertyWriters.computeIfAbsent(beanType, this::createWriterFor)
+
+    private
+    fun createWriterFor(beanType: Class<*>): BeanStateWriter {
+        // When the type is serializable and has a writeReplace() method, then use this method to unpack the state of the object and serialize the result
+        if (Serializable::class.java.isAssignableFrom(beanType)) {
+            val details = ClassInspector.inspect(beanType)
+            val method = details.allMethods.find { it.name == "writeReplace" && it.parameters.isEmpty() }
+            if (method != null) {
+                return SerializableWriteReplaceWriter(method)
+            }
+        }
+        // Otherwise, serialize the fields of the bean
+        return BeanPropertyWriter(beanType)
+    }
 
     override val isolate: WriteIsolate
         get() = getIsolate()
 
-    override fun writeActionFor(value: Any?): Encoding? = encodings.run {
-        encodingFor(value)
+    override suspend fun write(value: Any?) {
+        encodings.run {
+            encode(value)
+        }
+    }
+
+    override fun writeClass(type: Class<*>) {
+        val id = classes[type]
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val newId = classes.size
+            classes[type] = newId
+            writeSmallInt(newId)
+            writeString(type.name)
+        }
     }
 
     // TODO: consider interning strings
@@ -68,7 +105,7 @@ class DefaultWriteContext(
 
 internal
 interface EncodingProvider {
-    fun WriteContext.encodingFor(candidate: Any?): Encoding?
+    suspend fun WriteContext.encode(candidate: Any?)
 }
 
 
@@ -89,7 +126,10 @@ class DefaultReadContext(
 ) : AbstractIsolateContext<ReadIsolate>(), MutableReadContext, Decoder by decoder {
 
     private
-    val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
+    val beanStateReaders = hashMapOf<Class<*>, BeanStateReader>()
+
+    private
+    val classes = hashMapOf<Int, Class<*>>()
 
     private
     lateinit var projectProvider: ProjectProvider
@@ -113,8 +153,33 @@ class DefaultReadContext(
     override val isolate: ReadIsolate
         get() = getIsolate()
 
-    override fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader =
-        beanPropertyReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
+    override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        beanStateReaders.computeIfAbsent(beanType, this::createReaderFor)
+
+    private
+    fun createReaderFor(beanType: Class<*>): BeanStateReader {
+        // When the type is serializable and has a writeReplace() method, then use the corresponding readReplace() method from the placeholder
+        if (Serializable::class.java.isAssignableFrom(beanType)) {
+            val details = ClassInspector.inspect(beanType)
+            val method = details.allMethods.find { it.name == "writeReplace" && it.parameters.isEmpty() }
+            if (method != null) {
+                return SerializableReadReplaceReader()
+            }
+        }
+        // Otherwise, serialize the fields of the bean
+        return beanPropertyReaderFactory(beanType)
+    }
+
+    override fun readClass(): Class<*> {
+        val id = readSmallInt()
+        val type = classes[id]
+        if (type != null) {
+            return type
+        }
+        val newType = Class.forName(readString(), false, classLoader)
+        classes[id] = newType
+        return newType
+    }
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)

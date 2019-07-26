@@ -59,7 +59,6 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-
         file("buildSrc/testplugin/src/main/resources/META-INF/gradle-plugins/test-plugin.properties") << """
             implementation-class=testplugin.TestPlugin
         """

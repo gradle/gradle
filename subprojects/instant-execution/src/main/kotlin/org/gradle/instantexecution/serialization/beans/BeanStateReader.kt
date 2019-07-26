@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.devel.tasks.internal;
+package org.gradle.instantexecution.serialization.beans
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.instantexecution.serialization.ReadContext
 
-/**
- * This interface causes the creation of bridge methods in {@link org.gradle.plugin.devel.tasks.ValidateTaskProperties} to make the task backwards compatible with the pre 5.1 version.
- *
- * @deprecated Remove in Gradle 6.0.
- */
-@Deprecated
-public interface ValidateTaskPropertiesBackwardsCompatibleAdapter {
-    FileCollection getClasses();
-    FileCollection getClasspath();
+
+interface BeanStateReader {
+    suspend fun ReadContext.newBean(): Any
+
+    suspend fun ReadContext.readStateOf(bean: Any)
 }

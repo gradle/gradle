@@ -19,7 +19,7 @@ import org.gradle.api.Buildable
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -105,17 +105,28 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
 
-    def getBuildDependenciesDelegatesToTargetTreeWhenItImplementsBuildable() {
+    def visitDependenciesDelegatesToTargetTreeWhenItImplementsBuildable() {
         TestFileTree tree = Mock()
-        TaskDependency expectedDependency = Mock()
+        TaskDependencyResolveContext context = Mock()
         FileTreeAdapter adapter = new FileTreeAdapter(tree)
 
         when:
-        def dependencies = adapter.buildDependencies
+        adapter.visitDependencies(context)
 
         then:
-        dependencies == expectedDependency
-        1 * tree.buildDependencies >> expectedDependency
+        1 * context.add(tree)
+    }
+
+    def visitDependenciesDoesNotDelegateToTargetTreeWhenItDoesNotImplementBuildable() {
+        MinimalFileTree tree = Mock()
+        TaskDependencyResolveContext context = Mock()
+        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+
+        when:
+        adapter.visitDependencies(context)
+
+        then:
+        0 * context._
     }
 
     def matchingDelegatesToTargetTreeWhenItImplementsPatternFilterableFileTree() {
@@ -156,7 +167,22 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns())
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
+        1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns(), adapter)
+        0 * visitor._
+    }
+
+    def doesNotVisitsBackingDirectoryTreeWhenListenerIsNotInterested() {
+        def visitor = Mock(FileCollectionLeafVisitor)
+        def directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory()
+        def tree = directoryFileTreeFactory.create(new File("dir"))
+        def adapter = new FileTreeAdapter(tree)
+
+        when:
+        adapter.visitLeafCollections(visitor)
+
+        then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
         0 * visitor._
     }
 
@@ -169,7 +195,21 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
         1 * visitor.visitGenericFileTree(adapter)
+        0 * visitor._
+    }
+
+    def doesNotVisitsSelfWhenListenerIsNotInterested() {
+        def visitor = Mock(FileCollectionLeafVisitor)
+        def tree = Mock(MinimalFileTree)
+        def adapter = new FileTreeAdapter(tree)
+
+        when:
+        adapter.visitLeafCollections(visitor)
+
+        then:
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
         0 * visitor._
     }
 

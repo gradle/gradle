@@ -32,8 +32,8 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
-    WorkerExecutorFixture.ParameterClass parallelParameterType
-    WorkerExecutorFixture.ExecutionClass parallelWorkerExecution
+    WorkerExecutorFixture.WorkParameterClass parallelParameterType
+    WorkerExecutorFixture.WorkActionClass parallelWorkAction
 
 
     def setup() {
@@ -47,12 +47,12 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
             }
         """
 
-        parallelParameterType = fixture.parameterClass("ParallelParameter", "org.gradle.test").withFields([
+        parallelParameterType = fixture.workParameterClass("ParallelParameter", "org.gradle.test").withFields([
                 "itemName": "String"
         ])
 
-        parallelWorkerExecution = fixture.executionClass("ParallelWorkerExecution", "org.gradle.test", parallelParameterType)
-        parallelWorkerExecution.with {
+        parallelWorkAction = fixture.workActionClass("ParallelWorkAction", "org.gradle.test", parallelParameterType)
+        parallelWorkAction.with {
             imports += ["java.net.URI"]
             action = """
                 System.out.println("Running \${parameters.itemName}...")
@@ -182,11 +182,8 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
                 }
                 
                 def submitWorkItem(item) {
-                    return workerExecutor.execute(${parallelWorkerExecution.name}.class) {
-                        isolationMode = IsolationMode.NONE
-                        parameters {
-                            itemName = item.toString()
-                        }
+                    return workerExecutor.noIsolation().submit(${parallelWorkAction.name}.class) {
+                        itemName = item.toString()
                     }
                 }
             }
@@ -194,7 +191,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
     }
 
     def withMultipleActionTaskTypeInBuildScript() {
-        parallelWorkerExecution.writeToBuildFile()
+        parallelWorkAction.writeToBuildFile()
         buildFile << """
             $multipleActionTaskType
         """

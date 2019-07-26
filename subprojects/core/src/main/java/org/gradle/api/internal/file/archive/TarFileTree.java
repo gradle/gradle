@@ -23,10 +23,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.ArchiveFileTree;
-import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -159,32 +157,6 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
         File backingFile = getBackingFile();
         if (backingFile != null) {
             builder.add(backingFile);
-        }
-    }
-
-    @Override
-    public void visitTreeOrBackingFile(final FileVisitor visitor) {
-        File backingFile = getBackingFile();
-        if (backingFile != null) {
-            new DefaultSingletonFileTree(backingFile).visit(visitor);
-        } else {
-            // We need to wrap the visitor so that the file seen by the visitor has already
-            // been extracted from the archive and we do not try to extract it again.
-            // It's unsafe to keep the FileVisitDetails provided by TarFileTree directly
-            // because we do not expect to visit the same paths again (after extracting everything).
-            visit(new FileVisitor() {
-                private final AtomicBoolean stopFlag = new AtomicBoolean();
-
-                @Override
-                public void visitDir(FileVisitDetails dirDetails) {
-                    visitor.visitDir(new DefaultFileVisitDetails(dirDetails.getFile(), dirDetails.getRelativePath(), stopFlag, chmod, stat));
-                }
-
-                @Override
-                public void visitFile(FileVisitDetails fileDetails) {
-                    visitor.visitFile(new DefaultFileVisitDetails(fileDetails.getFile(), fileDetails.getRelativePath(), stopFlag, chmod, stat));
-                }
-            });
         }
     }
 

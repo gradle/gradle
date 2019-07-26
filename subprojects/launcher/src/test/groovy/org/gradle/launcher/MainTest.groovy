@@ -48,7 +48,7 @@ class MainTest extends Specification {
             [complete: { completedSuccessfully = true }, completeWithFailure: { completedWithFailure = true; failure = it }] as ExecutionCompleter
         }
 
-        protected CommandLineActionFactory createActionFactory() {
+        CommandLineActionFactory createActionFactory() {
             actionFactoryImpl
         }
     }

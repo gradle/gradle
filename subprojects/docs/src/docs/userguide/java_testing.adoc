@@ -472,6 +472,19 @@ On the few occasions that you want to debug your code while the tests are runnin
 
 When debugging for tests is enabled, Gradle will start the test process suspended and listening on port 5005.
 
+You can also enable debugging in the DSL, where you can also configure other properties:
+
+    test {
+        debugOptions {
+            enabled = true
+            port = 4455
+            server = true
+            suspend = true
+        }
+    }
+
+With this configuration the test JVM will behave just like when passing the `--debug-jvm` argument but it will listen on port 4455.
+
 [[sec:java_test_fixtures]]
 == Using test fixtures
 

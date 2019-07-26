@@ -25,7 +25,7 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    def nestingParameterType = fixture.parameterClass("NestingParameter", "org.gradle.test").withFields([
+    def nestingParameterType = fixture.workParameterClass("NestingParameter", "org.gradle.test").withFields([
         "greeting": "String",
         "childSubmissions": "int"
     ])
@@ -33,7 +33,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     @Unroll
     def "workers with no isolation can spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.NONE", nestedIsolationMode)}
+            ${getWorkActionWithNesting("IsolationMode.NONE", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
@@ -49,7 +49,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     def "workers with no isolation can wait on spawned work"() {
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 waitForChildren = true 
             }
@@ -65,7 +65,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     def "workers with no isolation can spawn more than max workers items of work"() {
         def maxWorkers = 4
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 submissions = ${maxWorkers * 2}
                 childSubmissions = ${maxWorkers}
@@ -83,7 +83,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     def "workers with no isolation can spawn and wait for more than max workers items of work"() {
         def maxWorkers = 4
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 waitForChildren = true 
                 submissions = ${maxWorkers * 2}
@@ -106,7 +106,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     @Unroll
     def "workers with classpath isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.CLASSLOADER", nestedIsolationMode)}
+            ${getWorkActionWithNesting("IsolationMode.CLASSLOADER", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
@@ -128,7 +128,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     @Unroll
     def "workers with process isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.PROCESS", nestedIsolationMode)}
+            ${getWorkActionWithNesting("IsolationMode.PROCESS", nestedIsolationMode)}
             task runInWorker(type: NestingWorkerTask)
         """.stripIndent()
 
@@ -147,7 +147,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         def maxWorkers = 4
 
         buildFile << """
-            ${getWorkerExecutionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
                 submissions = ${maxWorkers * 2}
                 childSubmissions = ${maxWorkers * 10}
@@ -191,35 +191,36 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         result.groupedOutput.task(':runInWorker').output.contains("Hello World")
     }
 
-    WorkerExecutorFixture.ExecutionClass getFirstLevelExecution(String nestedIsolationMode) {
-        def workerClass = fixture.executionClass("FirstLevelExecution", "org.gradle.test", nestingParameterType)
+    WorkerExecutorFixture.WorkActionClass getFirstLevelExecution(String nestedIsolationMode) {
+        def workerClass = fixture.workActionClass("FirstLevelExecution", "org.gradle.test", nestingParameterType)
         workerClass.imports += ["org.gradle.workers.WorkerExecutor"]
-        workerClass.extraFields = "WorkerExecutor executor"
+        workerClass.extraFields = """
+            WorkerExecutor executor
+            
+            ${fixture.workerMethodTranslation}
+        """
         workerClass.constructorArgs = "WorkerExecutor executor"
         workerClass.constructorAction = "this.executor = executor"
         workerClass.action = """
             def theGreeting = parameters.greeting
             parameters.childSubmissions.times {
-                executor.execute(SecondLevelExecution) {
-                    isolationMode = $nestedIsolationMode
-                    parameters {
-                        greeting = theGreeting
-                    }
+                executor."\${getWorkerMethod($nestedIsolationMode)}"().submit(SecondLevelExecution) {
+                    greeting = theGreeting
                 }
             }
         """
         return workerClass
     }
 
-    WorkerExecutorFixture.ExecutionClass getSecondLevelExecution() {
-        def workerClass = fixture.executionClass("SecondLevelExecution", "org.gradle.test", nestingParameterType)
+    WorkerExecutorFixture.WorkActionClass getSecondLevelExecution() {
+        def workerClass = fixture.workActionClass("SecondLevelExecution", "org.gradle.test", nestingParameterType)
         workerClass.action = """
             System.out.println(parameters.greeting)
         """
         return workerClass
     }
 
-    String getWorkerExecutionWithNesting(String isolationMode, String nestedIsolationMode) {
+    String getWorkActionWithNesting(String isolationMode, String nestedIsolationMode) {
         getFirstLevelExecution(nestedIsolationMode).writeToBuildFile()
         secondLevelExecution.writeToBuildFile()
         return """
@@ -238,18 +239,17 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                 @TaskAction
                 public void runInWorker() {
                     submissions.times {
-                        executor.execute(FirstLevelExecution) {
-                            isolationMode = $isolationMode
-                            parameters {
-                                greeting = "Hello World"
-                                childSubmissions = this.childSubmissions
-                            }
+                        executor."\${getWorkerMethod($isolationMode)}"().submit(FirstLevelExecution) {
+                            greeting = "Hello World"
+                            childSubmissions = this.childSubmissions
                         }
                     }
                     if (waitForChildren) {
                         executor.await()
                     }
                 }
+
+                ${fixture.workerMethodTranslation}
             }
         """.stripIndent()
     }

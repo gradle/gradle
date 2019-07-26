@@ -24,8 +24,8 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.WorkerExecution;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
@@ -55,7 +55,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         Worker worker = workerFactory.getWorker(daemonForkOptions);
 
         CompilerParameters parameters = getCompilerParameters(spec);
-        DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkerExecution.class, parameters, daemonForkOptions.getClassLoaderStructure()));
+        DefaultWorkResult result = worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, daemonForkOptions.getClassLoaderStructure()));
         if (result.isSuccess()) {
             return result;
         } else {
@@ -77,7 +77,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return merged;
     }
 
-    public abstract static class CompilerParameters implements WorkerParameters, Serializable {
+    public abstract static class CompilerParameters implements WorkParameters, Serializable {
         private final String compilerClassName;
         private final Object[] compilerInstanceParameters;
 
@@ -97,12 +97,12 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         abstract public CompileSpec getCompileSpec();
     }
 
-    public static abstract class CompilerWorkerExecution implements WorkerExecution<CompilerParameters>, ProvidesWorkResult {
+    public static abstract class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
         private DefaultWorkResult workResult;
         private final Instantiator instantiator;
 
         @Inject
-        public CompilerWorkerExecution(Instantiator instantiator) {
+        public CompilerWorkAction(Instantiator instantiator) {
             this.instantiator = instantiator;
         }
 
