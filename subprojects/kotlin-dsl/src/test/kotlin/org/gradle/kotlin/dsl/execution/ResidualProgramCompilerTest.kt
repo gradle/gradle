@@ -468,7 +468,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 "buildscript",
                 "throw IllegalStateException(\"BOOM!\")")
 
-        val programHost = safeMockProgramHost()
+        val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(mock<Settings>())
         withExecutableProgramFor(Static(Eval(fragment.source))) {
 
