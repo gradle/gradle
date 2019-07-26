@@ -765,6 +765,11 @@ allprojects {
             this
         }
 
+        NodeBuilder byRequest() {
+            reasons << 'requested'
+            this
+        }
+
         NodeBuilder byConstraint(String reason = null) {
             if (reason == null) {
                 reasons << ComponentSelectionCause.CONSTRAINT.defaultReason
@@ -772,6 +777,10 @@ allprojects {
                 reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
             }
             this
+        }
+
+        NodeBuilder byParent() {
+            byReason(ComponentSelectionCause.BY_PARENT.defaultReason)
         }
 
         /**
