@@ -52,7 +52,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
+import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
@@ -149,7 +149,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
-        new LoadPreviousExecutionStateStep<>(
+        new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new ValidateStep<>(
         new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,

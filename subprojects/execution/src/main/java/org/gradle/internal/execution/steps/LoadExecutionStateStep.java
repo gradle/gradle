@@ -25,16 +25,16 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public class LoadPreviousExecutionStateStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
+public class LoadExecutionStateStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
     private final Step<? super AfterPreviousExecutionContext, ? extends R> delegate;
 
-    public LoadPreviousExecutionStateStep(Step<? super AfterPreviousExecutionContext, ? extends R> delegate) {
+    public LoadExecutionStateStep(Step<? super AfterPreviousExecutionContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(C context) {
-        final UnitOfWork work = context.getWork();
+        UnitOfWork work = context.getWork();
         Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getExecutionHistoryStore().load(work.getIdentity());
         return delegate.execute(new AfterPreviousExecutionContext() {
             @Override

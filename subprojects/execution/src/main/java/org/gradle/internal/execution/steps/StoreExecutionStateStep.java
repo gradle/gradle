@@ -29,10 +29,10 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.Optional;
 
-public class StoreSnapshotsStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
+public class StoreExecutionStateStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
-    public StoreSnapshotsStep(
+    public StoreExecutionStateStep(
         Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.delegate = delegate;

@@ -139,12 +139,12 @@ import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
+import org.gradle.internal.execution.steps.LoadExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
-import org.gradle.internal.execution.steps.StoreSnapshotsStep;
+import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -256,14 +256,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
             return new DefaultWorkExecutor<>(
-                new LoadPreviousExecutionStateStep<>(
+                new LoadExecutionStateStep<>(
                 new ValidateStep<>(
                 new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                 new NoOpCachingStateStep(
                 new ResolveChangesStep<>(changeDetector,
                 new SkipUpToDateStep<>(
                 new BroadcastChangingOutputsStep<>(outputChangeListener,
-                new StoreSnapshotsStep<>(
+                new StoreExecutionStateStep<>(
                 new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId,
                 new CreateOutputsStep<>(
                 new CatchExceptionStep<>(
