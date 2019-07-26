@@ -30,7 +30,7 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     val scopeSpecs = mutableMapOf<String, ClassLoaderScopeSpec>()
 
     override fun rootScopeCreated(scopeId: String) {
-        if (scopeId == DefaultClassLoaderScopeRegistry.CORE_AND_PLUGINS_NAME) {
+        if (scopeId === DefaultClassLoaderScopeRegistry.CORE_AND_PLUGINS_NAME) {
             ClassLoaderScopeSpec(scopeId).let { root ->
                 coreAndPluginsSpec = root
                 scopeSpecs[scopeId] = coreAndPluginsSpec
@@ -39,23 +39,23 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun childScopeCreated(parentId: String, childId: String) {
-        if (scopeSpecs.containsKey(parentId)) {
+        scopeSpecs[parentId]?.let { scopeSpec ->
             ClassLoaderScopeSpec(childId).let { child ->
-                scopeSpecs.getValue(parentId).children.add(child)
+                scopeSpec.children.add(child)
                 scopeSpecs[childId] = child
             }
         }
     }
 
     override fun localClasspathAdded(scopeId: String, localClassPath: ClassPath) {
-        if (scopeSpecs.containsKey(scopeId)) {
-            scopeSpecs.getValue(scopeId).localClassPath += localClassPath
+        scopeSpecs[scopeId]?.let { scopeSpec ->
+            scopeSpec.localClassPath += localClassPath
         }
     }
 
     override fun exportClasspathAdded(scopeId: String, exportClassPath: ClassPath) {
-        if (scopeSpecs.containsKey(scopeId)) {
-            scopeSpecs.getValue(scopeId).exportClassPath += exportClassPath
+        scopeSpecs[scopeId]?.let { scopeSpec ->
+            scopeSpec.exportClassPath += exportClassPath
         }
     }
 }
