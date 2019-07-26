@@ -105,6 +105,8 @@ public class UnexportMainSymbol extends DefaultTask {
                 final SymbolHider symbolHider = new SymbolHider(object);
                 symbolHider.hideSymbol("main");     // 64 bit
                 symbolHider.hideSymbol("_main");    // 32 bit
+                symbolHider.hideSymbol("wmain");    // 64 bit
+                symbolHider.hideSymbol("_wmain");   // 32 bit
                 symbolHider.saveTo(relocatedObject);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
