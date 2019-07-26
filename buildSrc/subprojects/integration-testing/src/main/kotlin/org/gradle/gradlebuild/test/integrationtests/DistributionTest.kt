@@ -57,7 +57,7 @@ open class DistributionTest : Test() {
 
     @get:Internal
     @get:Option(option = "rerun", description = "Always rerun the task")
-    val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType)
+    val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
@@ -67,7 +67,7 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
         outputs.upToDateWhen {
-            !rerun.getOrElse(false)
+            !rerun.get()
         }
     }
 }
