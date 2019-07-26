@@ -76,7 +76,7 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
         executer.expectDeprecationWarnings(1)
         succeeds("tasks")
         then:
-        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+        outputContains("Access to the buildSrc project and its dependencies in settings scriptss has been deprecated.")
     }
 
     def "Using buildscript classes in settings is not deprecated"() {
@@ -146,7 +146,7 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
         executer.expectDeprecationWarnings(1)
         succeeds("tasks")
         then:
-        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+        outputContains("Access to the buildSrc project and its dependencies in settings scripts has been deprecated.")
     }
 
     def "Using buildSrc dependencies in settings is deprecated"() {
@@ -170,7 +170,7 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
         executer.expectDeprecationWarnings(1)
         succeeds("tasks")
         then:
-        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+        outputContains("Access to the buildSrc project and its dependencies in settings scripts has been deprecated.")
     }
 
 }

@@ -475,7 +475,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             containsString("Settings plugin applied!"))
         assertThat(
             output,
-            containsString("Access to the buildSrc project and its dependencies in settings script has been deprecated."))
+            containsString("Access to the buildSrc project and its dependencies in settings scripts has been deprecated."))
     }
 
     @Test
