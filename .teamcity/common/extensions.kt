@@ -26,6 +26,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.Requirements
+import jetbrains.buildServer.configs.kotlin.v2018_2.VcsSettings
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 
@@ -52,6 +53,13 @@ fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
 }
 
+fun VcsSettings.filterDefaultBranch() {
+    branchFilter = """
+                +:*
+                -:<default>
+            """.trimIndent()
+}
+
 fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     artifactRules = """
         build/report-* => .
@@ -64,7 +72,9 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
     vcs {
         root(AbsoluteId(vcsRoot))
         checkoutMode = CheckoutMode.ON_AGENT
-        buildDefaultBranch = !vcsRoot.contains("Branches")
+        if (vcsRoot.contains("Branches")) {
+            filterDefaultBranch()
+        }
     }
 
     requirements {
