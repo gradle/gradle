@@ -156,4 +156,37 @@ class A2{}
         output.contains('Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.')
         output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
     }
+
+    def 'clear class source mapping file on full recompilation'() {
+        given:
+        source('class A { }')
+        run 'compileGroovy'
+
+        when:
+        file('src/main/groovy/B.java') << 'class B {}'
+        // slightly modify the mapping file
+        file('build/tmp/compileGroovy/source-classes-mapping.txt') << '''org/gradle/MyClass.groovy
+ org.gradle.MyClass'''
+        run 'compileGroovy', '--info'
+
+        then:
+        outputContains('changes to non-Groovy files are not supported by incremental compilation')
+        !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('MyClass')
+    }
+
+    def 'merge old class source mappings if no recompilation required'() {
+        given:
+        File a =source('class A { }')
+        source('class B { }')
+        run 'compileGroovy'
+
+        when:
+        a.delete()
+        run 'compileGroovy'
+
+        then:
+        skipped(':compileGroovy')
+        !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('A.groovy')
+        file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('B.groovy')
+    }
 }

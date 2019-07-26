@@ -17,6 +17,9 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import java.util.zip.ZipFile
 
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
@@ -47,7 +50,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'commons-io-2.6.jar' : 'f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
             'commons-lang-2.6.jar' : '50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c',
             'failureaccess-1.0.1.jar' : 'a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26',
-            'groovy-all-1.0-2.5.4.jar' : '704d3307616c57234871c4db3a355c3e81ea975db8dac8ee6c9264b91c74d2b7',
+            'groovy-all-1.3-2.5.4.jar': 'b41c83700fd2b59333aea828bb15ffa5b8af7b12c74a7a26e77d4274cef0702b',
             'guava-27.1-android.jar' : '686404f2d1d4d221911f96bd627ff60dac2226a5dfa6fb8ba517073eb97ec0ef',
             'jansi-1.17.1.jar' : 'b2234bfb0d8f245562d64ed9325df6b907093f4daa702c9082d4796db2a2d894',
             'javax.inject-1.jar' : '91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff',
@@ -67,22 +70,24 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'kryo-2.24.0.jar' : '7e56b32c635058f9aa2820f88919ab702d029cbcd15285da9992e36cc0ae52f2',
             'log4j-over-slf4j-1.7.25.jar' : 'c84c5ce4bbb661369ccd4c7b99682027598a0fb2e3d63a84259dbe5c0bf1f949',
             'minlog-1.2.jar' : 'a678cb1aa8f5d03d901c992c75741841d98a9bc3d55dad02e84d65315c4e60f2',
-            'native-platform-0.17.jar' : '38d67a2ef50dbd9c587c01a9cc63c00b1328290b2aadd9c49597f0757274a64a',
-            'native-platform-freebsd-amd64-libcpp-0.17.jar' : '9f1f89b5a61930f124d2753a0e9177b31a98ddd8aad85e28075b503eeafef50a',
-            'native-platform-freebsd-amd64-libstdcpp-0.17.jar' : 'f086f1512fd180a8d26918ae3489202b2f7b37b52722ce37ecc71ff2ccb42a8a',
-            'native-platform-freebsd-i386-libcpp-0.17.jar' : 'd0d321c55bc6087fa16d670967e9dd43c47941f96b19f2614efa564d3d7bce8d',
-            'native-platform-freebsd-i386-libstdcpp-0.17.jar' : 'd52319783a154156feff52f5ba7df2fdc6860b13af1e8c580bceec7053880808',
-            'native-platform-linux-amd64-0.17.jar' : 'da8eae2338e8dbc25bb88678d247f2ba948870b42e8ce63198b6f714eb3452b3',
-            'native-platform-linux-amd64-ncurses5-0.17.jar' : 'd85e190ac044d96ec10058e9546dcb17033ebd68d4db059ab78a538c4838c9e5',
-            'native-platform-linux-amd64-ncurses6-0.17.jar' : 'dbedcb909e3968e3e83cf219493fcdf7c0a40f944d9da6e852841303fbb98ce1',
-            'native-platform-linux-i386-0.17.jar' : '1eaa1b0bb02d2042b96a8dea941e8cd892766af571d1302b0d30328fccc9b2ed',
-            'native-platform-linux-i386-ncurses5-0.17.jar' : '01bf87847a6cae5356dc6d36af517f1bf63e380d960b31713f1629b8b77af4de',
-            'native-platform-linux-i386-ncurses6-0.17.jar' : 'bbb344ce1bf7f6ae4ff9acffc97865e45dfdf1980bb4c52a487b1368c3958d0e',
-            'native-platform-osx-amd64-0.17.jar' : 'c8be647bd5ae084f91dde3545dede65e5abdac966f219881b1b33def007cb3ab',
-            'native-platform-windows-amd64-0.17.jar' : '56573ba9a1f14293135aeb80b7bb891ce316eb1d2485766049dc75cf25c04373',
-            'native-platform-windows-amd64-min-0.17.jar' : '40351288397b7688f8472ee94d9588fd90ea545db88dcfd82c288663f486dae0',
-            'native-platform-windows-i386-0.17.jar' : 	'1af6bc3dabc85f27195a477ccb6ce05f631354c8ab2d3e213bce9996d3d97992',
-            'native-platform-windows-i386-min-0.17.jar' : '5ad72f4ea8990bcd9c0ca3503e0a70cc13ce9c7872556429d2372986ed2a1d69',
+            'native-platform-0.18.jar' : '8d0cfef773f129d8acb8571c499d5a2894b5fbf599c67e45ee8dd00564ac5699',
+            'native-platform-freebsd-amd64-libcpp-0.18.jar' : 'c0c3e6041bdcdca7b803a5999a65b20e4cac7cce2b75349f02e54304273bf25f',
+            'native-platform-freebsd-amd64-libstdcpp-0.18.jar' : 'a42bba79f49dbae2b2388b0d7a337dd812e3e4051f87737a2bfd28c5f4954a20',
+            'native-platform-freebsd-i386-libcpp-0.18.jar' : '2db5047e3d4bde06b527094e9aabf3220db4fb7b42373eed0b893c602f41faad',
+            'native-platform-freebsd-i386-libstdcpp-0.18.jar' : '39e11dfd90a3217cee66da9f2a7a7989b3ccab3dcb6177feca40c859e4c27d15',
+            'native-platform-linux-amd64-0.18.jar' : 'd00274173a22575093f57d83b4fdbebd14a2f50bd7739028cea835cb8a119418',
+            'native-platform-linux-amd64-ncurses5-0.18.jar' : '336aab51ac3918d52aa712841fcb4772f67f1026d296421b100c1e607e02ae31',
+            'native-platform-linux-amd64-ncurses6-0.18.jar' : 'fa8289d841ca9a133b556b5352436548332f73562cca3e6778245e39973aa1a1',
+            'native-platform-linux-i386-0.18.jar' : 'b0c81987c6ef3e685b65e6f2cd793ddfe6daea4caedd9d2018be52c8ae478013',
+            'native-platform-linux-i386-ncurses5-0.18.jar' : '8aaaae78899d0f705f636452ff1d1dca223557ea41eccf0a5b7e9d1867194361',
+            'native-platform-linux-i386-ncurses6-0.18.jar' : '46b29923ef81005d32e54ca91cb7e7623ffec2ed3f32b4762c2915ba34a6efbd',
+            'native-platform-linux-aarch64-0.18.jar' : '622d5c2702637e2e345b4bde6f672bb6a4f72b09f47e73e160d76f5d5c588b6a',
+            'native-platform-linux-aarch64-ncurses5-0.18.jar' : 'ed2894b11753b866546fe1557bf61dcbc005aac1868548409f115039b513455c',
+            'native-platform-osx-amd64-0.18.jar' : 'd9da281edb0ed3482c2cb38f6abe5b1a4e6f6a5c51676a3294b00de09c463d27',
+            'native-platform-windows-amd64-0.18.jar' : '4a754eac68b3a8c1f14f39c58ec328339b6400fce0f0ff063041974e3edbb9f4',
+            'native-platform-windows-amd64-min-0.18.jar' : '2cbbca810129dbb39af5919e908029fede4e2e691e890ef54e7af75cbfd4e25d',
+            'native-platform-windows-i386-0.18.jar' : 	'd06675a6a7f523c604001ba82073dc00201cc9263736f185b996fd833caf71f4',
+            'native-platform-windows-i386-min-0.18.jar' : '84487de35b3ca38f60ba689f87881d3ecde8790987fc6f9bb59664b422e82b4c',
             'objenesis-2.6.jar' : '5e168368fbc250af3c79aa5fef0c3467a2d64e5a7bd74005f25d8399aeb0708d',
             'plugins/aether-api-1.13.1.jar' : 'ae8dc80232771f8913febfa410c5719e9ba8ded81fb99788e214fd676dbbe13f',
             'plugins/aether-connector-wagon-1.13.1.jar' : 'df54e8505104228ee7e3fbdead7a7a9cb753b04ca6c9cf60a6b19aee0737f1ec',
@@ -171,12 +176,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         }
         Map<String, TestFile> depJars = filtered.collectEntries { [libDir.relativePath(it), it] }
 
-        def added = depJars.keySet() - expectedHashes.keySet()
-        def removed = expectedHashes.keySet() - depJars.keySet()
-
-        expect:
-        assert (added + removed).isEmpty()
-
+        when:
         def errors = []
         depJars.each { String jarPath, TestFile jar ->
             def expected = expectedHashes[jarPath]
@@ -185,8 +185,32 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
                 errors << "SHA-256 hash does not match for ${jarPath}: expected=${expected}, actual=${actual}"
             }
         }
+        then:
+        errors.empty
 
-        assert errors.empty
+        when:
+        def added = depJars.keySet() - expectedHashes.keySet()
+        def removed = expectedHashes.keySet() - depJars.keySet()
+        then:
+        (added + removed).isEmpty()
+    }
+
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
+    def "validate dependency archives"() {
+        when:
+        def jars = collectJars(unpackDistribution())
+        then:
+        jars != []
+
+        when:
+        def invalidArchives = jars.findAll {
+            new ZipFile(it).withCloseable {
+                def names = it.entries()*.name
+                names.size() != names.toUnique().size()
+            }
+        }
+        then:
+        invalidArchives == []
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {

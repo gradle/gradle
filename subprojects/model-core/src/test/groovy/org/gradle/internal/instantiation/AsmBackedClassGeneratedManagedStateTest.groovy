@@ -142,6 +142,20 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
     }
 
+    def canConstructInstanceOfInterfaceWithNestedGetter() {
+        def projectDir = tmpDir.testDirectory
+        def services = TestUtil.createRootProject(projectDir).services
+        def bean = create(InterfaceNestedBean, services)
+        instantiator.newInstance(InterfaceFileCollectionBean) >> {
+            create(InterfaceFileCollectionBean, services)
+        }
+
+        expect:
+        bean.prop.prop.empty
+        bean.prop.prop.from("a", "b")
+        bean.prop.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
+    }
+
     @Unroll
     def "canConstructInstanceOfInterfaceWithGetterOfFilePropertyType #type.simpleName"() {
         def projectDir = tmpDir.testDirectory

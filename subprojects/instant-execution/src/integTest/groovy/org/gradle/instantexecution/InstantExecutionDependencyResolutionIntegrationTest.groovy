@@ -17,10 +17,8 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
-import spock.lang.Ignore
 
 class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements ArtifactTransformTestFixture {
-    @Ignore
     def "task input files can include artifact transform output"() {
         setupBuildWithColorTransformAction()
         settingsFile << """
@@ -47,6 +45,9 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         expect:
         instantRun(":resolve")
+        outputContains("result = [a.jar.green, b.jar.green]")
         instantRun(":resolve")
+        // For now, transforms are ignored when writing to the cache
+        outputContains("result = []")
     }
 }

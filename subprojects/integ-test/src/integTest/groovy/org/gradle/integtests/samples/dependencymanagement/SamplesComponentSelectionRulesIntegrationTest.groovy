@@ -92,19 +92,4 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         where:
         dsl << ['groovy', 'kotlin']
     }
-
-    @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    def "can run rules source sample with #dsl dsl"() {
-        executer.inDirectory(sample.dir.file(dsl))
-
-        when:
-        run "printRuleSourceConfig"
-
-        then:
-        output.contains "Resolved: api-1.4.jar"
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
 }

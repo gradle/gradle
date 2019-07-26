@@ -43,11 +43,6 @@ public abstract class AbstractSingletonFileTree implements SingletonFileTree, Pa
         return patterns;
     }
 
-    @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
-    }
-
     protected PatternSet filterPatternSet(PatternFilterable patterns) {
         PatternSet patternSet = this.patterns.intersect();
         patternSet.copyFrom(patterns);

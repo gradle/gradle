@@ -60,18 +60,56 @@ public interface WorkerExecutor {
     void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 
     /**
-     * Submits a piece of work to be executed asynchronously.
-     *
-     * Execution of the work may begin immediately.
-     *
-     * Work configured with {@link IsolationMode#PROCESS} will execute in an idle daemon that meets the requirements set
-     * in the {@link WorkerSpec}.  If no idle daemons are available, a new daemon will be started.  Any errors
-     * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
+     * Creates a {@link WorkQueue} to submit work for asynchronous execution with no isolation.
      *
      * @since 5.6
      */
     @Incubating
-    <T extends WorkerParameters> void execute(Class<? extends WorkerExecution<T>> workerExecutionClass, Action<? super WorkerSpec<T>> configAction);
+    WorkQueue noIsolation();
+
+    /**
+     * Creates a {@link WorkQueue} to submit work for asynchronous execution with an isolated classloader.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    WorkQueue classLoaderIsolation();
+
+    /**
+     * Creates a {@link WorkQueue} to submit work for asynchronous execution in a daemon process.
+     *
+     * Work will execute in an idle daemon, if available.  If no idle daemons are available, a new daemon will be started.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    WorkQueue processIsolation();
+
+    /**
+     * Creates a {@link WorkQueue} to submit work for asynchronous execution with no isolation and the requirements specified in the supplied {@link WorkerSpec}.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    WorkQueue noIsolation(Action<WorkerSpec> action);
+
+    /**
+     * Creates a {@link WorkQueue} to submit work for asynchronous execution with an isolated classloader and the requirements specified in the supplied {@link ClassLoaderWorkerSpec}.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    WorkQueue classLoaderIsolation(Action<ClassLoaderWorkerSpec> action);
+
+    /**
+     * Creates a {@link WorkQueue} to submit work for asynchronous execution in a daemon process.
+     *
+     * Work will execute in an idle daemon matching the requirements specified in the supplied {@link ProcessWorkerSpec}, if available.  If no idle daemons are available, a new daemon will be started.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    WorkQueue processIsolation(Action<ProcessWorkerSpec> action);
 
     /**
      * Blocks until all work associated with the current build operation is complete.  Note that when using this method inside

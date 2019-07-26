@@ -51,6 +51,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
@@ -91,20 +92,28 @@ class Codecs(
         bind(DOUBLE_SERIALIZER)
         bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
         bind(FILE_SERIALIZER)
+        bind(PATH_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
 
-        bind(listCodec)
+        // Only serialize certain List implementations
+        bind(arrayListCodec)
+        bind(linkedListCodec)
+        bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
+        bind(EnumSetCodec)
         bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
+        bind(ImmutableSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
+        bind(EnumMapCodec)
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
+        bind(ImmutableMapCodec)
 
         bind(arrayCodec)
 
@@ -112,7 +121,7 @@ class Codecs(
         bind(LoggerCodec)
 
         bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
-        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory, directoryFileTreeFactory))
+        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(ArtifactCollectionCodec)
 
         bind(DefaultCopySpecCodec(fileResolver, instantiator))
@@ -146,9 +155,14 @@ class Codecs(
     private
     val encodings = HashMap<Class<*>, Encoding?>()
 
-    override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
+    override suspend fun WriteContext.encode(candidate: Any?) {
+        encodingFor(candidate)(candidate)
+    }
+
+    private
+    fun encodingFor(candidate: Any?): Encoding = when (candidate) {
         null -> nullEncoding
-        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
+        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)!!
     }
 
     override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {

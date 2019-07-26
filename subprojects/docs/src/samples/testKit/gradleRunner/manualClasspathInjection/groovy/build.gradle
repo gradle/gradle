@@ -20,8 +20,11 @@ repositories {
 task createClasspathManifest {
     def outputDir = file("$buildDir/$name")
 
-    inputs.files sourceSets.main.runtimeClasspath
-    outputs.dir outputDir
+    inputs.files(sourceSets.main.runtimeClasspath)
+        .withPropertyName("runtimeClasspath")
+        .withNormalizer(ClasspathNormalizer)
+    outputs.dir(outputDir)
+        .withPropertyName("outputDir")
 
     doLast {
         outputDir.mkdirs()

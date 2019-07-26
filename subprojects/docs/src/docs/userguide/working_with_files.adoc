@@ -348,7 +348,9 @@ The `file()` method can be used to configure any task that has a property of typ
 [[sec:file_collections]]
 === File collections
 
-A _file collection_ is simply a set of file paths that's represented by the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] interface. _Any_ file paths. It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory. You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configurations>>.
+A _file collection_ is simply a set of file paths that's represented by the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] interface. _Any_ file paths.
+It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory.
+You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>>.
 
 The recommended way to specify a collection of files is to use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)] method, which returns a `FileCollection` instance.
 This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of ``File``s, and more.

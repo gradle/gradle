@@ -31,8 +31,9 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
+import org.gradle.internal.nativeintegration.console.FallbackConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
-import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
+import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
@@ -162,6 +163,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
+        return new TestOverrideConsoleDetector(backingConsoleDetector(operatingSystem));
+    }
+
+    private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
@@ -182,7 +187,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
         }
 
-        return new NoOpConsoleDetector();
+        return new FallbackConsoleDetector();
     }
 
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {

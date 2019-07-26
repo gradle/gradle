@@ -96,7 +96,9 @@ You'll learn more about source sets and the features they provide in:
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies
 
-The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project. Dependency management is a big topic, so we will focus on the basics for Java projects here. If you'd like to dive into the detail, check out the <<introduction_dependency_management.adoc#introduction_dependency_management,introduction to dependency management>>.
+The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project.
+Dependency management is a big topic, so we will focus on the basics for Java projects here.
+If you'd like to dive into the detail, check out the <<core_dependency_management.adoc#sec:what-is-dependency-management,introduction to dependency management>>.
 
 Specifying the dependencies for your Java project requires just three pieces of information:
 
@@ -141,12 +143,12 @@ The Java Plugin has historically used the `compile` configuration for dependenci
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
 
- * Defining a custom <<repository_types.adoc#sub:maven_repo,Maven\->> or <<repository_types.adoc#sec:ivy_repositories,Ivy-compatible>> repository
- * Using dependencies from a <<repository_types.adoc#sec:flat_dir_resolver,local filesystem directory>>
- * Declaring dependencies with <<declaring_dependencies.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependencies.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
- * Declaring a sibling <<declaring_dependencies.adoc#sec:declaring_project_dependency,project as a dependency>>
- * <<managing_transitive_dependencies.adoc#managing_transitive_dependencies,Controlling transitive dependencies and their versions>>
- * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<repository_types.adoc#sub:maven_local,Maven Local>>)
+ * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven\->> or <<declaring_repositories.adoc#sec:ivy_repositories,Ivy-compatible>> repository
+ * Using dependencies from a <<declaring_repositories.adoc#sub:flat_dir_resolver,local filesystem directory>>
+ * Declaring dependencies with <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
+ * <<controlling_transitive_dependencies.adoc#controlling-transitive-dependencies,Controlling transitive dependencies and their versions>>
+ * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite-builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sec:maven_local,Maven Local>>)
 
 You'll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 

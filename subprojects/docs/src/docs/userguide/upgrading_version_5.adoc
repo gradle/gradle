@@ -13,9 +13,9 @@
 // limitations under the License.
 
 [[upgrading_version_5]]
-= Upgrading your build from Gradle 5.x
+= Upgrading your build from Gradle 5.x to 6.0
 
-This chapter provides the information you need to migrate your Gradle 5.x builds to Gradle {gradleVersion}. For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading_version_4, 4.x to 5.0 guide>> first.
+This chapter provides the information you need to migrate your Gradle 5.x builds to Gradle 6.0. For migrating from Gradle 4.x, complete the <<upgrading_version_4.adoc#upgrading_version_4, 4.x to 5.0 guide>> first.
 
 We recommend the following steps for all users:
 
@@ -33,10 +33,33 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_6.0]]
+== Upgrading from 5.6 and earlier
+
+=== Deprecations
+
+=== Potential breaking changes
+
+==== `@Nullable` annotation is gone
+
+The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
+
+==== Task validation changes
+
+- `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
+- `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
+
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
 
 === Deprecations
+
+==== BuildSrc usage in Gradle settings
+
+Access to the buildSrc project and its dependencies in gradle settings scripts is now deprecated.
+This is due to plans to make initialization of gradle builds more efficient.
+
+This will become an error in Gradle 6.0.
 
 ==== Changing the contents of `ConfigurableFileCollection` task properties after task starts execution
 
@@ -123,7 +146,11 @@ configurations.all {
 }
 ```
 
-See <<managing_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
+See <<controlling_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
+
+=== Disabled debug argument parsing in JavaExec
+
+Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<JavaDebugOptions>)`) to configure debug properties for forked Java processes. Due to this change, Gradle no longer parses debug-related JVM arguments. Consequently, `JavaForkOptions.getDebu()` no longer returns `true` if the `-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005` or the `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` argument is specified to the process.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
@@ -325,7 +352,9 @@ The incubating `operatingSystems` property on native components has been replace
 
 ==== Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
 
-The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#provider-files-api-reference,Provider API>>. Plugins that extend these types and override methods from the base class may no longer behave the same way. Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
+The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#sec:lazy_configuration_reference,Provider API>>.
+Plugins that extend these types and override methods from the base class may no longer behave the same way.
+Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
 

@@ -126,9 +126,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
                 }
             }
             return new DefaultPlexusContainer(new DefaultContainerConfiguration().setRealm(classRealm));
-        } catch (PlexusContainerException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (MalformedURLException e) {
+        } catch (PlexusContainerException | MalformedURLException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

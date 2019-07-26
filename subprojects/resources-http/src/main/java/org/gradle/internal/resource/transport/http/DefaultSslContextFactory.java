@@ -211,9 +211,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
                     null);
 
                 return sslcontext;
-            } catch (GeneralSecurityException e) {
-                throw new SSLInitializationException(e.getMessage(), e);
-            } catch (IOException e) {
+            } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
         }

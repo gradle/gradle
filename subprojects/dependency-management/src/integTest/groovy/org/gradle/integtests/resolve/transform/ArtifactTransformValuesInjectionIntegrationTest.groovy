@@ -28,7 +28,6 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -114,6 +113,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         setupBuildWithColorTransform {
             params("""
                 prop.set(${value})
+                nested.nestedProp.set(${value})
             """)
         }
         buildFile << """
@@ -124,16 +124,23 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
+            interface NestedType {
+                @Input
+                ${type} getNestedProp()
+            }
+
             abstract class MakeGreen implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @Input
                     ${type} getProp()
                     @Input @Optional
                     ${type} getOtherProp()
+                    @Nested
+                    NestedType getNested()
                 }
             
                 void transform(TransformOutputs outputs) {
-                    println "processing using " + parameters.prop.get()
+                    println "processing using prop: \${parameters.prop.get()}, nested: \${parameters.nested.nestedProp.get()}"
                     assert parameters.otherProp.getOrNull() == ${expectedNullValue}
                 }
             }
@@ -142,7 +149,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         run("a:resolve")
 
         then:
-        outputContains("processing using ${expected}")
+        outputContains("processing using prop: ${expected}, nested: ${expected}")
 
         where:
         type                          | value          | expected     | expectedNullValue
@@ -156,9 +163,19 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
+        buildFile << """
+            interface NestedType {
+                @InputFile
+                RegularFileProperty getInputFile()
+                @OutputDirectory
+                DirectoryProperty getOutputDirectory()
+                Property<String> getStringProperty()
+            }
+        """
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
+                nested.inputFile.set(file("some"))    
             """)
         }
         buildFile << """
@@ -205,6 +222,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @Input
                     String getIncrementalNonFileInput()
                     void setIncrementalNonFileInput(String value)
+
+                    @Nested
+                    NestedType getNested()
                 }
             
                 void transform(TransformOutputs outputs) {
@@ -235,6 +255,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             noPathSensitivityDir: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
             noPathSensitivityFile: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
             outputDir: 'is annotated with invalid property type @OutputDirectory',
+            'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
+            'nested.inputFile': 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            'nested.stringProperty': 'is not annotated with an input annotation',
         )
     }
 
@@ -349,7 +372,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
-        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Nested]
+        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
     @Unroll
@@ -536,7 +559,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         assertPropertyValidationErrors(bad: "is annotated with invalid property type @${annotation.simpleName}")
 
         where:
-        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal, Nested]
+        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
     @Unroll

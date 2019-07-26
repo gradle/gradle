@@ -79,4 +79,9 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     public boolean isLocked() {
         return true;
     }
+
+    @Override
+    public ClassLoaderScope deprecated() {
+        throw new UnsupportedOperationException("root class loader scope does not provide deprecated copy.");
+    }
 }

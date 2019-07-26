@@ -51,7 +51,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumVersion = "5.1.1"
-        runner.targetVersions = ["5.5-20190524182809+0000"]
+        runner.targetVersions = ["5.7-20190722220035+0000"]
 
         when:
         def result = runner.run()
@@ -81,7 +81,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.cleanTasks = ["clean"]
         runner.runs = runs
         runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.5-20190524010357+0000"]
+        runner.targetVersions = ["5.7-20190722220035+0000"]
         runner.addBuildExperimentListener(cleanTransformsCacheBeforeInvocation())
 
         when:
@@ -104,7 +104,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.tasksToRun = [SANTA_TRACKER_ASSEMBLE_DEBUG]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.6-20190702000118+0000"]
+        runner.targetVersions = ["5.7-20190722220035+0000"]
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(SANTA_TRACKER_JAVA_FILE_TO_CHANGE))
 
         when:
@@ -124,7 +124,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.tasksToRun = [SANTA_TRACKER_ASSEMBLE_DEBUG]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.6-20190702000118+0000"]
+        runner.targetVersions = ["5.7-20190722220035+0000"]
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(SANTA_TRACKER_JAVA_FILE_TO_CHANGE))
 
         when:

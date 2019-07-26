@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -30,7 +29,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
@@ -53,7 +51,6 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -66,6 +63,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Validates task property annotations.
@@ -107,8 +105,7 @@ import java.util.Map;
  * @since 3.0
  */
 @CacheableTask
-@SuppressWarnings("deprecation")
-public class ValidateTaskProperties extends ConventionTask implements VerificationTask, org.gradle.plugin.devel.tasks.internal.ValidateTaskPropertiesBackwardsCompatibleAdapter {
+public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
@@ -165,18 +162,12 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                     Class<?> clazz;
                     try {
                         clazz = classLoader.loadClass(className);
-                    } catch (IllegalAccessError e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    } catch (ClassNotFoundException e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    } catch (NoClassDefFoundError e) {
+                    } catch (IllegalAccessError | NoClassDefFoundError | ClassNotFoundException e) {
                         throw new GradleException("Could not load class: " + className, e);
                     }
                     try {
                         validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {
+                    } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -234,13 +225,9 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
-        return Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public InvalidUserDataException apply(String problemMessage) {
-                return new InvalidUserDataException(problemMessage);
-            }
-        });
+        return problemMessages.stream()
+            .map(InvalidUserDataException::new)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -264,7 +251,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      *
      * @since 4.0
      */
-    @Override
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
@@ -273,35 +259,11 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     /**
-     * Sets the classes to validate.
-     *
-     * @since 4.0
-     * @deprecated Use {@link #getClasses()}.setFrom instead.
-     */
-    @Deprecated
-    public void setClasses(FileCollection classes) {
-        DeprecationLogger.nagUserOfReplacedMethod("setClasses(FileCollection)", "getClasses().setFrom(FileCollection)");
-        this.classes.setFrom(classes);
-    }
-
-    /**
      * The classpath used to load the classes under validation.
      */
-    @Override
     @Classpath
     public ConfigurableFileCollection getClasspath() {
         return classpath;
-    }
-
-    /**
-     * Sets the classpath used to load the classes under validation.
-     *
-     * @deprecated Use {@link #getClasspath()}.setFrom instead.
-     */
-    @Deprecated
-    public void setClasspath(FileCollection classpath) {
-        DeprecationLogger.nagUserOfReplacedMethod("setClasspath(FileCollection)", "getClasspath().setFrom(FileCollection)");
-        this.classpath.setFrom(classpath);
     }
 
     /**

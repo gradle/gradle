@@ -7,7 +7,7 @@ plugins {
 
 tasks {
     processResources {
-        from(project(":instantExecutionReport").tasks.processResources) {
+        from({ project(":instantExecutionReport").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
     }
@@ -24,6 +24,7 @@ dependencies {
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
+    implementation(library("guava"))
 
     implementation(futureKotlin("stdlib-jdk8"))
     implementation(futureKotlin("reflect"))

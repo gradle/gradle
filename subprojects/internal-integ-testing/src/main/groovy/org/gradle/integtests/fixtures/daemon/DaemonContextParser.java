@@ -24,7 +24,6 @@ import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
@@ -41,9 +40,7 @@ public class DaemonContextParser {
                     return context;
                 }
             }
-        } catch(FileNotFoundException e) {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].", e);
-        } catch (IOException e) {
+        } catch(IOException e) {
             throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].", e);
         }
         throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].");

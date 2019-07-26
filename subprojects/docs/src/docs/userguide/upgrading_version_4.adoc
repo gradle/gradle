@@ -288,7 +288,7 @@ They should be added to the `annotationProcessor` configuration instead. If you 
 == Upgrading from 4.4 and earlier
 
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name.
- * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
+ * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#,composite builds>>) and instead uses the root build's configuration for all the builds.
 
 === Potential breaking changes
 
@@ -367,7 +367,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<dependency_types.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency. For example: `project(path: ':myJavaProject', configuration: 'default')`.
  * Default Zinc compiler upgraded from 0.3.13 to 0.3.15.

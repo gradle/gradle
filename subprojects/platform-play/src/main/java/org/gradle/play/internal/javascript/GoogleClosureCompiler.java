@@ -112,9 +112,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         try {
             Field field = result.getClass().getField(fieldName);
             return Cast.uncheckedCast(field.get(result));
-        } catch (NoSuchFieldException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

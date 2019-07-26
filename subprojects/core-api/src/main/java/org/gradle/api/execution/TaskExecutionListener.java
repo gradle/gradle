@@ -33,7 +33,7 @@ public interface TaskExecutionListener {
     void beforeExecute(Task task);
 
     /**
-     * This method is call immediately after a task has been executed. It is always called, regardless of whether the
+     * This method is called immediately after a task has been executed. It is always called, regardless of whether the
      * task completed successfully, or failed with an exception.
      *
      * @param task The task which was executed. Never null.

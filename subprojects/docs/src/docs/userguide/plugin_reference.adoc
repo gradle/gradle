@@ -40,6 +40,7 @@ Provides support for building, testing and running https://www.playframework.com
 <<antlr_plugin.adoc#,ANTLR>>::
 Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 
+[[native_languages]]
 == Native languages
 
 <<cpp_application_plugin.adoc#,C++ Application>>::

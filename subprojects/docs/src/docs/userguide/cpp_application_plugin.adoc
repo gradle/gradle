@@ -208,7 +208,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:toolChain[toolChain]:: <<building_cpp_projects.adoc#sec:cpp_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:cpp_application_link_task]]
 === `link__Variant__` Task
@@ -230,7 +230,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_cpp_projects.adoc#sec:cpp_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:cpp_application_install_task]]
 === `install__Variant__` Task

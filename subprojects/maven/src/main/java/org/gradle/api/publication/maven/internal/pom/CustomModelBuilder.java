@@ -56,12 +56,8 @@ public class CustomModelBuilder extends ModelBuilder {
             f.setAccessible(true); // solution
             f.set(obj, value); // IllegalAccessException
             // production code should handle these exceptions more gracefully
-        } catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
             throw new RuntimeException(e);
-        } catch (IllegalArgumentException e) {
-           throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-           throw new RuntimeException(e);
         }
     }
 
@@ -71,11 +67,7 @@ public class CustomModelBuilder extends ModelBuilder {
             f.setAccessible(true); // solution
             return f.get(obj); // IllegalAccessException
             // production code should handle these exceptions more gracefully
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
     }

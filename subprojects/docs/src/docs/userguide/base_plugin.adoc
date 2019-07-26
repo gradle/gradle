@@ -57,10 +57,10 @@ Removes the <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> of
 [[sec:base_plugin_configurations]]
 == Dependency management
 
-The Base Plugin adds no <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations for dependencies>>, but it does add the following configurations for <<artifact_management.adoc#sec:artifacts_and_configurations,artifacts>>:
+The Base Plugin adds no <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations for dependencies>>, but it does add the following configurations for <<artifact_management.adoc#sec:artifacts_and_configurations,artifacts>>:
 
 `default`::
-A fallback configuration used by consumer projects. Let's say you have project B with a <<dependency_types.adoc#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
+A fallback configuration used by consumer projects. Let's say you have project B with a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
 +
 *New builds and plugins should not be using the `default` configuration!* It remains for the reason of backwards compatibility.
 

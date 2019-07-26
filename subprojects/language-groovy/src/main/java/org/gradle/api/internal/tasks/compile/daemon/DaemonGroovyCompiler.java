@@ -87,11 +87,11 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         }
 
         HierarchicalClassLoaderStructure classLoaderStructure =
-                new HierarchicalClassLoaderStructure(classLoaderRegistry.getGradleWorkerExtensionSpec())
-                        .withChild(getMinimalGradleFilter())
-                        .withChild(targetGroovyClasspath)
-                        .withChild(gradleAndUserFilter)
-                        .withChild(compilerClasspath);
+            new HierarchicalClassLoaderStructure(classLoaderRegistry.getGradleWorkerExtensionSpec())
+                .withChild(getMinimalGradleFilter())
+                .withChild(targetGroovyClasspath)
+                .withChild(gradleAndUserFilter)
+                .withChild(compilerClasspath);
 
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);

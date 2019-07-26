@@ -281,8 +281,9 @@ class Interpreter(val host: Host) {
                     val program =
                         ProgramParser.parse(programSource, programKind, programTarget)
 
-                    val residualProgram =
+                    val residualProgram = program.map { program ->
                         PartialEvaluator(programKind, programTarget).reduce(program)
+                    }
 
                     scriptSource.withLocationAwareExceptionHandling {
                         ResidualProgramCompiler(
@@ -294,8 +295,9 @@ class Interpreter(val host: Host) {
                             implicitImports = host.implicitImports,
                             logger = interpreterLogger,
                             compileBuildOperationRunner = host::runCompileBuildOperation,
-                            pluginAccessorsClassPath = pluginAccessorsClassPath ?: ClassPath.EMPTY
-                        ).compile(residualProgram)
+                            pluginAccessorsClassPath = pluginAccessorsClassPath ?: ClassPath.EMPTY,
+                            packageName = residualProgram.packageName
+                        ).compile(residualProgram.document)
                     }
                 }
             }

@@ -88,7 +88,10 @@ include::sample[dir="userguide/initScripts/externalDependency/groovy",files="ini
 include::sample[dir="userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
 ====
 
-The closure passed to the `initscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance. You declare the init script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>, except project dependencies.
+The closure passed to the `initscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance.
+You declare the init script classpath by adding dependencies to the `classpath` configuration.
+This is the same way you declare, for example, the Java compilation classpath.
+You can use any of the dependency types described in <<declaring_dependencies.adoc#,Declaring Dependencies>>, except project dependencies.
 
 Having declared the init script classpath, you can use the classes in your init script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the init script classpath.
 

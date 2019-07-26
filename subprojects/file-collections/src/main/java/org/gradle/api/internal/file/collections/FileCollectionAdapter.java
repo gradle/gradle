@@ -17,8 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
 import java.util.Set;
@@ -49,11 +48,9 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Fil
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         if (fileCollection instanceof Buildable) {
-            Buildable buildable = (Buildable) fileCollection;
-            return buildable.getBuildDependencies();
+            context.add(fileCollection);
         }
-        return TaskDependencyInternal.EMPTY;
     }
 }

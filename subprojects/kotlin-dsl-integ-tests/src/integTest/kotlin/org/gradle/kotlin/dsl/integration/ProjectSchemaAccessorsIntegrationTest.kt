@@ -1183,6 +1183,55 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         )
     }
 
+    @Test
+    fun `accessors to kotlin internal task types are typed with the first kotlin public parent type`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withDefaultSettings()
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my/CustomTasks.kt", """
+            package my
+
+            import org.gradle.api.*
+
+            abstract class MyCustomTask : DefaultTask()
+            internal open class MyCustomTaskImpl : MyCustomTask()
+            
+            internal open class MyOtherInternalTask : DefaultTask()
+        """)
+        withFile("buildSrc/src/main/kotlin/my/custom.gradle.kts", """
+            package my
+
+            tasks.register<MyCustomTaskImpl>("custom")
+            tasks.register<MyOtherInternalTask>("other")
+        """)
+
+        withBuildScript("""
+            plugins {
+                my.custom
+            }
+            
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("tasks.custom: " + typeOf(tasks.custom))
+            tasks.custom { println("tasks.custom{}: " + typeOf(this)) }
+
+            println("tasks.other: " + typeOf(tasks.other))
+            tasks.other { println("tasks.other{}: " + typeOf(this)) }
+        """)
+
+        assertThat(
+            build("custom", "other", "-q").output,
+            containsMultiLineString("""
+                tasks.custom: org.gradle.api.tasks.TaskProvider<my.MyCustomTask>
+                tasks.other: org.gradle.api.tasks.TaskProvider<org.gradle.api.DefaultTask>
+                tasks.custom{}: my.MyCustomTask
+                tasks.other{}: org.gradle.api.DefaultTask
+            """)
+        )
+    }
+
     private
     fun withBuildSrc(contents: FoldersDslExpression) {
         withFolders {

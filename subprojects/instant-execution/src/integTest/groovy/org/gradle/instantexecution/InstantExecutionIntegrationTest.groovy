@@ -16,6 +16,9 @@
 
 package org.gradle.instantexecution
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -318,6 +321,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "SomeEnum"                       | "SomeEnum.Two"                                                | "Two"
         "SomeEnum[]"                     | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
         "List<String>"                   | "['a', 'b', 'c']"                                             | "[a, b, c]"
+        "ArrayList<String>"              | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
+        "LinkedList<String>"             | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
         "Set<String>"                    | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
         "HashSet<String>"                | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
         "LinkedHashSet<String>"          | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
@@ -328,6 +333,108 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "LinkedHashMap<String, Integer>" | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
         "TreeMap<String, Integer>"       | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
         "EnumMap<SomeEnum, String>"      | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
+    }
+
+    @Unroll
+    def "restores task fields whose value is instance of plugin specific version of Guava #type"() {
+        buildFile << """
+            import ${type.name}
+
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+                dependencies {
+                    classpath 'com.google.guava:guava:28.0-jre' 
+                }
+            }
+
+            class SomeBean {
+                ${type.simpleName} value 
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final ${type.simpleName} value
+                
+                SomeTask() {
+                    value = ${reference}
+                    bean.value = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = ${output}")
+        outputContains("bean.value = ${output}")
+
+        where:
+        type          | reference                         | output
+        ImmutableList | "ImmutableList.of('a', 'b', 'c')" | "[a, b, c]"
+        ImmutableSet  | "ImmutableSet.of('a', 'b', 'c')"  | "[a, b, c]"
+        ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+    }
+
+    def "restores task fields whose value is Serializable and has writeReplace method"() {
+        buildFile << """
+            class Placeholder implements Serializable {
+                String value
+                
+                private Object readResolve() {
+                    return new OtherBean(prop: "[\$value]")
+                } 
+            }
+
+            class OtherBean implements Serializable {
+                String prop
+
+                private Object writeReplace() {
+                    return new Placeholder(value: prop)
+                }
+            }
+
+            class SomeBean {
+                OtherBean value 
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final OtherBean value
+                
+                SomeTask() {
+                    value = new OtherBean(prop: 'a')
+                    bean.value = new OtherBean(prop: 'b')
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.prop
+                    println "bean.value = " + bean.value.prop
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = [a]")
+        outputContains("bean.value = [b]")
     }
 
     @Unroll
@@ -456,15 +563,17 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${expected}")
 
         where:
-        type                   | factory                        | reference     | output
-        "Property<String>"     | "objects.property(String)"     | "'value'"     | "value"
-        "Property<String>"     | "objects.property(String)"     | "null"        | "null"
-        "DirectoryProperty"    | "objects.directoryProperty()"  | "file('abc')" | new File('abc')
-        "DirectoryProperty"    | "objects.directoryProperty()"  | "null"        | "null"
-        "RegularFileProperty"  | "objects.fileProperty()"       | "file('abc')" | new File('abc')
-        "RegularFileProperty"  | "objects.fileProperty()"       | "null"        | "null"
-        "ListProperty<String>" | "objects.listProperty(String)" | "[]"          | "[]"
-        "ListProperty<String>" | "objects.listProperty(String)" | "['abc']"     | ['abc']
+        type                          | factory                               | reference        | output
+        "Property<String>"            | "objects.property(String)"            | "'value'"        | "value"
+        "Property<String>"            | "objects.property(String)"            | "null"           | "null"
+        "DirectoryProperty"           | "objects.directoryProperty()"         | "file('abc')"    | new File('abc')
+        "DirectoryProperty"           | "objects.directoryProperty()"         | "null"           | "null"
+        "RegularFileProperty"         | "objects.fileProperty()"              | "file('abc')"    | new File('abc')
+        "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
     }
 
     @Unroll
@@ -515,6 +624,32 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         DefaultTask.name                   | Task.name                   | "project.tasks.other"
         DefaultTaskContainer.name          | TaskContainer.name          | "project.tasks"
         DefaultConfigurationContainer.name | ConfigurationContainer.name | "project.configurations"
+    }
+
+    def "restores task abstract properties"() {
+        buildFile << """
+
+            abstract class SomeTask extends DefaultTask {
+
+                abstract Property<String> getValue()
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = "42"
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = 42")
     }
 
     def "task can reference itself"() {

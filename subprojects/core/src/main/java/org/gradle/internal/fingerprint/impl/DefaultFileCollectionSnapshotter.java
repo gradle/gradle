@@ -68,8 +68,13 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns) {
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, new PatternSetSnapshottingFilter(patterns, stat)));
+        }
+
+        @Override
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+            roots.add(fileSystemSnapshotter.snapshot(file));
         }
 
         public List<FileSystemSnapshot> getRoots() {
@@ -79,7 +84,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
         final FileSystemSnapshotBuilder builder = fileSystemSnapshotter.newFileSystemSnapshotBuilder();
-        tree.visitTreeOrBackingFile(new FileVisitor() {
+        tree.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 builder.addDir(dirDetails.getFile(), dirDetails.getRelativePath().getSegments());

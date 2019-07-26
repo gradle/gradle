@@ -15,9 +15,9 @@
  */
 package org.gradle.util
 
-import spock.lang.*
 import org.gradle.api.Action
-import java.util.concurrent.Callable
+import org.gradle.internal.Factory
+import spock.lang.Specification
 
 class SwapperTest extends Specification {
 
@@ -27,7 +27,7 @@ class SwapperTest extends Specification {
     def setter = { this.value = it }
 
     def swap(newValue, whileSwapped) {
-        new Swapper(getter as Callable, setter as Action).swap(newValue, whileSwapped as Callable)
+        new Swapper(getter as Factory, setter as Action).swap(newValue, whileSwapped as Factory)
     }
     
     def "can swap values"() {

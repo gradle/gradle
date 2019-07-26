@@ -183,7 +183,7 @@ This will run the tests and produce the required artifacts without any extra int
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 
-Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<managing_dependency_configurations#managing_dependency_configurations,dependency configurations>> in Gradle), and transitive dependencies.
+Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
 In fact, Gradle works perfectly with Maven-compatible repositories, which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
@@ -288,13 +288,13 @@ include::sample[dir="userguide/mavenMigration/basic/groovy",files="build.gradle[
 include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.kts[tags=repositories]"]
 ====
 
-You can also use the `repositories {}` block to configure custom repositories, as described in the <<repository_types#sub:maven_repo,Repository Types>> chapter.
+You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories.adoc#sec:maven_repo,Repository Types>> chapter.
 
-Lastly, Gradle allows you to resolve dependencies against the <<repository_types#sub:maven_local,local Maven cache/repository>>.
+Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sec:maven_local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
-If you want to share published artifacts via the filesystem, consider configuring a <<repository_types#sub:maven_repo,custom Maven repository>> with a file:// URL.
+If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a file:// URL.
 
-You might also be interested in learning about Gradle's own <<dependency_cache#dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
+You might also be interested in learning about Gradle's own <<declaring_repositories.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
 [[migmvn:controlling_dep_versions]]
 === Controlling dependency versions

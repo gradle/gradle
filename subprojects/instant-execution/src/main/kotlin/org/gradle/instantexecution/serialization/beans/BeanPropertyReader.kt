@@ -22,9 +22,11 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
+import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.IsolateContext
@@ -47,7 +49,7 @@ import java.util.function.Supplier
 class BeanPropertyReader(
     private val beanType: Class<*>,
     private val filePropertyFactory: FilePropertyFactory
-) {
+) : BeanStateReader {
 
     companion object {
 
@@ -66,6 +68,8 @@ class BeanPropertyReader(
 
     private
     val constructorForSerialization by lazy {
+        // Initialize the super types of the bean type, as this does not seem to happen via the generated constructors
+        maybeInit(beanType)
         if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
             // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
             newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
@@ -74,10 +78,19 @@ class BeanPropertyReader(
         }
     }
 
-    fun newBean(): Any =
+    private
+    fun maybeInit(beanType: Class<*>) {
+        val superclass = beanType.superclass
+        if (superclass?.classLoader != null) {
+            Class.forName(superclass.name, true, superclass.classLoader)
+            maybeInit(superclass)
+        }
+    }
+
+    override suspend fun ReadContext.newBean() =
         constructorForSerialization.newInstance()
 
-    suspend fun ReadContext.readFieldsOf(bean: Any) {
+    override suspend fun ReadContext.readStateOf(bean: Any) {
         readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)
@@ -96,6 +109,11 @@ class BeanPropertyReader(
             RegularFileProperty::class.java -> { bean, value ->
                 field.set(bean, filePropertyFactory.newFileProperty().apply {
                     set(value as File?)
+                })
+            }
+            MapProperty::class.java -> { bean, value ->
+                field.set(bean, DefaultMapProperty(Any::class.java, Any::class.java).apply {
+                    set(value as Map<Any?, Any?>)
                 })
             }
             ListProperty::class.java -> { bean, value ->
