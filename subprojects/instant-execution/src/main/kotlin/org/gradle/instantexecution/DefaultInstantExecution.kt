@@ -254,8 +254,8 @@ class DefaultInstantExecution internal constructor(
     fun DefaultWriteContext.writeClassLoaderScopeSpecs(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>) {
         writeCollection(classLoaderScopeSpecs) { spec ->
             writeString(spec.id)
-            writeClassPath(spec.localClassPath)
-            writeClassPath(spec.exportClassPath)
+            writeClassPath(spec.localClassPath.toClassPath())
+            writeClassPath(spec.exportClassPath.toClassPath())
             writeClassLoaderScopeSpecs(spec.children)
         }
     }
@@ -264,8 +264,8 @@ class DefaultInstantExecution internal constructor(
     fun DefaultReadContext.readClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
         readList {
             ClassLoaderScopeSpec(readString()).apply {
-                localClassPath = readClassPath()
-                exportClassPath = readClassPath()
+                localClassPath.add(readClassPath())
+                exportClassPath.add(readClassPath())
                 children.addAll(readClassLoaderScopeSpecs())
             }
         }
@@ -308,7 +308,11 @@ class DefaultInstantExecution internal constructor(
             val stack = ArrayDeque(classLoaderScopeSpecs.map { it to scopeRegistry.coreAndPluginsScope })
             while (stack.isNotEmpty()) {
                 val (spec, parent) = stack.pop()
-                val scope = parent.createChild(spec.id).local(spec.localClassPath).export(spec.exportClassPath).lock()
+                val scope = parent
+                    .createChild(spec.id)
+                    .local(spec.localClassPath.toClassPath())
+                    .export(spec.exportClassPath.toClassPath())
+                    .lock()
                 scopes.add(scope)
                 stack.addAll(spec.children.map { it to scope })
             }
@@ -427,3 +431,8 @@ fun <R> runToCompletion(block: suspend () -> R): R {
         it.getOrThrow()
     }
 }
+
+
+private
+fun Iterable<ClassPath>.toClassPath() =
+    fold(ClassPath.EMPTY, ClassPath::plus)

@@ -49,13 +49,13 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
 
     override fun localClasspathAdded(scopeId: String, localClassPath: ClassPath) {
         scopeSpecs[scopeId]?.let { scopeSpec ->
-            scopeSpec.localClassPath += localClassPath
+            scopeSpec.localClassPath.add(localClassPath)
         }
     }
 
     override fun exportClasspathAdded(scopeId: String, exportClassPath: ClassPath) {
         scopeSpecs[scopeId]?.let { scopeSpec ->
-            scopeSpec.exportClassPath += exportClassPath
+            scopeSpec.exportClassPath.add(exportClassPath)
         }
     }
 }
@@ -63,7 +63,7 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
 
 internal
 class ClassLoaderScopeSpec(val id: String) {
-    var localClassPath = ClassPath.EMPTY
-    var exportClassPath = ClassPath.EMPTY
+    var localClassPath = mutableListOf<ClassPath>()
+    var exportClassPath = mutableListOf<ClassPath>()
     val children = mutableListOf<ClassLoaderScopeSpec>()
 }
