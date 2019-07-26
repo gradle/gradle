@@ -129,7 +129,7 @@ This release introduces a number of improvements to the Worker API.
 
 First, the classpath is now cleaner when submitting work using classloader or process isolation.  Extra jars (such as external jars used by Gradle itself) should no longer appear on the worker classpath.  
 
-Second, new classes have been introduced to make defining the unit of work implementation more straightforward and type safe.  It also makes it simpler to handle null values in work parameters.  Instead of a `Runnable`, the unit of work is defined by extending the `WorkAction` and `WorkParameters` interfaces.  For example:
+Second, new classes have been introduced to make defining the unit of work implementation more straightforward and type safe.  This also makes it simpler to handle null values in work parameters.  Instead of a `Runnable`, the unit of work is defined by extending the `WorkAction` and `WorkParameters` interfaces.  For example:
 
 ```groovy
 // Define an interface that represents the parameters of your WorkAction.  Gradle will generate a parameters object from this interface.
@@ -189,7 +189,13 @@ This improves performance for projects with a large amount of resource files.
 
 ## Support for PMD incremental analysis
 
-TBD
+The PMD plugin now supports using PMD's incremental analysis cache to improve performance when files have not changed in between builds.  To enable incremental analysis, add the following to your PMD configuration:
+
+```groovy
+pmd {
+    incrementalAnalysis = true
+}
+``` 
 
 This was contributed by [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod).
 
@@ -217,7 +223,11 @@ This was contributed by [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Executable Jar support with `project.javaexec` and `JavaExec`
 
-TBD
+`JavaExec` and `project.javaexec` will now run an executable jar under when the `JavaExec.main` property has not been set and the classpath resolves to a single file.
+
+Under these circumstances, Gradle will assume that the single jar in the classpath is an executable jar and will run it with `java -jar`.  For proper execution, the `Main-Class` attribute will need to be set in the executable jar.
+
+Thanks to [Stephan Windmüller](https://github.com/stovocor) for contributing the basis of this feature.
 
 ## File case changes when copying files on case-insensitive file systems are now handled correctly
 
