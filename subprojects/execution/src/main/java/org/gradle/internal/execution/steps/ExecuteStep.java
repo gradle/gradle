@@ -20,30 +20,18 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationType;
 
-public class ExecuteStep<C extends InputChangesContext> extends BuildOperationStep<C, Result> {
-
-    public ExecuteStep(BuildOperationExecutor buildOperationExecutor) {
-        super(buildOperationExecutor);
-    }
+public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
 
     @Override
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
-        return operation(operationContext -> {
-                ExecutionOutcome outcome = context.getInputChanges()
-                    .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
-                    .orElseGet(() -> determineOutcome(work.execute(null, context), false));
-                operationContext.setResult((Operation.Result) () -> outcome);
-                return () -> Try.successful(outcome);
-            },
-            BuildOperationDescriptor.displayName("Executing " + work.getDisplayName())
-                .details(Operation.Details.INSTANCE)
-        );
+        ExecutionOutcome outcome = context.getInputChanges()
+            .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
+            .orElseGet(() -> determineOutcome(work.execute(null, context), false));
+        return () -> Try.successful(outcome);
     }
 
     private static ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
@@ -56,19 +44,6 @@ public class ExecuteStep<C extends InputChangesContext> extends BuildOperationSt
                     : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
             default:
                 throw new IllegalArgumentException("Unknown result: " + result);
-        }
-    }
-
-    /*
-     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
-     */
-    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
-        interface Details {
-            Details INSTANCE = new Details() {};
-        }
-
-        interface Result {
-            ExecutionOutcome getOutcome();
         }
     }
 }

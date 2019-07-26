@@ -151,7 +151,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new CatchExceptionStep<>(
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(
-            new ExecuteStep<>(buildOperationExecutor
+            new ExecuteStep<>(
         ))))))))))))))))
         // @formatter:on
     }

@@ -23,7 +23,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import spock.lang.Unroll
 
 class ExecuteStepTest extends StepSpec<InputChangesContext> {
-    def step = new ExecuteStep<>(buildOperationExecutor)
+    def step = new ExecuteStep<>()
     def inputChanges = Mock(InputChangesInternal)
 
     @Override
@@ -42,11 +42,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         _ * context.inputChanges >> Optional.empty()
         _ * work.execute(null, context) >> workResult
         0 * _
-
-        withOnlyOperation(ExecuteStep.Operation) {
-            assert it.descriptor.displayName == "Executing job ':test'"
-            assert it.result.outcome == expectedOutcome
-        }
 
         where:
         workResult                        | expectedOutcome
@@ -67,11 +62,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         _ * work.execute(null, context) >> { throw failure }
         0 * _
 
-        withOnlyOperation(ExecuteStep.Operation) {
-            assert it.descriptor.displayName == "Executing job ':test'"
-            assert it.failure == failure
-        }
-
         where:
         failure << [new RuntimeException(), new Error()]
     }
@@ -88,11 +78,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         1 * inputChanges.incremental >> incrementalExecution
         _ * work.execute(inputChanges, context) >> workResult
         0 * _
-
-        withOnlyOperation(ExecuteStep.Operation) {
-            assert it.descriptor.displayName == "Executing job ':test'"
-            assert it.result.outcome == expectedOutcome
-        }
 
         where:
         incrementalExecution | workResult                        | expectedOutcome

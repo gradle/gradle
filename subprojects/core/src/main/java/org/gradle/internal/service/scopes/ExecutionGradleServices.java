@@ -160,7 +160,7 @@ public class ExecutionGradleServices {
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(
-            new ExecuteStep<>(buildOperationExecutor
+            new ExecuteStep<>(
         ))))))))))))))))))))));
         // @formatter:on
     }
