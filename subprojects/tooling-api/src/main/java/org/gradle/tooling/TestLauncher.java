@@ -16,6 +16,7 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
@@ -81,6 +82,26 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.7
      */
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
+
+    /**
+     * Configures test JVM to run in debug mode.
+     * <p>
+     * When called, the forked test JVM is launched with the following argument:
+     * <pre>-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=localhost:&lt;port&gt;</pre>
+     * This means the test JVM expects a debugger at the specified port that uses a
+     * <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/jpda/conninv.html#Connectors">socket listening connector</a>.
+     * If the debugger is not present then the test execution will fail.
+     * <p>
+     * Invoking this method adjusts the test task to launch only one JVM. More specifically, the parallel execution
+     * gets disabled and the {@code forkEvery} property is set to 0.
+     *
+     * @param port the target port where the test JVM expects the debugger
+     * @return this
+     *
+     * @since 5.6
+     */
+    @Incubating
+    TestLauncher debugTestsOn(int port);
 
     /**
      * Executes the tests, blocking until complete.

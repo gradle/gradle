@@ -7,7 +7,7 @@ plugins {
 
 tasks {
     processResources {
-        from(project(":instantExecutionReport").tasks.processResources) {
+        from({ project(":instantExecutionReport").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
     }

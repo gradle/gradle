@@ -20,8 +20,6 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
@@ -34,13 +32,12 @@ import java.io.File
 internal
 class FileCollectionCodec(
     private val fileSetSerializer: SetSerializer<File>,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<FileCollectionInternal> {
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         runCatching {
-            val visitor = CollectingVisitor(directoryFileTreeFactory)
+            val visitor = CollectingVisitor()
             value.visitLeafCollections(visitor)
             visitor.files
         }.apply {
@@ -62,23 +59,31 @@ class FileCollectionCodec(
 
 
 private
-class CollectingVisitor(
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
-) : FileCollectionLeafVisitor {
+class CollectingVisitor : FileCollectionLeafVisitor {
     val files: MutableSet<File> = mutableSetOf()
+
+    override fun beforeVisit(type: FileCollectionLeafVisitor.CollectionType): Boolean {
+        // Ignore scheduled transforms for now
+        return type != FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult
+    }
 
     override fun visitCollection(fileCollection: FileCollectionInternal) {
         files.addAll(fileCollection.files)
     }
 
     override fun visitGenericFileTree(fileTree: FileTreeInternal) {
+        // TODO - should serialize a spec for the tree instead of its current elements
         visitCollection(fileTree)
     }
 
-    override fun visitFileTree(root: File, patterns: PatternSet) {
+    override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        val fileTree = directoryFileTreeFactory.create(root, patterns)
-        visitCollection(FileTreeAdapter(fileTree))
+        visitCollection(fileTree)
+    }
+
+    override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
+        // TODO - should serialize a spec for the tree instead of its current elements
+        visitCollection(fileTree)
     }
 }
 

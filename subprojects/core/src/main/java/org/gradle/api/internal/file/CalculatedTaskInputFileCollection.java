@@ -17,9 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
-import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     public CalculatedTaskInputFileCollection(String taskPath, MinimalFileSet calculatedFiles, Object[] inputs) {
         this.taskPath = taskPath;
         this.calculatedFiles = calculatedFiles;
-        targets = new ArrayList<LifecycleAwareValue>(1 + inputs.length);
+        targets = new ArrayList<>(1 + inputs.length);
         for (Object input : inputs) {
             if (input instanceof LifecycleAwareValue) {
                 targets.add((LifecycleAwareValue) input);
@@ -50,11 +48,6 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     @Override
     public String getDisplayName() {
         return calculatedFiles.getDisplayName();
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
     }
 
     @Override

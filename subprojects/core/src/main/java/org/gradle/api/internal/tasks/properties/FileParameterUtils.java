@@ -146,7 +146,12 @@ public class FileParameterUtils {
                 }
 
                 @Override
-                public void visitFileTree(File root, PatternSet patterns) {
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+                    nonFileRoot.set(true);
+                }
+
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     nonFileRoot.set(true);

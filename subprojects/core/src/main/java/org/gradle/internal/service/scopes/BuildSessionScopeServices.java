@@ -247,8 +247,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CleanupActionFactory(buildOperationExecutor);
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken) {
-        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory) {
+        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory);
     }
 
     DeprecatedUsageBuildOperationProgressBroadaster createDeprecatedUsageBuildOperationProgressBroadaster(

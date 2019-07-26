@@ -45,13 +45,11 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readEachProperty
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.beans.writingProperties
-import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
-import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.instantexecution.serialization.writeStrings
@@ -103,9 +101,9 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
         writeStrings(dependencies.map { it.path })
 
         withTaskOf(taskType, task) {
-            beanPropertyWriterFor(taskType).run {
-                writeFieldsOf(task)
-                writeRegisteredPropertiesOf(task, this)
+            beanStateWriterFor(task.javaClass).run {
+                writeStateOf(task)
+                writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
             }
         }
     }
@@ -120,8 +118,8 @@ class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
         val task = createTask(projectPath, taskName, taskType)
 
         withTaskOf(taskType, task) {
-            beanPropertyReaderFor(taskType).run {
-                readFieldsOf(task)
+            beanStateReaderFor(task.javaClass).run {
+                readStateOf(task)
                 readRegisteredPropertiesOf(task)
             }
         }

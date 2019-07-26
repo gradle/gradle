@@ -17,16 +17,16 @@
 package org.gradle.workers.internal;
 
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.workers.WorkerExecution;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 
-public class IsolatedParametersActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
+public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> implements ActionExecutionSpec<T> {
     private final String displayName;
-    private final Class<? extends WorkerExecution<T>> implementationClass;
+    private final Class<? extends WorkAction<T>> implementationClass;
     private final Isolatable<T> isolatedParams;
     private final ClassLoaderStructure classLoaderStructure;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkerExecution<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.isolatedParams = isolatedParams;
@@ -34,7 +34,7 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkerParameters> i
     }
 
     @Override
-    public Class<? extends WorkerExecution<T>> getImplementationClass() {
+    public Class<? extends WorkAction<T>> getImplementationClass() {
         return implementationClass;
     }
 

@@ -16,42 +16,37 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.collect.Maps;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static org.gradle.process.internal.util.MergeOptionsUtil.canBeMerged;
 import static org.gradle.process.internal.util.MergeOptionsUtil.containsAll;
 import static org.gradle.process.internal.util.MergeOptionsUtil.getHeapSizeMb;
-import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
-    private final PathToFileResolver resolver;
     private final JvmOptions options;
-    private final FileCollectionFactory fileCollectionFactory;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
-    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory) {
-        this(resolver, fileCollectionFactory, Jvm.current());
+    @Inject
+    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+        this(resolver, fileCollectionFactory, Jvm.current(), debugOptions);
     }
 
-    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, Jvm jvm) {
+    private DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, Jvm jvm, JavaDebugOptions debugOptions) {
         super(resolver);
-        this.resolver = resolver;
-        options = new JvmOptions(fileCollectionFactory);
-        this.fileCollectionFactory = fileCollectionFactory;
+        options = new JvmOptions(fileCollectionFactory, debugOptions);
         setExecutable(jvm.getJavaExecutable());
     }
 
@@ -207,6 +202,15 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         options.setDebug(enabled);
     }
 
+    public JavaDebugOptions getDebugOptions() {
+        return options.getDebugOptions();
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        action.execute(options.getDebugOptions());
+    }
+
     @Override
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
@@ -217,54 +221,6 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             }
         }
         return this;
-    }
-
-    @Override
-    public JavaForkOptionsInternal mergeWith(JavaForkOptions options) {
-        if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
-            throw new UnsupportedOperationException("Cannot merge options with jvmArgumentProviders.");
-        }
-        JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver, fileCollectionFactory);
-
-        if (!canBeMerged(getExecutable(), options.getExecutable())) {
-            throw new IllegalArgumentException("Cannot merge a fork options object with a different executable (this: " + getExecutable() + ", other: " + options.getExecutable() + ").");
-        } else {
-            mergedOptions.setExecutable(getExecutable() != null ? getExecutable() : options.getExecutable());
-        }
-
-        if (!canBeMerged(getWorkingDir(), options.getWorkingDir())) {
-            throw new IllegalArgumentException("Cannot merge a fork options object with a different working directory (this: " + getWorkingDir() + ", other: " + options.getWorkingDir() + ").");
-        } else {
-            mergedOptions.setWorkingDir(getWorkingDir() != null ? getWorkingDir() : options.getWorkingDir());
-        }
-
-        if (!canBeMerged(getDefaultCharacterEncoding(), options.getDefaultCharacterEncoding())) {
-            throw new IllegalArgumentException("Cannot merge a fork options object with a different default character encoding (this: " + getDefaultCharacterEncoding() + ", other: " + options.getDefaultCharacterEncoding() + ").");
-        } else {
-            mergedOptions.setDefaultCharacterEncoding(getDefaultCharacterEncoding() != null ? getDefaultCharacterEncoding() : options.getDefaultCharacterEncoding());
-        }
-
-        mergedOptions.setDebug(getDebug() || options.getDebug());
-        mergedOptions.setEnableAssertions(getEnableAssertions() || options.getEnableAssertions());
-
-        mergedOptions.setMinHeapSize(mergeHeapSize(getMinHeapSize(), options.getMinHeapSize()));
-        mergedOptions.setMaxHeapSize(mergeHeapSize(getMaxHeapSize(), options.getMaxHeapSize()));
-
-        Set<String> mergedJvmArgs = normalized(getJvmArgs());
-        mergedJvmArgs.addAll(normalized(options.getJvmArgs()));
-        mergedOptions.setJvmArgs(mergedJvmArgs);
-
-        Map<String, Object> mergedEnvironment = Maps.newHashMap(getEnvironment());
-        mergedEnvironment.putAll(options.getEnvironment());
-        mergedOptions.setEnvironment(mergedEnvironment);
-
-        Map<String, Object> mergedSystemProperties = Maps.newHashMap(getSystemProperties());
-        mergedSystemProperties.putAll(options.getSystemProperties());
-        mergedOptions.setSystemProperties(mergedSystemProperties);
-
-        mergedOptions.setBootstrapClasspath(new UnionFileCollection(getBootstrapClasspath(), options.getBootstrapClasspath()));
-
-        return mergedOptions;
     }
 
     @Override

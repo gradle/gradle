@@ -27,8 +27,7 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
     abstract String getSampleName()
 
     List<String> getDsls() {
-        // one sample is prepared for its Kotlin version, but doesn't have it yet
-        ['groovy']
+        ['groovy', 'kotlin']
     }
 
     @Rule

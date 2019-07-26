@@ -27,8 +27,7 @@ class LexerTest {
     @Test
     fun `extracts comments and top-level blocks`() {
 
-        val (comments, topLevelBlocks) =
-
+        assertThat(
             lex(
                 "/* ... */" +
                     "\n// ..." +
@@ -39,23 +38,31 @@ class LexerTest {
                     "\n ... */" +
                     "\n}" +
                     "\n// ...",
-                "buildscript", "plugins")
-
-        assertThat(
-            comments,
+                "buildscript", "plugins"),
             equalTo(
-                listOf(
-                    0..8,
-                    10..15,
-                    31..40,
-                    54..63,
-                    67..72)))
+                Packaged(
+                    null,
+                    LexedScript(
+                        listOf(
+                            0..8,
+                            10..15,
+                            31..40,
+                            54..63,
+                            67..72),
+                        listOf(
+                            topLevelBlock("buildscript", 17..27, 29..42),
+                            topLevelBlock("plugins", 44..50, 52..65))))))
+    }
 
+    @Test
+    fun `extracts package name`() {
         assertThat(
-            topLevelBlocks,
+            lex("\n/* ... */\npackage com.example\nplugins { }", "plugins"),
             equalTo(
-                listOf(
-                    topLevelBlock("buildscript", 17..27, 29..42),
-                    topLevelBlock("plugins", 44..50, 52..65))))
+                Packaged(
+                    "com.example",
+                    LexedScript(
+                        listOf(1..9),
+                        listOf(topLevelBlock("plugins", 31..37, 39..41))))))
     }
 }

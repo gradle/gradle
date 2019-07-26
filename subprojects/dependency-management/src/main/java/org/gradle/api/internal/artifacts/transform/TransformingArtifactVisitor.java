@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -66,6 +67,11 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     @Override
     public void visitFailure(Throwable failure) {
         visitor.visitFailure(failure);
+    }
+
+    @Override
+    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+        return visitor.startVisit(collectionType);
     }
 
     @Override

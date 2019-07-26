@@ -30,6 +30,30 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Debug support for forked Java processes
+
+Gradle has now a new DSL element to configure debugging for Java processes.  
+ 
+```groovy
+project.javaexec {
+
+  debugOptions {
+     enabled = true
+     port = 4455
+     server = true
+     suspend = true
+   }
+}
+```
+
+This configuration appends the following JVM argument to the process: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4455` 
+ 
+The `debugOptions` configuration is available for `project.javaExec` and for tasks using the `JavaExec` type, including the `test` task.
+ 
+## Debug tests via the Tooling API
+ 
+In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.

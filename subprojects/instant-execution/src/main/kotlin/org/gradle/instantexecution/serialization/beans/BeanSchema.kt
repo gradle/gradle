@@ -69,6 +69,7 @@ val Class<*>.relevantFields: Sequence<Field>
     get() = declaredFields.asSequence()
         .filterNot { field ->
             Modifier.isStatic(field.modifiers)
+                || Modifier.isTransient(field.modifiers)
                 // Ignore the `metaClass` field that Groovy generates
                 || (field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
                 // Ignore the `__meta_class__` field that Gradle generates

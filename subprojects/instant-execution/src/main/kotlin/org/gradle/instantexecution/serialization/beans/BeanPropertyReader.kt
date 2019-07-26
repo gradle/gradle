@@ -49,7 +49,7 @@ import java.util.function.Supplier
 class BeanPropertyReader(
     private val beanType: Class<*>,
     private val filePropertyFactory: FilePropertyFactory
-) {
+) : BeanStateReader {
 
     companion object {
 
@@ -68,6 +68,8 @@ class BeanPropertyReader(
 
     private
     val constructorForSerialization by lazy {
+        // Initialize the super types of the bean type, as this does not seem to happen via the generated constructors
+        maybeInit(beanType)
         if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
             // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
             newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
@@ -76,10 +78,19 @@ class BeanPropertyReader(
         }
     }
 
-    fun newBean(): Any =
+    private
+    fun maybeInit(beanType: Class<*>) {
+        val superclass = beanType.superclass
+        if (superclass?.classLoader != null) {
+            Class.forName(superclass.name, true, superclass.classLoader)
+            maybeInit(superclass)
+        }
+    }
+
+    override suspend fun ReadContext.newBean() =
         constructorForSerialization.newInstance()
 
-    suspend fun ReadContext.readFieldsOf(bean: Any) {
+    override suspend fun ReadContext.readStateOf(bean: Any) {
         readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)

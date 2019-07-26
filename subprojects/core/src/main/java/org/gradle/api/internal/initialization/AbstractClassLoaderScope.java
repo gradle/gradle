@@ -45,4 +45,5 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         }
         return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
+
 }

@@ -18,13 +18,19 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 
 abstract class AbstractDaemonWorkerExecutorIntegrationSpec extends AbstractWorkerExecutorIntegrationTest {
     def setup() {
         executer.requireDaemon()
         executer.requireIsolatedDaemons()
+    }
+
+    @Override
+    protected ExecutionResult succeeds(String... tasks) {
         executer.withWorkerDaemonsExpirationDisabled()
+        return super.succeeds(tasks)
     }
 
     void stopDaemonsNow() {

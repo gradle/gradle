@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.file.collections
 
-import spock.lang.Specification
 import org.gradle.api.Buildable
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import spock.lang.Specification
 
 class FileCollectionAdapterTest extends Specification {
 
@@ -48,17 +48,28 @@ class FileCollectionAdapterTest extends Specification {
         0 * _._
     }
 
-    def getBuildDependenciesDelegatesToTargetCollectionWhenItImplementsBuildable() {
+    def visitDependenciesDelegatesToTargetCollectionWhenItImplementsBuildable() {
         TestFileSet fileSet = Mock()
-        TaskDependency expectedDependency = Mock()
         FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)
+        TaskDependencyResolveContext context = Mock()
 
         when:
-        def dependencies = adapter.buildDependencies
+        adapter.visitDependencies(context)
 
         then:
-        dependencies == expectedDependency
-        1 * fileSet.buildDependencies >> expectedDependency
+        1 * context.add(fileSet)
+    }
+
+    def visitDependenciesDoesNotDelegateToTargetCollectionWhenItDoesNotImplementBuildable() {
+        MinimalFileSet fileSet = Mock()
+        FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)
+        TaskDependencyResolveContext context = Mock()
+
+        when:
+        adapter.visitDependencies(context)
+
+        then:
+        0 * context._
     }
 
     interface TestFileSet extends MinimalFileSet, Buildable {

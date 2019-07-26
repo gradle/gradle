@@ -485,8 +485,8 @@ task fastTask { }
         remappedCacheSize() == 4
         scriptCacheSize() == 4
         hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
-        getCompileClasspath(commonHash, 'cp_dsl').length == 1
-        getCompileClasspath(commonHash, 'dsl').length == 1
+        getCompileClasspath(commonHash, 'cp_dsl').length == 2 // settings classpath is deprecated so it differs
+        getCompileClasspath(commonHash, 'dsl').length == 2 // settings classpath is deprecated so it differs
     }
 
     def "same script can be applied from identical init script, settings script and build script"() {
@@ -515,8 +515,8 @@ task fastTask { }
         remappedCacheSize() == 4
         scriptCacheSize() == 2
         hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
-        getCompileClasspath(commonHash, 'cp_dsl').length == 1
-        getCompileClasspath(commonHash, 'dsl').length == 1
+        getCompileClasspath(commonHash, 'cp_dsl').length == 2
+        getCompileClasspath(commonHash, 'dsl').length == 2
     }
 
     def "remapped classes have script origin"() {

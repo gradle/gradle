@@ -21,7 +21,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.workers.WorkerExecution;
+import org.gradle.workers.WorkAction;
 
 import javax.inject.Inject;
 
@@ -36,14 +36,14 @@ public class DefaultWorkerServer implements WorkerProtocol {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            Class<? extends WorkerExecution> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
+            Class<? extends WorkAction> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
             DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
             Instantiator instantiator = parent.get(InstantiatorFactory.class).inject(serviceRegistry);
             if (spec.getParameters() != null) {
                 serviceRegistry.add(spec.getParameters().getClass(), Cast.uncheckedCast(spec.getParameters()));
             }
             serviceRegistry.add(Instantiator.class, instantiator);
-            WorkerExecution execution = instantiator.newInstance(implementationClass);
+            WorkAction execution = instantiator.newInstance(implementationClass);
             execution.execute();
             if (execution instanceof ProvidesWorkResult) {
                 return ((ProvidesWorkResult) execution).getWorkResult();

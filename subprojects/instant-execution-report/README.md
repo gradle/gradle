@@ -1,9 +1,9 @@
 The `:instantExecutionReport` project produces the Javascript / HTML
-app for browsing and understanding failures occurred when running a
+app for browsing and understanding problems occurred when running a
 build with instant execution.
 
 The output of `:instantExecutionReport` is completely produced by the
-`processResources` task into `build/resources/main` which then gets
+`assembleReport` task into `build/report` which then gets
 embedded into the `:instantExecution` module (see
 [../instant-execution/instant-execution.gradle.kts](../instant-execution/instant-execution.gradle.kts)).
 
@@ -30,6 +30,6 @@ Start a continuous build on one shell:
 
 Start `browser-sync` on another:
 
-    $ browser-sync start -s subprojects/instant-execution-report/build/resources/main --startPath instant-execution-report.html -w
+    $ browser-sync start -s subprojects/instant-execution-report/build/report --startPath instant-execution-report.html -w
 
 Hack away!

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 
 import java.io.File;
@@ -26,8 +27,10 @@ import java.io.File;
  * A visitor over the contents of a {@link ResolvedArtifactSet}.
  */
 public interface ArtifactVisitor {
+    boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType);
+
     /**
-     * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
+     * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
      */
     void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact);
 

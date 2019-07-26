@@ -43,7 +43,6 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -94,7 +93,6 @@ class DefaultConfigurationSpec extends Specification {
     def projectAccessListener = Mock(ProjectAccessListener)
     def projectFinder = Mock(ProjectFinder)
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def projectState = Mock(ProjectState)
@@ -538,7 +536,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         configuration.allArtifacts.files.files == [artifact1.file, artifact2.file] as Set
-        configuration.allArtifacts.files.buildDependencies == configuration.allArtifacts.buildDependencies
+        configuration.allArtifacts.files.buildDependencies.getDependencies(Mock(Task)) == [artifactTask1, artifactTask2] as Set
         configuration.allArtifacts.buildDependencies.getDependencies(Mock(Task)) == [artifactTask1, artifactTask2] as Set
     }
 

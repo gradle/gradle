@@ -18,11 +18,11 @@
 [[feature_variants]]
 = Feature variants and optional dependencies
 
-Gradle supports the concept of _feature variants_: when building a library, it's often the case that some features should only available when some dependencies are present, or when special artifacts are used.
+Gradle supports the concept of _feature variants_: when building a library, it's often the case that some features should only be available when some dependencies are present, or when special artifacts are used.
 
 Feature variants let consumers choose what _features_ of a library they need: the dependency management engine will select the right artifacts and dependencies.
 
-This allows a number of different scenarios (list is non exhaustive):
+This allows for a number of different scenarios (list is non exhaustive):
 
 - a (better) substitute to {maven-optional-deps}
 - a _main_ library is built with support for different runtime features, and the <<sec::incompatible_variants,user has to choose between one of them>>
@@ -46,7 +46,7 @@ A capability is denoted by GAV coordinates, but you must think of it as feature 
 - "I provide runtime support for MySQL"
 - "I provide a Groovy runtime"
 
-And in general, having two component that provide the _same thing_ in the graph is a problem (they conflict).
+And in general, having two components that provide the _same thing_ in the graph is a problem (they conflict).
 ====
 
 This is an important concept because:
@@ -101,9 +101,9 @@ include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.k
 
 [NOTE]
 ====
-By convention, Gradle will map the feature name to a capability which group is the same as the group and version as the main component, but a name composed of the main component name and the kebab-cased feature name.
+By convention, Gradle will map the feature name to a capability which group and version are the same as the group and version of the main component, but with a name composed of the main component name and the kebab-cased feature name.
 
-For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, so the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
+For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
 
 If you choose the capability name yourself or add more capabilities to a variant, it is recommended to follow the same convention.
 ====
@@ -177,7 +177,7 @@ include::sample[dir="java-feature-variant/requiring-features/groovy/consumer",fi
 include::sample[dir="java-feature-variant/requiring-features/kotlin/consumer",files="build.gradle.kts[tags=consumer]"]
 ====
 
-This will automatically bring the `mysql-connector-java` dependency on runtime classpath.
+This will automatically bring the `mysql-connector-java` dependency on the runtime classpath.
 If there were more than one dependencies, all of them would be brought, meaning that a feature can be used to group dependencies which contribute to a feature together.
 
 Similarly, if the experimental Gradle metadata feature is enabled, it is possible to depend on an external dependency providing feature variants:
@@ -207,7 +207,7 @@ include::sample[dir="java-feature-variant/incompatible-variants/groovy/producer"
 include::sample[dir="java-feature-variant/incompatible-variants/kotlin/producer",files="build.gradle.kts[tags=producer]"]
 ====
 
-Where, the producer declares 3 variants, one for each database runtime support:
+Here, the producer declares 3 variants, one for each database runtime support:
 
 - `mysql-support` provides both the `db-support` and `mysql-support` capabilities
 - `postgres-support` provides both the `db-support` and `postgres-support` capabilities

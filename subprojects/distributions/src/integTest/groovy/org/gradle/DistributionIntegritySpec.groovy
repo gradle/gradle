@@ -17,6 +17,9 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import java.util.zip.ZipFile
 
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
@@ -47,7 +50,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'commons-io-2.6.jar' : 'f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
             'commons-lang-2.6.jar' : '50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c',
             'failureaccess-1.0.1.jar' : 'a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26',
-            'groovy-all-1.0-2.5.4.jar' : '704d3307616c57234871c4db3a355c3e81ea975db8dac8ee6c9264b91c74d2b7',
+            'groovy-all-1.3-2.5.4.jar': 'b41c83700fd2b59333aea828bb15ffa5b8af7b12c74a7a26e77d4274cef0702b',
             'guava-27.1-android.jar' : '686404f2d1d4d221911f96bd627ff60dac2226a5dfa6fb8ba517073eb97ec0ef',
             'jansi-1.17.1.jar' : 'b2234bfb0d8f245562d64ed9325df6b907093f4daa702c9082d4796db2a2d894',
             'javax.inject-1.jar' : '91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff',
@@ -173,12 +176,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         }
         Map<String, TestFile> depJars = filtered.collectEntries { [libDir.relativePath(it), it] }
 
-        def added = depJars.keySet() - expectedHashes.keySet()
-        def removed = expectedHashes.keySet() - depJars.keySet()
-
-        expect:
-        assert (added + removed).isEmpty()
-
+        when:
         def errors = []
         depJars.each { String jarPath, TestFile jar ->
             def expected = expectedHashes[jarPath]
@@ -187,8 +185,32 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
                 errors << "SHA-256 hash does not match for ${jarPath}: expected=${expected}, actual=${actual}"
             }
         }
+        then:
+        errors.empty
 
-        assert errors.empty
+        when:
+        def added = depJars.keySet() - expectedHashes.keySet()
+        def removed = expectedHashes.keySet() - depJars.keySet()
+        then:
+        (added + removed).isEmpty()
+    }
+
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
+    def "validate dependency archives"() {
+        when:
+        def jars = collectJars(unpackDistribution())
+        then:
+        jars != []
+
+        when:
+        def invalidArchives = jars.findAll {
+            new ZipFile(it).withCloseable {
+                def names = it.entries()*.name
+                names.size() != names.toUnique().size()
+            }
+        }
+        then:
+        invalidArchives == []
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {
