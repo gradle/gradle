@@ -458,15 +458,17 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 [[using-the-worker-api]]
 === Using the Worker API
 
-In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and a configuration for the unit of work. The implementation is simply a class that extends `java.lang.Runnable`. This class should have a constructor that is annotated with `javax.inject.Inject` and accepts parameters that configure the class for a single unit of work. When a unit of work is submitted to the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor], an instance of this class will be created and the parameters configured for the unit of work will be passed to the constructor.
+In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and the parameters for the unit of work.
 
-.Creating a unit of work implementation
+The parameters for the unit of work are defined as an interface that extends link:{javadocPath}/org/gradle/workers/WorkParameters.html[WorkParameters].  The implementation is a class that extends link:{javadocPath}/org/gradle/workers/WorkAction.html[WorkAction]. This class should be abstract and should not implement the `getParameters()` method (Gradle will inject this method at runtime with the parameters object for each unit of work).
+
+.Defining the unit of work parameters and implementation
 ====
 include::sample[dir="workerApi/noIsolation/groovy",files="build.gradle[tags=unit-of-work]"]
 include::sample[dir="workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=unit-of-work]"]
 ====
 
-The configuration of the worker is represented by a link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html[WorkerConfiguration] and is set by configuring an instance of this object at the time of submission. However, in order to submit the unit of work, it is necessary to first acquire the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]. To do this, a constructor should be provided that is annotated with `javax.inject.Inject` and accepts a link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] parameter. Gradle will inject the instance of link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] at runtime when the task is created.
+In order to submit the unit of work, it is necessary to first acquire the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]. To do this, a task should have a constructor annotated with `javax.inject.Inject` that accepts a link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] parameter. Gradle will inject the instance of link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] at runtime when the task is created.  Then a link:{javadocPath}/org/gradle/workers/WorkQueue.html--[WorkQueue] object can be created and individual items of work can be submitted.
 
 .Submitting a unit of work for execution
 ====
@@ -474,18 +476,16 @@ include::sample[dir="workerApi/noIsolation/groovy",files="build.gradle[tags=task
 include::sample[dir="workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=task-implementation]"]
 ====
 
-Note that one element of the link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html[WorkerConfiguration] is the `params` property. These are the parameters passed to the constructor of the unit of work implementation for each item of work submitted. Any parameters provided to the unit of work _must_ be `java.io.Serializable`.
-
 Once all of the work for a task action has been submitted, it is safe to exit the task action. The work will be executed asynchronously and in parallel (up to the setting of `max-workers`). Of course, any tasks that are dependent on this task (and any subsequent task actions of this task) will not begin executing until all of the asynchronous work completes. However, other independent tasks that have no relationship to this task can begin executing immediately.
 
 If any failures occur while executing the asynchronous work, the task will fail and a link:{javadocPath}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException] will be thrown detailing the failure for each failed work item. This will be treated like any failure during task execution and will prevent any dependent tasks from executing.
 
-In some cases, however, it might be desirable to wait for work to complete before exiting the task action. This is possible using the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#await--[WorkerExecutor.await()] method. As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a link:{javadocPath}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException] thrown from the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#await--[WorkerExecutor.await()] method.
+In some cases, however, it might be desirable to wait for work to complete before exiting the task action. This is possible using the link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] method. As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a link:{javadocPath}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException] thrown from the link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] method.
 
 [NOTE]
 ====
 
-Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#await--[WorkerExecutor.await()] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
+Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
 
 ====
 
@@ -498,21 +498,21 @@ include::sample[dir="workerApi/waitForCompletion/kotlin",files="build.gradle.kts
 [[isolation-modes]]
 === Isolation Modes
 
-Gradle provides three isolation modes that can be configured on a unit of work and are specified using the link:{javadocPath}/org/gradle/workers/IsolationMode.html[IsolationMode] enum:
+Gradle provides three isolation modes that can be configured when creating a link:{javadocPath}/org/gradle/workers/WorkQueue.html[WorkQueue] and are specified using the one of the following methods on link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]:
 
-IsolationMode.NONE::
+link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#noIsolation--[WorkerExecutor.noIsolation()]::
 This states that the work should be run in a thread with a minimum of isolation. For instance, it will share the same classloader that the task is loaded from. This is the fastest level of isolation.
-IsolationMode.CLASSLOADER::
-This states that the work should be run in a thread with an isolated classloader. The classloader will have the classpath from the classloader that the unit of work implementation class was loaded from as well as any additional classpath entries added through link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html#classpath-java.lang.Iterable-[WorkerConfiguration.classpath(java.lang.Iterable)].
-IsolationMode.PROCESS::
-This states that the work should be run with a maximum level of isolation by executing the work in a separate process. The classloader of the process will use the classpath from the classloader that the unit of work was loaded from as well as any additional classpath entries added through link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html#classpath-java.lang.Iterable-[WorkerConfiguration.classpath(java.lang.Iterable)]. Furthermore, the process will be a _Worker Daemon_ which will stay alive and can be reused for future work items that may have the same requirements. This process can be configured with different settings than the Gradle JVM using link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html#forkOptions-org.gradle.api.Action-[WorkerConfiguration.forkOptions(org.gradle.api.Action)].
+link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#classLoaderIsolation-org.gradle.api.Action-[WorkerExecutor.classLoaderIsolation()]::
+This states that the work should be run in a thread with an isolated classloader. The classloader will have the classpath from the classloader that the unit of work implementation class was loaded from as well as any additional classpath entries added through link:{javadocPath}/org/gradle/workers/ClassLoaderWorkerSpec.html#getClasspath--[ClassLoaderWorkerSpec.getClasspath()].
+link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#processIsolation-org.gradle.api.Action-[WorkerExecutor.processIsolation()]::
+This states that the work should be run with a maximum level of isolation by executing the work in a separate process. The classloader of the process will use the classpath from the classloader that the unit of work was loaded from as well as any additional classpath entries added through link:{javadocPath}/org/gradle/workers/ClassLoaderWorkerSpec.html#getClasspath--[ClassLoaderWorkerSpec.getClasspath()]. Furthermore, the process will be a _Worker Daemon_ which will stay alive and can be reused for future work items that may have the same requirements. This process can be configured with different settings than the Gradle JVM using link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions-org.gradle.api.Action-[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
 
 
 
 [[worker-daemons]]
 === Worker Daemons
 
-When using `IsolationMode.PROCESS`, gradle will start a long-lived _Worker Daemon_ process that can be reused for future work items.
+When using `processIsolation()`, gradle will start a long-lived _Worker Daemon_ process that can be reused for future work items.
 
 .Submitting an item of work to run in a worker daemon
 ====
@@ -520,7 +520,7 @@ include::sample[dir="workerApi/workerDaemon/groovy",files="build.gradle[tags=wor
 include::sample[dir="workerApi/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
 ====
 
-When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists. If so, it will send the unit of work to the idle daemon, marking it as busy. If not, it will start a new daemon. When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html#forkOptions-org.gradle.api.Action-[WorkerConfiguration.forkOptions(org.gradle.api.Action)].
+When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists. If so, it will send the unit of work to the idle daemon, marking it as busy. If not, it will start a new daemon. When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions-org.gradle.api.Action-[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
 
 executable::
 A daemon is considered compatible only if it uses the same java executable.

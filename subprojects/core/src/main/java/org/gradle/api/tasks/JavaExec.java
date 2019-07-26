@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -78,6 +80,20 @@ import java.util.Map;
  * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
  * <pre>
  * gradle someJavaExecTask --debug-jvm
+ * </pre>
+ * <p>
+ * Also, debug configuration can be explicitly set in {@link #debugOptions(Action)}:
+ * <pre>
+ * task runApp(type: JavaExec) {
+ *    ...
+ *
+ *    debugOptions {
+ *        enabled = true
+ *        port = 5566
+ *        server = true
+ *        suspend = false
+ *    }
+ * }
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
@@ -303,6 +319,16 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         javaExecHandleBuilder.setDebug(enabled);
+    }
+
+    @Override
+    public JavaDebugOptions getDebugOptions() {
+        return javaExecHandleBuilder.getDebugOptions();
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        javaExecHandleBuilder.debugOptions(action);
     }
 
     /**
