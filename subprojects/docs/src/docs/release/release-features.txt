@@ -1,4 +1,3 @@
- - PMD incremental analysis support
- - JavaExec supports executable jar
+ - Faster Groovy compilation
  - Test fixtures for Java projects
  - Manage plugin versions via settings script

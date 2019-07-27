@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features [improvements to make Groovy compilation faster](#groovy-improvements), a new plugin for [Java test fixtures](#test-fixtures) and [better management of plugin versions](#improved-plugin-management) in multi-project builds.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -43,6 +43,25 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+<a name="groovy-improvements" />
+
+## Faster Groovy compilation
+
+Gradle 5.6 includes two new features that accelerate Groovy compilation.
+
+### Groovy compilation avoidance
+
+Gradle now supports experimental compilation avoidance for Groovy. 
+This speeds up Groovy compilation by avoiding re-compiling dependent projects if there are no changes that would affect the output of their compilation.
+See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
+
+### Incremental Groovy compilation
+
+Even if recompilation is necessary, Gradle now has experimental support for incremental Groovy compilation.
+If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
+For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed classes (and the classes that are affected by them) will need to be recompiled.
+See [Incremental Groovy compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) in the user manual for more details.
+
 <a name="test-fixtures"/>
 
 ## Test fixtures for Java projects
@@ -57,6 +76,8 @@ dependencies {
    testImplementation(testFixtures(project(":my-lib")))
 }
 ```
+
+<a name="improved-plugin-management" />
 
 ## Central management of plugin versions with settings script
 
@@ -80,104 +101,6 @@ Very large multi-projects can suffer from a significant performance decrease in 
 This is caused by the large amount of class files on the classpath, which is only an issue on Windows systems.
 You can now tell the `java-library` plugin to [prefer jars over class folders on the compile classpath](userguide/java_library_plugin.html#sec:java_library_known_issues_windows_performance) by setting the `org.gradle.java.compile-classpath-packaging` system property to `true`.
 
-## Improvements for plugin authors
-
-### Task dependencies are honored for `@Input` properties of type `Provider`
-
-Gradle can automatically calculate task dependencies based on the value of certain task input properties. 
-For example, for a property that is annotated with `@InputFiles` and that has type `FileCollection` or `Provider<Set<RegularFile>>`, 
-Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
-
-In this release, Gradle also performs this analysis on task properties that are annotated with `@Input` and that have type `Provider<T>` (which also includes types such as `Property<T>`).
-This allow you to connect an output of a task to a non-file input parameter of another task.
-For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle.
-With this change you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
-
-See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
-
-### Convert a `FileCollection` to a `Provider`
-
-A new method `FileCollection.getElements()` has been added to allow the contents of the file collection to be viewed as a `Provider`. This `Provider` tracks the elements of the file collection and tasks that
-produce these files and can be connected to a `Property` instance.
- 
-### Finalize the value of a `ConfigurableFileCollection`
-
-A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as `Provider` instances or Groovy closures or Kotlin functions, that may be present in the collection 
-to their final file locations and prevents further changes to the collection.
-
-This method works similarly to other `finalizeValue()` methods, such as `Property.finalizeValue()`.
-
-### Prevent changes to a `Property` or `ConfigurableFileCollection`
-
-New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow further changes to the property or collection.
-
-### `Provider` methods
-
-New methods `Provider.orElse(T)` and `Provider.orElse(Provider<T>)` has been added. These allow you to perform an 'or' operation on a provider and some other value.
-
-### Managed nested properties
-
-A custom type, such as a task type, plugin or project extension can be implemented as an abstract class or, in the case of project extensions and other data types, an interface.
-Under some conditions, Gradle can provide an implementation for abstract properties.
-
-Now, if the custom type has an abstract getter annotated with `@Nested`, Gradle will provide an implementation for the getter method and also create a value for the property.
-See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_properties) for more information.
-
-### Worker API improvements
-
-This release introduces a number of improvements to the Worker API.
-
-First, the classpath is now cleaner when submitting work using classloader or process isolation.  Extra jars (such as external jars used by Gradle itself) should no longer appear on the worker classpath.  
-
-Second, new classes have been introduced to make defining the unit of work implementation more straightforward and type safe.  This also makes it simpler to handle null values in work parameters.  Instead of a `Runnable`, the unit of work is defined by extending the `WorkAction` and `WorkParameters` interfaces.  For example:
-
-```groovy
-// Define an interface that represents the parameters of your WorkAction.  Gradle will generate a parameters object from this interface.
-interface ReverseParameters extends WorkParameters {
-    Property<File> getFileToReverse()
-    Property<File> getDestinationFile()
-}
-
-// Define an abstract class that represents your unit of work and uses the parameters defined above.
-// No need to define the getParameters() method - this will be injected by Gradle.
-abstract class ReverseFile implements WorkAction<ReverseParameters> {
-    @Override
-    public void execute() {
-        File fileToReverse = parameters.fileToReverse.get()
-        parameters.destinationFile.get().text = fileToReverse.text.reverse()
-        if (Boolean.getBoolean("org.gradle.sample.showFileSize")) {
-            println "Reversed ${fileToReverse.size()} bytes from ${fileToReverse.name}"
-        }
-    }
-}
-```
-
-Last, new methods have been added to `WorkerExecutor` that should make the API simpler and easier to use.  The `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods all return a `WorkQueue` object that can be used to submit multiple items of work that have the same requirements.  For example:
-
-```groovy
-// Create a WorkQueue with requirements for all work that is submitted to it
-WorkQueue workQueue = workerExecutor.processIsolation() { ProcessWorkerSpec spec ->
-    // Configure the options for the forked process
-    forkOptions { JavaForkOptions options ->
-        options.maxHeapSize = "512m"
-        options.systemProperty "org.gradle.sample.showFileSize", "true"
-    }
-}
-
-// Create and submit a unit of work for each file
-sourceFiles.each { file ->
-    workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
-        parameters.fileToReverse = file
-        parameters.destinationFile = project.file("$outputDir/${file.name}")
-    }
-}
-
-```
-
-See the [user manual](userguide/custom_tasks.html#using-the-worker-api) for more information on using the new API.  
-
-The existing `WorkerExecutor.submit()` method can still be used, but will be deprecated in Gradle 6.0 and removed in Gradle 7.0.
-
 ## Improved handling of ZIP archives on classpaths
 
 Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
@@ -199,19 +122,6 @@ pmd {
 
 This was contributed by [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod).
 
-## Incubating support for Groovy compilation avoidance
-
-Gradle now supports experimental compilation avoidance for Groovy. 
-This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
-See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
-
-## Experimental incremental Groovy compilation
-
-Gradle now supports experimental incremental compilation for Groovy.
-If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
-For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed ones need to be recompiled.
-See [Incremental Groovy compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) in the user manual for more details.
-
 ## Closed Eclipse Buildship projects
 
 Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
@@ -223,7 +133,7 @@ This was contributed by [Christian Fränkel](https://github.com/fraenkelc).
 
 ## Executable Jar support with `project.javaexec` and `JavaExec`
 
-`JavaExec` and `project.javaexec` will now run an executable jar under when the `JavaExec.main` property has not been set and the classpath resolves to a single file.
+`JavaExec` and `project.javaexec` will now run an executable jar when the `JavaExec.main` property has not been set and the classpath resolves to a single file.
 
 Under these circumstances, Gradle will assume that the single jar in the classpath is an executable jar and will run it with `java -jar`.  For proper execution, the `Main-Class` attribute will need to be set in the executable jar.
 
@@ -274,6 +184,103 @@ The `debugOptions` configuration is available for `project.javaExec` and for tas
 ## Debug tests via the Tooling API
  
 In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
+
+## Improvements for plugin authors
+
+### Worker API improvements
+
+This release introduces a number of improvements to the Worker API.
+
+First, the classpath is now cleaner when submitting work using classloader or process isolation.  Extra jars (such as external jars used by Gradle itself) should no longer appear on the worker classpath.  
+
+Second, new classes have been introduced to make defining the unit of work implementation more straightforward and type safe.  This also makes it simpler to handle null values in work parameters.  Instead of a `Runnable`, the unit of work is defined by extending the `WorkAction` and `WorkParameters` interfaces.  For example:
+
+```groovy
+// Define an interface that represents the parameters of your WorkAction.  Gradle will generate a parameters object from this interface.
+interface ReverseParameters extends WorkParameters {
+    Property<File> getFileToReverse()
+    Property<File> getDestinationFile()
+}
+
+// Define an abstract class that represents your unit of work and uses the parameters defined above.
+// No need to define the getParameters() method - this will be injected by Gradle.
+abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    @Override
+    public void execute() {
+        File fileToReverse = parameters.fileToReverse.get()
+        parameters.destinationFile.get().text = fileToReverse.text.reverse()
+        if (Boolean.getBoolean("org.gradle.sample.showFileSize")) {
+            println "Reversed ${fileToReverse.size()} bytes from ${fileToReverse.name}"
+        }
+    }
+}
+```
+
+Last, new methods have been added to `WorkerExecutor` to make the API simpler and easier to use.  The `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods all return a `WorkQueue` object that can be used to submit multiple items of work that have the same requirements.  For example:
+
+```groovy
+// Create a WorkQueue with requirements for all work that is submitted to it
+WorkQueue workQueue = workerExecutor.processIsolation() { ProcessWorkerSpec spec ->
+    // Configure the options for the forked process
+    forkOptions { JavaForkOptions options ->
+        options.maxHeapSize = "512m"
+        options.systemProperty "org.gradle.sample.showFileSize", "true"
+    }
+}
+
+// Create and submit a unit of work for each file
+sourceFiles.each { file ->
+    workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
+        parameters.fileToReverse = file
+        parameters.destinationFile = project.file("${outputDir}/${file.name}")
+    }
+}
+```
+
+See the [user manual](userguide/custom_tasks.html#using-the-worker-api) for more information on using the new API.  
+
+The existing `WorkerExecutor.submit()` method can still be used, but will be deprecated in Gradle 6.0 and removed in Gradle 7.0.
+
+### Task dependencies are honored for `@Input` properties of type `Provider`
+
+Gradle can automatically calculate task dependencies based on the value of certain task input properties. 
+For example, for a property that is annotated with `@InputFiles` and that has type `FileCollection` or `Provider<Set<RegularFile>>`, 
+Gradle will inspect the value of the property and automatically add task dependencies for any task output files or directories in the collection. 
+
+In this release, Gradle also performs this analysis on task properties that are annotated with `@Input` and that have type `Provider<T>` (which also includes types such as `Property<T>`).
+This allow you to connect an output of a task to a non-file input parameter of another task.
+For example, you might have a task that runs the `git` command to determine the name of the current branch, and another task that uses the branch name to produce an application bundle.
+With this change you can connect the output of the first task as an input of the second task, and avoid running the `git` command at configuration time. 
+
+See the [user manual](userguide/lazy_configuration.html#sec:working_with_task_dependencies_in_lazy_properties) for examples and more details.
+
+### Convert a `FileCollection` to a `Provider`
+
+A new method `FileCollection.getElements()` has been added to allow the contents of the file collection to be viewed as a `Provider`. This `Provider` tracks the elements of the file collection and tasks that
+produce these files and can be connected to a `Property` instance.
+ 
+### Finalize the value of a `ConfigurableFileCollection`
+
+A new method `ConfigurableFileCollection.finalizeValue()` has been added. This method resolves deferred values, such as `Provider` instances or Groovy closures or Kotlin functions, that may be present in the collection 
+to their final file locations and prevents further changes to the collection.
+
+This method works similarly to other `finalizeValue()` methods, such as `Property.finalizeValue()`.
+
+### Prevent changes to a `Property` or `ConfigurableFileCollection`
+
+New methods `Property.disallowChanges()` and `ConfigurableFileCollection.disallowChanges()` have been added. These methods disallow further changes to the property or collection.
+
+### `Provider` methods
+
+New methods `Provider.orElse(T)` and `Provider.orElse(Provider<T>)` has been added. These allow you to perform an 'or' operation on a provider and some other value.
+
+### Managed nested properties
+
+A custom type, such as a task type, plugin or project extension can be implemented as an abstract class or, in the case of project extensions and other data types, an interface.
+Under some conditions, Gradle can provide an implementation for abstract properties.
+
+Now, if the custom type has an abstract getter annotated with `@Nested`, Gradle will provide an implementation for the getter method and also create a value for the property.
+See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_properties) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
