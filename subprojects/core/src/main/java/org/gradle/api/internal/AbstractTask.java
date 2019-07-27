@@ -885,6 +885,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
+        public Object set(int index, Object action) {
+            if (action == null) {
+                throw new InvalidUserDataException("Action must not be null!");
+            }
+            return super.set(index, wrap((Action<? super Task>) action));
+        }
+
+        @Override
         public boolean removeAll(Collection actions) {
             return super.removeAll(transformToContextAwareTaskActions(actions));
         }
