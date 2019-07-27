@@ -692,8 +692,8 @@ Many popular annotation processors support incremental annotation processing (se
 | N/A
 
 | Immutables
-| link:https://github.com/immutables/immutables/issues/804[Open issue]
-| N/A
+| link:https://github.com/immutables/immutables/commit/79cdc2722620595d9910c6bf2c4c4f7419094444[2.7.4]
+| link:https://github.com/immutables/immutables/issues/804#issuecomment-487366544[Hidden behind a feature toggle]
 
 | link:https://developer.android.com/topic/libraries/architecture/room[Room]
 | link:https://issuetracker.google.com/issues/112110217[Open Issue]
