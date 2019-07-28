@@ -21,19 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
-
-    /**
-     * Adds a logical description of the potential contents of this collection to the builder.
-     * <p>
-     * That is, registers a description of the parts of the file system that can influence the actual contents of the collection.
-     * <p>
-     * It is not required that an absolutely accurate description is added.
-     * For example, the description added to the builder may not consider all kinds of filtering that the file collection actually applies.
-     *
-     * @param builder the receiver of the description.
-     */
-    void registerWatchPoints(FileSystemSubset.Builder builder);
-
     /**
      * In a {@link FileCollection} hierarchy visits the leaves of the hierarchy.
      *

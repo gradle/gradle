@@ -167,7 +167,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns(), adapter)
         0 * visitor._
     }
@@ -182,7 +182,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Skip
         0 * visitor._
     }
 
@@ -195,7 +195,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> true
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitGenericFileTree(adapter)
         0 * visitor._
     }
@@ -209,7 +209,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> false
+        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Skip
         0 * visitor._
     }
 

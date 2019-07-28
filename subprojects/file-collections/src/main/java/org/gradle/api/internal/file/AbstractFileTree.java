@@ -168,7 +168,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other)) {
+        if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) != FileCollectionLeafVisitor.VisitType.Skip) {
             visitor.visitGenericFileTree(this);
         }
     }
@@ -216,12 +216,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
             // TODO: should consider the filter
             fileTree.visitLeafCollections(visitor);
-        }
-
-        @Override
-        public void registerWatchPoints(FileSystemSubset.Builder builder) {
-            // TODO: we aren't considering the filter
-            fileTree.registerWatchPoints(builder);
         }
     }
 }
