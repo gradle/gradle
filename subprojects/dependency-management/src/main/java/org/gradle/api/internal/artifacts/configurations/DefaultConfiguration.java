@@ -85,7 +85,6 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -274,7 +273,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
-        this.ownDependencies = (DefaultDomainObjectSet<Dependency>)domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
+        this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
         this.ownDependencyConstraints = (DefaultDomainObjectSet<DependencyConstraint>) domainObjectCollectionFactory.newDomainObjectSet(DependencyConstraint.class);
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -282,7 +281,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
 
-        this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>)domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
+        this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
@@ -1240,7 +1239,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-            ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFilesCollectingVisitor(visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult));
+            if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) == FileCollectionLeafVisitor.VisitType.Spec) {
+                // This isn't correct - we should visit each of the file collections that are included in the output of resolution, not the inputs to resolution
+                for (Dependency dependency : getAllDependencies()) {
+                    if (dependency instanceof FileCollectionDependency) {
+                        FileCollection files = ((FileCollectionDependency) dependency).getFiles();
+                        ((FileCollectionInternal) files).visitLeafCollections(visitor);
+                    }
+                }
+            }
+            boolean includeTransforms = visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) != FileCollectionLeafVisitor.VisitType.Skip;
+            ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFilesCollectingVisitor(includeTransforms);
             visitFiles(collectingVisitor);
             visitor.visitCollection(ImmutableFileCollection.of(collectingVisitor.getFiles()));
         }
@@ -1279,17 +1288,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
         }
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        for (Dependency dependency : getAllDependencies()) {
-            if (dependency instanceof FileCollectionDependency) {
-                FileCollection files = ((FileCollectionDependency) dependency).getFiles();
-                ((FileCollectionInternal) files).registerWatchPoints(builder);
-            }
-        }
-        super.registerWatchPoints(builder);
     }
 
     @Override

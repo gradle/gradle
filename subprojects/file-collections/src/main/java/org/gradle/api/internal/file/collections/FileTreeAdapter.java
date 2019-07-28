@@ -20,7 +20,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -57,11 +56,6 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     @Override
     public void visitContents(FileCollectionResolveContext context) {
         context.add(tree);
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        tree.registerWatchPoints(builder);
     }
 
     @Override
@@ -119,7 +113,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        if (!visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other)) {
+        if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) == FileCollectionLeafVisitor.VisitType.Skip) {
             return;
         }
         if (tree instanceof DirectoryFileTree) {

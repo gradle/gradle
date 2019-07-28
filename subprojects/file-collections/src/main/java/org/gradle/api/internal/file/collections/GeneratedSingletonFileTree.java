@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -194,9 +193,5 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
             return new RelativePath(true, fileName);
         }
 
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
     }
 }

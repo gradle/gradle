@@ -23,7 +23,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.ArchiveFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -150,14 +149,6 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
 
     private RuntimeException cannotExpand(Exception e) {
         throw new InvalidUserDataException(String.format("Cannot expand %s.", getDisplayName()), e);
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        File backingFile = getBackingFile();
-        if (backingFile != null) {
-            builder.add(backingFile);
-        }
     }
 
     private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
