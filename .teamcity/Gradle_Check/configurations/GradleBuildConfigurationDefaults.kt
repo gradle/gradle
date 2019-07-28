@@ -29,7 +29,7 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
 
 val killAllGradleProcesses = """
     free -m
-    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+    ps aux | egrep 'Gradle(Daemon|Worker)'
     ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
     free -m
     ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
