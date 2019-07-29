@@ -289,9 +289,10 @@ class CompositeFileCollectionSpec extends Specification {
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
     }
 
-    public void "can visit root elements"() {
+    def "can visit root elements"() {
         def child1 = Stub(FileCollectionInternal)
         def child2 = Stub(FileTreeInternal)
+        def source = Stub(FileCollectionInternal.Source)
 
         def tree = new TestCollection() {
             @Override
@@ -306,9 +307,9 @@ class CompositeFileCollectionSpec extends Specification {
         tree.visitLeafCollections(visitor)
 
         then:
-        child1.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitCollection(child1) }
+        child1.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitCollection(source, child1) }
         child2.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitGenericFileTree(child2) }
-        1 * visitor.visitCollection(child1)
+        1 * visitor.visitCollection(source, child1)
         1 * visitor.visitGenericFileTree(child2)
         0 * visitor._
     }

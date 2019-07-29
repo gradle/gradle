@@ -48,7 +48,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
                     ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
                     visitor.visitArtifact(variantName, target, resolvedArtifact);
                 }
-                visitor.endVisitCollection();
+                visitor.endVisitCollection(FileCollectionInternal.OTHER);
             },
             failure -> visitor.visitFailure(
                 new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId(), target), failure))
@@ -61,7 +61,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void endVisitCollection() {
+    public void endVisitCollection(FileCollectionInternal.Source source) {
     }
 
     @Override

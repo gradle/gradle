@@ -323,7 +323,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void endVisitCollection() {
+        public void endVisitCollection(FileCollectionInternal.Source source) {
         }
     }
 

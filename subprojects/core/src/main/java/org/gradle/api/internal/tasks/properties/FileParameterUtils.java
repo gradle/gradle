@@ -136,8 +136,8 @@ public class FileParameterUtils {
             FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
             outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
-                public void visitCollection(FileCollectionInternal fileCollection) {
-                    Iterables.addAll(roots, fileCollection);
+                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                    Iterables.addAll(roots, contents);
                 }
 
                 @Override

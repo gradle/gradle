@@ -64,31 +64,31 @@ class CollectingVisitor : FileCollectionLeafVisitor {
     val files: MutableSet<File> = mutableSetOf()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionLeafVisitor.VisitType {
-        // Ignore scheduled transforms for now
         return if (source is ConsumerProvidedVariantFiles) {
-            FileCollectionLeafVisitor.VisitType.Skip
+            // Visit the spec only for scheduled transforms
+            FileCollectionLeafVisitor.VisitType.Spec
         } else {
             FileCollectionLeafVisitor.VisitType.Visit
         }
     }
 
-    override fun visitCollection(fileCollection: FileCollectionInternal) {
-        files.addAll(fileCollection.files)
+    override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
+        files.addAll(contents)
     }
 
     override fun visitGenericFileTree(fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        visitCollection(fileTree)
+        files.addAll(fileTree)
     }
 
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        visitCollection(fileTree)
+        files.addAll(fileTree)
     }
 
     override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        visitCollection(fileTree)
+        files.addAll(fileTree)
     }
 }
 

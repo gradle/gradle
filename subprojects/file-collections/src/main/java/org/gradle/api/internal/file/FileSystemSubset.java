@@ -114,20 +114,13 @@ public class FileSystemSubset {
         }
 
         @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
-            lock.lock();
-            try {
-                for (File file : fileCollection) {
-                    files.add(file.getAbsoluteFile());
-                }
-            } finally {
-                lock.unlock();
-            }
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            addFiles(contents);
         }
 
         @Override
         public void visitGenericFileTree(FileTreeInternal fileTree) {
-            visitCollection(fileTree);
+            addFiles(fileTree);
         }
 
         @Override
@@ -145,6 +138,17 @@ public class FileSystemSubset {
             lock.lock();
             try {
                 files.add(file.getAbsoluteFile());
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private void addFiles(Iterable<File> contents) {
+            lock.lock();
+            try {
+                for (File file : contents) {
+                    files.add(file.getAbsoluteFile());
+                }
             } finally {
                 lock.unlock();
             }

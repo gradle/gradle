@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -66,11 +67,11 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> false
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
-        1 * visitor.endVisitCollection() // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER) // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact2)
-        1 * visitor.endVisitCollection()
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
         when:
@@ -79,7 +80,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> false
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
-        1 * visitor.endVisitCollection()
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
 
@@ -111,11 +112,11 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
-        1 * visitor.endVisitCollection()
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact2)
-        1 * visitor.endVisitCollection()
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
         when:
@@ -134,7 +135,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
-        1 * visitor.endVisitCollection()
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
 

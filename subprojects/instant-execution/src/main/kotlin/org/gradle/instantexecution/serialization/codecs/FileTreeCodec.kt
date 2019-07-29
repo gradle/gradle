@@ -60,7 +60,7 @@ class FileTreeCodec(
         internal
         var roots = LinkedHashSet<File>()
 
-        override fun visitCollection(fileCollection: FileCollectionInternal) = throw UnsupportedOperationException()
+        override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
 
         override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
 

@@ -51,7 +51,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void endVisitCollection() {
+    public void endVisitCollection(FileCollectionInternal.Source source) {
     }
 
     @Override
