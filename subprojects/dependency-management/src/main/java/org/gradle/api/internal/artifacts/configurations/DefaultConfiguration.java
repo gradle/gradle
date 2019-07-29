@@ -36,7 +36,6 @@ import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
@@ -84,7 +83,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -1244,19 +1242,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-            FileCollectionLeafVisitor.VisitType visitType = visitor.prepareForVisit(OTHER);
-            if (visitType == FileCollectionLeafVisitor.VisitType.Skip) {
-                return;
-            }
-            if (visitType == FileCollectionLeafVisitor.VisitType.Spec) {
-                // This isn't correct - we should visit each of the file collections that are included in the output of resolution, rather than visiting the inputs of resolution
-                for (Dependency dependency : getAllDependencies()) {
-                    if (dependency instanceof FileCollectionDependency) {
-                        FileCollection files = ((FileCollectionDependency) dependency).getFiles();
-                        ((FileCollectionInternal) files).visitLeafCollections(visitor);
-                    }
-                }
-            }
             ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
             visitFiles(collectingVisitor);
         }

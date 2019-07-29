@@ -60,6 +60,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
+    public void visitSpec(FileCollectionLeafVisitor visitor) {
+        dependencyMetadata.getFiles().visitLeafCollections(visitor);
+    }
+
+    @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         if (listener.prepareForVisit(this) == FileCollectionLeafVisitor.VisitType.Skip) {
             return EMPTY_RESULT;

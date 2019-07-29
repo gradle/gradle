@@ -61,7 +61,8 @@ object ProjectGroups {
             rootProject.project("buildProfile"),
             rootProject.project("toolingApiBuilders"),
             rootProject.project("kotlinDslProviderPlugins"),
-            rootProject.project("kotlinDslToolingBuilders")
+            rootProject.project("kotlinDslToolingBuilders"),
+            rootProject.project("instantExecution")
         )
 
     val Project.publicProjects
