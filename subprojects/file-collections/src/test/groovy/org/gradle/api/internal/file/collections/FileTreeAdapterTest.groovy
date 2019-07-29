@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Buildable
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
@@ -167,7 +168,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Visit
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns(), adapter)
         0 * visitor._
     }
@@ -182,7 +183,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Skip
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Skip
         0 * visitor._
     }
 
@@ -195,7 +196,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Visit
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitGenericFileTree(adapter)
         0 * visitor._
     }
@@ -209,7 +210,7 @@ class FileTreeAdapterTest extends Specification {
         adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Skip
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Skip
         0 * visitor._
     }
 

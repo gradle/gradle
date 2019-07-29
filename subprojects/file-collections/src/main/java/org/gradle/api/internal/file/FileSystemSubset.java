@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
+import org.gradle.api.internal.file.collections.GeneratedFiles;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.FileSystems;
@@ -103,8 +104,8 @@ public class FileSystemSubset {
         }
 
         @Override
-        public VisitType prepareForVisit(CollectionType type) {
-            if (type == CollectionType.Generated) {
+        public VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            if (source instanceof GeneratedFiles) {
                 // Don't watch generated resources
                 return VisitType.Skip;
             }

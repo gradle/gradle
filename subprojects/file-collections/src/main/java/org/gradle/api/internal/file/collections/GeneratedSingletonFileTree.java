@@ -37,7 +37,7 @@ import java.util.Arrays;
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
+public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implements GeneratedFiles {
     private final Factory<File> tmpDirSource;
     private final FileSystem fileSystem = FileSystems.getDefault();
 

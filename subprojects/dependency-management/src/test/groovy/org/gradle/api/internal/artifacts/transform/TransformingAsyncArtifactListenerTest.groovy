@@ -30,7 +30,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
+    def listener  = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)

@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":modelCore"))
     implementation(project(":fileCollections"))
+    implementation(project(":dependencyManagement"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

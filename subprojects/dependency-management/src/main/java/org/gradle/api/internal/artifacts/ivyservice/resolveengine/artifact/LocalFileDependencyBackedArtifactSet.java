@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -43,7 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
+public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet, LocalDependencyFiles {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 
     private final LocalFileDependencyMetadata dependencyMetadata;
@@ -60,7 +61,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        if (!listener.includeFileDependencies()) {
+        if (listener.prepareForVisit(this) == FileCollectionLeafVisitor.VisitType.Skip) {
             return EMPTY_RESULT;
         }
 
@@ -158,11 +159,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            if (listener.includeFileDependencies()) {
-                listener.artifactAvailable(artifact);
-                return this;
-            }
-            return EMPTY_RESULT;
+            listener.artifactAvailable(artifact);
+            return this;
         }
 
         @Override

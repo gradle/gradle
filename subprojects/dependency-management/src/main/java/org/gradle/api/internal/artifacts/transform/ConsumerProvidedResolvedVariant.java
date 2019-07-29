@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Transformed artifact set that performs the transformation itself when requested.
  */
-public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
+public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, ConsumerProvidedVariantFiles {
     private final ComponentIdentifier componentIdentifier;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
@@ -57,11 +57,11 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        if (!listener.shouldVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult)) {
+        if (listener.prepareForVisit(this) == FileCollectionLeafVisitor.VisitType.Skip) {
             return EMPTY_RESULT;
         }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry));
         return new TransformCompletion(result, attributes, artifactResults);
     }
 

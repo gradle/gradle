@@ -20,7 +20,9 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
@@ -53,13 +55,11 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-        return true;
-    }
-
-    @Override
-    public boolean includeFiles() {
-        return false;
+    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        if (source instanceof LocalDependencyFiles) {
+            return FileCollectionLeafVisitor.VisitType.Skip;
+        }
+        return FileCollectionLeafVisitor.VisitType.Visit;
     }
 
     @Override

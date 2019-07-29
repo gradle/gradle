@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -32,12 +33,10 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
-    private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
 
     TransformingAsyncArtifactListener(
         Transformation transformation,
-        ResolvedArtifactSet.AsyncArtifactListener delegate,
         BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
@@ -46,7 +45,6 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transformation = transformation;
-        this.delegate = delegate;
         this.dependenciesResolver = dependenciesResolver;
         this.transformationNodeRegistry = transformationNodeRegistry;
     }
@@ -66,20 +64,15 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     }
 
     @Override
-    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         // Visit everything
-        return true;
+        return FileCollectionLeafVisitor.VisitType.Visit;
     }
 
     @Override
     public boolean requireArtifactFiles() {
         // Always need the files, as we need to run the transform in order to calculate the output artifacts.
         return true;
-    }
-
-    @Override
-    public boolean includeFileDependencies() {
-        return delegate.includeFileDependencies();
     }
 
     private TransformationResult createTransformationResult(TransformationSubject initialSubject) {

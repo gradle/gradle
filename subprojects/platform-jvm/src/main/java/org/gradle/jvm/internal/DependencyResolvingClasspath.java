@@ -123,13 +123,8 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-                return true;
-            }
-
-            @Override
-            public boolean includeFiles() {
-                return true;
+            public FileCollectionLeafVisitor.VisitType prepareForVisit(Source source) {
+                return FileCollectionLeafVisitor.VisitType.Visit;
             }
 
             @Override
