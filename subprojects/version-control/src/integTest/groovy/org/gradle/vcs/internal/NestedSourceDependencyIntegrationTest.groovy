@@ -258,7 +258,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.ignoreBuildSrc.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
         outputContains("Hello from root build's plugin")
-        outputContains('Access to the buildSrc project and its dependencies in settings script has been deprecated.')
+        outputContains('Access to the buildSrc project and its dependencies in settings scripts has been deprecated.')
     }
 
     def "prefers a source mapping defined in the root build to one defined in a nested build when the nested build requests plugins"() {

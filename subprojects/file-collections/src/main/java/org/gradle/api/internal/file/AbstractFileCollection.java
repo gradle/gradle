@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -46,7 +45,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractFileCollection implements FileCollectionInternal, TaskDependencyContainer {
+public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *
@@ -277,15 +276,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal, 
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other)) {
+        if (visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) != FileCollectionLeafVisitor.VisitType.Skip) {
             visitor.visitCollection(this);
-        }
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        for (File file : this) {
-            builder.add(file);
         }
     }
 }

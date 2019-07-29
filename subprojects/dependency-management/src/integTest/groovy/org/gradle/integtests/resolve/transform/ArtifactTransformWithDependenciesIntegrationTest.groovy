@@ -723,7 +723,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         then:
         failure.assertResolutionFailure(":app:implementation")
         failure.assertHasFailures(1)
-        failure.assertThatCause(CoreMatchers.containsString("Failed to transform artifact 'slf4j-api-1.7.25.jar (org.slf4j:slf4j-api:1.7.25)'"))
+        failure.assertThatCause(CoreMatchers.containsString("Failed to transform slf4j-api-1.7.25.jar (org.slf4j:slf4j-api:1.7.25)"))
 
         assertTransformationsExecuted(
             simpleTransform('common.jar'),

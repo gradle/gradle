@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -63,11 +63,17 @@ class UnionFileCollectionTest extends Specification {
         def source2 = Stub(FileCollectionInternal)
 
         given:
-        source1.buildDependencies >> Stub(TaskDependency) { getDependencies(_) >> [task1, task2] }
-        source2.buildDependencies >> Stub(TaskDependency) { getDependencies(_) >> [task2, task3] }
+        source1.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(task1)
+            context.add(task2)
+        }
+        source2.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(task3)
+            context.add(task2)
+        }
 
         expect:
         def collection = new UnionFileCollection(source1, source2)
-        collection.buildDependencies.getDependencies(null) == [task1, task2, task3] as LinkedHashSet
+        collection.buildDependencies.getDependencies(null) as List == [task1, task2, task3]
     }
 }

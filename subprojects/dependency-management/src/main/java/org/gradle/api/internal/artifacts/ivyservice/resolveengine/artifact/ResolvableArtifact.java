@@ -38,5 +38,7 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
      */
     File getFile();
 
+    ResolvableArtifact transformedTo(File file);
+
     ResolvedArtifact toPublicView();
 }

@@ -137,7 +137,7 @@ public class DefaultFileOperations implements FileOperations {
             tarFile = file(tarPath);
             resource = new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
         }
-        TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory, streamHasher, fileHasher);
+        TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, directoryFileTreeFactory, streamHasher, fileHasher);
         return new FileTreeAdapter(tarTree, fileResolver.getPatternSetFactory());
     }
 

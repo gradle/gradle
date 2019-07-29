@@ -108,7 +108,7 @@ object ProgramParser {
 
     private
     fun ProgramSourceFragment.isNotBlank() =
-        source.text.subSequence(section.block.start + 1, section.block.endInclusive).isNotBlank()
+        source.text.subSequence(section.block.first + 1, section.block.last).isNotBlank()
 }
 
 

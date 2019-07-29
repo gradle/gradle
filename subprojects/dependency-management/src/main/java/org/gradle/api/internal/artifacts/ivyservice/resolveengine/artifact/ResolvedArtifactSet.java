@@ -22,8 +22,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
-
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
@@ -73,7 +71,10 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe as they are notified from multiple threads concurrently.
      */
     interface AsyncArtifactListener {
-        boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType);
+        /**
+         * Called prior to scheduling resolution of a set of the given type. When {@code false} is returned, the contents of the set is not visited.
+         */
+        boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType);
 
         /**
          * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
@@ -88,15 +89,9 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         boolean requireArtifactFiles();
 
         /**
-         * Should file dependency artifacts be included in the result?
+         * Should local file dependency artifacts be included in the result?
          */
         boolean includeFileDependencies();
-
-        /**
-         * Visits a file. Only called when {@link #includeFileDependencies()} returns true. Should be considered an artifact but is separate as a migration step.
-         * Called from any thread and in any order.
-         */
-        void fileAvailable(File file);
     }
 
     interface LocalArtifactVisitor {

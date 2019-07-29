@@ -218,9 +218,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
-                            it.buildDependencies.getDependencies(null) 
-                        }*.path.flatten() == [':a:jar']
+                        configurations.compile.resolvedConfiguration.resolvedArtifacts.forEach { println it } 
                     }
                 }
             }
@@ -258,9 +256,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
-                            it.buildDependencies.getDependencies(null) 
-                        }*.path.flatten() == [':a:jar']
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it } 
                     }
                 }
             }
@@ -302,9 +298,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
-                            it.buildDependencies.getDependencies(null) 
-                        }*.path.flatten() == [':a:classes']
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it } 
                     }
                 }
             }

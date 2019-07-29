@@ -57,16 +57,16 @@ data class ProgramText private constructor(val text: String) {
     fun complementOf(ranges: Array<out IntRange>): ArrayList<IntRange> {
         require(ranges.isNotEmpty())
 
-        val sortedRanges = ranges.sortedBy { it.start }
+        val sortedRanges = ranges.sortedBy { it.first }
         val rangesToErase = ArrayList<IntRange>(ranges.size + 1)
 
         var last = 0
         for (range in sortedRanges) {
-            rangesToErase.add(last..(range.start - 1))
-            last = range.endInclusive + 1
+            rangesToErase.add(last until range.first)
+            last = range.last + 1
         }
 
-        val lastIndexToPreserve = sortedRanges.last().endInclusive
+        val lastIndexToPreserve = sortedRanges.last().last
         if (lastIndexToPreserve < text.lastIndex) {
             rangesToErase.add(lastIndexToPreserve + 1..text.lastIndex)
         }
@@ -92,7 +92,7 @@ data class ProgramSourceFragment(
 ) {
 
     val lineNumber: Int
-        get() = source.contents.lineNumberOf(section.identifier.start)
+        get() = source.contents.lineNumberOf(section.identifier.first)
 
     val range: IntRange
         get() = section.wholeRange
@@ -108,7 +108,7 @@ data class ScriptSection(
 ) {
 
     val wholeRange
-        get() = identifier.start..block.endInclusive
+        get() = identifier.first..block.last
 }
 
 
@@ -117,9 +117,9 @@ fun String.erase(ranges: List<IntRange>): String {
 
     val result = StringBuilder(length)
 
-    for (range in ranges.sortedBy { it.start }) {
+    for (range in ranges.sortedBy { it.first }) {
 
-        result.append(this, result.length, range.start)
+        result.append(this, result.length, range.first)
 
         for (ch in subSequence(range)) {
             result.append(

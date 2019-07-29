@@ -67,7 +67,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds(':moduleA:dependencies')
-        outputContains("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+        outputContains("Access to the buildSrc project and its dependencies in settings scripts has been deprecated.")
     }
 
     def "can apply script with relative path"() {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -26,7 +25,6 @@ import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 
-import java.io.File;
 import java.util.Set;
 
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
@@ -51,7 +49,11 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+    public void endVisitCollection() {
+    }
+
+    @Override
+    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
         return true;
     }
 
@@ -63,11 +65,6 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public boolean requireArtifactFiles() {
         return false;
-    }
-
-    @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        throw new UnsupportedOperationException();
     }
 
     public Set<ResolvedArtifact> getArtifacts() {

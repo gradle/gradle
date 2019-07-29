@@ -23,7 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Unroll
 
-class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
+class CancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     private static final String START_UP_MESSAGE = "Cancellable task started!"
     private DaemonClientFixture client
     private int daemonLogCheckpoint
@@ -33,6 +33,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         given:
         blockCode()
         buildFile << """
+            import java.util.concurrent.CountDownLatch
             apply plugin: 'java'
             task execTask(type: Exec) {
                 dependsOn 'compileJava'
@@ -51,16 +52,24 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
                 classpath = sourceSets.main.output
                 main = 'Block'
             }
+            
+            task blockingCustomTask() {
+                doLast {
+                    System.out.println("$START_UP_MESSAGE")
+                    new CountDownLatch(1).await()
+                }
+            }
         """
 
         expect:
         assertTaskIsCancellable(task)
 
         where:
-        scenario       | task
-        'Exec'         | 'execTask'
-        'project.exec' | 'projectExecTask'
-        'JavaExec'     | 'javaExec'
+        scenario         | task
+        'Exec'           | 'execTask'
+        'project.exec'   | 'projectExecTask'
+        'JavaExec'       | 'javaExec'
+        'blocking tasks' | 'blockingCustomTask'
     }
 
     @Unroll

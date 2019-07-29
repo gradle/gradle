@@ -26,19 +26,33 @@ import java.io.File;
  */
 public interface FileCollectionLeafVisitor {
     enum CollectionType {
-        ArtifactTransformResult, Other
+        ArtifactTransformResult, Generated, Other
+    }
+
+    enum VisitType {
+        // Visitor is interested in the contents of the collection
+        Visit,
+        // Visitor is not interested in the collection at all
+        Skip,
+        // Visitor is interested in the spec of the collection - that is the files that the collection might include in the future
+        // For most collections, this will be the same as the elements of the collection. However, for a collection that includes
+        // all of the files from a directory, the spec for the collection would be the directory + the patterns it matches files using
+        Spec
     }
 
     /**
      * Called prior to visiting a file collection of the given type, and allows this visitor to skip the collection.
      *
-     * This is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
+     * <p>Note that this method is not necessarily called immediately before one of the visit methods, as some collections may be
+     * resolved in parallel. However, all visiting is performed sequentally and in order.
+     *
+     * <p>This method is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
      * contain files that are expensive to visit, or task/transform outputs that don't yet exist.
      *
-     * @return true to indicate that the collection should be visited, false to indicate it should be skipped.
+     * @return how should the collection be visited?
      */
-    default boolean beforeVisit(CollectionType type) {
-        return true;
+    default VisitType prepareForVisit(CollectionType type) {
+        return VisitType.Visit;
     }
 
     /**

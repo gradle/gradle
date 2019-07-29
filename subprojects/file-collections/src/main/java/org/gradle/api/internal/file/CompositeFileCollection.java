@@ -175,13 +175,6 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        for (FileCollectionInternal files : getSourceCollections()) {
-            files.registerWatchPoints(builder);
-        }
-    }
-
-    @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         for (FileCollectionInternal element : getSourceCollections()) {
             element.visitLeafCollections(visitor);

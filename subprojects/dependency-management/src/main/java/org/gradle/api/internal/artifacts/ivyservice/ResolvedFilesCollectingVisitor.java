@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -31,20 +30,11 @@ import java.util.Set;
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<File> files = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
-    private final boolean visitScheduledTransforms;
-
-    public ResolvedFilesCollectingVisitor() {
-        this(true);
-    }
-
-    public ResolvedFilesCollectingVisitor(boolean visitScheduledTransforms) {
-        this.visitScheduledTransforms = visitScheduledTransforms;
-    }
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         try {
-            File file = artifact.getFile(); // triggering file resolve
+            File file = artifact.getFile(); // maybe triggering file resolve
             this.files.add(file);
         } catch (Exception t) {
             failures.add(t);
@@ -52,12 +42,17 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-        return collectionType != FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult || visitScheduledTransforms;
+    public boolean includeFiles() {
+        return true;
     }
 
     @Override
     public boolean requireArtifactFiles() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
         return true;
     }
 
@@ -67,13 +62,8 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean includeFiles() {
-        return true;
-    }
+    public void endVisitCollection() {
 
-    @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        this.files.add(file);
     }
 
     public Set<File> getFiles() {

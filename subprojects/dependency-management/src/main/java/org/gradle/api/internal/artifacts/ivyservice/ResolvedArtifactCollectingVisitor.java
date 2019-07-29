@@ -55,7 +55,11 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+    public void endVisitCollection() {
+    }
+
+    @Override
+    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
         return true;
     }
 
@@ -67,13 +71,6 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public boolean includeFiles() {
         return true;
-    }
-
-    @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        if (seenArtifacts.add(artifactIdentifier)) {
-            artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variantAttributes, variantName, Artifact.class, file));
-        }
     }
 
     public Set<ResolvedArtifactResult> getArtifacts() {

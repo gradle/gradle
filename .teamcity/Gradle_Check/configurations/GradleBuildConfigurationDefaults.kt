@@ -27,6 +27,14 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
+val killAllGradleProcesses = """
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)'
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+""".trimIndent()
+
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
     if [ -e ${'$'}REPO ] ; then

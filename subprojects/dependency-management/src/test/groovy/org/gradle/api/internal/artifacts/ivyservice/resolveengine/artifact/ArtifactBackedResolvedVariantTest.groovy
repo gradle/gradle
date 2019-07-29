@@ -66,9 +66,11 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> false
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * visitor.endVisitCollection() // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact2)
+        1 * visitor.endVisitCollection()
         0 * _
 
         when:
@@ -77,6 +79,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> false
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * visitor.endVisitCollection()
         0 * _
     }
 
@@ -108,9 +111,11 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * visitor.endVisitCollection()
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact2)
+        1 * visitor.endVisitCollection()
         0 * _
 
         when:
@@ -129,6 +134,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * visitor.endVisitCollection()
         0 * _
     }
 

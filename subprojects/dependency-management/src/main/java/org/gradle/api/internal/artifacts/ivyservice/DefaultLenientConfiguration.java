@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
@@ -306,7 +305,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+        public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
             return true;
         }
 
@@ -326,8 +325,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-            throw new UnsupportedOperationException();
+        public void endVisitCollection() {
         }
     }
 
@@ -335,11 +333,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         @Override
         public boolean includeFiles() {
             return true;
-        }
-
-        @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-            files.add(file);
         }
     }
 

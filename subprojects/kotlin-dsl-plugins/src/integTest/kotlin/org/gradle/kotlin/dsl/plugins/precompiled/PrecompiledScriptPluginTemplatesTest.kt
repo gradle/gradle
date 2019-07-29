@@ -229,7 +229,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 containsString("my-settings-plugin applied!"),
                 containsString("my-plugin applied!"),
                 containsString("my-other-plugin applied!"),
-                containsString("Access to the buildSrc project and its dependencies in settings script has been deprecated.")
+                containsString("Access to the buildSrc project and its dependencies in settings scripts has been deprecated.")
             )
         )
     }
