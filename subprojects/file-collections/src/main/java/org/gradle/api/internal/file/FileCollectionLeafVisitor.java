@@ -26,7 +26,7 @@ import java.io.File;
  */
 public interface FileCollectionLeafVisitor {
     enum CollectionType {
-        ArtifactTransformResult, Other
+        ArtifactTransformResult, Generated, Other
     }
 
     enum VisitType {
