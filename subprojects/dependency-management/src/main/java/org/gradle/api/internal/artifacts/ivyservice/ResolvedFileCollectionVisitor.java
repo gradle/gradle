@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisitor {
     private final FileCollectionLeafVisitor visitor;
@@ -33,8 +32,8 @@ public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisito
     }
 
     @Override
-    public void endVisitCollection() {
-        visitor.visitCollection(ImmutableFileCollection.of(getFiles()));
+    public void endVisitCollection(FileCollectionInternal.Source source) {
+        visitor.visitCollection(source, getFiles());
         getFiles().clear();
     }
 }

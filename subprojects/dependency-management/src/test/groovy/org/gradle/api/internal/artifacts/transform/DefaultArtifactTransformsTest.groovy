@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.internal.Describables
 import org.gradle.internal.Try
@@ -178,7 +179,7 @@ class DefaultArtifactTransformsTest extends Specification {
         1 * listener.prepareForVisit({it instanceof ConsumerProvidedVariantFiles}) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
-        1 * visitor.endVisitCollection()
+        1 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * visitor._
         0 * transformation._
     }

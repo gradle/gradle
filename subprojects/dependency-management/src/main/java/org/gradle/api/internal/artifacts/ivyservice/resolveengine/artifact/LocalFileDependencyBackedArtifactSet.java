@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact;
@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -41,7 +42,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet, LocalDependencyFiles {
@@ -77,7 +77,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             return new BrokenResolvedArtifactSet(throwable);
         }
 
-        List<ResolvedArtifactSet> selectedArtifacts = Lists.newArrayListWithCapacity(files.size());
+        ImmutableList.Builder<ResolvedArtifactSet> selectedArtifacts = ImmutableList.builderWithExpectedSize(files.size());
         for (File file : files) {
             ComponentArtifactIdentifier artifactIdentifier;
             if (componentIdentifier == null) {
@@ -93,8 +93,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant));
         }
-
-        return CompositeResolvedArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
+        return CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
     }
 
     @Override
@@ -170,7 +169,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public void visit(ArtifactVisitor visitor) {
             visitor.visitArtifact(variantName, variantAttributes, artifact);
-            visitor.endVisitCollection();
+            visitor.endVisitCollection(FileCollectionInternal.OTHER);
         }
 
         @Override

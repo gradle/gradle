@@ -50,5 +50,5 @@ public interface ArtifactVisitor {
     /**
      * Called after a set of artifacts has been visited.
      */
-    void endVisitCollection();
+    void endVisitCollection(FileCollectionInternal.Source source);
 }

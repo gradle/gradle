@@ -285,7 +285,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     static class BrokenVisitor implements FileCollectionLeafVisitor {
         @Override
-        void visitCollection(FileCollectionInternal fileCollection) {
+        void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             Assert.fail()
         }
 

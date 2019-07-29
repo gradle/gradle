@@ -69,8 +69,8 @@ public class CompilationSourceDirs {
         private List<File> sourceRoots = Lists.newArrayList();
 
         @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
-            cannotInferSourceRoots(fileCollection);
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            cannotInferSourceRoots(contents);
         }
 
         @Override

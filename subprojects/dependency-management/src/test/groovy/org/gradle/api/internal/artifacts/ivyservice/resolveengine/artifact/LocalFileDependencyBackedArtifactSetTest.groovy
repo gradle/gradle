@@ -150,7 +150,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
             assert displayName.displayName == 'local file'
             assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
         }
-        2 * visitor.endVisitCollection() // each file is treated as a separate collection, could potentially be treated as a single collection
+        2 * visitor.endVisitCollection(FileCollectionInternal.OTHER) // each file is treated as a separate collection, could potentially be treated as a single collection
         0 * _
 
         when:
@@ -165,7 +165,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
             assert displayName.displayName == 'local file'
             assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
         }
-        2 * visitor.endVisitCollection()
+        2 * visitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
 
@@ -198,7 +198,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
             assert displayName.displayName == 'local file'
             assert artifact.id == new OpaqueComponentArtifactIdentifier(f2)
         }
-        2 * visitor.endVisitCollection() // each file is treated as a separate collection, could potentially be treated as a single collection
+        2 * visitor.endVisitCollection(FileCollectionInternal.OTHER) // each file is treated as a separate collection, could potentially be treated as a single collection
         0 * visitor._
     }
 

@@ -54,7 +54,7 @@ public interface FileCollectionLeafVisitor {
     /**
      * Visits a {@link FileCollectionInternal} element that cannot be visited in further detail.
      */
-    void visitCollection(FileCollectionInternal fileCollection);
+    void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents);
 
     /**
      * Visits a {@link FileTreeInternal} that does not represents a directory in the file system.

@@ -58,7 +58,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void endVisitCollection() {
+    public void endVisitCollection(FileCollectionInternal.Source source) {
     }
 
     public Set<File> getFiles() {

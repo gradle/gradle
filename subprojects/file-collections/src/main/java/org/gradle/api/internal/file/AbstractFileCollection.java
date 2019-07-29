@@ -277,7 +277,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         if (visitor.prepareForVisit(OTHER) != FileCollectionLeafVisitor.VisitType.Skip) {
-            visitor.visitCollection(this);
+            visitor.visitCollection(OTHER, this);
         }
     }
 }
