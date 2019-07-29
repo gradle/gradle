@@ -104,6 +104,11 @@ public class FileSystemSubset {
 
         @Override
         public VisitType prepareForVisit(CollectionType type) {
+            if (type == CollectionType.Generated) {
+                // Don't watch generated resources
+                return VisitType.Skip;
+            }
+            // Only need the spec for other collections
             return VisitType.Spec;
         }
 
