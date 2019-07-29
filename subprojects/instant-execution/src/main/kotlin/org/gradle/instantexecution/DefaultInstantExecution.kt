@@ -111,7 +111,8 @@ class DefaultInstantExecution internal constructor(
     override fun saveTaskGraph() {
 
         if (!isInstantExecutionEnabled) {
-            // Reduce overhead
+            // No need to hold onto the `ClassLoaderScope` tree
+            // if we are not writing it.
             scopeRegistryListener.dispose()
             return
         }
@@ -142,7 +143,7 @@ class DefaultInstantExecution internal constructor(
         require(isInstantExecutionEnabled)
 
         // No need to record the `ClassLoaderScope` tree
-        // when loading the task graph
+        // when loading the task graph.
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {

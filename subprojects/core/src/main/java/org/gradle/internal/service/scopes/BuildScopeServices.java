@@ -432,13 +432,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
         ClassLoaderRegistry classLoaderRegistry,
         ClassLoaderCache classLoaderCache,
-        ListenerManager listenerManager,
-        // Force `ClassLoaderScopeRegistryListener` services to be initialized.
-        // The service factories are responsible for adding the listeners to the
-        // `ListenerManager` which gives them a chance to check for preconditions
-        // before doing so.
-        // TODO:instant-execution consider replacing this by requiring BuildScopeListenerManagerActions instead
-        @SuppressWarnings("unused") List<ClassLoaderScopeRegistryListener> forceClassLoaderScopeRegistryListeners
+        ListenerManager listenerManager
     ) {
         return new DefaultClassLoaderScopeRegistry(
             classLoaderRegistry,

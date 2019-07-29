@@ -16,8 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.internal.BuildDefinition
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
@@ -25,34 +23,16 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 class InstantExecutionServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
-        registration.addProvider(BuildServices)
+        registration.run {
+            add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
+            add(InstantExecutionBuildScopeListenerManagerAction::class.java)
+        }
     }
 
     override fun registerGradleServices(registration: ServiceRegistration) {
-        registration.add(InstantExecutionHost::class.java)
-        registration.add(DefaultInstantExecution::class.java)
-    }
-
-    internal
-    object BuildServices {
-
-        fun createClassLoaderScopeRegistryListener(
-            buildDefinition: BuildDefinition,
-            listenerManager: ListenerManager
-        ): InstantExecutionClassLoaderScopeRegistryListener =
-            when {
-                SystemProperties.isEnabled in buildDefinition.startParameter.systemPropertiesArgs -> {
-                    InstantExecutionClassLoaderScopeRegistryListener(
-                        onDisable = listenerManager::removeListener
-                    ).also(
-                        listenerManager::addListener
-                    )
-                }
-                else -> {
-                    InstantExecutionClassLoaderScopeRegistryListener(
-                        onDisable = { }
-                    )
-                }
-            }
+        registration.run {
+            add(InstantExecutionHost::class.java)
+            add(DefaultInstantExecution::class.java)
+        }
     }
 }

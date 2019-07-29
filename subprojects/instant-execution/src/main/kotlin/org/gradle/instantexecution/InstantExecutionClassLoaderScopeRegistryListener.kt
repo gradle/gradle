@@ -19,28 +19,38 @@ package org.gradle.instantexecution
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.event.ListenerManager
 
 
 internal
-class InstantExecutionClassLoaderScopeRegistryListener(
-    private val onDispose: (Any) -> Unit
-) : ClassLoaderScopeRegistryListener {
+class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener {
 
     var coreAndPluginsSpec: ClassLoaderScopeSpec? = null
 
     private
     val scopeSpecs = mutableMapOf<String, ClassLoaderScopeSpec>()
 
+    private
+    var manager: ListenerManager? = null
+
+    fun attach(manager: ListenerManager) {
+        require(this.manager == null)
+        this.manager = manager
+        manager.addListener(this)
+    }
+
     /**
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
      */
     fun dispose() {
-        // TODO:instant-execution find a way to make `disable` unnecessary;
-        //  maybe by introducing an `InstantExecutionBuildDefinition` service
-        //  to replace DefaultInstantExecutionHost.
+        // TODO:instant-execution find a way to make `dispose` unnecessary;
+        //  maybe by extracting an `InstantExecutionBuildDefinition` service
+        //  from DefaultInstantExecutionHost so a decision based on the configured
+        //  instant execution strategy (none, store or load) can be taken early on.
+        //  The listener only needs to be attached in the `store` state.
         coreAndPluginsSpec = null
         scopeSpecs.clear()
-        onDispose(this)
+        manager?.removeListener(this)
     }
 
     override fun rootScopeCreated(scopeId: String) {
