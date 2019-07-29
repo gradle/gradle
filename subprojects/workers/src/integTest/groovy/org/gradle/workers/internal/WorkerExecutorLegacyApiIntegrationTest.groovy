@@ -48,11 +48,11 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runWork")
 
         then:
-        result.groupedOutput.task(":runWork").output.contains """
-            text = foo
-            array = [foo, bar, baz]
-            list = [foo, bar, baz]
-         """.stripIndent().trim()
+        result.groupedOutput.task(":runWork").assertOutputContains(
+                "text = foo",
+                "array = [foo, bar, baz]",
+                "list = [foo, bar, baz]"
+        )
 
         where:
         isolationMode << ISOLATION_MODES
@@ -90,11 +90,11 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runWork")
 
         then:
-        result.groupedOutput.task(":runWork").output.contains """
-            text = foo
-            array = [foo, bar, baz]
-            list = [foo, bar, baz]
-         """.stripIndent().trim()
+        result.groupedOutput.task(":runWork").assertOutputContains(
+                "text = foo",
+                "array = [foo, bar, baz]",
+                "list = [foo, bar, baz]"
+        )
 
         where:
         forkMode          | operator
@@ -177,11 +177,11 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         optionsVerifier.verifyAllOptions()
 
         and:
-        result.groupedOutput.task(":runInDaemon").output.contains """
-            text = foo
-            array = [foo, bar, baz]
-            list = [foo, bar, baz]
-         """.stripIndent().trim()
+        result.groupedOutput.task(":runInDaemon").assertOutputContains(
+                "text = foo",
+                "array = [foo, bar, baz]",
+                "list = [foo, bar, baz]"
+        )
     }
 
     def "can set a custom display name for work items in #isolationMode"() {
