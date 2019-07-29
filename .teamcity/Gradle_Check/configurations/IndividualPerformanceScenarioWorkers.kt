@@ -6,6 +6,8 @@ import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, init = {
@@ -39,6 +41,11 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
     }
 
     steps {
+        script {
+            name = "KILL_GRADLE_PROCESSES"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = killAllGradleProcesses
+        }
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = ""
