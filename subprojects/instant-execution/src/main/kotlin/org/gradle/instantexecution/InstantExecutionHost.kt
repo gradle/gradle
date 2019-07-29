@@ -67,7 +67,7 @@ class InstantExecutionHost internal constructor(
     val startParameter = gradle.startParameter
 
     override val skipLoadingStateReason: String?
-        get() = if (gradle.startParameter.isRefreshDependencies) {
+        get() = if (startParameter.isRefreshDependencies) {
             "--refresh-dependencies"
         } else {
             null
