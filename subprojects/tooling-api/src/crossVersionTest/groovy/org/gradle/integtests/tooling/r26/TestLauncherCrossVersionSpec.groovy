@@ -186,7 +186,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-        events.testTasksAndExecutors.size() in [2, 3] // also accept it as a valid result when the test task get started twice (event: 'Gradle Test Run :secondTest')
+        events.testTasksAndExecutors.size() in [2, 3, 4] // also accept it as a valid result when the test task get started twice (event: 'Gradle Test Run :secondTest')
         events.testClassesAndMethods.size() in (supportsEfficientClassFiltering() ? [5, 10] : [6, 12]) // also accept it as a valid result when tests get executed twice
     }
 
