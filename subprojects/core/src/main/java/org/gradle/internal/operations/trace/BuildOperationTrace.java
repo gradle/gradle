@@ -266,8 +266,11 @@ public class BuildOperationTrace implements Stoppable {
             final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<Object, List<BuildOperationRecord>>();
 
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
+                private int lineNumber = 0;
+
                 @Override
                 public boolean processLine(@SuppressWarnings("NullableProblems") String line) {
+                    lineNumber++;
                     Map<String, ?> map = uncheckedCast(slurper.parseText(line));
                     if (map.containsKey("startTime")) {
                         SerializedOperationStart serialized = new SerializedOperationStart(map);
@@ -276,7 +279,7 @@ public class BuildOperationTrace implements Stoppable {
                     } else if (map.containsKey("time")) {
                         SerializedOperationProgress serialized = new SerializedOperationProgress(map);
                         PendingOperation pending = pendings.get(serialized.id);
-                        assert pending != null : "did not find owner of progress event with ID " + serialized.id;
+                        assert pending != null : "error when processing line " + lineNumber + ": did not find owner of progress event with ID " + serialized.id;
                         pending.progress.add(serialized);
                     } else {
                         SerializedOperationFinish finish = new SerializedOperationFinish(map);
@@ -338,10 +341,15 @@ public class BuildOperationTrace implements Stoppable {
             assert pendings.isEmpty();
 
             return roots;
+        } catch (AssertionError e) {
+            try {
+                throw new AssertionError(Files.asCharSource(logFile, Charsets.UTF_8).read(), e);
+            } catch (IOException ioe) {
+                throw UncheckedException.throwAsUncheckedException(ioe);
+            }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-
     }
 
     private static File logFile(String basePath) {
