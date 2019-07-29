@@ -28,4 +28,22 @@ public interface ClassLoaderScopeRegistryListener {
     void localClasspathAdded(String scopeId, ClassPath localClassPath);
 
     void exportClasspathAdded(String scopeId, ClassPath exportClassPath);
+
+    ClassLoaderScopeRegistryListener NULL = new ClassLoaderScopeRegistryListener() {
+        @Override
+        public void rootScopeCreated(String scopeId) {
+        }
+
+        @Override
+        public void childScopeCreated(String parentId, String childId) {
+        }
+
+        @Override
+        public void localClasspathAdded(String scopeId, ClassPath localClassPath) {
+        }
+
+        @Override
+        public void exportClasspathAdded(String scopeId, ClassPath exportClassPath) {
+        }
+    };
 }

@@ -48,7 +48,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, @Nullable ClassLoaderScopeRegistryListener listener) {
+    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         super(id, classLoaderCache, listener);
         this.parent = parent;
     }
@@ -250,14 +250,10 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     protected void exportClasspathAdded(ClassPath classPath) {
-        if (listener != null) {
-            listener.exportClasspathAdded(id.getName(), classPath);
-        }
+        listener.exportClasspathAdded(id.getName(), classPath);
     }
 
     protected void localClasspathAdded(ClassPath classPath) {
-        if (listener != null) {
-            listener.localClasspathAdded(id.getName(), classPath);
-        }
+        listener.localClasspathAdded(id.getName(), classPath);
     }
 }

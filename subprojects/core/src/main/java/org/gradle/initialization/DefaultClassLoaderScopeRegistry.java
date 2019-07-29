@@ -20,8 +20,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 
-import javax.annotation.Nullable;
-
 public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
 
     public static final String CORE_NAME = "core";
@@ -30,7 +28,7 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     private final ClassLoaderScope coreAndPluginsScope;
     private final ClassLoaderScope coreScope;
 
-    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, @Nullable ClassLoaderScopeRegistryListener listener) {
+    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         this.coreScope = new RootClassLoaderScope(CORE_NAME, loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache, listener);
         this.coreAndPluginsScope = new RootClassLoaderScope(CORE_AND_PLUGINS_NAME, loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache, listener);
         rootScopesCreated(listener);
@@ -46,10 +44,8 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
         return coreScope;
     }
 
-    private void rootScopesCreated(@Nullable ClassLoaderScopeRegistryListener listener) {
-        if (listener != null) {
-            listener.rootScopeCreated(CORE_NAME);
-            listener.rootScopeCreated(CORE_AND_PLUGINS_NAME);
-        }
+    private void rootScopesCreated(ClassLoaderScopeRegistryListener listener) {
+        listener.rootScopeCreated(CORE_NAME);
+        listener.rootScopeCreated(CORE_AND_PLUGINS_NAME);
     }
 }
