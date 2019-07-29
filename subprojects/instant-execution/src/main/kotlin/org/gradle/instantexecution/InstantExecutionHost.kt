@@ -41,6 +41,7 @@ import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
@@ -99,7 +100,7 @@ class InstantExecutionHost internal constructor(
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val buildSrc: Boolean
-            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == "buildSrc"
+            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == BuildSourceBuilder.BUILD_SRC
 
         override val scheduledTasks: List<Task>
             get() = gradle.taskGraph.allTasks
