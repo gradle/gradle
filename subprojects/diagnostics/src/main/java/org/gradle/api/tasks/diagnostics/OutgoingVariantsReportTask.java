@@ -66,7 +66,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
     @Input
     @Optional
     @Option(option = "all", description = "Shows all variants, including legacy and deprecated configurations")
-    Property<Boolean> isShowAll() {
+    Property<Boolean> getShowAll() {
         return showAll;
     }
 

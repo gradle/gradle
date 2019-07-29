@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
@@ -46,8 +47,14 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String PROPERTIES_TASK = "properties";
     public static final String DEPENDENCIES_TASK = "dependencies";
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
-    public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
     public static final String COMPONENTS_TASK = "components";
+    /**
+     * The name of the outgoing variants report task.
+     * 
+     * @since 5.7
+     */
+    @Incubating
+    public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
