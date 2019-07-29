@@ -30,15 +30,6 @@ import java.util.Set;
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<File> files = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
-    private final boolean visitScheduledTransforms;
-
-    public ResolvedFilesCollectingVisitor() {
-        this(true);
-    }
-
-    public ResolvedFilesCollectingVisitor(boolean visitScheduledTransforms) {
-        this.visitScheduledTransforms = visitScheduledTransforms;
-    }
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
@@ -51,12 +42,17 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-        return collectionType != FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult || visitScheduledTransforms;
+    public boolean includeFiles() {
+        return true;
     }
 
     @Override
     public boolean requireArtifactFiles() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
         return true;
     }
 
@@ -66,8 +62,8 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean includeFiles() {
-        return true;
+    public void endVisitCollection() {
+
     }
 
     public Set<File> getFiles() {

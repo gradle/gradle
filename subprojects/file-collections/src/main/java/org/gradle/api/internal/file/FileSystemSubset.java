@@ -103,7 +103,7 @@ public class FileSystemSubset {
         }
 
         @Override
-        public VisitType beforeVisit(CollectionType type) {
+        public VisitType prepareForVisit(CollectionType type) {
             return VisitType.Spec;
         }
 

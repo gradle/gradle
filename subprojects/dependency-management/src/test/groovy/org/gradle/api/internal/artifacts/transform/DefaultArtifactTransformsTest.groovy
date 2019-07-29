@@ -178,9 +178,10 @@ class DefaultArtifactTransformsTest extends Specification {
         1 * invocation1.getCachedResult() >> Optional.empty()
         1 * invocation1.invoke() >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2))) >> invocation1
 
-        1 * listener.startVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) >> true
+        1 * listener.shouldVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) >> true
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
+        1 * visitor.endVisitCollection()
         0 * visitor._
         0 * transformation._
     }

@@ -77,8 +77,8 @@ public abstract class ParallelResolveArtifactSet {
             }
 
             @Override
-            public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-                return visitor.startVisit(collectionType);
+            public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+                return visitor.shouldVisit(collectionType);
             }
 
             @Override
