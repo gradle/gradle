@@ -58,7 +58,6 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowClass(SetSystemProperties)
         sharedSpec.allowClass(RedirectStdOutAndErr)
         sharedSpec.allowPackage('org.gradle.integtests.fixtures')
-        sharedSpec.allowPackage('org.gradle.play.integtest.fixtures')
         sharedSpec.allowPackage('org.gradle.plugins.ide.fixtures')
         sharedSpec.allowPackage('org.gradle.test.fixtures')
         sharedSpec.allowPackage('org.gradle.nativeplatform.fixtures')

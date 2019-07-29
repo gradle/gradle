@@ -34,7 +34,7 @@ In a nutshell, the Software Model is a very declarative way to describe how a pi
 * Make customizations of builds with complex tool chains easier.
 * Provide a richer, more standardized way to model different software ecosystems.
 
-Gradle drastically improved configuration performance through other measures. There is no longer any need for a drastic, incompatible change in how Gradle builds are configured. Gradle's support for building <<native_software.adoc#native_software,native software>> and <<play_plugin.adoc#play_plugin,Play Framework applications>> still use the configuration model.
+Gradle drastically improved configuration performance through other measures. There is no longer any need for a drastic, incompatible change in how Gradle builds are configured. Gradle's support for building <<native_software.adoc#native_software,native software>> still uses the configuration model.
 
 [[sec:basic_concepts]]
 == Basic Concepts

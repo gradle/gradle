@@ -82,7 +82,7 @@ val linkedPlugins =
         "microsoft-visual-cpp-compiler",
         "native-component", "native-component-model",
         "objective-c", "objective-c-lang", "objective-cpp", "objective-cpp-lang", "osgi",
-        "play", "play-application", "play-cofeescript", "play-ide", "play-javascript", "pmd",
+        "pmd",
         "project-report", "project-reports",
         "reporting-base",
         "scala", "scala-base", "signing", "standard-tool-chains",

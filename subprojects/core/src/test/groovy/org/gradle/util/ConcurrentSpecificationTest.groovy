@@ -335,20 +335,6 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         1 * action.run() >> { operation.done() }
     }
 
-    def "can check that some method completes in expected time"() {
-        SomeConditionClass condition = new SomeConditionClass()
-
-        when:
-        def timedOut = false
-        def action = start {
-            timedOut = condition.waitUntilComplete(200)
-        }
-        action.completesWithin(200, TimeUnit.MILLISECONDS)
-
-        then:
-        timedOut
-    }
-
     @FailsWith(TestException)
     def "finish rethrows exception thrown by test thread"() {
         Runnable action = Mock()

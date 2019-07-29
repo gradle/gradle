@@ -48,13 +48,6 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = addJavaCompilerModules(classpath);
             return classpath;
         }
-        if (name.equals("PLAY-COMPILER")) {
-            ClassPath classpath = ClassPath.EMPTY;
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-platform-play").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-javascript").getImplementationClasspath());
-            classpath = addJavaCompilerModules(classpath);
-            return classpath;
-        }
         if (name.equals("JAVA-COMPILER")) {
             return addJavaCompilerModules(ClassPath.EMPTY);
         }

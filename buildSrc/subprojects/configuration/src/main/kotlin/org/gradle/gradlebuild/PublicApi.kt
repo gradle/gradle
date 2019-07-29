@@ -23,7 +23,6 @@ object PublicApi {
         "org/gradle/nativeplatform/**",
         "org/gradle/normalization/**",
         "org/gradle/platform/**",
-        "org/gradle/play/**",
         "org/gradle/plugin/devel/**",
         "org/gradle/plugin/repository/*",
         "org/gradle/plugin/use/*",

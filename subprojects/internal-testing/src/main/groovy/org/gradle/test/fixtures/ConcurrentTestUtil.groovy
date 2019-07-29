@@ -355,11 +355,6 @@ interface LongRunningAction {
     void completed()
 
     /**
-     * Blocks until this action has completed. Asserts that the action completes within the specified time. Rethrows any exception from the action.
-     */
-    void completesWithin(long maxWaitValue, TimeUnit maxWaitUnits)
-
-    /**
      * Blocks until this action has completed. Asserts that the action completes before the given time. Rethrows any exception from the action.
      */
     void completesBefore(Date timeout)
@@ -382,12 +377,6 @@ abstract class AbstractAction implements LongRunningAction {
 
     void completed() {
         completesBefore(defaultExpiry)
-    }
-
-    void completesWithin(long maxWaitValue, TimeUnit maxWaitUnits) {
-        long expiry = System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue)
-        // TODO I'm pretty sure we should not add 500 _days_ here, but changing that kills some Play integration tests
-        completesBefore(new Date(expiry + TimeUnit.DAYS.toMillis(500)))
     }
 
     abstract void completesBefore(Date timeout)

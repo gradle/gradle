@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
-import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier
 import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer
@@ -45,7 +44,6 @@ import org.junit.runner.RunWith
         FileSeparatorOutputNormalizer,
         ArtifactResolutionOmittingOutputNormalizer,
         NativeComponentReportOutputNormalizer,
-        PlayComponentReportOutputNormalizer,
         DependencyInsightOutputNormalizer
 ])
 @SampleModifiers([SetMirrorsSampleModifier, MoreMemorySampleModifier])
@@ -72,7 +70,7 @@ class UserGuideSamplesIntegrationTest {
     // Our sample executor needs to be isolated from other TestKit-based tests that may run in the Gradle CI pipeline with a "partial" distribution
     // Partial distributions have the same version number as a full distribution, but when we generate a Kotlin extensions jar, we'll only include
     // extensions that are defined in the distribution. If we first run with a partial distribution, our samples will fail when trying to use plugins
-    // from the full distribution. 
+    // from the full distribution.
 
     // Previous value of BASE_DIR_OVERRIDE_PROPERTY
     static String previous

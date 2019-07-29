@@ -53,6 +53,11 @@ Calls to `BuildCacheConfiguration.local(Class)` with anything other than `Direct
 Use `getLocal()` and `local(Action)` instead.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
+==== Play framework support moved to external plugin
+
+The Play Framework support bundled with earlier Gradle versions was removed.
+Please use the new link:https://gradle.github.io/playframework[Gradle Play Plugin] instead which offers similar functionality.
+
 ==== `@Nullable` annotation is gone
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
@@ -172,7 +177,7 @@ Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<Ja
 
 ==== Play
 
-The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated and will be replaced by a new link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
+The built-in Play plugin has been deprecated and will be replaced by a new link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
 
 ==== Build Comparison
 

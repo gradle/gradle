@@ -91,7 +91,7 @@ class CIConfigIntegrationTests {
                 }
 
                 // hacky way to consider deferred tests
-                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 4 else 0
+                val deferredTestCount = 0
                 assertEquals(
                     stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
                     it.dependencies.items.size, stage.stageName.stageName)

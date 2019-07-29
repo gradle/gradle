@@ -206,12 +206,6 @@ object UserGuideLink {
 
             "osgi" to "osgi_plugin.html",
 
-            "play" to "play_plugin.html",
-            "play-application" to "play_plugin.html",
-            "play-cofeescript" to "play_plugin.html",
-            "play-ide" to "play_plugin.html",
-            "play-javascript" to "play_plugin.html",
-
             "pmd" to "pmd_plugin.html",
 
             "project-report" to "project_report_plugin.html",
