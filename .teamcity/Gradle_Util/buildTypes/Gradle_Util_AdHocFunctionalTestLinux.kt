@@ -2,6 +2,7 @@ package Gradle_Util.buildTypes
 
 import common.Os
 import common.checkCleanM2
+import common.filterDefaultBranch
 import common.gradleWrapper
 import common.verifyTestFilesCleanup
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
@@ -34,7 +35,7 @@ object Gradle_Util_AdHocFunctionalTestLinux : BuildType({
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
 
         checkoutMode = CheckoutMode.ON_AGENT
-        buildDefaultBranch = false
+        filterDefaultBranch()
     }
 
     steps {
