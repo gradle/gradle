@@ -142,9 +142,9 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
         def groovyVersion = getGradleGroovyVersion()
         def kotlinVersion = getGradleKotlinVersion()
-        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, kotlin-stdlib-jdk8-${kotlinVersion}.jar, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-stdlib-jdk7-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
+        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-stdlib-jdk8-${kotlinVersion}.jar, kotlin-stdlib-jdk7-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
         def expectedGradleApiIds = { id ->
-            "gradle-api-${gradleVersion}.jar ($id), groovy-all-${groovyVersion}.jar ($id), kotlin-stdlib-jdk8-${kotlinVersion}.jar ($id), kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk7-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
+            "gradle-api-${gradleVersion}.jar ($id), groovy-all-${groovyVersion}.jar ($id), kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk8-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk7-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
         }
         outputContains("gradleApi() files: [$expectedGradleApiFiles]")
         outputContains("gradleApi() ids: [${expectedGradleApiIds("Gradle API")}]")

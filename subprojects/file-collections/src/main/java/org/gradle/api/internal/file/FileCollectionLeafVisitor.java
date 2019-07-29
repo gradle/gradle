@@ -42,9 +42,6 @@ public interface FileCollectionLeafVisitor {
      * <p>Note that this method is not necessarily called immediately before one of the visit methods, as some collections may be
      * resolved in parallel. However, all visiting is performed sequentially and in order.
      *
-     * <p>This method is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
-     * contain files that are expensive to visit, or task/transform outputs that don't yet exist.
-     *
      * @return how should the collection be visited?
      */
     default VisitType prepareForVisit(FileCollectionInternal.Source source) {

@@ -67,7 +67,6 @@ dependencies {
     implementation(library("commons_compress"))
     implementation(library("xmlApis"))
 
-    runtimeOnly(project(":instantExecution"))
     runtimeOnly(project(":docs"))
 
     testImplementation(project(":plugins"))

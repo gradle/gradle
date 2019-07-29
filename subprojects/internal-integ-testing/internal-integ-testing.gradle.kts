@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":buildCache"))
     implementation(project(":persistentCache"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":instantExecution"))
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
     implementation(project(":internalTesting"))

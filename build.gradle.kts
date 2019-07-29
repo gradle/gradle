@@ -348,6 +348,7 @@ dependencies {
     gradlePlugins(project(":testKit"))
 
     coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
+    coreRuntimeExtensions(project(":instantExecution"))
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
     coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))
