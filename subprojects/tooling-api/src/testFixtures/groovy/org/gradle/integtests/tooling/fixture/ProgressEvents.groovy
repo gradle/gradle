@@ -220,6 +220,23 @@ class ProgressEvents implements ProgressListener {
     }
 
     /**
+     * Returns all events for test class and method execution
+     */
+    List<Operation> getTestClassesAndMethods() {
+        assertHasZeroOrMoreTrees()
+        return operations.findAll { it.testClassOrMethod } as List
+    }
+
+
+    /**
+     * Returns all events for test task or executor execution
+     */
+    List<Operation> getTestTasksAndExecutors() {
+        assertHasZeroOrMoreTrees()
+        return operations.findAll { it.test && !it.testClassOrMethod } as List
+    }
+
+    /**
      * Returns all tasks, in the order started.
      */
     List<Operation> getTasks() {
@@ -313,6 +330,10 @@ class ProgressEvents implements ProgressListener {
 
         boolean isTest() {
             return descriptor instanceof TestOperationDescriptor
+        }
+
+        boolean isTestClassOrMethod() {
+            return isTest() && (descriptor.className || descriptor.methodName)
         }
 
         boolean isTask() {
