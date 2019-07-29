@@ -1244,7 +1244,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-            FileCollectionLeafVisitor.VisitType visitType = visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other);
+            FileCollectionLeafVisitor.VisitType visitType = visitor.prepareForVisit(OTHER);
             if (visitType == FileCollectionLeafVisitor.VisitType.Skip) {
                 return;
             }

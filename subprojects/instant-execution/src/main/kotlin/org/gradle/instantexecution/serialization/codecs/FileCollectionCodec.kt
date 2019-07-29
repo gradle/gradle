@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionLeafVisitor
@@ -62,9 +63,9 @@ private
 class CollectingVisitor : FileCollectionLeafVisitor {
     val files: MutableSet<File> = mutableSetOf()
 
-    override fun prepareForVisit(type: FileCollectionLeafVisitor.CollectionType): FileCollectionLeafVisitor.VisitType {
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionLeafVisitor.VisitType {
         // Ignore scheduled transforms for now
-        return if (type == FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) {
+        return if (source is ConsumerProvidedVariantFiles) {
             FileCollectionLeafVisitor.VisitType.Skip
         } else {
             FileCollectionLeafVisitor.VisitType.Visit

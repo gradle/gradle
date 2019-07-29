@@ -25,10 +25,6 @@ import java.io.File;
  * is called for each element in a file collection that represents a root of a file tree.
  */
 public interface FileCollectionLeafVisitor {
-    enum CollectionType {
-        ArtifactTransformResult, Generated, Other
-    }
-
     enum VisitType {
         // Visitor is interested in the contents of the collection
         Visit,
@@ -41,17 +37,17 @@ public interface FileCollectionLeafVisitor {
     }
 
     /**
-     * Called prior to visiting a file collection of the given type, and allows this visitor to skip the collection.
+     * Called prior to visiting a file collection with the given spec, and allows this visitor to skip the collection.
      *
      * <p>Note that this method is not necessarily called immediately before one of the visit methods, as some collections may be
-     * resolved in parallel. However, all visiting is performed sequentally and in order.
+     * resolved in parallel. However, all visiting is performed sequentially and in order.
      *
      * <p>This method is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
      * contain files that are expensive to visit, or task/transform outputs that don't yet exist.
      *
      * @return how should the collection be visited?
      */
-    default VisitType prepareForVisit(CollectionType type) {
+    default VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return VisitType.Visit;
     }
 

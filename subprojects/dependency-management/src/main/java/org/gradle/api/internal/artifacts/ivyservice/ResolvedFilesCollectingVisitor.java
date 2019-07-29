@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 
@@ -42,18 +43,13 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean includeFiles() {
-        return true;
-    }
-
-    @Override
     public boolean requireArtifactFiles() {
         return true;
     }
 
     @Override
-    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-        return true;
+    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        return FileCollectionLeafVisitor.VisitType.Visit;
     }
 
     @Override
@@ -63,7 +59,6 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
 
     @Override
     public void endVisitCollection() {
-
     }
 
     public Set<File> getFiles() {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -77,18 +78,13 @@ public abstract class ParallelResolveArtifactSet {
             }
 
             @Override
-            public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-                return visitor.shouldVisit(collectionType);
+            public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+                return visitor.prepareForVisit(source);
             }
 
             @Override
             public boolean requireArtifactFiles() {
                 return visitor.requireArtifactFiles();
-            }
-
-            @Override
-            public boolean includeFileDependencies() {
-                return visitor.includeFiles();
             }
         }
 

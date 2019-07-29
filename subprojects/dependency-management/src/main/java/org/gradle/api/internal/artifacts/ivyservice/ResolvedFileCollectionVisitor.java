@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
@@ -26,13 +27,9 @@ public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisito
         this.visitor = visitor;
     }
 
-    public FileCollectionLeafVisitor getVisitor() {
-        return visitor;
-    }
-
     @Override
-    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-        return visitor.prepareForVisit(collectionType) != FileCollectionLeafVisitor.VisitType.Skip;
+    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        return visitor.prepareForVisit(source);
     }
 
     @Override

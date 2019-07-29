@@ -115,6 +115,27 @@ class JarProducer extends DefaultTask {
 
     /**
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithSimpleColorTransform() {
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'.
      * By default the variant will contain a single file, this can be configured using the supplied {@link Builder}.
      * Caller will need to provide an implementation of 'MakeGreen' transform action
      */

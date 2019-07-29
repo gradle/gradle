@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 
@@ -25,9 +26,9 @@ import org.gradle.internal.DisplayName;
  */
 public interface ArtifactVisitor {
     /**
-     * Called prior to scheduling resolution of a set of the given type. When {@code false} is returned, the contents of the set is not visited.
+     * Called prior to scheduling resolution of a set of artifacts.
      */
-    boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType);
+    FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source);
 
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
@@ -40,11 +41,6 @@ public interface ArtifactVisitor {
      * Returns true here allows the collection to preemptively resolve the files in parallel.
      */
     boolean requireArtifactFiles();
-
-    /**
-     * Should {@link #visitArtifact(DisplayName, AttributeContainer, ResolvableArtifact)} be called for local file dependencies?
-     */
-    boolean includeFiles();
 
     /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.

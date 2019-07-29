@@ -24,6 +24,7 @@ import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 
@@ -59,17 +60,12 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-        return true;
+    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        return FileCollectionLeafVisitor.VisitType.Visit;
     }
 
     @Override
     public boolean requireArtifactFiles() {
-        return true;
-    }
-
-    @Override
-    public boolean includeFiles() {
         return true;
     }
 

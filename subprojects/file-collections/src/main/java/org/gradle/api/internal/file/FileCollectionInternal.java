@@ -27,4 +27,16 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
      * <p>The implementation should call the most specific method on {@link FileCollectionLeafVisitor} that it is able to.</p>
      */
     void visitLeafCollections(FileCollectionLeafVisitor visitor);
+
+    /**
+     * Some representation of the source of some set of files.
+     */
+    interface Source {
+    }
+
+    /**
+     * A generic source of files.
+     */
+    Source OTHER = new Source() {
+    };
 }

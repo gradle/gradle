@@ -168,7 +168,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        if (visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) != FileCollectionLeafVisitor.VisitType.Skip) {
+        if (visitor.prepareForVisit(OTHER) != FileCollectionLeafVisitor.VisitType.Skip) {
             visitor.visitGenericFileTree(this);
         }
     }

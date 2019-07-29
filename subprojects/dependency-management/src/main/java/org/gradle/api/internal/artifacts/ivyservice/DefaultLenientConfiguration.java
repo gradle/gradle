@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -43,6 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -264,11 +266,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>();
 
-        if (visitor.includeFiles()) {
-            for (Map.Entry<FileCollectionDependency, Integer> entry : fileDependencyResults.getFirstLevelFiles().entrySet()) {
-                if (dependencySpec.isSatisfiedBy(entry.getKey())) {
-                    artifactSets.add(artifactResults.getArtifactsWithId(entry.getValue()));
-                }
+        for (Map.Entry<FileCollectionDependency, Integer> entry : fileDependencyResults.getFirstLevelFiles().entrySet()) {
+            if (dependencySpec.isSatisfiedBy(entry.getKey())) {
+                artifactSets.add(artifactResults.getArtifactsWithId(entry.getValue()));
             }
         }
 
@@ -305,13 +305,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
-            return true;
-        }
-
-        @Override
-        public boolean includeFiles() {
-            return false;
+        public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            if (source instanceof LocalDependencyFiles) {
+                return FileCollectionLeafVisitor.VisitType.Skip;
+            }
+            return FileCollectionLeafVisitor.VisitType.Visit;
         }
 
         @Override
@@ -331,8 +329,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private static class LenientFilesAndArtifactResolveVisitor extends LenientArtifactCollectingVisitor {
         @Override
-        public boolean includeFiles() {
-            return true;
+        public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            return FileCollectionLeafVisitor.VisitType.Visit;
         }
     }
 

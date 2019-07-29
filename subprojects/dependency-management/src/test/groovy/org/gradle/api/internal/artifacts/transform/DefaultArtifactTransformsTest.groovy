@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -123,7 +122,6 @@ class DefaultArtifactTransformsTest extends Specification {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
-        def id = Stub(ComponentIdentifier)
         def sourceArtifactId = Stub(ComponentArtifactIdentifier)
         def sourceArtifact = Stub(TestArtifact)
         def sourceArtifactFile = new File("thing-1.0.jar")
@@ -133,7 +131,6 @@ class DefaultArtifactTransformsTest extends Specification {
         def variants = [variant1, variant2] as Set
         def transformation = Mock(Transformation)
         CacheableInvocation<TransformationSubject> invocation1 = Mock(CacheableInvocation)
-        CacheableInvocation<TransformationSubject> invocation2 = Mock(CacheableInvocation)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
@@ -178,7 +175,7 @@ class DefaultArtifactTransformsTest extends Specification {
         1 * invocation1.getCachedResult() >> Optional.empty()
         1 * invocation1.invoke() >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2))) >> invocation1
 
-        1 * listener.shouldVisit(FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) >> true
+        1 * listener.prepareForVisit({it instanceof ConsumerProvidedVariantFiles}) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
         1 * visitor.endVisitCollection()
