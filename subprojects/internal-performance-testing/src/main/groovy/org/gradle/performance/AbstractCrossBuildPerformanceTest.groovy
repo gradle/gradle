@@ -17,10 +17,10 @@
 package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.PerformanceTestBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
@@ -46,7 +46,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     def setup() {
-        runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, buildContext) {
+        runner = new CrossBuildPerformanceTestRunner(new PerformanceTestBuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

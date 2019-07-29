@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
-import org.gradle.performance.fixture.GradleSessionProvider
-import org.gradle.performance.fixture.PerformanceTestBuildExperimentRunner
+import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
@@ -35,7 +34,7 @@ import spock.lang.Specification
 
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-class AbstractCrossVersionPerformanceTest extends Specification {
+class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
     private static def resultStore = new CrossVersionResultsStore()
     private static def reporter = SlackReporter.wrap(resultStore)
@@ -52,7 +51,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
 
     def setup() {
         runner = new CrossVersionPerformanceTestRunner(
-            new PerformanceTestBuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            new GradleProfilerBuildExperimentRunner(),
             resultStore,
             reporter,
             new ReleasedVersionDistributions(buildContext),

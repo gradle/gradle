@@ -67,6 +67,9 @@ dependencies {
     implementation(testLibrary("jetty"))
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":toolingApi")))
+    implementation("org.gradle.profiler:gradle-profiler:1.0-SNAPSHOT") {
+        exclude(group = "com.google.guava", module = "guava")
+    }
 
     runtimeOnly("com.h2database:h2:1.4.192")
 }

@@ -18,11 +18,11 @@ package org.gradle.performance
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.PerformanceTestBuildExperimentRunner
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
@@ -56,7 +56,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
+        runner = new BuildScanPerformanceTestRunner(new PerformanceTestBuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
