@@ -161,7 +161,12 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        toolingApi.withConnection(cl)
+        try {
+            toolingApi.withConnection(cl)
+        } catch (GradleConnectionException e) {
+            caughtGradleConnectionException = e
+            throw e
+        }
     }
 
     public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
