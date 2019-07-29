@@ -177,6 +177,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -433,13 +434,24 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ClassLoaderRegistry classLoaderRegistry,
         ClassLoaderCache classLoaderCache,
         ListenerManager listenerManager,
-        List<ClassLoaderScopeRegistryListener> listeners
+        // Force `ClassLoaderScopeRegistryListener` services to be initialized.
+        // The service factories are responsible for adding the listeners to the
+        // `ListenerManager` which gives them chance to check for preconditions
+        // before doing so.
+        @SuppressWarnings("unused") List<ClassLoaderScopeRegistryListener> forceClassLoaderScopeRegistryListeners
     ) {
         return new DefaultClassLoaderScopeRegistry(
             classLoaderRegistry,
             classLoaderCache,
-            listeners.get(0) // TODO:instant-execution
+            classLoaderScopeRegistryListenerFor(listenerManager)
         );
+    }
+
+    @Nullable
+    private ClassLoaderScopeRegistryListener classLoaderScopeRegistryListenerFor(ListenerManager listenerManager) {
+        return listenerManager.hasListeners(ClassLoaderScopeRegistryListener.class)
+            ? listenerManager.getBroadcaster(ClassLoaderScopeRegistryListener.class)
+            : null;
     }
 
     protected ProjectTaskLister createProjectTaskLister() {

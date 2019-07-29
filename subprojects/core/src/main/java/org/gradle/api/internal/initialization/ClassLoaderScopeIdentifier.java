@@ -20,14 +20,16 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 class ClassLoaderScopeIdentifier {
 
+    @Nullable
     private final ClassLoaderScopeIdentifier parent;
     private final String name;
 
-    public ClassLoaderScopeIdentifier(ClassLoaderScopeIdentifier parent, String name) {
+    public ClassLoaderScopeIdentifier(@Nullable ClassLoaderScopeIdentifier parent, String name) {
         this.parent = parent;
         this.name = name;
     }
