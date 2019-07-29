@@ -26,7 +26,7 @@ import java.net.URL;
 
 public class DefaultDeprecatedClassLoader extends ClassLoader implements DeprecatedClassloader {
 
-    private static final String BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING = "Access to the buildSrc project and its dependencies in settings script";
+    private static final String BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING = "Access to the buildSrc project and its dependencies in settings scripts";
     private final ClassLoader deprecatedUsageLoader;
     private final ClassLoader nonDeprecatedParent;
 
