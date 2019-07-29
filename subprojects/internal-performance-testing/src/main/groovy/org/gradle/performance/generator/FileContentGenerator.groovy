@@ -100,13 +100,18 @@ abstract class FileContentGenerator {
             if (!isRoot) {
                 return null
             }
-            if (config.subProjects == 0) {
-                return ""
-            }
-            """ 
-            ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
 
+            String includedProjects = ""
+            if (config.subProjects != 0) {
+                includedProjects = """ 
+                    ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
+                """
+            }
+
+            return includedProjects + """
+            if(org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('4.6')) {
             ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
+            }
             """
         }
     }

@@ -24,7 +24,7 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionGradleIntern
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
     def setup() {
-        runner.minimumVersion = '4.0'
+        runner.minimumVersion = '4.9'
         runner.targetVersions = ["5.7-20190722220035+0000"]
     }
 
