@@ -23,7 +23,7 @@ import org.gradle.internal.classpath.ClassPath
 
 internal
 class InstantExecutionClassLoaderScopeRegistryListener(
-    private val onDisable: (Any) -> Unit
+    private val onDispose: (Any) -> Unit
 ) : ClassLoaderScopeRegistryListener {
 
     var coreAndPluginsSpec: ClassLoaderScopeSpec? = null
@@ -34,13 +34,13 @@ class InstantExecutionClassLoaderScopeRegistryListener(
     /**
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
      */
-    fun disable() {
+    fun dispose() {
         // TODO:instant-execution find a way to make `disable` unnecessary;
         //  maybe by introducing an `InstantExecutionBuildDefinition` service
         //  to replace DefaultInstantExecutionHost.
         coreAndPluginsSpec = null
         scopeSpecs.clear()
-        onDisable(this)
+        onDispose(this)
     }
 
     override fun rootScopeCreated(scopeId: String) {

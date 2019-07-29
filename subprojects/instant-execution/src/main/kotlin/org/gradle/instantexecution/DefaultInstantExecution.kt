@@ -112,7 +112,7 @@ class DefaultInstantExecution internal constructor(
 
         if (!isInstantExecutionEnabled) {
             // Reduce overhead
-            scopeRegistryListener.disable()
+            scopeRegistryListener.dispose()
             return
         }
 
@@ -143,7 +143,7 @@ class DefaultInstantExecution internal constructor(
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph
-        scopeRegistryListener.disable()
+        scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
