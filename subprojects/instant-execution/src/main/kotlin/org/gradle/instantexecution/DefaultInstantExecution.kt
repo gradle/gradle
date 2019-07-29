@@ -42,6 +42,7 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -110,7 +111,8 @@ class DefaultInstantExecution internal constructor(
     override fun saveTaskGraph() {
 
         if (!isInstantExecutionEnabled) {
-            scopeRegistryListener.disable() // TODO:instant-execution
+            // Reduce overhead
+            scopeRegistryListener.disable()
             return
         }
 
@@ -138,7 +140,10 @@ class DefaultInstantExecution internal constructor(
     override fun loadTaskGraph() {
 
         require(isInstantExecutionEnabled)
-        scopeRegistryListener.disable() // TODO:instant-execution
+
+        // No need to record the `ClassLoaderScope` tree
+        // when loading the task graph
+        scopeRegistryListener.disable()
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
@@ -436,5 +441,10 @@ fun <R> runToCompletion(block: suspend () -> R): R {
 
 
 private
-fun Iterable<ClassPath>.toClassPath() =
-    fold(ClassPath.EMPTY, ClassPath::plus)
+fun Iterable<ClassPath>.toClassPath() = DefaultClassPath.of(
+    mutableSetOf<File>().also { files ->
+        forEach { classPath ->
+            files.addAll(classPath.asFiles)
+        }
+    }
+)

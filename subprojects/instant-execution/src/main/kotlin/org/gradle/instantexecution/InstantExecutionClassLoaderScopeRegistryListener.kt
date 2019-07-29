@@ -22,20 +22,25 @@ import org.gradle.internal.classpath.ClassPath
 
 
 internal
-class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener {
+class InstantExecutionClassLoaderScopeRegistryListener(
+    private val onDisable: (Any) -> Unit
+) : ClassLoaderScopeRegistryListener {
 
     var coreAndPluginsSpec: ClassLoaderScopeSpec? = null
 
     private
     val scopeSpecs = mutableMapOf<String, ClassLoaderScopeSpec>()
 
-    private
-    var disabled = false
-
+    /**
+     * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
+     */
     fun disable() {
-        disabled = true
+        // TODO:instant-execution find a way to make `disable` unnecessary;
+        //  maybe by introducing an `InstantExecutionBuildDefinition` service
+        //  to replace DefaultInstantExecutionHost.
         coreAndPluginsSpec = null
         scopeSpecs.clear()
+        onDisable(this)
     }
 
     override fun rootScopeCreated(scopeId: String) {
@@ -48,7 +53,6 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun childScopeCreated(parentId: String, childId: String) {
-        if (disabled) return
         scopeSpecs[parentId]?.let { scopeSpec ->
             ClassLoaderScopeSpec(childId).let { child ->
                 scopeSpec.children.add(child)
@@ -58,12 +62,10 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun localClasspathAdded(scopeId: String, localClassPath: ClassPath) {
-        if (disabled) return
         scopeSpecs[scopeId]?.localClassPath?.add(localClassPath)
     }
 
     override fun exportClasspathAdded(scopeId: String, exportClassPath: ClassPath) {
-        if (disabled) return
         scopeSpecs[scopeId]?.exportClassPath?.add(exportClassPath)
     }
 }

@@ -37,12 +37,22 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     object BuildServices {
 
         fun createClassLoaderScopeRegistryListener(
-            definition: BuildDefinition,
+            buildDefinition: BuildDefinition,
             listenerManager: ListenerManager
-        ) = InstantExecutionClassLoaderScopeRegistryListener().also { listener ->
-            if (SystemProperties.isEnabled in definition.startParameter.systemPropertiesArgs) {
-                listenerManager.addListener(listener)
+        ): InstantExecutionClassLoaderScopeRegistryListener =
+            when {
+                SystemProperties.isEnabled in buildDefinition.startParameter.systemPropertiesArgs -> {
+                    InstantExecutionClassLoaderScopeRegistryListener(
+                        onDisable = listenerManager::removeListener
+                    ).also(
+                        listenerManager::addListener
+                    )
+                }
+                else -> {
+                    InstantExecutionClassLoaderScopeRegistryListener(
+                        onDisable = { }
+                    )
+                }
             }
-        }
     }
 }
