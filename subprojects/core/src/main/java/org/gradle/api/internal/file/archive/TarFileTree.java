@@ -31,7 +31,6 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.Chmod;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
@@ -48,17 +47,15 @@ public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
     private final File tarFile;
     private final ReadableResourceInternal resource;
     private final Chmod chmod;
-    private final Stat stat;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final File tmpDir;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
 
-    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, Stat stat, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
+    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
         this.tarFile = tarFile;
         this.resource = resource;
         this.chmod = chmod;
-        this.stat = stat;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.tmpDir = tmpDir;
         this.streamHasher = streamHasher;
