@@ -71,7 +71,7 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
 
 internal
 class ClassLoaderScopeSpec(val id: String) {
-    var localClassPath = mutableListOf<ClassPath>()
-    var exportClassPath = mutableListOf<ClassPath>()
+    val localClassPath = mutableListOf<ClassPath>()
+    val exportClassPath = mutableListOf<ClassPath>()
     val children = mutableListOf<ClassLoaderScopeSpec>()
 }
