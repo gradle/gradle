@@ -62,12 +62,12 @@ private
 class CollectingVisitor : FileCollectionLeafVisitor {
     val files: MutableSet<File> = mutableSetOf()
 
-    override fun beforeVisit(type: FileCollectionLeafVisitor.CollectionType): FileCollectionLeafVisitor.VisitType {
+    override fun prepareForVisit(type: FileCollectionLeafVisitor.CollectionType): FileCollectionLeafVisitor.VisitType {
         // Ignore scheduled transforms for now
         return if (type == FileCollectionLeafVisitor.CollectionType.ArtifactTransformResult) {
             FileCollectionLeafVisitor.VisitType.Skip
         } else {
-            FileCollectionLeafVisitor.VisitType.Spec
+            FileCollectionLeafVisitor.VisitType.Visit
         }
     }
 

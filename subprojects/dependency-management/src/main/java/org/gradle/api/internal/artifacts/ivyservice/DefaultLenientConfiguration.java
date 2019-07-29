@@ -305,7 +305,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+        public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
             return true;
         }
 
@@ -322,6 +322,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         @Override
         public void visitFailure(Throwable failure) {
             throw UncheckedException.throwAsUncheckedException(failure);
+        }
+
+        @Override
+        public void endVisitCollection() {
         }
     }
 

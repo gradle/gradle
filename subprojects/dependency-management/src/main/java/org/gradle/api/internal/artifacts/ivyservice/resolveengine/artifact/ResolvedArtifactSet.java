@@ -71,7 +71,10 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe as they are notified from multiple threads concurrently.
      */
     interface AsyncArtifactListener {
-        boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType);
+        /**
+         * Called prior to scheduling resolution of a set of the given type. When {@code false} is returned, the contents of the set is not visited.
+         */
+        boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType);
 
         /**
          * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.

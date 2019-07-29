@@ -113,7 +113,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
 
     @Override
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        if (visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) == FileCollectionLeafVisitor.VisitType.Skip) {
+        if (visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) == FileCollectionLeafVisitor.VisitType.Skip) {
             return;
         }
         if (tree instanceof DirectoryFileTree) {

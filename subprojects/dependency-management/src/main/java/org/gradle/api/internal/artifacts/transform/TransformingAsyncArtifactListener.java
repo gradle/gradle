@@ -66,7 +66,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     }
 
     @Override
-    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
         // Visit everything
         return true;
     }

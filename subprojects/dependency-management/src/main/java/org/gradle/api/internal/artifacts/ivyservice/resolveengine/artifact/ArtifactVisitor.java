@@ -21,10 +21,13 @@ import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.internal.DisplayName;
 
 /**
- * A visitor over the contents of a {@link ResolvedArtifactSet}.
+ * A visitor over the contents of a {@link ResolvedArtifactSet}. A {@link ResolvedArtifactSet} may contain zero or more sets of files, each set containing zero or more artifacts.
  */
 public interface ArtifactVisitor {
-    boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType);
+    /**
+     * Called prior to scheduling resolution of a set of the given type. When {@code false} is returned, the contents of the set is not visited.
+     */
+    boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType);
 
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
@@ -47,4 +50,9 @@ public interface ArtifactVisitor {
      * Called when some problem occurs visiting some element of the set. Visiting may continue.
      */
     void visitFailure(Throwable failure);
+
+    /**
+     * Called after a set of artifacts has been visited.
+     */
+    void endVisitCollection();
 }

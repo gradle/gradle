@@ -43,12 +43,15 @@ public interface FileCollectionLeafVisitor {
     /**
      * Called prior to visiting a file collection of the given type, and allows this visitor to skip the collection.
      *
-     * This is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
+     * <p>Note that this method is not necessarily called immediately before one of the visit methods, as some collections may be
+     * resolved in parallel. However, all visiting is performed sequentally and in order.
+     *
+     * <p>This method is only intended to be step towards some fine-grained visiting of the contents of a `Configuration` and other collections that may
      * contain files that are expensive to visit, or task/transform outputs that don't yet exist.
      *
-     * @return true to indicate that the collection should be visited, false to indicate it should be skipped.
+     * @return how should the collection be visited?
      */
-    default VisitType beforeVisit(CollectionType type) {
+    default VisitType prepareForVisit(CollectionType type) {
         return VisitType.Visit;
     }
 

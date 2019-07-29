@@ -172,6 +172,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public void visit(ArtifactVisitor visitor) {
             visitor.visitArtifact(variantName, variantAttributes, artifact);
+            visitor.endVisitCollection();
         }
 
         @Override

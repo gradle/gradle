@@ -49,7 +49,11 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean startVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
+    public void endVisitCollection() {
+    }
+
+    @Override
+    public boolean shouldVisit(FileCollectionLeafVisitor.CollectionType collectionType) {
         return true;
     }
 

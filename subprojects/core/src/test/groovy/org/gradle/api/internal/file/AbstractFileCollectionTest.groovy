@@ -336,7 +336,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Visit
+        1 * visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Visit
         1 * visitor.visitCollection(collection)
         0 * visitor._
     }
@@ -349,7 +349,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.beforeVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Skip
+        1 * visitor.prepareForVisit(FileCollectionLeafVisitor.CollectionType.Other) >> FileCollectionLeafVisitor.VisitType.Skip
         0 * visitor._
     }
 
