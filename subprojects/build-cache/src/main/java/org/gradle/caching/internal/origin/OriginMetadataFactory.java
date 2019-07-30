@@ -104,7 +104,7 @@ public class OriginMetadataFactory {
                 String executionTimeAsString = properties.getProperty(EXECUTION_TIME_KEY);
 
                 if (originBuildInvocationId == null || executionTimeAsString == null) {
-                    throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
+                    throw new IllegalStateException("Cached result format error, corrupted origin metadata");
                 }
 
                 long originalExecutionTime = Long.parseLong(executionTimeAsString);

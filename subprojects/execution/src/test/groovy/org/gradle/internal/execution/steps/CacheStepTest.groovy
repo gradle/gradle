@@ -31,8 +31,6 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import spock.lang.Shared
 
 class CacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
@@ -41,7 +39,6 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
     def cacheKey = Stub(BuildCacheKey)
     def cachingState = Mock(CachingState)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
-    @Shared def rebuildChanges = Mock(ExecutionStateChanges)
     def localStateFile = file("local-state.txt") << "local state"
 
     def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)

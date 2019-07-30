@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory.LoadMetadata;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 
 public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
