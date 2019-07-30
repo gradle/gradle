@@ -50,7 +50,13 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
         //  The listener only needs to be attached in the `store` state.
         coreAndPluginsSpec = null
         scopeSpecs.clear()
+        detach()
+    }
+
+    private
+    fun detach() {
         manager?.removeListener(this)
+        manager = null
     }
 
     override fun rootScopeCreated(scopeId: String) {
