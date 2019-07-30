@@ -17,6 +17,7 @@ package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 /**
@@ -49,6 +50,12 @@ public abstract class EarPluginConvention {
      * Allows changing the library directory in the EAR file. Default is "lib".
      */
     public abstract void libDirName(String libDirName);
+
+    /**
+     * Specifies if the deploymentDescriptor should be generated if it does not exist.
+     * Default is true.
+     */
+    public abstract Property<Boolean> getGenerateDeploymentDescriptor();
 
     /**
      * A custom deployment descriptor configuration.

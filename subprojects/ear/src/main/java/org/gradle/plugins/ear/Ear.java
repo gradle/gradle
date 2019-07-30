@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -53,12 +54,16 @@ public class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
     private String libDirName;
+    private final Property<Boolean> generateDeploymentDescriptor;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
 
-    public Ear() {
+    @Inject
+    public Ear(ObjectFactory objectFactory) {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
+        generateDeploymentDescriptor = objectFactory.property(Boolean.class);
+        generateDeploymentDescriptor.convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
             (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
         );
@@ -66,8 +71,10 @@ public class Ear extends Jar {
             new Action<FileCopyDetails>() {
                 @Override
                 public void execute(FileCopyDetails details) {
-                    checkIfShouldGenerateDeploymentDescriptor(details);
-                    recordTopLevelModules(details);
+                    if(generateDeploymentDescriptor.get()) {
+                        checkIfShouldGenerateDeploymentDescriptor(details);
+                        recordTopLevelModules(details);
+                    }
                 }
 
                 private void recordTopLevelModules(FileCopyDetails details) {
@@ -104,17 +111,17 @@ public class Ear extends Jar {
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
         descriptorChild.from((Callable<FileTreeAdapter>) () -> {
-            final DeploymentDescriptor descriptor = getDeploymentDescriptor();
+                final DeploymentDescriptor descriptor = getDeploymentDescriptor();
 
-            if (descriptor != null) {
-                if (descriptor.getLibraryDirectory() == null) {
-                    descriptor.setLibraryDirectory(getLibDirName());
-                }
+                if (descriptor != null && generateDeploymentDescriptor.get()) {
+                    if (descriptor.getLibraryDirectory() == null) {
+                        descriptor.setLibraryDirectory(getLibDirName());
+                    }
 
                 String descriptorFileName = descriptor.getFileName();
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
                     throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
-                }
+                    }
                 GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(
                     getTemporaryDirFactory(),
                     descriptorFileName,
@@ -122,10 +129,10 @@ public class Ear extends Jar {
                 );
 
 
-                return new FileTreeAdapter(descriptorSource);
-            }
+                    return new FileTreeAdapter(descriptorSource);
+                }
 
-            return null;
+                return null;
         });
     }
 
@@ -215,6 +222,15 @@ public class Ear extends Jar {
 
     public void setLibDirName(@Nullable String libDirName) {
         this.libDirName = libDirName;
+    }
+
+    /**
+     * Specifies if deploymentDescriptor should be generated.
+     * @return
+     */
+    @Input
+    public Property<Boolean> getGenerateDeploymentDescriptor() {
+        return generateDeploymentDescriptor;
     }
 
     /**
