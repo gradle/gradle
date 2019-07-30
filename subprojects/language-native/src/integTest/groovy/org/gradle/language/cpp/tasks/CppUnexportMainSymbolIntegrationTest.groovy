@@ -28,8 +28,6 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppElement
 import org.gradle.nativeplatform.fixtures.app.IncrementalElement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SourceFileElement
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolIntegrationTest {
@@ -39,8 +37,8 @@ class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolInt
         makeSingleProject()
         file("src/main/cpp/main.cpp") << """
             #include <iostream>
-            
-            int wmain( int argc**, wchar_t *argv[], wchar_t *envp[] ) {
+
+            int wmain(int argc, wchar_t *argv[], wchar_t *envp[] ) {
                 std::cout << "hello world!" << std::endl;
                 return 0;
             }
@@ -49,7 +47,7 @@ class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolInt
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/main.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
     }
 
     @Override

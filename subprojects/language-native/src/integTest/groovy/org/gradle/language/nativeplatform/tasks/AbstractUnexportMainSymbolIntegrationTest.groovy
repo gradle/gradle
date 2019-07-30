@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalElement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -39,12 +40,12 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
 
     protected abstract SourceElement getComponentWithoutMainUnderTest()
 
-    protected void assertMainSymbolIsNotExported(String objectFile) {
+    protected void assertMainSymbolIsNotExported(TestFile objectFile) {
         assert !findMainSymbol(objectFile).exported
     }
 
-    private BinaryInfo.Symbol findMainSymbol(String objectFile) {
-        def binary = new NativeBinaryFixture(file(objectFile), toolChain)
+    private BinaryInfo.Symbol findMainSymbol(TestFile objectFile) {
+        def binary = new NativeBinaryFixture(objectFile, toolChain)
         def symbols = binary.binaryInfo.listSymbols()
         def mainSymbol = symbols.find({ it.name in mainSymbols })
         assert mainSymbol
@@ -91,7 +92,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/main.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
     }
 
     def "relocate _main symbol with notMain.<ext>"() {
@@ -101,7 +102,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/notMain.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/notMain"))
     }
 
     def "relocate _main symbol with multiple files"() {
@@ -111,8 +112,8 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/main.o")
-        file("build/relocated").assertHasDescendants("main.o", "other.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
+        file("build/relocated").assertHasDescendants(objectFile("main").name, objectFile("other").name)
     }
 
     def "relocate _main symbol works incrementally"() {
@@ -122,32 +123,32 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/main.o")
-        file("build/relocated").assertHasDescendants("main.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
+        file("build/relocated").assertHasDescendants(objectFile("main").name)
 
         when:
-        def mainObject = file("build/relocated/main.o")
+        def mainObject = objectFile("build/relocated/main")
         mainObject.makeOlder()
         def oldTimestamp = mainObject.lastModified()
         otherFile.writeToProject(testDirectory)
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/main.o")
-        file("build/relocated").assertHasDescendants("main.o", "other.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
+        file("build/relocated").assertHasDescendants(objectFile("main").name, objectFile("other").name)
         mainObject.lastModified() == oldTimestamp
 
         when:
         assert file(otherFile.sourceFile.withPath("src/main")).delete()
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/relocated/main.o")
-        file("build/relocated").assertHasDescendants("main.o")
+        assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
+        file("build/relocated").assertHasDescendants(objectFile("main").name)
         mainObject.lastModified() == oldTimestamp
 
         when:
         otherFile.writeToProject(testDirectory)
         succeeds("unexport")
-        assert file("build/relocated/other.o").delete()
+        assert objectFile("build/relocated/other").delete()
         succeeds("unexport")
         then:
         mainObject.lastModified() > oldTimestamp
@@ -160,6 +161,6 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         when:
         succeeds("unexport")
         then:
-        file("build/relocated").assertHasDescendants("greeter.o", "sum.o", "multiply.o")
+        file("build/relocated").assertHasDescendants(objectFile("greeter").name, objectFile("sum").name, objectFile("multiply").name)
     }
 }
