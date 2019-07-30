@@ -104,7 +104,7 @@ You can now tell the `java-library` plugin to [prefer jars over class folders on
 ## Improved handling of ZIP archives on classpaths
 
 Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
-It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
+It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of [build cache hits](userguide/build_cache.html) for tasks
 that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
 
 The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
