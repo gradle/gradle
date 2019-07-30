@@ -376,8 +376,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public ExecutionHistoryStore getExecutionHistoryStore() {
-            return executionHistoryStore;
+        public Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+            return Optional.of(executionHistoryStore);
         }
 
         @Override

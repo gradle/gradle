@@ -265,8 +265,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionHistoryStore getExecutionHistoryStore() {
-            return executionHistoryStore;
+        public Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+            return Optional.of(executionHistoryStore);
         }
 
         @Override

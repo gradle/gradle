@@ -104,7 +104,7 @@ public interface UnitOfWork extends CacheableEntity {
      * Returns whether the execution history should be stored.
      */
     default boolean isTaskHistoryMaintained() {
-        return true;
+        return getExecutionHistoryStore().isPresent();
     }
 
     /**
@@ -203,7 +203,13 @@ public interface UnitOfWork extends CacheableEntity {
         }
     }
 
-    ExecutionHistoryStore getExecutionHistoryStore();
+    /**
+     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
+     * When {@link Optional#empty()} no execution history will be maintained.
+     */
+    default Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+        return Optional.empty();
+    }
 
     /**
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.

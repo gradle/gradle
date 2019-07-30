@@ -22,6 +22,7 @@ import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -41,6 +42,12 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     @Override
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
+        context.getWork().getExecutionHistoryStore()
+            .ifPresent(executionHistoryStore -> storeState(context, executionHistoryStore, result));
+        return result;
+    }
+
+    private void storeState(C context, ExecutionHistoryStore executionHistoryStore, CurrentSnapshotResult result) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getOutcome().isSuccessful();
@@ -49,7 +56,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
             if (successful
                 || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
                 UnitOfWork work = context.getWork();
-                work.getExecutionHistoryStore().store(
+                executionHistoryStore.store(
                     work.getIdentity(),
                     result.getOriginMetadata(),
                     beforeExecutionState.getImplementation(),
@@ -61,7 +68,6 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
                 );
             }
         });
-        return result;
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
