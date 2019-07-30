@@ -71,6 +71,7 @@ import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
@@ -110,7 +111,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperationExecutorForTaskExecution = Mock(BuildOperationExecutor)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
@@ -150,18 +152,18 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new LoadPreviousExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new ValidateStep<>(
-        new CaptureStateBeforeExecutionStep(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+        new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
         new ResolveCachingStateStep(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
         new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new SnapshotOutputsStep<>(buildId,
+        new SnapshotOutputsStep<>(buildOperationExecutor, buildId,
         new CatchExceptionStep<>(
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
         new CleanupOutputsStep<>(
-        new ExecuteStep<>()
-    ))))))))))))))
+        new ExecuteStep<>(
+    )))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
@@ -169,7 +171,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         false,
         taskSnapshotter,
         executionHistoryStore,
-        buildOperationExecutor,
+        buildOperationExecutorForTaskExecution,
         asyncWorkTracker,
         actionListener,
         taskCacheabilityResolver,
@@ -234,7 +236,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
             assert state.executing
@@ -248,7 +250,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action2.execute(task)
         then:
@@ -282,7 +284,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         1 * standardOutputCapture.start()
 
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
             task.getActions().add(action2)
@@ -312,7 +314,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.clearInputChanges()
         then:
@@ -351,7 +353,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, RELEASE_AND_REACQUIRE_PROJECT_LOCKS)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         state.didWork
@@ -372,7 +374,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
             throw new StopActionException('stop')
@@ -386,7 +388,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action2.execute(task)
         then:
@@ -416,7 +418,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.clearInputChanges()
         then:
@@ -454,7 +456,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.clearInputChanges()
         then:
@@ -491,7 +493,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutorForTaskExecution.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.clearInputChanges()
         then:

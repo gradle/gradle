@@ -30,7 +30,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
-class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
+class StoreSnapshotsStepTest extends StepSpec<BeforeExecutionContext> implements FingerprinterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
@@ -44,14 +44,21 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
         getInputProperties() >> inputProperties
         getInputFileProperties() >> inputFileProperties
     }
-    def identity = "identity"
 
     def outputFile = file("output.txt").text = "output"
     def finalOutputs = fingerprintsOf(output: outputFile)
 
-    def context = Mock(BeforeExecutionContext)
-    def step = new StoreSnapshotsStep<BeforeExecutionContext>(delegate)
+    def step = new StoreSnapshotsStep<>(delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
+
+    @Override
+    protected BeforeExecutionContext createContext() {
+        Stub(BeforeExecutionContext)
+    }
+
+    def setup() {
+        _ * work.executionHistoryStore >> executionHistoryStore
+    }
 
     def "output snapshots are stored after successful execution"() {
         when:
@@ -63,7 +70,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
@@ -81,11 +88,11 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        1 * context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.afterPreviousExecutionState >> Optional.empty()
 
         then:
         interaction { expectStore(false, finalOutputs) }
@@ -104,11 +111,11 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> fingerprintsOf([:])
 
         then:
@@ -128,19 +135,16 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
-        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> finalOutputs
         0 * _
     }
 
     void expectStore(boolean successful, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
-        1 * context.work >> work
-        1 * work.executionHistoryStore >> executionHistoryStore
-        1 * work.identity >> identity
         1 * delegateResult.originMetadata >> originMetadata
         1 * executionHistoryStore.store(
             identity,

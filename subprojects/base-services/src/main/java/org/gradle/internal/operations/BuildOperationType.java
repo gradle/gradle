@@ -67,6 +67,5 @@ package org.gradle.internal.operations;
  * @param <R> the type of result object for the operation
  * @since 4.0
  */
-@SuppressWarnings("unused")
 public interface BuildOperationType<D, R> {
 }

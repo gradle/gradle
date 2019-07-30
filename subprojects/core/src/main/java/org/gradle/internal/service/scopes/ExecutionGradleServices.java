@@ -66,6 +66,7 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedS
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -127,6 +128,7 @@ public class ExecutionGradleServices {
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
+        BuildOperationExecutor buildOperationExecutor,
         BuildScanPluginApplied buildScanPlugin,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionStateChangeDetector changeDetector,
@@ -142,7 +144,7 @@ public class ExecutionGradleServices {
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
             new ValidateStep<>(
-            new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
@@ -151,15 +153,15 @@ public class ExecutionGradleServices {
             new StoreSnapshotsStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CacheStep(buildCacheController, buildCacheCommandFactory,
-            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
             new TimeoutStep<>(timeoutHandler,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(
-            new ExecuteStep<>()
-        )))))))))))))))))))));
+            new ExecuteStep<>(
+        ))))))))))))))))))))));
         // @formatter:on
     }
 }

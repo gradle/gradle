@@ -34,6 +34,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -51,7 +52,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def instantiatorFactory = TestUtil.instantiatorFactory()
-    def transformerInvoker = Mock(TransformerInvoker)
+    def transformerInvocationFactory = Mock(TransformerInvocationFactory)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def fileCollectionFingerprinterRegistry = Mock(FileCollectionFingerprinterRegistry)
     def fileCollectionFactory = Mock(FileCollectionFactory)
@@ -63,7 +64,27 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def domainObjectContextProjectStateHandler = Mock(DomainObjectProjectStateHandler)
-    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, domainObjectContextProjectStateHandler, new ArtifactTransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme), new ArtifactTransformActionScheme(instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class)), inspectionScheme, instantiatorFactory.injectScheme()))
+    def registryFactory = new DefaultTransformationRegistrationFactory(
+        new TestBuildOperationExecutor(),
+        isolatableFactory,
+        classLoaderHierarchyHasher,
+        transformerInvocationFactory,
+        valueSnapshotter,
+        fileCollectionFactory,
+        fileCollectionFingerprinterRegistry,
+        domainObjectContextProjectStateHandler,
+        new ArtifactTransformParameterScheme(
+            instantiatorFactory.injectScheme(),
+            inspectionScheme
+        ),
+        new ArtifactTransformActionScheme(
+            instantiatorFactory.injectScheme(
+                ImmutableSet.of(InputArtifact, InputArtifactDependencies)
+            ),
+            inspectionScheme,
+            instantiatorFactory.injectScheme()
+        )
+    )
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 
     def "setup"() {

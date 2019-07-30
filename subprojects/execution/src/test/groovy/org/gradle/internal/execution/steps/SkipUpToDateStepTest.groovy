@@ -26,11 +26,14 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 
-class SkipUpToDateStepTest extends StepSpec {
-    def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
-    def context = Mock(IncrementalChangesContext)
-
+class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
+    def step = new SkipUpToDateStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
+
+    @Override
+    protected IncrementalChangesContext createContext() {
+        Stub(IncrementalChangesContext)
+    }
 
     def "skips when outputs are up to date"() {
         when:
@@ -40,9 +43,9 @@ class SkipUpToDateStepTest extends StepSpec {
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
         !result.executionReasons.present
 
-        1 * context.changes >> Optional.of(changes)
+        _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
-        1 * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
+        _ * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
 
@@ -58,8 +61,7 @@ class SkipUpToDateStepTest extends StepSpec {
         result.executionReasons == ["change"]
         !result.reusedOutputOriginMetadata.present
 
-        1 * context.getWork() >> work
-        1 * context.changes >> Optional.of(changes)
+        _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of("change")
         1 * delegate.execute(context) >> delegateResult
         0 * _
@@ -90,8 +92,7 @@ class SkipUpToDateStepTest extends StepSpec {
         then:
         result.executionReasons == ["Change tracking is disabled."]
 
-        1 * context.getWork() >> work
-        1 * context.changes >> Optional.empty()
+        _ * context.changes >> Optional.empty()
         1 * delegate.execute(context)
         0 * _
     }

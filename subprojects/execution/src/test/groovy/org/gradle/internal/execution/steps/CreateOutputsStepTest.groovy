@@ -17,23 +17,19 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends StepSpec {
-    def context = Stub(Context) {
-        getWork() >> work
-    }
-    def step = new CreateOutputsStep<Context, Result>(delegate)
+class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
+    def step = new CreateOutputsStep<>(delegate)
 
     def "outputs are created"() {
         when:
         step.execute(context)
 
         then:
-        1 * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(file("outDir")))
             visitor.visitOutputProperty("dirs", TreeType.DIRECTORY, ImmutableList.of(file("outDir1"), file("outDir2")))
             visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(file("parent/outFile")))
@@ -63,7 +59,8 @@ class CreateOutputsStepTest extends StepSpec {
 
         then:
         result == expected
-        1 * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
+
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
         1 * delegate.execute(context) >> expected
         0 * _
     }

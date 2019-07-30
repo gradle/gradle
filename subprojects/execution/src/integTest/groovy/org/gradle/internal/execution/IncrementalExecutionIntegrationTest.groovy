@@ -57,6 +57,7 @@ import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDete
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -110,6 +111,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def buildCacheController = Mock(BuildCacheController)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -137,20 +139,20 @@ class IncrementalExecutionIntegrationTest extends Specification {
         new DefaultWorkExecutor<>(
             new LoadPreviousExecutionStateStep<>(
             new ValidateStep<>(
-            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreSnapshotsStep<>(
-            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(
-            new ExecuteStep<InputChangesContext>()
-        )))))))))))))))
+            new ExecuteStep<>(
+        ))))))))))))))))
         // @formatter:on
     }
 

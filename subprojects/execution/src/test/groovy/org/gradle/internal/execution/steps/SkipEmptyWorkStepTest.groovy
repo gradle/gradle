@@ -22,16 +22,25 @@ import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import spock.lang.Unroll
 
-class SkipEmptyWorkStepTest extends StepSpec {
-    def step = new SkipEmptyWorkStep<AfterPreviousExecutionContext>(delegate)
+class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
+    def step = new SkipEmptyWorkStep<>(delegate)
     def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
-    def context = Mock(AfterPreviousExecutionContext)
+
     def delegateResult = Mock(CachingResult)
-    def outputFingerprints = ImmutableSortedMap.of()
+    def outputFingerprints = ImmutableSortedMap.<String, FileCollectionFingerprint>of()
     def executionHistoryStore = Mock(ExecutionHistoryStore)
-    def identity = "identity"
+
+    @Override
+    protected AfterPreviousExecutionContext createContext() {
+        Stub(AfterPreviousExecutionContext)
+    }
+
+    def setup() {
+        _ * work.executionHistoryStore >> executionHistoryStore
+    }
 
     def "delegates when work is not skipped"() {
         when:
@@ -40,10 +49,9 @@ class SkipEmptyWorkStepTest extends StepSpec {
         then:
         result == delegateResult
 
-        1 * context.work >> work
-        1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        1 * work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
+        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -58,14 +66,11 @@ class SkipEmptyWorkStepTest extends StepSpec {
         then:
         result.outcome.get() == outcome
 
-        1 * context.work >> work
-        1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
-        1 * work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
+        _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
 
         then:
-        1 * work.executionHistoryStore >> executionHistoryStore
-        1 * work.identity >> identity
         1 * executionHistoryStore.remove(identity)
         0 * _
 

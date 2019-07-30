@@ -32,6 +32,7 @@ import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
@@ -113,6 +114,7 @@ public class WorkExecutorTestFixture {
             buildCacheController,
             cancellationToken,
             buildInvocationScopeId,
+            new TestBuildOperationExecutor(),
             buildScanPluginApplied,
             classLoaderHierarchyHasher,
             new DefaultExecutionStateChangeDetector(),
