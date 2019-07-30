@@ -28,7 +28,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
-    static final String outputFileName = "output.txt"
+    static final String OUTPUT_FILE_NAME = "output.txt"
     boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
 
     @Unroll
@@ -40,7 +40,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 text = "foo"
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
-                outputFile = file("${outputFileName}")
+                outputFile = file("${OUTPUT_FILE_NAME}")
 
                 isolationMode = ${isolationMode}
             }
@@ -50,7 +50,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runWork")
 
         then:
-        file(outputFileName).readLines().containsAll(
+        file(OUTPUT_FILE_NAME).readLines().containsAll(
                 "text = foo",
                 "array = [foo, bar, baz]",
                 "list = [foo, bar, baz]"
@@ -74,7 +74,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 text = "foo"
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
-                outputFile = file("${outputFileName}")
+                outputFile = file("${OUTPUT_FILE_NAME}")
                 
                 workerConfiguration = {
                     forkMode = ${forkMode}
@@ -94,7 +94,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runWork")
 
         then:
-        file(outputFileName).readLines().containsAll(
+        file(OUTPUT_FILE_NAME).readLines().containsAll(
                 "text = foo",
                 "array = [foo, bar, baz]",
                 "list = [foo, bar, baz]"
@@ -121,7 +121,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 text = "foo"
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
-                outputFile = file("${outputFileName}")
+                outputFile = file("${OUTPUT_FILE_NAME}")
             }
         """
 
@@ -172,7 +172,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 text = "foo"
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
-                outputFile = file("${outputFileName}")
+                outputFile = file("${OUTPUT_FILE_NAME}")
             }
         """
 
@@ -183,7 +183,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         optionsVerifier.verifyAllOptions()
 
         and:
-        file(outputFileName).readLines().containsAll(
+        file(OUTPUT_FILE_NAME).readLines().containsAll(
                 "text = foo",
                 "array = [foo, bar, baz]",
                 "list = [foo, bar, baz]"
@@ -204,7 +204,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 text = "foo"
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
-                outputFile = file("${outputFileName}")
+                outputFile = file("${OUTPUT_FILE_NAME}")
             }
         """
 
