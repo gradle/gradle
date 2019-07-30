@@ -37,14 +37,14 @@ import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
+import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
-import org.gradle.internal.execution.steps.StoreSnapshotsStep
+import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -137,7 +137,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
         // @formatter:off
         new DefaultWorkExecutor<>(
-            new LoadPreviousExecutionStateStep<>(
+            new LoadExecutionStateStep<>(
             new ValidateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
@@ -145,7 +145,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new StoreSnapshotsStep<>(
+            new StoreExecutionStateStep<>(
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
