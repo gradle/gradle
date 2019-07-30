@@ -51,6 +51,7 @@ dependencyInsight - Displays the insight into a specific dependency in root proj
 dependentComponents - Displays the dependent components of components in root project '$projectName'. [incubating]
 help - Displays a help message.
 model - Displays the configuration model of root project '$projectName'. [incubating]
+outgoingVariants - Displays the outgoing variants of root project '$projectName'.
 projects - Displays the sub-projects of root project '$projectName'.
 properties - Displays the properties of root project '$projectName'.
 tasks - Displays the tasks runnable from root project '$projectName'.""")
