@@ -579,8 +579,8 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 doLast {
                     delete('build')
                     ${
-                        actual == "file" ?
-                            "mkdir('build'); file('build/output').text = file('input.txt').text"
+                        actual == "file"
+                            ? "mkdir('build'); file('build/output').text = file('input.txt').text"
                             : "mkdir('build/output'); file('build/output/output.txt').text = file('input.txt').text"
                     }
                 }
@@ -588,11 +588,11 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        executer.withStackTraceChecksDisabled()
-        withBuildCache().run "customTask"
+        withBuildCache().fails "customTask"
         then:
+        failureHasCause("Failed to store cache entry for task ':customTask'")
         def expectedMessage = message.replace("PATH", file("build/output").path)
-        output.contains "Could not pack tree 'output': $expectedMessage"
+        errorOutput.contains "Could not pack tree 'output': $expectedMessage"
 
         where:
         expected | actual | message
