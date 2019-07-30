@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.ClassLoaderScopeRegistry
@@ -56,8 +55,8 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
-import java.util.ArrayDeque
 
+import java.util.ArrayDeque
 import java.util.ArrayList
 import java.util.SortedSet
 
@@ -309,26 +308,35 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun classLoaderFor(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>): ClassLoader =
-        service<ClassLoaderScopeRegistry>().let { scopeRegistry ->
+        CachingClassLoader(
+            MultiParentClassLoader(
+                classLoadersFrom(classLoaderScopeSpecs)
+            )
+        )
 
-            val scopes = mutableListOf<ClassLoaderScope>()
+    private
+    fun classLoadersFrom(specs: List<ClassLoaderScopeSpec>) = mutableListOf<ClassLoader>().apply {
 
-            val stack = ArrayDeque(classLoaderScopeSpecs.map { it to scopeRegistry.coreAndPluginsScope })
-            while (stack.isNotEmpty()) {
-                val (spec, parent) = stack.pop()
-                val scope = parent
-                    .createChild(spec.id)
-                    .local(spec.localClassPath.toClassPath())
-                    .export(spec.exportClassPath.toClassPath())
-                    .lock()
-                scopes.add(scope)
-                stack.addAll(spec.children.map { it to scope })
-            }
+        val coreAndPluginsScope = service<ClassLoaderScopeRegistry>().coreAndPluginsScope
 
-            CachingClassLoader(MultiParentClassLoader(
-                scopes.flatMap { listOf(it.localClassLoader, it.exportClassLoader) }
-            ))
+        val stack = specs.mapTo(ArrayDeque()) { spec -> spec to coreAndPluginsScope }
+        while (stack.isNotEmpty()) {
+
+            val (spec, parent) = stack.pop()
+            val scope = parent
+                .createChild(spec.id)
+                .local(spec.localClassPath.toClassPath())
+                .export(spec.exportClassPath.toClassPath())
+                .lock()
+
+            add(scope.localClassLoader)
+            add(scope.exportClassLoader)
+
+            stack.addAll(
+                spec.children.map { child -> child to scope }
+            )
         }
+    }
 
     private
     fun collectClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
@@ -442,10 +450,14 @@ fun <R> runToCompletion(block: suspend () -> R): R {
 
 
 private
-fun Iterable<ClassPath>.toClassPath() = DefaultClassPath.of(
-    mutableSetOf<File>().also { files ->
-        forEach { classPath ->
-            files.addAll(classPath.asFiles)
+fun List<ClassPath>.toClassPath() = when (size) {
+    0 -> ClassPath.EMPTY
+    1 -> this[0]
+    else -> DefaultClassPath.of(
+        mutableSetOf<File>().also { files ->
+            forEach { classPath ->
+                files.addAll(classPath.asFiles)
+            }
         }
-    }
-)
+    )
+}
