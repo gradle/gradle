@@ -37,6 +37,7 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Map;
 
@@ -135,6 +136,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     @Override
     protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
         return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    }
+
+    @Override
+    protected boolean hasWithName(String name) {
+        return (project.getModelRegistry() != null && project.getModelRegistry().state(ModelPath.path("tasks." + name)) != null) || super.hasWithName(name);
     }
 
     @Override
