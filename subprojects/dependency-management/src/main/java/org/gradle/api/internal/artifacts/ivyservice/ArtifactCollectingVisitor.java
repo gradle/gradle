@@ -51,13 +51,9 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void endVisitCollection(FileCollectionInternal.Source source) {
-    }
-
-    @Override
     public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         if (source instanceof LocalDependencyFiles) {
-            return FileCollectionLeafVisitor.VisitType.Skip;
+            return FileCollectionLeafVisitor.VisitType.NoContents;
         }
         return FileCollectionLeafVisitor.VisitType.Visit;
     }

@@ -107,7 +107,7 @@ public class FileSystemSubset {
         public VisitType prepareForVisit(FileCollectionInternal.Source source) {
             if (source instanceof GeneratedFiles) {
                 // Don't watch generated resources
-                return VisitType.Skip;
+                return VisitType.NoContents;
             }
             // Only need the spec for other collections
             return VisitType.Spec;

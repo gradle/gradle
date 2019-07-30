@@ -28,7 +28,9 @@ public interface ArtifactVisitor {
     /**
      * Called prior to scheduling resolution of a set of artifacts.
      */
-    FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source);
+    default FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        return FileCollectionLeafVisitor.VisitType.Visit;
+    }
 
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
@@ -48,7 +50,14 @@ public interface ArtifactVisitor {
     void visitFailure(Throwable failure);
 
     /**
+     * Called for a set that may be backed by a file collection, when {@link #prepareForVisit(FileCollectionInternal.Source)} return {@link FileCollectionLeafVisitor.VisitType#Spec}.
+     */
+    default void visitSpec(FileCollectionInternal spec) {
+    }
+
+    /**
      * Called after a set of artifacts has been visited.
      */
-    void endVisitCollection(FileCollectionInternal.Source source);
+    default void endVisitCollection(FileCollectionInternal.Source source) {
+    }
 }

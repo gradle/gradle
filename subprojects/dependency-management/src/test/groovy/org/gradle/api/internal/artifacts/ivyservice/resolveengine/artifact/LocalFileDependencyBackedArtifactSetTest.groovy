@@ -67,7 +67,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
 
         then:
-        1 * listener.prepareForVisit(_) >> FileCollectionLeafVisitor.VisitType.Skip
+        1 * listener.prepareForVisit(_) >> FileCollectionLeafVisitor.VisitType.NoContents
         0 * _
     }
 

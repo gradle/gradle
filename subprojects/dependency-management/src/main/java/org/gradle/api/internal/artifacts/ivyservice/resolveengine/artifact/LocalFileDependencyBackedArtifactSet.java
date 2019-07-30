@@ -66,7 +66,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        if (listener.prepareForVisit(this) == FileCollectionLeafVisitor.VisitType.Skip) {
+        FileCollectionLeafVisitor.VisitType visitType = listener.prepareForVisit(this);
+        if (visitType == FileCollectionLeafVisitor.VisitType.NoContents) {
             return EMPTY_RESULT;
         }
 
@@ -75,9 +76,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             return EMPTY_RESULT;
         }
 
+        FileCollectionInternal fileCollection = dependencyMetadata.getFiles();
         Set<File> files;
         try {
-            files = dependencyMetadata.getFiles().getFiles();
+            files = fileCollection.getFiles();
         } catch (Exception throwable) {
             return new BrokenResolvedArtifactSet(throwable);
         }
@@ -98,7 +100,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant));
         }
-        return CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
+        Completion result = CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
+        if (visitType == FileCollectionLeafVisitor.VisitType.Spec) {
+            return visitor -> {
+                result.visit(visitor);
+                visitor.visitSpec(fileCollection);
+            };
+        }
+        return result;
     }
 
     @Override
