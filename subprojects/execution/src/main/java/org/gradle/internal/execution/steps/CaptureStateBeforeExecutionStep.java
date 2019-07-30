@@ -74,13 +74,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
 
     @Override
     public CachingResult execute(AfterPreviousExecutionContext context) {
-        BeforeExecutionState beforeExecutionState = context.getWork().isTaskHistoryMaintained()
-            ? captureExecutionStateOp(context)
-            : null;
+        Optional<BeforeExecutionState> beforeExecutionState = context.getWork().getExecutionHistoryStore()
+            .map(executionHistoryStore -> captureExecutionStateOp(context));
         return delegate.execute(new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return Optional.ofNullable(beforeExecutionState);
+                return beforeExecutionState;
             }
 
             @Override

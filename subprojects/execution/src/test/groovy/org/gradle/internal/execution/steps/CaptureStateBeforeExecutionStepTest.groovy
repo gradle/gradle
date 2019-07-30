@@ -21,6 +21,7 @@ import org.gradle.internal.execution.AfterPreviousExecutionContext
 import org.gradle.internal.execution.BeforeExecutionContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
@@ -43,6 +44,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
     def valueSnapshotter = Mock(ValueSnapshotter)
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
+    def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector, delegate)
 
@@ -56,7 +58,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
         then:
         assertNoOperation()
-        _ * work.isTaskHistoryMaintained() >> false
+        _ * work.executionHistoryStore >> Optional.empty()
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             assert !beforeExecution.beforeExecutionState.present
         }
@@ -278,7 +280,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.of()
-        _ * work.taskHistoryMaintained >> true
+        _ * work.executionHistoryStore >> Optional.of(executionHistoryStore)
     }
 
     private void assertOperationForInputsBeforeExecution() {

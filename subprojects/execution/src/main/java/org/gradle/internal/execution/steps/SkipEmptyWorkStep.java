@@ -46,7 +46,8 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
             .orElse(ImmutableSortedMap.of());
         return work.skipIfInputsEmpty(outputFilesAfterPreviousExecution)
             .map(skippedOutcome -> {
-                work.getExecutionHistoryStore().ifPresent(executionHistoryStore -> executionHistoryStore.remove(work.getIdentity()));
+                work.getExecutionHistoryStore()
+                    .ifPresent(executionHistoryStore -> executionHistoryStore.remove(work.getIdentity()));
                 return (CachingResult) new CachingResult() {
                     @Override
                     public Try<ExecutionOutcome> getOutcome() {

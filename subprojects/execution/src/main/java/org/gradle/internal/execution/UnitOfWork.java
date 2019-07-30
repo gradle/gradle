@@ -101,13 +101,6 @@ public interface UnitOfWork extends CacheableEntity {
     }
 
     /**
-     * Returns whether the execution history should be stored.
-     */
-    default boolean isTaskHistoryMaintained() {
-        return getExecutionHistoryStore().isPresent();
-    }
-
-    /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
      */
     // TODO Make this part of CachingState instead
