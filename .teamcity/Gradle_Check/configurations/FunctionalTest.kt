@@ -21,7 +21,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
     val testTasks = if (subProjects.isEmpty())
         testTaskName
     else
-        subProjects.map { "$it:$testTaskName" }.joinToString(" ")
+        subProjects.joinToString(" ") { "$it:$testTaskName" }
     val quickTest = testCoverage.testType == TestType.quick
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(
