@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,49 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.tasks
+package org.gradle.language.nativeplatform.tasks
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.IncrementalElement
+import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    protected abstract void makeSingleProject()
 
-    def setup() {
-        settingsFile << "rootProject.name = 'app'"
-        buildFile << """
-            apply plugin: "swift-application"
-            task unexport(type: UnexportMainSymbol) {
-                outputDirectory = layout.buildDirectory.dir("relocated")
-                objects.from { components.main.developmentBinary.get().objects }
-            }
-        """
+    protected abstract String getDevelopmentBinaryCompileTask();
+
+    protected abstract IncrementalElement getComponentUnderTest();
+
+    protected abstract SourceElement getComponentWithOtherFileUnderTest();
+
+    protected abstract SourceFileElement getOtherFile();
+
+    protected abstract SourceFileElement getMainFile(String filenameWithoutExtension = "main")
+
+    protected abstract SourceElement getComponentWithoutMainUnderTest()
+
+    protected void assertMainSymbolIsNotExported(String objectFile) {
+        assert !findMainSymbol(objectFile).exported
     }
+
+    private BinaryInfo.Symbol findMainSymbol(String objectFile) {
+        def binary = new NativeBinaryFixture(file(objectFile), toolChain)
+        def symbols = binary.binaryInfo.listSymbols()
+        def mainSymbol = symbols.find({ it.name in mainSymbols })
+        assert mainSymbol
+        mainSymbol
+    }
+
+    protected abstract List<String> getMainSymbols()
 
     @Issue("https://github.com/gradle/gradle-native/issues/304")
     def "clean build works"() {
-        writeMainSwift()
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
 
         expect:
         succeeds("clean", "unexport")
@@ -48,27 +64,29 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
 
     @Issue("https://github.com/gradle/gradle-native/issues/297")
     def "unexport is incremental"() {
-        writeMainSwift()
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
 
         when:
         succeeds("unexport")
         then:
-        result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
+        result.assertTasksNotSkipped(developmentBinaryCompileTask, ":unexport")
 
         when:
         succeeds("unexport")
         then:
-        result.assertTasksSkipped(":compileDebugSwift", ":unexport")
+        result.assertTasksSkipped(developmentBinaryCompileTask, ":unexport")
 
         when:
-        updateMainSwift()
+        componentUnderTest.applyChangesToProject(testDirectory)
         succeeds("unexport")
         then:
-        result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
+        result.assertTasksNotSkipped(developmentBinaryCompileTask, ":unexport")
     }
 
-    def "relocate _main symbol with main.swift"() {
-        writeMainSwift()
+    def "relocate _main symbol with main.<ext>"() {
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
 
         when:
         succeeds("unexport")
@@ -76,8 +94,9 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         assertMainSymbolIsNotExported("build/relocated/main.o")
     }
 
-    def "relocate _main symbol with notMain.swift"() {
-        writeMainSwift("notMain.swift")
+    def "relocate _main symbol with notMain.<ext>"() {
+        makeSingleProject()
+        getMainFile("notMain").writeToProject(testDirectory)
 
         when:
         succeeds("unexport")
@@ -85,11 +104,9 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         assertMainSymbolIsNotExported("build/relocated/notMain.o")
     }
 
-    def "relocate _main symbol with multiple swift files"() {
-        writeMainSwift()
-        file("src/main/swift/other.swift") << """
-            class Other {}
-        """
+    def "relocate _main symbol with multiple files"() {
+        makeSingleProject()
+        componentWithOtherFileUnderTest.writeToProject(testDirectory)
 
         when:
         succeeds("unexport")
@@ -99,7 +116,8 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
     }
 
     def "relocate _main symbol works incrementally"() {
-        writeMainSwift()
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
 
         when:
         succeeds("unexport")
@@ -111,10 +129,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         def mainObject = file("build/relocated/main.o")
         mainObject.makeOlder()
         def oldTimestamp = mainObject.lastModified()
-        def otherFile = file("src/main/swift/other.swift")
-        otherFile << """
-            class Other {}
-        """
+        otherFile.writeToProject(testDirectory)
         succeeds("unexport")
         then:
         assertMainSymbolIsNotExported("build/relocated/main.o")
@@ -122,7 +137,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         mainObject.lastModified() == oldTimestamp
 
         when:
-        assert otherFile.delete()
+        assert file(otherFile.sourceFile.withPath("src/main")).delete()
         succeeds("unexport")
         then:
         assertMainSymbolIsNotExported("build/relocated/main.o")
@@ -130,9 +145,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         mainObject.lastModified() == oldTimestamp
 
         when:
-        otherFile << """
-            class Other {}
-        """
+        otherFile.writeToProject(testDirectory)
         succeeds("unexport")
         assert file("build/relocated/other.o").delete()
         succeeds("unexport")
@@ -141,40 +154,12 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
     }
 
     def "can relocate when there is no main symbol"() {
-        file("src/main/swift/notMain.swift") << """
-            class NotMain {}
-        """
-        file("src/main/swift/other.swift") << """
-            class Other {}
-        """
+        makeSingleProject()
+        componentWithoutMainUnderTest.writeToProject(testDirectory)
 
         when:
         succeeds("unexport")
         then:
-        file("build/relocated").assertHasDescendants("notMain.o", "other.o")
-    }
-
-    private TestFile writeMainSwift(String filename="main.swift") {
-        file("src/main/swift/${filename}") << """
-            print("hello world!")
-        """
-    }
-
-    private TestFile updateMainSwift(String filename="main.swift") {
-        file("src/main/swift/${filename}") << """
-            print("goodbye world!")
-        """
-    }
-
-    private void assertMainSymbolIsNotExported(String objectFile) {
-        assert !findMainSymbol(objectFile).exported
-    }
-
-    private BinaryInfo.Symbol findMainSymbol(String objectFile) {
-        def binary = new NativeBinaryFixture(file(objectFile), toolChain)
-        def symbols = binary.binaryInfo.listSymbols()
-        def mainSymbol = symbols.find({ it.name == "_main" || it.name == "main" })
-        assert mainSymbol
-        mainSymbol
+        file("build/relocated").assertHasDescendants("greeter.o", "sum.o", "multiply.o")
     }
 }
