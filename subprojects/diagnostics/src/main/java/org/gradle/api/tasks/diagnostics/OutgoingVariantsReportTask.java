@@ -230,7 +230,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
                 info.text("(*) Secondary variants are variants created via the ")
                 .style(StyledTextOutput.Style.Identifier)
                 .text("Configuration#getOutgoing(): ConfigurationPublications")
-                .style(StyledTextOutput.Style.Normal)
+                .style(StyledTextOutput.Style.Info)
                 .text(" API which also participate in selection, in addition to the configuration itself.")
                 .println();
             }
