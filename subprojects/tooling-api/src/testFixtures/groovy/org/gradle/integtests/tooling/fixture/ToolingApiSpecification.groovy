@@ -191,7 +191,9 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("5.3")) {
+        if (targetVersion >= GradleVersion.version("5.7")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'prepareKotlinBuildScriptModel']
+        } else if (targetVersion >= GradleVersion.version("5.3")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'prepareKotlinBuildScriptModel']
         } else if (targetVersion > GradleVersion.version("3.1")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model']

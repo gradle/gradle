@@ -29,6 +29,7 @@ import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
@@ -45,6 +46,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String PROPERTIES_TASK = "properties";
     public static final String DEPENDENCIES_TASK = "dependencies";
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
+    public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
     public static final String COMPONENTS_TASK = "components";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
@@ -65,6 +67,11 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.register(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
         tasks.register(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
         tasks.register(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
+        tasks.register(OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
+            task.setDescription("Displays the outgoing variants of " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        });
     }
 
     private static class HelpAction implements Action<Help> {
