@@ -522,7 +522,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            assert schema.size() == 17
+            assert schema.size() == 18
             
             assert schema["help"] == "Help"
             

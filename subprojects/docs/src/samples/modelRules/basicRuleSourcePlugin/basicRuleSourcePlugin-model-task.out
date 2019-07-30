@@ -112,6 +112,12 @@ Root project
           | Creator: 	Project.<init>.tasks.model()
           | Rules:
              ⤷ copyToTaskContainer
+    + outgoingVariants
+          | Type:   	org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask
+          | Value:  	task ':outgoingVariants'
+          | Creator: 	Project.<init>.tasks.outgoingVariants()
+          | Rules:
+             ⤷ copyToTaskContainer
     + prepareKotlinBuildScriptModel
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':prepareKotlinBuildScriptModel'
