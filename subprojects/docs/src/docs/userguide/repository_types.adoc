@@ -422,7 +422,7 @@ e.g. `gcs://myBucket/maven/release`
 
 When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that are supported by the Apache HttpClient library, http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625[documented here]. In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly declared, only those schemes are used when authenticating to a remote repository.
 
-You can specify credentials for Maven repositories secured by basic authentication using api:org.gradle.api.credentials.PasswordCredentials[].
+You can specify credentials for Maven repositories secured by basic authentication using link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials].
 
 .Accessing password-protected Maven repository
 ====
@@ -432,7 +432,7 @@ include::sample[dir="userguide/artifacts/defineRepository/kotlin",files="build.g
 
 NOTE: The code for this example can be found at **`samples/userguide/artifacts/defineRepository`** in the ‘-all’ distribution of Gradle.
 
-The following example show how to configure a repository to use only api:org.gradle.authentication.http.DigestAuthentication[]:
+The following example show how to configure a repository to use only link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication]:
 
 .Configure repository to use only digest authentication
 ====
@@ -464,7 +464,7 @@ include::sample[dir="userguide/artifacts/defineRepository/kotlin",files="build.g
 
 === Using HTTP header authentication
 
-You can specify any HTTP header for secured Maven repositories requiring token, OAuth2 or other HTTP header based authentication using api:org.gradle.api.credentials.HttpHeaderCredentials[] with api:org.gradle.authentication.http.HttpHeaderAuthentication[].
+You can specify any HTTP header for secured Maven repositories requiring token, OAuth2 or other HTTP header based authentication using link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials] with link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication].
 
 .Accessing header-protected Maven repository
 ====
