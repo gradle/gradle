@@ -105,7 +105,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheKey, context))
             )
-            .orElseMapFailure(loadFailure -> {
+            .getOrMapFailure(loadFailure -> {
                 throw new GradleException(
                     String.format("Failed to load cache entry for %s",
                         work.getDisplayName()),

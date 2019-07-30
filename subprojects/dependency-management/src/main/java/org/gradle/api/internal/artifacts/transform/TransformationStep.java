@@ -99,20 +99,22 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         isolateTransformerParameters(fingerprinterRegistry);
 
         Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.forTransformer(transformer);
-        return resolvedDependencies.getSuccessfulOrElse(dependencies -> {
-            ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
-            if (inputArtifacts.isEmpty()) {
-                return CacheableInvocation.cached(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
-            } else if (inputArtifacts.size() > 1) {
-                return CacheableInvocation.nonCached(() ->
+        return resolvedDependencies
+            .tryMap(dependencies -> {
+                ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
+                if (inputArtifacts.isEmpty()) {
+                    return CacheableInvocation.cached(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
+                } else if (inputArtifacts.size() > 1) {
+                    return CacheableInvocation.nonCached(() ->
                         doTransform(subjectToTransform, fingerprinterRegistry, dependencies, inputArtifacts)
-                );
-            } else {
-                File inputArtifact = inputArtifacts.iterator().next();
-                return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry)
-                    .map(subjectToTransform::createSubjectFromResult);
-            }
-        }, failure -> CacheableInvocation.cached(Try.failure(failure)));
+                    );
+                } else {
+                    File inputArtifact = inputArtifacts.iterator().next();
+                    return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry)
+                        .map(subjectToTransform::createSubjectFromResult);
+                }
+            })
+            .getOrMapFailure(failure -> CacheableInvocation.cached(Try.failure(failure)));
     }
 
     private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, FileCollectionFingerprinterRegistry fingerprinterRegistry, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {

@@ -197,7 +197,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             public boolean executedIncrementally() {
                 return result.getOutcome()
                     .map(executionOutcome -> executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY)
-                    .orElseMapFailure(throwable -> false);
+                    .getOrMapFailure(throwable -> false);
             }
 
             @Override

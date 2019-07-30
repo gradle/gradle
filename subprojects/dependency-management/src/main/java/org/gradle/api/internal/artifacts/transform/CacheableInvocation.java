@@ -69,8 +69,8 @@ public interface CacheableInvocation<T> {
     default <U> CacheableInvocation<U> flatMap(Function<? super T, CacheableInvocation<U>> mapper) {
         return getCachedResult()
             .map(cachedResult -> cachedResult
-                .map(mapper)
-                .orElseMapFailure(failure -> cached(Try.failure(failure)))
+                .tryMap(mapper)
+                .getOrMapFailure(failure -> cached(Try.failure(failure)))
             ).orElseGet(() ->
                 nonCached(() ->
                     invoke().flatMap(intermediateResult -> mapper.apply(intermediateResult).invoke())

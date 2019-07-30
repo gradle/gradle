@@ -209,7 +209,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     });
 
                     return outcome.getOutcome()
-                        .map(outcome1 -> execution.loadResultsFile())
+                        .tryMap(outcome1 -> execution.loadResultsFile())
                         .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 });
             }

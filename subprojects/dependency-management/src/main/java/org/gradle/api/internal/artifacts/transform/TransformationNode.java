@@ -190,7 +190,7 @@ public abstract class TransformationNode extends Node {
                 protected String describeSubject() {
                     return previousTransformationNode.getTransformedSubject()
                         .map(subject -> subject.getDisplayName())
-                        .orElseMapFailure(failure -> failure.getMessage());
+                        .getOrMapFailure(failure -> failure.getMessage());
                 }
             });
         }
