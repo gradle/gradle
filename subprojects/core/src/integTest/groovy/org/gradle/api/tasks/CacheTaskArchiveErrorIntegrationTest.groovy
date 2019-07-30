@@ -36,7 +36,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << localCache.localCacheConfiguration()
     }
 
-    def "describes error while packing archive"() {
+    def "fails build when packing archive fails"() {
         when:
         file("input.txt") << "data"
 
@@ -55,27 +55,12 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        executer.withStackTraceChecksDisabled()
-        succeeds "customTask"
-        output =~ /Failed to store cache entry .+/
-        output =~ /Could not pack tree 'output'/
+        fails "customTask"
+
+        failureHasCause("Failed to store cache entry for task ':customTask'")
+        errorOutput =~ /Could not pack tree 'output'/
         localCache.empty
         localCache.listCacheTempFiles().empty
-
-        when:
-        buildFile << """
-            customTask {
-                actions = []
-                doLast {
-                    mkdir("build") 
-                    file("build/output").text = "text" 
-                }
-            }
-        """
-
-        then:
-        succeeds("clean", "customTask")
-        executed(":customTask")
     }
 
     def "archive is not pushed to remote when packing fails"() {
@@ -98,10 +83,11 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        executer.withStackTraceChecksDisabled()
-        succeeds "customTask"
+        fails "customTask"
+
         remoteCache.empty
-        output =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
+        failureHasCause "Failed to store cache entry for task ':customTask'"
+        errorOutput =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
     }
 
     def "corrupt archive loaded from remote cache is not copied into local cache"() {
@@ -131,7 +117,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("clean", "customTask")
-        failure.assertHasCause("Failed to load cache entry for task ':customTask'")
+        failureHasCause("Failed to load cache entry for task ':customTask'")
 
         and:
         localCache.listCacheFiles().empty
@@ -162,7 +148,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("clean", "customTask")
-        failure.assertHasCause("Failed to load cache entry for task ':customTask'")
+        failureHasCause("Failed to load cache entry for task ':customTask'")
         errorOutput.contains("Caused by: java.io.UncheckedIOException: java.io.EOFException: Unexpected end of ZLIB input stream")
         localCache.listCacheFailedFiles().size() == 1
 
@@ -207,48 +193,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFailedFiles().size() == 1
     }
 
-    def "failed pack does not disable caching for later tasks"() {
-        buildFile << """
-            // Just a way to induce a packing error, i.e. corrupt/partial archive
-            task firstTask {
-                inputs.property "title", "first"
-                outputs.file "build/first" withPropertyName "output"
-                outputs.cacheIf { true }
-                doLast {
-                  mkdir('build/first')
-                  file('build/first/output.txt').text = "OK"
-                }
-            }
-            task secondTask {
-                mustRunAfter firstTask
-                inputs.property "title", "second"
-                outputs.file "build/second" withPropertyName "output"
-                outputs.cacheIf { true }
-                doLast {
-                  file('build/second').text = "OK"
-                }
-            }
-        """
-
-        when:
-        executer.withStackTraceChecksDisabled()
-        succeeds "firstTask", "secondTask"
-
-        then:
-        executedAndNotSkipped ":firstTask", ":secondTask"
-        output =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
-        localCache.listCacheFiles().size() == 1
-
-        when:
-        cleanBuildDir()
-        executer.withStackTraceChecksDisabled()
-        succeeds "firstTask", "secondTask"
-
-        then:
-        executedAndNotSkipped ":firstTask"
-        skipped ":secondTask"
-    }
-
     @Requires(TestPrecondition.SYMLINKS)
     @Issue("https://github.com/gradle/gradle/issues/9906")
     def "don't cache if task produces broken symlink"() {
@@ -270,11 +214,10 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withStackTraceChecksDisabled().withBuildCacheEnabled()
-        run "producesLink"
+        fails "producesLink"
         then:
-        executedAndNotSkipped ":producesLink"
-        outputContains "Couldn't read content of file '${link}'"
+        failureHasCause("Failed to store cache entry for task ':producesLink'")
+        errorOutput.contains("Couldn't read content of file '${link}'")
     }
 
     private TestFile cleanBuildDir() {

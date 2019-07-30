@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory.LoadMetadata;
@@ -106,7 +105,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                 .orElseGet(() -> executeAndStoreInCache(cacheKey, context))
             )
             .getOrMapFailure(loadFailure -> {
-                throw new GradleException(
+                throw new RuntimeException(
                     String.format("Failed to load cache entry for %s",
                         work.getDisplayName()),
                     loadFailure
@@ -151,7 +150,10 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                     work.getDisplayName(), cacheKey.getHashCode());
             }
         } catch (Exception e) {
-            LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
+            throw new RuntimeException(
+                String.format("Failed to store cache entry for %s",
+                    work.getDisplayName()),
+                e);
         }
     }
 

@@ -175,12 +175,16 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         0 * _
     }
 
-    def "does not fail when cache backend throws exception while storing cached result"() {
+    def "fails when cache backend throws exception while storing cached result"() {
+        def failure = new RuntimeException("store failure")
+
         when:
-        def result = step.execute(context)
+        step.execute(context)
 
         then:
-        result == delegateResult
+        def ex = thrown Exception
+        ex.message == "Failed to store cache entry for job ':test'"
+        ex.cause == failure
 
         interaction { withValidCacheKey() }
 
@@ -192,7 +196,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        interaction { outputStored { throw new RuntimeException("store failure") } }
+        interaction { outputStored { throw failure } }
         0 * _
     }
 
