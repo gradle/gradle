@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.caching.internal.command;
 
-package org.gradle.internal.reflect;
-
-import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
-
-public class CachedInvokable<T> {
-    private final WeakReference<T> invokable;
-
-    public CachedInvokable(T invokable) {
-        this.invokable = new WeakReference<T>(invokable);
-    }
-
-    @Nullable
-    public T getMethod() {
-        return invokable.get();
-    }
-}
+import org.gradle.api.NonNullApi;

@@ -38,7 +38,20 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
+==== Local build cache type shouldn't be specified
+
+When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
+These methods now assume the local build cache type to be `DirectoryBuildCache`.
+
 === Potential breaking changes
+
+==== Local build cache is always a directory cache
+
+In the past it was possible to use any build cache implementation as the `local` cache.
+This is not allowed anymore as the local cache is always a `DirectoryBuildCache`.
+Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build.
+Use `getLocal()` and `local(Action)` instead.
+These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
 ==== `@Nullable` annotation is gone
 

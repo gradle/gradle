@@ -26,7 +26,6 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private final Instantiator instantiator;
 
-    private BuildCache local;
+    private final DirectoryBuildCache local;
     private BuildCache remote;
 
     private final Set<BuildCacheServiceRegistration> registrations;
@@ -46,31 +45,23 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
         this.instantiator = instantiator;
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
-
-        // By default the local cache is a directory cache
-        this.local = createLocalCacheConfiguration(instantiator, DirectoryBuildCache.class, registrations);
+        this.local = createLocalCacheConfiguration(instantiator, registrations);
     }
 
     @Override
-    public BuildCache getLocal() {
+    public DirectoryBuildCache getLocal() {
         return local;
     }
 
     @Override
-    public <T extends BuildCache> T local(Class<T> type) {
+    public <T extends DirectoryBuildCache> T local(Class<T> type) {
         return local(type, Actions.doNothing());
     }
 
     @Override
-    public <T extends BuildCache> T local(Class<T> type, Action<? super T> configuration) {
+    public <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration) {
         if (!type.equals(DirectoryBuildCache.class)) {
-            DeprecationLogger.nagUserOfDeprecated("Using a local build cache type other than " + DirectoryBuildCache.class.getSimpleName());
-        }
-        if (!type.isInstance(local)) {
-            if (local != null) {
-                LOGGER.info("Replacing local build cache type {} with {}", local.getClass().getCanonicalName(), type.getCanonicalName());
-            }
-            local = createLocalCacheConfiguration(instantiator, type, registrations);
+            throw new IllegalArgumentException("Using a local build cache type other than " + DirectoryBuildCache.class.getSimpleName() + " is not allowed");
         }
         T configurationObject = Cast.uncheckedNonnullCast(local);
         configuration.execute(configurationObject);
@@ -78,7 +69,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public void local(Action<? super BuildCache> configuration) {
+    public void local(Action<? super DirectoryBuildCache> configuration) {
         configuration.execute(local);
     }
 
@@ -113,8 +104,8 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         configuration.execute(remote);
     }
 
-    private static <T extends BuildCache> T createLocalCacheConfiguration(Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
-        T local = createBuildCacheConfiguration(instantiator, type, registrations);
+    private static DirectoryBuildCache createLocalCacheConfiguration(Instantiator instantiator, Set<BuildCacheServiceRegistration> registrations) {
+        DirectoryBuildCache local = createBuildCacheConfiguration(instantiator, DirectoryBuildCache.class, registrations);
         // By default, we push to the local cache.
         local.setPush(true);
         return local;
