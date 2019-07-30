@@ -388,7 +388,7 @@ To do this, we will add attributes to both the consumer and the producer.
 
 [WARNING]
 ====
-The difficulty if this step is understanding that once configurations have attributes, they participate in _variant aware resolution_, which means that they are candidates considered whenever _any_ notation like `project(":myLib")` is used.
+It is important to understand that once configurations have attributes, they participate in _variant aware resolution_, which means that they are candidates considered whenever _any_ notation like `project(":myLib")` is used.
 In other words, the attributes set on the producer _must be consistent with the other variants produced on the same project_.
 They must not, in particular, introduce ambiguity for the existing selection.
 
@@ -396,7 +396,7 @@ In practice, it means that the attribute set used on the configuration you creat
 ====
 
 Let's enhance our previous example which happens to be a Java Library project.
-Java libraries expose a couple of variants to their consumers, `apiElements` and `runtimeElements` and we're adding a 3rd one, `instrumentedJars`.
+Java libraries expose a couple of variants to their consumers, `apiElements` and `runtimeElements`. Now, we're adding a 3rd one, `instrumentedJars`.
 
 Therefore, we need to understand what our new variant is used for in order to set the proper attributes on it.
 Let's look at the attributes we find on the `runtimeElements` configuration:
