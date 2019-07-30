@@ -33,15 +33,9 @@ public class StaleDataCleanupInitializer implements ConnectionAction<Void> {
     }
 
     private void runStatement(Connection connection, String sql) throws SQLException {
-        PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement(sql);
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now().minusDays(MAX_DATA_STORE_DAYS)));
             statement.execute();
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
         }
     }
 }
