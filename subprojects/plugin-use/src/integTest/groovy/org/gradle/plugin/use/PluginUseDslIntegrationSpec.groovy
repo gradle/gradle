@@ -131,7 +131,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Initialization script '$initScript.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        failure.assertThatCause(containsString("Only Project or Settings build scripts can contain plugins {} blocks"))
         includesLinkToUserguide()
     }
 
@@ -147,7 +147,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        failure.assertThatCause(containsString("Only Project or Settings build scripts can contain plugins {} blocks"))
         includesLinkToUserguide()
     }
 
@@ -163,7 +163,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        failure.assertThatCause(containsString("Only Project or Settings build scripts can contain plugins {} blocks"))
         includesLinkToUserguide()
     }
 
