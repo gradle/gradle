@@ -442,7 +442,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPing", ":bPing"
     }
 
-    def "task parallelisation is limited by shared resource"() {
+    def "task parallelization is limited by shared resource"() {
         given:
         withParallelThreads(3)
 
