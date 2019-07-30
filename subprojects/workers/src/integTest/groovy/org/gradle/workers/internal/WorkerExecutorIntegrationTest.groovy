@@ -554,7 +554,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                     super.execute()
                     def resource = Thread.currentThread().getContextClassLoader().getResource("foo.txt")
                     assert resource != null && resource.getPath().endsWith('build/libs/foo.jar!/foo.txt')
-                    println resource
                 }
             }
 
@@ -590,7 +589,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 URL[] urls = parameters.files.collect { new File(getParameters().getOutputDir(), it).toURI().toURL() }
                 ClassLoader classloader = new URLClassLoader(urls)
                 Thread.currentThread().setContextClassLoader(classloader)
-                println "Thread id: " + Thread.currentThread().id
             """
         }
         workerThatChangesContextClassLoader.writeToBuildFile()
@@ -601,7 +599,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 File outputDir = new File(getParameters().getOutputDir().absolutePath.replace("checkClassLoader", "changeClassloader"))
                 URL[] urls = parameters.files.collect { new File(outputDir, it).toURI().toURL() }
                 assert !urls.any { Thread.currentThread().getContextClassLoader().URLs.contains(it) }
-                println "Thread id: " + Thread.currentThread().id
             """
         }
         workerThatChecksClassLoader.writeToBuildFile()
