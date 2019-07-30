@@ -22,7 +22,7 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileCollectionLeafVisitor
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -67,7 +67,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
 
         then:
-        1 * listener.prepareForVisit(_) >> FileCollectionLeafVisitor.VisitType.NoContents
+        1 * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.NoContents
         0 * _
     }
 
@@ -82,7 +82,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         _ * dep.componentId >> id
-        _ * listener.prepareForVisit(_) >> FileCollectionLeafVisitor.VisitType.Visit
+        _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * filter.isSatisfiedBy(id) >> false
         0 * _
 
@@ -128,7 +128,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         then:
         _ * dep.componentId >> id
         _ * dep.files >> files
-        _ * listener.prepareForVisit(_) >> FileCollectionLeafVisitor.VisitType.Visit
+        _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
@@ -214,7 +214,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         _ * dep.files >> files
-        _ * listener.prepareForVisit(_) >> FileCollectionLeafVisitor.VisitType.Visit
+        _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * files.files >> { throw failure }
         1 * visitor.visitFailure(failure)
         0 * visitor._

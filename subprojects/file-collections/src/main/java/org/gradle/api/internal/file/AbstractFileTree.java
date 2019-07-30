@@ -167,8 +167,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        if (visitor.prepareForVisit(OTHER) != FileCollectionLeafVisitor.VisitType.NoContents) {
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
+        if (visitor.prepareForVisit(OTHER) != FileCollectionStructureVisitor.VisitType.NoContents) {
             visitor.visitGenericFileTree(this);
         }
     }
@@ -213,9 +213,9 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+        public void visitStructure(FileCollectionStructureVisitor visitor) {
             // TODO: should consider the filter
-            fileTree.visitLeafCollections(visitor);
+            fileTree.visitStructure(visitor);
         }
     }
 }

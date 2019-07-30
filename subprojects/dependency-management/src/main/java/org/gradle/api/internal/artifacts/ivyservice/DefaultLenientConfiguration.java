@@ -45,7 +45,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -305,11 +305,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
             if (source instanceof LocalDependencyFiles) {
-                return FileCollectionLeafVisitor.VisitType.NoContents;
+                return FileCollectionStructureVisitor.VisitType.NoContents;
             }
-            return FileCollectionLeafVisitor.VisitType.Visit;
+            return FileCollectionStructureVisitor.VisitType.Visit;
         }
 
         @Override
@@ -325,8 +325,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private static class LenientFilesAndArtifactResolveVisitor extends LenientArtifactCollectingVisitor {
         @Override
-        public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-            return FileCollectionLeafVisitor.VisitType.Visit;
+        public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            return FileCollectionStructureVisitor.VisitType.Visit;
         }
     }
 

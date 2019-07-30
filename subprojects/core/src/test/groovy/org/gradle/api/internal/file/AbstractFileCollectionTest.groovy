@@ -330,26 +330,26 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
 
     void visitsSelfAsLeafCollection() {
         def collection = new TestFileCollection()
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        collection.visitLeafCollections(visitor)
+        collection.visitStructure(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Visit
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * visitor.visitCollection(FileCollectionInternal.OTHER, collection)
         0 * visitor._
     }
 
     void doesNotVisitSelfWhenVisitorIsNotInterested() {
         def collection = new TestFileCollection()
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        collection.visitLeafCollections(visitor)
+        collection.visitStructure(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.NoContents
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
         0 * visitor._
     }
 

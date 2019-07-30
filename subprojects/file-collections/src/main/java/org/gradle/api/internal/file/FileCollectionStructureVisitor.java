@@ -21,10 +21,10 @@ import org.gradle.api.tasks.util.PatternSet;
 import java.io.File;
 
 /**
- * Used with {@link FileCollectionInternal#visitLeafCollections(FileCollectionLeafVisitor)} this visitor
- * is called for each element in a file collection that represents a root of a file tree.
+ * Used with {@link FileCollectionInternal#visitStructure(FileCollectionStructureVisitor)} this visitor
+ * is called for each element in a file collection that is an atomic source of files.
  */
-public interface FileCollectionLeafVisitor {
+public interface FileCollectionStructureVisitor {
     enum VisitType {
         // Visitor is interested in the contents of the collection
         Visit,

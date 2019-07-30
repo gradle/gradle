@@ -83,7 +83,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
@@ -490,8 +490,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        intrinsicFiles.visitLeafCollections(visitor);
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
+        intrinsicFiles.visitStructure(visitor);
     }
 
     @Override
@@ -1241,7 +1241,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+        public void visitStructure(FileCollectionStructureVisitor visitor) {
             ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
             visitFiles(collectingVisitor);
         }

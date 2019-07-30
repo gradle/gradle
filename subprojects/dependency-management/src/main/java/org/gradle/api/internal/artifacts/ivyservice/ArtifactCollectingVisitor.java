@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 
@@ -51,11 +51,11 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+    public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         if (source instanceof LocalDependencyFiles) {
-            return FileCollectionLeafVisitor.VisitType.NoContents;
+            return FileCollectionStructureVisitor.VisitType.NoContents;
         }
-        return FileCollectionLeafVisitor.VisitType.Visit;
+        return FileCollectionStructureVisitor.VisitType.Visit;
     }
 
     @Override

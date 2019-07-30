@@ -18,7 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileCollectionLeafVisitor
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
@@ -50,12 +50,12 @@ class FileTreeCodec(
     private
     fun fileTreeRootsOf(value: FileTreeInternal): LinkedHashSet<File> {
         val visitor = FileTreeVisitor()
-        value.visitLeafCollections(visitor)
+        value.visitStructure(visitor)
         return visitor.roots
     }
 
     private
-    class FileTreeVisitor : FileCollectionLeafVisitor {
+    class FileTreeVisitor : FileCollectionStructureVisitor {
 
         internal
         var roots = LinkedHashSet<File>()

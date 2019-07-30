@@ -92,7 +92,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.empty("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
-        collection.visitLeafCollections(new BrokenVisitor())
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
@@ -117,7 +117,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.empty("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
-        collection.visitLeafCollections(new BrokenVisitor())
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
@@ -126,7 +126,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.resolving()
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
-        collection.visitLeafCollections(new BrokenVisitor())
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "file collection"
     }
 
@@ -135,7 +135,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.resolving("some collection", [])
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
-        collection.visitLeafCollections(new BrokenVisitor())
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
@@ -144,7 +144,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.resolving("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
-        collection.visitLeafCollections(new BrokenVisitor())
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
@@ -283,7 +283,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'URL'       | tmpDir.file('abc').toURI().toURL()
     }
 
-    static class BrokenVisitor implements FileCollectionLeafVisitor {
+    static class BrokenVisitor implements FileCollectionStructureVisitor {
         @Override
         void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             Assert.fail()

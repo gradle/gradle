@@ -175,9 +175,9 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
         for (FileCollectionInternal element : getSourceCollections()) {
-            element.visitLeafCollections(visitor);
+            element.visitStructure(visitor);
         }
     }
 }
