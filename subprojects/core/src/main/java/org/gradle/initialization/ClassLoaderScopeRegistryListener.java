@@ -19,6 +19,15 @@ package org.gradle.initialization;
 import org.gradle.internal.classpath.ClassPath;
 
 
+/**
+ * Listens to changes to the ClassLoaderScope tree.
+ *
+ * Must be registered with the {@link org.gradle.internal.event.ListenerManager} during
+ * a {@link org.gradle.internal.service.scopes.BuildScopeListenerManagerAction}.
+ *
+ * @see ClassLoaderScopeRegistry
+ * @see org.gradle.api.internal.initialization.ClassLoaderScope
+ */
 public interface ClassLoaderScopeRegistryListener {
 
     void rootScopeCreated(String scopeId);
