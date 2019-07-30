@@ -84,6 +84,8 @@ public abstract class Try<T> {
      * If the represented operation was successful, returns the result of applying the given
      * {@code Try}-bearing mapping function to the value, otherwise returns
      * the {@code Try} representing the original failure.
+     *
+     * Exceptions thrown by the given function are propagated.
      */
     public abstract <U> Try<U> flatMap(Function<? super T, Try<U>> f);
 
