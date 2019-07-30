@@ -18,23 +18,24 @@ package org.gradle.internal.resources;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.internal.Pair;
 
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<String, SharedResourceLeaseRegistry.SharedResourceLease> {
-    private final Map<String, Semaphore> sharedResources = Maps.newConcurrentMap();
+    private final Map<String, Pair<Integer, Semaphore>> sharedResources = Maps.newConcurrentMap();
 
     public SharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {
         super(coordinationService);
     }
 
     public void registerSharedResource(String name, int leases) {
-        sharedResources.put(name, new Semaphore(leases));
+        sharedResources.put(name, Pair.of(leases,new Semaphore(leases)));
     }
 
     public ResourceLock getResourceLock(final String sharedResource, final int leases) {
-        String displayName = "Lease of " + leases + " for " + sharedResource;
+        String displayName = "lease of " + leases + " for " + sharedResource;
 
         // We don't want to cache lock instances here since it's valid for multiple threads to hold a lock on a given resource for a given number of leases.
         // For that reason we don't want to reuse lock instances, as it's very possible they can be concurrently held by multiple threads.
@@ -48,7 +49,7 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
 
     public class SharedResourceLease extends AbstractTrackedResourceLock {
         private final int leases;
-        private final Semaphore semaphore;
+        private final Pair<Integer, Semaphore> semaphore;
         private Thread ownerThread;
         private boolean active = false;
 
@@ -60,7 +61,11 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
 
         @Override
         protected boolean acquireLock() {
-            if (semaphore.tryAcquire(leases)) {
+            if (leases > semaphore.getLeft()) {
+                throw new IllegalArgumentException("Cannot acquire lock on " + getDisplayName() + " as max available leases is " + semaphore.getLeft());
+            }
+
+            if (semaphore.getRight().tryAcquire(leases)) {
                 active = true;
                 ownerThread = Thread.currentThread();
             }
@@ -74,7 +79,7 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
                 throw new UnsupportedOperationException("Lock cannot be released from non-owner thread.");
             }
 
-            semaphore.release(leases);
+            semaphore.getRight().release(leases);
             active = false;
             ownerThread = null;
         }

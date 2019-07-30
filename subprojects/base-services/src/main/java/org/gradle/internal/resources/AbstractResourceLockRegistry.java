@@ -43,7 +43,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
             return resourceLocks.get(key, new Callable<T>() {
                 @Override
                 public T call() throws Exception {
-                    return producer.create(key, coordinationService, getLockAction(), getUnlockAction());
+                    return createResourceLock(key, producer);
                 }
             });
         } catch (ExecutionException e) {

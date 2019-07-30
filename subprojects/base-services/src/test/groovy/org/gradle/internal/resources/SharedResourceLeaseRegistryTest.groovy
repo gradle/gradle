@@ -127,6 +127,19 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
+    def "fails to acquire lock when requested leases exceeds maximum available"() {
+        given:
+        sharedResourceLeaseRegistry.registerSharedResource('resource', 1)
+        def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource', 2)
+
+        when:
+        coordinationService.withStateLock(lock(sharedResourceLock))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Cannot acquire lock on lease of 2 for resource as max available leases is 1"
+    }
+
     boolean lockIsHeld(final ResourceLock resourceLock) {
         MutableBoolean held = new MutableBoolean()
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
