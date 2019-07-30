@@ -307,7 +307,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         @Override
         public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
             if (source instanceof LocalDependencyFiles) {
-                return FileCollectionLeafVisitor.VisitType.Skip;
+                return FileCollectionLeafVisitor.VisitType.NoContents;
             }
             return FileCollectionLeafVisitor.VisitType.Visit;
         }
@@ -320,10 +320,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         @Override
         public void visitFailure(Throwable failure) {
             throw UncheckedException.throwAsUncheckedException(failure);
-        }
-
-        @Override
-        public void endVisitCollection(FileCollectionInternal.Source source) {
         }
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 
@@ -29,13 +28,12 @@ public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisito
 
     @Override
     public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-        FileCollectionLeafVisitor.VisitType visitType = visitor.prepareForVisit(source);
-        if (visitType == FileCollectionLeafVisitor.VisitType.Spec && source instanceof LocalDependencyFiles) {
-            // This isn't quite right, when the local files are transformed. Should instead collect the inputs of artifact transforms
-            // This collection is visited out of sequence
-            ((LocalDependencyFiles) source).visitSpec(visitor);
-        }
-        return visitType;
+        return visitor.prepareForVisit(source);
+    }
+
+    @Override
+    public void visitSpec(FileCollectionInternal spec) {
+        spec.visitLeafCollections(visitor);
     }
 
     @Override

@@ -65,8 +65,8 @@ class CollectingVisitor : FileCollectionLeafVisitor {
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionLeafVisitor.VisitType {
         return if (source is ConsumerProvidedVariantFiles) {
-            // Visit the spec only for scheduled transforms
-            FileCollectionLeafVisitor.VisitType.Spec
+            // Visit the source only for scheduled transforms
+            FileCollectionLeafVisitor.VisitType.NoContents
         } else {
             FileCollectionLeafVisitor.VisitType.Visit
         }

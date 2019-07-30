@@ -115,13 +115,15 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         if (tree instanceof GeneratedSingletonFileTree) {
             GeneratedSingletonFileTree singletonFileTree = (GeneratedSingletonFileTree) tree;
-            if (visitor.prepareForVisit(singletonFileTree) != FileCollectionLeafVisitor.VisitType.Skip) {
+            if (visitor.prepareForVisit(singletonFileTree) == FileCollectionLeafVisitor.VisitType.NoContents) {
+                visitor.visitCollection(singletonFileTree, Collections.emptyList());
+            } else {
                 visitor.visitFileTree(singletonFileTree.getFile(), singletonFileTree.getPatterns(), this);
             }
             return;
         }
 
-        if (visitor.prepareForVisit(OTHER) == FileCollectionLeafVisitor.VisitType.Skip) {
+        if (visitor.prepareForVisit(OTHER) == FileCollectionLeafVisitor.VisitType.NoContents) {
             return;
         }
         if (tree instanceof DirectoryFileTree) {

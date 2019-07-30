@@ -63,10 +63,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         FileCollectionLeafVisitor.VisitType visitType = listener.prepareForVisit(this);
-        if (visitType == FileCollectionLeafVisitor.VisitType.Skip) {
-            return EMPTY_RESULT;
-        }
-        if (visitType == FileCollectionLeafVisitor.VisitType.Spec) {
+        if (visitType == FileCollectionLeafVisitor.VisitType.NoContents) {
             return visitor -> visitor.endVisitCollection(ConsumerProvidedResolvedVariant.this);
         }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();

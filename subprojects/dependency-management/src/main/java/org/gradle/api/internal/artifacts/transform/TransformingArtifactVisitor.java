@@ -61,10 +61,6 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void endVisitCollection(FileCollectionInternal.Source source) {
-    }
-
-    @Override
     public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return visitor.prepareForVisit(source);
     }

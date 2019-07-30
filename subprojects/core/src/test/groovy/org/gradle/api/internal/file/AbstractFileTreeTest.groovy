@@ -152,7 +152,7 @@ class AbstractFileTreeTest extends Specification {
         tree.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Skip
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.NoContents
         0 * visitor._
     }
 
