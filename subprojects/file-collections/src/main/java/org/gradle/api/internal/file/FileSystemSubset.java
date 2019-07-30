@@ -95,7 +95,7 @@ public class FileSystemSubset {
     }
 
     @ThreadSafe
-    public static class Builder implements FileCollectionLeafVisitor {
+    public static class Builder implements FileCollectionStructureVisitor {
         private final ImmutableSet.Builder<File> files = ImmutableSet.builder();
         private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
         private final Lock lock = new ReentrantLock();

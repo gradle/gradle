@@ -160,7 +160,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+        public void visitStructure(FileCollectionStructureVisitor visitor) {
         }
     }
 

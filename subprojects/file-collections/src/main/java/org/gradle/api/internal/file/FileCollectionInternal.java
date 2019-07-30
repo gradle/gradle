@@ -22,20 +22,20 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
     /**
-     * In a {@link FileCollection} hierarchy visits the leaves of the hierarchy.
+     * Visits the structure of this collection, that is, zero or more atomic sources of files.
      *
-     * <p>The implementation should call the most specific method on {@link FileCollectionLeafVisitor} that it is able to.</p>
+     * <p>The implementation should call the most specific methods on {@link FileCollectionStructureVisitor} that it is able to.</p>
      */
-    void visitLeafCollections(FileCollectionLeafVisitor visitor);
+    void visitStructure(FileCollectionStructureVisitor visitor);
 
     /**
-     * Some representation of the source of some set of files.
+     * Some representation of a source of files.
      */
     interface Source {
     }
 
     /**
-     * A generic source of files.
+     * An opaque source of files.
      */
     Source OTHER = new Source() {
     };

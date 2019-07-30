@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -72,7 +72,7 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         /**
          * Called prior to scheduling resolution of a set of the given type.
          */
-        FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source);
+        FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source);
 
         /**
          * Visits an artifact once its file is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.

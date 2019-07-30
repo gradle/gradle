@@ -27,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -60,14 +60,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void visitSpec(FileCollectionLeafVisitor visitor) {
-        dependencyMetadata.getFiles().visitLeafCollections(visitor);
+    public void visitSpec(FileCollectionStructureVisitor visitor) {
+        dependencyMetadata.getFiles().visitStructure(visitor);
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        FileCollectionLeafVisitor.VisitType visitType = listener.prepareForVisit(this);
-        if (visitType == FileCollectionLeafVisitor.VisitType.NoContents) {
+        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
+        if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
             return EMPTY_RESULT;
         }
 
@@ -101,7 +101,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             selectedArtifacts.add(selector.select(variant));
         }
         Completion result = CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
-        if (visitType == FileCollectionLeafVisitor.VisitType.Spec) {
+        if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
             return visitor -> {
                 result.visit(visitor);
                 visitor.visitSpec(fileCollection);

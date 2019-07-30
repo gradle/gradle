@@ -19,7 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -112,10 +112,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
         if (tree instanceof GeneratedSingletonFileTree) {
             GeneratedSingletonFileTree singletonFileTree = (GeneratedSingletonFileTree) tree;
-            if (visitor.prepareForVisit(singletonFileTree) == FileCollectionLeafVisitor.VisitType.NoContents) {
+            if (visitor.prepareForVisit(singletonFileTree) == FileCollectionStructureVisitor.VisitType.NoContents) {
                 visitor.visitCollection(singletonFileTree, Collections.emptyList());
             } else {
                 visitor.visitFileTree(singletonFileTree.getFile(), singletonFileTree.getPatterns(), this);
@@ -123,7 +123,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             return;
         }
 
-        if (visitor.prepareForVisit(OTHER) == FileCollectionLeafVisitor.VisitType.NoContents) {
+        if (visitor.prepareForVisit(OTHER) == FileCollectionStructureVisitor.VisitType.NoContents) {
             return;
         }
         if (tree instanceof DirectoryFileTree) {

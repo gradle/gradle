@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -62,8 +62,8 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        FileCollectionLeafVisitor.VisitType visitType = listener.prepareForVisit(this);
-        if (visitType == FileCollectionLeafVisitor.VisitType.NoContents) {
+        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
+        if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
             return visitor -> visitor.endVisitCollection(ConsumerProvidedResolvedVariant.this);
         }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();

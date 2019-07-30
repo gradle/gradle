@@ -301,14 +301,14 @@ class CompositeFileCollectionSpec extends Specification {
                 context.add(child2)
             }
         }
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        tree.visitLeafCollections(visitor)
+        tree.visitStructure(visitor)
 
         then:
-        child1.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitCollection(source, child1) }
-        child2.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitGenericFileTree(child2) }
+        child1.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitCollection(source, child1) }
+        child2.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitGenericFileTree(child2) }
         1 * visitor.visitCollection(source, child1)
         1 * visitor.visitGenericFileTree(child2)
         0 * visitor._

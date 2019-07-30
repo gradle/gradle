@@ -133,26 +133,26 @@ class AbstractFileTreeTest extends Specification {
 
     void "visits self as leaf collection"() {
         def tree = new TestFileTree([])
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        tree.visitLeafCollections(visitor)
+        tree.visitStructure(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.Visit
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
         1 * visitor.visitGenericFileTree(tree)
         0 * visitor._
     }
 
     void "does not visit self when visitor is not interested"() {
         def tree = new TestFileTree([])
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        tree.visitLeafCollections(visitor)
+        tree.visitStructure(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionLeafVisitor.VisitType.NoContents
+        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
         0 * visitor._
     }
 

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 
 /**
@@ -28,8 +28,8 @@ public interface ArtifactVisitor {
     /**
      * Called prior to scheduling resolution of a set of artifacts.
      */
-    default FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-        return FileCollectionLeafVisitor.VisitType.Visit;
+    default FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+        return FileCollectionStructureVisitor.VisitType.Visit;
     }
 
     /**
@@ -50,7 +50,7 @@ public interface ArtifactVisitor {
     void visitFailure(Throwable failure);
 
     /**
-     * Called for a set that may be backed by a file collection, when {@link #prepareForVisit(FileCollectionInternal.Source)} return {@link FileCollectionLeafVisitor.VisitType#Spec}.
+     * Called for a set that may be backed by a file collection, when {@link #prepareForVisit(FileCollectionInternal.Source)} return {@link FileCollectionStructureVisitor.VisitType#Spec}.
      */
     default void visitSpec(FileCollectionInternal spec) {
     }

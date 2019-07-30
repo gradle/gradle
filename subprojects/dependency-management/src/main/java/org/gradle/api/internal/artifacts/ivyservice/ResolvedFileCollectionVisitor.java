@@ -17,23 +17,23 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 
 public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisitor {
-    private final FileCollectionLeafVisitor visitor;
+    private final FileCollectionStructureVisitor visitor;
 
-    public ResolvedFileCollectionVisitor(FileCollectionLeafVisitor visitor) {
+    public ResolvedFileCollectionVisitor(FileCollectionStructureVisitor visitor) {
         this.visitor = visitor;
     }
 
     @Override
-    public FileCollectionLeafVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+    public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return visitor.prepareForVisit(source);
     }
 
     @Override
     public void visitSpec(FileCollectionInternal spec) {
-        spec.visitLeafCollections(visitor);
+        spec.visitStructure(visitor);
     }
 
     @Override
