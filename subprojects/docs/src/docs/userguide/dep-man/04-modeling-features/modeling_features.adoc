@@ -505,9 +505,33 @@ So, **avoid publishing custom variants** if they are for internal use only.
 [[targeting-different-platforms]]
 === Targeting different platforms
 
+It common for a library to target different platforms.
+In the Java ecosystem, we often see different artifacts for the same library, distinguished by a different _classifier_.
+A typical example is Guava, which is published as this:
+
+- `guava-jre` for JDK 8 and above
+- `guava-android` for JDK 7
+
+The problem with this approach is that there's no semantics associated with the classifier.
+The dependency resolution engine, in particular, cannot determine automatically which version to use based on the consumer requirements.
+For example, it would be better to express that you have a dependency on Guava, and let the engine choose between `jre` and `android` based on what is compatible.
+
+Gradle provides an improved model for this, which doesn't have the weakness of classifiers: attributes.
+
+In particular, in the Java ecosystem, Gradle provides a built-in attribute that library authors can use to express compatibility with the Java ecosystem: `org.gradle.jvm.version`.
+This attribute expresses the _minimal version that a consumer must have in order to work properly_.
+
+When you apply the `java` or `java-library` plugins, Gradle will automatically associate this attribute to the outgoing variants.
+This means that all libraries published with Gradle automatically tell which target platform they use.
+
+By default, the `org.gradle.jvm.version` is set to the _target compatibility_ of the source set.
+
+While this attribute is automatically set, Gradle _will not_, by default, let you build a project for different JVMs.
+If you need to do this, then you will need to create additional variants following the <<#sec:variant-aware-sharing,instructions on variant-aware matching>>.
+
+[NOTE]
+Future versions of Gradle will provide ways to automatically build for different Java platforms.
+
 [[producing-different-artifacts]]
 === Producing different artifacts
-
-
-
 
