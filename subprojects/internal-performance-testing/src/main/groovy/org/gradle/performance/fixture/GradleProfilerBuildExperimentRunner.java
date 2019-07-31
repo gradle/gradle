@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunner {
 
+    private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private final String jfrProfileTargetDir;
 
     public GradleProfilerBuildExperimentRunner() {
@@ -82,7 +83,7 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(experiment.getDisplayName(), invocationSettings, invocation);
 
         try {
-            GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), "gradleUserHome"));
+            GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
             AtomicInteger iterationCount = new AtomicInteger(0);
             int warmUpCount = scenarioDefinition.getWarmUpCount();
             Logging.setupLogging(workingDirectory);
@@ -129,7 +130,7 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
             ImmutableList.of(invocationSpec.getGradleDistribution().getVersion().getVersion()),
             invocationSpec.getTasksToRun(),
             ImmutableMap.of(),
-            new File(invocationSpec.getWorkingDirectory(), "gradle-user-home"),
+            new File(invocationSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME),
             warmupsForExperiment(experiment),
             invocationsForExperiment(experiment),
             false,
