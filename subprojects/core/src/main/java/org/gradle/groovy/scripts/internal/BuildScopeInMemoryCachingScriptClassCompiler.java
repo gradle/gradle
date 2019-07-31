@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
@@ -43,11 +44,11 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
-        ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoaderScope targetScope, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+        ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
-            compiledScript = cache.getOrCompile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier, scriptClassCompiler);
+            compiledScript = cache.getOrCompile(source, targetScope, classLoaderId, operation, scriptBaseClass, verifier, scriptClassCompiler);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;

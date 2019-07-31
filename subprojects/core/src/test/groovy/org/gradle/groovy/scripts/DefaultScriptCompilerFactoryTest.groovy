@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts
 
 import org.gradle.api.Action
 import org.gradle.api.internal.initialization.ClassLoaderIds
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.internal.CompileOperation
 import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
@@ -35,6 +36,10 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     }
     final ScriptRunner<TestScript, ?> runner = Mock()
     final ClassLoader classLoader = Mock()
+    final ClassLoaderScope targetScope = Stub() {
+        createChild(_) >> Stub(ClassLoaderScope)
+        getExportClassLoader() >> classLoader
+    }
     final CompileOperation<?> operation = Mock() {
         getId() >> "id"
     }
@@ -47,12 +52,12 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     def "compiles script into class and wraps instance in script runner"() {
         when:
         def compiler = factory.createCompiler(source)
-        def result = compiler.compile(Script, operation, classLoader, verifier)
+        def result = compiler.compile(Script, operation, targetScope, verifier)
 
         then:
         result == runner
 
-        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, classLoader, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
+        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, targetScope, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
         1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._

@@ -106,13 +106,14 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 
-        StartParameter startParameter = buildDefinition.getStartParameter();
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         for (Action<ListenerManager> action : serviceRegistry.getAll(BuildScopeListenerManagerAction.class)) {
             action.execute(listenerManager);
         }
+
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
+        StartParameter startParameter = buildDefinition.getStartParameter();
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {
             case ALWAYS:
