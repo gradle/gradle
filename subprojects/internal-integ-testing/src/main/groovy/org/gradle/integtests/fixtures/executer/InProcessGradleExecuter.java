@@ -730,7 +730,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+        public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
             outputFailure.assertThatCause(matcher);
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
@@ -790,7 +790,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
+        public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
             outputFailure.assertThatDescription(matcher);
             assertThat(descriptions, hasItem(normalizedLineSeparators(matcher)));
             return this;

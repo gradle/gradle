@@ -224,7 +224,7 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<String> normalizedLineSeparators(final Matcher<String> matcher) {
+    public static Matcher<String> normalizedLineSeparators(final Matcher<? super String> matcher) {
         return new BaseMatcher<String>() {
             @Override
             public boolean matches(Object o) {

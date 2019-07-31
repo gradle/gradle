@@ -189,7 +189,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+    public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
         for (String cause : causes) {
             if (matcher.matches(cause)) {
                 return this;
@@ -229,7 +229,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
+    public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
         for (String description : descriptions) {
             if (matcher.matches(description)) {
                 return this;
