@@ -228,6 +228,7 @@ suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) 
 
 internal
 suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T, size: Int) {
+    @Suppress("unchecked_cast")
     for (i in 0 until size) {
         val key = read() as K
         val value = read() as V

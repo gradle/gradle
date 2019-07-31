@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization
 
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.FileClasspathHasher
+import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
@@ -42,7 +43,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     def setup() {
         file("root/root") << "root"
         def rootClassLoader = new URLClassLoader(classPath("root").asURLArray, getClass().classLoader.parent)
-        root = new RootClassLoaderScope(rootClassLoader, rootClassLoader, classLoaderCache)
+        root = new RootClassLoaderScope("root", rootClassLoader, rootClassLoader, classLoaderCache, Stub(ClassLoaderScopeRegistryListener))
         scope = root.createChild("child")
     }
 
