@@ -95,3 +95,7 @@ tasks.jar {
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor(1, TimeUnit.MINUTES)
+}
+
