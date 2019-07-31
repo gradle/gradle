@@ -31,7 +31,7 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
     }
 
     public void registerSharedResource(String name, int leases) {
-        sharedResources.put(name, Pair.of(leases,new Semaphore(leases)));
+        sharedResources.put(name, Pair.of(leases, new Semaphore(leases)));
     }
 
     public ResourceLock getResourceLock(final String sharedResource, final int leases) {
