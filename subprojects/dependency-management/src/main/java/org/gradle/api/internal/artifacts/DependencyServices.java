@@ -61,8 +61,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return new DefaultTransformationNodeRegistry();
         }
 
-        TransformationNodeDependencyResolver createTransformationNodeDependencyResolver(TransformationNodeRegistry transformationNodeRegistry) {
-            return new TransformationNodeDependencyResolver(transformationNodeRegistry);
+        TransformationNodeDependencyResolver createTransformationNodeDependencyResolver() {
+            return new TransformationNodeDependencyResolver();
         }
 
         TransformationNodeExecutor createTransformationNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {

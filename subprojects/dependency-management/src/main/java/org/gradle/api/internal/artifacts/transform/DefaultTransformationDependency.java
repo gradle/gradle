@@ -17,54 +17,18 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+
+import java.util.Collection;
 
 @NonNullApi
 public class DefaultTransformationDependency implements TransformationDependency {
-    private final Transformation transformation;
-    private final ResolvedArtifactSet artifacts;
-    private final ExecutionGraphDependenciesResolver dependenciesResolver;
+    private final Collection<TransformationNode> nodes;
 
-    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts,
-                                           ExecutionGraphDependenciesResolver dependenciesResolver) {
-        this.transformation = transformation;
-        this.artifacts = artifacts;
-        this.dependenciesResolver = dependenciesResolver;
+    public DefaultTransformationDependency(Collection<TransformationNode> nodes) {
+        this.nodes = nodes;
     }
 
-    public Transformation getTransformation() {
-        return transformation;
-    }
-
-    public ResolvedArtifactSet getArtifacts() {
-        return artifacts;
-    }
-
-    public ExecutionGraphDependenciesResolver getDependenciesResolver() {
-        return dependenciesResolver;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultTransformationDependency that = (DefaultTransformationDependency) o;
-
-        if (!transformation.equals(that.transformation)) {
-            return false;
-        }
-        return artifacts.equals(that.artifacts);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = transformation.hashCode();
-        result = 31 * result + artifacts.hashCode();
-        return result;
+    public Collection<TransformationNode> getNodes() {
+        return nodes;
     }
 }
