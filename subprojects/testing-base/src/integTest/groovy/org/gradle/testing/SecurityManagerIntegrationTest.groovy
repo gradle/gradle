@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.GradleVersion
 
+import static org.gradle.util.Matchers.containsText
+import static org.gradle.util.Matchers.matchesRegexp
+
 class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
 
     @IntegrationTestTimeout(120)
@@ -57,8 +60,8 @@ public class SecurityManagerTest {
         // cause connection errors to show up in stderr.
         executer.withStackTraceChecksDisabled()
         fails('test')
-        failure.assertHasCause("""Process 'Gradle Test Executor 1' finished with non-zero exit value 1
-This problem might be caused by incorrect test process configuration.
-Please refer to the test execution section in the User Manual at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution""")
+        failure.assertThatCause(matchesRegexp(".*Process 'Gradle Test Executor \\d' finished with non-zero exit value 1.*"))
+        failure.assertThatCause(containsText("This problem might be caused by incorrect test process configuration."))
+        failure.assertThatCause(containsText("Please refer to the test execution section in the User Manual at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution"))
     }
 }
