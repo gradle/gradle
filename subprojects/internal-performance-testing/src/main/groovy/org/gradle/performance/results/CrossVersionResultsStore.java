@@ -20,11 +20,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.UncheckedException;
+import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 import org.joda.time.LocalDate;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -73,66 +75,88 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     @Override
     public void report(final CrossVersionPerformanceResults results) {
         try {
-            db.withConnection(new ConnectionAction<Void>() {
-                @Override
-                public Void execute(Connection connection) throws SQLException {
-                    long testId;
-                    PreparedStatement statement = null;
-                    ResultSet keys = null;
-
-                    try {
-                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                        statement.setString(1, results.getTestId());
-                        statement.setTimestamp(2, new Timestamp(results.getStartTime()));
-                        statement.setTimestamp(3, new Timestamp(results.getEndTime()));
-                        statement.setString(4, results.getVersionUnderTest());
-                        statement.setString(5, results.getTestProject());
-                        statement.setObject(6, toArray(results.getTasks()));
-                        statement.setObject(7, toArray(results.getArgs()));
-                        statement.setObject(8, toArray(results.getGradleOpts()));
-                        statement.setObject(9, results.getDaemon());
-                        statement.setString(10, results.getOperatingSystem());
-                        statement.setString(11, results.getJvm());
-                        statement.setString(12, results.getVcsBranch());
-                        String vcs = results.getVcsCommits() == null ? null :  Joiner.on(",").join(results.getVcsCommits());
-                        statement.setString(13, vcs);
-                        statement.setString(14, results.getChannel());
-                        statement.setString(15, results.getHost());
-                        statement.setObject(16, toArray(results.getCleanTasks()));
-                        statement.setString(17, results.getTeamCityBuildId());
-                        statement.execute();
-                        keys = statement.getGeneratedKeys();
-                        keys.next();
-                        testId = keys.getLong(1);
-                    } finally {
-                        closeStatement(statement);
-                        closeResultSet(keys);
-                    }
-                    try {
-                        statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime) values (?, ?, ?)");
-                        addOperations(statement, testId, null, results.getCurrent());
-                        for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
-                            addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
-                        }
-                        statement.executeBatch();
-                    } finally {
-                        closeStatement(statement);
-                    }
-                    for (String previousId : results.getPreviousTestIds()) {
-                        statement = connection.prepareStatement("update testExecution set testId = ? where testId = ?");
-                        try {
-                            statement.setString(1, results.getTestId());
-                            statement.setString(2, previousId);
-                            statement.execute();
-                        } finally {
-                            closeStatement(statement);
-                        }
-                    }
-                    return null;
-                }
+            db.withConnection((ConnectionAction<Void>) connection -> {
+                long testId = insertExecution(connection, results);
+                batchInsertOperation(connection, results, testId);
+                updatePreviousTestId(connection, results);
+                return null;
             });
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not open results datastore '%s'.", db.getUrl()), e);
+        }
+    }
+
+    private void updatePreviousTestId(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
+        for (String previousId : results.getPreviousTestIds()) {
+            try (PreparedStatement statement = connection.prepareStatement("update testExecution set testId = ? where testId = ?")) {
+                statement.setString(1, results.getTestId());
+                statement.setString(2, previousId);
+                statement.execute();
+            }
+        }
+    }
+
+    private void batchInsertOperation(Connection connection, CrossVersionPerformanceResults results, long testId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(insertStatement("testOperation", "testExecution", "version", "totalTime"))) {
+            addOperations(statement, testId, null, results.getCurrent());
+            for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
+                addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private long insertExecution(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
+        String insertStatement = insertStatement("testExecution",
+            "testId", "startTime", "endTime", "targetVersion", "testProject", "tasks", "args", "gradleOpts", "daemon", "operatingSystem",
+            "jvm", "vcsBranch", "vcsCommit", "channel", "host", "cleanTasks", "teamCityBuildId", "currentMedian", "baselineMedian", "diffConfidence");
+
+
+        try (PreparedStatement statement = connection.prepareStatement(insertStatement)) {
+            statement.setString(1, results.getTestId());
+            statement.setTimestamp(2, new Timestamp(results.getStartTime()));
+            statement.setTimestamp(3, new Timestamp(results.getEndTime()));
+            statement.setString(4, results.getVersionUnderTest());
+            statement.setString(5, results.getTestProject());
+            statement.setObject(6, toArray(results.getTasks()));
+            statement.setObject(7, toArray(results.getArgs()));
+            statement.setObject(8, toArray(results.getGradleOpts()));
+            statement.setObject(9, results.getDaemon());
+            statement.setString(10, results.getOperatingSystem());
+            statement.setString(11, results.getJvm());
+            statement.setString(12, results.getVcsBranch());
+            String vcs = results.getVcsCommits() == null ? null : Joiner.on(",").join(results.getVcsCommits());
+            statement.setString(13, vcs);
+            statement.setString(14, results.getChannel());
+            statement.setString(15, results.getHost());
+            statement.setObject(16, toArray(results.getCleanTasks()));
+            statement.setString(17, results.getTeamCityBuildId());
+
+            if (results.getBaselineVersions().size() == 1) {
+                MeasuredOperationList current = results.getCurrent();
+                MeasuredOperationList baseline = results.getBaselineVersions().iterator().next().getResults();
+
+                BigDecimal currentMedian = current.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
+                BigDecimal baselineMedian = baseline.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
+                BigDecimal diffConfidence = new BigDecimal(DataSeries.confidenceInDifference(current.getTotalTime(), baseline.getTotalTime()));
+                statement.setBigDecimal(18, currentMedian);
+                statement.setBigDecimal(19, baselineMedian);
+                statement.setBigDecimal(20, diffConfidence);
+            } else {
+                statement.setBigDecimal(18, null);
+                statement.setBigDecimal(19, null);
+                statement.setBigDecimal(20, null);
+            }
+
+            statement.execute();
+            ResultSet keys = null;
+            try {
+                keys = statement.getGeneratedKeys();
+                keys.next();
+                return keys.getLong(1);
+            } finally {
+                closeResultSet(keys);
+            }
         }
     }
 
@@ -236,7 +260,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         }
 
                         operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                                + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
+                            + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
                         operationsForExecution.setFetchSize(10 * results.size());
                         operationsForExecution.setInt(1, mostRecentN);
                         operationsForExecution.setString(2, testName);
@@ -325,12 +349,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     statement.execute("alter table testExecution alter column channel set not null");
                     statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
                 }
-                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "HOST")) {
-                    statement.execute("alter table testExecution add column if not exists host varchar");
-                }
-                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "TEAMCITYBUILDID")) {
-                    statement.execute("alter table testExecution add column if not exists teamCityBuildId varchar");
-                }
+
+                addColumnToExecutionTableIfNotExists(connection, statement, "HOST", "varchar");
+                addColumnToExecutionTableIfNotExists(connection, statement, "teamCityBuildId", "varchar");
+                addColumnToExecutionTableIfNotExists(connection, statement, "baselineMedian", "decimal");
+                addColumnToExecutionTableIfNotExists(connection, statement, "currentMedian", "decimal");
+                addColumnToExecutionTableIfNotExists(connection, statement, "diffConfidence", "decimal");
+
                 statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
                 statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
 
@@ -344,6 +369,12 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             }
 
             return null;
+        }
+    }
+
+    private void addColumnToExecutionTableIfNotExists(Connection connection, Statement statement, String column, String type) throws SQLException {
+        if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", column)) {
+            statement.execute("alter table testExecution add column if not exists " + column + " " + type);
         }
     }
 
