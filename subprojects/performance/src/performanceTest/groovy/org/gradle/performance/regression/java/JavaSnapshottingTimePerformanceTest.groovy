@@ -31,7 +31,7 @@ class JavaSnapshottingTimePerformanceTest extends AbstractCrossVersionGradleProf
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ["5.7-20190722220035+0000"]
-        runner.args += ["-Dorg.gradle.parallel=$parallel"]
+        runner.args += ["-Dorg.gradle.parallel=$parallel", "--build-cache"]
         runner.warmUpRuns = 3
         runner.runs = 5
 
