@@ -302,10 +302,9 @@ public class HttpClientConfigurer {
                 CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER);
                 HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
                 Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
-                if (credentials == null) {
-                    throw new HttpException("No credentials for preemptive authentication");
+                if (credentials != null) {
+                    authState.update(authScheme, credentials);
                 }
-                authState.update(authScheme, credentials);
             }
         }
     }
