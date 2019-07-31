@@ -49,7 +49,7 @@ Attributes
     - org.gradle.usage               = java-api
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -60,7 +60,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-api
        - Artifacts
-          - java-classes-directory at build${File.separator}classes${File.separator}java${File.separator}main
+          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -75,7 +75,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -86,7 +86,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - java-classes-directory at build${File.separator}classes${File.separator}java${File.separator}main
+          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -95,7 +95,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - java-resources-directory at build${File.separator}resources${File.separator}main
+          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -125,7 +125,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -136,7 +136,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - java-classes-directory at build${File.separator}classes${File.separator}java${File.separator}main
+          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -145,7 +145,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - java-resources-directory at build${File.separator}resources${File.separator}main
+          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
 """
 
         and:
@@ -196,7 +196,7 @@ Attributes
     - org.gradle.usage               = java-api
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -207,7 +207,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-api
        - Artifacts
-          - java-classes-directory at build${File.separator}classes${File.separator}java${File.separator}main
+          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant archives (l)
@@ -215,7 +215,7 @@ Variant archives (l)
 Description = Configuration for archive artifacts.
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant compile (l)
@@ -233,7 +233,7 @@ Variant default (l)
 Description = Configuration for default artifacts.
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant runtime (l)
@@ -241,7 +241,7 @@ Variant runtime (l)
 Description = Runtime dependencies for source set 'main' (deprecated, use 'runtimeOnly' instead).
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -256,7 +256,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -267,7 +267,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - java-classes-directory at build${File.separator}classes${File.separator}java${File.separator}main
+          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -276,7 +276,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - java-resources-directory at build${File.separator}resources${File.separator}main
+          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant testCompile (l)
@@ -294,7 +294,7 @@ Variant testRuntime (l)
 Description = Runtime dependencies for source set 'test' (deprecated, use 'testRuntimeOnly' instead).
 
 Artifacts
-    - jar at build${File.separator}libs${File.separator}myLib.jar
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
 """
 
         and:
@@ -322,6 +322,64 @@ Description = Dependencies for source set 'main' (deprecated, use 'implementatio
         and:
         hasLegacyVariantsLegend()
         doesNotHaveSecondaryVariantsLegend()
+    }
+
+    def "reports artifacts without explicit type"() {
+        buildFile << """
+            plugins { id 'java-library' }
+            
+            configurations.runtimeElements.outgoing.variants {
+                classes {
+                   artifact(file("foo"))
+                }
+            }
+        """
+
+        when:
+        run ':outgoingVariants', '--variant', 'runtimeElements'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Description = Elements of runtime for main.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+Artifacts
+    - build${File.separator}libs${File.separator}myLib.jar (artifactType = jar)
+
+Secondary variants (*)
+    - Variant : classes
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+          - org.gradle.libraryelements     = classes
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - foo
+    - Variant : resources
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+          - org.gradle.libraryelements     = resources
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+"""
+
+        and:
+        doesNotHaveLegacyVariantsLegend()
+        hasSecondaryVariantsLegend()
     }
 
     private void hasSecondaryVariantsLegend() {

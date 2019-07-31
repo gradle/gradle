@@ -147,24 +147,25 @@ public class OutgoingVariantsReportTask extends DefaultTask {
     private boolean formatArtifacts(PublishArtifactSet artifacts, Formatter tree) {
         if (!artifacts.isEmpty()) {
             tree.section("Artifacts", () -> {
-                artifacts.forEach(artifact -> tree.println(formatArtifact(artifact)));
+                artifacts.stream()
+                    .sorted(Comparator.comparing(PublishArtifact::toString))
+                    .forEach(artifact -> formatArtifact(artifact, tree));
             });
             return true;
         }
         return false;
     }
 
-    private String formatArtifact(PublishArtifact artifact) {
-        StringBuilder sb = new StringBuilder();
+    private void formatArtifact(PublishArtifact artifact, Formatter tree) {
         String type = artifact.getType();
-        if (StringUtils.isNotEmpty(type)) {
-            sb.append(type);
-        }
         File file = artifact.getFile();
-        if (file != null) {
-            sb.append(" at " + getFileResolver().resolveAsRelativePath(file));
+        tree.text(getFileResolver().resolveAsRelativePath(file));
+        if (StringUtils.isNotEmpty(type)) {
+            tree.append(" (");
+            tree.appendValue("artifactType", type);
+            tree.append(")");
         }
-        return sb.toString();
+        tree.println();
     }
 
     private boolean formatAttributes(AttributeContainer attributes, Formatter tree) {
@@ -228,11 +229,11 @@ public class OutgoingVariantsReportTask extends DefaultTask {
             }
             if (hasPublications) {
                 info.text("(*) Secondary variants are variants created via the ")
-                .style(StyledTextOutput.Style.Identifier)
-                .text("Configuration#getOutgoing(): ConfigurationPublications")
-                .style(StyledTextOutput.Style.Info)
-                .text(" API which also participate in selection, in addition to the configuration itself.")
-                .println();
+                    .style(StyledTextOutput.Style.Identifier)
+                    .text("Configuration#getOutgoing(): ConfigurationPublications")
+                    .style(StyledTextOutput.Style.Info)
+                    .text(" API which also participate in selection, in addition to the configuration itself.")
+                    .println();
             }
         }
     }
@@ -270,6 +271,17 @@ public class OutgoingVariantsReportTask extends DefaultTask {
             text(key);
             output.style(StyledTextOutput.Style.Normal)
                 .println(" = " + value);
+        }
+
+        void append(String text) {
+            output.text(text);
+        }
+
+        void appendValue(String key, String value) {
+            output.style(StyledTextOutput.Style.Identifier);
+            append(key);
+            output.style(StyledTextOutput.Style.Normal)
+                .text(" = " + value);
         }
 
         void text(String text) {
