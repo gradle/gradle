@@ -24,27 +24,34 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         requireOwnGradleUserHomeDir()
     }
 
-    def "task input files can include the output of artifact transforms of project dependencies"() {
+    def "task input files can include the output of artifact transform of project dependencies"() {
         settingsFile << """
             include 'a', 'b'
         """
         setupBuildWithSimpleColorTransform()
         buildFile << """
+            dependencies.artifactTypes {
+                green {
+                    attributes.attribute(color, 'green')
+                }
+            }
             dependencies {
                 implementation project(':a')
+                implementation files('root.green')
                 implementation project(':b')
             }
         """
+        file('root.green') << 'root'
 
         expect:
         instantRun(":resolve")
-        outputContains("result = [a.jar.green, b.jar.green]")
+        outputContains("result = [root.green, a.jar.green, b.jar.green]")
         instantRun(":resolve")
-        // For now, transforms are ignored when writing to the cache
-        outputContains("result = []")
+        // For now, scheduled transforms are ignored when writing to the cache
+        outputContains("result = [root.green]")
     }
 
-    def "task input files can include the output of artifact transforms of external dependencies"() {
+    def "task input files can include the output of artifact transform of external dependencies"() {
         withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
         withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
 
@@ -66,7 +73,39 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantRun(":resolve")
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
         instantRun(":resolve")
-        // For now, transforms are ignored when writing to the cache
+        // For now, scheduled transforms are ignored when writing to the cache
         outputContains("result = []")
+    }
+
+    def "task input files can include the output of artifact transforms of prebuilt file dependencies"() {
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithSimpleColorTransform()
+        buildFile << """
+            dependencies.artifactTypes {
+                blue {
+                    attributes.attribute(color, 'blue')
+                }
+            }
+            dependencies {
+                implementation files('root.blue')
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation files('a.blue')
+                }
+            }
+        """
+        file('root.blue') << 'root'
+        file('a/a.blue') << 'a'
+
+        expect:
+        instantRun(":resolve")
+        outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
+        instantRun(":resolve")
+        // For now, scheduled transforms are ignored when writing to the cache
+        outputContains("result = [root.blue.green, a.blue.green]")
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -78,7 +79,15 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesResolver()));
+        Collection<TransformationNode> scheduledNodes = transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
+        if (!scheduledNodes.isEmpty()) {
+            context.add(new DefaultTransformationDependency(scheduledNodes));
+        }
+    }
+
+    @Override
+    public Collection<TransformationNode> getScheduledNodes() {
+        return transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
     }
 
     private ExecutionGraphDependenciesResolver getDependenciesResolver() {

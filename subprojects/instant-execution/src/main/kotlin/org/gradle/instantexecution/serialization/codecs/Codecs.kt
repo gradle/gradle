@@ -122,7 +122,10 @@ class Codecs(
 
         bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
         bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
+
+        // Dependency management types
         bind(ArtifactCollectionCodec)
+        bind(TransformationNodeCodec)
 
         bind(DefaultCopySpecCodec(fileResolver, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))

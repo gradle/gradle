@@ -40,11 +40,11 @@ class FileCollectionCodec(
         runCatching {
             val visitor = CollectingVisitor()
             value.visitStructure(visitor)
-            visitor.files
+            visitor.elements
         }.apply {
-            onSuccess { files ->
+            onSuccess { elements ->
                 writeBoolean(true)
-                fileSetSerializer.write(this@encode, files)
+                write(elements)
             }
             onFailure { ex ->
                 writeBoolean(false)
@@ -54,17 +54,22 @@ class FileCollectionCodec(
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal =
-        if (readBoolean()) fileCollectionFactory.fixed(fileSetSerializer.read(this))
+        if (readBoolean()) fileCollectionFactory.fixed((read() as Collection<Any>).fold(mutableListOf<File>()) { list, element ->
+            if (element is File) {
+                list.add(element)
+            }
+            list
+        })
         else fileCollectionFactory.create(ErrorFileSet(readString()))
 }
 
 
 private
 class CollectingVisitor : FileCollectionStructureVisitor {
-    val files: MutableSet<File> = mutableSetOf()
+    val elements: MutableSet<Any> = mutableSetOf()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        return if (source is ConsumerProvidedVariantFiles) {
+        return if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
             // Visit the source only for scheduled transforms
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
@@ -73,22 +78,26 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
-        files.addAll(contents)
+        if (source is ConsumerProvidedVariantFiles) {
+            elements.addAll(source.scheduledNodes)
+        } else {
+            elements.addAll(contents)
+        }
     }
 
     override fun visitGenericFileTree(fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        files.addAll(fileTree)
+        elements.addAll(fileTree)
     }
 
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        files.addAll(fileTree)
+        elements.addAll(fileTree)
     }
 
     override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        files.addAll(fileTree)
+        elements.addAll(fileTree)
     }
 }
 

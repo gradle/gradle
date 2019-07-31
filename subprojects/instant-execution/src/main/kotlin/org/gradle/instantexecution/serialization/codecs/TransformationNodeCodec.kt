@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
 
-import java.util.Collection;
 
-public interface ConsumerProvidedVariantFiles extends FileCollectionInternal.Source {
-    /**
-     * @return empty list when not scheduled.
-     */
-    Collection<TransformationNode> getScheduledNodes();
+internal
+object TransformationNodeCodec : Codec<TransformationNode> {
+    override suspend fun WriteContext.encode(value: TransformationNode) {
+        // Ignore
+    }
+
+    override suspend fun ReadContext.decode(): TransformationNode? {
+        return null
+    }
 }
