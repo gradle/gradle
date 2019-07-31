@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.initialization.ClassLoaderIds
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -43,6 +44,9 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final classLoader = Mock(ClassLoader)
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
+    final ClassLoaderScope targetScope = Mock() {
+        getExportClassLoader() >> classLoader
+    }
     final ClassLoaderCache classLoaderCache = Mock()
     final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(classLoader) >> HashCode.fromInt(9999)
@@ -75,7 +79,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def initializer
 
         when:
-        def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
+        def result = compiler.compile(source, targetScope, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -95,7 +99,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * globalCacheBuilder.withInitializer(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.open() >> globalCache
 
-        1 * scriptCompilationHandler.loadFromDir(source, _, classLoader, new File(localDir, 'classes'), new File(localDir, 'metadata'), operation, Script, classLoaderId) >> compiledScript
+        1 * scriptCompilationHandler.loadFromDir(source, _, targetScope, new File(localDir, 'classes'), new File(localDir, 'metadata'), operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
@@ -107,7 +111,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def localClassesDir = new File(localDir, "classes")
 
         when:
-        def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
+        def result = compiler.compile(source, targetScope, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -134,7 +138,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         }
 
         1 * scriptCompilationHandler.compileToDir({ it instanceof RemappingScriptSource }, classLoader, classesDir, metadataDir, operation, Script, verifier)
-        1 * scriptCompilationHandler.loadFromDir(source, _, classLoader, localClassesDir, localMetadataDir, operation, Script, classLoaderId) >> compiledScript
+        1 * scriptCompilationHandler.loadFromDir(source, _, targetScope, localClassesDir, localMetadataDir, operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }
 

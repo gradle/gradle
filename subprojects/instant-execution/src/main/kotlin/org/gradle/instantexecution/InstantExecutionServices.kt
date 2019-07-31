@@ -22,8 +22,17 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
 class InstantExecutionServices : AbstractPluginServiceRegistry() {
 
+    override fun registerBuildServices(registration: ServiceRegistration) {
+        registration.run {
+            add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
+            add(InstantExecutionBuildScopeListenerManagerAction::class.java)
+        }
+    }
+
     override fun registerGradleServices(registration: ServiceRegistration) {
-        registration.add(InstantExecutionHost::class.java)
-        registration.add(DefaultInstantExecution::class.java)
+        registration.run {
+            add(InstantExecutionHost::class.java)
+            add(DefaultInstantExecution::class.java)
+        }
     }
 }
