@@ -23,7 +23,10 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     private final String name;
     private final Class<? extends Credentials> supportedCredentialType;
     private final Class<? extends Authentication> type;
+
     private Credentials credentials;
+    private String host = null; // AuthScope.ANY_HOST;
+    private int port = -1; // AuthScope.ANY_PORT;
 
     public AbstractAuthentication(String name, Class<? extends Authentication> type) {
         this.name = name;
@@ -65,5 +68,21 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     @Override
     public String toString() {
         return String.format("'%s'(%s)", getName(), getType().getSimpleName());
+    }
+
+    @Override
+    public String getHost() {
+        return host;
+    }
+
+    @Override
+    public int getPort() {
+        return port;
+    }
+
+    @Override
+    public void setHostAndPort(String host, int port) {
+        this.host = host;
+        this.port = port;
     }
 }

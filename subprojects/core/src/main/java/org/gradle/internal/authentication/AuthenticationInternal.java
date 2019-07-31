@@ -31,4 +31,16 @@ public interface AuthenticationInternal extends Authentication {
     Class<? extends Authentication> getType();
 
     boolean requiresCredentials();
+
+    /**
+     * The hostname that the credentials are required for
+     */
+    String getHost();
+
+    /**
+     * The port that the credentials are required for
+     */
+    int getPort();
+
+    void setHostAndPort(String host, int port);
 }
