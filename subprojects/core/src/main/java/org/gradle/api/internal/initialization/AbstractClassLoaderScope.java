@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 
 /**
  * Provides common {@link #getPath} and {@link #createChild} behaviour for {@link ClassLoaderScope} implementations.
@@ -26,12 +25,10 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
 
     protected final ClassLoaderScopeIdentifier id;
     protected final ClassLoaderCache classLoaderCache;
-    protected final ClassLoaderScopeRegistryListener listener;
 
-    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache) {
         this.id = id;
         this.classLoaderCache = classLoaderCache;
-        this.listener = listener;
     }
 
     /**
@@ -46,11 +43,7 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
         }
-        childScopeCreated(name);
-        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
+        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
 
-    protected void childScopeCreated(String name) {
-        listener.childScopeCreated(id.getName(), name);
-    }
 }
