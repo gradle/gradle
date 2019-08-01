@@ -36,28 +36,28 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         buildFile << """
-import org.gradle.api.artifacts.transform.TransformParameters
-
-def usage = Attribute.of('usage', String)
-def artifactType = Attribute.of('artifactType', String)
-def extraAttribute = Attribute.of('extra', String)
-    
-allprojects {
-
-    dependencies {
-        attributesSchema {
-            attribute(usage)
-        }
-    }
-    configurations {
-        compile {
-            attributes { attribute usage, 'api' }
-        }
-    }
-}
-
-$fileSizer
-"""
+            import org.gradle.api.artifacts.transform.TransformParameters
+            
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
+                
+            allprojects {
+            
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
+                    }
+                }
+                configurations {
+                    compile {
+                        attributes { attribute usage, 'api' }
+                    }
+                }
+            }
+            
+            $fileSizer
+        """
     }
 
     private static String getFileSizer() {
@@ -2324,8 +2324,6 @@ Found the following transforms:
             ${declareTransform(transformImplementation)}
 
             task resolve(type: Copy) {
-                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
                     if (project.hasProperty("lenient")) {

@@ -75,19 +75,18 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         def outputDir = file("unpack")
         def sourceFile = file(source)
 
-        buildFile << """
-            task unpack(type: Sync) {
-                duplicatesStrategy = DuplicatesStrategy.INCLUDE
-                from($type("${sourceFile.toURI()}"))
-                into("unpack")
-"""
-        if (readonly) {
-            buildFile << """
+        def permissions = readonly
+            ? """
                 fileMode 0644
                 dirMode 0755
-            """
-        }
+              """
+            : ""
+
         buildFile << """
+            task unpack(type: Sync) {
+                from($type("${sourceFile.toURI()}"))
+                into("unpack")
+                ${permissions}
             }
         """
 

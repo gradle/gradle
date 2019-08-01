@@ -27,7 +27,7 @@ import java.nio.charset.Charset
 @TestReproducibleArchives
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
-    def ensureDuplicatesNotIncludedByDefault() {
+    def 'ensure duplicates not included by default'() {
         given:
         createTestFiles()
         buildFile << '''
@@ -38,11 +38,34 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = buildDir
                 archiveName = 'test.zip'
             }
-            '''
+        '''
+
         when:
         fails 'zip'
         then:
         failure.assertHasCause('Encountered duplicate path "file1.txt" during copy operation configured with DuplicatesStrategy.FAIL')
+    }
+
+    def 'ensure duplicates can be included in zip'() {
+        given:
+        createTestFiles()
+        buildFile << '''
+            task zip(type: Zip) {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+            }
+        '''
+
+        when:
+        run 'zip'
+        then:
+        def zip = new ZipTestFixture(file('build/test.zip'))
+        zip.assertContainsFile('file1.txt', 2)
+        zip.assertContainsFile('file2.txt', 1)
     }
 
     def ensureDuplicatesCanBeExcluded() {
