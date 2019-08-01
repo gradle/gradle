@@ -757,8 +757,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ExecutionHistoryStore getExecutionHistoryStore() {
-                    return IncrementalExecutionIntegrationTest.this.executionHistoryStore
+                Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+                    return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
                 }
 
                 @Override

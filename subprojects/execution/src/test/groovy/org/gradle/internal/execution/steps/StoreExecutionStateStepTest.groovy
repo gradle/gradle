@@ -57,7 +57,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     }
 
     def setup() {
-        _ * work.executionHistoryStore >> executionHistoryStore
+        _ * work.executionHistoryStore >> Optional.of(executionHistoryStore)
     }
 
     def "output snapshots are stored after successful execution"() {

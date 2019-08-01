@@ -265,8 +265,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionHistoryStore getExecutionHistoryStore() {
-            return executionHistoryStore;
+        public Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+            return context.getTaskExecutionMode().isTaskHistoryMaintained()
+                ? Optional.of(executionHistoryStore)
+                : Optional.empty();
         }
 
         @Override
@@ -365,11 +367,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task.getOutputs().getDoNotCacheIfSpecs(),
                 detectedOverlappingOutputs
             );
-        }
-
-        @Override
-        public boolean isTaskHistoryMaintained() {
-            return context.getTaskExecutionMode().isTaskHistoryMaintained();
         }
 
         @Override

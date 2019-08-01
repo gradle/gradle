@@ -35,7 +35,8 @@ public class LoadExecutionStateStep<C extends ExecutionRequestContext, R extends
     @Override
     public R execute(C context) {
         UnitOfWork work = context.getWork();
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getExecutionHistoryStore().load(work.getIdentity());
+        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getExecutionHistoryStore()
+            .flatMap(executionHistoryStore -> executionHistoryStore.load(work.getIdentity()));
         return delegate.execute(new AfterPreviousExecutionContext() {
             @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
