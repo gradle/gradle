@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -88,7 +89,7 @@ import java.util.function.Consumer;
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
-    private final Set<TaskNode> entryTasks = new LinkedHashSet<TaskNode>();
+    private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
@@ -131,11 +132,19 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return nodeMapping.get(task);
     }
 
-    public void addEntryTasks(Collection<? extends Task> tasks) {
-        final Deque<Node> queue = new ArrayDeque<Node>();
-        Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
+    public void addNodes(Collection<? extends Node> nodes) {
+        Deque<Node> queue = new ArrayDeque<>(nodes);
+        for (Node node : nodes) {
+            node.require();
+            entryNodes.add(node);
+        }
+        doAddNodes(queue);
+    }
 
-        List<Task> sortedTasks = new ArrayList<Task>(tasks);
+    public void addEntryTasks(Collection<? extends Task> tasks) {
+        final Deque<Node> queue = new ArrayDeque<>();
+
+        List<Task> sortedTasks = new ArrayList<>(tasks);
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
@@ -144,10 +153,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             } else if (filter.isSatisfiedBy(task)) {
                 node.require();
             }
-            entryTasks.add(node);
+            entryNodes.add(node);
             queue.add(node);
         }
 
+        doAddNodes(queue);
+    }
+
+    private void doAddNodes(Deque<Node> queue) {
+        Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
         final Set<Node> visiting = Sets.newHashSet();
 
         while (!queue.isEmpty()) {
@@ -208,7 +222,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void resolveNodesInUnknownState(Set<Node> nodesInUnknownState) {
-        Deque<Node> queue = new ArrayDeque(nodesInUnknownState);
+        Deque<Node> queue = new ArrayDeque<>(nodesInUnknownState);
         Set<Node> visiting = Sets.newHashSet();
 
         while (!queue.isEmpty()) {
@@ -249,20 +263,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public void determineExecutionPlan() {
-        LinkedList<NodeInVisitingSegment> nodeQueue = Lists.newLinkedList(Iterables.transform(entryTasks, new Function<TaskNode, NodeInVisitingSegment>() {
+        LinkedList<NodeInVisitingSegment> nodeQueue = Lists.newLinkedList(Iterables.transform(entryNodes, new Function<Node, NodeInVisitingSegment>() {
             private int index;
 
             @Override
             @SuppressWarnings("NullableProblems")
-            public NodeInVisitingSegment apply(TaskNode taskNode) {
-                return new NodeInVisitingSegment(taskNode, index++);
+            public NodeInVisitingSegment apply(Node node) {
+                return new NodeInVisitingSegment(node, index++);
             }
         }));
         int visitingSegmentCounter = nodeQueue.size();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
-        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
-        Deque<Node> path = new ArrayDeque<Node>();
+        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
+        Deque<Node> path = new ArrayDeque<>();
         Map<Node, Integer> planBeforeVisiting = Maps.newHashMap();
 
         while (!nodeQueue.isEmpty()) {
@@ -435,7 +449,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private Set<Node> getAllPrecedingNodes(Node finalizer) {
         Set<Node> precedingNodes = Sets.newHashSet();
-        Deque<Node> candidateNodes = new ArrayDeque<Node>();
+        Deque<Node> candidateNodes = new ArrayDeque<>();
 
         // Consider every node that must run before the finalizer
         Iterables.addAll(candidateNodes, finalizer.getAllSuccessors());
@@ -454,7 +468,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void onOrderingCycle(Node successor, Node node) {
-        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<Node, Void>(new DirectedGraph<Node, Void>() {
+        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>(new DirectedGraph<Node, Void>() {
             @Override
             public void getNodeValues(Node node, Collection<? super Void> values, Collection<? super Node> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
@@ -465,7 +479,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
             }
         });
-        graphWalker.add(entryTasks);
+        graphWalker.add(entryNodes);
 
         List<Set<Node>> cycles = graphWalker.findCycles();
         if (cycles.isEmpty()) {
@@ -473,10 +487,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             // https://github.com/gradle/gradle/issues/2293
             throw new GradleException("Misdetected cycle between " + node + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
         }
-        final List<Node> firstCycle = new ArrayList<Node>(cycles.get(0));
+        final List<Node> firstCycle = new ArrayList<>(cycles.get(0));
         Collections.sort(firstCycle);
 
-        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<Node>(new GraphNodeRenderer<Node>() {
+        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(new GraphNodeRenderer<Node>() {
             @Override
             public void renderTo(Node node, StyledTextOutput output) {
                 output.withStyle(StyledTextOutput.Style.Identifier).text(node);
@@ -499,7 +513,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public void clear() {
         taskNodeFactory.clear();
         dependencyResolver.clear();
-        entryTasks.clear();
+        entryNodes.clear();
         nodeMapping.clear();
         executionQueue.clear();
         projectLocks.clear();
@@ -514,6 +528,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     public Set<Task> getTasks() {
         return nodeMapping.getTasks();
+    }
+
+    public List<Node> getScheduledNodes() {
+        return ImmutableList.copyOf(nodeMapping.nodes);
     }
 
     @Override
@@ -539,6 +557,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Nullable
     public Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
         if (allProjectsLocked()) {
+            // TODO - this is incorrect. We can still run nodes that don't need a project lock
             return null;
         }
 
@@ -701,7 +720,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 return false;
             }
         }
-        return true;
+        return !projectLocks.isEmpty();
     }
 
     private ResourceLock getOrCreateProjectLock(Project project) {

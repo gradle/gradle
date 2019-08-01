@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
@@ -375,7 +376,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "multiple finalizer tasks may have relationships between each other via some other task"() {
         Task f2 = task("f2")
-        Task d = task("d", dependsOn:[f2] )
+        Task d = task("d", dependsOn: [f2])
         Task f1 = task("f1", dependsOn: [d])
         Task finalized = task("finalized", finalizedBy: [f1, f2])
 
@@ -409,7 +410,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
     def "multiple finalizer tasks with relationships via other tasks scheduled from multiple tasks"() {
         //finalizers with a relationship via a dependency
         Task f1 = task("f1")
-        Task dep = task("dep", dependsOn:[f1] )
+        Task dep = task("dep", dependsOn: [f1])
         Task f2 = task("f2", dependsOn: [dep])
 
         //2 finalized tasks
@@ -457,7 +458,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         executes(finalized, dependsOnFinalized, finalizer)
 
         where:
-        orderingRule << ['dependsOn', 'mustRunAfter' , 'shouldRunAfter']
+        orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
     }
 
     def "cannot add task with circular reference"() {
@@ -603,7 +604,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         RuntimeException exception = new RuntimeException("failure")
 
         when:
-        Task a = task([failure: exception],"a")
+        Task a = task([failure: exception], "a")
         Task b = task("b")
         addToGraphAndPopulate([a, b])
 
@@ -850,6 +851,30 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         filtered(b)
     }
 
+    def "nodes added to the graph are executed in dependency order"() {
+        given:
+        def node1 = node()
+        def node2 = node(node1)
+        def node3 = node(node2)
+        executionPlan.addNodes([node3, node1, node2])
+
+        when:
+        executionPlan.determineExecutionPlan()
+
+        then:
+        executesNodes(node1, node2, node3)
+    }
+
+    private Node node(Node... dependencies) {
+        def action = Stub(WorkNodeAction)
+        _ * action.project >> null
+        def node = new ActionNode(action)
+        dependencies.each {
+            node.addDependencySuccessor(it)
+        }
+        return node
+    }
+
     private void addToGraphAndPopulate(List tasks) {
         executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
@@ -860,22 +885,29 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         assert executedTasks == expectedTasks as List
     }
 
+    void executesNodes(Node... expectedNodes) {
+        assert executedNodes == expectedNodes as List
+    }
+
     void filtered(Task... expectedTasks) {
         assert executionPlan.filteredTasks == expectedTasks as Set
     }
 
-    def getExecutedTasks() {
-        def tasks = []
+    List<Task> getExecutedTasks() {
+        return executedNodes*.task
+    }
+
+    List<Node> getExecutedNodes() {
+        def nodes = []
         while (executionPlan.hasNodesRemaining()) {
             def nextNode = executionPlan.selectNext(workerLease, Mock(ResourceLockState))
-            if (nextNode != null) {
-                if (!nextNode.isComplete()) {
-                    tasks << nextNode.task
-                    executionPlan.nodeComplete(nextNode)
-                }
+            assert nextNode != null
+            if (!nextNode.isComplete()) {
+                nodes << nextNode
+                executionPlan.nodeComplete(nextNode)
             }
         }
-        return tasks
+        return nodes
     }
 
     private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {

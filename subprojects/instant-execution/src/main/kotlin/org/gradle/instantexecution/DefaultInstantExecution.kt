@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
@@ -30,7 +31,7 @@ import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
-import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
+import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readList
@@ -165,11 +166,12 @@ class DefaultInstantExecution internal constructor(
 
         writeGradleState(build.rootProject.gradle)
 
-        val scheduledTasks = build.scheduledTasks
+        val scheduledNodes = build.scheduledWork
+        val scheduledTasks = scheduledNodes.filterIsInstance(LocalTaskNode::class.java).map { it.task }
         writeRelevantProjectsFor(scheduledTasks)
 
-        TaskGraphCodec(service()).run {
-            writeTaskGraphOf(build, scheduledTasks)
+        WorkNodeCodec(service(), service()).run {
+            writeWorkOf(build, scheduledNodes)
         }
     }
 
@@ -190,10 +192,10 @@ class DefaultInstantExecution internal constructor(
 
         initProjectProvider(build::getProject)
 
-        val scheduledTasks = TaskGraphCodec(service()).run {
-            readTaskGraph()
+        val scheduledNodes = WorkNodeCodec(service(), service()).run {
+            readWorkToSchedule()
         }
-        build.scheduleTasks(scheduledTasks)
+        build.scheduleNodes(scheduledNodes)
     }
 
     private

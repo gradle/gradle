@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.BuildLoader
 import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
@@ -102,8 +103,8 @@ class InstantExecutionHost internal constructor(
         override val buildSrc: Boolean
             get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == BuildSourceBuilder.BUILD_SRC
 
-        override val scheduledTasks: List<Task>
-            get() = gradle.taskGraph.allTasks
+        override val scheduledWork: List<Node>
+            get() = gradle.taskGraph.scheduledWork
 
         override val rootProject: ProjectInternal
             get() = gradle.rootProject
@@ -225,9 +226,9 @@ class InstantExecutionHost internal constructor(
             )
         }
 
-        override fun scheduleTasks(tasks: Iterable<Task>) {
+        override fun scheduleNodes(nodes: Collection<Node>) {
             gradle.taskGraph.run {
-                addEntryTasks(tasks)
+                addNodes(nodes)
                 populate()
             }
 
