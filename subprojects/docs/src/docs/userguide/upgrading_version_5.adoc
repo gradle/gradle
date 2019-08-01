@@ -53,6 +53,15 @@ Calls to `BuildCacheConfiguration.local(Class)` with anything other than `Direct
 Use `getLocal()` and `local(Action)` instead.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
+==== Failing to pack or unpack cached results will now fail the build
+
+In the past when Gradle encountered a problem while packaging the results of a cached task, it would ignore the problem and try to continue running the build.
+Similarly, having encountered a corrupt cached artifact during unpacking Gradle would try to remove whatever was already unpacked of the output and re-execute the task to make sure the build had a chance to succeed.
+
+While this behavior could be helpful to maintain executing build no matter what, hiding the problems this way can lead to reduced cache performance.
+In Gradle 6.0 we are switching to failing fast, and both pack and unpack errors will result the build to fail.
+Doing so allows these problems to be surfaced more easily.
+
 ==== `@Nullable` annotation is gone
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.

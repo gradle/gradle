@@ -31,10 +31,6 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.file.TreeType
-import spock.lang.Shared
-import spock.lang.Unroll
 
 class CacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
@@ -43,7 +39,6 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
     def cacheKey = Stub(BuildCacheKey)
     def cachingState = Mock(CachingState)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
-    @Shared def rebuildChanges = Mock(ExecutionStateChanges)
     def localStateFile = file("local-state.txt") << "local state"
 
     def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
@@ -106,16 +101,18 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         0 * _
     }
 
-    @Unroll
-    def "executes work #description non-incrementally and stores after unpack failure"() {
+    def "fails after unpack failure"() {
+        def failure = new RuntimeException("unpack failure")
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
 
         when:
-        def result = step.execute(context)
+        step.execute(context)
 
         then:
-        result == delegateResult
+        def ex = thrown Exception
+        ex.message == "Failed to load cache entry for job ':test'"
+        ex.cause == failure
 
         interaction { withValidCacheKey() }
 
@@ -126,61 +123,10 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
             loadedOutputDir.file("output.txt") << "output"
-            throw new RuntimeException("unpack failure")
+            throw failure
         }
 
         then:
-        _ * work.visitOutputProperties(_) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("outputFile", TreeType.FILE, ImmutableList.of(loadedOutputFile))
-            visitor.visitOutputProperty("outputDir", TreeType.DIRECTORY, ImmutableList.of(loadedOutputDir))
-            visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableList.of(file("missing.txt")))
-            visitor.visitOutputProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableList.of(file("missing")))
-        }
-        loadedOutputFile.assertDoesNotExist()
-        loadedOutputDir.assertIsEmptyDir()
-        interaction { localStateIsRemoved() }
-
-        then:
-        _ * context.changes >> Optional.ofNullable(changes)
-        1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
-            assert delegateContext != context
-            check(delegateContext)
-            delegateResult
-        }
-        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
-
-        then:
-        interaction { outputStored {} }
-        0 * _
-
-        where:
-        description       | check                                                                                        | changes
-        "without changes" | { IncrementalChangesContext context -> assert !context.getChanges().present }                | null
-        "with changes"    | { IncrementalChangesContext context -> assert context.getChanges().get() == rebuildChanges } | Mock(ExecutionStateChanges) {
-            1 * withEnforcedRebuild("Outputs removed due to failed load from cache") >> rebuildChanges
-        }
-    }
-
-    def "propagates non-recoverable unpack failure"() {
-        when:
-        step.execute(context)
-
-        then:
-        def ex = thrown Exception
-        ex.message == "cleanup failure"
-
-        interaction { withValidCacheKey() }
-
-        then:
-        _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> { throw new RuntimeException("unpack failure") }
-
-        then:
-        _ * work.visitOutputProperties(_) >> {
-            throw new RuntimeException("cleanup failure")
-        }
-        interaction { localStateIsRemoved() }
         0 * _
     }
 
@@ -229,12 +175,16 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         0 * _
     }
 
-    def "does not fail when cache backend throws exception while storing cached result"() {
+    def "fails when cache backend throws exception while storing cached result"() {
+        def failure = new RuntimeException("store failure")
+
         when:
-        def result = step.execute(context)
+        step.execute(context)
 
         then:
-        result == delegateResult
+        def ex = thrown Exception
+        ex.message == "Failed to store cache entry for job ':test'"
+        ex.cause == failure
 
         interaction { withValidCacheKey() }
 
@@ -246,7 +196,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        interaction { outputStored { throw new RuntimeException("store failure") } }
+        interaction { outputStored { throw failure } }
         0 * _
     }
 

@@ -243,8 +243,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        executer.withStackTraceChecksDisabled()
-        succeeds("clean", "t")
+        fails("clean", "t")
 
         then:
         def failedUnpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
