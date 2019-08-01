@@ -29,7 +29,6 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -140,6 +139,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         graphState = GraphState.DIRTY;
 
         LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
+    }
+
+    @Override
+    public void addNodes(Collection<? extends Node> nodes) {
+        executionPlan.addNodes(nodes);
+        graphState = GraphState.DIRTY;
     }
 
     @Override
@@ -290,6 +295,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
+    public List<Node> getScheduledWork() {
+        return executionPlan.getScheduledNodes();
+    }
+
+    @Override
     public Set<Task> getDependencies(Task task) {
         ensurePopulated();
         Node node = executionPlan.getNode(task);
@@ -376,11 +386,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             was necessary, therefore the minimal change solution was implemented.
          */
         return executionPlan.getFilteredTasks();
-    }
-
-    @Override
-    public ProjectInternal getRootProject() {
-        return gradleInternal.getRootProject();
     }
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {

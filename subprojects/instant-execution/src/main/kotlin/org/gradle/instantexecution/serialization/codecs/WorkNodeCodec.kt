@@ -29,6 +29,9 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.instantexecution.ClassicModeBuild
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
@@ -45,51 +48,73 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readEachProperty
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.beans.writingProperties
-import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
-import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.instantexecution.serialization.writeStrings
 
 
 internal
-class TaskGraphCodec(private val projectStateRegistry: ProjectStateRegistry) {
+class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, private val taskNodeFactory: TaskNodeFactory) {
 
-    fun MutableWriteContext.writeTaskGraphOf(build: ClassicModeBuild, tasks: List<Task>) {
-        writeCollection(tasks) { task ->
-            try {
-                runToCompletionWithMutableStateOf(task.project) {
-                    writeTask(task, build.dependenciesOf(task))
+    fun MutableWriteContext.writeWorkOf(build: ClassicModeBuild, nodes: List<Node>) {
+        val seen = HashSet<Node>(nodes.size)
+        writeSmallInt(nodes.size)
+        for (node in nodes) {
+            writeNode(node, build, seen)
+        }
+    }
+
+    private
+    fun MutableWriteContext.writeNode(node: Node, build: ClassicModeBuild, seen: MutableSet<Node>) {
+        if (seen.contains(node)) {
+            return
+        }
+        for (successor in node.dependencySuccessors) {
+            writeNode(successor, build, seen)
+        }
+        when (node) {
+            is LocalTaskNode -> {
+                writeByte(1)
+                val task = node.task
+                try {
+                    runToCompletionWithMutableStateOf(task.project) {
+                        writeTask(task, build.dependenciesOf(task))
+                    }
+                } catch (e: Exception) {
+                    throw GradleException("Could not save state of $task.", e)
                 }
-            } catch (e: Exception) {
-                throw GradleException("Could not save state of $task.", e)
+            }
+            else -> {
+                writeByte(2)
+                // Ignore
             }
         }
+        seen.add(node)
     }
 
-    suspend fun MutableReadContext.readTaskGraph(): List<Task> {
-        val tasksWithDependencies = readTasksWithDependencies()
-        wireTaskDependencies(tasksWithDependencies)
-        return tasksWithDependencies.map { (task, _) -> task }
-    }
-
-    private
-    suspend fun MutableReadContext.readTasksWithDependencies(): List<Pair<Task, List<String>>> =
-        readCollectionInto({ size -> ArrayList(size) }) {
-            readTask()
+    suspend fun MutableReadContext.readWorkToSchedule(): List<Node> {
+        val tasksByPath = HashMap<String, Task>()
+        val count = readSmallInt()
+        val nodes = ArrayList<Node>(count)
+        for (i in 0 until count) {
+            when (readByte()) {
+                1.toByte() -> {
+                    val pair = readTask()
+                    val task = pair.first
+                    for (dep in pair.second) {
+                        task.dependsOn(tasksByPath.getValue(dep))
+                    }
+                    tasksByPath[task.path] = task
+                    val node = taskNodeFactory.getOrCreateNode(task)
+                    nodes.add(node)
+                }
+                // else, ignore
+            }
         }
-
-    private
-    fun wireTaskDependencies(tasksWithDependencies: List<Pair<Task, List<String>>>) {
-        val tasksByPath = tasksWithDependencies.associate { (task, _) ->
-            task.path to task
-        }
-        tasksWithDependencies.forEach { (task, dependencies) ->
-            task.dependsOn(dependencies.map(tasksByPath::getValue))
-        }
+        return nodes
     }
 
     private
