@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.Node
 
@@ -27,6 +26,4 @@ interface ClassicModeBuild {
     val rootProject: ProjectInternal
 
     val scheduledWork: List<Node>
-
-    fun dependenciesOf(task: Task): Set<Task>
 }
