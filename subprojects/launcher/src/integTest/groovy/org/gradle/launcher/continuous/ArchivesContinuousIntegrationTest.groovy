@@ -77,6 +77,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         buildFile << """
             task unpack(type: Sync) {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 from($type("${sourceFile.toURI()}"))
                 into("unpack")
 """
