@@ -29,6 +29,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
@@ -90,7 +91,17 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {
-        return delegate.getConfiguredAuthentication();
+        return CollectionUtils.collect(delegate.getConfiguredAuthentication(), authentication -> {
+            URI repositoryUrl = getRepositoryUrl();
+            if (repositoryUrl != null) {
+                ((AuthenticationInternal) authentication).setHostAndPort(repositoryUrl.getHost(), repositoryUrl.getPort());
+            }
+            return authentication;
+        });
+    }
+
+    protected URI getRepositoryUrl() {
+        return null;
     }
 
     List<String> getAuthenticationSchemes() {
