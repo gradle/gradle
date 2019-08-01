@@ -216,6 +216,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             .create();
     }
 
+    @Override
+    protected URI getRepositoryUrl() {
+        // TODO: This doesn't take into account artifact urls
+        return getUrl();
+    }
+
     private void validate() {
         URI rootUri = getUrl();
         if (rootUri == null) {

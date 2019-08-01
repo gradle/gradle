@@ -265,6 +265,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
     }
 
+
+    @Override
+    protected URI getRepositoryUrl() {
+        // TODO: This doesn't take into account ivy or artifact urls
+        return getUrl();
+    }
+
     @Override
     public void setUrl(URI url) {
         invalidateDescriptor();
