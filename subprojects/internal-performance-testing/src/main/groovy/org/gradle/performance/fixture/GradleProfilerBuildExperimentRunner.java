@@ -48,9 +48,14 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
 
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private final String jfrProfileTargetDir;
+    private final ProfilerFlameGraphGenerator flameGraphGenerator;
 
     public GradleProfilerBuildExperimentRunner() {
-        jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
+        this.jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
+        this.flameGraphGenerator = jfrProfileTargetDir == null
+            ? ProfilerFlameGraphGenerator.NOOP
+            : new JfrFlameGraphGenerator();
+
     }
 
     @Override
@@ -95,6 +100,10 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
                     results.add(measuredOperation);
                 }
             });
+            if (jfrProfileTargetDir != null) {
+                flameGraphGenerator.generateGraphs(getJfrOutputDirectory(experiment));
+                flameGraphGenerator.generateDifferentialGraphs(new File(jfrProfileTargetDir));
+            }
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -112,11 +121,19 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
         return new GradleScenarioInvoker(daemonControl, pidInstrumentation);
     }
 
+    private File getJfrOutputDirectory(BuildExperimentSpec spec) {
+        String fileSafeName = spec.getDisplayName().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
+        File baseDir = new File(jfrProfileTargetDir, fileSafeName);
+        File outputDir = new File(baseDir, "jfr-recordings");
+        outputDir.mkdirs();
+        return outputDir;
+    }
+
     private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, BuildExperimentSpec experiment) {
         // TODO: use an output directory outside of the working directory
         File outputDir = jfrProfileTargetDir == null
             ? new File(invocationSpec.getWorkingDirectory(), "profile-out")
-            : new File(jfrProfileTargetDir);
+            : getJfrOutputDirectory(experiment);
         return new InvocationSettings(
             invocationSpec.getWorkingDirectory(),
             jfrProfileTargetDir == null

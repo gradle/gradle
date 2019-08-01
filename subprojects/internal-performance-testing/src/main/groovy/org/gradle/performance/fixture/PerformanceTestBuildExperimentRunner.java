@@ -34,7 +34,7 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
 
     public PerformanceTestBuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
-        profiler = Profiler.create();
+        this.profiler = Profiler.create();
     }
 
     public Profiler getProfiler() {

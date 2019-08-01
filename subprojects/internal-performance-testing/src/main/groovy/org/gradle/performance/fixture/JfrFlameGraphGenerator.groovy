@@ -29,11 +29,12 @@ import static org.gradle.performance.fixture.JfrToStacksConverter.Options
  */
 @CompileStatic
 @PackageScope
-class JfrFlameGraphGenerator {
+class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
     private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
 
+    @Override
     void generateGraphs(File jfrOutputDir) {
         List<IItemCollection> recordings = jfrOutputDir.listFiles()
             .findAll { it.name.endsWith(".jfr") }
@@ -57,6 +58,7 @@ class JfrFlameGraphGenerator {
         return sanitizedStacks
     }
 
+    @Override
     void generateDifferentialGraphs(File baseDir) {
         File[] experiments = baseDir.listFiles()
         experiments.each { File experiment ->
