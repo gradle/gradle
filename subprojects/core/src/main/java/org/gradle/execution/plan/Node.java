@@ -166,7 +166,7 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors;
     }
 
-    protected void addDependencySuccessor(Node toNode) {
+    public void addDependencySuccessor(Node toNode) {
         dependencySuccessors.add(toNode);
         toNode.dependencyPredecessors.add(this);
     }

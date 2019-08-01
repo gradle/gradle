@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Task
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -108,9 +107,6 @@ class InstantExecutionHost internal constructor(
 
         override val rootProject: ProjectInternal
             get() = gradle.rootProject
-
-        override fun dependenciesOf(task: Task): Set<Task> =
-            gradle.taskGraph.getDependencies(task)
     }
 
     inner class DefaultInstantExecutionBuild(

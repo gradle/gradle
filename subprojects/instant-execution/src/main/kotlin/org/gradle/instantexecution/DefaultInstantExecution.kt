@@ -171,7 +171,7 @@ class DefaultInstantExecution internal constructor(
         writeRelevantProjectsFor(scheduledTasks)
 
         WorkNodeCodec(service(), service()).run {
-            writeWorkOf(build, scheduledNodes)
+            writeWorkOf(scheduledNodes)
         }
     }
 

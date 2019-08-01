@@ -32,7 +32,6 @@ import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.instantexecution.ClassicModeBuild
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.IsolateContext
@@ -48,67 +47,76 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readEachProperty
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.beans.writingProperties
+import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readEnum
-import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
+import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeEnum
-import org.gradle.instantexecution.serialization.writeStrings
 
 
 internal
 class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, private val taskNodeFactory: TaskNodeFactory) {
 
-    fun MutableWriteContext.writeWorkOf(build: ClassicModeBuild, nodes: List<Node>) {
-        val seen = HashSet<Node>(nodes.size)
+    fun MutableWriteContext.writeWorkOf(nodes: List<Node>) {
+        val ids = HashMap<Node, Int>(nodes.size)
         writeSmallInt(nodes.size)
         for (node in nodes) {
-            writeNode(node, build, seen)
+            writeNode(node, ids)
         }
     }
 
     private
-    fun MutableWriteContext.writeNode(node: Node, build: ClassicModeBuild, seen: MutableSet<Node>) {
-        if (seen.contains(node)) {
+    fun MutableWriteContext.writeNode(node: Node, ids: MutableMap<Node, Int>) {
+        if (ids.containsKey(node)) {
+            // Already visited
             return
         }
         for (successor in node.dependencySuccessors) {
-            writeNode(successor, build, seen)
+            writeNode(successor, ids)
         }
+        val id = ids.size
         when (node) {
             is LocalTaskNode -> {
                 writeByte(1)
+                writeSmallInt(id)
                 val task = node.task
                 try {
                     runToCompletionWithMutableStateOf(task.project) {
-                        writeTask(task, build.dependenciesOf(task))
+                        writeTask(task)
                     }
                 } catch (e: Exception) {
                     throw GradleException("Could not save state of $task.", e)
                 }
+                writeCollection(node.dependencySuccessors) { writeSmallInt(ids.getValue(it)) }
             }
             else -> {
                 writeByte(2)
                 // Ignore
             }
         }
-        seen.add(node)
+        ids[node] = id
     }
 
     suspend fun MutableReadContext.readWorkToSchedule(): List<Node> {
-        val tasksByPath = HashMap<String, Task>()
+        val nodesById = HashMap<Int, Node>()
         val count = readSmallInt()
         val nodes = ArrayList<Node>(count)
         for (i in 0 until count) {
             when (readByte()) {
                 1.toByte() -> {
-                    val pair = readTask()
-                    val task = pair.first
-                    for (dep in pair.second) {
-                        task.dependsOn(tasksByPath.getValue(dep))
-                    }
-                    tasksByPath[task.path] = task
+                    val id = readSmallInt()
+                    val task = readTask()
                     val node = taskNodeFactory.getOrCreateNode(task)
+                    readCollection {
+                        val depId = readSmallInt()
+                        val dep = nodesById[depId]
+                        if (dep != null) { // TODO - remove this check. It's here because we don't serialize nodes that aren't task nodes
+                            node.addDependencySuccessor(dep)
+                        }
+                        node.dependenciesProcessed()
+                    }
+                    nodesById[id] = node
                     nodes.add(node)
                 }
                 // else, ignore
@@ -118,12 +126,11 @@ class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, priv
     }
 
     private
-    suspend fun MutableWriteContext.writeTask(task: Task, dependencies: Set<Task>) {
+    suspend fun MutableWriteContext.writeTask(task: Task) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
         writeClass(taskType)
         writeString(task.project.path)
         writeString(task.name)
-        writeStrings(dependencies.map { it.path })
 
         withTaskOf(taskType, task) {
             beanStateWriterFor(task.javaClass).run {
@@ -134,11 +141,10 @@ class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, priv
     }
 
     private
-    suspend fun MutableReadContext.readTask(): Pair<Task, List<String>> {
+    suspend fun MutableReadContext.readTask(): Task {
         val taskType = readClass().asSubclass(Task::class.java)
         val projectPath = readString()
         val taskName = readString()
-        val taskDependencies = readStrings()
 
         val task = createTask(projectPath, taskName, taskType)
 
@@ -149,7 +155,7 @@ class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, priv
             }
         }
 
-        return task to taskDependencies
+        return task
     }
 
     /**
