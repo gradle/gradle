@@ -16,8 +16,13 @@
 
 package org.gradle.internal.authentication;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
+
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 
 public abstract class AbstractAuthentication implements AuthenticationInternal {
     private final String name;
@@ -25,19 +30,18 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     private final Class<? extends Authentication> type;
 
     private Credentials credentials;
-    private String host = null; // AuthScope.ANY_HOST;
-    private int port = -1; // AuthScope.ANY_PORT;
+
+    private final Set<HostAndPort> hosts;
 
     public AbstractAuthentication(String name, Class<? extends Authentication> type) {
-        this.name = name;
-        this.supportedCredentialType = null;
-        this.type = type;
+        this(name, type, null);
     }
 
     public AbstractAuthentication(String name, Class<? extends Authentication> type, Class<? extends Credentials> supportedCredential) {
         this.name = name;
         this.supportedCredentialType = supportedCredential;
         this.type = type;
+        this.hosts = Sets.newHashSet();
     }
 
     @Override
@@ -70,19 +74,53 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         return String.format("'%s'(%s)", getName(), getType().getSimpleName());
     }
 
-    @Override
-    public String getHost() {
-        return host;
-    }
 
     @Override
-    public int getPort() {
-        return port;
+    public Collection<HostAndPort> getHostsForAuthentication() {
+        return hosts;
     }
 
+
     @Override
-    public void setHostAndPort(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public void addHost(String host, int port) {
+        hosts.add(new DefaultHostAndPort(host, port));
+    }
+
+    private static class DefaultHostAndPort implements HostAndPort {
+        private final String host;
+        private final int port;
+
+        DefaultHostAndPort(String host, int port) {
+            this.host = host;
+            this.port = port;
+        }
+
+        @Override
+        public String getHost() {
+            return host;
+        }
+
+        @Override
+        public int getPort() {
+            return port;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DefaultHostAndPort that = (DefaultHostAndPort) o;
+            return getPort() == that.getPort() &&
+                    Objects.equals(getHost(), that.getHost());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getHost(), getPort());
+        }
     }
 }

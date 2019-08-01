@@ -31,6 +31,7 @@ import org.gradle.util.CollectionUtils;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractResolutionAwareArtifactRepository implements AuthenticationSupportedInternal {
@@ -91,17 +92,19 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {
-        return CollectionUtils.collect(delegate.getConfiguredAuthentication(), authentication -> {
-            URI repositoryUrl = getRepositoryUrl();
-            if (repositoryUrl != null) {
-                ((AuthenticationInternal) authentication).setHostAndPort(repositoryUrl.getHost(), repositoryUrl.getPort());
+        Collection<Authentication> configuredAuthentication = delegate.getConfiguredAuthentication();
+
+        for (Authentication authentication : configuredAuthentication) {
+            AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
+            for (URI repositoryUrl : getRepositoryUrls()) {
+                authenticationInternal.addHost(repositoryUrl.getHost(), repositoryUrl.getPort());
             }
-            return authentication;
-        });
+        }
+        return configuredAuthentication;
     }
 
-    protected URI getRepositoryUrl() {
-        return null;
+    protected Collection<URI> getRepositoryUrls() {
+        return Collections.emptyList();
     }
 
     List<String> getAuthenticationSchemes() {

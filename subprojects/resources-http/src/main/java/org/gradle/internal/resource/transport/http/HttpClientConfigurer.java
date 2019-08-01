@@ -160,7 +160,7 @@ public class HttpClientConfigurer {
             if (proxy != null) {
                 if (proxy.credentials != null) {
                     AllSchemesAuthentication authentication = new AllSchemesAuthentication(proxy.credentials);
-                    authentication.setHostAndPort(proxy.host, proxy.port);
+                    authentication.addHost(proxy.host, proxy.port);
                     useCredentials(credentialsProvider, Collections.singleton(authentication));
                 }
             }
@@ -174,31 +174,39 @@ public class HttpClientConfigurer {
 
             String scheme = getAuthScheme(authentication);
             org.gradle.api.credentials.Credentials credentials = authenticationInternal.getCredentials();
-            String host = authenticationInternal.getHost();
-            int port = authenticationInternal.getPort();
 
-            if (credentials instanceof HttpHeaderCredentials) {
-                HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
-                Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getName(), httpHeaderCredentials.getValue());
-                credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+            Collection<AuthenticationInternal.HostAndPort> hostsForAuthentication = authenticationInternal.getHostsForAuthentication();
+            assert !hostsForAuthentication.isEmpty() : "Credentials and authentication required for a HTTP repository, but no hosts were defined for the authentication?";
 
-                LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
-            } else if (credentials instanceof PasswordCredentials) {
-                PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+            for (AuthenticationInternal.HostAndPort hostAndPort : hostsForAuthentication) {
+                String host = hostAndPort.getHost();
+                int port = hostAndPort.getPort();
 
-                if (authentication instanceof AllSchemesAuthentication) {
-                    NTLMCredentials ntlmCredentials = new NTLMCredentials(passwordCredentials);
-                    Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
-                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
+                assert host != null : "HTTP credentials and authentication require a host scope to be defined as well";
 
-                    LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", passwordCredentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
+                if (credentials instanceof HttpHeaderCredentials) {
+                    HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
+                    Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getName(), httpHeaderCredentials.getValue());
+                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+
+                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
+                } else if (credentials instanceof PasswordCredentials) {
+                    PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+
+                    if (authentication instanceof AllSchemesAuthentication) {
+                        NTLMCredentials ntlmCredentials = new NTLMCredentials(passwordCredentials);
+                        Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
+                        credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
+
+                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", passwordCredentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
+                    }
+
+                    Credentials httpCredentials = new UsernamePasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
+                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", passwordCredentials, host, port, scheme);
+                } else {
+                    throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
                 }
-
-                Credentials httpCredentials = new UsernamePasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
-                credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
-                LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", passwordCredentials, host, port, scheme);
-            } else {
-                throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
             }
         }
     }

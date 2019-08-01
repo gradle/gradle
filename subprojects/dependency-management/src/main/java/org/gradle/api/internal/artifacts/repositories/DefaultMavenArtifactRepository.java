@@ -64,6 +64,8 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -217,9 +219,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    protected URI getRepositoryUrl() {
-        // TODO: This doesn't take into account artifact urls
-        return getUrl();
+    protected Collection<URI> getRepositoryUrls() {
+        // TODO: This doesn't take into account other artifact urls
+        return Collections.singleton(getUrl());
     }
 
     private void validate() {

@@ -75,6 +75,8 @@ import org.gradle.util.DeprecationLogger;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -267,9 +269,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
 
     @Override
-    protected URI getRepositoryUrl() {
+    protected Collection<URI> getRepositoryUrls() {
         // TODO: This doesn't take into account ivy or artifact urls
-        return getUrl();
+        return Collections.singleton(getUrl());
     }
 
     @Override
