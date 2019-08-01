@@ -2324,6 +2324,8 @@ Found the following transforms:
             ${declareTransform(transformImplementation)}
 
             task resolve(type: Copy) {
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
                     if (project.hasProperty("lenient")) {

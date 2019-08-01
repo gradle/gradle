@@ -177,6 +177,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         '''
         buildFile << """
             task duplicate(type: Jar) {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 from("external/a")
                 from("external/b")
                 from("external/c")
