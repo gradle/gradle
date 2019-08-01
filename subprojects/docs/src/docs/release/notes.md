@@ -122,15 +122,6 @@ pmd {
 
 This was contributed by [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod).
 
-## Closed Eclipse Buildship projects
-
-Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
-those jars can now be built during Buildship eclipse model synchronization.
-
-The upcoming version of Buildship is required to take advantage of this behavior.
-
-This was contributed by [Christian Fränkel](https://github.com/fraenkelc).
-
 ## Executable Jar support with `project.javaexec` and `JavaExec`
 
 `JavaExec` and `project.javaexec` will now run an executable jar when the `JavaExec.main` property has not been set and the classpath resolves to a single file.
@@ -180,10 +171,6 @@ project.javaexec {
 This configuration appends the following JVM argument to the process: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4455` 
  
 The `debugOptions` configuration is available for `project.javaExec` and for tasks using the `JavaExec` type, including the `test` task.
- 
-## Debug tests via the Tooling API
- 
-In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
 
 ## Improvements for plugin authors
 
@@ -281,6 +268,12 @@ Under some conditions, Gradle can provide an implementation for abstract propert
 
 Now, if the custom type has an abstract getter annotated with `@Nested`, Gradle will provide an implementation for the getter method and also create a value for the property.
 See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_properties) for more information.
+
+## Improvements for tooling providers
+
+### Debug tests via the Tooling API
+
+The [Tooling API](userguide/embedding.html) is now capable of launching tests in debug mode with the [`TestLauncher.debugTestsOn(port)`](org/gradle/tooling/TestLauncher.html#debugTestsOn-int-) method.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
