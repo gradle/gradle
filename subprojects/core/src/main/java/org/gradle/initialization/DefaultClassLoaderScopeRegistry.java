@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.initialization.AbstractClassLoaderScope;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -25,8 +26,8 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     public static final String CORE_NAME = "core";
     public static final String CORE_AND_PLUGINS_NAME = "coreAndPlugins";
 
-    private final ClassLoaderScope coreAndPluginsScope;
-    private final ClassLoaderScope coreScope;
+    private final AbstractClassLoaderScope coreAndPluginsScope;
+    private final AbstractClassLoaderScope coreScope;
 
     public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         this.coreScope = new RootClassLoaderScope(CORE_NAME, loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache, listener);
@@ -45,7 +46,7 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     }
 
     private void rootScopesCreated(ClassLoaderScopeRegistryListener listener) {
-        listener.rootScopeCreated(CORE_NAME);
-        listener.rootScopeCreated(CORE_AND_PLUGINS_NAME);
+        listener.rootScopeCreated(coreScope.getId());
+        listener.rootScopeCreated(coreAndPluginsScope.getId());
     }
 }

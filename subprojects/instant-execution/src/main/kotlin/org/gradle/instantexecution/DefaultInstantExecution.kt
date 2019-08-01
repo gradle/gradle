@@ -262,7 +262,7 @@ class DefaultInstantExecution internal constructor(
     private
     fun DefaultWriteContext.writeClassLoaderScopeSpecs(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>) {
         writeCollection(classLoaderScopeSpecs) { spec ->
-            writeString(spec.id)
+            writeString(spec.name)
             writeClassPath(spec.localClassPath.toClassPath())
             writeClassPath(spec.exportClassPath.toClassPath())
             writeClassLoaderScopeSpecs(spec.children)
@@ -326,7 +326,7 @@ class DefaultInstantExecution internal constructor(
 
             val (spec, parent) = stack.pop()
             val scope = parent
-                .createChild(spec.id)
+                .createChild(spec.name)
                 .local(spec.localClassPath.toClassPath())
                 .export(spec.exportClassPath.toClassPath())
                 .lock()

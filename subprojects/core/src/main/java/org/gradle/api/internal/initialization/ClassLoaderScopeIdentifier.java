@@ -19,11 +19,12 @@ package org.gradle.api.internal.initialization;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeId;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-class ClassLoaderScopeIdentifier {
+class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
 
     @Nullable
     private final ClassLoaderScopeIdentifier parent;
@@ -38,7 +39,8 @@ class ClassLoaderScopeIdentifier {
         return new ClassLoaderScopeIdentifier(this, name);
     }
 
-    String getName() {
+    @Override
+    public String getName() {
         return name;
     }
 
