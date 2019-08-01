@@ -26,19 +26,16 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("asm"))
 
-    jmhImplementation(library("bouncycastle_provider")) {
-        version {
-            prefer(libraryVersion("bouncycastle_provider"))
-        }
-    }
-
     integTestImplementation(project(":logging"))
-    
+
     testFixturesImplementation(library("guava"))
     testImplementation(testFixtures(project(":core")))
     testRuntimeOnly(library("xerces"))
-    
+
     integTestRuntimeOnly(project(":runtimeApiInfo"))
+
+    jmh("org.bouncycastle:bcprov-jdk15on:1.61")
+    jmh("com.google.guava:guava:27.1-android")
 }
 
 jmh {
