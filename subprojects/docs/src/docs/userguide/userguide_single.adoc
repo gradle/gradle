@@ -120,7 +120,7 @@ include::building_cpp_projects.adoc[leveloffset=+2]
 
 include::cpp_testing.adoc[leveloffset=+2]
 
-include::building_swift_projets.adoc[leveloffset=+2]
+include::building_swift_projects.adoc[leveloffset=+2]
 
 include::swift_testing.adoc[leveloffset=+2]
 
@@ -211,8 +211,6 @@ include::jdepend_plugin.adoc[leveloffset=+2]
 include::publishing_maven.adoc[leveloffset=+2]
 
 include::maven_plugin.adoc[leveloffset=+2]
-
-include::osgi_plugin.adoc[leveloffset=+2]
 
 include::play_plugin.adoc[leveloffset=+2]
 

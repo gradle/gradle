@@ -81,7 +81,7 @@ val linkedPlugins =
         "maven", "maven-publish",
         "microsoft-visual-cpp-compiler",
         "native-component", "native-component-model",
-        "objective-c", "objective-c-lang", "objective-cpp", "objective-cpp-lang", "osgi",
+        "objective-c", "objective-c-lang", "objective-cpp", "objective-cpp-lang",
         "play", "play-application", "play-cofeescript", "play-ide", "play-javascript", "pmd",
         "project-report", "project-reports",
         "reporting-base",

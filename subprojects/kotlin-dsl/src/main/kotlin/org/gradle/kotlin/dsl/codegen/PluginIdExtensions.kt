@@ -204,8 +204,6 @@ object UserGuideLink {
             "objective-cpp" to "native_software.html#sec:objectivecpp_sources",
             "objective-cpp-lang" to "native_software.html#sec:objectivecpp_sources",
 
-            "osgi" to "osgi_plugin.html",
-
             "play" to "play_plugin.html",
             "play-application" to "play_plugin.html",
             "play-cofeescript" to "play_plugin.html",
