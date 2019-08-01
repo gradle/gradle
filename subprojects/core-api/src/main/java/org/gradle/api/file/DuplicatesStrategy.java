@@ -56,7 +56,7 @@ public enum DuplicatesStrategy {
     FAIL,
 
     /**
-     * The default strategy for Copy/Sync, which is to inherit the strategy from the parent copy spec, if any,
+     * The default strategy, which is to inherit the strategy from the parent copy spec, if any,
      * or {@link DuplicatesStrategy#INCLUDE} if the copy spec has no parent.
      *
      * @since 5.0
