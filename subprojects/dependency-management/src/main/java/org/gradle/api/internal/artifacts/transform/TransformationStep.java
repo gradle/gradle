@@ -100,7 +100,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
 
         Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.forTransformer(transformer);
         return resolvedDependencies
-            .tryMap(dependencies -> {
+            .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
                 if (inputArtifacts.isEmpty()) {
                     return CacheableInvocation.cached(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
