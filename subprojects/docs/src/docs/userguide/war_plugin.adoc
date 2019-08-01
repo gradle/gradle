@@ -70,7 +70,7 @@ It is important to note that these `provided` configurations work transitively. 
 == Publishing
 
 `components.web`::
-A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_overview.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
 
 [[sec:war_convention_properties]]
 == Convention properties
