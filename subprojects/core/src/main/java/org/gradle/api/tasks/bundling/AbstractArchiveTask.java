@@ -21,7 +21,10 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.ArchiveCopySpec;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
@@ -100,6 +103,12 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         return "";
     }
 
+    @Override
+    protected CopySpecInternal createRootSpec() {
+        Instantiator instantiator = getInstantiator();
+        FileResolver fileResolver = getFileResolver();
+        return instantiator.newInstance(ArchiveCopySpec.class, fileResolver, instantiator);
+    }
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
      * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>

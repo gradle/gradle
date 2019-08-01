@@ -40,7 +40,7 @@ public enum DuplicatesStrategy {
     EXCLUDE,
 
     /**
-     * Do not attempt to prevent duplicates, but log a warning message when multiple items 
+     * Do not attempt to prevent duplicates, but log a warning message when multiple items
      * are to be created at the same path.
      * <p>
      * This behaves exactly as INCLUDE otherwise.
@@ -48,14 +48,15 @@ public enum DuplicatesStrategy {
     WARN,
 
     /**
+     * The default strategy for archives since 6.0.
      * Throw a {@link DuplicateFileCopyingException} when subsequent items are to be created at the same path.
-     * <p> 
+     * <p>
      * Use this strategy when duplicates are an error condition that should cause the build to fail.
      */
     FAIL,
 
     /**
-     * The default strategy, which is to inherit the strategy from the parent copy spec, if any,
+     * The default strategy for Copy/Sync, which is to inherit the strategy from the parent copy spec, if any,
      * or {@link DuplicatesStrategy#INCLUDE} if the copy spec has no parent.
      *
      * @since 5.0
