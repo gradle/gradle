@@ -273,7 +273,7 @@ See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_prop
 
 ### Debug tests via the Tooling API
 
-The [Tooling API](userguide/embedding.html) is now capable of launching tests in debug mode with the [`TestLauncher.debugTestsOn(port)`](org/gradle/tooling/TestLauncher.html#debugTestsOn-int-) method.
+The [Tooling API](userguide/embedding.html) is now capable of launching tests in debug mode with the [`TestLauncher.debugTestsOn(port)`](javadoc/org/gradle/tooling/TestLauncher.html#debugTestsOn-int-) method.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
