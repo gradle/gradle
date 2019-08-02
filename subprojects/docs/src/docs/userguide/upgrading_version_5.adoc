@@ -380,7 +380,7 @@ Internally, `AbstractArchiveTask` prefers the new properties and methods like `g
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
 
-==== Archives fail on duplicates
+==== Archive tasks fail on duplicate files
 
 Until now archives defaulted to the `INHERIT` duplicates strategy, allowing the same path to exist multiple times in an archive.
 
@@ -395,7 +395,7 @@ task archive(type: Zip) {
 }
 ```
 
-*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INHERIT` duplicates strategy as default.
+*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INCLUDE` duplicates strategy as default.
 
 
 ////
