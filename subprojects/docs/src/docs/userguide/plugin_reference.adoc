@@ -72,9 +72,6 @@ Provides support for building and packaging WAR-based Java web applications.
 <<ear_plugin.adoc#,EAR>>::
 Provides support for building and packaging Java EE applications.
 
-<<osgi_plugin.adoc#,OSGi>>::
-Provides support for creating https://www.osgi.org/[OSGi] packages.
-
 <<publishing_maven.adoc#,Maven Publish>>::
 Provides support for <<publishing.adoc#,publishing artifacts>> to Maven-compatible repositories.
 

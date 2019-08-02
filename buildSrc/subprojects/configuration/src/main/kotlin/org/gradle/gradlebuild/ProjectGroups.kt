@@ -48,7 +48,7 @@ object ProjectGroups {
         get() = javaProjects - internalProjects
 
     val Project.pluginProjects
-        get() = setOf("announce", "antlr", "plugins", "codeQuality", "wrapper", "osgi", "maven",
+        get() = setOf("announce", "antlr", "plugins", "codeQuality", "wrapper", "maven",
             "ide", "scala", "signing", "ear", "javascript", "buildComparison",
             "diagnostics", "reporting", "publish", "ivy", "jacoco", "buildInit", "platformBase",
             "platformJvm", "languageJvm", "languageJava", "languageGroovy", "languageScala",
