@@ -660,6 +660,17 @@ allprojects {
             return node
         }
 
+        NodeBuilder constraint(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.node(id, selectedModuleVersionId)
+            def edge = new EdgeBuilder(this, requested, node)
+            edge.constraint = true
+            deps << edge
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
+            return node
+        }
+
         /**
          * Defines a dependency from the current node to the given node.
          */
