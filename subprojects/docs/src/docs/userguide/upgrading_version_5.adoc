@@ -40,7 +40,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 ==== Local build cache type shouldn't be specified
 
-When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` have now been deprecated; use `getLocal()` or `local(Action)` instead.
+When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
 === Potential breaking changes
@@ -372,7 +372,9 @@ This may break plugins that relied on the previous behaviour.
 
 The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
 
-==== Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
+==== Changes for archive tasks (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
+
+===== Change in behavior for tasks extending `AbstractArchiveTask`
 
 The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#sec:lazy_configuration_reference,Provider API>>.
 Plugins that extend these types and override methods from the base class may no longer behave the same way.
@@ -380,9 +382,9 @@ Internally, `AbstractArchiveTask` prefers the new properties and methods like `g
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
 
-==== Archive tasks fail on duplicate files
+===== Archive tasks fail on duplicate files
 
-Until now archives defaulted to the `INHERIT` duplicates strategy, allowing the same path to exist multiple times in an archive.
+Until now archive tasks defaulted to the `INCLUDE` duplicates strategy, allowing the same path to exist multiple times in an archive.
 
 In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
 If you still want to allow them, you can be specify that explicitly:
