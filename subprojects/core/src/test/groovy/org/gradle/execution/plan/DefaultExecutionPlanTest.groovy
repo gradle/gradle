@@ -19,6 +19,7 @@ package org.gradle.execution.plan
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -33,8 +34,10 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -58,7 +61,9 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         root = createRootProject(temporaryFolder.testDirectory)
         def taskNodeFactory = new TaskNodeFactory(root.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
+        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
@@ -875,6 +880,36 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         return node
     }
 
+    def "task cannot require a shared resource which has not been defined"() {
+        given:
+        Task a = task('a', resources: ['resource': 1])
+
+        when:
+        addToGraphAndPopulate([a])
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "The task :a requires the shared resource 'resource' but no such shared resource exists."
+    }
+
+    def "task cannot require more leases than shared resource maximum leases"() {
+        given:
+        root.gradle.sharedResources {
+            resource {
+                leases = 5
+            }
+        }
+
+        Task a = task('a', resources: ['resource': 10])
+
+        when:
+        addToGraphAndPopulate([a])
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "The task :a requires 10 leases from shared resource 'resource' but maximum leases is 5"
+    }
+
     private void addToGraphAndPopulate(List tasks) {
         executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
@@ -968,6 +1003,9 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         relationships(options, task)
         if (options.failure) {
             failure(task, options.failure)
+        }
+        if (options.resources) {
+            task.getSharedResources() >> options.resources
         }
         task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
         task.getOutputs() >> emptyTaskOutputs()

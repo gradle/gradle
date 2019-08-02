@@ -87,6 +87,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scan.BuildScanServices;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
@@ -242,9 +243,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
-        ListenerBroadcast<TaskExecutionGraphListener> graphListeners
+        ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
+        SharedResourceLeaseRegistry sharedResourceRegistry
     ) {
-        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners);
+        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners, sharedResourceRegistry);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

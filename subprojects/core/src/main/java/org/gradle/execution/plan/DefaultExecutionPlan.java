@@ -29,11 +29,14 @@ import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.execution.SharedResource;
+import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -60,6 +63,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -107,15 +111,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
+    private final SharedResourceLeaseRegistry sharedResourceLeaseRegistry;
+    private final Map<Node, List<ResourceLock>> sharedResourceLocks = Maps.newIdentityHashMap();
+    private final SharedResourceContainer sharedResourceContainer;
     private final GradleInternal gradle;
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
+        this.sharedResourceLeaseRegistry = sharedResourceLeaseRegistry;
+        this.sharedResourceContainer = gradle.getSharedResources();
     }
 
     @Override
@@ -279,6 +288,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         Deque<Node> path = new ArrayDeque<>();
         Map<Node, Integer> planBeforeVisiting = Maps.newHashMap();
 
+        // Register shared resources with the lease registry. Any subsequent changes to SharedRegistryContainer during execution are effectively ignored.
+        registerSharedResources();
+
         while (!nodeQueue.isEmpty()) {
             NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
             int currentSegment = nodeInVisitingSegment.visitingSegment;
@@ -340,6 +352,27 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     projectLocks.put(project, getOrCreateProjectLock(project));
                 }
 
+                if (node instanceof TaskNode) {
+                    Map<String, Integer> sharedResources = ((TaskNode) node).getTask().getSharedResources();
+                    if (sharedResources != null && !sharedResources.isEmpty()) {
+                        List<ResourceLock> locks = Lists.newArrayList();
+                        for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
+                            SharedResource resource = sharedResourceContainer.findByName(entry.getKey());
+
+                            if (resource == null) {
+                                throw new InvalidUserDataException("The task " + node + " requires the shared resource '" + entry.getKey() + "' but no such shared resource exists.");
+                            }
+
+                            if (resource.getLeases() < entry.getValue()) {
+                                throw new InvalidUserDataException("The task " + node + " requires " + entry.getValue() + " leases from shared resource '" + entry.getKey() + "' but maximum leases is " + resource.getLeases());
+                            }
+
+                            locks.add(sharedResourceLeaseRegistry.getResourceLock(entry.getKey(), entry.getValue()));
+                        }
+
+                        sharedResourceLocks.put(node, locks);
+                    }
+                }
                 // Add any finalizers to the queue
                 for (Node finalizer : node.getFinalizers()) {
                     if (!visitingNodes.containsKey(finalizer)) {
@@ -569,6 +602,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 // TODO: convert output file checks to a resource lock
                 if (!tryLockProjectFor(node)
+                    || !tryLockSharedResourceFor(node)
                     || !workerLease.tryLock()
                     || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
                     resourceLockState.releaseLocks();
@@ -605,6 +639,26 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private ResourceLock getProjectLock(Project project) {
         return projectLocks.get(project);
+    }
+
+    private boolean tryLockSharedResourceFor(Node node) {
+        List<ResourceLock> locks = sharedResourceLocks.get(node);
+
+        if (locks == null) {
+            return true;
+        } else {
+            return locks.stream().allMatch(ResourceLock::tryLock);
+        }
+    }
+
+    private void unlockSharedResourcesFor(Node node) {
+        sharedResourceLocks.getOrDefault(node, Collections.emptyList()).forEach(ResourceLock::unlock);
+    }
+
+    private void registerSharedResources() {
+        for (SharedResource sharedResource : sharedResourceContainer) {
+            sharedResourceLeaseRegistry.registerSharedResource(sharedResource.getName(), sharedResource.getLeases());
+        }
     }
 
     private MutationInfo getResolvedMutationInfo(Node node) {
@@ -904,6 +958,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         } finally {
             unlockProjectFor(node);
+            unlockSharedResourcesFor(node);
         }
     }
 

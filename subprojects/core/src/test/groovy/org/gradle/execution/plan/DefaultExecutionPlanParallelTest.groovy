@@ -30,8 +30,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -55,7 +57,9 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
+        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {
