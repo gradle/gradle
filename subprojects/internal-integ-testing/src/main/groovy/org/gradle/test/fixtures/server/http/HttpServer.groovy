@@ -104,6 +104,11 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
     }
 
+    @Override
+    String toString() {
+        return "HttpServer " + String.valueOf(getUri())
+    }
+
     protected Logger getLogger() {
         logger
     }
@@ -398,14 +403,10 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     private void expectRedirected(String method, String path, String location, PasswordCredentials credentials) {
-        if (credentials == null) {
-            expect(path, false, [method], redirectTo(location))
-        } else {
-            expect(path, false, [method], withAuthentication(path, credentials.username, credentials.password, redirectTo(location)))
-        }
+        expect(path, false, [method], redirectTo(location), credentials)
     }
 
-    private ActionSupport redirectTo(location) {
+    private HttpServer.Action redirectTo(location) {
         new ActionSupport("redirect to $location") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendRedirect(location)
@@ -607,6 +608,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     HttpResourceInteraction expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
         if (credentials != null) {
             action = withAuthentication(path, credentials.username, credentials.password, action)
+        } else {
+            action = refuseAuthentication(path, action)
         }
 
         HttpExpectOne expectation = new HttpExpectOne(action, methods, path)
@@ -623,6 +626,28 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         })
 
         return action.interaction
+    }
+
+    private Action refuseAuthentication(String path, Action action) {
+        new Action() {
+            @Override
+            HttpResourceInteraction getInteraction() {
+                return action.interaction
+            }
+
+            String getDisplayName() {
+                return action.displayName
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+
+                if (authenticationScheme.handler.containsUnexpectedAuthentication(request)) {
+                    response.sendError(500, "unexpected authentication in headers " + request.getHeaderNames())
+                    return
+                }
+                action.handle(request, response)
+            }
+        }
     }
 
     private void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
