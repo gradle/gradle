@@ -23,6 +23,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import groovyx.net.http.ContentType
+import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
 import org.apache.commons.io.input.CloseShieldInputStream
@@ -269,7 +270,20 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map httpGet(Map params) {
         try {
-            return client.get(params).data
+            HttpResponseDecorator resp = client.get(params)
+            if (ContentType.JSON.toString() == resp.getContentType()) {
+                return resp.data
+            } else {
+                // Sometimes, TC returns text/html page
+                // https://github.com/gradle/gradle-private/issues/1359
+                System.err.println("""
+Get TeamCity HTML response when accepting application/json:
+
+${resp.getStatusLine()}
+${resp.data}
+""")
+                return [state: 'unknown']
+            }
         } catch (HttpResponseException ex) {
             println("Get response ${ex.response.status}\n${ex.response.data}")
             throw ex
