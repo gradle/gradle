@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
@@ -82,14 +83,19 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     // evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
 
-    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
+    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
         this.id = id;
         this.resolver = resolver;
         this.targetModule = resolveState.getModule(targetModuleId);
+        if (versionByAncestor) {
+            dependencyReasons.add(ComponentSelectionReasons.BY_ANCESTOR);
+        }
         update(dependencyState);
         this.dependencyState = dependencyState;
         this.firstSeenDependency = dependencyState.getDependency();
-        this.versionConstraint = resolveState.resolveVersionConstraint(firstSeenDependency.getSelector());
+        this.versionConstraint = versionByAncestor ?
+            resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of()) :
+            resolveState.resolveVersionConstraint(firstSeenDependency.getSelector());
         this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
         this.attributeDesugaring = resolveState.getAttributeDesugaring();
     }
@@ -248,7 +254,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     public ComponentSelectionReasonInternal getSelectionReason() {
         return ComponentSelectionReasons.of(dependencyReasons);
     }
-     
+
     /**
      * Append selection descriptors to the supplied "reason", enhancing with any 'unmatched' or 'rejected' reasons.
      */

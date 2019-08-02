@@ -40,6 +40,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -62,7 +63,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final Map<ModuleIdentifier, ModuleResolveState> modules;
     private final Map<ResolvedConfigurationIdentifier, NodeState> nodes;
-    private final Map<ComponentSelector, SelectorState> selectors;
+    private final Map<Pair<ComponentSelector, Boolean>, SelectorState> selectors;
     private final RootNode root;
     private final IdGenerator<Long> idGenerator;
     private final DependencyToComponentIdResolver idResolver;
@@ -104,7 +105,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionParser = versionParser;
         this.modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>(graphSize);
         this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3 * graphSize / 2);
-        this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5 * graphSize / 2);
+        this.selectors = new LinkedHashMap<Pair<ComponentSelector, Boolean>, SelectorState>(5 * graphSize / 2);
         this.queue = new ArrayDeque<NodeState>(graphSize);
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
@@ -161,10 +162,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectors.values();
     }
 
-    public SelectorState getSelector(DependencyState dependencyState) {
-        SelectorState selectorState = selectors.computeIfAbsent(dependencyState.getRequested(), req -> {
+    public SelectorState getSelector(DependencyState dependencyState, boolean ignoreVersion) {
+        SelectorState selectorState = selectors.computeIfAbsent(Pair.of(dependencyState.getRequested(), ignoreVersion), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
-            return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, this, moduleIdentifier);
+            return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
         });
         selectorState.update(dependencyState);
         return selectorState;
@@ -234,10 +235,13 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
-            VersionConstraint vc = ((ModuleComponentSelector) selector).getVersionConstraint();
-            return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
+            return resolveVersionConstraint(((ModuleComponentSelector) selector).getVersionConstraint());
         }
         return null;
+    }
+
+    ResolvedVersionConstraint resolveVersionConstraint(VersionConstraint vc) {
+        return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
     }
 
     ImmutableAttributes desugar(ImmutableAttributes attributes) {
