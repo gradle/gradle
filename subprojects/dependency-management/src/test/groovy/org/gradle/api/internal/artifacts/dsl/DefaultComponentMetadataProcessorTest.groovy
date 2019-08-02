@@ -56,7 +56,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
 
     private static final String GROUP = "group"
     private static final String MODULE = "module"
-    static def ruleActionAdapter = new DefaultRuleActionAdapter(new DefaultRuleActionValidator(Collections.emptyList()), "context")
+    static def ruleActionAdapter = new DefaultRuleActionAdapter(new DefaultRuleActionValidator(), "context")
     private static SpecRuleAction<ComponentMetadataDetails> rule1 = new SpecRuleAction(ruleActionAdapter.createFromAction(new Action<ComponentMetadataDetails>() {
         @Override
         void execute(ComponentMetadataDetails t) {

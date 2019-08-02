@@ -87,9 +87,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         where:
         parameters                           | message
         "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        "ComponentSelection vs, String s ->" | "Rule may not have an input parameter of type: java.lang.String. " +
-            "Valid types (for the second and subsequent parameters) are: " +
-            "[org.gradle.api.artifacts.ComponentMetadata, org.gradle.api.artifacts.ivy.IvyModuleDescriptor]."
+        "ComponentSelection vs, String s ->" | "Rule may not have an input parameter of type: java.lang.String."
     }
 
     def "produces sensible error when closure rule throws an exception"() {

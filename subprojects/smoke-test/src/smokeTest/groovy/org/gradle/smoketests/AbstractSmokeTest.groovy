@@ -95,7 +95,7 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "3.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.21.0"
+        static gradleVersions = "0.22.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.7"

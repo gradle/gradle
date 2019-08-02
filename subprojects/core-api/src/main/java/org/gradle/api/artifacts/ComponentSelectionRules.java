@@ -70,10 +70,6 @@ public interface ComponentSelectionRules {
      *
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
-     * Injection of other arguments has been deprecated in favor of the added methods
-     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
-     * and {@link ComponentSelection#getDescriptor(Class)}.
-     *
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
@@ -89,10 +85,6 @@ public interface ComponentSelectionRules {
      *     <li>must return void.</li>
      *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
      * </ul>
-     *
-     * Injection of other arguments has been deprecated in favor of the added methods
-     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
-     * and {@link ComponentSelection#getDescriptor(Class)}.
      *
      * @param ruleSource an instance providing a rule implementation
      * @return this
@@ -114,10 +106,6 @@ public interface ComponentSelectionRules {
      *
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
-     * Injection of other arguments has been deprecated in favor of the added methods
-     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
-     * and {@link ComponentSelection#getDescriptor(Class)}.
-     *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param closure the Closure that implements a rule to be applied
      * @return this
@@ -134,10 +122,6 @@ public interface ComponentSelectionRules {
      *     <li>must return void.</li>
      *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
      * </ul>
-     *
-     * Injection of other arguments has been deprecated in favor of the added methods
-     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
-     * and {@link ComponentSelection#getDescriptor(Class)}.
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param ruleSource an instance providing a rule implementation
