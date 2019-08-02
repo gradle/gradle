@@ -20,19 +20,29 @@
     }
 
     function renderGraphs(allDataJson, charts) {
-        charts.forEach(function(chart) {
+        charts.forEach(chart => {
             renderGraph(
                 allDataJson[chart.field],
-                allDataJson.executionLabels,
+                {
+                    tickFormatter: (index, value) => {
+                        if (index === parseInt(index, 10)) { // portable way to check if sth is an integer
+                            var executionLabel = allDataJson.executionLabels[index];
+                            return executionLabel ? executionLabel.date : "";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
                 chart.label,
                 chart.unit,
                 chart.chartId,
-                chart.renderBackground ? allDataJson.background : []
+                chart.renderBackground ? allDataJson.background : [],
+                allDataJson.executionLabels
             )
         })
     }
 
-    function renderGraph(data, executionLabels, label, unit, chartId, background) {
+    function renderGraph(data, xaxis, label, unit, chartId, background, executionLabels) {
         if(!data) {
             return
         }
@@ -52,20 +62,11 @@
                     }
             },
             grid: { hoverable: true, clickable: true, markings: background },
-            xaxis: { tickFormatter:
-                    function(index, value) {
-                        if (index === parseInt(index, 10)) { // portable way to check if sth is an integer
-                            var executionLabel = executionLabels[index];
-                            return executionLabel ? executionLabel.date : "";
-                        } else {
-                            return "";
-                        }
-                    }
-            },
+            xaxis: xaxis,
             yaxis: { min: determineMinY(data, unit) }, selection: { mode: 'xy' } };
         var chart = $.plot('#' + chartId, data, options);
         plots[chartId] = chart;
-        var zoomFunction = function(plot, reset) {
+        function zoomFunction(plot, reset) {
             var reset = reset || false;
             return function (event, ranges) {
                 $.each(plot.getXAxes(), function(_, axis) {
@@ -83,30 +84,45 @@
                 plot.clearSelection();
             };
         };
+
+        function hoverOnHistoryGraph(event, pos, item) {
+            var executionLabel = executionLabels[item.datapoint[0]];
+            var revLabel;
+            if (item.series.label == executionLabel.branch) {
+                revLabel = 'rev: ' + renderCommitIds(executionLabel.commits) + '/' + executionLabel.branch;
+            } else {
+                revLabel = 'Version: ' + item.series.label;
+            }
+            var text = revLabel + ', date: ' + executionLabel.date + ', ' + label + ': ' + item.datapoint[1] + unit;
+            $('#tooltip').html(text).css({top: item.pageY - 20, left: item.pageX + 10}).show();
+        }
+
+        function hoverOnExecutionGraph(event, pos, item) {
+            $('#tooltip').html(item.datapoint[1] + " " + unit).css({top: item.pageY - 30, left: item.pageX + 10}).show();
+        }
+
         $('#' + chartId).bind('plothover', function (event, pos, item) {
             if (!item) {
                 $('#tooltip').hide();
+            } else if (executionLabels) {
+                hoverOnHistoryGraph(event, pos, item);
             } else {
-                var executionLabel = executionLabels[item.datapoint[0]];
-                var revLabel;
-                if(item.series.label == executionLabel.branch) {
-                    revLabel = 'rev: ' + renderCommitIds(executionLabel.commits) + '/' + executionLabel.branch;
-                } else {
-                    revLabel = 'Version: ' + item.series.label;
-                }
-                var text = revLabel + ', date: ' + executionLabel.date + ', '+ label + ': ' + item.datapoint[1] + unit;
-                $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();
+                hoverOnExecutionGraph(event, pos, item);
             }
         }).bind('plotselected', zoomFunction(chart)).bind('dblclick', zoomFunction(chart, true))
             .bind("plotclick",
                 function (event, pos, item) {
+                    if (!item) {
+                        // not select a plot
+                        return;
+                    }
                     var executionLabel = executionLabels[item.datapoint[0]];
                     var resultRowId = 'result' + executionLabel.id;
                     var resultRow = $('#' + resultRowId);
                     if (resultRow) {
-                        $('.history tr').css("background-color","");
-                        resultRow.css("background-color","orange");
-                        $('html, body').animate({scrollTop: resultRow.offset().top}, 1000, function() {
+                        $('.history tr').css("background-color", "");
+                        resultRow.css("background-color", "orange");
+                        $('html, body').animate({scrollTop: resultRow.offset().top}, 1000, function () {
                             window.location.hash = resultRowId;
                         });
                     }
@@ -132,6 +148,7 @@
 
     window.performanceTests = {
         createPerformanceGraph: createPerformanceGraph,
+        renderGraph: renderGraph,
         togglePlot: togglePlot
     }
 })($, window);
