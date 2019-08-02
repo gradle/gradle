@@ -18,6 +18,7 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
@@ -74,6 +75,27 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         where:
         parallel << [false, true, false, true]
         locking << [false, false, true, true]
+    }
+
+    @Ignore // TODO activate once PR #10097 is merged
+    def "resolve large dependency graph with subgraph constraints"() {
+        runner.minimumVersion = '5.7'
+        runner.testProject = TEST_PROJECT_NAME
+        startServer()
+
+        given:
+        runner.tasksToRun = ['resolveDependencies']
+        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes', '-PuseSubgraphConstraints']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
     }
 
 }
