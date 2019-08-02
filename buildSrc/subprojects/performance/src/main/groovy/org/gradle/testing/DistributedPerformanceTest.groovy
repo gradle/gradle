@@ -277,7 +277,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 // Sometimes, TC returns text/html page
                 // https://github.com/gradle/gradle-private/issues/1359
                 System.err.println("""
-Get TeamCity HTML response when accepting application/json:
+Got TeamCity HTML response when accepting application/json:
 
 ${resp.getStatusLine()}
 ${resp.data}
