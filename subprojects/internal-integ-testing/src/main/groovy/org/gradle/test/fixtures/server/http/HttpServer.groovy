@@ -379,30 +379,38 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     /**
      * Expects one GET request for the given URL, responding with a redirect.
      */
-    void expectGetRedirected(String path, String location) {
-        expectRedirected('GET', path, location)
+    void expectGetRedirected(String path, String location, PasswordCredentials passwordCredentials=null) {
+        expectRedirected('GET', path, location, passwordCredentials)
     }
 
     /**
      * Expects one HEAD request for the given URL, responding with a redirect.
      */
-    void expectHeadRedirected(String path, String location) {
-        expectRedirected('HEAD', path, location)
+    void expectHeadRedirected(String path, String location, PasswordCredentials passwordCredentials=null) {
+        expectRedirected('HEAD', path, location, passwordCredentials)
     }
 
     /**
      * Expects one PUT request for the given URL, responding with a redirect.
      */
-    void expectPutRedirected(String path, String location) {
-        expectRedirected('PUT', path, location)
+    void expectPutRedirected(String path, String location, PasswordCredentials passwordCredentials=null) {
+        expectRedirected('PUT', path, location, passwordCredentials)
     }
 
-    private void expectRedirected(String method, String path, String location) {
-        expect(path, false, [method], new ActionSupport("redirect to $location") {
+    private void expectRedirected(String method, String path, String location, PasswordCredentials credentials) {
+        if (credentials == null) {
+            expect(path, false, [method], redirectTo(location))
+        } else {
+            expect(path, false, [method], withAuthentication(path, credentials.username, credentials.password, redirectTo(location)))
+        }
+    }
+
+    private ActionSupport redirectTo(location) {
+        new ActionSupport("redirect to $location") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendRedirect(location)
             }
-        })
+        }
     }
 
     /**
