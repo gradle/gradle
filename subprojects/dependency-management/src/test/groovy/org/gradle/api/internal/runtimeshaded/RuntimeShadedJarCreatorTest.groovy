@@ -108,7 +108,6 @@ org.gradle.api.internal.tasks.CompileServices
         createJarFileWithResources(jarFile5, [
             'org/gradle/reporting/report.js',
             'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
-            'aQute/libg/tuple/packageinfo',
             'org/joda/time/tz/data/Africa/Abidjan'])
         def jarFile6 = inputFilesDir.file('lib6.jar')
         createJarFileWithProviderConfigurationFile(jarFile6, 'org.gradle.internal.other.Service', 'org.gradle.internal.other.ServiceImpl')
@@ -130,8 +129,6 @@ org.gradle.api.internal.tasks.CompileServices
             assert entries*.name == [
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
-                'aQute/libg/tuple/packageinfo',
-                'org/gradle/internal/impldep/aQute/libg/tuple/packageinfo',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
                 'org/gradle/reporting/report.js',
                 'org/joda/time/tz/data/Africa/Abidjan',
@@ -143,7 +140,7 @@ org.gradle.api.internal.tasks.CompileServices
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "8eb7b9c992e83362a1445585b00a4fd0"
+        outputJar.md5Hash == "84791783853fcd2c66437a674c219bbe"
     }
 
     def "excludes module-info.class from jar"() {
@@ -342,8 +339,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         given:
         def noRelocationResources = ['org/gradle/reporting/report.js',
                                      'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib']
-        def duplicateResources = ['aQute/libg/tuple/packageinfo',
-                                  'org/joda/time/tz/data/Africa/Abidjan']
+        def duplicateResources = ['org/joda/time/tz/data/Africa/Abidjan']
         def onlyRelocatedResources = [] // None
         def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
         def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
