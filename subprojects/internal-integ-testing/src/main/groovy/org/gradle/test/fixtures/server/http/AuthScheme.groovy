@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.server.http
 
 import org.apache.http.HttpHeaders
-import org.apache.http.HttpRequest
 import org.mortbay.jetty.Response
 import org.mortbay.jetty.security.Authenticator
 import org.mortbay.jetty.security.BasicAuthenticator
