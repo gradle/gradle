@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.http.protocol.HTTP;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
@@ -97,7 +98,10 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         for (Authentication authentication : configuredAuthentication) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
             for (URI repositoryUrl : getRepositoryUrls()) {
-                authenticationInternal.addHost(repositoryUrl.getHost(), repositoryUrl.getPort());
+                // only care about HTTP hosts right now
+                if (repositoryUrl.getScheme().startsWith("http")) {
+                    authenticationInternal.addHost(repositoryUrl.getHost(), repositoryUrl.getPort());
+                }
             }
         }
         return configuredAuthentication;

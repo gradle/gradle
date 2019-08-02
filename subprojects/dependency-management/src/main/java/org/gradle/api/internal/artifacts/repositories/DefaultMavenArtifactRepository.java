@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.artifacts.repositories.layout.ResolvedPattern;
 import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -220,8 +221,14 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     protected Collection<URI> getRepositoryUrls() {
-        // TODO: This doesn't take into account other artifact urls
-        return Collections.singleton(getUrl());
+        // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
+        ImmutableList.Builder<URI> builder = ImmutableList.builder();
+        URI root = getUrl();
+        if (root != null) {
+            builder.add(root);
+        }
+        builder.addAll(getArtifactUrls());
+        return builder.build();
     }
 
     private void validate() {
