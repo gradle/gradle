@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 ==== Local build cache type shouldn't be specified
 
-When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
+When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` have now been deprecated; use `getLocal()` or `local(Action)` instead.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
 === Potential breaking changes
@@ -379,6 +379,24 @@ Plugins that extend these types and override methods from the base class may no 
 Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
+
+==== Archives fail on duplicates
+
+Until now archives defaulted to the `INHERIT` duplicates strategy, allowing the same path to exist multiple times in an archive.
+
+In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
+If you still want to allow them, you can be specify that explicitly:
+
+```
+task archive(type: Zip) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE // allow duplicates
+    archiveName = 'archive.zip'
+    from 'src'
+}
+```
+
+*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INHERIT` duplicates strategy as default.
+
 
 ////
 == Changes in detail
