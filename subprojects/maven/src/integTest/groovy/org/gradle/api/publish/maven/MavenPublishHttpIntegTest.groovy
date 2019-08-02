@@ -197,7 +197,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}", credentials)
         module.rootMetaData.expectGetMissing()
 
-        expectModulePublishViaRedirect(module, server.getUri(), redirectServer)
+        expectModulePublishViaRedirect(module, server.getUri(), redirectServer, credentials)
 
         when:
         succeeds 'publish'
