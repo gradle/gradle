@@ -1,3 +1,4 @@
- - Faster Groovy compilation
+ - Incremental Groovy compilation
+ - Groovy compile avoidance
  - Test fixtures for Java projects
  - Manage plugin versions via settings script
