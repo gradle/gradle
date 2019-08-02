@@ -152,7 +152,7 @@ Notice how we specify the destination and name of the archive instead of an `int
 
 Each type of archive has its own task type, the most common ones being link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar] and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]. They all share most of the configuration options of `Copy`, including filtering and renaming.
 
-One notable difference between the `Copy` and `Sync` tasks and the archives is that duplicate files will not be allowed in archives anymore.
+One notable difference between the `Copy` and `Sync` tasks and the archive tasks is that duplicate files are not allowed in the latter by default.
 
 One of the most common scenarios involves copying files into specified subdirectories of the archive. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
 
