@@ -17,16 +17,15 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.profiler.BuildMutator
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaUpToDatePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     @Unroll
     def "up-to-date assemble on #testProject (parallel #parallel)"() {
@@ -60,20 +59,43 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.minimumVersion = "3.5"
         runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         def cacheDir = temporaryFolder.file("local-cache")
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-                cacheDir.deleteDir().mkdirs()
-                def settingsFile = new TestFile(projectDir).file('settings.gradle')
-                settingsFile << """
-                    buildCache {
-                        local {
-                            directory = '${cacheDir.absoluteFile.toURI()}'
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario() {
+                    System.out.println("> Cleaning build cache in ${cacheDir}")
+                    cacheDir.deleteDir().mkdirs()
+                    def settingsFile = new TestFile(invocationSettings.projectDir).file('settings.gradle')
+                    settingsFile << """
+                        buildCache {
+                            local {
+                                directory = '${cacheDir.absoluteFile.toURI()}'
+                            }
                         }
-                    }
-                """.stripIndent()
+                    """.stripIndent()
+                }
+
+                @Override
+                void beforeCleanup() {
+                }
+
+                @Override
+                void afterCleanup(Throwable error) {
+                }
+
+                @Override
+                void beforeBuild() {
+                }
+
+                @Override
+                void afterBuild(Throwable error) {
+                }
+
+                @Override
+                void afterScenario() {
+                }
             }
-        })
+        }
 
         when:
         def result = runner.run()

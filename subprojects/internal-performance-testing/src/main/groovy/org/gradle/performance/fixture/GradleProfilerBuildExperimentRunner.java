@@ -25,6 +25,7 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BuildAction;
+import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.BuildMutatorFactory;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
@@ -43,6 +44,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunner {
 
@@ -69,10 +73,6 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
         workingDirectory.mkdirs();
         copyTemplateTo(experiment, workingDirectory);
 
-        if (experiment.getListener() != null) {
-            experiment.getListener().beforeExperiment(experiment, workingDirectory);
-        }
-
         if (!(invocationSpec instanceof GradleInvocationSpec)) {
             throw new IllegalArgumentException("Can only run Gradle invocations with Gradle profiler");
         }
@@ -85,7 +85,7 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
         GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
 
         InvocationSettings invocationSettings = createInvocationSettings(buildSpec, experiment);
-        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(experiment.getDisplayName(), invocationSettings, invocation);
+        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition((GradleBuildExperimentSpec) experiment, invocationSettings, invocation);
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
@@ -156,11 +156,11 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
     }
 
 
-    private GradleScenarioDefinition createScenarioDefinition(String displayName, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
+    private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
         List<String> cleanTasks = invocationSpec.getCleanTasks();
         return new GradleScenarioDefinition(
-            displayName,
+            experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), invocationSpec.getJvmOpts(), false),
             new RunTasksAction(invocationSettings.getTargets()),
@@ -169,13 +169,20 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
                 : new RunTasksAction(cleanTasks),
             invocationSpec.getArgs(),
             invocationSettings.getSystemProperties(),
-            new BuildMutatorFactory(ImmutableList.of()),
+            new BuildMutatorFactory(experimentSpec.getBuildMutators().stream()
+                .map(mutatorFunction -> toMutatorSupplierForSettings(invocationSettings, mutatorFunction))
+                .collect(Collectors.toList())
+            ),
             invocationSettings.getWarmUpCount(),
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
             ImmutableList.of(),
             invocationSettings.getMeasuredBuildOperations()
         );
+    }
+
+    private Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
+        return () -> mutatorFunction.apply(invocationSettings);
     }
 
 

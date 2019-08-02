@@ -31,14 +31,17 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
+import java.util.function.Function
 import java.util.regex.Pattern
 
-import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
@@ -67,6 +70,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
     private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
+    private List<Function<InvocationSettings, BuildMutator>> buildMutators = []
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
@@ -251,6 +255,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .invocationCount(runs)
             .listener(buildExperimentListeners)
             .invocationCustomizer(invocationCustomizers)
+            .buildMutators(buildMutators)
             .invocation {
                 workingDirectory(workingDir)
                 distribution(dist)
@@ -275,5 +280,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     void addInvocationCustomizer(InvocationCustomizer invocationCustomizer) {
         invocationCustomizers.addCustomizer(invocationCustomizer)
+    }
+
+    void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        buildMutators.add(buildMutator)
     }
 }
