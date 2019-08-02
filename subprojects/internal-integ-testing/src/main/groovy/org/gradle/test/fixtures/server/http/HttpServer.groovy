@@ -21,6 +21,7 @@ import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.BiAction
+import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.ServerExpectation
@@ -330,7 +331,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Allows one HEAD request for the given URL with http authentication.
      */
     void expectHead(String path, String username, String password, File srcFile, Long lastModified = null, Long contentLength = null) {
-        expect(path, false, ['HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
+        expect(path, false, ['HEAD'], fileHandler(path, srcFile), new DefaultPasswordCredentials(username, password))
     }
 
     /**
@@ -358,7 +359,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Expects one GET request for the given URL, with the given credentials. Reads the request content from the given file.
      */
     HttpResourceInteraction expectGet(String path, String username, String password, File srcFile) {
-        return expect(path, false, ['GET'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
+        return expect(path, false, ['GET'], fileHandler(path, srcFile), new DefaultPasswordCredentials(username, password))
     }
 
     /**
@@ -440,11 +441,15 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, String username, String password, File directory) {
-        expect(path, false, ['GET'], withAuthentication(path, username, password, new ActionSupport("return listing of directory $directory.name") {
+        expect(path, false, ['GET'], listDirectory(directory), new DefaultPasswordCredentials(username, password))
+    }
+
+    private HttpServer.Action listDirectory(File directory) {
+        new ActionSupport("return listing of directory $directory.name") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 sendDirectoryListing(response, directory)
             }
-        }))
+        }
     }
 
     private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength, String contentType) {
@@ -536,17 +541,16 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Expects one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     void expectPut(String path, String username, String password, File destFile) {
-        expect(path, false, ['PUT'], withAuthentication(path, username, password, new ActionSupport("write request to $destFile.name") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+        expect(path, false, ['PUT'], fileWriter(destFile), new DefaultPasswordCredentials(username, password))
+    }
 
-                if (request.remoteUser != username) {
-                    response.sendError(500, "unexpected username '${request.remoteUser}'")
-                    return
-                }
+    private Action fileWriter(File destFile) {
+        new ActionSupport("write request to $destFile.name") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
                 destFile.parentFile.mkdirs()
                 destFile.bytes = request.inputStream.bytes
             }
-        }))
+        }
     }
 
     /**
@@ -642,7 +646,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             void handle(HttpServletRequest request, HttpServletResponse response) {
 
                 if (authenticationScheme.handler.containsUnexpectedAuthentication(request)) {
-                    response.sendError(500, "unexpected authentication in headers " + request.getHeaderNames())
+                    response.sendError(500, "unexpected authentication in headers ")
                     return
                 }
                 action.handle(request, response)
