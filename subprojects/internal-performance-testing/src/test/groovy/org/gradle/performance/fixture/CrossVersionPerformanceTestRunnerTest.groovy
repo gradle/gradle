@@ -406,7 +406,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory
-        runner.testProjectLocator = testProjectLocator
         runner.current = currentGradle
         runner.runs = 1
         return runner

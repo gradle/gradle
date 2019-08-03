@@ -50,7 +50,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     final IntegrationTestBuildContext buildContext
     final ResultsStore resultsStore
     final DataReporter<CrossVersionPerformanceResults> reporter
-    TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
     final ReleasedVersionDistributions releases
     final Clock clock = Time.clock()

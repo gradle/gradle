@@ -24,11 +24,13 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildAction;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.BuildMutatorFactory;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
+import org.gradle.profiler.GradleBuildInvocationResult;
 import org.gradle.profiler.GradleBuildInvoker;
 import org.gradle.profiler.GradleScenarioDefinition;
 import org.gradle.profiler.GradleScenarioInvoker;
@@ -37,6 +39,7 @@ import org.gradle.profiler.Logging;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
+import org.gradle.profiler.result.BuildInvocationResult;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -44,6 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -53,13 +57,14 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private final String jfrProfileTargetDir;
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
+    private final BenchmarkResultCollector resultCollector;
 
-    public GradleProfilerBuildExperimentRunner() {
+    public GradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         this.jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
         this.flameGraphGenerator = jfrProfileTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP
             : new JfrFlameGraphGenerator();
-
+        this.resultCollector = resultCollector;
     }
 
     @Override
@@ -86,6 +91,7 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
 
         InvocationSettings invocationSettings = createInvocationSettings(buildSpec, experiment);
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition((GradleBuildExperimentSpec) experiment, invocationSettings, invocation);
+        Consumer<BuildInvocationResult> scenarioReporter = resultCollector.scenario(scenarioDefinition, ImmutableList.of(GradleBuildInvocationResult.EXECUTION_TIME));
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
@@ -99,6 +105,7 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
                     measuredOperation.setTotalTime(Duration.millis(invocationResult.getExecutionTime().toMillis()));
                     results.add(measuredOperation);
                 }
+                scenarioReporter.accept(invocationResult);
             });
             if (jfrProfileTargetDir != null) {
                 flameGraphGenerator.generateGraphs(getJfrOutputDirectory(experiment));
@@ -154,7 +161,6 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
             ImmutableList.of("org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType")
         );
     }
-
 
     private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();

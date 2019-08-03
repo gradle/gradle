@@ -24,8 +24,13 @@ import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
+import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.SlackReporter
+import org.gradle.profiler.BenchmarkResultCollector
+import org.gradle.profiler.report.CsvGenerator
+import org.gradle.profiler.report.HtmlGenerator
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -35,6 +40,8 @@ import spock.lang.Specification
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
 class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
+
+    private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory"
 
     private static def resultStore = new CrossVersionResultsStore()
     private static def reporter = SlackReporter.wrap(resultStore)
@@ -50,10 +57,30 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
+        def debugArtifactsDirectory = new File(System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME))
+        def resultCollector = new BenchmarkResultCollector(
+            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
+            new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
+        )
+        def compositeReporter = new DataReporter<CrossVersionPerformanceResults>() {
+            @Override
+            void report(CrossVersionPerformanceResults results) {
+                reporter.report(results)
+                resultCollector.summarizeResults { line ->
+                    System.out.println("  " + line)
+                }
+                resultCollector.write()
+            }
+
+            @Override
+            void close() throws IOException {
+                reporter.close()
+            }
+        }
         runner = new CrossVersionPerformanceTestRunner(
-            new GradleProfilerBuildExperimentRunner(),
+            new GradleProfilerBuildExperimentRunner(resultCollector),
             resultStore,
-            reporter,
+            compositeReporter,
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
