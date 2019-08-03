@@ -62,10 +62,11 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
             new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
             new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
         )
+        def slackReporter = reporter
         def compositeReporter = new DataReporter<CrossVersionPerformanceResults>() {
             @Override
             void report(CrossVersionPerformanceResults results) {
-                reporter.report(results)
+                slackReporter.report(results)
                 resultCollector.summarizeResults { line ->
                     System.out.println("  " + line)
                 }

@@ -20,14 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunner {
+public class PerformanceTestBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private final GradleSessionProvider executerProvider;
     private final Profiler profiler;
@@ -42,15 +41,9 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
     }
 
     @Override
-    public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
-        System.out.println();
-        System.out.println(String.format("%s ...", experiment.getDisplayName()));
-        System.out.println();
-
+    public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
         InvocationSpec invocationSpec = experiment.getInvocation();
         File workingDirectory = invocationSpec.getWorkingDirectory();
-        workingDirectory.mkdirs();
-        copyTemplateTo(experiment, workingDirectory);
 
         if (experiment.getListener() != null) {
             experiment.getListener().beforeExperiment(experiment, workingDirectory);
@@ -59,7 +52,7 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             final List<String> additionalJvmOpts = profiler.getAdditionalJvmOpts(experiment);
-            final List<String> additionalArgs = new ArrayList<String>(profiler.getAdditionalGradleArgs(experiment));
+            final List<String> additionalArgs = new ArrayList<>(profiler.getAdditionalGradleArgs(experiment));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
@@ -72,12 +65,6 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
                 session.cleanup();
             }
         }
-    }
-
-    private void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
-        File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
-        GFileUtils.cleanDirectory(workingDir);
-        GFileUtils.copyDirectory(templateDir, workingDir);
     }
 
     protected void performMeasurements(final InvocationExecutorProvider session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
@@ -126,50 +113,6 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
         }
     }
 
-    private static String getExperimentOverride(String key) {
-        String value = System.getProperty("org.gradle.performance.execution." + key);
-        if (value != null && !"defaults".equals(value)) {
-            return value;
-        }
-        return null;
-    }
-
-    protected Integer invocationsForExperiment(BuildExperimentSpec experiment) {
-        String overriddenInvocationCount = getExperimentOverride("runs");
-        if (overriddenInvocationCount != null) {
-            return Integer.valueOf(overriddenInvocationCount);
-        }
-        if (experiment.getInvocationCount() != null) {
-            return experiment.getInvocationCount();
-        }
-        return 40;
-    }
-
-    protected int warmupsForExperiment(BuildExperimentSpec experiment) {
-        String overriddenWarmUpCount = getExperimentOverride("warmups");
-        if (overriddenWarmUpCount != null) {
-            return Integer.valueOf(overriddenWarmUpCount);
-        }
-        if (experiment.getWarmUpCount() != null) {
-            return experiment.getWarmUpCount();
-        }
-        if (usesDaemon(experiment)) {
-            return 10;
-        } else {
-            return 1;
-        }
-    }
-
-    private boolean usesDaemon(BuildExperimentSpec experiment) {
-        InvocationSpec invocation = experiment.getInvocation();
-        if (invocation instanceof GradleInvocationSpec) {
-            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     protected void runOnce(
         final InvocationExecutorProvider session,
         final MeasuredOperationList results,
@@ -186,12 +129,7 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
 
         final AtomicBoolean omitMeasurement = new AtomicBoolean();
         if (experiment.getListener() != null) {
-            experiment.getListener().afterInvocation(invocationInfo, operation, new BuildExperimentListener.MeasurementCallback() {
-                @Override
-                public void omitMeasurement() {
-                    omitMeasurement.set(true);
-                }
-            });
+            experiment.getListener().afterInvocation(invocationInfo, operation, () -> omitMeasurement.set(true));
         }
 
         if (!omitMeasurement.get()) {
@@ -218,7 +156,7 @@ public class PerformanceTestBuildExperimentRunner implements BuildExperimentRunn
     }
 
     protected List<String> createIterationInfoArguments(Phase phase, int iterationNumber, int iterationMax) {
-        List<String> args = new ArrayList<String>(3);
+        List<String> args = new ArrayList<>(3);
         args.add("-PbuildExperimentPhase=" + phase.toString().toLowerCase());
         args.add("-PbuildExperimentIterationNumber=" + iterationNumber);
         args.add("-PbuildExperimentIterationMax=" + iterationMax);

@@ -40,7 +40,6 @@ import org.gradle.profiler.Profiler;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.result.BuildInvocationResult;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +51,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunner {
+public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private final String jfrProfileTargetDir;
@@ -68,15 +67,9 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
     }
 
     @Override
-    public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
-        System.out.println();
-        System.out.println(String.format("%s ...", experiment.getDisplayName()));
-        System.out.println();
-
+    public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
         InvocationSpec invocationSpec = experiment.getInvocation();
         File workingDirectory = invocationSpec.getWorkingDirectory();
-        workingDirectory.mkdirs();
-        copyTemplateTo(experiment, workingDirectory);
 
         if (!(invocationSpec instanceof GradleInvocationSpec)) {
             throw new IllegalArgumentException("Can only run Gradle invocations with Gradle profiler");
@@ -189,56 +182,5 @@ public class GradleProfilerBuildExperimentRunner implements BuildExperimentRunne
 
     private Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
         return () -> mutatorFunction.apply(invocationSettings);
-    }
-
-
-    private void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
-        File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
-        GFileUtils.cleanDirectory(workingDir);
-        GFileUtils.copyDirectory(templateDir, workingDir);
-    }
-
-    private static String getExperimentOverride(String key) {
-        String value = System.getProperty("org.gradle.performance.execution." + key);
-        if (value != null && !"defaults".equals(value)) {
-            return value;
-        }
-        return null;
-    }
-
-    protected Integer invocationsForExperiment(BuildExperimentSpec experiment) {
-        String overriddenInvocationCount = getExperimentOverride("runs");
-        if (overriddenInvocationCount != null) {
-            return Integer.valueOf(overriddenInvocationCount);
-        }
-        if (experiment.getInvocationCount() != null) {
-            return experiment.getInvocationCount();
-        }
-        return 40;
-    }
-
-    protected int warmupsForExperiment(BuildExperimentSpec experiment) {
-        String overriddenWarmUpCount = getExperimentOverride("warmups");
-        if (overriddenWarmUpCount != null) {
-            return Integer.parseInt(overriddenWarmUpCount);
-        }
-        if (experiment.getWarmUpCount() != null) {
-            return experiment.getWarmUpCount();
-        }
-        if (usesDaemon(experiment)) {
-            return 10;
-        } else {
-            return 1;
-        }
-    }
-
-    private boolean usesDaemon(BuildExperimentSpec experiment) {
-        InvocationSpec invocation = experiment.getInvocation();
-        if (invocation instanceof GradleInvocationSpec) {
-            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return true;
-            }
-        }
-        return false;
     }
 }
