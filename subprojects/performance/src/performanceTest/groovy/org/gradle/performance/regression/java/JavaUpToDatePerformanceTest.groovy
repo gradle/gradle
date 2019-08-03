@@ -18,8 +18,8 @@ package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import org.gradle.profiler.BuildMutator
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -60,41 +60,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionGradleProfilerPerf
         runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         def cacheDir = temporaryFolder.file("local-cache")
         runner.addBuildMutator { invocationSettings ->
-            new BuildMutator() {
-                @Override
-                void beforeScenario() {
-                    System.out.println("> Cleaning build cache in ${cacheDir}")
-                    cacheDir.deleteDir().mkdirs()
-                    def settingsFile = new TestFile(invocationSettings.projectDir).file('settings.gradle')
-                    settingsFile << """
-                        buildCache {
-                            local {
-                                directory = '${cacheDir.absoluteFile.toURI()}'
-                            }
-                        }
-                    """.stripIndent()
-                }
-
-                @Override
-                void beforeCleanup() {
-                }
-
-                @Override
-                void afterCleanup(Throwable error) {
-                }
-
-                @Override
-                void beforeBuild() {
-                }
-
-                @Override
-                void afterBuild(Throwable error) {
-                }
-
-                @Override
-                void afterScenario() {
-                }
-            }
+            new ClearBuildCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.SCENARIO)
         }
 
         when:
