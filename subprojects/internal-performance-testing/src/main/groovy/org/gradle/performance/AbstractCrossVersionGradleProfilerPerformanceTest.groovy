@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
+import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionPerformanceResults
@@ -51,7 +51,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    private CrossVersionPerformanceTestRunner runner
+    private GradleProfilerCrossVersionPerformanceTestRunner runner
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
@@ -78,7 +78,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
                 reporter.close()
             }
         }
-        runner = new CrossVersionPerformanceTestRunner(
+        runner = new GradleProfilerCrossVersionPerformanceTestRunner(
             new GradleProfilerBuildExperimentRunner(resultCollector),
             resultStore,
             compositeReporter,
@@ -90,7 +90,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
         performanceTestIdProvider.testSpec = runner
     }
 
-    CrossVersionPerformanceTestRunner getRunner() {
+    GradleProfilerCrossVersionPerformanceTestRunner getRunner() {
         runner
     }
 

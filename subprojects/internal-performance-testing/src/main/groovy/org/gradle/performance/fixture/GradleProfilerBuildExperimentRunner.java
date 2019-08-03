@@ -39,7 +39,7 @@ import org.gradle.profiler.Logging;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
-import org.gradle.profiler.result.BuildInvocationResult;
+import org.gradle.profiler.result.Sample;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,9 +82,19 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
 
         GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
 
-        InvocationSettings invocationSettings = createInvocationSettings(buildSpec, experiment);
-        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition((GradleBuildExperimentSpec) experiment, invocationSettings, invocation);
-        Consumer<BuildInvocationResult> scenarioReporter = resultCollector.scenario(scenarioDefinition, ImmutableList.of(GradleBuildInvocationResult.EXECUTION_TIME));
+        GradleBuildExperimentSpec gradleExperiment = (GradleBuildExperimentSpec) experiment;
+        InvocationSettings invocationSettings = createInvocationSettings(buildSpec, gradleExperiment);
+        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
+        List<Sample<GradleBuildInvocationResult>> buildOperationSamples = scenarioDefinition.getMeasuredBuildOperations().stream()
+            .map(GradleBuildInvocationResult::sampleBuildOperation)
+            .collect(Collectors.toList());
+        Consumer<GradleBuildInvocationResult> scenarioReporter = resultCollector.scenario(
+            scenarioDefinition,
+            ImmutableList.<Sample<? super GradleBuildInvocationResult>>builder()
+                .add(GradleBuildInvocationResult.EXECUTION_TIME)
+                .addAll(buildOperationSamples)
+                .build()
+        );
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
@@ -129,7 +139,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         return outputDir;
     }
 
-    private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, BuildExperimentSpec experiment) {
+    private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
         // TODO: use an output directory outside of the working directory
         File outputDir = jfrProfileTargetDir == null
             ? new File(invocationSpec.getWorkingDirectory(), "profile-out")
@@ -151,7 +161,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
             warmupsForExperiment(experiment),
             invocationsForExperiment(experiment),
             false,
-            ImmutableList.of("org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType")
+            experiment.getMeasuredBuildOperations()
         );
     }
 
