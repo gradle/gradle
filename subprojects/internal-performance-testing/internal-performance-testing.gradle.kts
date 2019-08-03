@@ -96,6 +96,6 @@ tasks.jar {
 }
 
 configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor(1, TimeUnit.MINUTES)
+    resolutionStrategy.cacheChangingModulesFor(1, TimeUnit.MINUTES)
 }
 
