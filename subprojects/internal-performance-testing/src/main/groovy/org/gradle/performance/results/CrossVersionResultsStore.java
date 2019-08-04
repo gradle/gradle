@@ -53,7 +53,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
     private final long ignoreV17Before;
     private final PerformanceDatabase db;
-    private final Map<String, GradleVersion> gradleVersionCache = new HashMap<String, GradleVersion>();
+    private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
         this("results");
@@ -173,7 +173,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     public List<String> getTestNames() {
         try {
             return db.withConnection(connection -> {
-                List<String> testNames = new ArrayList<String>();
+                List<String> testNames = new ArrayList<>();
                 Statement statement = null;
                 ResultSet testExecutions = null;
 
@@ -206,8 +206,8 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         try {
             return db.withConnection(connection -> {
                 Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
-                Set<String> allVersions = new TreeSet<String>((o1, o2) -> resolveGradleVersion(o1).compareTo(resolveGradleVersion(o2)));
-                Set<String> allBranches = new TreeSet<String>();
+                Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
+                Set<String> allBranches = new TreeSet<>();
 
                 PreparedStatement executionsForName = null;
                 PreparedStatement operationsForExecution = null;
@@ -287,7 +287,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     closeStatement(executionsForName);
                 }
 
-                return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), Lists.newArrayList(results.values()));
+                return new CrossVersionPerformanceTestHistory(testName, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
             });
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);

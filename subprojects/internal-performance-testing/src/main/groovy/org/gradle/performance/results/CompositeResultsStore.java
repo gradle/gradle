@@ -36,7 +36,7 @@ public class CompositeResultsStore implements ResultsStore {
     @Override
     public List<String> getTestNames() {
         buildTests();
-        return new ArrayList<String>(tests.keySet());
+        return new ArrayList<>(tests.keySet());
     }
 
     @Override
@@ -59,7 +59,7 @@ public class CompositeResultsStore implements ResultsStore {
 
     private void buildTests() {
         if (tests == null) {
-            Map<String, ResultsStore> tests = new LinkedHashMap<String, ResultsStore>();
+            Map<String, ResultsStore> tests = new LinkedHashMap<>();
             for (ResultsStore store : stores) {
                 for (String testName : store.getTestNames()) {
                     if (tests.containsKey(testName)) {

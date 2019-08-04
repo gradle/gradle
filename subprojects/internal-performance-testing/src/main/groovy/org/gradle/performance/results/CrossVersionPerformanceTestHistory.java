@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CrossVersionPerformanceTestHistory implements PerformanceTestHistory {
     private final String name;
@@ -54,7 +55,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     public List<String> getKnownVersions() {
         if (knownVersions == null) {
-            ArrayList<String> result = new ArrayList<String>();
+            ArrayList<String> result = new ArrayList<>();
             result.addAll(versions);
             result.addAll(branches);
             knownVersions = result;
@@ -74,7 +75,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
      */
     public List<CrossVersionPerformanceResults> getResultsOldestFirst() {
         if (oldestFirst == null) {
-            oldestFirst = new ArrayList<CrossVersionPerformanceResults>(newestFirst);
+            oldestFirst = new ArrayList<>(newestFirst);
             Collections.reverse(oldestFirst);
         }
         return oldestFirst;
@@ -82,7 +83,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     @Override
     public List<PerformanceTestExecution> getExecutions() {
-        return Lists.transform(getResults(), result -> new KnownVersionsPerformanceTestExecution(result));
+        return getResults().stream().map(KnownVersionsPerformanceTestExecution::new).collect(Collectors.toList());
     }
 
     @Override
@@ -185,7 +186,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
         @Override
         public List<MeasuredOperationList> getScenarios() {
-            return Lists.transform(getKnownVersions(), version -> result.version(version).getResults());
+            return getKnownVersions().stream().map(version -> result.version(version).getResults()).collect(Collectors.toList());
         }
 
         @Override

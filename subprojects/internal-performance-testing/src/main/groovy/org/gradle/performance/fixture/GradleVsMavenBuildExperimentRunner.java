@@ -18,10 +18,8 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -67,12 +65,7 @@ public class GradleVsMavenBuildExperimentRunner extends GradleInternalBuildExper
             MavenInvocationSpec invocation = invocationCustomizer.customize(invocationInfo, buildSpec);
             final ExecAction run = createMavenInvocation(invocation, invocation.getTasksToRun());
             System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getTasksToRun()));
-            DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
-                @Override
-                public void run() {
-                    executeWithFileLogging(experiment, run);
-                }
-            });
+            DurationMeasurementImpl.measure(measuredOperation, () -> executeWithFileLogging(experiment, run));
         }, experiment, results, projectDir);
     }
 

@@ -44,7 +44,7 @@ public class ResultsStoreHelper {
         if (value == null) {
             return null;
         }
-        List<String> result = new ArrayList<String>(value.length);
+        List<String> result = new ArrayList<>(value.length);
         for (Object aValue : value) {
             result.add(aValue.toString());
         }

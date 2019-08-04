@@ -149,7 +149,7 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
 
         @Override
         public List<MeasuredOperationList> getScenarios() {
-            return Lists.transform(builds, specification -> results.buildResult(specification.getDisplayName()));
+            return builds.stream().map(specification -> results.buildResult(specification.getDisplayName())).collect(Collectors.toList());
         }
 
         @Override
