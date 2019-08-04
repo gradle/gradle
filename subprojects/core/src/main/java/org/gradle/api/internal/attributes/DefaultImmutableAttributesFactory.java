@@ -65,7 +65,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        return doConcatIsolatable(node, key, isolate(value));
+        return concat(node, key, isolate(value));
     }
 
     private <T> Isolatable<T> isolate(T value) {
