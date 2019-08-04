@@ -55,32 +55,24 @@ public class GradleVsMavenBuildExperimentRunner extends GradleInternalBuildExper
 
     private void runMavenExperiment(MeasuredOperationList results, final MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
-        performMeasurements(new InvocationExecutorProvider() {
-            @Override
-            public Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
-                return new Action<MeasuredOperation>() {
-                    @Override
-                    public void execute(MeasuredOperation measuredOperation) {
-                        System.out.println("Run Maven using JVM opts: " + Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts()));
-                        List<String> cleanTasks = buildSpec.getCleanTasks();
-                        if (!cleanTasks.isEmpty()) {
-                            System.out.println("Cleaning up by running Maven tasks: " + Joiner.on(" ").join(buildSpec.getCleanTasks()));
-                            ExecAction clean = createMavenInvocation(buildSpec, cleanTasks);
-                            executeWithFileLogging(experiment, clean);
-                        }
-
-                        MavenInvocationSpec invocation = invocationCustomizer.customize(invocationInfo, buildSpec);
-                        final ExecAction run = createMavenInvocation(invocation, invocation.getTasksToRun());
-                        System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getTasksToRun()));
-                        DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
-                            @Override
-                            public void run() {
-                                executeWithFileLogging(experiment, run);
-                            }
-                        });
-                    }
-                };
+        performMeasurements((invocationInfo, invocationCustomizer) -> measuredOperation -> {
+            System.out.println("Run Maven using JVM opts: " + Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts()));
+            List<String> cleanTasks = buildSpec.getCleanTasks();
+            if (!cleanTasks.isEmpty()) {
+                System.out.println("Cleaning up by running Maven tasks: " + Joiner.on(" ").join(buildSpec.getCleanTasks()));
+                ExecAction clean = createMavenInvocation(buildSpec, cleanTasks);
+                executeWithFileLogging(experiment, clean);
             }
+
+            MavenInvocationSpec invocation = invocationCustomizer.customize(invocationInfo, buildSpec);
+            final ExecAction run = createMavenInvocation(invocation, invocation.getTasksToRun());
+            System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getTasksToRun()));
+            DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
+                @Override
+                public void run() {
+                    executeWithFileLogging(experiment, run);
+                }
+            });
         }, experiment, results, projectDir);
     }
 

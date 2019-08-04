@@ -172,26 +172,23 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     @Override
     public List<String> getTestNames() {
         try {
-            return db.withConnection(new ConnectionAction<List<String>>() {
-                @Override
-                public List<String> execute(Connection connection) throws SQLException {
-                    List<String> testNames = new ArrayList<String>();
-                    Statement statement = null;
-                    ResultSet testExecutions = null;
+            return db.withConnection(connection -> {
+                List<String> testNames = new ArrayList<String>();
+                Statement statement = null;
+                ResultSet testExecutions = null;
 
-                    try {
-                        statement = connection.createStatement();
-                        testExecutions = statement.executeQuery("select distinct testId from testExecution order by testId");
-                        while (testExecutions.next()) {
-                            testNames.add(testExecutions.getString(1));
-                        }
-                    } finally {
-                        closeStatement(statement);
-                        closeResultSet(testExecutions);
+                try {
+                    statement = connection.createStatement();
+                    testExecutions = statement.executeQuery("select distinct testId from testExecution order by testId");
+                    while (testExecutions.next()) {
+                        testNames.add(testExecutions.getString(1));
                     }
-
-                    return testNames;
+                } finally {
+                    closeStatement(statement);
+                    closeResultSet(testExecutions);
                 }
+
+                return testNames;
             });
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", db.getUrl()), e);
@@ -207,98 +204,90 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     @Override
     public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
-            return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
-                @Override
-                public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
-                    Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
-                    Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
-                        @Override
-                        public int compare(String o1, String o2) {
-                            return resolveGradleVersion(o1).compareTo(resolveGradleVersion(o2));
-                        }
-                    });
-                    Set<String> allBranches = new TreeSet<String>();
+            return db.withConnection(connection -> {
+                Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
+                Set<String> allVersions = new TreeSet<String>((o1, o2) -> resolveGradleVersion(o1).compareTo(resolveGradleVersion(o2)));
+                Set<String> allBranches = new TreeSet<String>();
 
-                    PreparedStatement executionsForName = null;
-                    PreparedStatement operationsForExecution = null;
-                    ResultSet testExecutions = null;
-                    ResultSet operations = null;
+                PreparedStatement executionsForName = null;
+                PreparedStatement operationsForExecution = null;
+                ResultSet testExecutions = null;
+                ResultSet operations = null;
 
-                    try {
-                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
-                        executionsForName.setFetchSize(mostRecentN);
-                        executionsForName.setInt(1, mostRecentN);
-                        executionsForName.setString(2, testName);
-                        Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                        executionsForName.setTimestamp(3, minDate);
-                        executionsForName.setString(4, channel);
+                try {
+                    executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                    executionsForName.setFetchSize(mostRecentN);
+                    executionsForName.setInt(1, mostRecentN);
+                    executionsForName.setString(2, testName);
+                    Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+                    executionsForName.setTimestamp(3, minDate);
+                    executionsForName.setString(4, channel);
 
-                        testExecutions = executionsForName.executeQuery();
-                        while (testExecutions.next()) {
-                            long id = testExecutions.getLong(1);
-                            CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
-                            performanceResults.setTestId(testName);
-                            performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
-                            performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
-                            performanceResults.setVersionUnderTest(testExecutions.getString(4));
-                            performanceResults.setTestProject(testExecutions.getString(5));
-                            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(6)));
-                            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(8)));
-                            performanceResults.setDaemon((Boolean) testExecutions.getObject(9));
-                            performanceResults.setOperatingSystem(testExecutions.getString(10));
-                            performanceResults.setJvm(testExecutions.getString(11));
-                            performanceResults.setVcsBranch(testExecutions.getString(12).trim());
-                            performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(13)));
-                            performanceResults.setChannel(testExecutions.getString(14));
-                            performanceResults.setHost(testExecutions.getString(15));
-                            performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(16)));
-                            performanceResults.setTeamCityBuildId(testExecutions.getString(17));
+                    testExecutions = executionsForName.executeQuery();
+                    while (testExecutions.next()) {
+                        long id = testExecutions.getLong(1);
+                        CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
+                        performanceResults.setTestId(testName);
+                        performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+                        performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+                        performanceResults.setVersionUnderTest(testExecutions.getString(4));
+                        performanceResults.setTestProject(testExecutions.getString(5));
+                        performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+                        performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(7)));
+                        performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(8)));
+                        performanceResults.setDaemon((Boolean) testExecutions.getObject(9));
+                        performanceResults.setOperatingSystem(testExecutions.getString(10));
+                        performanceResults.setJvm(testExecutions.getString(11));
+                        performanceResults.setVcsBranch(testExecutions.getString(12).trim());
+                        performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(13)));
+                        performanceResults.setChannel(testExecutions.getString(14));
+                        performanceResults.setHost(testExecutions.getString(15));
+                        performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(16)));
+                        performanceResults.setTeamCityBuildId(testExecutions.getString(17));
 
-                            results.put(id, performanceResults);
-                            allBranches.add(performanceResults.getVcsBranch());
-                        }
-
-                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                            + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
-                        operationsForExecution.setFetchSize(10 * results.size());
-                        operationsForExecution.setInt(1, mostRecentN);
-                        operationsForExecution.setString(2, testName);
-                        operationsForExecution.setTimestamp(3, minDate);
-                        operationsForExecution.setString(4, channel);
-
-                        operations = operationsForExecution.executeQuery();
-                        while (operations.next()) {
-                            CrossVersionPerformanceResults result = results.get(operations.getLong(2));
-                            if (result == null) {
-                                continue;
-                            }
-                            String version = operations.getString(1);
-                            if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
-                                // Ignore some broken samples
-                                continue;
-                            }
-                            MeasuredOperation operation = new MeasuredOperation();
-                            operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
-
-                            if (version == null) {
-                                result.getCurrent().add(operation);
-                            } else {
-                                BaselineVersion baselineVersion = result.baseline(version);
-                                baselineVersion.getResults().add(operation);
-                                allVersions.add(version);
-                            }
-                        }
-
-                    } finally {
-                        closeResultSet(operations);
-                        closeStatement(operationsForExecution);
-                        closeResultSet(testExecutions);
-                        closeStatement(executionsForName);
+                        results.put(id, performanceResults);
+                        allBranches.add(performanceResults.getVcsBranch());
                     }
 
-                    return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), Lists.newArrayList(results.values()));
+                    operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
+                        + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
+                    operationsForExecution.setFetchSize(10 * results.size());
+                    operationsForExecution.setInt(1, mostRecentN);
+                    operationsForExecution.setString(2, testName);
+                    operationsForExecution.setTimestamp(3, minDate);
+                    operationsForExecution.setString(4, channel);
+
+                    operations = operationsForExecution.executeQuery();
+                    while (operations.next()) {
+                        CrossVersionPerformanceResults result = results.get(operations.getLong(2));
+                        if (result == null) {
+                            continue;
+                        }
+                        String version = operations.getString(1);
+                        if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
+                            // Ignore some broken samples
+                            continue;
+                        }
+                        MeasuredOperation operation = new MeasuredOperation();
+                        operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
+
+                        if (version == null) {
+                            result.getCurrent().add(operation);
+                        } else {
+                            BaselineVersion baselineVersion = result.baseline(version);
+                            baselineVersion.getResults().add(operation);
+                            allVersions.add(version);
+                        }
+                    }
+
+                } finally {
+                    closeResultSet(operations);
+                    closeStatement(operationsForExecution);
+                    closeResultSet(testExecutions);
+                    closeStatement(executionsForName);
                 }
+
+                return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), Lists.newArrayList(results.values()));
             });
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
