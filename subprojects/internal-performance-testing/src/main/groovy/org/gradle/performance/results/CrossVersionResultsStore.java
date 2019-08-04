@@ -60,7 +60,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     public CrossVersionResultsStore(String databaseName) {
-        db = new PerformanceDatabase(databaseName, new CrossVersionResultsSchemaInitializer());
+        db = new PerformanceDatabase(databaseName, new CrossVersionResultsSchemaInitializer(), new StaleDataCleanupInitializer());
 
         // Ignore some broken samples before the given date
         DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

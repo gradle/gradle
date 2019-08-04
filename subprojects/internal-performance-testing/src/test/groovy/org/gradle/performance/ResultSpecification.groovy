@@ -50,6 +50,7 @@ abstract class ResultSpecification extends Specification {
         results.vcsBranch = "master"
         results.vcsCommits = ['123456']
         results.channel = channel
+        results.startTime = new Date().time
         options.each { key, value -> results."$key" = value }
         return results
     }
@@ -62,10 +63,10 @@ abstract class ResultSpecification extends Specification {
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
                 host: "me",
-                startTime: 100,
                 vcsBranch: "master",
                 vcsCommits: ["abcdef"],
-                channel: channel
+                channel: channel,
+                startTime: new Date().time
         )
         options.each { key, value -> results."$key" = value }
         return results

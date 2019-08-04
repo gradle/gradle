@@ -43,7 +43,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     private final String resultType;
 
     public BaseCrossBuildResultsStore(String resultType) {
-        this.db = new PerformanceDatabase("cross-build-results", new CrossBuildResultsSchemaInitializer());
+        this.db = new PerformanceDatabase("cross-build-results", new CrossBuildResultsSchemaInitializer(), new StaleDataCleanupInitializer());
         this.resultType = resultType;
     }
 
