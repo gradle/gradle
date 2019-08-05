@@ -69,6 +69,8 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -94,6 +96,8 @@ import java.util.function.Consumer;
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionPlan.class);
+
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
@@ -610,6 +614,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
             Node node = iterator.next();
             if (node.isComplete()) {
+                LOGGER.debug("Monitored node {} completed. Updating dependencies.", node);
                 updateAllDependenciesCompleteForPredecessors(node);
                 iterator.remove();
             }
@@ -625,12 +630,22 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
-                // TODO: convert output file checks to a resource lock
-                if (!tryLockProjectFor(node)
-                    || !tryLockSharedResourceFor(node)
-                    || !workerLease.tryLock()
-                    || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
+                if (!tryLockProjectFor(node)) {
                     resourceLockState.releaseLocks();
+                    LOGGER.debug("Cannot acquire project lock for node {}.", node);
+                    continue;
+                } else if (!tryLockSharedResourceFor(node)) {
+                    resourceLockState.releaseLocks();
+                    LOGGER.debug("Cannot acquire shared resource lock for node {}.", node);
+                    continue;
+                } else if (!workerLease.tryLock()) {
+                    resourceLockState.releaseLocks();
+                    LOGGER.debug("Cannot acquire worker lease lock for node {}.", node);
+                    continue;
+                // TODO: convert output file checks to a resource lock
+                } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
+                    resourceLockState.releaseLocks();
+                    LOGGER.debug("Node {} cannot run with currently running nodes {}.", node, runningNodes);
                     continue;
                 }
 
@@ -645,6 +660,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 return node;
             }
         }
+        LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
         maybeNodesReady = foundReadyNode;
         return null;
     }
@@ -971,11 +987,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 enforceFinalizers(node);
                 maybeNodesReady = true;
                 if (node.isFailed()) {
+                    LOGGER.debug("Node {} failed.", node);
                     handleFailure(node);
+                } else {
+                    LOGGER.debug("Node {} completed.", node);
                 }
 
                 node.finishExecution();
                 recordNodeCompleted(node);
+            } else {
+                LOGGER.debug("Already completed node {} reported as completed.", node);
             }
         } finally {
             unlockProjectFor(node);
