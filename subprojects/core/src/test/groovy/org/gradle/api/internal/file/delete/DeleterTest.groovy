@@ -65,20 +65,6 @@ class DeleterTest extends Specification {
         didWork
     }
 
-    def deletesFileByPath() {
-        given:
-        TestFile dir = tmpDir.getTestDirectory()
-        TestFile file = dir.file("someFile")
-        file.createFile()
-
-        when:
-        boolean didWork = delete('someFile')
-
-        then:
-        file.assertDoesNotExist()
-        didWork
-    }
-
     def deletesMultipleTargets() {
         given:
         TestFile file = tmpDir.getTestDirectory().file("someFile").createFile()
@@ -333,9 +319,7 @@ class DeleterTest extends Specification {
         FAILURE, SUCCESS, CONTINUE
     }
 
-    private boolean delete(Object... things) {
-        return deleter.delete {
-            it.delete(things)
-        }
+    private boolean delete(File... things) {
+        return deleter.deleteInternal(things as List, { it.directory })
     }
 }

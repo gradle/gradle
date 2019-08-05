@@ -65,7 +65,7 @@ public class Deleter {
         );
     }
 
-    private boolean deleteInternal(Iterable<File> roots, Predicate<? super File> filter) {
+    boolean deleteInternal(Iterable<File> roots, Predicate<? super File> follow) {
         boolean didWork = false;
         for (File root : roots) {
             if (!root.exists()) {
@@ -73,23 +73,23 @@ public class Deleter {
             }
             LOGGER.debug("Deleting {}", root);
             didWork = true;
-            deleteRoot(root, filter);
+            deleteRoot(root, follow);
         }
         return didWork;
     }
 
-    private void deleteRoot(File file, Predicate<? super File> filter) {
+    private void deleteRoot(File file, Predicate<? super File> follow) {
         long startTime = timeProvider.get();
         Collection<String> failedPaths = new ArrayList<>();
-        deleteRecursively(startTime, file, file, filter, failedPaths);
+        deleteRecursively(startTime, file, file, follow, failedPaths);
         if (!failedPaths.isEmpty()) {
-            throwWithHelpMessage(startTime, file, filter, failedPaths, false);
+            throwWithHelpMessage(startTime, file, follow, failedPaths, false);
         }
     }
 
-    private void deleteRecursively(long startTime, File baseDir, File file, Predicate<? super File> filter, Collection<String> failedPaths) {
+    private void deleteRecursively(long startTime, File baseDir, File file, Predicate<? super File> follow, Collection<String> failedPaths) {
 
-        if (filter.test(file)) {
+        if (follow.test(file)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -98,7 +98,7 @@ public class Deleter {
             }
 
             for (File item : contents) {
-                deleteRecursively(startTime, baseDir, item, filter, failedPaths);
+                deleteRecursively(startTime, baseDir, item, follow, failedPaths);
             }
         }
 
@@ -107,7 +107,7 @@ public class Deleter {
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
-                throwWithHelpMessage(startTime, baseDir, filter, failedPaths, true);
+                throwWithHelpMessage(startTime, baseDir, follow, failedPaths, true);
             }
         }
     }
@@ -135,11 +135,11 @@ public class Deleter {
         }
     }
 
-    private void throwWithHelpMessage(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {
-        throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, filter, failedPaths, more));
+    private void throwWithHelpMessage(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
+        throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, follow, failedPaths, more));
     }
 
-    private String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {
+    private String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
         if (Files.isSymbolicLink(file.toPath())) {
@@ -152,7 +152,7 @@ public class Deleter {
         }
         help.append('\'').append(file).append('\'');
 
-        if (filter.test(file)) {
+        if (follow.test(file)) {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {
