@@ -33,9 +33,15 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
     private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
+    private final File flamesBaseDirectory
+
+    JfrFlameGraphGenerator(File flamesBaseDirectory) {
+        this.flamesBaseDirectory = flamesBaseDirectory
+    }
 
     @Override
-    void generateGraphs(File jfrOutputDir) {
+    void generateGraphs(BuildExperimentSpec experimentSpec) {
+        def jfrOutputDir = getJfrOutputDirectory(experimentSpec)
         List<IItemCollection> recordings = jfrOutputDir.listFiles()
             .findAll { it.name.endsWith(".jfr") }
             .collect { JfrLoaderToolkit.loadEvents(it) }
@@ -49,6 +55,15 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         }
     }
 
+    @Override
+    File getJfrOutputDirectory(BuildExperimentSpec spec) {
+        def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
+        def baseDir = new File(flamesBaseDirectory, fileSafeName)
+        def outputDir = new File(baseDir, "jfr-recordings")
+        outputDir.mkdirs()
+        return outputDir
+    }
+
     private File generateStacks(File baseDir, Collection<IItemCollection> recordings, EventType type, DetailLevel level) {
         File stacks = File.createTempFile("stacks", ".txt")
         stacksConverter.convertToStacks(recordings, stacks, new Options(type, level.isShowArguments(), level.isShowLineNumbers()))
@@ -59,8 +74,8 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
     }
 
     @Override
-    void generateDifferentialGraphs(File baseDir) {
-        File[] experiments = baseDir.listFiles()
+    void generateDifferentialGraphs() {
+        File[] experiments = flamesBaseDirectory.listFiles()
         experiments.each { File experiment ->
             EventType.values().each { EventType type ->
                 DetailLevel.values().each { DetailLevel level ->

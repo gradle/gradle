@@ -39,6 +39,7 @@ import org.gradle.profiler.Logging;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
+import org.gradle.profiler.jfr.JfrProfiler;
 import org.gradle.profiler.result.Sample;
 
 import java.io.File;
@@ -57,12 +58,16 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
     private final String jfrProfileTargetDir;
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final BenchmarkResultCollector resultCollector;
+    private final Profiler profiler;
 
     public GradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         this.jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
         this.flameGraphGenerator = jfrProfileTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP
-            : new JfrFlameGraphGenerator();
+            : new JfrFlameGraphGenerator(new File(jfrProfileTargetDir));
+        this.profiler = jfrProfileTargetDir == null
+            ? Profiler.NONE
+            : new JfrProfiler();
         this.resultCollector = resultCollector;
     }
 
@@ -110,10 +115,8 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
                 }
                 scenarioReporter.accept(invocationResult);
             });
-            if (jfrProfileTargetDir != null) {
-                flameGraphGenerator.generateGraphs(getJfrOutputDirectory(experiment));
-                flameGraphGenerator.generateDifferentialGraphs(new File(jfrProfileTargetDir));
-            }
+            flameGraphGenerator.generateGraphs(experiment);
+            flameGraphGenerator.generateDifferentialGraphs();
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -131,24 +134,11 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         return new GradleScenarioInvoker(daemonControl, pidInstrumentation);
     }
 
-    private File getJfrOutputDirectory(BuildExperimentSpec spec) {
-        String fileSafeName = spec.getDisplayName().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
-        File baseDir = new File(jfrProfileTargetDir, fileSafeName);
-        File outputDir = new File(baseDir, "jfr-recordings");
-        outputDir.mkdirs();
-        return outputDir;
-    }
-
     private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
-        // TODO: use an output directory outside of the working directory
-        File outputDir = jfrProfileTargetDir == null
-            ? new File(invocationSpec.getWorkingDirectory(), "profile-out")
-            : getJfrOutputDirectory(experiment);
+        File outputDir = flameGraphGenerator.getJfrOutputDirectory(experiment);
         return new InvocationSettings(
             invocationSpec.getWorkingDirectory(),
-            jfrProfileTargetDir == null
-                ? Profiler.NONE
-                : new org.gradle.profiler.jfr.JfrProfiler(),
+            profiler,
             true,
             outputDir,
             invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli,

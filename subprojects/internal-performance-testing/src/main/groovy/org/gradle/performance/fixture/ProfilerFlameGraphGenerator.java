@@ -19,16 +19,23 @@ package org.gradle.performance.fixture;
 import java.io.File;
 
 public interface ProfilerFlameGraphGenerator {
-    void generateGraphs(File outputDir);
-    void generateDifferentialGraphs(File baseDir);
+    void generateGraphs(BuildExperimentSpec experimentSpec);
+    void generateDifferentialGraphs();
+    File getJfrOutputDirectory(BuildExperimentSpec spec);
 
     ProfilerFlameGraphGenerator NOOP = new ProfilerFlameGraphGenerator() {
+
         @Override
-        public void generateGraphs(File outputDir) {
+        public void generateGraphs(BuildExperimentSpec experimentSpec) {
         }
 
         @Override
-        public void generateDifferentialGraphs(File baseDir) {
+        public void generateDifferentialGraphs() {
+        }
+
+        @Override
+        public File getJfrOutputDirectory(BuildExperimentSpec spec) {
+            return new File(spec.getWorkingDirectory(), "profile-out");
         }
     };
 
