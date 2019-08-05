@@ -105,6 +105,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
 import static org.gradle.util.Matchers.hasMessage;
@@ -250,7 +251,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private File getClasspathManifestJarFor(Collection<File> classpath) {
-        String cpString = CollectionUtils.join(" ", CollectionUtils.collect(classpath, file -> file.toURI().toString()));
+        String cpString = classpath.stream()
+            .map(File::toURI)
+            .map(Object::toString)
+            .collect(Collectors.joining(" "));
         File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + HashUtil.createCompactMD5(cpString) + ".jar");
         if (!cpJar.isFile()) {
             Manifest manifest = new Manifest();
