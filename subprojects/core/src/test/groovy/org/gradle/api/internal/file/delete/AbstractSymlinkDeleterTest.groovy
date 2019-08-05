@@ -36,7 +36,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter deleter = new Deleter(resolver, fileSystem(), Time.clock())
+    Deleter deleter = new Deleter(resolver, fileSystem(), Time.clock(), false)
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())

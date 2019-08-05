@@ -37,7 +37,7 @@ class DeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter deleter = new Deleter(resolver, fileSystem(), Time.clock())
+    Deleter deleter = new Deleter(resolver, fileSystem(), Time.clock(), false)
 
     def deletesDirectory() {
         given:
@@ -297,7 +297,7 @@ class DeleterTest extends Specification {
         }
 
         static Deleter deleterWithDeletionAction(FileResolver resolver, Function<File, DeletionAction> deletionAction) {
-            new Deleter(resolver, fileSystem(), clock) {
+            new Deleter(resolver, fileSystem(), clock, false) {
                 @Override
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {

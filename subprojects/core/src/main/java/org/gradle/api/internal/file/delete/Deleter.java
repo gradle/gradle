@@ -21,7 +21,6 @@ import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,7 @@ public class Deleter {
     private final FileResolver fileResolver;
     private final FileSystem fileSystem;
     private final Clock clock;
+    private final boolean runGcOnFailedDelete;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
@@ -50,10 +50,11 @@ public class Deleter {
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Clock clock) {
+    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Clock clock, boolean runGcOnFailedDelete) {
         this.fileResolver = fileResolver;
         this.fileSystem = fileSystem;
         this.clock = clock;
+        this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
 
     public boolean delete(Action<? super DeleteSpec> action) {
@@ -122,7 +123,7 @@ public class Deleter {
         // It mentions that there is a bug in the Windows JDK implementations that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
         // The thinking is that if this is good enough for Ant, it's good enough for us.
-        if (isRunGcOnFailedDelete()) {
+        if (runGcOnFailedDelete) {
             System.gc();
         }
         try {
@@ -134,10 +135,6 @@ public class Deleter {
         if (!deleteFile(file)) {
             failedPaths.add(file.getAbsolutePath());
         }
-    }
-
-    private boolean isRunGcOnFailedDelete() {
-        return OperatingSystem.current().isWindows();
     }
 
     private void throwWithHelpMessage(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {

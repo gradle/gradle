@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 
 import javax.inject.Inject;
@@ -71,7 +72,7 @@ public class Delete extends ConventionTask implements DeleteSpec {
 
     @TaskAction
     protected void clean() {
-        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock());
+        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock(), OperatingSystem.current().isWindows());
         boolean innerFollowSymLinks = followSymlinks;
         setDidWork(deleter.delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(innerFollowSymLinks)));
     }
