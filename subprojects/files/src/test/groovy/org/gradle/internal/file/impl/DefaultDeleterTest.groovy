@@ -92,7 +92,7 @@ class DefaultDeleterTest extends Specification {
         delete(target)
 
         then:
-        def ex = thrown Exception
+        def ex = thrown IOException
         ex.message == "Unable to delete $description '$target'"
 
         where:
@@ -127,7 +127,7 @@ class DefaultDeleterTest extends Specification {
         nonDeletable.assertIsFile()
 
         and:
-        def ex = thrown Exception
+        def ex = thrown IOException
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               ${DefaultDeleter.HELP_FAILED_DELETE_CHILDREN}
@@ -160,7 +160,7 @@ class DefaultDeleterTest extends Specification {
         newFile.assertIsFile()
 
         and:
-        def ex = thrown Exception
+        def ex = thrown IOException
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               ${DefaultDeleter.HELP_NEW_CHILDREN}
@@ -193,7 +193,7 @@ class DefaultDeleterTest extends Specification {
         newFile.assertIsFile()
 
         and:
-        def ex = thrown Exception
+        def ex = thrown IOException
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               ${DefaultDeleter.HELP_FAILED_DELETE_CHILDREN}
@@ -232,7 +232,7 @@ class DefaultDeleterTest extends Specification {
         triedToDelete.size() == DefaultDeleter.MAX_REPORTED_PATHS
 
         and: 'the report size is capped'
-        def ex = thrown Exception
+        def ex = thrown IOException
         def normalizedMessage = normaliseLineSeparators(ex.message)
         normalizedMessage.startsWith("""
             Unable to delete directory '$targetDir'

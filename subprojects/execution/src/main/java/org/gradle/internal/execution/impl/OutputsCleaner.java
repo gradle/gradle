@@ -91,7 +91,11 @@ public class OutputsCleaner {
     }
 
     public void cleanupDirectories() throws IOException {
-        for (File directory = directoriesToDelete.poll(); directory != null; directory = directoriesToDelete.poll()) {
+        while (true) {
+            File directory = directoriesToDelete.poll();
+            if (directory == null) {
+                break;
+            }
             if (isEmpty(directory)) {
                 LOGGER.debug("Deleting stale empty output directory '{}'.", directory);
                 Files.delete(directory.toPath());

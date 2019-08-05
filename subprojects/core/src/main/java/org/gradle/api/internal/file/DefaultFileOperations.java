@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -52,6 +53,7 @@ import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
@@ -187,7 +189,11 @@ public class DefaultFileOperations implements FileOperations {
         FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
         boolean didWork = false;
         for (File root : roots) {
-            didWork |= deleter.deleteRecursively(root, deleteSpec.isFollowSymlinks());
+            try {
+                didWork |= deleter.deleteRecursively(root, deleteSpec.isFollowSymlinks());
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
         }
         return WorkResults.didWork(didWork);
     }

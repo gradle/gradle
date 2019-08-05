@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,26 +54,22 @@ public class DefaultDeleter implements Deleter {
     }
 
     @Override
-    public boolean deleteRecursively(File root, boolean followSymlinks) {
+    public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
             LOGGER.debug("Deleting {}", root);
-            deleteRoot(root, followSymlinks);
+            long startTime = timeProvider.get();
+            Collection<String> failedPaths = new ArrayList<String>();
+            deleteRecursively(startTime, root, root, followSymlinks, failedPaths);
+            if (!failedPaths.isEmpty()) {
+                throwWithHelpMessage(startTime, root, followSymlinks, failedPaths, false);
+            }
             return true;
         } else {
             return false;
         }
     }
 
-    private void deleteRoot(File file, boolean followSymlinks) {
-        long startTime = timeProvider.get();
-        Collection<String> failedPaths = new ArrayList<String>();
-        deleteRecursively(startTime, file, file, followSymlinks, failedPaths);
-        if (!failedPaths.isEmpty()) {
-            throwWithHelpMessage(startTime, file, followSymlinks, failedPaths, false);
-        }
-    }
-
-    private void deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, Collection<String> failedPaths) {
+    private void deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, Collection<String> failedPaths) throws IOException {
 
         if (shouldFollow(file, followSymlinks)) {
             File[] contents = file.listFiles();
@@ -87,8 +84,8 @@ public class DefaultDeleter implements Deleter {
             }
         }
 
-        if (!deleteFile(file)) {
-            handleFailedDelete(file, failedPaths);
+        if (!delete(file)) {
+            failedPaths.add(file.getAbsolutePath());
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
@@ -105,7 +102,13 @@ public class DefaultDeleter implements Deleter {
         return file.delete() && !file.exists();
     }
 
-    private void handleFailedDelete(File file, Collection<String> failedPaths) {
+    @Override
+    public boolean delete(File file) {
+        boolean deleted = deleteFile(file);
+        if (deleted) {
+            return true;
+        }
+
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
         // It mentions that there is a bug in the Windows JDK implementations that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
@@ -119,13 +122,11 @@ public class DefaultDeleter implements Deleter {
             Thread.currentThread().interrupt();
         }
 
-        if (!deleteFile(file)) {
-            failedPaths.add(file.getAbsolutePath());
-        }
+        return deleteFile(file);
     }
 
-    private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) {
-        throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, followSymlinks, failedPaths, more));
+    private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) throws IOException {
+        throw new IOException(buildHelpMessageForFailedDelete(startTime, file, followSymlinks, failedPaths, more));
     }
 
     private String buildHelpMessageForFailedDelete(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) {

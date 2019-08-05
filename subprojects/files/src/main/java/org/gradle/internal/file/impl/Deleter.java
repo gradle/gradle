@@ -17,7 +17,33 @@
 package org.gradle.internal.file.impl;
 
 import java.io.File;
+import java.io.IOException;
 
+/**
+ * A file deleter that doesn't give up if deletion doesn't work on the first try.
+ */
 public interface Deleter {
-    boolean deleteRecursively(File roots, boolean followSymlinks);
+    /**
+     * Attempts to delete the given file or directory recursively.
+     *
+     * Can delete directories with contents.
+     * Follows symlinks pointing to directories when instructed to.
+     *
+     * @return {@code true} if anything was removed, {@code false} if no change was
+     *         attempted (because {@code target} didn't exist).
+     *
+     * @throws IOException when {@code target} cannot be deleted (with detailed error
+     *         message).
+     */
+    boolean deleteRecursively(File target, boolean followSymlinks) throws IOException;
+
+    /**
+     * Attempts to delete a single file or an empty directory.
+     *
+     * Does not follow symlinks.
+     *
+     * @return {@code true} if the removal was successful, {@code false} otherwise
+     *         (including when {@code target} doesn't exist).
+     */
+    boolean delete(File target);
 }
