@@ -23,6 +23,11 @@ import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStore
 
+/**
+ * Runs cross version performance tests using Gradle's internal infrastructure.
+ *
+ * Consider using {@link GradleProfilerCrossVersionPerformanceTestRunner} instead, as it is meant to replace this class.
+ */
 class CrossVersionPerformanceTestRunner extends AbstractCrossVersionPerformanceTestRunner {
 
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()

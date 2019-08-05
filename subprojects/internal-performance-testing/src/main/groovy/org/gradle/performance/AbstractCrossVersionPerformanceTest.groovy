@@ -33,6 +33,12 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
+/**
+ * A base class for cross version performance tests.
+ *
+ * This base class uses infrastructure internal to the Gradle build as a backend for running the performance tests.
+ * Use {@link AbstractCrossVersionGradleProfilerPerformanceTest} going forward, since it is meant to replace the current class.
+ */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
 class AbstractCrossVersionPerformanceTest extends Specification {

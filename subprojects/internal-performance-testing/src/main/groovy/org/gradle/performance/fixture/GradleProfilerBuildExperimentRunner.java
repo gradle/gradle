@@ -52,6 +52,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * {@inheritDoc}
+ *
+ * This runner uses Gradle profiler to execute the actual experiment.
+ */
 public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";

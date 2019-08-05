@@ -21,6 +21,12 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
+/**
+ * Runs a single build experiment.
+ *
+ * As part of a performance scenario, multiple experiments need to be run and compared.
+ * For example for a cross-version scenario, experiments for each version will be run.
+ */
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
 
     @Override

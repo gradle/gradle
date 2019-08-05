@@ -26,6 +26,9 @@ import org.gradle.profiler.InvocationSettings
 
 import java.util.function.Function
 
+/**
+ * Runs cross version performance tests using Gradle profiler.
+ */
 class GradleProfilerCrossVersionPerformanceTestRunner extends AbstractCrossVersionPerformanceTestRunner {
 
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []

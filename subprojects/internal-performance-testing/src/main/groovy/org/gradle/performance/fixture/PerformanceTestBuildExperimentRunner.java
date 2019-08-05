@@ -26,6 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * {@inheritDoc}
+ *
+ * This runner uses Gradle's internal infrastructure to execute the actual experiment.
+ * Consider using {@link GradleProfilerBuildExperimentRunner} instead, as it is meant to replace this class.
+ */
 public class PerformanceTestBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private final GradleSessionProvider executerProvider;
