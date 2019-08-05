@@ -42,6 +42,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.file.impl.DefaultDeleter;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -64,7 +65,7 @@ public class DefaultFileOperations implements FileOperations {
     @Nullable
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
-    private final DefaultDeleter deleter;
+    private final Deleter deleter;
     private final DefaultResourceHandler resourceHandler;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;

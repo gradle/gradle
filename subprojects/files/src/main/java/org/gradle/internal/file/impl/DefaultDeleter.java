@@ -30,7 +30,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @SuppressWarnings("Since15")
-public class DefaultDeleter {
+public class DefaultDeleter implements Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
 
     private final Supplier<Long> timeProvider;
@@ -51,6 +51,7 @@ public class DefaultDeleter {
         this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
 
+    @Override
     public boolean delete(Iterable<File> roots, Predicate<? super File> follow) {
         boolean didWork = false;
         for (File root : roots) {
