@@ -47,6 +47,11 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
     }
 
     @Override
+    public String toString() {
+        return artifactId.getDisplayName();
+    }
+
+    @Override
     public ComponentArtifactIdentifier getId() {
         return artifactId;
     }
