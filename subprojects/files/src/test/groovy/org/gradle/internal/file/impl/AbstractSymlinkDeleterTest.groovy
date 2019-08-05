@@ -16,21 +16,25 @@
 
 package org.gradle.internal.file.impl
 
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.nio.file.Files
 
 abstract class AbstractSymlinkDeleterTest extends Specification {
     static final boolean FOLLOW_SYMLINKS = true
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, { Files.isSymbolicLink(it.toPath()) }, false)
+    DefaultDeleter deleter = new DefaultDeleter(
+        { System.currentTimeMillis() },
+        { NativeServicesTestFixture.getInstance().get(FileSystem).isSymlink(it) },
+        false
+    )
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())

@@ -40,6 +40,7 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.file.impl.Deleter
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
@@ -47,7 +48,6 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
@@ -65,7 +65,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def instantiator = Mock(Instantiator)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
-    def scopeClassLoader = Mock(ClassLoader)
     def baseChildClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
@@ -83,11 +82,28 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def fileHasher = Mock(FileHasher)
     def execFactory = Mock(ExecFactory)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
-    def clock = Mock(Clock)
+    def deleter = Mock(Deleter)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, TestFiles.fileSystem(), fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
-        streamHasher, fileHasher, execFactory, Stub(FileCollectionFactory), autoAppliedPluginHandler, clock)
+    def factory = new DefaultScriptPluginFactory(
+        scriptCompilerFactory,
+        loggingManagerFactory,
+        instantiator,
+        scriptHandlerFactory,
+        pluginRequestApplicator,
+        TestFiles.fileSystem(),
+        fileLookup,
+        directoryFileTreeFactory,
+        documentationRegistry,
+        new ModelRuleSourceDetector(),
+        providerFactory,
+        textResourceLoader,
+        streamHasher,
+        fileHasher,
+        execFactory,
+        Stub(FileCollectionFactory),
+        autoAppliedPluginHandler,
+        deleter
+    )
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
@@ -98,7 +114,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
-        classpathHasher.hash(_) >> HashCode.fromInt(123)
+        classpathHasher.hash(_ as ClassPath) >> HashCode.fromInt(123)
 
         1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> new DefaultPluginRequests(Lists.newArrayList())
     }

@@ -41,16 +41,13 @@ import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
-import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
-import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -74,7 +71,20 @@ public class DefaultFileOperations implements FileOperations {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem, Clock clock) {
+    public DefaultFileOperations(
+        FileResolver fileResolver,
+        @Nullable TaskResolver taskResolver,
+        @Nullable TemporaryFileProvider temporaryFileProvider,
+        Instantiator instantiator,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        @Nullable TextResourceLoader textResourceLoader,
+        FileCollectionFactory fileCollectionFactory,
+        FileSystem fileSystem,
+        Deleter deleter
+    ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
@@ -86,7 +96,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
-        this.deleter = new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, OperatingSystem.current().isWindows());
+        this.deleter = deleter;
     }
 
     @Override

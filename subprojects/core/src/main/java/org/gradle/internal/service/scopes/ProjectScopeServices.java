@@ -79,6 +79,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -92,7 +93,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -164,8 +164,33 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem, Clock clock) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory, fileSystem, clock);
+    protected DefaultFileOperations createFileOperations(
+        FileResolver fileResolver,
+        TemporaryFileProvider temporaryFileProvider,
+        Instantiator instantiator,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        TextResourceLoader textResourceLoader,
+        FileCollectionFactory fileCollectionFactory,
+        FileSystem fileSystem,
+        Deleter deleter
+    ) {
+        return new DefaultFileOperations(
+            fileResolver,
+            project.getTasks(),
+            temporaryFileProvider,
+            instantiator,
+            fileLookup,
+            directoryFileTreeFactory,
+            streamHasher,
+            fileHasher,
+            textResourceLoader,
+            fileCollectionFactory,
+            fileSystem,
+            deleter
+        );
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {
