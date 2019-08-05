@@ -175,9 +175,10 @@ This value must contain an array with zero or more elements. Each element must b
 
 #### 1.1
 
-- Added support for _subgraph version constraints_: `version { forSubgraph = true }`
+- Adds support for _subgraph version constraints_: `version { forSubgraph = true }`
 
 #### 1.0
+
 - Initial release
 
 ## Example
@@ -247,7 +248,14 @@ This value must contain an array with zero or more elements. Each element must b
                 { 
                     "group": "some.group", 
                     "module": "other-lib", 
-                    "version": { "requires": "[3.0, 4.0)", "prefers": "3.4", "rejects": ["3.4.1"], "forSubgraph": true } 
+                    "version": { "requires": "[3.0, 4.0)", "prefers": "3.4", "rejects": ["3.4.1"] } 
+                }
+            ],
+            "dependencyConstraints": [
+                { 
+                    "group": "some.group", 
+                    "module": "other-lib-2", 
+                    "version": { "requires": "1.0", "forSubgraph": true } 
                 }
             ]
         }
