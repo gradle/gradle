@@ -748,7 +748,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse module metadata <resource>: unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 1.0."
+        e.message == "Could not parse module metadata <resource>: unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 1.1."
         e.cause.message == "Expected BEGIN_ARRAY but was BEGIN_OBJECT at line 1 column 42 path \$.variants"
     }
 
