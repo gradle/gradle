@@ -22,17 +22,14 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.internal.serialize.SetSerializer
-import java.io.File
 
 
 internal
 class ConfigurableFileCollectionCodec(
-    fileSetSerializer: SetSerializer<File>,
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileCollection> {
     private
-    val codec = FileCollectionCodec(fileSetSerializer, fileCollectionFactory)
+    val codec = FileCollectionCodec(fileCollectionFactory)
 
     override suspend fun WriteContext.encode(value: ConfigurableFileCollection) =
         codec.run { encode(value as FileCollectionInternal) }

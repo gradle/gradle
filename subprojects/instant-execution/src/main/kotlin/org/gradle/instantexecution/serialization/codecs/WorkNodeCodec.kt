@@ -24,13 +24,11 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskNodeFactory
@@ -55,7 +53,6 @@ import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeEnum
-import org.gradle.internal.service.ServiceRegistry
 
 
 internal
@@ -64,7 +61,7 @@ class WorkNodeCodec(
     private val taskNodeFactory: TaskNodeFactory
 ) {
 
-    fun MutableWriteContext.writeWorkOf(nodes: List<Node>) {
+    suspend fun MutableWriteContext.writeWork(nodes: List<Node>) {
         val ids = HashMap<Node, Int>(nodes.size)
         writeSmallInt(nodes.size)
         for (node in nodes) {
@@ -73,7 +70,7 @@ class WorkNodeCodec(
     }
 
     private
-    fun MutableWriteContext.writeNode(node: Node, ids: MutableMap<Node, Int>) {
+    suspend fun MutableWriteContext.writeNode(node: Node, ids: MutableMap<Node, Int>) {
         if (ids.containsKey(node)) {
             // Already visited
             return
@@ -97,7 +94,7 @@ class WorkNodeCodec(
             }
             else -> {
                 writeByte(2)
-                // Ignore
+                TransformationNodeCodec.run { encode(node) }
             }
         }
         writeCollection(node.dependencySuccessors) { writeSmallInt(ids.getValue(it)) }
@@ -116,7 +113,7 @@ class WorkNodeCodec(
                     taskNodeFactory.getOrCreateNode(task)
                 }
                 2.toByte() -> {
-                    dummyNode()
+                    TransformationNodeCodec.run { decode() }
                 }
                 else -> throw IllegalArgumentException()
             }
@@ -132,18 +129,6 @@ class WorkNodeCodec(
             nodes.add(node)
         }
         return nodes
-    }
-
-    private
-    fun dummyNode(): Node {
-        return ActionNode(object : WorkNodeAction {
-            override fun getProject(): Project? {
-                return null
-            }
-
-            override fun run(registry: ServiceRegistry) {
-            }
-        })
     }
 
     private
