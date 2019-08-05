@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
@@ -59,10 +60,13 @@ public class Deleter {
         DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
         FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
-        return deleteInternal(roots, file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file)));
+        return deleteInternal(
+            roots,
+            file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file)),
+            clock::getCurrentTime);
     }
 
-    private boolean deleteInternal(Iterable<File> roots, Predicate<? super File> filter) {
+    private boolean deleteInternal(Iterable<File> roots, Predicate<? super File> filter, Supplier<Long> timeProvider) {
         boolean didWork = false;
         for (File root : roots) {
             if (!root.exists()) {
@@ -70,13 +74,13 @@ public class Deleter {
             }
             LOGGER.debug("Deleting {}", root);
             didWork = true;
-            deleteRoot(root, filter);
+            deleteRoot(root, filter, timeProvider);
         }
         return didWork;
     }
 
-    private void deleteRoot(File file, Predicate<? super File> filter) {
-        long startTime = clock.getCurrentTime();
+    private void deleteRoot(File file, Predicate<? super File> filter, Supplier<Long> timeProvider) {
+        long startTime = timeProvider.get();
         Collection<String> failedPaths = new ArrayList<>();
         deleteRecursively(startTime, file, file, filter, failedPaths);
         if (!failedPaths.isEmpty()) {
