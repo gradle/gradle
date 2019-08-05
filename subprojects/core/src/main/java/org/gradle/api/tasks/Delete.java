@@ -20,13 +20,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.delete.Deleter;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.time.Clock;
 
-import javax.inject.Inject;
 import java.util.Set;
 
 /**
@@ -47,34 +41,13 @@ public class Delete extends ConventionTask implements DeleteSpec {
 
     private boolean followSymlinks;
 
-    @Inject
-    protected FileSystem getFileSystem() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileResolver getFileResolver() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Injected Clock.
-     *
-     * @since 5.3
-     */
-    @Inject
-    protected Clock getClock() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
     protected void clean() {
-        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock()::getCurrentTime, OperatingSystem.current().isWindows());
-        boolean innerFollowSymLinks = followSymlinks;
-        setDidWork(deleter.delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(innerFollowSymLinks)));
+        WorkResult didWork = getProject().delete(deleteSpec -> deleteSpec
+            .delete(paths)
+            .setFollowSymlinks(followSymlinks)
+        );
+        setDidWork(didWork.getDidWork());
     }
 
     /**
