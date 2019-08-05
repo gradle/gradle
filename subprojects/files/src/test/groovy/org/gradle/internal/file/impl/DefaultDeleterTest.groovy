@@ -112,10 +112,9 @@ class DefaultDeleterTest extends Specification {
 
         and:
         deleter = FileTime.deleterWithDeletionAction() { file ->
-            if (file.canonicalFile == nonDeletable.canonicalFile) {
-                return DeletionAction.FAILURE
-            }
-            return DeletionAction.CONTINUE
+            file.canonicalFile == nonDeletable.canonicalFile
+                ? DeletionAction.FAILURE
+                : DeletionAction.CONTINUE
         }
 
         when:
@@ -259,10 +258,8 @@ class DefaultDeleterTest extends Specification {
                 @Override
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {
-                        case DeletionAction.SUCCESS:
-                            return true
                         case DeletionAction.FAILURE:
-                            return false
+                            throw new IOException("Failure")
                         case DeletionAction.CONTINUE:
                             return super.deleteFile(file)
                         default:
@@ -289,7 +286,7 @@ class DefaultDeleterTest extends Specification {
     }
 
     private static enum DeletionAction {
-        FAILURE, SUCCESS, CONTINUE
+        FAILURE, CONTINUE
     }
 
     private boolean delete(File target) {

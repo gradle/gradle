@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,7 +85,9 @@ public class DefaultDeleter implements Deleter {
             }
         }
 
-        if (!delete(file)) {
+        try {
+            delete(file);
+        } catch (IOException ex) {
             failedPaths.add(file.getAbsolutePath());
 
             // Fail fast
@@ -98,17 +101,22 @@ public class DefaultDeleter implements Deleter {
         return file.isDirectory() && (followSymlinks || !isSymlink.test(file));
     }
 
-    protected boolean deleteFile(File file) {
-        return file.delete() && !file.exists();
+    protected boolean deleteFile(File file) throws IOException {
+        return Files.deleteIfExists(file.toPath());
     }
 
     @Override
-    public boolean delete(File file) {
-        boolean deleted = deleteFile(file);
-        if (deleted) {
-            return true;
+    public boolean delete(File file) throws IOException {
+        try {
+            return deleteFile(file);
+        } catch (IOException ex) {
+            LOGGER.debug("Retrying removal of {} after exception", file.getAbsolutePath(), ex);
+            prayBeforeRetry();
+            return deleteFile(file);
         }
+    }
 
+    private void prayBeforeRetry() {
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
         // It mentions that there is a bug in the Windows JDK implementations that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
@@ -121,8 +129,6 @@ public class DefaultDeleter implements Deleter {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-
-        return deleteFile(file);
     }
 
     private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) throws IOException {

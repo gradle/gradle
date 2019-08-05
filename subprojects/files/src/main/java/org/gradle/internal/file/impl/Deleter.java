@@ -43,7 +43,9 @@ public interface Deleter {
      * Does not follow symlinks.
      *
      * @return {@code true} if the removal was successful, {@code false} otherwise
-     *         (including when {@code target} doesn't exist).
+     *         (because {@code target} didn't exist).
+     *
+     * @throws IOException when {@code target} cannot be deleted.
      */
-    boolean delete(File target);
+    boolean delete(File target) throws IOException;
 }
