@@ -107,7 +107,11 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     @Override
     String toString() {
-        return "HttpServer " + String.valueOf(getUri())
+        if (server.started) {
+            return "HttpServer " + String.valueOf(getUri())
+        } else {
+            return "HttpServer (unstarted)"
+        }
     }
 
     protected Logger getLogger() {
