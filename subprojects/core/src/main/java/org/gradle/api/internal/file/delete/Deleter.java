@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.delete;
 import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.UnableToDeleteFileException;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
@@ -26,11 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
@@ -53,33 +56,37 @@ public class Deleter {
     }
 
     public boolean delete(Action<? super DeleteSpec> action) {
-        boolean didWork = false;
         DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
-        Object[] paths = deleteSpec.getPaths();
-        for (File file : fileResolver.resolveFiles(paths)) {
-            if (!file.exists()) {
+        FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
+        return deleteInternal(roots, file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file)));
+    }
+
+    private boolean deleteInternal(Iterable<File> roots, Predicate<? super File> filter) {
+        boolean didWork = false;
+        for (File root : roots) {
+            if (!root.exists()) {
                 continue;
             }
-            LOGGER.debug("Deleting {}", file);
+            LOGGER.debug("Deleting {}", root);
             didWork = true;
-            doDeleteInternal(file, deleteSpec);
+            deleteRoot(root, filter);
         }
         return didWork;
     }
 
-    private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
+    private void deleteRoot(File file, Predicate<? super File> filter) {
         long startTime = clock.getCurrentTime();
         Collection<String> failedPaths = new ArrayList<>();
-        deleteRecursively(startTime, file, file, deleteSpec, failedPaths);
+        deleteRecursively(startTime, file, file, filter, failedPaths);
         if (!failedPaths.isEmpty()) {
-            throwWithHelpMessage(startTime, file, deleteSpec, failedPaths, false);
+            throwWithHelpMessage(startTime, file, filter, failedPaths, false);
         }
     }
 
-    private void deleteRecursively(long startTime, File baseDir, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths) {
+    private void deleteRecursively(long startTime, File baseDir, File file, Predicate<? super File> filter, Collection<String> failedPaths) {
 
-        if (file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))) {
+        if (filter.test(file)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -88,7 +95,7 @@ public class Deleter {
             }
 
             for (File item : contents) {
-                deleteRecursively(startTime, baseDir, item, deleteSpec, failedPaths);
+                deleteRecursively(startTime, baseDir, item, filter, failedPaths);
             }
         }
 
@@ -97,7 +104,7 @@ public class Deleter {
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
-                throwWithHelpMessage(startTime, baseDir, deleteSpec, failedPaths, true);
+                throwWithHelpMessage(startTime, baseDir, filter, failedPaths, true);
             }
         }
     }
@@ -108,7 +115,7 @@ public class Deleter {
 
     private void handleFailedDelete(File file, Collection<String> failedPaths) {
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
-        // It mentions that there is a bug in the Windows JDK impls that this is a valid
+        // It mentions that there is a bug in the Windows JDK implementations that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
         // The thinking is that if this is good enough for Ant, it's good enough for us.
         if (isRunGcOnFailedDelete()) {
@@ -129,28 +136,24 @@ public class Deleter {
         return OperatingSystem.current().isWindows();
     }
 
-    private void throwWithHelpMessage(long startTime, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths, boolean more) {
-        throw new UnableToDeleteFileException(file, buildHelpMessageForFailedDelete(startTime, file, deleteSpec, failedPaths, more));
+    private void throwWithHelpMessage(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {
+        throw new UnableToDeleteFileException(file, buildHelpMessageForFailedDelete(startTime, file, filter, failedPaths, more));
     }
 
-    private String buildHelpMessageForFailedDelete(long startTime, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths, boolean more) {
-
-        boolean isSymlink = fileSystem.isSymlink(file);
-        boolean isDirectory = file.isDirectory();
+    private String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
-        if (isSymlink) {
+        if (Files.isSymbolicLink(file.toPath())) {
             help.append("symlink to ");
         }
-        if (isDirectory) {
+        if (file.isDirectory()) {
             help.append("directory ");
         } else {
             help.append("file ");
         }
         help.append('\'').append(file).append('\'');
 
-        if (isDirectory && (deleteSpec.isFollowSymlinks() || !isSymlink)) {
-
+        if (filter.test(file)) {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {
