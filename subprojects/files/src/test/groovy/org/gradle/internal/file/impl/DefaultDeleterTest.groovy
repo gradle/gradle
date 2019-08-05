@@ -60,21 +60,6 @@ class DefaultDeleterTest extends Specification {
         didWork
     }
 
-    def "deletes multiple targets"() {
-        given:
-        TestFile file = tmpDir.getTestDirectory().file("someFile").createFile()
-        TestFile dir = tmpDir.getTestDirectory().file("someDir").createDir()
-        dir.file("sub/child").createFile()
-
-        when:
-        boolean didWork = delete(file, dir)
-
-        then:
-        file.assertDoesNotExist()
-        dir.assertDoesNotExist()
-        didWork
-    }
-
     def "didWork is false when nothing has been deleted"() {
         given:
         TestFile dir = tmpDir.file("unknown")
@@ -307,7 +292,7 @@ class DefaultDeleterTest extends Specification {
         FAILURE, SUCCESS, CONTINUE
     }
 
-    private boolean delete(File... things) {
-        return deleter.delete(things as List, false)
+    private boolean delete(File target) {
+        return deleter.deleteRecursively(target, false)
     }
 }

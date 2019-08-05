@@ -185,10 +185,10 @@ public class DefaultFileOperations implements FileOperations {
         DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
         FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
-        boolean didWork = deleter.delete(
-            roots,
-            deleteSpec.isFollowSymlinks()
-        );
+        boolean didWork = false;
+        for (File root : roots) {
+            didWork |= deleter.deleteRecursively(root, deleteSpec.isFollowSymlinks());
+        }
         return WorkResults.didWork(didWork);
     }
 

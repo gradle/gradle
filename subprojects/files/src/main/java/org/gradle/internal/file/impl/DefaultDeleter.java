@@ -53,17 +53,14 @@ public class DefaultDeleter implements Deleter {
     }
 
     @Override
-    public boolean delete(Iterable<File> roots, boolean followSymlinks) {
-        boolean didWork = false;
-        for (File root : roots) {
-            if (!root.exists()) {
-                continue;
-            }
+    public boolean deleteRecursively(File root, boolean followSymlinks) {
+        if (root.exists()) {
             LOGGER.debug("Deleting {}", root);
-            didWork = true;
             deleteRoot(root, followSymlinks);
+            return true;
+        } else {
+            return false;
         }
-        return didWork;
     }
 
     private void deleteRoot(File file, boolean followSymlinks) {

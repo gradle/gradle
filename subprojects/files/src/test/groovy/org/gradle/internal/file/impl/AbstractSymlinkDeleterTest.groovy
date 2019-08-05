@@ -118,8 +118,8 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         followSymlinks << [true, false]
     }
 
-    private boolean delete(boolean followSymlinks, File... paths) {
-        return deleter.delete(paths as List, followSymlinks)
+    private boolean delete(boolean followSymlinks, File path) {
+        return deleter.deleteRecursively(path, followSymlinks)
     }
 
     protected abstract void createSymbolicLink(File link, TestFile target)

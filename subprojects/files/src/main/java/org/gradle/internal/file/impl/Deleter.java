@@ -19,5 +19,5 @@ package org.gradle.internal.file.impl;
 import java.io.File;
 
 public interface Deleter {
-    boolean delete(Iterable<File> roots, boolean followSymlinks);
+    boolean deleteRecursively(File roots, boolean followSymlinks);
 }

@@ -34,7 +34,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.Optional;
 
 public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
@@ -117,7 +116,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private void cleanLocalState(UnitOfWork work) {
         work.visitLocalState(localStateFile -> {
             try {
-                deleter.delete(Collections.singletonList(localStateFile), true);
+                deleter.deleteRecursively(localStateFile, true);
             } catch (Exception ex) {
                 throw new RuntimeException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateFile), ex);
             }

@@ -77,9 +77,8 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         _ * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
             visitor.visitLocalStateRoot(localStateFile)
         }
-        1 * deleter.delete(_, _) >> { Iterable<File> files, boolean followSymlinks ->
-            assert files.size() == 1
-            assert files[0] == localStateFile
+        1 * deleter.deleteRecursively(_, _) >> { File root, boolean followSymlinks ->
+            assert root == localStateFile
             return true
         }
 
