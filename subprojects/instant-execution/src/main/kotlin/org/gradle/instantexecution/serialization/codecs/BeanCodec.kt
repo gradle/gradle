@@ -22,6 +22,7 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.beans.SerializableWriteReplaceWriter
 import org.gradle.instantexecution.serialization.withPropertyTrace
 
 
@@ -35,9 +36,17 @@ class BeanCodec : Codec<Any> {
         } else {
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
-            writeClass(beanType)
             withBeanTrace(beanType) {
                 beanStateWriterFor(beanType).run {
+                    if (this is SerializableWriteReplaceWriter) {
+                        // When using the `writeReplace` strategy
+                        // we don't want to serialize the beanType
+                        // Class reference as it might not be directly
+                        // resolvable as in the case of Java lambdas
+                        writeClass(java.io.Serializable::class.java)
+                    } else {
+                        writeClass(beanType)
+                    }
                     writeStateOf(value)
                 }
             }
@@ -52,14 +61,43 @@ class BeanCodec : Codec<Any> {
         }
         val beanType = readClass()
         return withBeanTrace(beanType) {
-            beanStateReaderFor(beanType).run {
-                val bean = newBean()
-                isolate.identities.putInstance(id, bean)
-                readStateOf(bean)
-                bean
+            when (beanType) {
+                java.io.Serializable::class.java -> {
+                    val bean = readSerializableBean()!!
+                    isolate.identities.putInstance(id, bean)
+                    bean
+                }
+                else -> {
+                    beanStateReaderFor(beanType).run {
+                        val bean = newBean()
+                        isolate.identities.putInstance(id, bean)
+                        readStateOf(bean)
+                        bean
+                    }
+                }
             }
         }
     }
+
+    /**
+     * Reads a bean resulting from a `writeReplace` method invocation
+     * honouring `readResolve` if it's present.
+     */
+    private
+    suspend fun ReadContext.readSerializableBean(): Any? {
+        val bean = read()!!
+        return when (val readResolve = readResolveMethodFor(bean)) {
+            null -> bean
+            else -> readResolve.invoke(bean)
+        }
+    }
+
+    private
+    fun readResolveMethodFor(bean: Any) =
+        bean.javaClass
+            .declaredMethods
+            .firstOrNull { it.name == "readResolve" && it.parameters.isEmpty() }
+            ?.apply { isAccessible = true }
 
     private
     inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
