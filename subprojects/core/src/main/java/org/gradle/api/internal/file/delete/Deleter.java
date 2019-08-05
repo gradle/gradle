@@ -15,11 +15,6 @@
  */
 package org.gradle.api.internal.file.delete;
 
-import org.gradle.api.Action;
-import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +31,6 @@ import java.util.function.Supplier;
 public class Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
 
-    private final FileResolver fileResolver;
-    private final FileSystem fileSystem;
     private final Supplier<Long> timeProvider;
     private final boolean runGcOnFailedDelete;
 
@@ -48,24 +41,12 @@ public class Deleter {
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Supplier<Long> timeProvider, boolean runGcOnFailedDelete) {
-        this.fileResolver = fileResolver;
-        this.fileSystem = fileSystem;
+    public Deleter(Supplier<Long> timeProvider, boolean runGcOnFailedDelete) {
         this.timeProvider = timeProvider;
         this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
 
-    public boolean delete(Action<? super DeleteSpec> action) {
-        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
-        action.execute(deleteSpec);
-        FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
-        return deleteInternal(
-            roots,
-            file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))
-        );
-    }
-
-    boolean deleteInternal(Iterable<File> roots, Predicate<? super File> follow) {
+    public boolean delete(Iterable<File> roots, Predicate<? super File> follow) {
         boolean didWork = false;
         for (File root : roots) {
             if (!root.exists()) {
@@ -135,11 +116,11 @@ public class Deleter {
         }
     }
 
-    private void throwWithHelpMessage(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
+    private static void throwWithHelpMessage(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
         throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, follow, failedPaths, more));
     }
 
-    private String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
+    private static String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
         if (Files.isSymbolicLink(file.toPath())) {

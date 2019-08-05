@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.file.delete
 
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
@@ -35,8 +33,7 @@ import static org.junit.Assume.assumeTrue
 class DeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter deleter = new Deleter(resolver, fileSystem(), { Time.clock().currentTime }, false)
+    Deleter deleter = new Deleter({ Time.clock().currentTime }, false)
 
     def deletesDirectory() {
         given:
@@ -100,7 +97,7 @@ class DeleterTest extends Specification {
         }
 
         given:
-        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction() { file ->
             return DeletionAction.FAILURE
         }
 
@@ -131,7 +128,7 @@ class DeleterTest extends Specification {
         def nonDeletable = targetDir.createFile("delete.no")
 
         and:
-        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction() { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
                 return DeletionAction.FAILURE
             }
@@ -164,7 +161,7 @@ class DeleterTest extends Specification {
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction() { file ->
             if (file.canonicalFile == triggerFile.canonicalFile) {
                 FileTime.createNewFile(newFile)
             }
@@ -196,7 +193,7 @@ class DeleterTest extends Specification {
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction() { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
                 FileTime.createNewFile(newFile)
                 return DeletionAction.FAILURE
@@ -234,7 +231,7 @@ class DeleterTest extends Specification {
         and: 'a deleter that cannot delete, records deletion requests and creates new files'
         def triedToDelete = [] as Set<File>
         def newFiles = tooManyRange.collect { targetDir.file("aaa-${it}-aaa.txt") }
-        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction() { file ->
             triedToDelete << file
             newFiles.each { FileTime.createNewFile(it) }
             return DeletionAction.FAILURE
@@ -281,8 +278,8 @@ class DeleterTest extends Specification {
             }
         }
 
-        static Deleter deleterWithDeletionAction(FileResolver resolver, Function<File, DeletionAction> deletionAction) {
-            new Deleter(resolver, fileSystem(), { clock.currentTime }, false) {
+        static Deleter deleterWithDeletionAction(Function<File, DeletionAction> deletionAction) {
+            new Deleter({ clock.currentTime }, false) {
                 @Override
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {
@@ -320,6 +317,6 @@ class DeleterTest extends Specification {
     }
 
     private boolean delete(File... things) {
-        return deleter.deleteInternal(things as List, { it.directory })
+        return deleter.delete(things as List, { it.directory })
     }
 }

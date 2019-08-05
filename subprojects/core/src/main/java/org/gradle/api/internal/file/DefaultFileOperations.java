@@ -31,6 +31,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
+import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
+import org.gradle.api.internal.file.delete.DeleteSpecInternal;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.resources.DefaultResourceResolver;
@@ -83,7 +85,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
-        this.deleter = new Deleter(fileResolver, fileSystem, clock::getCurrentTime, OperatingSystem.current().isWindows());
+        this.deleter = new Deleter(clock::getCurrentTime, OperatingSystem.current().isWindows());
     }
 
     @Override
@@ -169,7 +171,14 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
-        return WorkResults.didWork(deleter.delete(action));
+        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
+        action.execute(deleteSpec);
+        FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
+        boolean didWork = deleter.delete(
+            roots,
+            file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))
+        );
+        return WorkResults.didWork(didWork);
     }
 
     @Override
