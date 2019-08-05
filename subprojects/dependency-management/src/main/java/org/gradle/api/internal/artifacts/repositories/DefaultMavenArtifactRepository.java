@@ -27,13 +27,11 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -45,6 +43,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -56,6 +55,7 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -64,6 +64,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -214,6 +215,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             .setMetadataSources(metadataSources.asList())
             .setArtifactUrls(Sets.newHashSet(getArtifactUrls()))
             .create();
+    }
+
+    @Override
+    protected Collection<URI> getRepositoryUrls() {
+        // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
+        ImmutableList.Builder<URI> builder = ImmutableList.builder();
+        URI root = getUrl();
+        if (root != null) {
+            builder.add(root);
+        }
+        builder.addAll(getArtifactUrls());
+        return builder.build();
     }
 
     private void validate() {
