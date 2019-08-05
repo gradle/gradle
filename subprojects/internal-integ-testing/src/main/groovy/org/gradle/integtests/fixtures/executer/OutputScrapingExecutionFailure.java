@@ -37,12 +37,12 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+?)'.+?') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private final String summary;
-    private final List<String> descriptions = new ArrayList<String>();
-    private final List<String> lineNumbers = new ArrayList<String>();
-    private final List<String> fileNames = new ArrayList<String>();
+    private final List<String> descriptions = new ArrayList<>();
+    private final List<String> lineNumbers = new ArrayList<>();
+    private final List<String> fileNames = new ArrayList<>();
     private final String resolution;
     // with normalized line endings
-    private final List<String> causes = new ArrayList<String>();
+    private final List<String> causes = new ArrayList<>();
     private final LogContent mainContent;
 
     static boolean hasFailure(String error) {
@@ -129,7 +129,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private Problem extract(String problem) {
         java.util.regex.Matcher matcher = CAUSE_PATTERN.matcher(problem);
         String description;
-        List<String> causes = new ArrayList<String>();
+        List<String> causes = new ArrayList<>();
         if (!matcher.find()) {
             description = TextUtil.normaliseLineSeparators(problem.trim());
         } else {
@@ -189,7 +189,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+    public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
         for (String cause : causes) {
             if (matcher.matches(cause)) {
                 return this;
@@ -229,7 +229,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
+    public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
         for (String description : descriptions) {
             if (matcher.matches(description)) {
                 return this;

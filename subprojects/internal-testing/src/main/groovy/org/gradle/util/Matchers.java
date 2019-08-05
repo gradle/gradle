@@ -115,13 +115,13 @@ public class Matchers {
 
     }
 
-    @Factory
-    @Deprecated
     /**
      * Please avoid using as the hamcrest way of reporting error wraps a multi-line
      * text into a single line and makes hard to understand the problem.
      * Instead, please try to use the spock/groovy assert and {@link #containsLine(String, String)}
      */
+    @Factory
+    @Deprecated
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {
             @Override
@@ -224,7 +224,7 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<String> normalizedLineSeparators(final Matcher<String> matcher) {
+    public static Matcher<String> normalizedLineSeparators(final Matcher<? super String> matcher) {
         return new BaseMatcher<String>() {
             @Override
             public boolean matches(Object o) {
