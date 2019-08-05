@@ -46,7 +46,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         expect:
         instantRun(":resolve")
         outputContains("result = [root.green, a.jar.green, b.jar.green]")
+
         instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
         // For now, scheduled transforms are ignored when writing to the cache
         outputContains("result = [root.green]")
     }
@@ -105,6 +108,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantRun(":resolve")
         outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
         instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
         // For now, scheduled transforms are ignored when writing to the cache
         outputContains("result = [root.blue.green, a.blue.green]")
     }

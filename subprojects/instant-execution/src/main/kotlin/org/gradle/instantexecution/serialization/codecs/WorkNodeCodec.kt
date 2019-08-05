@@ -24,11 +24,13 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskNodeFactory
@@ -53,10 +55,14 @@ import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeEnum
+import org.gradle.internal.service.ServiceRegistry
 
 
 internal
-class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, private val taskNodeFactory: TaskNodeFactory) {
+class WorkNodeCodec(
+    private val projectStateRegistry: ProjectStateRegistry,
+    private val taskNodeFactory: TaskNodeFactory
+) {
 
     fun MutableWriteContext.writeWorkOf(nodes: List<Node>) {
         val ids = HashMap<Node, Int>(nodes.size)
@@ -76,10 +82,10 @@ class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, priv
             writeNode(successor, ids)
         }
         val id = ids.size
+        writeSmallInt(id)
         when (node) {
             is LocalTaskNode -> {
                 writeByte(1)
-                writeSmallInt(id)
                 val task = node.task
                 try {
                     runToCompletionWithMutableStateOf(task.project) {
@@ -88,13 +94,13 @@ class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, priv
                 } catch (e: Exception) {
                     throw GradleException("Could not save state of $task.", e)
                 }
-                writeCollection(node.dependencySuccessors) { writeSmallInt(ids.getValue(it)) }
             }
             else -> {
                 writeByte(2)
                 // Ignore
             }
         }
+        writeCollection(node.dependencySuccessors) { writeSmallInt(ids.getValue(it)) }
         ids[node] = id
     }
 
@@ -103,26 +109,41 @@ class WorkNodeCodec(private val projectStateRegistry: ProjectStateRegistry, priv
         val count = readSmallInt()
         val nodes = ArrayList<Node>(count)
         for (i in 0 until count) {
-            when (readByte()) {
+            val id = readSmallInt()
+            val node = when (readByte()) {
                 1.toByte() -> {
-                    val id = readSmallInt()
                     val task = readTask()
-                    val node = taskNodeFactory.getOrCreateNode(task)
-                    readCollection {
-                        val depId = readSmallInt()
-                        val dep = nodesById[depId]
-                        if (dep != null) { // TODO - remove this check. It's here because we don't serialize nodes that aren't task nodes
-                            node.addDependencySuccessor(dep)
-                        }
-                        node.dependenciesProcessed()
-                    }
-                    nodesById[id] = node
-                    nodes.add(node)
+                    taskNodeFactory.getOrCreateNode(task)
                 }
-                // else, ignore
+                2.toByte() -> {
+                    dummyNode()
+                }
+                else -> throw IllegalArgumentException()
             }
+            readCollection {
+                val depId = readSmallInt()
+                val dep = nodesById[depId]
+                if (dep != null) { // TODO - remove this check. It's here because we don't serialize nodes that aren't task nodes
+                    node.addDependencySuccessor(dep)
+                }
+                node.dependenciesProcessed()
+            }
+            nodesById[id] = node
+            nodes.add(node)
         }
         return nodes
+    }
+
+    private
+    fun dummyNode(): Node {
+        return ActionNode(object : WorkNodeAction {
+            override fun getProject(): Project? {
+                return null
+            }
+
+            override fun run(registry: ServiceRegistry) {
+            }
+        })
     }
 
     private
