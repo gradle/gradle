@@ -45,7 +45,7 @@ class DeleterTest extends Specification {
         dir.file("someFile").createFile()
 
         when:
-        boolean didWork = deleter.delete(dir)
+        boolean didWork = delete(dir)
 
         then:
         dir.assertDoesNotExist()
@@ -59,7 +59,7 @@ class DeleterTest extends Specification {
         file.createFile()
 
         when:
-        boolean didWork = deleter.delete(file)
+        boolean didWork = delete(file)
 
         then:
         file.assertDoesNotExist()
@@ -73,7 +73,7 @@ class DeleterTest extends Specification {
         file.createFile()
 
         when:
-        boolean didWork = deleter.delete('someFile')
+        boolean didWork = delete('someFile')
 
         then:
         file.assertDoesNotExist()
@@ -87,7 +87,7 @@ class DeleterTest extends Specification {
         dir.file("sub/child").createFile()
 
         when:
-        boolean didWork = deleter.delete(file, dir)
+        boolean didWork = delete(file, dir)
 
         then:
         file.assertDoesNotExist()
@@ -101,7 +101,7 @@ class DeleterTest extends Specification {
         dir.assertDoesNotExist()
 
         when:
-        boolean didWork = deleter.delete(dir)
+        boolean didWork = delete(dir)
 
         then:
         !didWork
@@ -124,7 +124,7 @@ class DeleterTest extends Specification {
         target = isSymlink ? tmpDir.file("link").tap { fileSystem().createSymbolicLink(delegate, target) } : target
 
         when:
-        deleter.delete(target)
+        delete(target)
 
         then:
         def ex = thrown UnableToDeleteFileException
@@ -154,7 +154,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        deleter.delete(targetDir)
+        delete(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -187,7 +187,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        deleter.delete(targetDir)
+        delete(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -220,7 +220,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        deleter.delete(targetDir)
+        delete(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -256,7 +256,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        deleter.delete(targetDir)
+        delete(targetDir)
 
         then: 'nothing gets deleted'
         targetDir.assertIsDir()
@@ -332,5 +332,11 @@ class DeleterTest extends Specification {
 
     private static enum DeletionAction {
         FAILURE, SUCCESS, CONTINUE
+    }
+
+    private boolean delete(Object... things) {
+        return deleter.delete {
+            it.delete(things)
+        }
     }
 }

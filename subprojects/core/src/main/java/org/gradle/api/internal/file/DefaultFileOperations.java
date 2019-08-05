@@ -39,6 +39,7 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -162,12 +163,12 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public boolean delete(Object... paths) {
-        return deleter.delete(paths);
+        return delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(false)).getDidWork();
     }
 
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
-        return deleter.delete(action);
+        return WorkResults.didWork(deleter.delete(action));
     }
 
     @Override

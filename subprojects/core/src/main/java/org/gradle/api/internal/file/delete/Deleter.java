@@ -19,8 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
@@ -54,17 +52,7 @@ public class Deleter {
         this.clock = clock;
     }
 
-    public boolean delete(Object... paths) {
-        final Object[] innerPaths = paths;
-        return delete(new Action<DeleteSpec>() {
-            @Override
-            public void execute(DeleteSpec deleteSpec) {
-                deleteSpec.delete(innerPaths).setFollowSymlinks(false);
-            }
-        }).getDidWork();
-    }
-
-    public WorkResult delete(Action<? super DeleteSpec> action) {
+    public boolean delete(Action<? super DeleteSpec> action) {
         boolean didWork = false;
         DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
@@ -77,12 +65,12 @@ public class Deleter {
             didWork = true;
             doDeleteInternal(file, deleteSpec);
         }
-        return WorkResults.didWork(didWork);
+        return didWork;
     }
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
         long startTime = clock.getCurrentTime();
-        Collection<String> failedPaths = new ArrayList<String>();
+        Collection<String> failedPaths = new ArrayList<>();
         deleteRecursively(startTime, file, file, deleteSpec, failedPaths);
         if (!failedPaths.isEmpty()) {
             throwWithHelpMessage(startTime, file, deleteSpec, failedPaths, false);
@@ -189,9 +177,9 @@ public class Deleter {
         return help.toString();
     }
 
-    private Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
-        List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
-        Deque<File> stack = new ArrayDeque<File>();
+    private static Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
+        List<String> paths = new ArrayList<>(MAX_REPORTED_PATHS);
+        Deque<File> stack = new ArrayDeque<>();
         stack.push(directory);
         while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
             File current = stack.pop();

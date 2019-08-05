@@ -36,7 +36,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter delete = new Deleter(resolver, fileSystem(), Time.clock())
+    Deleter deleter = new Deleter(resolver, fileSystem(), Time.clock())
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())
@@ -53,7 +53,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(link)
+        boolean didWork = deleter.delete { deleter(link) }
 
         then:
         !link.exists()
@@ -80,7 +80,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(deleteSpecActionFor(FOLLOW_SYMLINKS, link)).getDidWork()
+        boolean didWork = deleter.delete(deleteSpecActionFor(FOLLOW_SYMLINKS, link))
 
         then:
         !link.exists()
@@ -106,7 +106,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(deleteSpecActionFor(followSymlinks, link)).getDidWork()
+        boolean didWork = deleter.delete(deleteSpecActionFor(followSymlinks, link))
 
         then:
         !link.exists()
