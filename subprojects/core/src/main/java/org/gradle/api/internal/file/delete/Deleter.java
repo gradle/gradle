@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.delete;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -138,7 +137,7 @@ public class Deleter {
     }
 
     private void throwWithHelpMessage(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {
-        throw new UnableToDeleteFileException(file, buildHelpMessageForFailedDelete(startTime, file, filter, failedPaths, more));
+        throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, filter, failedPaths, more));
     }
 
     private String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> filter, Collection<String> failedPaths, boolean more) {

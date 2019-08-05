@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.delete
 
-import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.time.Clock
@@ -127,7 +126,7 @@ class DeleterTest extends Specification {
         delete(target)
 
         then:
-        def ex = thrown UnableToDeleteFileException
+        def ex = thrown Exception
         ex.message == "Unable to delete $description '$target'"
 
         where:
@@ -162,7 +161,7 @@ class DeleterTest extends Specification {
         nonDeletable.assertIsFile()
 
         and:
-        def ex = thrown UnableToDeleteFileException
+        def ex = thrown Exception
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               ${Deleter.HELP_FAILED_DELETE_CHILDREN}
@@ -195,7 +194,7 @@ class DeleterTest extends Specification {
         newFile.assertIsFile()
 
         and:
-        def ex = thrown UnableToDeleteFileException
+        def ex = thrown Exception
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               ${Deleter.HELP_NEW_CHILDREN}
@@ -228,7 +227,7 @@ class DeleterTest extends Specification {
         newFile.assertIsFile()
 
         and:
-        def ex = thrown UnableToDeleteFileException
+        def ex = thrown Exception
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               ${Deleter.HELP_FAILED_DELETE_CHILDREN}
@@ -267,7 +266,7 @@ class DeleterTest extends Specification {
         triedToDelete.size() == Deleter.MAX_REPORTED_PATHS
 
         and: 'the report size is capped'
-        def ex = thrown UnableToDeleteFileException
+        def ex = thrown Exception
         def normalizedMessage = normaliseLineSeparators(ex.message)
         normalizedMessage.startsWith("""
             Unable to delete directory '$targetDir'
