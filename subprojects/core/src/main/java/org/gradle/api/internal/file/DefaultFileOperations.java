@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
 import org.gradle.api.internal.file.delete.DeleteSpecInternal;
-import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.resources.DefaultResourceResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -42,6 +41,7 @@ import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -64,7 +64,7 @@ public class DefaultFileOperations implements FileOperations {
     @Nullable
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
-    private final Deleter deleter;
+    private final DefaultDeleter deleter;
     private final DefaultResourceHandler resourceHandler;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
@@ -85,7 +85,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
-        this.deleter = new Deleter(clock::getCurrentTime, OperatingSystem.current().isWindows());
+        this.deleter = new DefaultDeleter(clock::getCurrentTime, OperatingSystem.current().isWindows());
     }
 
     @Override

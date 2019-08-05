@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.delete
+package org.gradle.internal.file.impl
 
-import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assume
@@ -31,7 +30,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    Deleter deleter = new Deleter({ Time.clock().currentTime }, false)
+    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, false)
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())

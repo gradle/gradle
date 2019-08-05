@@ -26,6 +26,9 @@ dependencies {
     implementation(project(":pineapple"))
     implementation(library("jsr305"))
     implementation(library("guava"))
+    implementation(library("slf4j_api"))
+
+    testImplementation(testFixtures(project(":core")))
 }
 
 gradlebuildJava {

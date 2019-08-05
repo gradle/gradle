@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.delete;
+package org.gradle.internal.file.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,20 +29,24 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class Deleter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
+@SuppressWarnings("Since15")
+public class DefaultDeleter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
 
     private final Supplier<Long> timeProvider;
     private final boolean runGcOnFailedDelete;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
+    @VisibleForTesting
     static final int MAX_REPORTED_PATHS = 16;
 
+    @VisibleForTesting
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
+    @VisibleForTesting
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public Deleter(Supplier<Long> timeProvider, boolean runGcOnFailedDelete) {
+    public DefaultDeleter(Supplier<Long> timeProvider, boolean runGcOnFailedDelete) {
         this.timeProvider = timeProvider;
         this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
@@ -61,7 +66,7 @@ public class Deleter {
 
     private void deleteRoot(File file, Predicate<? super File> follow) {
         long startTime = timeProvider.get();
-        Collection<String> failedPaths = new ArrayList<>();
+        Collection<String> failedPaths = new ArrayList<String>();
         deleteRecursively(startTime, file, file, follow, failedPaths);
         if (!failedPaths.isEmpty()) {
             throwWithHelpMessage(startTime, file, follow, failedPaths, false);
@@ -161,8 +166,8 @@ public class Deleter {
     }
 
     private static Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
-        List<String> paths = new ArrayList<>(MAX_REPORTED_PATHS);
-        Deque<File> stack = new ArrayDeque<>();
+        List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
+        Deque<File> stack = new ArrayDeque<File>();
         stack.push(directory);
         while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
             File current = stack.pop();

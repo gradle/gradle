@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.delete
+package org.gradle.internal.file.impl
 
-import org.gradle.internal.time.Clock
-import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestPrecondition
@@ -24,18 +22,18 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.nio.file.Files
 import java.util.function.Function
 
-import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 import static org.junit.Assume.assumeTrue
 
-class DeleterTest extends Specification {
+class DefaultDeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    Deleter deleter = new Deleter({ Time.clock().currentTime }, false)
+    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, false)
 
-    def deletesDirectory() {
+    def "deletes directory"() {
         given:
         TestFile dir = tmpDir.getTestDirectory()
         dir.file("someFile").createFile()
@@ -48,7 +46,7 @@ class DeleterTest extends Specification {
         didWork
     }
 
-    def deletesFile() {
+    def "deletes file"() {
         given:
         TestFile dir = tmpDir.getTestDirectory()
         TestFile file = dir.file("someFile")
@@ -62,7 +60,7 @@ class DeleterTest extends Specification {
         didWork
     }
 
-    def deletesMultipleTargets() {
+    def "deletes multiple targets"() {
         given:
         TestFile file = tmpDir.getTestDirectory().file("someFile").createFile()
         TestFile dir = tmpDir.getTestDirectory().file("someDir").createDir()
@@ -77,7 +75,7 @@ class DeleterTest extends Specification {
         didWork
     }
 
-    def didWorkIsFalseWhenNothingDeleted() {
+    def "didWork is false when nothing has been deleted"() {
         given:
         TestFile dir = tmpDir.file("unknown")
         dir.assertDoesNotExist()
@@ -103,7 +101,7 @@ class DeleterTest extends Specification {
 
         and:
         def target = isDirectory ? tmpDir.createDir("target") : tmpDir.createFile("target")
-        target = isSymlink ? tmpDir.file("link").tap { fileSystem().createSymbolicLink(delegate, target) } : target
+        target = isSymlink ? tmpDir.file("link").tap { Files.createSymbolicLink(delegate.toPath(), target.toPath()) } : target
 
         when:
         delete(target)
@@ -147,7 +145,7 @@ class DeleterTest extends Specification {
         def ex = thrown Exception
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
-              ${Deleter.HELP_FAILED_DELETE_CHILDREN}
+              ${DefaultDeleter.HELP_FAILED_DELETE_CHILDREN}
               - $nonDeletable
         """.stripIndent().trim()
     }
@@ -180,7 +178,7 @@ class DeleterTest extends Specification {
         def ex = thrown Exception
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
-              ${Deleter.HELP_NEW_CHILDREN}
+              ${DefaultDeleter.HELP_NEW_CHILDREN}
               - $newFile
         """.stripIndent().trim()
     }
@@ -213,9 +211,9 @@ class DeleterTest extends Specification {
         def ex = thrown Exception
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
-              ${Deleter.HELP_FAILED_DELETE_CHILDREN}
+              ${DefaultDeleter.HELP_FAILED_DELETE_CHILDREN}
               - $nonDeletable
-              ${Deleter.HELP_NEW_CHILDREN}
+              ${DefaultDeleter.HELP_NEW_CHILDREN}
               - $newFile
         """.stripIndent().trim()
     }
@@ -224,7 +222,7 @@ class DeleterTest extends Specification {
 
         given: 'more existing files than the cap'
         def targetDir = tmpDir.createDir("target")
-        def tooManyRange = (1..(Deleter.MAX_REPORTED_PATHS + 10))
+        def tooManyRange = (1..(DefaultDeleter.MAX_REPORTED_PATHS + 10))
         def nonDeletableFiles = tooManyRange.collect { targetDir.createFile("zzz-${it}-zzz.txt") }
         FileTime.makeOld(nonDeletableFiles + targetDir)
 
@@ -246,40 +244,33 @@ class DeleterTest extends Specification {
         newFiles.each { it.assertIsFile() }
 
         and: 'it failed fast'
-        triedToDelete.size() == Deleter.MAX_REPORTED_PATHS
+        triedToDelete.size() == DefaultDeleter.MAX_REPORTED_PATHS
 
         and: 'the report size is capped'
         def ex = thrown Exception
         def normalizedMessage = normaliseLineSeparators(ex.message)
         normalizedMessage.startsWith("""
             Unable to delete directory '$targetDir'
-              ${Deleter.HELP_FAILED_DELETE_CHILDREN}
+              ${DefaultDeleter.HELP_FAILED_DELETE_CHILDREN}
               - $targetDir${File.separator}zzz-
         """.stripIndent().trim())
         normalizedMessage.contains("-zzz.txt\n  " + """
               - and more ...
-              ${Deleter.HELP_NEW_CHILDREN}
+              ${DefaultDeleter.HELP_NEW_CHILDREN}
               - $targetDir${File.separator}aaa-
         """.stripIndent(12).trim())
         normalizedMessage.endsWith("-aaa.txt\n  - and more ...")
-        normalizedMessage.readLines().size() == Deleter.MAX_REPORTED_PATHS * 2 + 5
+        normalizedMessage.readLines().size() == DefaultDeleter.MAX_REPORTED_PATHS * 2 + 5
     }
 
     class FileTime {
 
-        static int oldTime = 1000
-        static int startTime = oldTime + 2000
-        static int newTime = startTime + 2000
+        static long oldTime = 1000
+        static long startTime = oldTime + 2000
+        static long newTime = startTime + 2000
 
-        static Clock clock = new Clock() {
-            @Override
-            long getCurrentTime() {
-                return startTime
-            }
-        }
-
-        static Deleter deleterWithDeletionAction(Function<File, DeletionAction> deletionAction) {
-            new Deleter({ clock.currentTime }, false) {
+        static DefaultDeleter deleterWithDeletionAction(Function<File, DeletionAction> deletionAction) {
+            new DefaultDeleter({ startTime }, false) {
                 @Override
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {

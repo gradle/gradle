@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.delete
-
+package org.gradle.internal.file.impl
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
