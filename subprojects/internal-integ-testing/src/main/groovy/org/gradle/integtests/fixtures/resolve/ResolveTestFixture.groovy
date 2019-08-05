@@ -43,6 +43,7 @@ class ResolveTestFixture {
     private final String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
+    private boolean strictReasonsCheck;
 
     ResolveTestFixture(TestFile buildFile, String config = "runtimeClasspath") {
         this.config = config
@@ -51,6 +52,11 @@ class ResolveTestFixture {
 
     ResolveTestFixture withoutBuildingArtifacts() {
         buildArtifacts = false
+        return this
+    }
+
+    ResolveTestFixture withStrictReasonsCheck() {
+        strictReasonsCheck = true
         return this
     }
 
@@ -212,11 +218,11 @@ allprojects {
         return lines.findAll { it.startsWith(prefix + ":") }.collect { it.substring(prefix.length() + 1) }
     }
 
-    static List<ParsedNode> parseNodes(List<String> nodes) {
+    List<ParsedNode> parseNodes(List<String> nodes) {
         nodes.collect { parseNode(it) }
     }
 
-    static ParsedNode parseNode(String line) {
+    ParsedNode parseNode(String line) {
         int start = 4
         // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
         // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
@@ -254,7 +260,7 @@ allprojects {
             start = idx + 15 // '@@'
             variants << new Variant(name: variant, attributes: attributes)
         }
-        new ParsedNode(id: id, module: module, reasons: reasons, variants: variants)
+        new ParsedNode(id: id, module: module, reasons: reasons, variants: variants, strictReasonsCheck: strictReasonsCheck)
     }
 
     static class ParsedNode {
@@ -262,6 +268,7 @@ allprojects {
         String module
         List<String> reasons
         Set<Variant> variants = []
+        boolean strictReasonsCheck
 
         boolean diff(ParsedNode actual, StringBuilder sb) {
             List<String> errors = []
@@ -277,6 +284,9 @@ allprojects {
                         errors << "Expected reason '$reason' but wasn't found. Actual reasons: ${actual.reasons}"
                     }
                 }
+            }
+            if (strictReasonsCheck && actual.reasons.size() != reasons.size()) {
+                errors << "Unexpected reason. Expected: $reasons Actual: ${actual.reasons}"
             }
             variants.each { variant ->
                 def actualVariant = actual.variants.find { it.name == variant.name }
@@ -650,6 +660,17 @@ allprojects {
             return node
         }
 
+        NodeBuilder constraint(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.node(id, selectedModuleVersionId)
+            def edge = new EdgeBuilder(this, requested, node)
+            edge.constraint = true
+            deps << edge
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
+            return node
+        }
+
         /**
          * Defines a dependency from the current node to the given node.
          */
@@ -765,6 +786,11 @@ allprojects {
             this
         }
 
+        NodeBuilder byRequest() {
+            reasons << 'requested'
+            this
+        }
+
         NodeBuilder byConstraint(String reason = null) {
             if (reason == null) {
                 reasons << ComponentSelectionCause.CONSTRAINT.defaultReason
@@ -772,6 +798,10 @@ allprojects {
                 reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
             }
             this
+        }
+
+        NodeBuilder byAncestor() {
+            byReason(ComponentSelectionCause.BY_ANCESTOR.defaultReason)
         }
 
         /**

@@ -63,7 +63,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
 
-    public static final String FORMAT_VERSION = "1.0";
+    public static final String FORMAT_VERSION = "1.1";
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final ExcludeRuleConverter excludeRuleConverter;
@@ -400,6 +400,7 @@ public class GradleModuleMetadataParser {
         String preferredVersion = "";
         String strictVersion = "";
         List<String> rejects = Lists.newArrayList();
+        boolean forSubgraph = false;
 
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
@@ -422,14 +423,16 @@ public class GradleModuleMetadataParser {
                     }
                     reader.endArray();
                     break;
+                case "forSubgraph":
+                    forSubgraph = reader.nextBoolean();
+                    break;
                 default:
                     consumeAny(reader);
                     break;
             }
         }
         reader.endObject();
-
-        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects);
+        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects, forSubgraph);
     }
 
     private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {

@@ -37,11 +37,12 @@ In the example, all versions are omitted from the dependency declaration.
 Instead, the versions are defined in the constraints block.
 The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project.
 Otherwise, the constraint has no effect.
+Dependency constraints can also define a <<rich_versions.adoc#,rich version constraint>> and support <<declaring_dependency_versions.adoc#sec:declaring_for_subgraph,subgraph version constraints>> to enforce a version even if it contradicts with the version defined by a transitive dependency (e.g. if the version needs to be downgraded).
 
 [NOTE]
 ====
-Dependency constraints are not yet published, but that will be added in a future release.
-This means that their use currently only targets builds that do not publish artifacts to maven or ivy repositories.
+Dependency constraints are only published when using <<publishing.adoc#understanding-gradle-module-md,Gradle Module Metadata>>.
+This means that currently they are only fully supported if Gradle is used for publishing and consuming (i.e. they are 'lost' when consuming modules with Maven or Ivy).
 ====
 
 Dependency constraints themselves can also be added transitively.

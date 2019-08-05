@@ -1,4 +1,4 @@
-# Gradle module metadata 1.0 specification
+# Gradle module metadata 1.1 specification
 
 Consumption of Gradle metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
 
@@ -137,7 +137,8 @@ This value defines the version constraint of a dependency or dependency constrai
 - `requires`: optional. The required version for this dependency.
 - `prefers`: optional. The preferred version for this dependency.
 - `strictly`: optional. A strictly enforced version requirement for this dependency.
-- `rejects`: optional: An array of rejected versions for this dependency.
+- `rejects`: optional. An array of rejected versions for this dependency.
+- `forSubgraph`: optional. If set to `true`, the version constraint applies for each dependency to the corresponding module in the subgraph originating from the containing variant.
 
 #### `excludes` value
 
@@ -169,6 +170,15 @@ This value must contain an array with zero or more elements. Each element must b
 - `size`: The size of the file in bytes. A number.
 - `sha1`: The SHA1 hash of the file content. A hex string.
 - `md5`: The MD5 hash of the file content. A hex string.
+
+### Changelog
+
+#### 1.1
+
+- Added support for _subgraph version constraints_: `version { forSubgraph = true }`
+
+#### 1.0
+- Initial release
 
 ## Example
 
@@ -237,7 +247,7 @@ This value must contain an array with zero or more elements. Each element must b
                 { 
                     "group": "some.group", 
                     "module": "other-lib", 
-                    "version": { "requires": "[3.0, 4.0)", "prefers": "3.4", "rejects": ["3.4.1"] } 
+                    "version": { "requires": "[3.0, 4.0)", "prefers": "3.4", "rejects": ["3.4.1"], "forSubgraph": true } 
                 }
             ]
         }

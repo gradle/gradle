@@ -42,12 +42,13 @@ import static org.gradle.util.Path.path
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()))
 
-    private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = []) {
+    private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = [], boolean forSubgraph = false) {
         return new DefaultImmutableVersionConstraint(
             preferredVersion,
             version,
             strictVersion,
-            rejectVersions
+            rejectVersions,
+            forSubgraph
         )
     }
 

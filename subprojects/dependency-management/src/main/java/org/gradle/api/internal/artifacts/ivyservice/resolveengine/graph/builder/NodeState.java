@@ -18,11 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -36,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.subgraphconstraints.SubgraphConstraints;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -109,6 +112,8 @@ public class NodeState implements DependencyGraphNode {
     private ExcludeSpec cachedModuleResolutionFilter;
     private ResolvedVariantResult cachedVariantResult;
 
+    private SubgraphConstraints ancestorsSubgraphConstraints;
+    private SubgraphConstraints ownSubgraphConstraints;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -366,7 +371,10 @@ public class NodeState implements DependencyGraphNode {
     private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
-            for (DependencyState dependencyState : dependencies(resolutionFilter)) {
+            List<DependencyState> dependencies = dependencies(resolutionFilter);
+            collectAncestorsSubgraphConstraints(incomingEdges);
+            collectOwnSubgraphConstraints(dependencies);
+            for (DependencyState dependencyState : dependencies) {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (dependencyState.getDependency().isConstraint()) {
@@ -443,7 +451,7 @@ public class NodeState implements DependencyGraphNode {
 
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
-        dependencyEdge.getSelector().update(dependencyState);
+        dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
         outgoingEdges.add(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         dependencyEdge.getSelector().use(deferSelection);
@@ -721,6 +729,77 @@ public class NodeState implements DependencyGraphNode {
             edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
         }
         return edgeExclusions;
+    }
+
+    private void collectOwnSubgraphConstraints(List<DependencyState> dependencies) {
+        Set<ModuleIdentifier> constraints = null;
+        for (DependencyState dependencyState : dependencies) {
+            if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
+                ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
+                if (selector.getVersionConstraint().isForSubgraph()) {
+                    if (constraints == null) {
+                        constraints = Sets.newHashSet();
+                    }
+                    if (constraints.contains(selector.getModuleIdentifier())) {
+                        throw new InvalidUserDataException(
+                            "Dependency " + dependencyState.getModuleIdentifier() + " of " + component.getId() + " defines conflicting forSubgraph constraints");
+                    }
+                    constraints.add(selector.getModuleIdentifier());
+                }
+            }
+        }
+        if (constraints == null) {
+            ownSubgraphConstraints = SubgraphConstraints.EMPTY;
+        } else {
+            ownSubgraphConstraints = SubgraphConstraints.of(ImmutableSet.copyOf(constraints));
+        }
+    }
+
+    private void collectAncestorsSubgraphConstraints(List<EdgeState> incomingEdges) {
+        ImmutableSet.Builder<ModuleIdentifier> constraints = null;
+        SubgraphConstraints singleSubgraphConstraints = null;
+        for (EdgeState dependencyEdge : incomingEdges) {
+            if (!isConstraint(dependencyEdge)) {
+                SubgraphConstraints parentSubgraphConstraints = dependencyEdge.getFrom().ownSubgraphConstraints;
+                SubgraphConstraints parentAncestorsSubgraphConstraints = dependencyEdge.getFrom().ancestorsSubgraphConstraints;
+
+                if (!parentSubgraphConstraints.isEmpty() || !parentAncestorsSubgraphConstraints.isEmpty()) {
+                    if (singleSubgraphConstraints == null && constraints == null) {
+                        // first find
+                        if (!parentAncestorsSubgraphConstraints.isEmpty() && parentSubgraphConstraints.isEmpty()) {
+                            singleSubgraphConstraints = parentAncestorsSubgraphConstraints;
+                        } else if (parentAncestorsSubgraphConstraints.isEmpty() && !parentSubgraphConstraints.isEmpty()) {
+                            singleSubgraphConstraints = parentSubgraphConstraints;
+                        } else {
+                            constraints = new ImmutableSet.Builder<>();
+                            constraints.addAll(parentAncestorsSubgraphConstraints.getModules());
+                            constraints.addAll(parentSubgraphConstraints.getModules());
+                        }
+                    } else {
+                        if (constraints == null) {
+                            constraints = new ImmutableSet.Builder<>();
+                        }
+                        if (singleSubgraphConstraints != null) {
+                            constraints.addAll(singleSubgraphConstraints.getModules());
+                            singleSubgraphConstraints = null;
+                        }
+                        constraints.addAll(parentAncestorsSubgraphConstraints.getModules());
+                        constraints.addAll(parentSubgraphConstraints.getModules());
+                    }
+                }
+            }
+        }
+        if (singleSubgraphConstraints != null) {
+            ancestorsSubgraphConstraints = singleSubgraphConstraints;
+        } else if (constraints == null) {
+            ancestorsSubgraphConstraints = SubgraphConstraints.EMPTY;
+        } else {
+            ancestorsSubgraphConstraints = SubgraphConstraints.of(constraints.build());
+        }
+    }
+
+    boolean versionProvidedByAncestors(DependencyState dependencyState) {
+        return !dependencyState.isForced() && ancestorsSubgraphConstraints != null && ancestorsSubgraphConstraints.contains(dependencyState.getModuleIdentifier());
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {

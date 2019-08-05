@@ -27,18 +27,20 @@ class DependencySpec {
     String version
     String preferredVersion
     String strictVersion
+    boolean forSubgraph
     List<String> rejects
     List<ExcludeSpec> exclusions = []
     String reason
     Map<String, Object> attributes
     List<CapabilitySpec> requestedCapabilities = []
 
-    DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, List<String> rejects, Collection<Map> excludes, String reason, Map<String, Object> attributes) {
+    DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, Boolean forSubgraph, List<String> rejects, Collection<Map> excludes, String reason, Map<String, Object> attributes) {
         group = g
         module = m
         version = v
         this.preferredVersion = preferredVersion
         this.strictVersion = strictVersion
+        this.forSubgraph = forSubgraph
         this.rejects = rejects?:Collections.<String>emptyList()
         if (excludes) {
             exclusions = excludes.collect { Map exclusion ->
