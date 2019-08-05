@@ -212,10 +212,10 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeContextFor(
-        encoder: KryoBackedEncoder,
+        encoder: Encoder,
         report: InstantExecutionReport
     ) = DefaultWriteContext(
-        codecs(),
+        codecs().userTypesCodec,
         encoder,
         logger,
         report::add
@@ -223,7 +223,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
-        codecs(),
+        codecs().userTypesCodec,
         decoder,
         logger,
         BeanPropertyReader.factoryFor(service())

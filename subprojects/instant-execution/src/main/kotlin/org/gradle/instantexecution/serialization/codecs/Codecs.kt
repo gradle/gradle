@@ -30,12 +30,7 @@ import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.DecodingProvider
-import org.gradle.instantexecution.serialization.Encoding
-import org.gradle.instantexecution.serialization.EncodingProvider
-import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
-import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
@@ -67,7 +62,7 @@ class Codecs(
     fileResolver: FileResolver,
     instantiator: Instantiator,
     listenerManager: ListenerManager
-) : EncodingProvider, DecodingProvider {
+) {
 
     private
     val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
@@ -150,60 +145,13 @@ class Codecs(
         bind(reentrant(BeanCodec()))
     }
 
-    private
-    val nullEncoding = encoding {
-        writeByte(NULL_VALUE)
-    }
-
-    private
-    val encodings = HashMap<Class<*>, Encoding?>()
-
-    override suspend fun WriteContext.encode(candidate: Any?) {
-        encodingFor(candidate)(candidate)
-    }
-
-    private
-    fun encodingFor(candidate: Any?): Encoding = when (candidate) {
-        null -> nullEncoding
-        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)!!
-    }
-
-    override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {
-        NULL_VALUE -> null
-        else -> bindings[tag.toInt()].codec.run { decode() }
-    }
-
-    private
-    fun computeEncoding(type: Class<*>): Encoding? =
-        bindings.find { it.type.isAssignableFrom(type) }?.run {
-            encoding { value ->
-                require(value != null)
-                writeByte(tag)
-                codec.run { encode(value) }
-            }
-        }
-
-    private
-    fun encoding(e: Encoding) = e
-
-    internal
-    companion object {
-        const val NULL_VALUE: Byte = -1
-    }
+    val userTypesCodec = BindingsBackedCodec(bindings)
 }
 
 
 private
 inline fun bindings(block: BindingsBuilder.() -> Unit): List<Binding> =
     BindingsBuilder().apply(block).build()
-
-
-private
-data class Binding(
-    val tag: Byte,
-    val type: Class<*>,
-    val codec: Codec<Any>
-)
 
 
 private

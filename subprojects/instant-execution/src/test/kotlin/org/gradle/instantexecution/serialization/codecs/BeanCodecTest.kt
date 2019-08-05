@@ -26,6 +26,7 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.internal.serialize.Encoder
 
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
@@ -103,9 +104,9 @@ class BeanCodecTest {
         }
 
     private
-    fun writeContextFor(encoder: KryoBackedEncoder) =
+    fun writeContextFor(encoder: Encoder) =
         DefaultWriteContext(
-            encodings = codecs(),
+            encodings = codecs().userTypesCodec,
             encoder = encoder,
             logger = mock(),
             problemHandler = mock()
@@ -114,7 +115,7 @@ class BeanCodecTest {
     private
     fun readContextFor(inputStream: ByteArrayInputStream) =
         DefaultReadContext(
-            decoding = codecs(),
+            decoding = codecs().userTypesCodec,
             decoder = KryoBackedDecoder(inputStream),
             logger = mock(),
             beanPropertyReaderFactory = BeanPropertyReader.factoryFor(mock())

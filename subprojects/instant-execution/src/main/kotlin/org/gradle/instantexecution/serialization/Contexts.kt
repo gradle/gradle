@@ -35,7 +35,7 @@ internal
 class DefaultWriteContext(
 
     private
-    val encodings: EncodingProvider,
+    val encodings: EncodingProvider<Any?>,
 
     private
     val encoder: Encoder,
@@ -112,9 +112,8 @@ class DefaultWriteContext(
 }
 
 
-internal
-interface EncodingProvider {
-    suspend fun WriteContext.encode(candidate: Any?)
+interface EncodingProvider<T> {
+    suspend fun WriteContext.encode(value: T)
 }
 
 
@@ -122,7 +121,7 @@ internal
 class DefaultReadContext(
 
     private
-    val decoding: DecodingProvider,
+    val decoding: DecodingProvider<Any?>,
 
     private
     val decoder: Decoder,
@@ -203,9 +202,8 @@ class DefaultReadContext(
 }
 
 
-internal
-interface DecodingProvider {
-    suspend fun ReadContext.decode(): Any?
+interface DecodingProvider<T> {
+    suspend fun ReadContext.decode(): T?
 }
 
 
