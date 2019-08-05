@@ -35,6 +35,27 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Introducing subgraph constraints for dependency versions
+
+When you declare a dependency to a module that is already on your dependency graph, due to a transitive dependency, you sometimes need to change the version of that module according to your needs.
+So far, this was limited to cases where the existing constraint should be limited further (e.g. choosing a specific version from a range).
+Version constraints can now made into [subgraph constraints](userguide/declaring_dependency_versions.html#sec:declaring_for_subgraph) by using `forSubgraph()`, which will prompt Gradle to ignore the corresponding version constraints defined further down the graph.
+This can, for example, be used to downgrade a version. Subgraph constraints are published to [Gradle Module Metadata](userguide/publishing.html#understanding-gradle-module-md).
+
+```groovy
+dependencies {
+    implementation('org.apache.hadoop:hadoop-common')
+    implementation('commons-io:commons-io')
+    constraints {
+        // 'hadoop-common:3.2.0' brings in 'commons-io:2.5'
+        implementation('org.apache.hadoop:hadoop-common:3.2.0') 
+        implementation('commons-io:commons-io:2.4') {
+            version { forSubgraph() } // '2.4' takes precedence
+        }
+    }
+}
+```
+
 ## Debug support for forked Java processes
 
 Gradle has now a new DSL element to configure debugging for Java processes.  

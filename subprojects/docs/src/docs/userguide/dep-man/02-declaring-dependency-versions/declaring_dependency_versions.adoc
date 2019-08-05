@@ -1,9 +1,9 @@
 [[declaring-dependency-versions]]
 = Declaring dependency versions
 
-include::rich_versions.adoc[]
+include::rich_versions.adoc[leveloffset=+1]
 
-[[sub::declaring_without_version]]
+[[sec:declaring_without_version]]
 == Declaring a dependency without version
 
 A recommended practice for larger projects is to declare dependencies without versions and use <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> for version declaration.
@@ -14,6 +14,26 @@ The advantage is that dependency constraints allow you to manage versions of all
 include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
 include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
 ====
+
+[[sec:declaring_for_subgraph]]
+== Declaring a dependency that is already part of the dependency graph
+
+In larger projects, you often get into a situation where a module you require is already added transitively by one of your existing dependencies.
+In this case, declaring the dependency without a version is recommended, if the version that is already in your dependency graph suits your needs.
+However, sometimes you might need a different version.
+
+To make sure that your own version declaration takes precedence over other declarations for the same module, you can declare it as a `forSubgraph` version.
+If you do this, the (rich) versions of the dependencies that came in transitively will be ignored.
+
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/forSubgraph/groovy",files="build.gradle[tags=dependencies-for-subgraph]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/forSubgraph/kotlin",files="build.gradle.kts[tags=dependencies-for-subgraph]"]
+====
+
+Note that if you change the version of another dependency in your context, it is your responsibility that the resulting combination of modules works.
+In particular, if you are developing a library that others consume.
+The `forSubgraph` property of a dependency is published in <<publishing.adoc#understanding-gradle-module-md,Gradle Module Metadata>> and honored when your library is consumed, as long as there is no other library requesting the originally declared version to be used.
+More details about dealing with such situations are found in the <<controlling_transitive_dependencies.adoc#, controlling transitive dependencies>> chapter.
 
 [[sec:dynamic_versions_and_changing_modules]]
 == Dealing with versions which change over time
