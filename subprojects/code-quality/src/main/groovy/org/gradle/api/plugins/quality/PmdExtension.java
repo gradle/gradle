@@ -226,4 +226,11 @@ public class PmdExtension extends CodeQualityExtension {
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
     }
+    
+    /**
+     * Controls whether to use incremental analysis or not.
+     */
+    public void setIncrementalAnalysis(boolean incrementalAnalysis) {
+        this.incrementalAnalysis = incrementalAnalysis;
+    }
 }
