@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.delete
 
-
 import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -38,71 +37,71 @@ class DeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter delete = new Deleter(resolver, fileSystem(), Time.clock())
+    Deleter deleter = new Deleter(resolver, fileSystem(), Time.clock())
 
     def deletesDirectory() {
         given:
-        TestFile dir = tmpDir.getTestDirectory();
-        dir.file("somefile").createFile();
+        TestFile dir = tmpDir.getTestDirectory()
+        dir.file("someFile").createFile()
 
         when:
-        boolean didWork = delete.delete(dir);
+        boolean didWork = deleter.delete(dir)
 
         then:
-        dir.assertDoesNotExist();
+        dir.assertDoesNotExist()
         didWork
     }
 
     def deletesFile() {
         given:
-        TestFile dir = tmpDir.getTestDirectory();
-        TestFile file = dir.file("somefile");
-        file.createFile();
+        TestFile dir = tmpDir.getTestDirectory()
+        TestFile file = dir.file("someFile")
+        file.createFile()
 
         when:
-        boolean didWork = delete.delete(file);
+        boolean didWork = deleter.delete(file)
 
         then:
-        file.assertDoesNotExist();
+        file.assertDoesNotExist()
         didWork
     }
 
     def deletesFileByPath() {
         given:
-        TestFile dir = tmpDir.getTestDirectory();
-        TestFile file = dir.file("somefile");
-        file.createFile();
+        TestFile dir = tmpDir.getTestDirectory()
+        TestFile file = dir.file("someFile")
+        file.createFile()
 
         when:
-        boolean didWork = delete.delete('somefile');
+        boolean didWork = deleter.delete('someFile')
 
         then:
-        file.assertDoesNotExist();
+        file.assertDoesNotExist()
         didWork
     }
 
     def deletesMultipleTargets() {
         given:
-        TestFile file = tmpDir.getTestDirectory().file("somefile").createFile();
-        TestFile dir = tmpDir.getTestDirectory().file("somedir").createDir();
-        dir.file("sub/child").createFile();
+        TestFile file = tmpDir.getTestDirectory().file("someFile").createFile()
+        TestFile dir = tmpDir.getTestDirectory().file("someDir").createDir()
+        dir.file("sub/child").createFile()
 
         when:
-        boolean didWork = delete.delete(file, dir);
+        boolean didWork = deleter.delete(file, dir)
 
         then:
-        file.assertDoesNotExist();
-        dir.assertDoesNotExist();
+        file.assertDoesNotExist()
+        dir.assertDoesNotExist()
         didWork
     }
 
     def didWorkIsFalseWhenNothingDeleted() {
         given:
-        TestFile dir = tmpDir.file("unknown");
-        dir.assertDoesNotExist();
+        TestFile dir = tmpDir.file("unknown")
+        dir.assertDoesNotExist()
 
         when:
-        boolean didWork = delete.delete(dir);
+        boolean didWork = deleter.delete(dir)
 
         then:
         !didWork
@@ -116,7 +115,7 @@ class DeleterTest extends Specification {
         }
 
         given:
-        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
             return DeletionAction.FAILURE
         }
 
@@ -125,7 +124,7 @@ class DeleterTest extends Specification {
         target = isSymlink ? tmpDir.file("link").tap { fileSystem().createSymbolicLink(delegate, target) } : target
 
         when:
-        delete.delete(target)
+        deleter.delete(target)
 
         then:
         def ex = thrown UnableToDeleteFileException
@@ -147,7 +146,7 @@ class DeleterTest extends Specification {
         def nonDeletable = targetDir.createFile("delete.no")
 
         and:
-        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
                 return DeletionAction.FAILURE
             }
@@ -155,7 +154,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        delete.delete(targetDir)
+        deleter.delete(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -180,7 +179,7 @@ class DeleterTest extends Specification {
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
             if (file.canonicalFile == triggerFile.canonicalFile) {
                 FileTime.createNewFile(newFile)
             }
@@ -188,7 +187,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        delete.delete(targetDir)
+        deleter.delete(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -212,7 +211,7 @@ class DeleterTest extends Specification {
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
                 FileTime.createNewFile(newFile)
                 return DeletionAction.FAILURE
@@ -221,7 +220,7 @@ class DeleterTest extends Specification {
         }
 
         when:
-        delete.delete(targetDir)
+        deleter.delete(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -250,14 +249,14 @@ class DeleterTest extends Specification {
         and: 'a deleter that cannot delete, records deletion requests and creates new files'
         def triedToDelete = [] as Set<File>
         def newFiles = tooManyRange.collect { targetDir.file("aaa-${it}-aaa.txt") }
-        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
+        deleter = FileTime.deleterWithDeletionAction(resolver) { file ->
             triedToDelete << file
             newFiles.each { FileTime.createNewFile(it) }
             return DeletionAction.FAILURE
         }
 
         when:
-        delete.delete(targetDir)
+        deleter.delete(targetDir)
 
         then: 'nothing gets deleted'
         targetDir.assertIsDir()
@@ -308,6 +307,8 @@ class DeleterTest extends Specification {
                             return false
                         case DeletionAction.CONTINUE:
                             return super.deleteFile(file)
+                        default:
+                            throw new AssertionError()
                     }
                 }
             }
