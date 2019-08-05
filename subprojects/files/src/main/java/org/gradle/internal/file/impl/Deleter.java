@@ -17,8 +17,7 @@
 package org.gradle.internal.file.impl;
 
 import java.io.File;
-import java.util.function.Predicate;
 
 public interface Deleter {
-    boolean delete(Iterable<File> roots, Predicate<? super File> follow);
+    boolean delete(Iterable<File> roots, boolean followSymlinks);
 }

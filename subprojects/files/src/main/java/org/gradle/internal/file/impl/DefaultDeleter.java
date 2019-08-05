@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,6 +33,7 @@ public class DefaultDeleter implements Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
 
     private final Supplier<Long> timeProvider;
+    private final Predicate<? super File> isSymlink;
     private final boolean runGcOnFailedDelete;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
@@ -46,13 +46,14 @@ public class DefaultDeleter implements Deleter {
     @VisibleForTesting
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public DefaultDeleter(Supplier<Long> timeProvider, boolean runGcOnFailedDelete) {
+    public DefaultDeleter(Supplier<Long> timeProvider, Predicate<? super File> isSymlink, boolean runGcOnFailedDelete) {
         this.timeProvider = timeProvider;
+        this.isSymlink = isSymlink;
         this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
 
     @Override
-    public boolean delete(Iterable<File> roots, Predicate<? super File> follow) {
+    public boolean delete(Iterable<File> roots, boolean followSymlinks) {
         boolean didWork = false;
         for (File root : roots) {
             if (!root.exists()) {
@@ -60,23 +61,23 @@ public class DefaultDeleter implements Deleter {
             }
             LOGGER.debug("Deleting {}", root);
             didWork = true;
-            deleteRoot(root, follow);
+            deleteRoot(root, followSymlinks);
         }
         return didWork;
     }
 
-    private void deleteRoot(File file, Predicate<? super File> follow) {
+    private void deleteRoot(File file, boolean followSymlinks) {
         long startTime = timeProvider.get();
         Collection<String> failedPaths = new ArrayList<String>();
-        deleteRecursively(startTime, file, file, follow, failedPaths);
+        deleteRecursively(startTime, file, file, followSymlinks, failedPaths);
         if (!failedPaths.isEmpty()) {
-            throwWithHelpMessage(startTime, file, follow, failedPaths, false);
+            throwWithHelpMessage(startTime, file, followSymlinks, failedPaths, false);
         }
     }
 
-    private void deleteRecursively(long startTime, File baseDir, File file, Predicate<? super File> follow, Collection<String> failedPaths) {
+    private void deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, Collection<String> failedPaths) {
 
-        if (follow.test(file)) {
+        if (shouldFollow(file, followSymlinks)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -85,7 +86,7 @@ public class DefaultDeleter implements Deleter {
             }
 
             for (File item : contents) {
-                deleteRecursively(startTime, baseDir, item, follow, failedPaths);
+                deleteRecursively(startTime, baseDir, item, followSymlinks, failedPaths);
             }
         }
 
@@ -94,9 +95,13 @@ public class DefaultDeleter implements Deleter {
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
-                throwWithHelpMessage(startTime, baseDir, follow, failedPaths, true);
+                throwWithHelpMessage(startTime, baseDir, followSymlinks, failedPaths, true);
             }
         }
+    }
+
+    private boolean shouldFollow(File file, boolean followSymlinks) {
+        return file.isDirectory() && (followSymlinks || !isSymlink.test(file));
     }
 
     protected boolean deleteFile(File file) {
@@ -122,14 +127,14 @@ public class DefaultDeleter implements Deleter {
         }
     }
 
-    private static void throwWithHelpMessage(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
-        throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, follow, failedPaths, more));
+    private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) {
+        throw new RuntimeException(buildHelpMessageForFailedDelete(startTime, file, followSymlinks, failedPaths, more));
     }
 
-    private static String buildHelpMessageForFailedDelete(long startTime, File file, Predicate<? super File> follow, Collection<String> failedPaths, boolean more) {
+    private String buildHelpMessageForFailedDelete(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
-        if (Files.isSymbolicLink(file.toPath())) {
+        if (isSymlink.test(file)) {
             help.append("symlink to ");
         }
         if (file.isDirectory()) {
@@ -139,7 +144,7 @@ public class DefaultDeleter implements Deleter {
         }
         help.append('\'').append(file).append('\'');
 
-        if (follow.test(file)) {
+        if (shouldFollow(file, followSymlinks)) {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {

@@ -30,7 +30,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, false)
+    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, { Files.isSymbolicLink(it.toPath()) }, false)
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())
@@ -115,9 +115,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
     }
 
     private boolean delete(boolean followSymlinks, File... paths) {
-        return deleter.delete(paths as List) { file ->
-            file.directory && (followSymlinks || !Files.isSymbolicLink(file.toPath()))
-        }
+        return deleter.delete(paths as List, followSymlinks)
     }
 
     protected abstract void createSymbolicLink(File link, TestFile target)

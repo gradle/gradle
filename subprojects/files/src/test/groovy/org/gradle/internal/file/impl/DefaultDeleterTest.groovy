@@ -31,7 +31,7 @@ import static org.junit.Assume.assumeTrue
 class DefaultDeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, false)
+    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, { Files.isSymbolicLink(it.toPath()) }, false)
 
     def "deletes directory"() {
         given:
@@ -270,7 +270,7 @@ class DefaultDeleterTest extends Specification {
         static long newTime = startTime + 2000
 
         static DefaultDeleter deleterWithDeletionAction(Function<File, DeletionAction> deletionAction) {
-            new DefaultDeleter({ startTime }, false) {
+            new DefaultDeleter({ startTime }, { Files.isSymbolicLink(it.toPath()) }, false) {
                 @Override
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {
@@ -308,6 +308,6 @@ class DefaultDeleterTest extends Specification {
     }
 
     private boolean delete(File... things) {
-        return deleter.delete(things as List, { it.directory })
+        return deleter.delete(things as List, false)
     }
 }

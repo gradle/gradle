@@ -86,7 +86,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
-        this.deleter = new DefaultDeleter(clock::getCurrentTime, OperatingSystem.current().isWindows());
+        this.deleter = new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, OperatingSystem.current().isWindows());
     }
 
     @Override
@@ -177,7 +177,7 @@ public class DefaultFileOperations implements FileOperations {
         FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
         boolean didWork = deleter.delete(
             roots,
-            file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))
+            deleteSpec.isFollowSymlinks()
         );
         return WorkResults.didWork(didWork);
     }
