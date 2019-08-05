@@ -28,12 +28,12 @@ import org.gradle.performance.results.ResultsStore
  *
  * Consider using {@link GradleProfilerCrossVersionPerformanceTestRunner} instead, as it is meant to replace this class.
  */
-class CrossVersionPerformanceTestRunner extends AbstractCrossVersionPerformanceTestRunner {
+class GradleInternalCrossVersionPerformanceTestRunner extends AbstractCrossVersionPerformanceTestRunner {
 
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
     private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    GradleInternalCrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, reporter, releases, buildContext)
     }
 

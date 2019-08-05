@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -29,13 +29,13 @@ import spock.lang.Unroll
 
 import java.nio.file.Files
 
-import static org.junit.Assert.assertTrue
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC
 import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC
+import static org.junit.Assert.assertTrue
 
 @Ignore("wip")
 @Category(PerformanceRegressionTest)
-class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     private TestFile instantExecutionStateDir
 

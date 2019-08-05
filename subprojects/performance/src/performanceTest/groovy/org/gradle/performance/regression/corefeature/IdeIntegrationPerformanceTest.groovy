@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class IdeIntegrationPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     @Unroll
     def "eclipse on #testProject"() {

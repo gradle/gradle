@@ -15,7 +15,7 @@
  */
 package org.gradle.performance.regression.inception
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
@@ -42,7 +42,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
  *   - e.g. change in Gradle that breaks the Gradle build
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
-class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
         ["-Djava9Home=${System.getProperty('java9Home')}",

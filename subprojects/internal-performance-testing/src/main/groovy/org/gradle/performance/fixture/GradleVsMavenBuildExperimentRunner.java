@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-public class GradleVsMavenBuildExperimentRunner extends PerformanceTestBuildExperimentRunner {
+public class GradleVsMavenBuildExperimentRunner extends GradleInternalBuildExperimentRunner {
     private final ExecActionFactory execActionFactory;
 
     public GradleVsMavenBuildExperimentRunner(GradleSessionProvider executerProvider, ExecActionFactory execActionFactory) {

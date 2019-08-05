@@ -26,7 +26,7 @@ import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.resource.Resource
 
 @CompileStatic
-@SelfType(AbstractCrossVersionPerformanceTest)
+@SelfType(AbstractCrossVersionGradleInternalPerformanceTest)
 trait WithExternalRepository {
     Server server
     int serverPort

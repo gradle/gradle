@@ -21,8 +21,8 @@ import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
+import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
 import org.gradle.performance.fixture.GradleSessionProvider
-import org.gradle.performance.fixture.PerformanceTestBuildExperimentRunner
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
@@ -73,7 +73,7 @@ class GradleBuildPerformanceTest extends Specification {
 
     def setup() {
         runner = new CrossBuildPerformanceTestRunner(
-            new PerformanceTestBuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
             buildContext) {
 

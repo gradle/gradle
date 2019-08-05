@@ -16,9 +16,9 @@
 
 package org.gradle.performance.regression.corefeature;
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 
-class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class DeprecationCreationPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     def "create many deprecation warnings"() {
         given:

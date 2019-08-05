@@ -41,7 +41,7 @@ import spock.lang.Specification
  * A base class for cross version performance tests.
  *
  * This base class uses Gradle profiler as a backend for running the performance tests.
- * This should replace {@link AbstractCrossVersionPerformanceTest} in the long run, so we only need to maintain the infrastructure once.
+ * This should replace {@link AbstractCrossVersionGradleInternalPerformanceTest} in the long run, so we only need to maintain the infrastructure once.
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory

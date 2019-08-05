@@ -32,12 +32,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This runner uses Gradle's internal infrastructure to execute the actual experiment.
  * Consider using {@link GradleProfilerBuildExperimentRunner} instead, as it is meant to replace this class.
  */
-public class PerformanceTestBuildExperimentRunner extends AbstractBuildExperimentRunner {
+public class GradleInternalBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private final GradleSessionProvider executerProvider;
     private final Profiler profiler;
 
-    public PerformanceTestBuildExperimentRunner(GradleSessionProvider executerProvider) {
+    public GradleInternalBuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
         this.profiler = Profiler.create();
     }
