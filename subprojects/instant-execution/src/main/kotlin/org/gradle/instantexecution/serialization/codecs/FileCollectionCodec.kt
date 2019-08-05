@@ -26,13 +26,11 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.internal.serialize.SetSerializer
 import java.io.File
 
 
 internal
 class FileCollectionCodec(
-    private val fileSetSerializer: SetSerializer<File>,
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<FileCollectionInternal> {
 
@@ -58,6 +56,7 @@ class FileCollectionCodec(
             if (element is File) {
                 list.add(element)
             }
+            // Otherwise, ignore for now
             list
         })
         else fileCollectionFactory.create(ErrorFileSet(readString()))

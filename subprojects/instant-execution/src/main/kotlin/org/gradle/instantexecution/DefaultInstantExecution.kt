@@ -108,7 +108,7 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
-    override fun saveTaskGraph() {
+    override fun saveScheduledWork() {
 
         if (!isInstantExecutionEnabled) {
             // No need to hold onto the `ClassLoaderScope` tree
@@ -124,7 +124,7 @@ class DefaultInstantExecution internal constructor(
                 KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
                     writeContextFor(encoder, report).run {
                         runToCompletion {
-                            encodeTaskGraph()
+                            encodeScheduledWork()
                         }
                     }
                 }
@@ -138,7 +138,7 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
-    override fun loadTaskGraph() {
+    override fun loadScheduledWork() {
 
         require(isInstantExecutionEnabled)
 
@@ -150,7 +150,7 @@ class DefaultInstantExecution internal constructor(
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
                 readContextFor(decoder).run {
                     runToCompletion {
-                        decodeTaskGraph()
+                        decodeScheduledWork()
                     }
                 }
             }
@@ -158,7 +158,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    suspend fun DefaultWriteContext.encodeTaskGraph() {
+    suspend fun DefaultWriteContext.encodeScheduledWork() {
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
@@ -171,12 +171,12 @@ class DefaultInstantExecution internal constructor(
         writeRelevantProjectsFor(scheduledTasks)
 
         WorkNodeCodec(service(), service()).run {
-            writeWorkOf(scheduledNodes)
+            writeWork(scheduledNodes)
         }
     }
 
     private
-    suspend fun DefaultReadContext.decodeTaskGraph() {
+    suspend fun DefaultReadContext.decodeScheduledWork() {
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
 

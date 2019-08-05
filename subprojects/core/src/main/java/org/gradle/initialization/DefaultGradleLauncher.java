@@ -143,13 +143,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.TaskGraph) {
             return;
         }
-        instantExecution.saveTaskGraph();
+        instantExecution.saveScheduledWork();
         runWork();
     }
 
     private void doInstantExecution() {
         buildListener.buildStarted(gradle);
-        instantExecution.loadTaskGraph();
+        instantExecution.loadScheduledWork();
         stage = Stage.TaskGraph;
         runWork();
     }

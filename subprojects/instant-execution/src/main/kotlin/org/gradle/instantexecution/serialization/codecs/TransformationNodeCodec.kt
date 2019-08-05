@@ -16,19 +16,44 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.Project
+import org.gradle.api.internal.tasks.WorkNodeAction
+import org.gradle.execution.plan.ActionNode
+import org.gradle.execution.plan.Node
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.internal.service.ServiceRegistry
 
 
 internal
-object TransformationNodeCodec : Codec<TransformationNode> {
-    override suspend fun WriteContext.encode(value: TransformationNode) {
-        // Ignore
+object TransformationNodeCodec : Codec<Node> {
+    override suspend fun WriteContext.encode(value: Node) {
+        val id = sharedIdentities.getId(value)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            writeSmallInt(sharedIdentities.putInstance(value))
+            // Ignore the state
+        }
     }
 
-    override suspend fun ReadContext.decode(): TransformationNode? {
-        return null
+    override suspend fun ReadContext.decode(): Node {
+        val id = readSmallInt()
+        val instance = sharedIdentities.getInstance(id)
+        if (instance != null) {
+            return instance as Node
+        }
+        // Return a dummy node that does not do anything
+        val node = ActionNode(object : WorkNodeAction {
+            override fun getProject(): Project? {
+                return null
+            }
+
+            override fun run(registry: ServiceRegistry) {
+            }
+        })
+        sharedIdentities.putInstance(id, node)
+        return node
     }
 }

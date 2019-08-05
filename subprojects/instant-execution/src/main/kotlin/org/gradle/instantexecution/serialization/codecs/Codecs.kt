@@ -120,8 +120,8 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
-        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory))
+        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
+        bind(FileCollectionCodec(fileCollectionFactory))
 
         // Dependency management types
         bind(ArtifactCollectionCodec)
