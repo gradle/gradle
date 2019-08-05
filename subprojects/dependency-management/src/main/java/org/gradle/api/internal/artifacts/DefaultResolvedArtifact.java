@@ -74,6 +74,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         });
     }
 
+    public IvyArtifactName getArtifactName() {
+        return artifact;
+    }
+
     @Override
     public ResolvedModuleVersion getModuleVersion() {
         return new DefaultResolvedModuleVersion(owner);

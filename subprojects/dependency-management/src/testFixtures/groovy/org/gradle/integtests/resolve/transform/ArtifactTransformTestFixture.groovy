@@ -114,7 +114,49 @@ class JarProducer extends DefaultTask {
     }
 
     /**
-     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'.
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'red'
+     * and another transform that converts 'red' to 'green'.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithChainedSimpleColorTransform() {
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeColor) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                        parameters.targetColor.set('red')
+                    }
+                    registerTransform(MakeColor) {
+                        from.attribute(color, 'red')
+                        to.attribute(color, 'green')
+                        parameters.targetColor.set('green')
+                    }
+                }
+            }
+            
+            interface TargetColor extends TransformParameters {
+                @Input
+                Property<String> getTargetColor()
+            }
+            
+            abstract class MakeColor implements TransformAction<TargetColor> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + "." + parameters.targetColor.get())
+                    output.text = input.text + "-" + parameters.targetColor.get()
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
     void setupBuildWithSimpleColorTransform() {

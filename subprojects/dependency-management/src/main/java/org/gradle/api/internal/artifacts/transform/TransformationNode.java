@@ -75,6 +75,10 @@ public abstract class TransformationNode extends Node {
         return transformationStep.getDisplayName();
     }
 
+    public TransformationStep getTransformationStep() {
+        return transformationStep;
+    }
+
     public Try<TransformationSubject> getTransformedSubject() {
         if (transformedSubject == null) {
             throw new IllegalStateException(String.format("Transformation %s has been scheduled and is now required, but did not execute, yet.", transformationStep.getDisplayName()));
@@ -130,7 +134,7 @@ public abstract class TransformationNode extends Node {
         processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
     }
 
-    private static class InitialTransformationNode extends TransformationNode {
+    public static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
         private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
@@ -138,6 +142,10 @@ public abstract class TransformationNode extends Node {
             super(transformationStep, dependenciesResolver);
             this.artifact = artifact;
             this.dependenciesResolver = dependenciesResolver;
+        }
+
+        public ResolvableArtifact getArtifact() {
+            return artifact;
         }
 
         @Override
@@ -152,7 +160,7 @@ public abstract class TransformationNode extends Node {
                         return Try.failure(e);
                     } catch (RuntimeException e) {
                         return Try.failure(
-                                new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e)));
+                            new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e)));
                     }
 
                     TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
@@ -174,12 +182,16 @@ public abstract class TransformationNode extends Node {
 
     }
 
-    private static class ChainedTransformationNode extends TransformationNode {
+    public static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
 
         public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep, dependenciesResolver);
             this.previousTransformationNode = previousTransformationNode;
+        }
+
+        public TransformationNode getPreviousTransformationNode() {
+            return previousTransformationNode;
         }
 
         @Override

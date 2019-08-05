@@ -112,4 +112,27 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         // For now, scheduled transforms are ignored when writing to the cache
         outputContains("result = [root.blue.green, a.blue.green]")
     }
+
+    def "task input files can include the output of chained artifact transform of project dependencies"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithChainedSimpleColorTransform()
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+            }
+        """
+
+        expect:
+        instantRun(":resolve")
+        outputContains("result = [a.jar.red.green, b.jar.red.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        // For now, scheduled transforms are ignored when writing to the cache
+        outputContains("result = []")
+    }
 }

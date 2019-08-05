@@ -78,6 +78,10 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         };
     }
 
+    public Transformer getTransformer() {
+        return transformer;
+    }
+
     @Override
     public boolean endsWith(Transformation otherTransform) {
         return this == otherTransform;
