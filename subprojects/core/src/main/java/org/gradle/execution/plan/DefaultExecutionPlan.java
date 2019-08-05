@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -25,7 +24,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
@@ -33,7 +31,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.SharedResource;
 import org.gradle.api.execution.SharedResourceContainer;
@@ -45,7 +42,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -56,9 +52,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Pair;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
-import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
-import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
@@ -67,7 +61,6 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,14 +75,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -202,12 +193,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 // node in the queue
                 // Make sure it has been configured
                 node.prepareForExecution();
-                node.resolveDependencies(dependencyResolver, new Action<Node>() {
-                    @Override
-                    public void execute(Node targetNode) {
-                        if (!visiting.contains(targetNode)) {
-                            queue.addFirst(targetNode);
-                        }
+                node.resolveDependencies(dependencyResolver, targetNode -> {
+                    if (!visiting.contains(targetNode)) {
+                        queue.addFirst(targetNode);
                     }
                 });
                 if (node.isRequired()) {
@@ -447,13 +435,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (!(node instanceof TaskNode)) {
             return;
         }
-        Iterables.removeIf(((TaskNode) node).getShouldSuccessors(), new Predicate<Node>() {
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public boolean apply(Node input) {
-                return visitingNodes.containsEntry(input, nodeWithVisitingSegment.visitingSegment);
-            }
-        });
+        Iterables.removeIf(
+            ((TaskNode) node).getShouldSuccessors(),
+            input -> visitingNodes.containsEntry(input, nodeWithVisitingSegment.visitingSegment)
+        );
     }
 
     private void takePlanSnapshotIfCanBeRestoredToCurrentTask(Map<Node, Integer> planBeforeVisiting, Node node) {
@@ -482,19 +467,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
 
         Set<Node> precedingTasks = getAllPrecedingNodes(finalizer);
-        Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, Node>() {
-            @Override
-            public Integer transform(final Node dependsOnTask) {
-                return Iterables.indexOf(nodeQueue, new Predicate<NodeInVisitingSegment>() {
-                    @Override
-                    @SuppressWarnings("NullableProblems")
-                    public boolean apply(NodeInVisitingSegment nodeInVisitingSegment) {
-                        return nodeInVisitingSegment.node.equals(dependsOnTask);
-                    }
-                });
-            }
-        });
-        return Collections.max(precedingTaskIndices) + 1;
+        int maxPrecedingTaskIndex = precedingTasks.stream()
+            .mapToInt(dependsOnTask -> Iterables.indexOf(nodeQueue, nodeInVisitingSegment -> nodeInVisitingSegment.node.equals(dependsOnTask)))
+            .max()
+            .orElseThrow(IllegalStateException::new);
+
+        return maxPrecedingTaskIndex + 1;
     }
 
     private Set<Node> getAllPrecedingNodes(Node finalizer) {
@@ -517,16 +495,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return precedingNodes;
     }
 
-    private void onOrderingCycle(Node successor, Node node) {
-        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>(new DirectedGraph<Node, Void>() {
-            @Override
-            public void getNodeValues(Node node, Collection<? super Void> values, Collection<? super Node> connectedNodes) {
-                connectedNodes.addAll(node.getDependencySuccessors());
-                if (node instanceof TaskNode) {
-                    TaskNode taskNode = (TaskNode) node;
-                    connectedNodes.addAll(taskNode.getMustSuccessors());
-                    connectedNodes.addAll(taskNode.getFinalizingSuccessors());
-                }
+    private void onOrderingCycle(Node successor, Node currentNode) {
+        CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
+            connectedNodes.addAll(node.getDependencySuccessors());
+            if (node instanceof TaskNode) {
+                TaskNode taskNode = (TaskNode) node;
+                connectedNodes.addAll(taskNode.getMustSuccessors());
+                connectedNodes.addAll(taskNode.getFinalizingSuccessors());
             }
         });
         graphWalker.add(entryNodes);
@@ -535,26 +510,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (cycles.isEmpty()) {
             // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
             // https://github.com/gradle/gradle/issues/2293
-            throw new GradleException("Misdetected cycle between " + node + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
+            throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
         }
         final List<Node> firstCycle = new ArrayList<>(cycles.get(0));
         Collections.sort(firstCycle);
 
-        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(new GraphNodeRenderer<Node>() {
-            @Override
-            public void renderTo(Node node, StyledTextOutput output) {
-                output.withStyle(StyledTextOutput.Style.Identifier).text(node);
-            }
-        }, new DirectedGraph<Node, Object>() {
-            @Override
-            public void getNodeValues(Node node, Collection<? super Object> values, Collection<? super Node> connectedNodes) {
+        DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
+            (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
+            (it, values, connectedNodes) -> {
                 for (Node dependency : firstCycle) {
-                    if (node.hasHardSuccessor(dependency)) {
+                    if (it.hasHardSuccessor(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
-            }
-        });
+            });
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(firstCycle.get(0), writer);
         throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
@@ -734,40 +703,34 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                             taskNode,
                             "an output",
                             "output property '" + propertyName + "'",
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
-                                        @Override
-                                        public void accept(OutputFilePropertySpec outputFilePropertySpec) {
-                                            mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));
-                                        }
-                                    });
-                                }
-                            }
+                            () -> FileParameterUtils.resolveOutputFilePropertySpecs(
+                                task.toString(),
+                                propertyName,
+                                value,
+                                filePropertyType,
+                                fileCollectionFactory,
+                                outputFilePropertySpec -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()))
+                            )
                         );
                         mutations.hasOutputs = true;
                     }
 
                     @Override
                     public void visitLocalStateProperty(final Object value) {
-                        withDeadlockHandling(taskNode, "a local state property", "local state properties", new Runnable() {
-                            @Override
-                            public void run() {
-                                mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
-                            }
-                        });
+                        withDeadlockHandling(
+                            taskNode,
+                            "a local state property", "local state properties",
+                            () -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value))));
                         mutations.hasLocalState = true;
                     }
 
                     @Override
                     public void visitDestroyableProperty(final Object value) {
-                        withDeadlockHandling(taskNode, "a destroyable", "destroyables", new Runnable() {
-                            @Override
-                            public void run() {
-                                mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
-                            }
-                        });
+                        withDeadlockHandling(
+                            taskNode,
+                            "a destroyable",
+                            "destroyables",
+                            () -> mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value))));
                     }
 
                     @Override
@@ -1007,14 +970,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static void enforceFinalizers(Node node) {
         for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                HashSet<Node> enforcedNodes = Sets.newHashSet();
+                Set<Node> enforcedNodes = Sets.newHashSet();
                 enforceWithDependencies(finalizerNode, enforcedNodes);
             }
         }
     }
 
     private static void enforceWithDependencies(Node nodeInfo, Set<Node> enforcedNodes) {
-        Deque<Node> candidateNodes = new ArrayDeque<Node>();
+        Deque<Node> candidateNodes = new ArrayDeque<>();
         candidateNodes.add(nodeInfo);
 
         while (!candidateNodes.isEmpty()) {
