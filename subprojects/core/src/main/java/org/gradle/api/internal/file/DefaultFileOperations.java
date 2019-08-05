@@ -83,7 +83,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
-        this.deleter = new Deleter(fileResolver, fileSystem, clock, OperatingSystem.current().isWindows());
+        this.deleter = new Deleter(fileResolver, fileSystem, clock::getCurrentTime, OperatingSystem.current().isWindows());
     }
 
     @Override

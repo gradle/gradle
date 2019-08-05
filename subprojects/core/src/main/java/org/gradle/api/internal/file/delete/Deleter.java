@@ -20,7 +20,6 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,7 @@ public class Deleter {
 
     private final FileResolver fileResolver;
     private final FileSystem fileSystem;
-    private final Clock clock;
+    private final Supplier<Long> timeProvider;
     private final boolean runGcOnFailedDelete;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
@@ -49,10 +48,10 @@ public class Deleter {
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Clock clock, boolean runGcOnFailedDelete) {
+    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Supplier<Long> timeProvider, boolean runGcOnFailedDelete) {
         this.fileResolver = fileResolver;
         this.fileSystem = fileSystem;
-        this.clock = clock;
+        this.timeProvider = timeProvider;
         this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
 
@@ -62,11 +61,11 @@ public class Deleter {
         FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
         return deleteInternal(
             roots,
-            file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file)),
-            clock::getCurrentTime);
+            file -> file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))
+        );
     }
 
-    private boolean deleteInternal(Iterable<File> roots, Predicate<? super File> filter, Supplier<Long> timeProvider) {
+    private boolean deleteInternal(Iterable<File> roots, Predicate<? super File> filter) {
         boolean didWork = false;
         for (File root : roots) {
             if (!root.exists()) {
@@ -74,12 +73,12 @@ public class Deleter {
             }
             LOGGER.debug("Deleting {}", root);
             didWork = true;
-            deleteRoot(root, filter, timeProvider);
+            deleteRoot(root, filter);
         }
         return didWork;
     }
 
-    private void deleteRoot(File file, Predicate<? super File> filter, Supplier<Long> timeProvider) {
+    private void deleteRoot(File file, Predicate<? super File> filter) {
         long startTime = timeProvider.get();
         Collection<String> failedPaths = new ArrayList<>();
         deleteRecursively(startTime, file, file, filter, failedPaths);

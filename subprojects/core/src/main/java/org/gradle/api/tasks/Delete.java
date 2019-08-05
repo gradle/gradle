@@ -72,7 +72,7 @@ public class Delete extends ConventionTask implements DeleteSpec {
 
     @TaskAction
     protected void clean() {
-        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock(), OperatingSystem.current().isWindows());
+        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock()::getCurrentTime, OperatingSystem.current().isWindows());
         boolean innerFollowSymLinks = followSymlinks;
         setDidWork(deleter.delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(innerFollowSymLinks)));
     }
