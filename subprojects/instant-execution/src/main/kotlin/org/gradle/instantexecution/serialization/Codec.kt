@@ -31,12 +31,7 @@ import kotlin.reflect.KClass
 /**
  * Binary encoding for type [T].
  */
-interface Codec<T> {
-
-    suspend fun WriteContext.encode(value: T)
-
-    suspend fun ReadContext.decode(): T?
-}
+interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 
 interface WriteContext : IsolateContext, Encoder {
