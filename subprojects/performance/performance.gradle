@@ -32,9 +32,6 @@ dependencies {
     performanceTestImplementation libraries.commons_compress.coordinates
     performanceTestImplementation testLibraries.jetty
     performanceTestImplementation(testFixtures(project(":toolingApi")))
-    performanceTestImplementation("org.gradle.profiler:gradle-profiler:1.0-SNAPSHOT") {
-        exclude(group: "com.google.guava", module: "guava")
-    }
 
     // so that all Gradle features are available
     performanceTestRuntimeOnly allTestRuntimeDependencies
@@ -46,8 +43,4 @@ configurations.partialDistribution {
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
-}
-
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(1, TimeUnit.MINUTES)
 }

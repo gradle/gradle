@@ -35,6 +35,10 @@ dependencies {
     reports("jquery:jquery.min:1.11.0@js")
     reports("flot:flot:0.8.1:min@js")
 
+    api(library("gradleProfiler")) {
+        because("Consumers need to instantiate BuildMutators")
+    }
+
     implementation(project(":baseServices"))
     implementation(project(":native"))
     implementation(project(":cli"))
@@ -67,9 +71,6 @@ dependencies {
     implementation(testLibrary("jetty"))
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":toolingApi")))
-    implementation("org.gradle.profiler:gradle-profiler:1.0-SNAPSHOT") {
-        exclude(group = "com.google.guava", module = "guava")
-    }
 
     runtimeOnly("com.h2database:h2:1.4.192")
 }
@@ -94,8 +95,3 @@ tasks.jar {
 
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
-
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(1, TimeUnit.MINUTES)
-}
-
