@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -30,6 +32,7 @@ import java.util.Set;
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
 public abstract class Node implements Comparable<Node> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Node.class);
 
     @VisibleForTesting
     enum ExecutionState {
@@ -38,6 +41,7 @@ public abstract class Node implements Comparable<Node> {
 
     private ExecutionState state;
     private boolean dependenciesProcessed;
+    private boolean allDependenciesComplete;
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
@@ -60,7 +64,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state == ExecutionState.NOT_REQUIRED || state == ExecutionState.UNKNOWN;
+        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
     }
 
     public boolean isReady() {
@@ -172,14 +176,36 @@ public abstract class Node implements Comparable<Node> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    public boolean allDependenciesComplete() {
+    protected boolean doCheckDependenciesComplete() {
+        LOGGER.debug("Checking if all dependencies are complete for {}", this);
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
+                LOGGER.debug("Dependency {} for {} not yet completed", dependency, this);
                 return false;
             }
         }
 
+        LOGGER.debug("All dependencies are complete for {}", this);
         return true;
+    }
+
+    /**
+     * Returns if all dependencies completed, but have not been completed in the last check.
+     */
+    public boolean updateAllDependenciesComplete() {
+        if (!allDependenciesComplete) {
+            forceAllDependenciesCompleteUpdate();
+            return allDependenciesComplete;
+        }
+        return false;
+    }
+
+    public void forceAllDependenciesCompleteUpdate() {
+        allDependenciesComplete = doCheckDependenciesComplete();
+    }
+
+    public boolean allDependenciesComplete() {
+        return allDependenciesComplete;
     }
 
     public boolean allDependenciesSuccessful() {
@@ -189,6 +215,11 @@ public abstract class Node implements Comparable<Node> {
             }
         }
         return true;
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    protected Iterable<Node> getAllPredecessors() {
+        return getDependencyPredecessors();
     }
 
     public abstract void prepareForExecution();
@@ -224,6 +255,13 @@ public abstract class Node implements Comparable<Node> {
     public abstract Set<Node> getFinalizers();
 
     public abstract boolean isPublicNode();
+
+    /**
+     * Whether the task needs to be queried if it is completed.
+     *
+     * Everything where the value of {@link #isComplete()} depends on some other state, like another task in an included build.
+     */
+    public abstract boolean requiresMonitoring();
 
     /**
      * Returns the project which the node requires access to, if any.
