@@ -240,9 +240,9 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     @Override
     public ClassLoaderScope deprecated() {
-        String deprecatedClassLoaderScopeName = "deprecated";
-        childScopeCreated(deprecatedClassLoaderScopeName);
-        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(id.child(deprecatedClassLoaderScopeName), parent, classLoaderCache, export.plus(local), listener);
+        ClassLoaderScopeIdentifier childId = id.child("deprecated");
+        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(childId, parent, classLoaderCache, export.plus(local), listener);
+        childScopeCreated(childId);
         if (isLocked()) {
             deprecatedScope.lock();
         }
@@ -250,10 +250,10 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     protected void exportClasspathAdded(ClassPath classPath) {
-        listener.exportClasspathAdded(id.getName(), classPath);
+        listener.exportClasspathAdded(id, classPath);
     }
 
     protected void localClasspathAdded(ClassPath classPath) {
-        listener.localClasspathAdded(id.getName(), classPath);
+        listener.localClasspathAdded(id, classPath);
     }
 }

@@ -30,29 +30,29 @@ import org.gradle.internal.classpath.ClassPath;
  */
 public interface ClassLoaderScopeRegistryListener {
 
-    void rootScopeCreated(String scopeId);
+    void rootScopeCreated(ClassLoaderScopeId rootScopeId);
 
-    void childScopeCreated(String parentId, String childId);
+    void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId);
 
-    void localClasspathAdded(String scopeId, ClassPath localClassPath);
+    void localClasspathAdded(ClassLoaderScopeId scopeId, ClassPath localClassPath);
 
-    void exportClasspathAdded(String scopeId, ClassPath exportClassPath);
+    void exportClasspathAdded(ClassLoaderScopeId scopeId, ClassPath exportClassPath);
 
     ClassLoaderScopeRegistryListener NULL = new ClassLoaderScopeRegistryListener() {
         @Override
-        public void rootScopeCreated(String scopeId) {
+        public void rootScopeCreated(ClassLoaderScopeId rootScopeId) {
         }
 
         @Override
-        public void childScopeCreated(String parentId, String childId) {
+        public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId) {
         }
 
         @Override
-        public void localClasspathAdded(String scopeId, ClassPath localClassPath) {
+        public void localClasspathAdded(ClassLoaderScopeId scopeId, ClassPath localClassPath) {
         }
 
         @Override
-        public void exportClasspathAdded(String scopeId, ClassPath exportClassPath) {
+        public void exportClasspathAdded(ClassLoaderScopeId scopeId, ClassPath exportClassPath) {
         }
     };
 }

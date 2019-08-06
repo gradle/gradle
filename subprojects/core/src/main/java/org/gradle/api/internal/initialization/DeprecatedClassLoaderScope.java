@@ -66,7 +66,8 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
 
     @Override
     public ClassLoaderScope createChild(String name) {
-        childScopeCreated(name);
-        return new DeprecatedClassLoaderScope(id.child(name), this, classLoaderCache, deprecatedClasspath, listener);
+        ClassLoaderScopeIdentifier childId = id.child(name);
+        childScopeCreated(childId);
+        return new DeprecatedClassLoaderScope(childId, this, classLoaderCache, deprecatedClasspath, listener);
     }
 }

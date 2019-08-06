@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry
 import org.gradle.internal.classpath.ClassPath
@@ -28,7 +29,7 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     var coreAndPluginsSpec: ClassLoaderScopeSpec? = null
 
     private
-    val scopeSpecs = mutableMapOf<String, ClassLoaderScopeSpec>()
+    val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
     var manager: ListenerManager? = null
@@ -59,36 +60,36 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
         manager = null
     }
 
-    override fun rootScopeCreated(scopeId: String) {
-        if (scopeId === DefaultClassLoaderScopeRegistry.CORE_AND_PLUGINS_NAME) {
-            ClassLoaderScopeSpec(scopeId).let { root ->
+    override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
+        if (rootScopeId.name === DefaultClassLoaderScopeRegistry.CORE_AND_PLUGINS_NAME) {
+            ClassLoaderScopeSpec(rootScopeId.name).let { root ->
                 coreAndPluginsSpec = root
-                scopeSpecs[scopeId] = root
+                scopeSpecs[rootScopeId] = root
             }
         }
     }
 
-    override fun childScopeCreated(parentId: String, childId: String) {
+    override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
         scopeSpecs[parentId]?.let { scopeSpec ->
-            ClassLoaderScopeSpec(childId).let { child ->
+            ClassLoaderScopeSpec(childId.name).let { child ->
                 scopeSpec.children.add(child)
                 scopeSpecs[childId] = child
             }
         }
     }
 
-    override fun localClasspathAdded(scopeId: String, localClassPath: ClassPath) {
+    override fun localClasspathAdded(scopeId: ClassLoaderScopeId, localClassPath: ClassPath) {
         scopeSpecs[scopeId]?.localClassPath?.add(localClassPath)
     }
 
-    override fun exportClasspathAdded(scopeId: String, exportClassPath: ClassPath) {
+    override fun exportClasspathAdded(scopeId: ClassLoaderScopeId, exportClassPath: ClassPath) {
         scopeSpecs[scopeId]?.exportClassPath?.add(exportClassPath)
     }
 }
 
 
 internal
-class ClassLoaderScopeSpec(val id: String) {
+class ClassLoaderScopeSpec(val name: String) {
     val localClassPath = mutableListOf<ClassPath>()
     val exportClassPath = mutableListOf<ClassPath>()
     val children = mutableListOf<ClassLoaderScopeSpec>()

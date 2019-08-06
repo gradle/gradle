@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 
 /**
@@ -35,6 +36,13 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     }
 
     /**
+     * Unique identifier of this scope in the hierarchy.
+     */
+    public ClassLoaderScopeId getId() {
+        return id;
+    }
+
+    /**
      * A string representing the path of this {@link ClassLoaderScope} in the {@link ClassLoaderScope} graph.
      */
     public String getPath() {
@@ -46,11 +54,12 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
         }
-        childScopeCreated(name);
-        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
+        ClassLoaderScopeIdentifier childId = id.child(name);
+        childScopeCreated(childId);
+        return new DefaultClassLoaderScope(childId, this, classLoaderCache, listener);
     }
 
-    protected void childScopeCreated(String name) {
-        listener.childScopeCreated(id.getName(), name);
+    protected void childScopeCreated(ClassLoaderScopeId childId) {
+        listener.childScopeCreated(id, childId);
     }
 }
