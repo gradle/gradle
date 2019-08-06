@@ -22,13 +22,17 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.beans.SerializableWriteReplaceWriter
 import org.gradle.instantexecution.serialization.withPropertyTrace
+import org.gradle.internal.reflect.ClassInspector
+import java.io.Serializable
 import java.lang.reflect.Method
 
 
 internal
 class BeanCodec : Codec<Any> {
+
+    private
+    val writeReplaceMethodCache = hashMapOf<Class<*>, Method?>()
 
     private
     val readResolveMethodCache = hashMapOf<Class<*>, Method?>()
@@ -41,18 +45,30 @@ class BeanCodec : Codec<Any> {
             writeSmallInt(isolate.identities.putInstance(value))
             val beanType = GeneratedSubclasses.unpackType(value)
             withBeanTrace(beanType) {
+                writeBeanOf(beanType, value)
+            }
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
+        // When the type is serializable and has a writeReplace() method,
+        // then use this method to unpack the state of the object and serialize the result
+        when (val writeReplace = beanType.takeIf { value is Serializable }?.let { writeReplaceMethodFor(it) }) {
+            null -> {
                 beanStateWriterFor(beanType).run {
-                    if (this is SerializableWriteReplaceWriter) {
-                        // When using the `writeReplace` strategy
-                        // we don't want to serialize the beanType
-                        // Class reference as it might not be directly
-                        // resolvable as in the case of Java lambdas
-                        writeClass(java.io.Serializable::class.java)
-                    } else {
-                        writeClass(beanType)
-                    }
+                    writeClass(beanType)
                     writeStateOf(value)
                 }
+            }
+            else -> {
+                // When using the `writeReplace` strategy
+                // we don't want to serialize the beanType
+                // Class reference as it might not be directly
+                // resolvable as in the case of Java lambdas
+                // so we use Serializable::class.java instead.
+                writeClass(Serializable::class.java)
+                write(writeReplace.invoke(value))
             }
         }
     }
@@ -65,23 +81,27 @@ class BeanCodec : Codec<Any> {
         }
         val beanType = readClass()
         return withBeanTrace(beanType) {
-            when (beanType) {
-                java.io.Serializable::class.java -> {
-                    val bean = readSerializableBean()!!
+            readBeanOf(beanType, id)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readBeanOf(beanType: Class<*>, id: Int): Any =
+        when (beanType) {
+            Serializable::class.java -> {
+                val bean = readSerializableBean()!!
+                isolate.identities.putInstance(id, bean)
+                bean
+            }
+            else -> {
+                beanStateReaderFor(beanType).run {
+                    val bean = newBean()
                     isolate.identities.putInstance(id, bean)
+                    readStateOf(bean)
                     bean
-                }
-                else -> {
-                    beanStateReaderFor(beanType).run {
-                        val bean = newBean()
-                        isolate.identities.putInstance(id, bean)
-                        readStateOf(bean)
-                        bean
-                    }
                 }
             }
         }
-    }
 
     /**
      * Reads a bean resulting from a `writeReplace` method invocation
@@ -97,14 +117,27 @@ class BeanCodec : Codec<Any> {
     }
 
     private
-    fun readResolveMethodFor(bean: Any) =
-        readResolveMethodCache.computeIfAbsent(bean.javaClass, ::findReadResolveMethod)
+    fun writeReplaceMethodFor(beanType: Class<*>) =
+        writeReplaceMethodCache.computeIfAbsent(beanType, ::writeReplaceMethodOrNull)
 
     private
-    fun findReadResolveMethod(type: Class<*>): Method? = type
-        .declaredMethods
-        .firstOrNull { it.name == "readResolve" && it.parameters.isEmpty() }
-        ?.apply { isAccessible = true }
+    fun readResolveMethodFor(beanReplacement: Any) =
+        readResolveMethodCache.computeIfAbsent(beanReplacement.javaClass, ::readResolveMethodOrNull)
+
+    private
+    fun writeReplaceMethodOrNull(type: Class<*>): Method? =
+        serializableMethodOrNull(type, "writeReplace")
+
+    private
+    fun readResolveMethodOrNull(type: Class<*>): Method? =
+        serializableMethodOrNull(type, "readResolve")
+
+    private
+    fun serializableMethodOrNull(type: Class<*>, methodName: String): Method? =
+        ClassInspector.inspect(type)
+            .allMethods
+            .find { it.name == methodName && it.parameters.isEmpty() }
+            ?.apply { isAccessible = true }
 
     private
     inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =

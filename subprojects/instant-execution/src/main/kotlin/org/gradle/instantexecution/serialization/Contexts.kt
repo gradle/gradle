@@ -23,12 +23,10 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.instantexecution.serialization.beans.SerializableReadReplaceReader
-import org.gradle.instantexecution.serialization.beans.SerializableWriteReplaceWriter
 import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import java.io.Serializable
-import java.lang.reflect.Method
 
 
 internal
@@ -53,28 +51,8 @@ class DefaultWriteContext(
     val classes = hashMapOf<Class<*>, Int>()
 
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
-        beanPropertyWriters.computeIfAbsent(beanType, this::createWriterFor)
+        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
 
-    private
-    fun createWriterFor(beanType: Class<*>): BeanStateWriter {
-        // When the type is serializable and has a writeReplace() method, then use this method to unpack the state of the object and serialize the result
-        val writeReplaceMethod = serializableWriteReplaceMethodFor(beanType)
-        if (writeReplaceMethod != null) {
-            return SerializableWriteReplaceWriter(writeReplaceMethod)
-        }
-        // Otherwise, serialize the fields of the bean
-        return BeanPropertyWriter(beanType)
-    }
-
-    private
-    fun serializableWriteReplaceMethodFor(beanType: Class<*>): Method? =
-        beanType
-            .takeIf { Serializable::class.java.isAssignableFrom(it) }
-            ?.let { serializableBeanType ->
-                ClassInspector.inspect(serializableBeanType)
-                    .allMethods
-                    .find { it.name == "writeReplace" && it.parameters.isEmpty() }
-            }
 
     override val isolate: WriteIsolate
         get() = getIsolate()
