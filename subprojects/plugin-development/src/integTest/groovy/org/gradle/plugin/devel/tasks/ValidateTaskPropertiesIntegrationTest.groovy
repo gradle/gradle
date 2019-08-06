@@ -550,6 +550,102 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent().trim()
     }
 
+    def "detects annotations on non-property methods"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public String notAGetter() {
+                    return "not-a-getter";
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                public static class Options {
+                    @Input
+                    public String notANestedGetter() {
+                        return "not-a-nested-getter";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input
+            Warning: Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input
+        """.stripIndent().trim()
+    }
+
+    def "detects annotations on setter methods"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public void setWriteOnly(String value) {
+                }
+
+                public String getReadWrite() {
+                    return "read-write property";
+                }
+
+                @Input
+                public void setReadWrite(String value) {
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                public static class Options {
+                    @Input
+                    public void setWriteOnly(String value) {
+                    }
+
+                    @Input
+                    public String getReadWrite() {
+                        return "read-write property";
+                    }
+
+                    @Input
+                    public void setReadWrite(String value) {
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input
+            Warning: Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input
+            Warning: Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input
+            Warning: Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input
+        """.stripIndent().trim()
+    }
+
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using external types"() {
         buildFile << """

@@ -34,8 +34,7 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     private final ImmutableList<String> problems;
 
     public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, Iterable<String> problems) {
-        //noinspection ConstantConditions
-        this.annotations = ImmutableBiMap.copyOf(Maps.uniqueIndex(annotations, annotation -> annotation.annotationType()));
+        this.annotations = ImmutableBiMap.copyOf(Maps.uniqueIndex(annotations, Annotation::annotationType));
         this.properties = ImmutableSortedSet.copyOf(properties);
         this.problems = ImmutableList.copyOf(problems);
     }
