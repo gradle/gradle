@@ -60,13 +60,12 @@ import java.util.stream.Collectors;
 public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
-    private final String jfrProfileTargetDir;
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final BenchmarkResultCollector resultCollector;
     private final Profiler profiler;
 
     public GradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
-        this.jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
+        String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
         this.flameGraphGenerator = jfrProfileTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP
             : new JfrFlameGraphGenerator(new File(jfrProfileTargetDir));
