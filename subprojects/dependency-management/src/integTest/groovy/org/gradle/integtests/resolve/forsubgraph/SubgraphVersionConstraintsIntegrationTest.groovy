@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.resolve.forsubgraph
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -596,5 +599,137 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
 
         then:
         failure.assertHasCause('Dependency org:foo of :test:unspecified defines conflicting forSubgraph constraints')
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
+    )
+    def "original version constraint is not ignored if there is another parent"() {
+        given:
+        repository {
+            'org:x1:1.0' {
+                dependsOn 'org:bar:1.0'
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:x2:1.0' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:x1:1.0')
+                conf('org:x2:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:x1:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:x2:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:x1:1.0') {
+                    module('org:bar:1.0') {
+                        module('org:foo:2.0').byRequest()
+                    }
+                    constraint('org:foo:1.0', 'org:foo:2.0').byConstraint().byConflictResolution("between versions 2.0 and 1.0")
+                }
+                module('org:x2:1.0') {
+                    module('org:bar:1.0')
+                }
+            }
+        }
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
+    )
+    def "can reintroduce a subgraph constraint on the root level"() { // similar to test above, but reintroduces subgraph constraint in build script
+        given:
+        repository {
+            'org:x1:1.0' {
+                dependsOn 'org:bar:1.0'
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:x2:1.0' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:x1:1.0')
+                conf('org:x2:1.0')
+                constraints { 
+                    conf('org:foo:1.0') { version { forSubgraph() } }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:x1:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:x2:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:x1:1.0') {
+                    module('org:bar:1.0') {
+                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                    }
+                    constraint('org:foo:1.0').byConstraint()
+                }
+                module('org:x2:1.0') {
+                    module('org:bar:1.0')
+                }
+                constraint('org:foo:1.0').byConstraint()
+            }
+        }
     }
 }
