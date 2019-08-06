@@ -41,6 +41,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
     private final ProjectAccessListener projectAccessListener;
+    private boolean inheriting;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
@@ -91,6 +92,16 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             getTargetConfiguration(), projectAccessListener, buildProjectDependencies);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
+    }
+
+    @Override
+    public void inheritConstraints() {
+        this.inheriting = true;
+    }
+
+    @Override
+    public boolean isInheriting() {
+        return this.inheriting;
     }
 
     @Override

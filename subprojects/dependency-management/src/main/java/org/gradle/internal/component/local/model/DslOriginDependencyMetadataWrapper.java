@@ -93,6 +93,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
+    public boolean isInheriting() {
+        return delegate.isInheriting();
+    }
+
+    @Override
     public boolean isFromLock() {
         return delegate.isFromLock();
     }

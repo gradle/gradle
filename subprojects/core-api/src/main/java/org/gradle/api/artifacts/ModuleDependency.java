@@ -202,4 +202,21 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      */
     @Incubating
     List<Capability> getRequestedCapabilities();
+
+    /**
+     * Inherit version constraints with {@link VersionConstraint#isForSubgraph()} from the target module.
+     * For this, the version constraint of this dependency needs to strictly point at one version.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    void inheritConstraints();
+
+    /**
+     * Are the {@link VersionConstraint#isForSubgraph()} dependency constraints of the target module inherited?
+     *
+     * @since 5.7
+     */
+    @Incubating
+    boolean isInheriting();
 }

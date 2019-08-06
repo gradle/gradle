@@ -71,6 +71,11 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
+    public boolean isInheriting() {
+        return delegate.isInheriting();
+    }
+
+    @Override
     public String getReason() {
         return delegate.getReason();
     }

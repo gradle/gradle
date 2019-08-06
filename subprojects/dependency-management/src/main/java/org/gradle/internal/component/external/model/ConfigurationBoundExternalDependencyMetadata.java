@@ -172,6 +172,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     @Override
+    public boolean isInheriting() {
+        return false;
+    }
+
+    @Override
     public String getReason() {
         return reason;
     }

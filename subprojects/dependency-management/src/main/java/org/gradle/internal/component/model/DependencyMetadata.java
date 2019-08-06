@@ -76,6 +76,11 @@ public interface DependencyMetadata {
     boolean isConstraint();
 
     /**
+     * Is this a dependency that pulls subgraph constraints from the target node up?
+     */
+    boolean isInheriting();
+
+    /**
      * An optional human readable reason why this dependency is used.
      * @return if not null, a description why this dependency is used.
      */

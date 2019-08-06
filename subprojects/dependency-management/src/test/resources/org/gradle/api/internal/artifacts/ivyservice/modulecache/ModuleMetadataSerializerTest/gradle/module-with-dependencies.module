@@ -6,7 +6,7 @@
             "dependencies": [
                 { "group": "g0", "module": "m0" },
                 { "group": "g1", "module": "m1", "version": { "requires": "v1" } },
-                { "version": { "requires": "v1", "prefers": "v2" }, "group": "g2", "module": "m2" },
+                { "version": { "requires": "v1", "prefers": "v2", "forSubgraph": true }, "group": "g2", "module": "m2" },
                 {
                     "group": "g3",
                     "module": "m3",
@@ -27,7 +27,7 @@
                 { "module": "m5", "version": { "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
                 { "module": "m6", "version": { "rejects": ["v8"] }, "group": "g6"},
                 { "module": "m7", "version": { "rejects": ["v7"] }, "group": "g7", "reason": "v7 is buggy"},
-                { "module": "m8", "version": { "strictly": "v8" }, "group": "g7"}
+                { "module": "m8", "version": { "strictly": "v8" }, "group": "g7", "inheriting": true}
             ],
             "name": "runtime"
         }
