@@ -854,6 +854,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         // then we accept that as the will of the user
                         continue;
                     }
+                    LOGGER.debug("Node {} destroys output of consumer {}", destroyer, consumer);
                     return true;
                 }
             }
