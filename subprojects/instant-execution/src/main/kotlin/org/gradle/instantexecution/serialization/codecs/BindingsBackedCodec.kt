@@ -17,7 +17,6 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.Encoding
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 
@@ -26,13 +25,12 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     private
     val encodings = HashMap<Class<*>, Encoding>()
 
-    private
-    val nullEncoding = encoding {
-        writeByte(NULL_VALUE)
-    }
-
-    override suspend fun WriteContext.encode(value: Any?) {
-        encodingFor(value)(value)
+    override suspend fun WriteContext.encode(value: Any?) = when (value) {
+        null -> writeByte(NULL_VALUE)
+        else -> {
+            val encoding = encodings.computeIfAbsent(value.javaClass, ::computeEncoding)
+            encoding(value)
+        }
     }
 
     override suspend fun ReadContext.decode() = when (val tag = readByte()) {
@@ -44,16 +42,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     fun encoding(e: Encoding) = e
 
     private
-    fun encodingFor(candidate: Any?): Encoding = when (candidate) {
-        null -> nullEncoding
-        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
-    }
-
-    private
     fun computeEncoding(type: Class<*>): Encoding =
         bindings.find { it.type.isAssignableFrom(type) }?.run {
             encoding { value ->
-                require(value != null)
                 writeByte(tag)
                 codec.run { encode(value) }
             }
@@ -64,6 +55,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         const val NULL_VALUE: Byte = -1
     }
 }
+
+
+typealias Encoding = suspend WriteContext.(value: Any) -> Unit
 
 
 data class Binding(

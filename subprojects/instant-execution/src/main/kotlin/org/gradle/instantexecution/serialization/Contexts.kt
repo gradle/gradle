@@ -33,9 +33,7 @@ import java.lang.reflect.Method
 
 internal
 class DefaultWriteContext(
-
-    private
-    val encodings: EncodingProvider<Any?>,
+    codec: Codec<Any?>,
 
     private
     val encoder: Encoder,
@@ -45,7 +43,7 @@ class DefaultWriteContext(
     private
     val problemHandler: (PropertyProblem) -> Unit
 
-) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
+) : AbstractIsolateContext<WriteIsolate>(codec), MutableWriteContext, Encoder by encoder {
     override val sharedIdentities = WriteIdentities()
 
     private
@@ -82,7 +80,7 @@ class DefaultWriteContext(
         get() = getIsolate()
 
     override suspend fun write(value: Any?) {
-        encodings.run {
+        getCodec().run {
             encode(value)
         }
     }
@@ -119,9 +117,7 @@ interface EncodingProvider<T> {
 
 internal
 class DefaultReadContext(
-
-    private
-    val decoding: DecodingProvider<Any?>,
+    codec: Codec<Any?>,
 
     private
     val decoder: Decoder,
@@ -131,7 +127,7 @@ class DefaultReadContext(
     private
     val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
 
-) : AbstractIsolateContext<ReadIsolate>(), MutableReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec), MutableReadContext, Decoder by decoder {
     override val sharedIdentities = ReadIdentities()
 
     private
@@ -155,7 +151,7 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
-    override suspend fun read(): Any? = decoding.run {
+    override suspend fun read(): Any? = getCodec().run {
         decode()
     }
 
@@ -212,10 +208,13 @@ typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
-abstract class AbstractIsolateContext<T> : MutableIsolateContext {
+abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateContext {
 
     private
     var currentIsolate: T? = null
+
+    private
+    var currentCodec = codec
 
     var trace: PropertyTrace = PropertyTrace.Unknown
 
@@ -230,14 +229,22 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
         isolate
     }
 
-    override fun enterIsolate(owner: IsolateOwner) {
-        require(currentIsolate === null)
+    protected
+    fun getCodec() = currentCodec
+
+    private
+    val contexts = ArrayList<Pair<T?, Codec<Any?>>>()
+
+    override fun push(owner: IsolateOwner, codec: Codec<Any?>) {
+        contexts.add(0, Pair(currentIsolate, currentCodec))
         currentIsolate = newIsolate(owner)
+        currentCodec = codec
     }
 
-    override fun leaveIsolate() {
-        require(currentIsolate !== null)
-        currentIsolate = null
+    override fun pop() {
+        val previousValues = contexts.removeAt(0)
+        currentIsolate = previousValues.first
+        currentCodec = previousValues.second
     }
 }
 

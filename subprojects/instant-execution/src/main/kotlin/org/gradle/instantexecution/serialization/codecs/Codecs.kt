@@ -23,10 +23,12 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
@@ -61,14 +63,16 @@ class Codecs(
     fileCollectionFactory: FileCollectionFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
-    listenerManager: ListenerManager
+    listenerManager: ListenerManager,
+    projectStateRegistry: ProjectStateRegistry,
+    taskNodeFactory: TaskNodeFactory
 ) {
 
     private
     val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
 
     private
-    val bindings = bindings {
+    val userTypeBindings = bindings {
 
         bind(unsupported<Project>())
         bind(unsupported<Gradle>())
@@ -145,7 +149,15 @@ class Codecs(
         bind(reentrant(BeanCodec()))
     }
 
-    val userTypesCodec = BindingsBackedCodec(bindings)
+    val userTypesCodec = BindingsBackedCodec(userTypeBindings)
+
+    private
+    val internalTypeBindings = bindings {
+        bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
+        bind(TransformationNodeCodec)
+    }
+
+    val internalTypesCodec = BindingsBackedCodec(internalTypeBindings)
 }
 
 
