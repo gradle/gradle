@@ -182,6 +182,7 @@ public class DependencyGraphBuilder {
                 dependencies.clear();
                 node.visitOutgoingDependencies(dependencies);
                 boolean edgeWasProcessed = resolveEdges(node, dependencies, INHERITING_DEPENDENCY_SPEC, false, resolveState, componentIdentifierCache);
+                node.collectInheritedSubgraphConstraints(dependencies);
                 resolveEdges(node, dependencies, NOT_INHERITING_DEPENDENCY_SPEC, edgeWasProcessed, resolveState, componentIdentifierCache);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
