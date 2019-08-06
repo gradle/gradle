@@ -20,7 +20,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.internal.file.impl.Deleter;
 
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -42,12 +46,12 @@ public class Delete extends ConventionTask implements DeleteSpec {
     private boolean followSymlinks;
 
     @TaskAction
-    protected void clean() {
-        WorkResult didWork = getProject().delete(deleteSpec -> deleteSpec
-            .delete(paths)
-            .setFollowSymlinks(followSymlinks)
-        );
-        setDidWork(didWork.getDidWork());
+    protected void clean() throws IOException {
+        boolean didWork = false;
+        for (File path : paths) {
+            didWork |= getDeleter().deleteRecursively(path, followSymlinks);
+        }
+        setDidWork(didWork);
     }
 
     /**
@@ -118,5 +122,10 @@ public class Delete extends ConventionTask implements DeleteSpec {
     public Delete delete(Object... targets) {
         paths.from(targets);
         return this;
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator injects implementation");
     }
 }
