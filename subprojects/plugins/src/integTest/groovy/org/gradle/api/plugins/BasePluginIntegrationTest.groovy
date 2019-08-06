@@ -39,7 +39,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         fails "clean"
 
         then:
-        failure.assertHasCause("Unable to delete directory '${file('build')}'")
+        failure.assertThatCause(containsString("Unable to delete directory '${file('build')}'"))
         failure.assertThatCause(containsString("Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory."))
         failure.assertThatCause(containsString(file("build/newFile").absolutePath))
 
