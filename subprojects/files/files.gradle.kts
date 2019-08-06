@@ -29,7 +29,10 @@ dependencies {
     implementation(library("slf4j_api"))
 
     testImplementation(project(":native"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(project(":baseServices")) {
+        because("TextUtil is needed")
+    }
+    testImplementation(testFixtures(project(":native")))
 }
 
 gradlebuildJava {
