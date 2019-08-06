@@ -512,7 +512,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             // https://github.com/gradle/gradle/issues/2293
             throw new GradleException("Misdetected cycle between " + currentNode + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
         }
-        final List<Node> firstCycle = new ArrayList<>(cycles.get(0));
+        List<Node> firstCycle = new ArrayList<>(cycles.get(0));
         Collections.sort(firstCycle);
 
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
@@ -583,7 +583,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
             Node node = iterator.next();
             if (node.isComplete()) {
-                LOGGER.debug("Monitored node {} completed. Updating dependencies.", node);
+                LOGGER.debug("Monitored node {} completed", node);
                 updateAllDependenciesCompleteForPredecessors(node);
                 iterator.remove();
             }
@@ -599,22 +599,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
-                if (!tryLockProjectFor(node)) {
+                if (!tryAcquireLocksForNode(node, workerLease, mutations)) {
                     resourceLockState.releaseLocks();
-                    LOGGER.debug("Cannot acquire project lock for node {}.", node);
-                    continue;
-                } else if (!tryLockSharedResourceFor(node)) {
-                    resourceLockState.releaseLocks();
-                    LOGGER.debug("Cannot acquire shared resource lock for node {}.", node);
-                    continue;
-                } else if (!workerLease.tryLock()) {
-                    resourceLockState.releaseLocks();
-                    LOGGER.debug("Cannot acquire worker lease lock for node {}.", node);
-                    continue;
-                // TODO: convert output file checks to a resource lock
-                } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
-                    resourceLockState.releaseLocks();
-                    LOGGER.debug("Node {} cannot run with currently running nodes {}.", node, runningNodes);
                     continue;
                 }
 
@@ -632,6 +618,24 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
         maybeNodesReady = foundReadyNode;
         return null;
+    }
+
+    private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
+        if (!tryLockProjectFor(node)) {
+            LOGGER.debug("Cannot acquire project lock for node {}", node);
+            return false;
+        } else if (!tryLockSharedResourceFor(node)) {
+            LOGGER.debug("Cannot acquire shared resource lock for node {}", node);
+            return false;
+        } else if (!workerLease.tryLock()) {
+            LOGGER.debug("Cannot acquire worker lease lock for node {}", node);
+            return false;
+        // TODO: convert output file checks to a resource lock
+        } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
+            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
+            return false;
+        }
+        return true;
     }
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
@@ -950,16 +954,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 enforceFinalizers(node);
                 maybeNodesReady = true;
                 if (node.isFailed()) {
-                    LOGGER.debug("Node {} failed.", node);
+                    LOGGER.debug("Node {} failed", node);
                     handleFailure(node);
                 } else {
-                    LOGGER.debug("Node {} completed.", node);
+                    LOGGER.debug("Node {} completed", node);
                 }
 
                 node.finishExecution();
                 recordNodeCompleted(node);
             } else {
-                LOGGER.debug("Already completed node {} reported as completed.", node);
+                LOGGER.debug("Already completed node {} reported as completed", node);
             }
         } finally {
             unlockProjectFor(node);
