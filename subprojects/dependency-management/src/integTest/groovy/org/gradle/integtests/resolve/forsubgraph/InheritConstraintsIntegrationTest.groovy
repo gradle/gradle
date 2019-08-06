@@ -83,4 +83,66 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         }
     }
 
+    void "can deal with platform upgrades"() {
+        given:
+        repository {
+            'org:platform:1.0'() {
+                constraint(group: 'org', artifact: 'bar', version: '1.0')
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:platform:2.0'() {
+                constraint(group: 'org', artifact: 'bar', version: '1.0')
+                constraint(group: 'org', artifact: 'foo', version: '1.0')
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+                dependsOn 'org:platform:2.0'
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:platform:1.0') {
+                    inheritConstraints()
+                }
+                conf('org:bar')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:platform:1.0' {
+                expectGetMetadata()
+            }
+            'org:platform:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:platform:1.0', 'org:platform:2.0') {
+                    constraint('org:bar:1.0').byConstraint()
+                    constraint('org:foo:1.0', 'org:foo:2.0').byConstraint().byConflictResolution("between versions 2.0 and 1.0")
+                }.byConflictResolution("between versions 2.0 and 1.0")
+                edge('org:bar', 'org:bar:1.0') {
+                    module('org:foo:2.0')
+                    module('org:platform:2.0').byRequest()
+                }.byRequest()
+            }
+        }
+    }
 }

@@ -900,8 +900,15 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void removeOutgoingEdges() {
+        removeOutgoingEdges(null);
+    }
+
+    private void removeOutgoingEdges(EdgeState edgeToKeep) {
         if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingDependency : outgoingEdges) {
+                if (outgoingDependency == edgeToKeep) {
+                    continue;
+                }
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
                 outgoingDependency.maybeDecreaseHardEdgeCount(this);
@@ -954,6 +961,26 @@ public class NodeState implements DependencyGraphNode {
 
     public void deselect() {
         removeOutgoingEdges();
+        reselectInheritingNode();
+    }
+
+    private void reselectInheritingNode() {
+        if (incomingEdges.size() == 1) {
+            if (incomingEdges.get(0).getDependencyState().getDependency().isInheriting()) {
+                incomingEdges.get(0).getFrom().reselect(incomingEdges.get(0));
+            }
+        } else {
+            for (EdgeState incoming : Lists.newArrayList(incomingEdges)) {
+                if (incoming.getDependencyState().getDependency().isInheriting()) {
+                    incoming.getFrom().reselect(incoming);
+                }
+            }
+        }
+    }
+
+    private void reselect(EdgeState edgeToKeep) {
+        resolveState.onMoreSelected(this);
+        removeOutgoingEdges(edgeToKeep);
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
