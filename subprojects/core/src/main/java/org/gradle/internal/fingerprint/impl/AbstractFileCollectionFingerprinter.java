@@ -37,8 +37,8 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     private final FingerprintingStrategy fingerprintingStrategy;
 
     public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         this.fingerprintingStrategy = fingerprintingStrategy;
+        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
     @Override
