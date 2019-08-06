@@ -33,6 +33,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "up-to-date assemble on #testProject"() {
         given:
         runner.testProject = testProject
+        runner.targetVersions = ["5.6-20190805230950+0000"]
         runner.tasksToRun = ["assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
 
