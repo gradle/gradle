@@ -16,14 +16,27 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.performance.results.MeasuredOperationList;
+import java.io.File;
 
-public interface BuildExperimentRunner {
+public interface ProfilerFlameGraphGenerator {
+    void generateGraphs(BuildExperimentSpec experimentSpec);
+    void generateDifferentialGraphs();
+    File getJfrOutputDirectory(BuildExperimentSpec spec);
 
-    void run(BuildExperimentSpec experiment, MeasuredOperationList results);
+    ProfilerFlameGraphGenerator NOOP = new ProfilerFlameGraphGenerator() {
 
-    enum Phase {
-        WARMUP,
-        MEASUREMENT
-    }
+        @Override
+        public void generateGraphs(BuildExperimentSpec experimentSpec) {
+        }
+
+        @Override
+        public void generateDifferentialGraphs() {
+        }
+
+        @Override
+        public File getJfrOutputDirectory(BuildExperimentSpec spec) {
+            return new File(spec.getWorkingDirectory(), "profile-out");
+        }
+    };
+
 }

@@ -16,17 +16,18 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
-import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
-import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
-import org.gradle.util.GFileUtils
+import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest {
+class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     private static final SANTA_TRACKER = new AndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
@@ -41,6 +42,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
     )
     private static final String SANTA_TRACKER_ASSEMBLE_DEBUG = ':santa-tracker:assembleDebug'
     private static final String SANTA_TRACKER_JAVA_FILE_TO_CHANGE = 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java'
+
+    def setup() {
+        runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
+    }
 
     @Unroll
     def "#tasks on #testProject"() {
@@ -82,7 +87,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.runs = runs
         runner.minimumVersion = "5.4"
         runner.targetVersions = ["5.7-20190722220035+0000"]
-        runner.addBuildExperimentListener(cleanTransformsCacheBeforeInvocation())
+        runner.addBuildMutator { invocationSettings ->
+            new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
 
         when:
         def result = runner.run()
@@ -105,7 +112,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
         runner.targetVersions = ["5.7-20190722220035+0000"]
-        runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(SANTA_TRACKER_JAVA_FILE_TO_CHANGE))
+        runner.addBuildMutator { invocationSettings ->
+            new ApplyAbiChangeToJavaSourceFileMutator(getSantaTrackerFileToChange(invocationSettings))
+        }
 
         when:
         def result = runner.run()
@@ -125,7 +134,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
         runner.targetVersions = ["5.7-20190722220035+0000"]
-        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(SANTA_TRACKER_JAVA_FILE_TO_CHANGE))
+        runner.addBuildMutator { invocationSettings ->
+            new ApplyNonAbiChangeToJavaSourceFileMutator(getSantaTrackerFileToChange(invocationSettings))
+        }
 
         when:
         def result = runner.run()
@@ -137,30 +148,15 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         testProject << [SANTA_TRACKER]
     }
 
-    private static BuildExperimentListenerAdapter cleanTransformsCacheBeforeInvocation() {
-        new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                def transformsCaches = new File(invocationInfo.gradleUserHome, "caches").listFiles(new FilenameFilter() {
-                    @Override
-                    boolean accept(File dir, String name) {
-                        return name.startsWith("transforms-")
-                    }
-                })
-                if (transformsCaches != null) {
-                    for (transformsCache in transformsCaches) {
-                        GFileUtils.deleteDirectory(transformsCache)
-                    }
-                }
-            }
-        }
+    private static File getSantaTrackerFileToChange(InvocationSettings invocationSettings) {
+        new File(invocationSettings.getProjectDir(), SANTA_TRACKER_JAVA_FILE_TO_CHANGE)
     }
 
     static class AndroidTestProject {
         String templateName
         String memory
 
-        void configure(CrossVersionPerformanceTestRunner runner) {
+        void configure(GradleProfilerCrossVersionPerformanceTestRunner runner) {
             runner.testProject = templateName
             runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
         }

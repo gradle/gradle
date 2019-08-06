@@ -25,12 +25,16 @@ public abstract class Profiler {
     private static final String TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
 
     public static Profiler create() {
-        String targetDir = System.getProperty(TARGET_DIR_KEY);
+        String targetDir = getJfrProfileTargetDir();
         if (targetDir != null && !Jvm.current().isIbmJvm()) {
             return new JfrProfiler(new File(targetDir));
         } else {
             return new NoopProfiler();
         }
+    }
+
+    public static String getJfrProfileTargetDir() {
+        return System.getProperty(TARGET_DIR_KEY);
     }
 
     public abstract List<String> getAdditionalJvmOpts(BuildExperimentSpec spec);

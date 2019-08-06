@@ -17,11 +17,11 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.initialization.ParallelismBuildOptions
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.mutator.AbstractFileChangeMutator
 import spock.lang.Unroll
 
-class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.6'

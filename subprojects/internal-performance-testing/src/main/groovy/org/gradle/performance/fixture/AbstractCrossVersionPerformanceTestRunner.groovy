@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,17 +37,16 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
-import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
-class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
+class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     GradleDistribution current
     final IntegrationTestBuildContext buildContext
     final ResultsStore resultsStore
     final DataReporter<CrossVersionPerformanceResults> reporter
-    TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
     final ReleasedVersionDistributions releases
     final Clock clock = Time.clock()
@@ -65,10 +64,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> targetVersions = []
     String minimumVersion
 
-    private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
-    private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
-
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    AbstractCrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
         this.reporter = reporter
         this.experimentRunner = experimentRunner
@@ -242,15 +238,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         best
     }
 
-    private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+    protected void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
             .displayName(displayName)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
-            .listener(buildExperimentListeners)
-            .invocationCustomizer(invocationCustomizers)
             .invocation {
                 workingDirectory(workingDir)
                 distribution(dist)
@@ -261,19 +255,15 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 useDaemon(this.useDaemon)
             }
         builder.workingDirectory = workingDir
+        configureGradleBuildExperimentSpec(builder)
         def spec = builder.build()
         experimentRunner.run(spec, results)
     }
 
+    protected void configureGradleBuildExperimentSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+    }
+
     def resolveGradleOpts() {
         PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
-    }
-
-    void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {
-        buildExperimentListeners.addListener(buildExperimentListener)
-    }
-
-    void addInvocationCustomizer(InvocationCustomizer invocationCustomizer) {
-        invocationCustomizers.addCustomizer(invocationCustomizer)
     }
 }

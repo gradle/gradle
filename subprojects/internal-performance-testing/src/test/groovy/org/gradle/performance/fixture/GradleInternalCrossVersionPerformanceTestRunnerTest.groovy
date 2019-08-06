@@ -31,7 +31,7 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
+class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     private static interface ReporterAndStore extends DataReporter, ResultsStore {}
 
     private static final String MOST_RECENT_RELEASE = "2.10"
@@ -47,7 +47,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     final buildContext = IntegrationTestBuildContext.INSTANCE
     final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(ReporterAndStore)
-    final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
     final currentBaseVersion = GradleVersion.current().baseVersion.version
@@ -402,11 +401,10 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, reporter, releases, new IntegrationTestBuildContext())
+        def runner = new GradleInternalCrossVersionPerformanceTestRunner(experimentRunner, reporter, reporter, releases, new IntegrationTestBuildContext())
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory
-        runner.testProjectLocator = testProjectLocator
         runner.current = currentGradle
         runner.runs = 1
         return runner

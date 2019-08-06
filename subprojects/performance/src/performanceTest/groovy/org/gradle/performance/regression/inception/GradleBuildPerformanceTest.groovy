@@ -18,10 +18,10 @@ package org.gradle.performance.regression.inception
 import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
+import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
@@ -36,6 +36,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.performance.regression.inception.GradleInceptionPerformanceTest.extraGradleBuildArguments
+
 /**
  * Test Gradle's build performance against current Gradle.
  *
@@ -72,7 +73,7 @@ class GradleBuildPerformanceTest extends Specification {
 
     def setup() {
         runner = new CrossBuildPerformanceTestRunner(
-            new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
             buildContext) {
 

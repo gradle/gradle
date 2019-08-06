@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentRunner
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
+import org.gradle.performance.fixture.GradleInternalCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
@@ -33,9 +33,15 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
+/**
+ * A base class for cross version performance tests.
+ *
+ * This base class uses infrastructure internal to the Gradle build as a backend for running the performance tests.
+ * Use {@link AbstractCrossVersionGradleProfilerPerformanceTest} going forward, since it is meant to replace the current class.
+ */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-class AbstractCrossVersionPerformanceTest extends Specification {
+class AbstractCrossVersionGradleInternalPerformanceTest extends Specification {
 
     private static def resultStore = new CrossVersionResultsStore()
     private static def reporter = SlackReporter.wrap(resultStore)
@@ -45,14 +51,14 @@ class AbstractCrossVersionPerformanceTest extends Specification {
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    private CrossVersionPerformanceTestRunner runner
+    private GradleInternalCrossVersionPerformanceTestRunner runner
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
-        runner = new CrossVersionPerformanceTestRunner(
-            new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
+        runner = new GradleInternalCrossVersionPerformanceTestRunner(
+            new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
             reporter,
             new ReleasedVersionDistributions(buildContext),
@@ -63,7 +69,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         performanceTestIdProvider.testSpec = runner
     }
 
-    CrossVersionPerformanceTestRunner getRunner() {
+    GradleInternalCrossVersionPerformanceTestRunner getRunner() {
         runner
     }
 
