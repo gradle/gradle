@@ -24,10 +24,14 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.SerializableWriteReplaceWriter
 import org.gradle.instantexecution.serialization.withPropertyTrace
+import java.lang.reflect.Method
 
 
 internal
 class BeanCodec : Codec<Any> {
+
+    private
+    val readResolveMethodCache = hashMapOf<Class<*>, Method?>()
 
     override suspend fun WriteContext.encode(value: Any) {
         val id = isolate.identities.getId(value)
@@ -94,10 +98,13 @@ class BeanCodec : Codec<Any> {
 
     private
     fun readResolveMethodFor(bean: Any) =
-        bean.javaClass
-            .declaredMethods
-            .firstOrNull { it.name == "readResolve" && it.parameters.isEmpty() }
-            ?.apply { isAccessible = true }
+        readResolveMethodCache.computeIfAbsent(bean.javaClass, ::findReadResolveMethod)
+
+    private
+    fun findReadResolveMethod(type: Class<*>): Method? = type
+        .declaredMethods
+        .firstOrNull { it.name == "readResolve" && it.parameters.isEmpty() }
+        ?.apply { isAccessible = true }
 
     private
     inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
