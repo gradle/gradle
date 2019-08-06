@@ -25,6 +25,7 @@ import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.service.UnknownServiceException
 import kotlin.reflect.KClass
 
 
@@ -34,7 +35,7 @@ import kotlin.reflect.KClass
 interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 
-interface WriteContext : IsolateContext, Encoder {
+interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
     val sharedIdentities: WriteIdentities
 
     override val isolate: WriteIsolate
@@ -47,10 +48,7 @@ interface WriteContext : IsolateContext, Encoder {
 }
 
 
-typealias Encoding = suspend WriteContext.(value: Any?) -> Unit
-
-
-interface ReadContext : IsolateContext, Decoder {
+interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     val sharedIdentities: ReadIdentities
 
     override val isolate: ReadIsolate
@@ -249,17 +247,26 @@ enum class PropertyKind {
 
 sealed class IsolateOwner {
 
-    fun <T> service(type: Class<T>): T =
-        when (this) {
-            is OwnerTask -> (delegate.project as ProjectInternal).services.get(type)
-            is OwnerGradle -> (delegate as GradleInternal).services.get(type)
-        }
+    abstract fun <T> service(type: Class<T>): T
 
     abstract val delegate: Any
 
-    class OwnerTask(override val delegate: Task) : IsolateOwner()
+    class OwnerTask(override val delegate: Task) : IsolateOwner() {
+        override fun <T> service(type: Class<T>) = (delegate.project as ProjectInternal).services.get(type)
+    }
 
-    class OwnerGradle(override val delegate: Gradle) : IsolateOwner()
+    class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
+        override fun <T> service(type: Class<T>) = (delegate as GradleInternal).services.get(type)
+    }
+
+    class NoOwner() : IsolateOwner() {
+        override val delegate: Any
+            get() = this
+
+        override fun <T> service(type: Class<T>): T {
+            throw UnknownServiceException(type, "No services available in this isolate.")
+        }
+    }
 }
 
 
@@ -285,28 +292,25 @@ interface WriteIsolate : Isolate {
 
 interface ReadIsolate : Isolate {
     /**
-     * Identities of objects that are shared withing this isolate only.
+     * Identities of objects that are shared within this isolate only.
      */
     val identities: ReadIdentities
 }
 
 
-internal
 interface MutableIsolateContext {
-
-    fun enterIsolate(owner: IsolateOwner)
-
-    fun leaveIsolate()
+    fun push(owner: IsolateOwner, codec: Codec<Any?>)
+    fun pop()
 }
 
 
 internal
-inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
-    enterIsolate(owner)
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
+    push(owner, codec)
     try {
         return block()
     } finally {
-        leaveIsolate()
+        pop()
     }
 }
 

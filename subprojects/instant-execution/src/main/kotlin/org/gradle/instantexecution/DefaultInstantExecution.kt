@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateContext
@@ -170,7 +171,7 @@ class DefaultInstantExecution internal constructor(
         val scheduledTasks = scheduledNodes.filterIsInstance(LocalTaskNode::class.java).map { it.task }
         writeRelevantProjectsFor(scheduledTasks)
 
-        WorkNodeCodec(service(), service()).run {
+        WorkNodeCodec(codecs.internalTypesCodec).run {
             writeWork(scheduledNodes)
         }
     }
@@ -192,8 +193,9 @@ class DefaultInstantExecution internal constructor(
 
         initProjectProvider(build::getProject)
 
-        val scheduledNodes = WorkNodeCodec(service(), service()).run {
-            readWorkToSchedule()
+        val workNodeCodec = WorkNodeCodec(codecs.internalTypesCodec)
+        val scheduledNodes = workNodeCodec.run {
+            readWork()
         }
         build.scheduleNodes(scheduledNodes)
     }
@@ -215,7 +217,7 @@ class DefaultInstantExecution internal constructor(
         encoder: Encoder,
         report: InstantExecutionReport
     ) = DefaultWriteContext(
-        codecs().userTypesCodec,
+        codecs.userTypesCodec,
         encoder,
         logger,
         report::add
@@ -223,24 +225,28 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
-        codecs().userTypesCodec,
+        codecs.userTypesCodec,
         decoder,
         logger,
         BeanPropertyReader.factoryFor(service())
     )
 
     private
-    fun codecs() = Codecs(
-        directoryFileTreeFactory = service(),
-        fileCollectionFactory = service(),
-        fileResolver = service(),
-        instantiator = service(),
-        listenerManager = service()
-    )
+    val codecs: Codecs by lazy {
+        Codecs(
+            directoryFileTreeFactory = service(),
+            fileCollectionFactory = service(),
+            fileResolver = service(),
+            instantiator = service(),
+            listenerManager = service(),
+            projectStateRegistry = service(),
+            taskNodeFactory = service()
+        )
+    }
 
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
-        withGradle(gradle) {
+        withGradle(gradle, codecs.userTypesCodec) {
             BuildOperationListenersCodec().run {
                 writeBuildOperationListeners(service())
             }
@@ -249,7 +255,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
-        withGradle(gradle) {
+        withGradle(gradle, codecs.userTypesCodec) {
             val listeners = BuildOperationListenersCodec().run {
                 readBuildOperationListeners()
             }
@@ -422,9 +428,10 @@ val logger = Logging.getLogger(DefaultInstantExecution::class.java)
 private
 inline fun <T> T.withGradle(
     gradle: Gradle,
+    codec: Codec<Any?>,
     action: () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
-    withIsolate(IsolateOwner.OwnerGradle(gradle)) {
+    withIsolate(IsolateOwner.OwnerGradle(gradle), codec) {
         withPropertyTrace(PropertyTrace.Gradle) {
             action()
         }
