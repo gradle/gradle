@@ -109,7 +109,7 @@ abstract class FileContentGenerator {
             }
 
             return includedProjects + """
-            if(org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('4.6')) {
+            if(org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version("4.6")) {
             ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
             }
             """
