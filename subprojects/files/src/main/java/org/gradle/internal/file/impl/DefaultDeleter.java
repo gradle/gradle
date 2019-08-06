@@ -22,19 +22,20 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.LongSupplier;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 @SuppressWarnings("Since15")
 public class DefaultDeleter implements Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
 
-    private final Supplier<Long> timeProvider;
+    private final LongSupplier timeProvider;
     private final Predicate<? super File> isSymlink;
     private final boolean runGcOnFailedDelete;
 
@@ -48,7 +49,7 @@ public class DefaultDeleter implements Deleter {
     @VisibleForTesting
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public DefaultDeleter(Supplier<Long> timeProvider, Predicate<? super File> isSymlink, boolean runGcOnFailedDelete) {
+    public DefaultDeleter(LongSupplier timeProvider, Predicate<? super File> isSymlink, boolean runGcOnFailedDelete) {
         this.timeProvider = timeProvider;
         this.isSymlink = isSymlink;
         this.runGcOnFailedDelete = runGcOnFailedDelete;
@@ -58,7 +59,7 @@ public class DefaultDeleter implements Deleter {
     public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
             LOGGER.debug("Deleting {}", root);
-            long startTime = timeProvider.get();
+            long startTime = timeProvider.getAsLong();
             Collection<String> failedPaths = new ArrayList<String>();
             deleteRecursively(startTime, root, root, followSymlinks, failedPaths);
             if (!failedPaths.isEmpty()) {
@@ -85,9 +86,7 @@ public class DefaultDeleter implements Deleter {
             }
         }
 
-        try {
-            delete(file);
-        } catch (IOException ex) {
+        if (!delete(file)) {
             failedPaths.add(file.getAbsolutePath());
 
             // Fail fast
@@ -102,21 +101,20 @@ public class DefaultDeleter implements Deleter {
     }
 
     protected boolean deleteFile(File file) throws IOException {
-        return Files.deleteIfExists(file.toPath());
+        Path path = file.toPath();
+        return Files.deleteIfExists(path) && !Files.exists(path);
     }
 
     @Override
-    public boolean delete(File file) throws IOException {
+    public boolean delete(File file) {
         try {
-            return deleteFile(file);
+            if (deleteFile(file)) {
+                return true;
+            }
         } catch (IOException ex) {
             LOGGER.debug("Retrying removal of {} after exception", file.getAbsolutePath(), ex);
-            prayBeforeRetry();
-            return deleteFile(file);
         }
-    }
 
-    private void prayBeforeRetry() {
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
         // It mentions that there is a bug in the Windows JDK implementations that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
@@ -128,6 +126,13 @@ public class DefaultDeleter implements Deleter {
             Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+        }
+
+        try {
+            return deleteFile(file);
+        } catch (IOException ex) {
+            LOGGER.debug("Failed again to remove '{}' after retrying", file.getAbsolutePath(), ex);
+            return false;
         }
     }
 

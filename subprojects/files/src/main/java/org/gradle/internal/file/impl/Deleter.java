@@ -44,8 +44,6 @@ public interface Deleter {
      *
      * @return {@code true} if the removal was successful, {@code false} otherwise
      *         (because {@code target} didn't exist).
-     *
-     * @throws IOException when {@code target} cannot be deleted.
      */
-    boolean delete(File target) throws IOException;
+    boolean delete(File target);
 }
