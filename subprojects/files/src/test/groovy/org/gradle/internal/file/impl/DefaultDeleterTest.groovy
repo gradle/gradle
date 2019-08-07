@@ -259,7 +259,7 @@ class DefaultDeleterTest extends Specification {
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {
                         case DeletionAction.FAILURE:
-                            throw new IOException("Failure")
+                            return false
                         case DeletionAction.CONTINUE:
                             return super.deleteFile(file)
                         default:

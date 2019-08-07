@@ -21,8 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,19 +98,14 @@ public class DefaultDeleter implements Deleter {
         return file.isDirectory() && (followSymlinks || !isSymlink.test(file));
     }
 
-    protected boolean deleteFile(File file) throws IOException {
-        Path path = file.toPath();
-        return Files.deleteIfExists(path) && !Files.exists(path);
+    protected boolean deleteFile(File file) {
+        return file.delete() && !file.exists();
     }
 
     @Override
     public boolean delete(File file) {
-        try {
-            if (deleteFile(file)) {
-                return true;
-            }
-        } catch (IOException ex) {
-            LOGGER.debug("Retrying removal of {} after exception", file.getAbsolutePath(), ex);
+        if (deleteFile(file)) {
+            return true;
         }
 
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
@@ -128,12 +121,7 @@ public class DefaultDeleter implements Deleter {
             Thread.currentThread().interrupt();
         }
 
-        try {
-            return deleteFile(file);
-        } catch (IOException ex) {
-            LOGGER.debug("Failed again to remove '{}' after retrying", file.getAbsolutePath(), ex);
-            return false;
-        }
+        return deleteFile(file);
     }
 
     private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) throws IOException {
