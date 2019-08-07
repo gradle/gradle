@@ -42,13 +42,18 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     fun encoding(e: Encoding) = e
 
     private
-    fun computeEncoding(type: Class<*>): Encoding =
-        bindings.find { it.type.isAssignableFrom(type) }?.run {
+    fun computeEncoding(type: Class<*>): Encoding {
+        val encoding = bindings.find { it.type.isAssignableFrom(type) }?.run {
             encoding { value ->
                 writeByte(tag)
                 codec.run { encode(value) }
             }
-        }!!
+        }
+        if (encoding == null) {
+            throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
+        }
+        return encoding
+    }
 
     internal
     companion object {

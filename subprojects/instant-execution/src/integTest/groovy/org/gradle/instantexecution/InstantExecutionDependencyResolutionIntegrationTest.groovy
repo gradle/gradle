@@ -75,9 +75,9 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         expect:
         instantRun(":resolve")
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
+
         instantRun(":resolve")
-        // For now, scheduled transforms are ignored when writing to the cache
-        outputContains("result = []")
+        outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
     }
 
     def "task input files can include the output of artifact transforms of prebuilt file dependencies"() {

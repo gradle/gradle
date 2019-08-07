@@ -45,11 +45,11 @@ public abstract class TransformationNode extends Node {
     protected final ExecutionGraphDependenciesResolver dependenciesResolver;
     protected Try<TransformationSubject> transformedSubject;
 
-    public static TransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver);
     }
 
-    public static TransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
+    public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
         return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver);
     }
 
@@ -77,6 +77,10 @@ public abstract class TransformationNode extends Node {
 
     public TransformationStep getTransformationStep() {
         return transformationStep;
+    }
+
+    public ExecutionGraphDependenciesResolver getDependenciesResolver() {
+        return dependenciesResolver;
     }
 
     public Try<TransformationSubject> getTransformedSubject() {
@@ -136,12 +140,10 @@ public abstract class TransformationNode extends Node {
 
     public static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
-        private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
         public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
             super(transformationStep, dependenciesResolver);
             this.artifact = artifact;
-            this.dependenciesResolver = dependenciesResolver;
         }
 
         public ResolvableArtifact getArtifact() {

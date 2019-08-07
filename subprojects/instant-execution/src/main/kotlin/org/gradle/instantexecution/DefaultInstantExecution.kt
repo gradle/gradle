@@ -240,7 +240,8 @@ class DefaultInstantExecution internal constructor(
             instantiator = service(),
             listenerManager = service(),
             projectStateRegistry = service(),
-            taskNodeFactory = service()
+            taskNodeFactory = service(),
+            fingerprinterRegistry = service()
         )
     }
 

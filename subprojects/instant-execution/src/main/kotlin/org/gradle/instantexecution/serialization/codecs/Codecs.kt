@@ -37,6 +37,7 @@ import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
@@ -65,7 +66,8 @@ class Codecs(
     instantiator: Instantiator,
     listenerManager: ListenerManager,
     projectStateRegistry: ProjectStateRegistry,
-    taskNodeFactory: TaskNodeFactory
+    taskNodeFactory: TaskNodeFactory,
+    fingerprinterRegistry: FileCollectionFingerprinterRegistry
 ) {
 
     private
@@ -124,7 +126,7 @@ class Codecs(
 
         // Dependency management types
         bind(ArtifactCollectionCodec)
-        bind(TransformationNodeCodec)
+        bind(TransformationNodeReferenceCodec)
 
         bind(DefaultCopySpecCodec(fileResolver, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
@@ -153,8 +155,14 @@ class Codecs(
 
     private
     val internalTypeBindings = bindings {
+        bind(INTEGER_SERIALIZER)
+
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
-        bind(TransformationNodeCodec)
+        bind(InitialTransformationNodeCodec)
+        bind(ChainedTransformationNodeCodec)
+        bind(ResolvableArtifactCodec)
+        bind(NoOpTransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
+        bind(ExecutionGraphDependenciesResolverCodec)
     }
 
     val internalTypesCodec = BindingsBackedCodec(internalTypeBindings)

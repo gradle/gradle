@@ -32,30 +32,30 @@ class WorkNodeCodec(
 ) {
 
     suspend fun WriteContext.writeWork(nodes: List<Node>) {
-        val ids = HashMap<Node, Int>(nodes.size)
+        val nodesById = HashMap<Node, Int>(nodes.size)
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withIsolate(IsolateOwner.NoOwner(), internalTypesCodec) {
             writeSmallInt(nodes.size)
             for (node in nodes) {
-                writeNode(node, ids)
+                writeNode(node, nodesById)
             }
         }
     }
 
     private
-    suspend fun WriteContext.writeNode(node: Node, ids: MutableMap<Node, Int>) {
-        if (ids.containsKey(node)) {
+    suspend fun WriteContext.writeNode(node: Node, nodesById: MutableMap<Node, Int>) {
+        if (nodesById.containsKey(node)) {
             // Already visited
             return
         }
         for (successor in node.dependencySuccessors) {
-            writeNode(successor, ids)
+            writeNode(successor, nodesById)
         }
-        val id = ids.size
+        val id = nodesById.size
         writeSmallInt(id)
         internalTypesCodec.run { encode(node) }
-        writeCollection(node.dependencySuccessors) { writeSmallInt(ids.getValue(it)) }
-        ids[node] = id
+        writeCollection(node.dependencySuccessors) { writeSmallInt(nodesById.getValue(it)) }
+        nodesById[node] = id
     }
 
     suspend fun ReadContext.readWork(): List<Node> {
@@ -79,8 +79,8 @@ class WorkNodeCodec(
             val depId = readSmallInt()
             val dep = nodesById.getValue(depId)
             node.addDependencySuccessor(dep)
-            node.dependenciesProcessed()
         }
+        node.dependenciesProcessed()
         nodesById[id] = node
         return node
     }
