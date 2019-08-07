@@ -99,6 +99,18 @@ Miscellaneous::
   Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
 * The bridge method `org.gradle.api.tasks.TaskInputs.property(String name, @Nullable Object value)` returning `TaskInputs` has been removed.
   A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
+* The setters for
+  link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:executionData[executionData],
+  link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:sourceDirectories[sourceDirectories],
+  link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:classDirectories[classDirectories],
+  link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalClassDirs[additionalClassDirs] and
+  link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalSourceDirs[additionalSourceDirs]
+  on `JacocoReportBase` have been removed.
+  Use the corresponding getter and call `setFrom` on the returned `ConfigurableFileCollection`.
+* The `append` property on `JacocoTaskExtension` has been removed.
+  `append` is now always configured to be true for the Jacoco agent.
+* The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
+  The method was never meant to be public.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
