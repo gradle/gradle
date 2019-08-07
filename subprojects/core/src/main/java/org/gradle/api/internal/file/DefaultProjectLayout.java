@@ -24,7 +24,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory.FixedDirectory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory.FixedFile;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.Providers;
@@ -34,14 +36,13 @@ import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
-public class DefaultProjectLayout extends DefaultFilePropertyFactory implements ProjectLayout, TaskFileVarFactory {
+public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
     private final TaskDependencyFactory taskDependencyFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
     public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
-        super(resolver, fileCollectionFactory);
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectDir = new FixedDirectory(projectDir, resolver, fileCollectionFactory);
@@ -56,32 +57,6 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
     @Override
     public DirectoryProperty getBuildDirectory() {
         return buildDir;
-    }
-
-    @Override
-    public DirectoryProperty directoryProperty() {
-        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.directoryProperty()", "ObjectFactory.directoryProperty()");
-        return newDirectoryProperty();
-    }
-
-    @Override
-    public DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider) {
-        DirectoryProperty result = directoryProperty();
-        result.set(initialProvider);
-        return result;
-    }
-
-    @Override
-    public RegularFileProperty fileProperty() {
-        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.fileProperty()", "ObjectFactory.fileProperty()");
-        return newFileProperty();
-    }
-
-    @Override
-    public RegularFileProperty fileProperty(Provider<? extends RegularFile> initialProvider) {
-        RegularFileProperty result = fileProperty();
-        result.set(initialProvider);
-        return result;
     }
 
     @Override
