@@ -180,8 +180,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
-        val differentKotlinVersion = "1.0.7"
-        val expectedKotlinCompilerVersionString = "1.0.7-release-1"
+        val differentKotlinVersion = "1.3.30"
+        val expectedKotlinCompilerVersionString = "1.3.30"
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
@@ -214,8 +214,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
         """)
-
-        executer.expectDeprecationWarning()
 
         assertThat(
             build("print-kotlin-version").output,
