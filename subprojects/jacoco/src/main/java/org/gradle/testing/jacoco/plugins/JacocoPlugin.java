@@ -38,6 +38,7 @@ import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoMerge;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -83,7 +84,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
         applyToDefaultTasks(extension);
-        configureDefaultOutputPathForJacocoMerge();
+        DeprecationLogger.whileDisabled(new Runnable() {
+            @Override
+            public void run() {
+                configureDefaultOutputPathForJacocoMerge();
+            }
+        });
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
     }
@@ -155,18 +161,27 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureDefaultOutputPathForJacocoMerge() {
+    /**
+     * Don't use this.
+     *
+     * @deprecated This method will be made private in a future version of Gradle.
+     */
+    @Deprecated
+    public Object configureDefaultOutputPathForJacocoMerge() {
+        DeprecationLogger
+            .nagUserOfDiscontinuedMethod("JacocoPlugin.configureDefaultOutputPathForJacocoMerge()");
         project.getTasks().withType(JacocoMerge.class).configureEach(new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 task.setDestinationFile(project.provider(new Callable<File>() {
                     @Override
-                    public File call() {
+                    public File call() throws Exception {
                         return new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec");
                     }
                 }));
             }
         });
+        return project.getTasks().withType(JacocoMerge.class);
     }
 
     private void configureJacocoReportsDefaults(final JacocoPluginExtension extension) {

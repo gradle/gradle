@@ -117,6 +117,35 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         reportResourceDir.exists()
     }
 
+    def "using append is deprecated"() {
+        buildFile << """
+            test {
+                jacoco {
+                    append = false
+                }
+            }
+        """
+        def deprecationMessage = "The append property has been deprecated. This is scheduled to be removed in Gradle 6.0. Append should always be true."
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds("help")
+        then:
+        output.contains(deprecationMessage)
+
+        when:
+        buildFile.text = ""
+        javaProjectUnderTest.writeBuildScript()
+        buildFile << """
+            println test.jacoco.append
+        """
+        and:
+        executer.expectDeprecationWarning()
+        succeeds("help")
+        then:
+        output.contains(deprecationMessage)
+    }
+
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
     }

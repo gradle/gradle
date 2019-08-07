@@ -71,6 +71,7 @@ class JacocoTaskExtensionSpec extends Specification {
 
         extension.with {
             destinationFile = temporaryFolder.file('build/jacoco/fake.exec')
+            append = false
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
             excludeClassLoaders = ['com.sun.*', 'org.fak?.*']
@@ -87,7 +88,7 @@ class JacocoTaskExtensionSpec extends Specification {
         def expected = new StringBuilder().with { builder ->
             builder << "-javaagent:subfolder/fakeagent.jar="
             builder << "destfile=../build/jacoco/fake.exec,"
-            builder << "append=true,"
+            builder << "append=false,"
             builder << "includes=org.*:*.?acoco*,"
             builder << "excludes=org.?joberstar,"
             builder << "exclclassloader=com.sun.*:org.fak?.*,"

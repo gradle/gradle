@@ -59,6 +59,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         when:
         extension.with {
             destinationFile = project.file('build/jacoco/fake.exec')
+            append = false
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
             excludeClassLoaders = ['com.sun.*', 'org.fak?.*']
@@ -74,7 +75,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
 
         def expected = new StringBuilder().with { builder ->
             builder << "destfile=build/jacoco/fake.exec,"
-            builder << "append=true,"
+            builder << "append=false,"
             builder << "includes=org.*:*.?acoco*,"
             builder << "excludes=org.?joberstar,"
             builder << "exclclassloader=com.sun.*:org.fak?.*,"

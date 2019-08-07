@@ -99,16 +99,6 @@ Miscellaneous::
   Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
 * The bridge method `org.gradle.api.tasks.TaskInputs.property(String name, @Nullable Object value)` returning `TaskInputs` has been removed.
   A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
-* The following setters have been removed from `JacocoReportBase`:
-** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:executionData[executionData] - use `getExecutionData().setFrom()` instead.
-** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:sourceDirectories[sourceDirectories] - use `getSourceDirectories().setFrom()` instead.
-** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:classDirectories[classDirectories] - use `getClassDirectories().setFrom()` instead.
-** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalClassDirs[additionalClassDirs] - use `getAdditionalClassDirs().setFrom()` instead.
-** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalSourceDirs[additionalSourceDirs] - use `getAdditionalSourceDirs().setFrom()` instead.
-* The `append` property on `JacocoTaskExtension` has been removed.
-  `append` is now always configured to be true for the Jacoco agent.
-* The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
-  The method was never meant to be public.
 * File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
   Use a simple name, like `application.xml`, instead.
 
