@@ -36,6 +36,7 @@ interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 
 interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
+
     val sharedIdentities: WriteIdentities
 
     override val isolate: WriteIsolate
@@ -49,6 +50,7 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
 
 interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
+
     val sharedIdentities: ReadIdentities
 
     override val isolate: ReadIsolate
@@ -291,6 +293,7 @@ interface WriteIsolate : Isolate {
 
 
 interface ReadIsolate : Isolate {
+
     /**
      * Identities of objects that are shared within this isolate only.
      */
