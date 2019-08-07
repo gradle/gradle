@@ -71,6 +71,16 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 - `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
 - `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
 
+==== The FindBugs plugin has been removed
+
+The deprecated FindBugs plugin has been removed.
+As an alternative, you can use the link:https://plugins.gradle.org/plugin/com.github.spotbugs[SpotBugs plugin] from the link:https://plugins.gradle.org[Gradle Plugin Portal].
+
+==== The JDepend plugin has been removed
+
+The deprecated JDepend plugin has been removed.
+There are a number of community-provided plugins for code and architecture analysis available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
+
 ==== The OSGI plugin has been removed
 
 The deprecated OSGI plugin has been removed.  There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org[Gradle Plugin Portal].

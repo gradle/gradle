@@ -148,8 +148,6 @@ object UserGuideLink {
 
             // "envjs" to "envjs_plugin.html",
 
-            "findbugs" to "findbugs_plugin.html",
-
             "gcc-compiler" to "native_software.html#native_binaries:tool_chain",
 
             "google-test" to "native_software.html#native_binaries:google_test",
@@ -177,8 +175,6 @@ object UserGuideLink {
             "java-library-distribution" to "java_library_distribution_plugin.html",
 
             // "javascript-base" to "javascript_base_plugin.html",
-
-            "jdepend" to "jdepend_plugin.html",
 
             // "jshint" to "jshint_plugin.html",
 

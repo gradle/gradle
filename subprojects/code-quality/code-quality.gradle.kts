@@ -35,17 +35,9 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("ant"))
-    implementation(library("slf4j_api"))
 
-    compileOnly("com.google.code.findbugs:findbugs:2.0.1") {
-        because("the findbugs plugin will download this dependency")
-    }
-
-    testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
-    testRuntimeOnly("com.google.code.findbugs:bcel:2.0.1")
-    testRuntimeOnly("jaxen:jaxen:1.1")
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(project(":core"))

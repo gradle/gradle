@@ -105,10 +105,6 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
 
         when:
-        if (containerName == 'findbugs reports') {
-            executer.expectDeprecationWarnings(1)
-        }
-
         run('tasks')
 
         then:
@@ -150,7 +146,6 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         "matching{it.name == 'foo'}.all"     | 'distributions'            | ['distribution']               | 'distributions'                               | createFooDistributions()
         "matching{true}.all" | 'test reports'            | ['java-library']               | 'test.reports'                           | ''
         "matching{true}.all" | 'checkstyle reports'      | ['java-library', 'checkstyle'] | 'checkstyleMain.reports'                 | ''
-        "matching{true}.all" | 'findbugs reports'        | ['java-library', 'findbugs']   | 'findbugsMain.reports'                   | ''
         "matching{true}.all" | 'pmd reports'             | ['java-library', 'pmd']        | 'pmdMain.reports'                        | ''
         "matching{true}.all" | 'codenarc reports'        | ['groovy', 'codenarc']         | 'codenarcMain.reports'                   | ''
         "matching{true}.all" | 'html dependency reports' | ['project-report']             | 'htmlDependencyReport.reports'           | ''
