@@ -23,7 +23,6 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
