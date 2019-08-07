@@ -31,10 +31,10 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         executer.noDeprecationChecks()
     }
 
-    def "android 3.5 minimal build assembleDebug"() {
+    def "android 3.6 minimal build assembleDebug"() {
 
         executer.beforeExecute {
-            inDirectory(file("android-3.5-mini"))
+            inDirectory(file("android-3.6-mini"))
         }
         def instantExecution = newInstantExecutionFixture()
 
@@ -46,7 +46,7 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
             ":app:compileDebugRenderscript",
             ":app:checkDebugManifest",
             ":app:generateDebugBuildConfig",
-            ":app:mainApkListPersistenceDebug",
+//            ":app:mainApkListPersistenceDebug",
             ":app:generateDebugResValues",
             ":app:generateDebugResources",
             // ":app:createDebugCompatibleScreenManifests",
