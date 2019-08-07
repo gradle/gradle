@@ -109,6 +109,8 @@ Miscellaneous::
   `append` is now always configured to be true for the Jacoco agent.
 * The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
   The method was never meant to be public.
+* File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
+  Use a simple name, like `application.xml`, instead.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
@@ -142,6 +144,12 @@ Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without de
 Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 
 This will become an error in Gradle 6.0.
+
+==== `WorkerExecutor.submit()` is deprecated
+
+The `WorkerExecutor.submit()` method is now deprecated.  The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.  See <<custom_tasks.html#using-the-worker-api, the userguide>> for more information on using these methods.
+
+`WorkerExecutor.submit()` will be removed in Gradle 7.0.
 
 === Potential breaking changes
 

@@ -91,7 +91,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def handle = executer.withTasks(taskName).start()
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains('Listening for transport dt_socket at address')
         }
 
