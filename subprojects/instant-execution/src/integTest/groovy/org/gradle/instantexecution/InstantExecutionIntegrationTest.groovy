@@ -577,6 +577,65 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores task fields whose value is a serializable #kind Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+
+                    public interface SerializableSupplier<T> extends java.io.Serializable {
+                        T get();
+                    }
+
+                    private SerializableSupplier<Integer> supplier;
+
+                    public void setSupplier(SerializableSupplier<Integer> supplier) {
+                        this.supplier = supplier;
+                    }
+
+                    public void setNonInstanceCapturingLambda() {
+                        final int i = getName().length();
+                        setSupplier(() -> i);
+                    }
+
+                    public void setInstanceCapturingLambda() {
+                        setSupplier(() -> getName().length());
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("this.supplier.get() -> " + this.supplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                $expression
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.supplier.get() -> 2")
+
+        where:
+        kind                     | expression
+        "instance capturing"     | "setInstanceCapturingLambda()"
+        "non-instance capturing" | "setNonInstanceCapturingLambda()"
+    }
+
+    @Unroll
     def "warns when task field references an object of type #baseType"() {
         buildFile << """
             class SomeBean {
