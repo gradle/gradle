@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.execution.ProjectExecutionServiceRegistry;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Try;
@@ -58,7 +58,13 @@ public abstract class TransformationNode extends Node {
         this.dependenciesResolver = dependenciesResolver;
     }
 
-    public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, ProjectExecutionServiceRegistry services);
+    public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, NodeExecutionContext context);
+
+    @Nullable
+    @Override
+    public Project getOwningProject() {
+        return transformationStep.getOwningProject();
+    }
 
     @Override
     public boolean isPublicNode() {
@@ -102,7 +108,7 @@ public abstract class TransformationNode extends Node {
 
     @Nullable
     @Override
-    public Project getProject() {
+    public Project getProjectToLock() {
         // Transforms do not require project state
         return null;
     }
@@ -151,7 +157,7 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
-        public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, ProjectExecutionServiceRegistry services) {
+        public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, NodeExecutionContext context) {
             this.transformedSubject = buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                 @Override
                 protected Try<TransformationSubject> transform() {
@@ -166,7 +172,7 @@ public abstract class TransformationNode extends Node {
                     }
 
                     TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
-                    return transformationStep.createInvocation(initialArtifactTransformationSubject, dependenciesResolver, services).invoke();
+                    return transformationStep.createInvocation(initialArtifactTransformationSubject, dependenciesResolver, context).invoke();
                 }
 
                 @Override
@@ -197,12 +203,12 @@ public abstract class TransformationNode extends Node {
         }
 
         @Override
-        public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, ProjectExecutionServiceRegistry services) {
+        public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener, NodeExecutionContext context) {
             this.transformedSubject = buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                 @Override
                 protected Try<TransformationSubject> transform() {
                     return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
-                        transformationStep.createInvocation(transformedSubject, dependenciesResolver, services).invoke());
+                        transformationStep.createInvocation(transformedSubject, dependenciesResolver, context).invoke());
                 }
 
                 @Override

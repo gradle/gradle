@@ -264,12 +264,21 @@ public abstract class Node implements Comparable<Node> {
     public abstract boolean requiresMonitoring();
 
     /**
-     * Returns the project which the node requires access to, if any.
+     * Returns the project which this node requires mutable access to, if any.
      *
-     * This should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
+     * TODO - this should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
      */
     @Nullable
-    public abstract Project getProject();
+    public abstract Project getProjectToLock();
+
+    /**
+     * Returns the project which this node belongs to, and requires access to the execution services of.
+     * Returning non-null does not imply that the project must be locked when this node executes. Use {@link #getProjectToLock()} instead for that.
+     *
+     * TODO - this should return some kind of abstract 'action context' instead of a mutable project.
+     */
+    @Nullable
+    public abstract Project getOwningProject();
 
     @Override
     public abstract String toString();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.service.ServiceLookupException;
 
-public class WorkNodeExecutor implements NodeExecutor {
-    @Override
-    public boolean execute(Node node, NodeExecutionContext context) {
-        if (!(node instanceof ActionNode)) {
-            return false;
-        }
-        ((ActionNode) node).run(context);
-        return true;
-    }
+public interface NodeExecutionContext {
+    /**
+     * Locates the given execution service.
+     */
+    <T> T getService(Class<T> type) throws ServiceLookupException;
 }
