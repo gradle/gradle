@@ -35,7 +35,6 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -95,7 +94,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
     private boolean noBuildScan;
-    private boolean interactive;
     private boolean writeDependencyLocks;
     private List<String> lockedDependenciesToUpdate = emptyList();
 
@@ -249,7 +247,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        p.interactive = interactive;
         p.writeDependencyLocks = writeDependencyLocks;
         p.lockedDependenciesToUpdate = new ArrayList<String>(lockedDependenciesToUpdate);
         return p;
@@ -738,7 +735,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
-            + ", interactive=" + interactive
             + ", writeDependencyLocks=" + writeDependencyLocks
             + '}';
     }
@@ -809,30 +805,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setNoBuildScan(boolean noBuildScan) {
         this.noBuildScan = noBuildScan;
-    }
-
-    /**
-     * Returns true when console is interactive.
-     *
-     * @since 4.3
-     * @deprecated This flag is no longer used and simply defaults to 'false'.
-     */
-    @Deprecated
-    public boolean isInteractive() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isInteractive()");
-        return interactive;
-    }
-
-    /**
-     * Specifies whether console is interactive.
-     *
-     * @since 4.3
-     * @deprecated This flag is no longer used.
-     */
-    @Deprecated
-    public void setInteractive(boolean interactive) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setInteractive()");
-        this.interactive = interactive;
     }
 
     /**
