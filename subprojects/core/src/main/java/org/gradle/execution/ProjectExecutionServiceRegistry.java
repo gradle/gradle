@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceLookupException;
-import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,12 +34,7 @@ import java.io.IOException;
  * Registry of services provided at execution time for already configured projects.
  */
 public class ProjectExecutionServiceRegistry implements AutoCloseable {
-    private static final NodeExecutionContext EMPTY = new NodeExecutionContext() {
-        @Override
-        public <T> T getService(Class<T> type) throws ServiceLookupException {
-            throw new UnknownServiceException(type, "No service of type " + type.getName() + " available.");
-        }
-    };
+    private final NodeExecutionContext global;
     private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = CacheBuilder.newBuilder()
         .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
             @Override
@@ -48,9 +43,13 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
             }
         });
 
+    public ProjectExecutionServiceRegistry(ServiceRegistry globalServices) {
+        global = globalServices::get;
+    }
+
     public NodeExecutionContext forProject(@Nullable ProjectInternal project) {
         if (project == null) {
-            return EMPTY;
+            return global;
         }
         return projectRegistries.getUnchecked(project);
     }

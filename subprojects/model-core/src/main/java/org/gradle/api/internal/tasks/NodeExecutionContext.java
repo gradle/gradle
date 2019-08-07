@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.ServiceLookupException;
 
+@NonNullApi
 public interface NodeExecutionContext {
     /**
      * Locates the given execution service.
