@@ -93,7 +93,10 @@ Please use https://scans.gradle.com/[build scans] for build analysis and compari
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
 Miscellaneous::
+
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
+* The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
+  Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
