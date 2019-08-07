@@ -51,7 +51,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
-        180
+        179
     }
 
     int getLibJarsCount() {
@@ -144,7 +144,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-scala-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${baseVersion}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ear-${baseVersion}.jar"))

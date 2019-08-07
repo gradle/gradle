@@ -85,6 +85,10 @@ There are a number of community-provided plugins for code and architecture analy
 
 The deprecated OSGI plugin has been removed.  There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
 
+==== The announce and build-announcements plugins have been removed
+
+The deprecated announce and build-announcements plugins have been removed.  There are a number of community-provided plugins for sending out notifications available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
+
 ==== The Compare Gradle Builds plugin has been removed
 
 The deprecated Compare Gradle Builds plugin has been removed.
