@@ -97,6 +97,8 @@ Miscellaneous::
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
   Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
+* The bridge method `org.gradle.api.tasks.TaskInputs.property(String name, @Nullable Object value)` returning `TaskInputs` has been removed.
+  A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier

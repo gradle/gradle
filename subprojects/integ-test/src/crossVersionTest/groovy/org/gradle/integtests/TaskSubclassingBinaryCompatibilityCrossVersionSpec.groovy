@@ -175,7 +175,9 @@ apply plugin: SomePlugin
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
-                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.property("input", "value");
+                    ${previous.version >= GradleVersion.version("4.3")
+                        ? 'getInputs().property("input", "value");'
+                        : ""}
                     Map<String, Object> mapValues = new HashMap<String, Object>();
                     mapValues.put("mapInput", "mapValue");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);
