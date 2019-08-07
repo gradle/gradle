@@ -437,9 +437,6 @@
                 <td>org.gradle.api.plugins.quality.CodeNarc</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.Copy</td>
             </tr>
             <tr>

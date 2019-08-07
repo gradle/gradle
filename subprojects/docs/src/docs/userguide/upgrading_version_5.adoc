@@ -75,6 +75,11 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 
 The deprecated OSGI plugin has been removed.  There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
 
+==== The Compare Gradle Builds plugin has been removed
+
+The deprecated Compare Gradle Builds plugin has been removed.
+Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
+
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
 Miscellaneous::
@@ -194,7 +199,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 ==== Build Comparison
 
-The <<comparing_builds.adoc#comparing_builds, build comparison>> plugin has been deprecated and will be removed in the next major version of Gradle.
+The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
 link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Gradle Enterprise] to directly compare two build's build-scans.
 
