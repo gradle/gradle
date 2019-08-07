@@ -60,12 +60,6 @@ public class KotlinCompatibilityTest {
         .put("org.gradle.StartParameter", "gradleUserHomeDir")
         .put("org.gradle.StartParameter", "taskNames")
         .put("org.gradle.api.plugins.quality.Checkstyle", "configDir")
-        .put("org.gradle.api.plugins.quality.FindBugs", "excludeBugsFilter")
-        .put("org.gradle.api.plugins.quality.FindBugs", "excludeFilter")
-        .put("org.gradle.api.plugins.quality.FindBugs", "includeFilter")
-        .put("org.gradle.api.plugins.quality.FindBugsExtension", "excludeBugsFilter")
-        .put("org.gradle.api.plugins.quality.FindBugsExtension", "excludeFilter")
-        .put("org.gradle.api.plugins.quality.FindBugsExtension", "includeFilter")
         .put("org.gradle.api.tasks.AbstractCopyTask", "dirMode")
         .put("org.gradle.api.tasks.AbstractCopyTask", "fileMode")
         .put("org.gradle.api.tasks.AbstractExecTask", "args")
@@ -135,7 +129,7 @@ public class KotlinCompatibilityTest {
 
     @ArchTest
     public static final ArchRule consistent_nullable_annotations_on_public_api = classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations(IGNORED_PUBLIC_API_PROPERTIES));
-    
+
     @ArchTest
     public static final ArchRule consistent_nullable_annotations_on_internal_api = classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations(IGNORED_INTERNAL_API_PROPERTIES));
 

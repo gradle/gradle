@@ -23,10 +23,9 @@ import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.JDK10_OR_EARLIER
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Requires([KOTLIN_SCRIPT, JDK10_OR_EARLIER]) // FindBugs does not work on JDK 11
+@Requires([KOTLIN_SCRIPT])
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
@@ -43,7 +42,6 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
             .inDirectory(projectDir)
             .requireGradleDistribution()
             .withTasks('check')
-            .expectDeprecationWarnings(2) // jdepend and findbugs are deprecated
             .run()
 
         then:
@@ -51,9 +49,6 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
         buildDir.file('reports/checkstyle/main.html').assertIsFile()
         buildDir.file('reports/codenarc/main.html').assertIsFile()
         buildDir.file('reports/codenarc/test.html').assertIsFile()
-        buildDir.file('reports/findbugs/main.html').assertIsFile()
-        buildDir.file('reports/jdepend/main.xml').assertIsFile()
-        buildDir.file('reports/jdepend/test.xml').assertIsFile()
         buildDir.file('reports/pmd/main.html').assertIsFile()
         buildDir.file('reports/pmd/main.xml').assertIsFile()
 
