@@ -88,7 +88,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean offline;
     private File projectCacheDir;
     private boolean refreshDependencies;
-    private boolean recompileScripts;
     private boolean buildCacheEnabled;
     private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
@@ -244,7 +243,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
         p.rerunTasks = rerunTasks;
-        p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
         p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
         p.buildCacheEnabled = buildCacheEnabled;
@@ -640,28 +638,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether to force the build scripts to be recompiled.
-     *
-     * @deprecated This flag is no longer used.
-     */
-    @Deprecated
-    public boolean isRecompileScripts() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isRecompileScripts()");
-        return recompileScripts;
-    }
-
-    /**
-     * Specifies whether to force the build scripts to be recompiled.
-     *
-     * @deprecated This flag is no longer used and simply defaults to 'false'.
-     */
-    @Deprecated
-    public void setRecompileScripts(boolean recompileScripts) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setRecompileScripts()");
-        this.recompileScripts = recompileScripts;
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -756,7 +732,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
-            + ", recompileScripts=" + recompileScripts
             + ", offline=" + offline
             + ", refreshDependencies=" + refreshDependencies
             + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
