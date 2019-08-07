@@ -92,6 +92,20 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 - `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
 - `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
 
+==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`
+
+Use `ObjectFactory.fileProperty()` instead of the following methods that are now removed:
+
+- `DefaultTask.newInputFile()`
+- `DefaultTask.newOutputFile()`
+- `ProjectLayout.fileProperty()`
+
+Use `ObjectFactory.directoryProperty()` instead of the following methods that are now removed:
+
+- `DefaultTask.newInputDirectory()`
+- `DefaultTask.newOutputDirectory()`
+- `ProjectLayout.directoryProperty()`
+
 ==== The FindBugs plugin has been removed
 
 The deprecated FindBugs plugin has been removed.
