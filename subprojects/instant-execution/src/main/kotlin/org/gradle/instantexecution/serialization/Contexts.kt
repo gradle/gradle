@@ -22,11 +22,8 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
-import org.gradle.instantexecution.serialization.beans.SerializableReadReplaceReader
-import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import java.io.Serializable
 
 
 internal
@@ -137,21 +134,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType, this::createReaderFor)
-
-    private
-    fun createReaderFor(beanType: Class<*>): BeanStateReader {
-        // When the type is serializable and has a writeReplace() method, then use the corresponding readReplace() method from the placeholder
-        if (Serializable::class.java.isAssignableFrom(beanType)) {
-            val details = ClassInspector.inspect(beanType)
-            val method = details.allMethods.find { it.name == "writeReplace" && it.parameters.isEmpty() }
-            if (method != null) {
-                return SerializableReadReplaceReader()
-            }
-        }
-        // Otherwise, serialize the fields of the bean
-        return beanPropertyReaderFactory(beanType)
-    }
+        beanStateReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()
