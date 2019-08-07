@@ -33,7 +33,6 @@ import org.gradle.tooling.model.cpp.CppStaticLibrary;
 import org.gradle.tooling.model.cpp.CppTestSuite;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
-import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +43,6 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
     public ConsumerTargetTypeProvider() {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
         configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), BackwardsCompatibleIdeaModuleDependency.class);
-        configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
     }
 
     @Override

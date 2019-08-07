@@ -47,7 +47,6 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class ParameterAcceptingConsumerConnectionTest extends Specification {
@@ -78,7 +77,6 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         details.maySupportModel(BasicIdeaProject)
         details.maySupportModel(GradleProject)
         details.maySupportModel(BuildEnvironment)
-        details.maySupportModel(ProjectOutcomes)
         details.maySupportModel(Void)
         details.maySupportModel(GradleBuild)
         details.maySupportModel(BuildInvocations)
