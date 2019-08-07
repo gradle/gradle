@@ -16,16 +16,12 @@
 
 package org.gradle.util;
 
-import com.google.common.base.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.LineBufferingOutputStream;
-import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.io.WriterTextStream;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -35,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -257,39 +252,6 @@ public class GUtil {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    /**
-     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
-     */
-    @Deprecated
-    public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
-        try {
-            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
-            try {
-                savePropertiesNoDateComment(properties, propertiesFileOutputStream);
-            } finally {
-                propertiesFileOutputStream.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    /**
-     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
-     */
-    @Deprecated
-    public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
-        saveProperties(properties,
-            new LineBufferingOutputStream(
-                new SkipFirstTextStream(
-                    new WriterTextStream(
-                        new OutputStreamWriter(outputStream, Charsets.ISO_8859_1)
-                    )
-                )
-            )
-        );
     }
 
     public static Map map(Object... objects) {
