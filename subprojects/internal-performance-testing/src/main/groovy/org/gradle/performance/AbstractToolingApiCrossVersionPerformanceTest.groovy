@@ -168,8 +168,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private CrossVersionPerformanceResults run() {
             def testId = experiment.displayName
-            def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experiment.projectName].toSet(), resultStore))
+            Assume.assumeTrue(TestScenarioSelector.shouldRun(AbstractToolingApiCrossVersionPerformanceTest.this.getClass().getName(), testId, [experiment.projectName].toSet(), resultStore))
             profiler = Profiler.create()
             try {
                 doRun(testId)
