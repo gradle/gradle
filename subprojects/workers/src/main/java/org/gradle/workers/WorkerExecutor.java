@@ -28,16 +28,13 @@ import org.gradle.api.Incubating;
  *     <li>Safe execution of multiple tasks in parallel</li>
  * </ul>
  *
- * <p>Work should be submitted with a {@link Runnable} class representing the implementation of the unit of work
- * and an action to configure the unit of work (via {@link WorkerConfiguration}).
+ * <p>Work should be submitted with a {@link WorkAction} class representing the implementation of the unit of work
+ * and an action to configure the parameters of the unit of work (via {@link WorkParameters}).
  *
  * <pre>
- *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf -&gt;
- *          // Set the isolation mode for the worker
- *          conf.isolationMode = IsolationMode.NONE
- *
- *          // Set up the constructor parameters for the unit of work
- *          conf.params = [ "foo", file('bar') ]
+ *      workerExecutor.noIsolation().submit(MyWorkActionImpl.class) { MyWorkParameters parameters -&gt;
+ *          parameters.inputFile = project.file('foo')
+ *          parameters.outputFile = project.layout.buildDirectory.file('bar')
  *      }
  * </pre>
  *

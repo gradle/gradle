@@ -75,6 +75,7 @@ import org.gradle.util.DeprecationLogger;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -263,6 +264,31 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     @Override
     public URI getUrl() {
         return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
+    }
+
+
+    @Override
+    protected Collection<URI> getRepositoryUrls() {
+        // Ivy can resolve files from multiple hosts, so we need to look at all
+        // of the possible URLs used by the Ivy resolver to identify all of the repositories
+        ImmutableList.Builder<URI> builder = ImmutableList.builder();
+        URI root = getUrl();
+        if (root != null) {
+            builder.add(root);
+        }
+        for (String pattern : additionalPatternsLayout.artifactPatterns) {
+            URI baseUri = new ResolvedPattern(pattern, fileResolver).baseUri;
+            if (baseUri!=null) {
+                builder.add(baseUri);
+            }
+        }
+        for (String pattern : additionalPatternsLayout.ivyPatterns) {
+            URI baseUri = new ResolvedPattern(pattern, fileResolver).baseUri;
+            if (baseUri!=null) {
+                builder.add(baseUri);
+            }
+        }
+        return builder.build();
     }
 
     @Override

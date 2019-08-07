@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.maven
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -337,7 +338,6 @@ uploadArchives {
     repositories{
         mavenDeployer {
             repository(url: "http://localhost:${server.port}/repo") {
-               authentication(userName: "testuser", password: "secret")
             }
             addFilter('main') {artifact, file ->
                 !artifact.name.endsWith("-tests")
@@ -438,8 +438,7 @@ uploadArchives {
     @Unroll
     def "can publish to an authenticated HTTP repository using #authScheme auth"() {
         given:
-        def username = 'testuser'
-        def password = 'password'
+        def credentials = new DefaultPasswordCredentials('testuser', 'password')
         server.start()
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().version))
         def repo = new MavenHttpRepository(server, mavenRepo)
@@ -454,7 +453,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: "${repo.uri}") {
-               authentication(userName: "${username}", password: "${password}")
+               authentication(userName: "${credentials.username}", password: "${credentials.password}")
             }
         }
     }
@@ -465,16 +464,16 @@ uploadArchives {
 
         and:
         def module = repo.module('org.test', 'root')
-        module.artifact.expectPut(username, password)
-        module.artifact.sha1.expectPut(username, password)
-        module.artifact.md5.expectPut(username, password)
-        module.pom.expectPut(username, password)
-        module.pom.sha1.expectPut(username, password)
-        module.pom.md5.expectPut(username, password)
-        module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPut(username, password)
-        module.rootMetaData.sha1.expectPut(username, password)
-        module.rootMetaData.md5.expectPut(username, password)
+        module.artifact.expectPut(credentials)
+        module.artifact.sha1.expectPut(credentials)
+        module.artifact.md5.expectPut(credentials)
+        module.pom.expectPut(credentials)
+        module.pom.sha1.expectPut(credentials)
+        module.pom.md5.expectPut(credentials)
+        module.rootMetaData.expectGetMissing(credentials)
+        module.rootMetaData.expectPut(credentials)
+        module.rootMetaData.sha1.expectPut(credentials)
+        module.rootMetaData.md5.expectPut(credentials)
 
         then:
         succeeds 'uploadArchives'

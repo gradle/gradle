@@ -163,7 +163,7 @@ trait HttpServerFixture {
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            allHeaders << request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
+            allHeaders.add(request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] })
             String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {
