@@ -65,7 +65,7 @@ abstract class FileContentGenerator {
         allprojects {
             dependencies{
         ${
-            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.7') : ""
+            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.8') : ""
         }
             }
         }
