@@ -666,7 +666,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         given:
         buildFile << '''
             plugins {
-                id 'org.gradle.java.experimental-jigsaw' version '0.1.1'
+                id 'java'
             }
         '''
         file("src/main/java/module-info.java") << 'module example { exports io.example; }'
