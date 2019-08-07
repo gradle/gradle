@@ -84,7 +84,12 @@ class TransformationNodeSpec extends Specification {
 
     class TestNode extends Node {
         @Override
-        Project getProject() {
+        Project getProjectToLock() {
+            return null
+        }
+
+        @Override
+        Project getOwningProject() {
             return null
         }
 

@@ -39,8 +39,14 @@ public class LocalTaskNode extends TaskNode {
 
     @Nullable
     @Override
-    public Project getProject() {
+    public Project getProjectToLock() {
         // Running the task requires access to the task's owning project
+        return task.getProject();
+    }
+
+    @Nullable
+    @Override
+    public Project getOwningProject() {
         return task.getProject();
     }
 

@@ -29,6 +29,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -37,6 +38,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.Node;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
@@ -363,8 +365,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         @Override
         public void execute(Node node) {
+            NodeExecutionContext context = projectExecutionServices.forProject((ProjectInternal) node.getOwningProject());
             for (NodeExecutor nodeExecutor : nodeExecutors) {
-                if (nodeExecutor.execute(node, projectExecutionServices)) {
+                if (nodeExecutor.execute(node, context)) {
                     return;
                 }
             }

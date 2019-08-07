@@ -18,10 +18,8 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
-import org.gradle.execution.ProjectExecutionServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -79,13 +77,17 @@ public class ActionNode extends Node {
 
     @Nullable
     @Override
-    public Project getProject() {
+    public Project getProjectToLock() {
         return action.getProject();
     }
 
-    public void run(ProjectExecutionServiceRegistry services) {
-        ProjectInternal project = (ProjectInternal) action.getProject();
-        ServiceRegistry registry = project == null ? ServiceRegistry.EMPTY : services.forProject(project);
-        action.run(registry);
+    @Nullable
+    @Override
+    public Project getOwningProject() {
+        return action.getProject();
+    }
+
+    public void run(NodeExecutionContext context) {
+        action.run(context);
     }
 }

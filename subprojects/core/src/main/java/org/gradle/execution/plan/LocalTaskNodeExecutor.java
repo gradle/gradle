@@ -17,17 +17,16 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
-import org.gradle.execution.ProjectExecutionServiceRegistry;
 
 public class LocalTaskNodeExecutor implements NodeExecutor {
 
     @Override
-    public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
+    public boolean execute(Node node, NodeExecutionContext context) {
         if (node instanceof LocalTaskNode) {
             LocalTaskNode localTaskNode = (LocalTaskNode) node;
             TaskInternal task = localTaskNode.getTask();
@@ -38,8 +37,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 return true;
             }
             TaskExecutionContext ctx = new DefaultTaskExecutionContext(localTaskNode);
-            TaskExecuter taskExecuter = services.getProjectService((ProjectInternal) task.getProject(), TaskExecuter.class);
-            assert taskExecuter != null;
+            TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
             localTaskNode.getPostAction().execute(task);
             return true;
