@@ -101,6 +101,7 @@ Miscellaneous::
   A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
 * File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
   Use a simple name, like `application.xml`, instead.
+* The `org.gradle.testfixtures.ProjectBuilder` constructor has been removed. Please use `ProjectBuilder.builder()` instead.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
