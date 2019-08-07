@@ -50,29 +50,6 @@ class BeanCodec : Codec<Any> {
         }
     }
 
-    private
-    suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
-        // When the type is serializable and has a writeReplace() method,
-        // then use this method to unpack the state of the object and serialize the result
-        when (val writeReplace = beanType.takeIf { value is Serializable }?.let { writeReplaceMethodFor(it) }) {
-            null -> {
-                beanStateWriterFor(beanType).run {
-                    writeClass(beanType)
-                    writeStateOf(value)
-                }
-            }
-            else -> {
-                // When using the `writeReplace` strategy
-                // we don't want to serialize the beanType
-                // Class reference as it might not be directly
-                // resolvable as in the case of Java lambdas
-                // so we use Serializable::class.java instead.
-                writeClass(Serializable::class.java)
-                write(writeReplace.invoke(value))
-            }
-        }
-    }
-
     override suspend fun ReadContext.decode(): Any? {
         val id = readSmallInt()
         val previousValue = isolate.identities.getInstance(id)
@@ -86,6 +63,28 @@ class BeanCodec : Codec<Any> {
     }
 
     private
+    suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
+        // When the type is serializable and has a writeReplace() method,
+        // then use this method to unpack the state of the object and serialize the result
+        val writeReplace = beanType
+            .takeIf { value is Serializable }
+            ?.let { writeReplaceMethodFor(it) }
+        when {
+            writeReplace != null -> {
+                // When using the `writeReplace` strategy we don't want to serialize
+                // the beanType Class reference as it might not be directly resolvable
+                // as in the case of Java lambdas so we use Serializable::class.java instead.
+                writeClass(Serializable::class.java)
+                write(writeReplace.invoke(value))
+            }
+            else -> beanStateWriterFor(beanType).run {
+                writeClass(beanType)
+                writeStateOf(value)
+            }
+        }
+    }
+
+    private
     suspend fun ReadContext.readBeanOf(beanType: Class<*>, id: Int): Any =
         when (beanType) {
             Serializable::class.java -> {
@@ -93,13 +92,11 @@ class BeanCodec : Codec<Any> {
                 isolate.identities.putInstance(id, bean)
                 bean
             }
-            else -> {
-                beanStateReaderFor(beanType).run {
-                    val bean = newBean()
-                    isolate.identities.putInstance(id, bean)
-                    readStateOf(bean)
-                    bean
-                }
+            else -> beanStateReaderFor(beanType).run {
+                val bean = newBean()
+                isolate.identities.putInstance(id, bean)
+                readStateOf(bean)
+                bean
             }
         }
 
