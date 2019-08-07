@@ -73,66 +73,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    void "can publish java-library-platform to ivy repository"() {
-        requiresExternalDependencies = true
-
-        given:
-        createBuildScripts("""
-            publishing {
-                publications {
-                    ivy(IvyPublication) {
-                        from components.javaLibraryPlatform
-                    }
-                }
-            }
-
-            $dependencies            
-""")
-        executer.expectDeprecationWarning()
-
-        when:
-        run "publish"
-
-        then:
-        def backingModule = javaLibrary.backingModule
-
-        backingModule.assertPublished()
-        backingModule.assertArtifactsPublished(backingModule.ivyFile.name, backingModule.moduleMetadataFile.name)
-
-        // No files are published for either variant
-        with(javaLibrary.parsedModuleMetadata) {
-            variants*.name as Set == ['api', 'runtime'] as Set
-            variant('api').files.empty
-            variant('runtime').files.empty
-        }
-
-        with(javaLibrary.parsedIvy) {
-            configurations.keySet() == ["default", "compile", "runtime"] as Set
-            configurations["default"].extend == ["runtime", "compile"] as Set
-            configurations["runtime"].extend == null
-
-            artifacts.empty
-        }
-        with(javaLibrary.parsedModuleMetadata) {
-            variant('api') {
-                dependency('commons-collections:commons-collections:3.2.2')
-                noMoreDependencies()
-            }
-        }
-        with(javaLibrary.parsedModuleMetadata) {
-            variant('runtime') {
-                dependency('commons-collections:commons-collections:3.2.2')
-                dependency('commons-io:commons-io:1.4')
-                noMoreDependencies()
-            }
-        }
-
-        and:
-        resolveArtifacts(javaLibrary) {
-            expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar"
-        }
-    }
-
     @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
     void "maps dependencies in the correct Ivy configuration"() {
         given:

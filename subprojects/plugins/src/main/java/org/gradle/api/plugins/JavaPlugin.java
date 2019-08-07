@@ -42,7 +42,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
-import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -342,7 +341,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME), processResources);
 
         registerSoftwareComponents(project);
-        project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
     }
 
     private void registerSoftwareComponents(Project project) {
