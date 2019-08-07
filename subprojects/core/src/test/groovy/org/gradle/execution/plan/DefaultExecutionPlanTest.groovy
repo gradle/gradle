@@ -877,6 +877,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         dependencies.each {
             node.addDependencySuccessor(it)
         }
+        node.dependenciesProcessed()
         return node
     }
 

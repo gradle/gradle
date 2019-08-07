@@ -129,7 +129,8 @@ class BeanCodecTest {
         instantiator = mock(),
         listenerManager = mock(),
         projectStateRegistry = mock(),
-        taskNodeFactory = mock()
+        taskNodeFactory = mock(),
+        fingerprinterRegistry = mock()
     )
 
     @Test
