@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":plugins"))
     implementation(project(":workers"))
+    implementation(project(":files"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
