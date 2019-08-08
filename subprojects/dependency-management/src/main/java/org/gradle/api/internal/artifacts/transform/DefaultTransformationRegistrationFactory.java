@@ -127,6 +127,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
+            null,
             from,
             FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
             FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),

@@ -244,9 +244,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
-        SharedResourceLeaseRegistry sharedResourceRegistry
+        SharedResourceLeaseRegistry sharedResourceRegistry,
+        ServiceRegistry gradleScopedServices
     ) {
-        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners, sharedResourceRegistry);
+        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners, sharedResourceRegistry, gradleScopedServices);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

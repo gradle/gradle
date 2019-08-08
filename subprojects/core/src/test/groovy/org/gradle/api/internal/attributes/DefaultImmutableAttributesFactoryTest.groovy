@@ -17,6 +17,8 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Usage
+import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -270,5 +272,19 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         e.attribute == OTHER_BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"
+    }
+
+    def "translates deprecated usage values"() {
+        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, Usage.JAVA_API_JARS))
+
+        expect:
+        result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
+    }
+
+    def "translates deprecated usage values as Isolatable"() {
+        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot("java-runtime-jars", instantiator))
+
+        expect:
+        result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"
     }
 }

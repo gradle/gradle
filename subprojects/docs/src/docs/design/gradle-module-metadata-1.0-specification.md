@@ -34,7 +34,7 @@ The file must contain a JSON object with the following values:
 
 - `formatVersion`: must be present and the first value of the JSON object. Its value must be `"1.0"`
 - `component`: optional. Describes the identity of the component contained in the module.
-- `builtBy`: optional. Describes the producer of this metadata file and the contents of the module.
+- `createdBy`: optional. Describes the producer of this metadata file and the contents of the module.
 - `variants`: optional. Describes the variants of the component packaged in the module, if any.
 
 ### `component` value
@@ -46,7 +46,7 @@ This value must contain an object with the following values:
 - `version`: The version of this component. A string
 - `url`: optional. When present, indicates where the metadata for the component may be found. When missing, indicates that this metadata file defines the metadata for the whole component. 
 
-### `builtBy` value
+### `createdBy` value
 
 This value must contain an object with the following values:
 
@@ -54,7 +54,7 @@ This value must contain an object with the following values:
 
 ### `gradle` value
 
-This value must contain an object with the following values:
+This value, nested in `createdBy`, must contain an object with the following values:
 
 - `version`: The version of Gradle. A string
 - `buildId`: The buildId for the Gradle instance. A string
@@ -72,7 +72,8 @@ This value must contain an array with zero or more elements. Each element must b
 
 ### `attributes` value
 
-This value must contain an object with a value for each attribute. The attribute value must be a string or boolean.
+This value, nested in `variants` or elements of `dependencies` or `dependencyConstraints` nodes, must contain an object with a value for each attribute.
+The attribute value must be a string or boolean.
 
 ### `capabilities` value
 
@@ -112,7 +113,7 @@ Existing metadata must remain compatible and thus tools supporting the Gradle Mo
 
 ### `available-at` value
 
-This value must contain an object with the following values:
+This value, nested in `variants`, must contain an object with the following values:
 
 - `url`: The location of the metadata file that describes the variant. A string. In version 1.0, this must be a path relative to the module.
 - `group`: The group of the module. A string
@@ -121,7 +122,7 @@ This value must contain an object with the following values:
 
 ### `dependencies` value
 
-This value must contain an array with zero or more elements. Each element must be an object with the following values:
+This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `group`: The group of the dependency.
 - `module`: The module of the dependency.
@@ -133,7 +134,7 @@ This value must contain an array with zero or more elements. Each element must b
 
 #### `version` value
 
-This value defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the Gradle DSL. A version constraint consists of:
+This value, nested in elements of the `dependencies` or `dependencyConstraints` nodes, defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the Gradle DSL. A version constraint consists of:
 - `requires`: optional. The required version for this dependency.
 - `prefers`: optional. The preferred version for this dependency.
 - `strictly`: optional. A strictly enforced version requirement for this dependency.
@@ -142,7 +143,7 @@ This value defines the version constraint of a dependency or dependency constrai
 
 #### `excludes` value
 
-This value must contain an array with zero or more elements. Each element has the same meaning as `exclude` in the Gradle DSL.
+This value, nested in elements of the `dependencies` node, must contain an array with zero or more elements. Each element has the same meaning as `exclude` in the Gradle DSL.
 
 Each element must be an object with the of the following values:
 
@@ -153,7 +154,7 @@ An exclude that has a wildcard value for both `group` and `module` will exclude 
 
 ### `dependencyConstraints` value
 
-This value must contain an array with zero or more elements. Each element must be an object with the following values:
+This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `group`: The group of the dependency constraint.
 - `module`: The module of the dependency constraint.
@@ -163,7 +164,7 @@ This value must contain an array with zero or more elements. Each element must b
 
 ### `files` value
 
-This value must contain an array with zero or more elements. Each element must be an object with the following values:
+This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `name`: The name of the file. A string. This will be used to calculate the identity of the file in the cache, which means it must be unique across variants for different files.
 - `url`: The location of the file. A string. In version 1.0, this must be a path relative to the module.
@@ -191,7 +192,7 @@ This value must contain an array with zero or more elements. Each element must b
         "module": "mylib",
         "version": "1.2"
     },
-    "builtBy": {
+    "createdBy": {
         "gradle": {
             "version": "4.3",
             "buildId": "abc123"

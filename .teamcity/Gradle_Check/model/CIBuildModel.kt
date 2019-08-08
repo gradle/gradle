@@ -90,7 +90,6 @@ data class CIBuildModel(
         )
     ),
     val subProjects: List<GradleSubproject> = listOf(
-        GradleSubproject("announce"),
         GradleSubproject("antlr"),
         GradleSubproject("baseServices"),
         GradleSubproject("baseServicesGroovy", functionalTests = false),

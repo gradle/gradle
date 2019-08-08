@@ -66,6 +66,7 @@ import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -135,6 +136,7 @@ public class ExecutionGradleServices {
         BuildOperationExecutor buildOperationExecutor,
         BuildScanPluginApplied buildScanPlugin,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
@@ -156,7 +158,7 @@ public class ExecutionGradleServices {
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new CacheStep(buildCacheController, buildCacheCommandFactory,
+            new CacheStep(buildCacheController, buildCacheCommandFactory, deleter,
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(

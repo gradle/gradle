@@ -85,6 +85,10 @@ There are a number of community-provided plugins for code and architecture analy
 
 The deprecated OSGI plugin has been removed.  There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
 
+==== The announce and build-announcements plugins have been removed
+
+The deprecated announce and build-announcements plugins have been removed.  There are a number of community-provided plugins for sending out notifications available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
+
 ==== The Compare Gradle Builds plugin has been removed
 
 The deprecated Compare Gradle Builds plugin has been removed.
@@ -97,10 +101,24 @@ Miscellaneous::
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
   Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
+* The deprecated class `org.gradle.api.ConventionProperty` has been removed.
+  Use link:{javadocPath}/org/gradle/api/provider/Provider.html[Providers] instead of convention properties.
+* The deprecated class `org.gradle.reporting.DurationFormatter` has been removed.
 * The bridge method `org.gradle.api.tasks.TaskInputs.property(String name, @Nullable Object value)` returning `TaskInputs` has been removed.
   A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
+* The following setters have been removed from `JacocoReportBase`:
+** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:executionData[executionData] - use `getExecutionData().setFrom()` instead.
+** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:sourceDirectories[sourceDirectories] - use `getSourceDirectories().setFrom()` instead.
+** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:classDirectories[classDirectories] - use `getClassDirectories().setFrom()` instead.
+** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalClassDirs[additionalClassDirs] - use `getAdditionalClassDirs().setFrom()` instead.
+** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalSourceDirs[additionalSourceDirs] - use `getAdditionalSourceDirs().setFrom()` instead.
+* The `append` property on `JacocoTaskExtension` has been removed.
+  `append` is now always configured to be true for the Jacoco agent.
+* The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
+  The method was never meant to be public.
 * File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
   Use a simple name, like `application.xml`, instead.
+* The `org.gradle.testfixtures.ProjectBuilder` constructor has been removed. Please use `ProjectBuilder.builder()` instead.
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
   Disable incremental Groovy compilation when you want to compile in those cases.
 
@@ -136,6 +154,14 @@ Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without de
 Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 
 This will become an error in Gradle 6.0.
+
+==== `WorkerExecutor.submit()` is deprecated
+
+The `WorkerExecutor.submit()` method is now deprecated.
+The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.
+See <<custom_tasks.adoc#using-the-worker-api, the userguide>> for more information on using these methods.
+
+`WorkerExecutor.submit()` will be removed in Gradle 7.0.
 
 === Potential breaking changes
 

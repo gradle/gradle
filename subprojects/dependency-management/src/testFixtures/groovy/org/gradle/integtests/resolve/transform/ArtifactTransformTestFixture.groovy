@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -25,6 +26,7 @@ import java.util.zip.ZipEntry
 
 trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
+    abstract ExecutionResult getResult()
 
     /**
      * Defines a 'blue' variant for the given module.
@@ -114,9 +116,19 @@ class JarProducer extends DefaultTask {
     }
 
     /**
+     * Asserts that exactly the given files where transformed by the 'simple' tranforms below/
+     */
+    void assertTransformed(String... fileNames) {
+        assert result.output.findAll("processing (.+)").sort() == fileNames.collect { "processing $it" }.sort()
+    }
+
+
+    /**
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'red'
      * and another transform that converts 'red' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     *
+     *
      */
     void setupBuildWithChainedSimpleColorTransform() {
         setupBuildWithColorAttributes()

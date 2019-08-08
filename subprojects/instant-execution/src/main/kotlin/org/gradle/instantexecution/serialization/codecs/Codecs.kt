@@ -19,6 +19,9 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
@@ -38,6 +41,8 @@ import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
@@ -54,8 +59,10 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.workers.internal.IsolatableSerializerRegistry
 import kotlin.reflect.KClass
 
 
@@ -67,7 +74,16 @@ class Codecs(
     listenerManager: ListenerManager,
     projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
-    fingerprinterRegistry: FileCollectionFingerprinterRegistry
+    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    projectFinder: ProjectFinder,
+    buildOperationExecutor: BuildOperationExecutor,
+    classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+    isolatableFactory: IsolatableFactory,
+    valueSnapshotter: ValueSnapshotter,
+    fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    isolatableSerializerRegistry: IsolatableSerializerRegistry,
+    parameterScheme: ArtifactTransformParameterScheme,
+    actionScheme: ArtifactTransformActionScheme
 ) {
 
     private
@@ -161,7 +177,9 @@ class Codecs(
         bind(InitialTransformationNodeCodec)
         bind(ChainedTransformationNodeCodec)
         bind(ResolvableArtifactCodec)
-        bind(NoOpTransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
+        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
+        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))
+        bind(LegacyTransformerCodec(classLoaderHierarchyHasher, isolatableFactory, actionScheme))
         bind(ExecutionGraphDependenciesResolverCodec)
     }
 

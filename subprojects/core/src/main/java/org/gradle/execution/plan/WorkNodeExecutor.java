@@ -16,15 +16,15 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.execution.ProjectExecutionServiceRegistry;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 
 public class WorkNodeExecutor implements NodeExecutor {
     @Override
-    public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
+    public boolean execute(Node node, NodeExecutionContext context) {
         if (!(node instanceof ActionNode)) {
             return false;
         }
-        ((ActionNode) node).run(services);
+        ((ActionNode) node).run(context);
         return true;
     }
 }

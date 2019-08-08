@@ -1,7 +1,4 @@
 org.gradle.api.distribution.plugins.DistributionPlugin
-org.gradle.api.plugins.announce.AnnouncePlugin
-org.gradle.api.plugins.announce.AnnouncePluginExtension
-org.gradle.api.plugins.announce.BuildAnnouncementsPlugin
 org.gradle.api.plugins.ApplicationPlugin
 org.gradle.api.plugins.ApplicationPluginConvention
 org.gradle.api.plugins.BasePluginConvention
