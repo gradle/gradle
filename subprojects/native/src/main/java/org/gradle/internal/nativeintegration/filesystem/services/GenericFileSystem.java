@@ -23,8 +23,8 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
