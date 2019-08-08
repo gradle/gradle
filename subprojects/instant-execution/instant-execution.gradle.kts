@@ -23,6 +23,8 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
+    // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
+    implementation(project(":workers"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

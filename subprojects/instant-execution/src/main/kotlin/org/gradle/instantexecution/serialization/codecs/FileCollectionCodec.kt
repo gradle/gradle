@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
+import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -52,14 +53,30 @@ class FileCollectionCodec(
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal =
-        if (readBoolean()) fileCollectionFactory.fixed((read() as Collection<Any>).fold(mutableListOf<File>()) { list, element ->
-            if (element is File) {
-                list.add(element)
+        if (readBoolean()) {
+            fileCollectionFactory.create(UnpackingFileCollection(read() as Collection<Any>))
+        } else {
+            fileCollectionFactory.create(ErrorFileSet(readString()))
+        }
+}
+
+
+private
+class UnpackingFileCollection(private val elements: Collection<Any>) : MinimalFileSet {
+    override fun getDisplayName(): String {
+        return "file collection"
+    }
+
+    override fun getFiles(): MutableSet<File> {
+        return elements.fold(mutableSetOf()) { list, element ->
+            when (element) {
+                is File -> list.add(element)
+                is TransformationNode -> list.addAll(element.transformedSubject.get().files)
+                else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
             }
-            // Otherwise, ignore for now
             list
-        })
-        else fileCollectionFactory.create(ErrorFileSet(readString()))
+        }
+    }
 }
 
 

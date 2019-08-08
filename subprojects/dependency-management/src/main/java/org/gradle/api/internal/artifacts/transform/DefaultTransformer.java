@@ -101,6 +101,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     public DefaultTransformer(
         Class<? extends TransformAction> implementationClass,
         @Nullable TransformParameters parameterObject,
+        @Nullable IsolatedParameters isolatedParameters,
         ImmutableAttributes fromAttributes,
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
@@ -115,6 +116,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     ) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
+        this.isolatedParameters = isolatedParameters;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -314,7 +316,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         return instanceFactory.newInstance(services);
     }
 
-    private IsolatedParameters getIsolatedParameters() {
+    public IsolatedParameters getIsolatedParameters() {
         if (isolatedParameters == null) {
             throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
         }
@@ -430,7 +432,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         }
     }
 
-    private static class IsolatedParameters {
+    public static class IsolatedParameters {
         private final HashCode secondaryInputsHash;
         private final Isolatable<? extends TransformParameters> isolatedParameterObject;
 
