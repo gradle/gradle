@@ -38,19 +38,19 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "7.5.5"
+        static nebulaDependencyRecommender = "8.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "11.2.12"
+        static nebulaPluginPlugin = "12.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "11.5.0"
+        static nebulaLint = "12.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.0", "7.3.4")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.4", "7.6.7")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.1.0"
+        static nebulaResolutionRules = "7.2.5"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("4.0.4", "5.0.0")
