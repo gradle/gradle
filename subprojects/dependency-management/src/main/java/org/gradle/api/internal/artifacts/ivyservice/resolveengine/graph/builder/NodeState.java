@@ -370,11 +370,10 @@ public class NodeState implements DependencyGraphNode {
      */
     private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
+        Set<ModuleIdentifier> subgraphConstraintsSet = null;
         try {
-            List<DependencyState> dependencies = dependencies(resolutionFilter);
             collectAncestorsSubgraphConstraints(incomingEdges);
-            collectOwnSubgraphConstraints(dependencies);
-            for (DependencyState dependencyState : dependencies) {
+            for (DependencyState dependencyState : dependencies(resolutionFilter)) {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (dependencyState.getDependency().isConstraint()) {
@@ -383,6 +382,7 @@ public class NodeState implements DependencyGraphNode {
                 if (!pendingState.isPending()) {
                     createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
                 }
+                subgraphConstraintsSet = maybeCollectSubgraphConstraint(subgraphConstraintsSet, dependencyState);
             }
             previousTraversalExclusions = resolutionFilter;
         } finally {
@@ -390,6 +390,7 @@ public class NodeState implements DependencyGraphNode {
             // then reset the state of the node that owns those dependencies.
             // This way, all edges of the node will be re-processed.
             pendingDepsVisitor.complete();
+            storeOwnConstraints(subgraphConstraintsSet);
         }
     }
 
@@ -731,27 +732,28 @@ public class NodeState implements DependencyGraphNode {
         return edgeExclusions;
     }
 
-    private void collectOwnSubgraphConstraints(List<DependencyState> dependencies) {
-        Set<ModuleIdentifier> constraints = null;
-        for (DependencyState dependencyState : dependencies) {
-            if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
-                ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
-                if (selector.getVersionConstraint().isForSubgraph()) {
-                    if (constraints == null) {
-                        constraints = Sets.newHashSet();
-                    }
-                    if (constraints.contains(selector.getModuleIdentifier())) {
-                        throw new InvalidUserDataException(
-                            "Dependency " + dependencyState.getModuleIdentifier() + " of " + component.getId() + " defines conflicting forSubgraph constraints");
-                    }
-                    constraints.add(selector.getModuleIdentifier());
+    private Set<ModuleIdentifier> maybeCollectSubgraphConstraint(Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
+        if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
+            ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
+            if (selector.getVersionConstraint().isForSubgraph()) {
+                if (constraintsSet == null) {
+                    constraintsSet = Sets.newHashSet();
                 }
+                if (constraintsSet.contains(selector.getModuleIdentifier())) {
+                    throw new InvalidUserDataException(
+                        "Dependency " + dependencyState.getModuleIdentifier() + " of " + component.getId() + " defines conflicting forSubgraph constraints");
+                }
+                constraintsSet.add(selector.getModuleIdentifier());
             }
         }
-        if (constraints == null) {
+        return constraintsSet;
+    }
+
+    private void storeOwnConstraints(Set<ModuleIdentifier> constraintsSet) {
+        if (constraintsSet == null) {
             ownSubgraphConstraints = SubgraphConstraints.EMPTY;
         } else {
-            ownSubgraphConstraints = SubgraphConstraints.of(ImmutableSet.copyOf(constraints));
+            ownSubgraphConstraints = SubgraphConstraints.of(ImmutableSet.copyOf(constraintsSet));
         }
     }
 

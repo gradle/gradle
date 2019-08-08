@@ -316,7 +316,60 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
             root(':', ':test:') {
                 constraint('org:foo:1.0', 'org:foo:0.11').byConstraint()
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:0.11').byAncestor().selectedByRule('because I can')
+                    edge('org:foo:2.0', 'org:foo:0.11').byRequest().selectedByRule('because I can')
+                }
+            }
+        }
+    }
+
+    def "a substitution does not leak substituted subgraph constraint"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:new:1.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+        }
+
+        buildFile << """
+           configurations.conf.resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if (details.requested.name == 'foo' && details.requested.version == '1.0') {
+                    details.useTarget 'org:new:1.0' // this also has to remove the 'subgraph' state of all 'org:foo:1.0' edges
+                }
+            }
+            dependencies {
+                conf('org:foo:1.0') {
+                   version { forSubgraph() }
+                }
+                conf('org:bar:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:new:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:1.0', 'org:new:1.0').byRequest().selectedByRule()
+                module('org:bar:1.0') {
+                    module('org:foo:2.0')
                 }
             }
         }
