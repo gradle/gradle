@@ -12,6 +12,7 @@ import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -237,6 +238,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         result.assertTaskExecuted(":compileKotlin")
     }
 
+    // TODO:kotlin-dsl either unignore or remove
+    @Ignore("Until the Kotlin plugin lets us silence the ATTENTION warning somehow")
     @Test
     fun `by default experimental Kotlin compiler features are enabled and a warning is issued`() {
 
