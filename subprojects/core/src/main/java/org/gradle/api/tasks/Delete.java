@@ -20,12 +20,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.delete.Deleter;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.file.impl.Deleter;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -46,34 +45,13 @@ public class Delete extends ConventionTask implements DeleteSpec {
 
     private boolean followSymlinks;
 
-    @Inject
-    protected FileSystem getFileSystem() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileResolver getFileResolver() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Injected Clock.
-     *
-     * @since 5.3
-     */
-    @Inject
-    protected Clock getClock() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
-    protected void clean() {
-        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock());
-        final boolean innerFollowSymLinks = followSymlinks;
-        setDidWork(deleter.delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(innerFollowSymLinks)).getDidWork());
+    protected void clean() throws IOException {
+        boolean didWork = false;
+        for (File path : paths) {
+            didWork |= getDeleter().deleteRecursively(path, followSymlinks);
+        }
+        setDidWork(didWork);
     }
 
     /**
@@ -144,5 +122,10 @@ public class Delete extends ConventionTask implements DeleteSpec {
     public Delete delete(Object... targets) {
         paths.from(targets);
         return this;
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator injects implementation");
     }
 }

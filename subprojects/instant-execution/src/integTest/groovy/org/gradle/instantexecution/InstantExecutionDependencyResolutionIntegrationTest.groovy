@@ -45,13 +45,14 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         expect:
         instantRun(":resolve")
+        assertTransformed("a.jar", "b.jar")
         outputContains("result = [root.green, a.jar.green, b.jar.green]")
 
         instantRun(":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
-        // For now, scheduled transforms are ignored when writing to the cache
-        outputContains("result = [root.green]")
+        assertTransformed("a.jar", "b.jar")
+        outputContains("result = [root.green, a.jar.green, b.jar.green]")
     }
 
     def "task input files can include the output of artifact transform of external dependencies"() {
@@ -74,9 +75,11 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         expect:
         instantRun(":resolve")
+        assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
 
         instantRun(":resolve")
+        assertTransformed()
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
     }
 
@@ -106,11 +109,13 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         expect:
         instantRun(":resolve")
+        assertTransformed("root.blue", "a.blue", "a.jar")
         outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
+
         instantRun(":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
-        // For now, scheduled transforms are ignored when writing to the cache
-        outputContains("result = [root.blue.green, a.blue.green]")
+        assertTransformed("a.jar")
+        outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
     }
 
     def "task input files can include the output of chained artifact transform of project dependencies"() {
@@ -127,12 +132,13 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         expect:
         instantRun(":resolve")
+        assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
         outputContains("result = [a.jar.red.green, b.jar.red.green]")
 
         instantRun(":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
-        // For now, scheduled transforms are ignored when writing to the cache
-        outputContains("result = []")
+        assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
+        outputContains("result = [a.jar.red.green, b.jar.red.green")
     }
 }

@@ -103,7 +103,6 @@ object UserGuideLink {
     private
     val linkForPlugin =
         mapOf(
-            "announce" to "announce_plugin.html",
             "antlr" to "antlr_plugin.html",
             "application" to "application_plugin.html",
 
@@ -114,7 +113,6 @@ object UserGuideLink {
 
             "binary-base" to "software_model_concepts.html",
 
-            "build-announcements" to "build_announcements_plugin.html",
             "build-dashboard" to "build_dashboard_plugin.html",
 
             "build-init" to "build_init_plugin.html",

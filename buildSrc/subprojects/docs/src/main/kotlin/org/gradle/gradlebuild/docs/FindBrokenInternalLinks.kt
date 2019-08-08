@@ -62,8 +62,9 @@ open class FindBrokenInternalLinks : DefaultTask() {
 
     private
     fun reportErrors(errors: MutableMap<String, List<Error>>) {
+        writeHeader()
         if (errors.isEmpty()) {
-            reportFile.get().asFile.writeText("All clear!")
+            reportFile.get().asFile.appendText("All clear!")
             return
         }
         val messageBuilder = StringBuilder()
@@ -73,8 +74,20 @@ open class FindBrokenInternalLinks : DefaultTask() {
                 messageBuilder.append("   - At line ${it.line}, invalid include ${it.missingFile}\n")
             }
         }
-        reportFile.get().asFile.writeText(messageBuilder.toString())
+        reportFile.get().asFile.appendText(messageBuilder.toString())
         throw GradleException("Found invalid internal links. See ${reportFile.get().asFile}")
+    }
+
+    private
+    fun writeHeader() {
+        reportFile.get().asFile.writeText("""
+            # Valid links are:
+            # * Inside the same file: <<(#)section-name(,text)>>
+            # * To a different file: <<other-file(.adoc)#(section-name),text>> - Note that the # is mandatory, otherwise the link is considered to be inside the file!
+            #
+            # The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]
+            
+        """.trimIndent())
     }
 
     private

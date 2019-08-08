@@ -85,6 +85,10 @@ There are a number of community-provided plugins for code and architecture analy
 
 The deprecated OSGI plugin has been removed.  There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
 
+==== The announce and build-announcements plugins have been removed
+
+The deprecated announce and build-announcements plugins have been removed.  There are a number of community-provided plugins for sending out notifications available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
+
 ==== The Compare Gradle Builds plugin has been removed
 
 The deprecated Compare Gradle Builds plugin has been removed.
@@ -147,7 +151,9 @@ This will become an error in Gradle 6.0.
 
 ==== `WorkerExecutor.submit()` is deprecated
 
-The `WorkerExecutor.submit()` method is now deprecated.  The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.  See <<custom_tasks.html#using-the-worker-api, the userguide>> for more information on using these methods.
+The `WorkerExecutor.submit()` method is now deprecated.
+The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.
+See <<custom_tasks.adoc#using-the-worker-api, the userguide>> for more information on using these methods.
 
 `WorkerExecutor.submit()` will be removed in Gradle 7.0.
 

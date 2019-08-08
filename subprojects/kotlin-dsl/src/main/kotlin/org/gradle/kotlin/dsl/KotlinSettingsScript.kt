@@ -39,13 +39,13 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 
+import org.gradle.internal.file.impl.Deleter
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.time.Clock
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -454,5 +454,5 @@ fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations
         services.get<TextResourceLoader>(),
         DefaultFileCollectionFactory(fileResolver, null),
         services.get<FileSystem>(),
-        services.get<Clock>())
+        services.get<Deleter>())
 }

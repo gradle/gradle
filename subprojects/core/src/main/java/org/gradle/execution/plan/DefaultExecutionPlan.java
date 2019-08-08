@@ -350,7 +350,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     mutations.producingNodes.add(dependency);
                 }
 
-                Project project = node.getProject();
+                Project project = node.getProjectToLock();
                 if (project != null) {
                     projectLocks.put(project, getOrCreateProjectLock(project));
                 }
@@ -647,16 +647,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryLockProjectFor(Node node) {
-        if (node.getProject() != null) {
-            return getProjectLock(node.getProject()).tryLock();
+        if (node.getProjectToLock() != null) {
+            return getProjectLock(node.getProjectToLock()).tryLock();
         } else {
             return true;
         }
     }
 
     private void unlockProjectFor(Node node) {
-        if (node.getProject() != null) {
-            getProjectLock(node.getProject()).unlock();
+        if (node.getProjectToLock() != null) {
+            getProjectLock(node.getProjectToLock()).unlock();
         }
     }
 

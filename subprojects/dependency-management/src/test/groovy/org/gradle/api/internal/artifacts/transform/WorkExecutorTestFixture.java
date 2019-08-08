@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -29,6 +30,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
@@ -109,6 +111,17 @@ public class WorkExecutorTestFixture {
                 return false;
             }
         };
+        Deleter deleter = new Deleter() {
+            @Override
+            public boolean deleteRecursively(File target, boolean followSymlinks) {
+                return FileUtils.deleteQuietly(target);
+            }
+
+            @Override
+            public boolean delete(File target) {
+                return FileUtils.deleteQuietly(target);
+            }
+        };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheCommandFactory,
             buildCacheController,
@@ -117,6 +130,7 @@ public class WorkExecutorTestFixture {
             new TestBuildOperationExecutor(),
             buildScanPluginApplied,
             classLoaderHierarchyHasher,
+            deleter,
             new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,

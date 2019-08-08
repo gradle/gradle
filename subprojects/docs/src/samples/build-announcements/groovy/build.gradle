@@ -1,5 +1,0 @@
-// tag::use-plugin[]
-plugins {
-    id 'build-announcements'
-}
-// end::use-plugin[]

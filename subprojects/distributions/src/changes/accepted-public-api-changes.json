@@ -5,6 +5,30 @@
             "member": "Method org.gradle.caching.configuration.BuildCacheConfiguration.getLocal()",
             "acceptation": "Local cache configuration is always a DirectoryBuildCache now",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Method org.gradle.api.tasks.Delete.getClock()",
+            "acceptation": "Injected service removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Method org.gradle.api.tasks.Delete.getFileResolver()",
+            "acceptation": "Injected service removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Method org.gradle.api.tasks.Delete.getFileSystem()",
+            "acceptation": "Injected service removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
