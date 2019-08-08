@@ -37,6 +37,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.MutableLong;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
@@ -91,11 +92,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
+    private final Deleter deleter;
     private final FileSystem fileSystem;
     private final StreamHasher streamHasher;
     private final Interner<String> stringInterner;
 
-    public TarBuildCacheEntryPacker(FileSystem fileSystem, StreamHasher streamHasher, Interner<String> stringInterner) {
+    public TarBuildCacheEntryPacker(Deleter deleter, FileSystem fileSystem, StreamHasher streamHasher, Interner<String> stringInterner) {
+        this.deleter = deleter;
         this.fileSystem = fileSystem;
         this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
@@ -235,7 +238,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             return input.getNextTarEntry();
         }
 
-        ensureDirectoryForTree(treeType, treeRoot);
+        ensureDirectoryForTree(deleter, treeType, treeRoot);
         if (treeType == TreeType.FILE) {
             if (isDirEntry) {
                 throw new IllegalStateException("Should be a file: " + treeName);
@@ -254,11 +257,9 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private void unpackMissingFile(File treeRoot) throws IOException {
-        if (!makeDirectory(treeRoot.getParentFile())) {
+        if (!makeDirectory(deleter, treeRoot.getParentFile())) {
             // Make sure tree is removed if it exists already
-            if (treeRoot.exists()) {
-                FileUtils.forceDelete(treeRoot);
-            }
+            deleter.deleteRecursively(treeRoot, true);
         }
     }
 

@@ -18,22 +18,23 @@ package org.gradle.caching.internal.packaging.impl;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.file.impl.Deleter;
 
 import java.io.File;
 import java.io.IOException;
 
 public class PackerDirectoryUtil {
-    public static void ensureDirectoryForTree(TreeType type, File root) throws IOException {
+    public static void ensureDirectoryForTree(Deleter deleter, TreeType type, File root) throws IOException {
         switch (type) {
             case DIRECTORY:
-                if (!makeDirectory(root)) {
-                    FileUtils.cleanDirectory(root);
+                if (!makeDirectory(deleter, root)) {
+                    deleter.cleanRecursively(root, true);
                 }
                 break;
             case FILE:
-                if (!makeDirectory(root.getParentFile())) {
+                if (!makeDirectory(deleter, root.getParentFile())) {
                     if (root.exists()) {
-                        FileUtils.forceDelete(root);
+                        deleter.deleteRecursively(root, true);
                     }
                 }
                 break;
@@ -42,11 +43,11 @@ public class PackerDirectoryUtil {
         }
     }
 
-    public static boolean makeDirectory(File target) throws IOException {
+    public static boolean makeDirectory(Deleter deleter, File target) throws IOException {
         if (target.isDirectory()) {
             return false;
         } else if (target.isFile()) {
-            FileUtils.forceDelete(target);
+            deleter.delete(target);
         }
         FileUtils.forceMkdir(target);
         return true;

@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.packaging.impl
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -29,13 +30,14 @@ import static org.gradle.internal.file.TreeType.FILE
 class PackerDirectoryUtilTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    def deleter = TestFiles.deleter()
 
     def "parent directory is created for output file"() {
         def targetOutputFile = temporaryFolder.file("build/some-dir/output.txt")
         targetOutputFile << "Some data"
 
         when:
-        ensureDirectoryForTree(FILE, targetOutputFile)
+        ensureDirectoryForTree(deleter, FILE, targetOutputFile)
 
         then:
         targetOutputFile.parentFile.assertIsEmptyDir()
@@ -45,7 +47,7 @@ class PackerDirectoryUtilTest extends Specification {
         def targetOutputDir = temporaryFolder.file("build/output")
 
         when:
-        ensureDirectoryForTree(DIRECTORY, targetOutputDir)
+        ensureDirectoryForTree(deleter, DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -56,7 +58,7 @@ class PackerDirectoryUtilTest extends Specification {
         targetOutputDir.file("sub-dir/data.txt") << "Some data"
 
         when:
-        ensureDirectoryForTree(DIRECTORY, targetOutputDir)
+        ensureDirectoryForTree(deleter, DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -67,7 +69,7 @@ class PackerDirectoryUtilTest extends Specification {
         targetOutputDir << "This should become a directory"
 
         when:
-        ensureDirectoryForTree(DIRECTORY, targetOutputDir)
+        ensureDirectoryForTree(deleter, DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -78,10 +80,9 @@ class PackerDirectoryUtilTest extends Specification {
         targetOutputFile.createDir()
 
         when:
-        ensureDirectoryForTree(FILE, targetOutputFile)
+        ensureDirectoryForTree(deleter, FILE, targetOutputFile)
 
         then:
         targetOutputFile.parentFile.assertIsEmptyDir()
     }
-
 }
