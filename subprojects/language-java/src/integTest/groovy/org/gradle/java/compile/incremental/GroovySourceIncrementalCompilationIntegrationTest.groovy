@@ -142,19 +142,12 @@ class A2{}
         def textFile = file('text-file.txt')
         textFile.text = "text file as root"
 
-        executer.expectDeprecationWarning()
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        file("extra/B.${language.name}").text = "class B { String change; }"
-        executer.withArgument "--info"
-        executer.expectDeprecationWarning()
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledClasses("A", "B", "C")
-        output.contains('Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.')
-        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
+        expect:
+        fails language.compileTaskName
+        failure.assertHasCause(
+            'Unable to infer source roots. ' +
+                'Incremental Groovy compilation requires the source roots. ' +
+                'Change the configuration of your sources or disable incremental Groovy compilation.')
     }
 
     def 'clear class source mapping file on full recompilation'() {
