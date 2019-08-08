@@ -92,6 +92,7 @@ public class Matchers {
         };
     }
 
+    @SuppressWarnings("EqualsWithItself")
     public static boolean strictlyEquals(Object a, Object b) {
         if (!a.equals(b)) {
             return false;
@@ -102,38 +103,10 @@ public class Matchers {
         if (!a.equals(a)) {
             return false;
         }
-        if (b.equals(null)) {
-            return false;
-        }
         if (b.equals(new Object())) {
             return false;
         }
-        if (a.hashCode() != b.hashCode()) {
-            return false;
-        }
-        return true;
-
-    }
-
-    /**
-     * Please avoid using as the hamcrest way of reporting error wraps a multi-line
-     * text into a single line and makes hard to understand the problem.
-     * Instead, please try to use the spock/groovy assert and {@link #containsLine(String, String)}
-     */
-    @Factory
-    @Deprecated
-    public static Matcher<String> containsLine(final String line) {
-        return new BaseMatcher<String>() {
-            @Override
-            public boolean matches(Object o) {
-                return containsLine(equalTo(line)).matches(o);
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("a String that contains line ").appendValue(line);
-            }
-        };
+        return a.hashCode() == b.hashCode();
     }
 
     @Factory
