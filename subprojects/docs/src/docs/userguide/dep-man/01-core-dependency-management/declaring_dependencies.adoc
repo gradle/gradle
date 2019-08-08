@@ -362,7 +362,7 @@ Again, Gradle will first look for an `ivy.xml` file, but if this file contains a
 
 Gradle Module metadata is the last supported format for module metadata.
 This format has specifically been designed for Gradle.
-You can find its https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md[specification] here.
+You can find its https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] here.
 
 [[sec:supported_metadata_sources]]
 == Supported metadata sources

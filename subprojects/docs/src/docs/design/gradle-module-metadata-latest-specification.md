@@ -1,4 +1,4 @@
-# Gradle module metadata 1.0 specification
+# Gradle module metadata 1.1 specification
 
 Consumption of Gradle metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
 
@@ -139,6 +139,7 @@ This value, nested in elements of the `dependencies` or `dependencyConstraints` 
 - `prefers`: optional. The preferred version for this dependency.
 - `strictly`: optional. A strictly enforced version requirement for this dependency.
 - `rejects`: optional. An array of rejected versions for this dependency.
+- `forSubgraph`: optional. If set to `true`, the version constraint applies for each dependency to the corresponding module in the subgraph originating from the containing variant.
 
 #### `excludes` value
 
@@ -172,6 +173,10 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `md5`: The MD5 hash of the file content. A hex string.
 
 ### Changelog
+
+#### 1.1
+
+- Adds support for _subgraph version constraints_: `version { forSubgraph = true }`
 
 #### 1.0
 
@@ -251,7 +256,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
                 { 
                     "group": "some.group", 
                     "module": "other-lib-2", 
-                    "version": { "requires": "1.0" } 
+                    "version": { "requires": "1.0", "forSubgraph": true } 
                 }
             ]
         }

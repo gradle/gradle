@@ -1,7 +1,7 @@
 [[publishing-components]]
 = Publishing
 
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[publishing_overview]]
 The vast majority of software projects build something that aims to be consumed in some way. It could be a library that other software projects use or it could be an application for end users. _Publishing_ is the process by which the thing being built is made available to consumers.
