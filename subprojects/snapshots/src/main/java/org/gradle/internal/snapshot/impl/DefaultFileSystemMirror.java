@@ -22,8 +22,11 @@ import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * See {@link DefaultFileSystemSnapshotter} for some more details
@@ -88,15 +91,20 @@ public class DefaultFileSystemMirror implements FileSystemMirror {
     }
 
     public void beforeBuildFinished() {
-        // We throw away all state between builds
-//        metadata.clear();
-//        cacheMetadata.clear();
-//        files.clear();
-//        cacheFiles.clear();
+        // We throw away the provided locations
+        String changedFiles = System.getProperty("org.gradle.changed.files");
+        if (changedFiles != null) {
+            beforeOutputChange(Stream.of(changedFiles.split(","))
+                .map(File::new)
+                .map(File::getAbsolutePath)
+                .collect(Collectors.toList())
+            );
+        }
     }
 
     public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
         for (String affectedOutputPath : affectedOutputPaths) {
+            System.out.println("Invalidating path " + affectedOutputPath);
             metadata.remove(affectedOutputPath);
             files.remove(affectedOutputPath);
             cacheMetadata.remove(affectedOutputPath);
