@@ -310,9 +310,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        layout "pattern"
-                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
-                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        patternLayout {
+                            artifact "[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[artifact]-[revision](-[classifier])(.[ext])"
+                        }
                     }
                 }
             }
@@ -521,9 +522,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                     }
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        layout "pattern"
-                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
-                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        patternLayout {
+                            artifact "[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[artifact]-[revision](-[classifier])(.[ext])"
+                        }
                     }
                 }
             }
