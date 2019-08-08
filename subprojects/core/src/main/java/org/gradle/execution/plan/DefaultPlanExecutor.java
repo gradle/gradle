@@ -208,7 +208,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState state) {
-                        executionPlan.nodeComplete(selected);
+                        executionPlan.finishedExecuting(selected);
                         return unlock(workerLease).transform(state);
                     }
                 });

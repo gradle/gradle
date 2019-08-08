@@ -607,7 +607,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
 
                 if (node.allDependenciesSuccessful()) {
-                    node.startExecution(this::recordNodeStarted);
+                    node.startExecution(this::recordNodeExecutionStarted);
                 } else {
                     node.skipExecution(this::recordNodeCompleted);
                 }
@@ -924,11 +924,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private void recordNodeStarted(Node node) {
+    private void recordNodeExecutionStarted(Node node) {
         runningNodes.add(node);
     }
 
     private void recordNodeCompleted(Node node) {
+        LOGGER.debug("Node {} completed, executed: {}", node, node.isExecuted());
         MutationInfo mutations = this.mutations.get(node);
         for (Node producer : mutations.producingNodes) {
             MutationInfo producerMutations = this.mutations.get(producer);
@@ -948,7 +949,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public void nodeComplete(Node node) {
+    public void finishedExecuting(Node node) {
         try {
             if (!node.isComplete()) {
                 enforceFinalizers(node);
@@ -957,13 +958,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     LOGGER.debug("Node {} failed", node);
                     handleFailure(node);
                 } else {
-                    LOGGER.debug("Node {} completed", node);
+                    LOGGER.debug("Node {} finished executing", node);
                 }
 
                 runningNodes.remove(node);
                 node.finishExecution(this::recordNodeCompleted);
             } else {
-                LOGGER.debug("Already completed node {} reported as completed", node);
+                LOGGER.debug("Already completed node {} reported as finished executing", node);
             }
         } finally {
             unlockProjectFor(node);
