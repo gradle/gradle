@@ -33,7 +33,7 @@ trait FingerprinterFixture {
     private DefaultFileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
     private AbsolutePathFileCollectionFingerprinter inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
 
-    public OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
+    private OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def getOutputFingerprinter() { outputFingerprinter }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintsOf(Map<String, Object> properties) {
