@@ -749,10 +749,6 @@ public class NodeState implements DependencyGraphNode {
                 if (constraintsSet == null) {
                     constraintsSet = Sets.newHashSet();
                 }
-                if (constraintsSet.contains(selector.getModuleIdentifier())) {
-                    throw new InvalidUserDataException(
-                        "Dependency " + dependencyState.getModuleIdentifier() + " of " + component.getId() + " defines conflicting forSubgraph constraints");
-                }
                 constraintsSet.add(selector.getModuleIdentifier());
             }
         }
