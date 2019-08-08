@@ -84,6 +84,70 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         }
     }
 
+    def "can turn subgraph constraint into normal constraint by using a component metadata rule"() {
+        given:
+        repository {
+            'org:foo:1.0'() {
+                dependsOn 'org:baz:2.0'
+            }
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'baz', version: '1.0', forSubgraph: true)
+                dependsOn(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:baz:1.0'()
+            'org:baz:2.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org:bar') { ComponentMetadataDetails details ->
+                        details.allVariants {
+                            withDependencies {
+                                it.each { 
+                                    it.version { notForSubgraph() } 
+                                }
+                            }
+                        }
+                    }
+                }
+                conf('org:bar:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:baz:1.0' {
+                expectGetMetadata()
+            }
+            'org:baz:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:bar:1.0') {
+                    edge('org:baz:1.0', 'org:baz:2.0').byConflictResolution('between versions 2.0 and 1.0')
+                    module('org:foo:1.0') {
+                        module('org:baz:2.0').byRequest()
+                    }
+                }
+            }
+        }
+    }
+
     def "an ancestor provided versions is not a version conflict"() {
         given:
         repository {
