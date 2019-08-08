@@ -89,10 +89,10 @@ public class DefaultFileSystemMirror implements FileSystemMirror {
 
     public void beforeBuildFinished() {
         // We throw away all state between builds
-        metadata.clear();
-        cacheMetadata.clear();
-        files.clear();
-        cacheFiles.clear();
+//        metadata.clear();
+//        cacheMetadata.clear();
+//        files.clear();
+//        cacheFiles.clear();
     }
 
     public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
