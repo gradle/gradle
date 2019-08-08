@@ -611,7 +611,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     node.startExecution();
                 } else {
                     node.skipExecution();
-                    updateAllDependenciesCompleteForPredecessors(node);
+                    recordNodeCompleted(node);
                 }
                 iterator.remove();
                 return node;
@@ -931,7 +931,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void recordNodeCompleted(Node node) {
-        runningNodes.remove(node);
         MutationInfo mutations = this.mutations.get(node);
         for (Node producer : mutations.producingNodes) {
             MutationInfo producerMutations = this.mutations.get(producer);
@@ -964,6 +963,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
 
                 node.finishExecution();
+                runningNodes.remove(node);
                 recordNodeCompleted(node);
             } else {
                 LOGGER.debug("Already completed node {} reported as completed", node);
@@ -1048,15 +1048,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (node.isRequired()) {
                 node.skipExecution();
+                recordNodeCompleted(node);
                 aborted = true;
             }
 
             // If abortAll is set, also stop enforced tasks.
             if (abortAll && node.isReady()) {
                 node.abortExecution();
+                recordNodeCompleted(node);
                 aborted = true;
             }
-            updateAllDependenciesCompleteForPredecessors(node);
         }
         return aborted;
     }
