@@ -226,12 +226,6 @@ fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin.kotlin-dsl")
     apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
-    plugins.withType<KotlinDslPlugin> {
-        configure<KotlinDslPluginOptions> {
-            experimentalWarning.set(false)
-        }
-    }
-
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         // TODO:kotlin-dsl remove precompiled script plugins accessors exclusion from ktlint checks
         filter {

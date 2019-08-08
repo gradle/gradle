@@ -732,14 +732,6 @@ include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts
 Be aware that the Kotlin DSL Plugin turns on experimental Kotlin compiler features.
 See the <<#sec:kotlin_compiler_arguments>> section below for more information.
 
-By default, the plugin warns about using experimental features of the Kotlin compiler.
-You can silence the warning by setting the `experimentalWarning` property of the `kotlinDslPluginOptions` extension to `false` as follows:
-
-.Disabling the warning about the use of experimental Kotlin compiler features
-====
-include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
-====
-
 [[kotdsl:precompiled_plugins]]
 === Precompiled script plugins
 

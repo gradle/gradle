@@ -1,7 +1,5 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.api.internal.DocumentationRegistry
-
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -259,51 +257,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 output,
                 not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
             )
-
-            assertThat(
-                output,
-                containsString(experimentalWarningFor(":buildSrc"))
-            )
         }
     }
-
-    @Test
-    fun `can explicitly disable experimental Kotlin compiler features warning`() {
-
-        withBuildExercisingSamConversionForKotlinFunctions(
-            "kotlinDslPluginOptions.experimentalWarning.set(false)"
-        )
-
-        build("test").apply {
-
-            assertThat(
-                output.also(::println),
-                containsMultiLineString("""
-                    STRING
-                    foo
-                    bar
-                """)
-            )
-
-            assertThat(
-                output,
-                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
-            )
-
-            assertThat(
-                output,
-                not(containsString(experimentalWarningFor(":buildSrc")))
-            )
-        }
-    }
-
-    private
-    fun experimentalWarningFor(projectPath: String) =
-        kotlinDslPluginExperimentalWarning(
-            "project '$projectPath'",
-            DocumentationRegistry().getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
-                .substringBefore("docs.gradle.org") // Dropping the Gradle Version
-        )
 
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {

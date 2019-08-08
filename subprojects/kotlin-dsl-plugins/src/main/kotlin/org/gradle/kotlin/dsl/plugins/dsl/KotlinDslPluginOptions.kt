@@ -41,10 +41,11 @@ class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
     }
 
     /**
-     * Set to `false` to silence the warning about the `kotlin-dsl` plugin enabling Kotlin compiler experimental features.
+     * No longer supported. Previously, it could be set to `false` to silence the warning about the enabled Kotlin experimental features.
      */
+    @Deprecated("experimentalWarning is no longer supported")
     val experimentalWarning = objects.property<Boolean>().apply {
-        set(true)
+        set(false)
     }
 }
 
