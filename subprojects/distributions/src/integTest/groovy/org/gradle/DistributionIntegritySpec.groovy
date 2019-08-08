@@ -40,8 +40,8 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         def expectedHashes = [
             'annotations-13.0.jar' : 'ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
-            'ant-1.9.14.jar' : '37c10bafb295aef7a8618da2ff82f0dd2d0cbe2bbbb7d5ea994ea615238bd041',
-            'ant-launcher-1.9.14.jar' : 'faaf02c32f0649a2ebd146166b96a5c80cfddd3934fa0c260267e9c5be96088d',
+            'ant-1.10.6.jar' : '6c5cbd88c10bb7ad624e5637a0375b010f4067f6497cd8fce70b5a5f10d3b41a',
+            'ant-launcher-1.10.6.jar' : 'c03aa18da4b01c9efdd64198364bc2fcf2fb9ea584971615ba9f1a09a4685026',
             'asm-7.1.jar' : '4ab2fa2b6d2cc9ccb1eaa05ea329c407b47b13ed2915f62f8c4b8cc96258d4de',
             'asm-analysis-7.1.jar' : '4612c0511a63db2a2570f07ad1959e19ed8eb703e4114da945cb85682519a55c',
             'asm-commons-7.1.jar' : 'e5590489d8f1984d85bfeabd3b17374c59c28ae09d48ec4a0ebbd01959ecd358',
