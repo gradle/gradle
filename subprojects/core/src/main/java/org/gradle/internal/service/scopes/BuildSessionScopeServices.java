@@ -78,7 +78,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;

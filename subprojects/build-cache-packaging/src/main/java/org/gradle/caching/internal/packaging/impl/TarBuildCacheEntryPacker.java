@@ -40,7 +40,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
