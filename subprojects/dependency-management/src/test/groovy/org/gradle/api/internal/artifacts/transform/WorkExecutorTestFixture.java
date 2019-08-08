@@ -43,6 +43,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 public class WorkExecutorTestFixture {
@@ -115,6 +116,13 @@ public class WorkExecutorTestFixture {
             @Override
             public boolean deleteRecursively(File target, boolean followSymlinks) {
                 return FileUtils.deleteQuietly(target);
+            }
+
+            @Override
+            public boolean cleanRecursively(File target, boolean followSymlinks) throws IOException {
+                boolean wasDirectory = target.isDirectory();
+                FileUtils.cleanDirectory(target);
+                return wasDirectory;
             }
 
             @Override

@@ -56,31 +56,51 @@ public class DefaultDeleter implements Deleter {
     @Override
     public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
-            LOGGER.debug("Deleting {}", root);
-            long startTime = timeProvider.getAsLong();
-            Collection<String> failedPaths = new ArrayList<String>();
-            deleteRecursively(startTime, root, root, followSymlinks, failedPaths);
-            if (!failedPaths.isEmpty()) {
-                throwWithHelpMessage(startTime, root, followSymlinks, failedPaths, false);
-            }
-            return true;
+            return deleteRecursively(root, followSymlinks, false);
         } else {
             return false;
         }
     }
 
-    private void deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, Collection<String> failedPaths) throws IOException {
+    @Override
+    public boolean cleanRecursively(File root, boolean followSymlinks) throws IOException {
+        if (root.exists() && shouldRemoveContentsOf(root, followSymlinks)) {
+            return deleteRecursively(root, followSymlinks, true);
+        } else {
+            return false;
+        }
+    }
 
-        if (shouldFollow(file, followSymlinks)) {
+    private boolean deleteRecursively(File root, boolean followSymlinks, boolean keepRootDirectory) throws IOException {
+        LOGGER.debug("Deleting {}", root);
+        long startTime = timeProvider.getAsLong();
+        Collection<String> failedPaths = new ArrayList<String>();
+        boolean attemptedToRemoveAnything = deleteRecursively(startTime, root, root, followSymlinks, keepRootDirectory, failedPaths);
+        if (!failedPaths.isEmpty()) {
+            throwWithHelpMessage(startTime, root, followSymlinks, failedPaths, false);
+        }
+        return attemptedToRemoveAnything;
+    }
+
+    private boolean deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, boolean keepRootDirectory, Collection<String> failedPaths) throws IOException {
+
+        if (shouldRemoveContentsOf(file, followSymlinks)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
             if (contents == null) {
-                return;
+                return false;
             }
 
+            boolean attemptedToDeleteAnything = false;
             for (File item : contents) {
-                deleteRecursively(startTime, baseDir, item, followSymlinks, failedPaths);
+                deleteRecursively(startTime, baseDir, item, followSymlinks, keepRootDirectory, failedPaths);
+                attemptedToDeleteAnything = true;
+            }
+
+            if (keepRootDirectory
+                && baseDir == file) {
+                return attemptedToDeleteAnything;
             }
         }
 
@@ -92,9 +112,10 @@ public class DefaultDeleter implements Deleter {
                 throwWithHelpMessage(startTime, baseDir, followSymlinks, failedPaths, true);
             }
         }
+        return true;
     }
 
-    private boolean shouldFollow(File file, boolean followSymlinks) {
+    private boolean shouldRemoveContentsOf(File file, boolean followSymlinks) {
         return file.isDirectory() && (followSymlinks || !isSymlink.test(file));
     }
 
@@ -141,7 +162,7 @@ public class DefaultDeleter implements Deleter {
         }
         help.append('\'').append(file).append('\'');
 
-        if (shouldFollow(file, followSymlinks)) {
+        if (shouldRemoveContentsOf(file, followSymlinks)) {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {

@@ -38,6 +38,20 @@ public interface Deleter {
     boolean deleteRecursively(File target, boolean followSymlinks) throws IOException;
 
     /**
+     * Attempts to clean the given directory recursively, removing all of its contents.
+     *
+     * Does nothing when {@code target} is a regular file.
+     * Follows symlinks pointing to directories when instructed to.
+     *
+     * @return {@code true} if anything was removed, {@code false} if no change was
+     *         attempted (because {@code target} didn't exist).
+     *
+     * @throws IOException when {@code target} cannot be deleted (with detailed error
+     *         message).
+     */
+    boolean cleanRecursively(File target, boolean followSymlinks) throws IOException;
+
+    /**
      * Attempts to delete a single file or an empty directory.
      *
      * Does not follow symlinks.

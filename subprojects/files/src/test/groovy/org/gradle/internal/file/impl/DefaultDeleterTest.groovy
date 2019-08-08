@@ -31,7 +31,11 @@ import static org.junit.Assume.assumeTrue
 class DefaultDeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DefaultDeleter deleter = new DefaultDeleter({ System.currentTimeMillis() }, { Files.isSymbolicLink(it.toPath()) }, false)
+    DefaultDeleter deleter = new DefaultDeleter(
+        { System.currentTimeMillis() },
+        { Files.isSymbolicLink(it.toPath()) },
+        false
+    )
 
     def "deletes directory"() {
         given:
@@ -60,6 +64,32 @@ class DefaultDeleterTest extends Specification {
         didWork
     }
 
+    def "cleans directory"() {
+        given:
+        TestFile dir = tmpDir.getTestDirectory()
+        dir.file("someFile").createFile()
+
+        when:
+        boolean didWork = clean(dir)
+
+        then:
+        dir.assertIsEmptyDir()
+        didWork
+    }
+
+    def "cleans doesn't remove file target"() {
+        given:
+        TestFile dir = tmpDir.getTestDirectory()
+        def file = dir.file("someFile").createFile()
+
+        when:
+        boolean didWork = clean(file)
+
+        then:
+        file.assertIsFile()
+        !didWork
+    }
+
     def "didWork is false when nothing has been deleted"() {
         given:
         TestFile dir = tmpDir.file("unknown")
@@ -67,6 +97,17 @@ class DefaultDeleterTest extends Specification {
 
         when:
         boolean didWork = delete(dir)
+
+        then:
+        !didWork
+    }
+
+    def "didWork is false when nothing has been cleaned"() {
+        given:
+        TestFile emptyDir = tmpDir.getTestDirectory()
+
+        when:
+        boolean didWork = clean(emptyDir)
 
         then:
         !didWork
@@ -291,5 +332,9 @@ class DefaultDeleterTest extends Specification {
 
     private boolean delete(File target) {
         return deleter.deleteRecursively(target, false)
+    }
+
+    private boolean clean(File target) {
+        return deleter.cleanRecursively(target, false)
     }
 }
