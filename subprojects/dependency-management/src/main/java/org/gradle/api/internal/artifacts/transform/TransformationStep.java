@@ -78,6 +78,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return transformer;
     }
 
+    @Nullable
     public ProjectInternal getOwningProject() {
         return owningProject;
     }

@@ -130,7 +130,16 @@ class BeanCodecTest {
         listenerManager = mock(),
         projectStateRegistry = mock(),
         taskNodeFactory = mock(),
-        fingerprinterRegistry = mock()
+        fingerprinterRegistry = mock(),
+        classLoaderHierarchyHasher = mock(),
+        buildOperationExecutor = mock(),
+        isolatableFactory = mock(),
+        valueSnapshotter = mock(),
+        fileCollectionFingerprinterRegistry = mock(),
+        isolatableSerializerRegistry = mock(),
+        projectFinder = mock(),
+        parameterScheme = mock(),
+        actionScheme = mock()
     )
 
     @Test
