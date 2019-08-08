@@ -129,7 +129,7 @@ public class InetAddressFactory {
             logger.debug("No loopback address for local binding, using fallback {}", wildcardBindingAddress);
             localBindingAddress = wildcardBindingAddress;
         } else {
-            localBindingAddress = inetAddresses.getLoopback().get(0);
+            localBindingAddress = InetAddress.getLoopbackAddress();
         }
     }
 
