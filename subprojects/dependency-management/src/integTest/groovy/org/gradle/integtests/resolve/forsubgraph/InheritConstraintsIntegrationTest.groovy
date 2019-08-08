@@ -74,7 +74,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
             root(':', ':test:') {
                 module('org:platform:1.0') {
                     constraint('org:bar:1.0').byConstraint()
-                    constraint('org:foo:1.0').byConstraint()
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 }
                 edge('org:bar', 'org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
@@ -142,6 +142,65 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
                     module('org:foo:2.0')
                     module('org:platform:2.0').byRequest()
                 }.byRequest()
+            }
+        }
+    }
+
+    def "multiple inherited subgraph constraints that target the same module are conflict resolved"() {
+        given:
+        repository {
+            'org:platform-a:1.0'() {
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:platform-b:1.0'() {
+                constraint(group: 'org', artifact: 'foo', version: '2.0', forSubgraph: true)
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:platform-a:1.0') {
+                    inheritConstraints()
+                }
+                conf('org:platform-b:1.0') {
+                    inheritConstraints()
+                }
+                conf('org:foo')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:platform-a:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:platform-b:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:foo:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:platform-a:1.0') {
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:2.0').byConflictResolution("between versions 2.0 and 1.0")
+                }
+                module('org:platform-b:1.0') {
+                    constraint('org:foo:{require 2.0; subgraph}', 'org:foo:2.0').byConstraint()
+                }
+                edge('org:foo', 'org:foo:2.0').byRequest()
             }
         }
     }

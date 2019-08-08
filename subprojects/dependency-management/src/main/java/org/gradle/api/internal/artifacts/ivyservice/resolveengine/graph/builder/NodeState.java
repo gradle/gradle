@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -859,11 +858,11 @@ public class NodeState implements DependencyGraphNode {
             ComponentState targetComponent = dependencyState.getTargetComponent();
             if (targetComponent != null) { // may be null if the build is about to fail
                 for (NodeState sourceNode : targetComponent.getNodes()) {
+                    if (sourceNode.ownSubgraphConstraints == null) {
+                        // node's dependencies were not yet visited
+                        sourceNode.collectOwnSubgraphConstraints();
+                    }
                     if (singleSubgraphConstraints.isEmpty()) {
-                        if (sourceNode.ownSubgraphConstraints == null) {
-                            // node's dependencies were not yet visited
-                            sourceNode.collectOwnSubgraphConstraints();
-                        }
                         singleSubgraphConstraints = sourceNode.ownSubgraphConstraints;
                     } else {
                         if (collectedConstraints == null) {
