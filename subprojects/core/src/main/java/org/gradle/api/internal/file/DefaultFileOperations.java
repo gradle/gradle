@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -31,7 +32,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
-import org.gradle.api.internal.file.delete.Deleter;
+import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
+import org.gradle.api.internal.file.delete.DeleteSpecInternal;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.resources.DefaultResourceResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -39,17 +41,19 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
-import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
@@ -69,7 +73,20 @@ public class DefaultFileOperations implements FileOperations {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem, Clock clock) {
+    public DefaultFileOperations(
+        FileResolver fileResolver,
+        @Nullable TaskResolver taskResolver,
+        @Nullable TemporaryFileProvider temporaryFileProvider,
+        Instantiator instantiator,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        @Nullable TextResourceLoader textResourceLoader,
+        FileCollectionFactory fileCollectionFactory,
+        FileSystem fileSystem,
+        Deleter deleter
+    ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
@@ -81,7 +98,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
-        this.deleter = new Deleter(fileResolver, fileSystem, clock);
+        this.deleter = deleter;
     }
 
     @Override
@@ -162,12 +179,23 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public boolean delete(Object... paths) {
-        return deleter.delete(paths);
+        return delete(deleteSpec -> deleteSpec.delete(paths).setFollowSymlinks(false)).getDidWork();
     }
 
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
-        return deleter.delete(action);
+        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
+        action.execute(deleteSpec);
+        FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
+        boolean didWork = false;
+        for (File root : roots) {
+            try {
+                didWork |= deleter.deleteRecursively(root, deleteSpec.isFollowSymlinks());
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        }
+        return WorkResults.didWork(didWork);
     }
 
     @Override

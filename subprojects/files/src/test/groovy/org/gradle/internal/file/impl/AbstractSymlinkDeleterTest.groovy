@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.delete
+package org.gradle.internal.file.impl
 
-import org.gradle.api.Action
-import org.gradle.api.file.DeleteSpec
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.time.Time
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.file.TestFiles.fileSystem
-
 abstract class AbstractSymlinkDeleterTest extends Specification {
-    static final boolean FOLLOW_SYMLINKS = true;
+    static final boolean FOLLOW_SYMLINKS = true
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter delete = new Deleter(resolver, fileSystem(), Time.clock())
+    DefaultDeleter deleter = new DefaultDeleter(
+        { System.currentTimeMillis() },
+        { NativeServicesTestFixture.getInstance().get(FileSystem).isSymlink(it) },
+        false
+    )
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())
@@ -53,7 +51,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(link)
+        boolean didWork = delete(false, link)
 
         then:
         !link.exists()
@@ -80,7 +78,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(deleteSpecActionFor(FOLLOW_SYMLINKS, link)).getDidWork()
+        boolean didWork = delete(FOLLOW_SYMLINKS, link)
 
         then:
         !link.exists()
@@ -106,7 +104,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(deleteSpecActionFor(followSymlinks, link)).getDidWork()
+        boolean didWork = delete(followSymlinks, link)
 
         then:
         !link.exists()
@@ -120,13 +118,8 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         followSymlinks << [true, false]
     }
 
-    private static Action<? super DeleteSpec> deleteSpecActionFor(final boolean followSymlinks, final Object... paths) {
-        return new Action<DeleteSpec>() {
-            @Override
-            void execute(DeleteSpec spec) {
-                spec.delete(paths).setFollowSymlinks(followSymlinks)
-            }
-        }
+    private boolean delete(boolean followSymlinks, File path) {
+        return deleter.deleteRecursively(path, followSymlinks)
     }
 
     protected abstract void createSymbolicLink(File link, TestFile target)

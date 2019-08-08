@@ -13,85 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.delete;
+package org.gradle.internal.file.impl;
 
-import org.gradle.api.Action;
-import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.UnableToDeleteFileException;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.time.Clock;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.LongSupplier;
+import java.util.function.Predicate;
 
-public class Deleter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
+@SuppressWarnings("Since15")
+public class DefaultDeleter implements Deleter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
 
-    private final FileResolver fileResolver;
-    private final FileSystem fileSystem;
-    private final Clock clock;
+    private final LongSupplier timeProvider;
+    private final Predicate<? super File> isSymlink;
+    private final boolean runGcOnFailedDelete;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
+    @VisibleForTesting
     static final int MAX_REPORTED_PATHS = 16;
 
+    @VisibleForTesting
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
+    @VisibleForTesting
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Clock clock) {
-        this.fileResolver = fileResolver;
-        this.fileSystem = fileSystem;
-        this.clock = clock;
+    public DefaultDeleter(LongSupplier timeProvider, Predicate<? super File> isSymlink, boolean runGcOnFailedDelete) {
+        this.timeProvider = timeProvider;
+        this.isSymlink = isSymlink;
+        this.runGcOnFailedDelete = runGcOnFailedDelete;
     }
 
-    public boolean delete(Object... paths) {
-        final Object[] innerPaths = paths;
-        return delete(new Action<DeleteSpec>() {
-            @Override
-            public void execute(DeleteSpec deleteSpec) {
-                deleteSpec.delete(innerPaths).setFollowSymlinks(false);
+    @Override
+    public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
+        if (root.exists()) {
+            LOGGER.debug("Deleting {}", root);
+            long startTime = timeProvider.getAsLong();
+            Collection<String> failedPaths = new ArrayList<String>();
+            deleteRecursively(startTime, root, root, followSymlinks, failedPaths);
+            if (!failedPaths.isEmpty()) {
+                throwWithHelpMessage(startTime, root, followSymlinks, failedPaths, false);
             }
-        }).getDidWork();
-    }
-
-    public WorkResult delete(Action<? super DeleteSpec> action) {
-        boolean didWork = false;
-        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
-        action.execute(deleteSpec);
-        Object[] paths = deleteSpec.getPaths();
-        for (File file : fileResolver.resolveFiles(paths)) {
-            if (!file.exists()) {
-                continue;
-            }
-            LOGGER.debug("Deleting {}", file);
-            didWork = true;
-            doDeleteInternal(file, deleteSpec);
-        }
-        return WorkResults.didWork(didWork);
-    }
-
-    private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
-        long startTime = clock.getCurrentTime();
-        Collection<String> failedPaths = new ArrayList<String>();
-        deleteRecursively(startTime, file, file, deleteSpec, failedPaths);
-        if (!failedPaths.isEmpty()) {
-            throwWithHelpMessage(startTime, file, deleteSpec, failedPaths, false);
+            return true;
+        } else {
+            return false;
         }
     }
 
-    private void deleteRecursively(long startTime, File baseDir, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths) {
+    private void deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, Collection<String> failedPaths) throws IOException {
 
-        if (file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))) {
+        if (shouldFollow(file, followSymlinks)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -100,30 +80,39 @@ public class Deleter {
             }
 
             for (File item : contents) {
-                deleteRecursively(startTime, baseDir, item, deleteSpec, failedPaths);
+                deleteRecursively(startTime, baseDir, item, followSymlinks, failedPaths);
             }
         }
 
-        if (!deleteFile(file)) {
-            handleFailedDelete(file, failedPaths);
+        if (!delete(file)) {
+            failedPaths.add(file.getAbsolutePath());
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
-                throwWithHelpMessage(startTime, baseDir, deleteSpec, failedPaths, true);
+                throwWithHelpMessage(startTime, baseDir, followSymlinks, failedPaths, true);
             }
         }
+    }
+
+    private boolean shouldFollow(File file, boolean followSymlinks) {
+        return file.isDirectory() && (followSymlinks || !isSymlink.test(file));
     }
 
     protected boolean deleteFile(File file) {
         return file.delete() && !file.exists();
     }
 
-    private void handleFailedDelete(File file, Collection<String> failedPaths) {
+    @Override
+    public boolean delete(File file) {
+        if (deleteFile(file)) {
+            return true;
+        }
+
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
-        // It mentions that there is a bug in the Windows JDK impls that this is a valid
+        // It mentions that there is a bug in the Windows JDK implementations that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
         // The thinking is that if this is good enough for Ant, it's good enough for us.
-        if (isRunGcOnFailedDelete()) {
+        if (runGcOnFailedDelete) {
             System.gc();
         }
         try {
@@ -132,37 +121,27 @@ public class Deleter {
             Thread.currentThread().interrupt();
         }
 
-        if (!deleteFile(file)) {
-            failedPaths.add(file.getAbsolutePath());
-        }
+        return deleteFile(file);
     }
 
-    private boolean isRunGcOnFailedDelete() {
-        return OperatingSystem.current().isWindows();
+    private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) throws IOException {
+        throw new IOException(buildHelpMessageForFailedDelete(startTime, file, followSymlinks, failedPaths, more));
     }
 
-    private void throwWithHelpMessage(long startTime, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths, boolean more) {
-        throw new UnableToDeleteFileException(file, buildHelpMessageForFailedDelete(startTime, file, deleteSpec, failedPaths, more));
-    }
-
-    private String buildHelpMessageForFailedDelete(long startTime, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths, boolean more) {
-
-        boolean isSymlink = fileSystem.isSymlink(file);
-        boolean isDirectory = file.isDirectory();
+    private String buildHelpMessageForFailedDelete(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
-        if (isSymlink) {
+        if (isSymlink.test(file)) {
             help.append("symlink to ");
         }
-        if (isDirectory) {
+        if (file.isDirectory()) {
             help.append("directory ");
         } else {
             help.append("file ");
         }
         help.append('\'').append(file).append('\'');
 
-        if (isDirectory && (deleteSpec.isFollowSymlinks() || !isSymlink)) {
-
+        if (shouldFollow(file, followSymlinks)) {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {
@@ -189,7 +168,7 @@ public class Deleter {
         return help.toString();
     }
 
-    private Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
+    private static Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
         List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
         Deque<File> stack = new ArrayDeque<File>();
         stack.push(directory);

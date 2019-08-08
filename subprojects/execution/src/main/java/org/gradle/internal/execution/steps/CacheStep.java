@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.apache.commons.io.FileUtils;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory.LoadMetadata;
@@ -30,11 +29,11 @@ import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -44,15 +43,18 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
+    private final Deleter deleter;
     private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
 
     public CacheStep(
         BuildCacheController buildCache,
         BuildCacheCommandFactory commandFactory,
+        Deleter deleter,
         Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
         this.commandFactory = commandFactory;
+        this.deleter = deleter;
         this.delegate = delegate;
     }
 
@@ -113,24 +115,14 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
             });
     }
 
-    private static void cleanLocalState(UnitOfWork work) {
+    private void cleanLocalState(UnitOfWork work) {
         work.visitLocalState(localStateFile -> {
             try {
-                remove(localStateFile);
+                deleter.deleteRecursively(localStateFile, true);
             } catch (IOException ex) {
                 throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateFile), ex);
             }
         });
-    }
-
-    private static void remove(File root) throws IOException {
-        if (root.exists()) {
-            if (root.isDirectory()) {
-                FileUtils.cleanDirectory(root);
-            } else {
-                FileUtils.forceDelete(root);
-            }
-        }
     }
 
     private CurrentSnapshotResult executeAndStoreInCache(BuildCacheKey cacheKey, IncrementalChangesContext context) {

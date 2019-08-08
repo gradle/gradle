@@ -37,16 +37,17 @@ import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
+import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -54,7 +55,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
@@ -87,28 +87,29 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final FileSystem fileSystem;
-    private final Clock clock;
+    private final Deleter deleter;
     private ScriptPluginFactory scriptPluginFactory;
 
-    public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
-                                      Factory<LoggingManagerInternal> loggingManagerFactory,
-                                      Instantiator instantiator,
-                                      ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginRequestApplicator pluginRequestApplicator,
-                                      FileSystem fileSystem,
-                                      FileLookup fileLookup,
-                                      DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      DocumentationRegistry documentationRegistry,
-                                      ModelRuleSourceDetector modelRuleSourceDetector,
-                                      ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader,
-                                      StreamHasher streamHasher,
-                                      FileHasher fileHasher,
-                                      ExecFactory execFactory,
-                                      FileCollectionFactory fileCollectionFactory,
-                                      AutoAppliedPluginHandler autoAppliedPluginHandler,
-                                      Clock clock) {
-
+    public DefaultScriptPluginFactory(
+        ScriptCompilerFactory scriptCompilerFactory,
+        Factory<LoggingManagerInternal> loggingManagerFactory,
+        Instantiator instantiator,
+        ScriptHandlerFactory scriptHandlerFactory,
+        PluginRequestApplicator pluginRequestApplicator,
+        FileSystem fileSystem,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        DocumentationRegistry documentationRegistry,
+        ModelRuleSourceDetector modelRuleSourceDetector,
+        ProviderFactory providerFactory,
+        TextResourceLoader textResourceLoader,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        ExecFactory execFactory,
+        FileCollectionFactory fileCollectionFactory,
+        AutoAppliedPluginHandler autoAppliedPluginHandler,
+        Deleter deleter
+    ) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -126,7 +127,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.clock = clock;
+        this.deleter = deleter;
         this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
@@ -182,7 +183,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);
             services.add(FileCollectionFactory.class, fileCollectionFactory);
-            services.add(Clock.class, clock);
+            services.add(Deleter.class, deleter);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

@@ -31,6 +31,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
+import org.gradle.internal.file.impl.Deleter
 
 class CacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
@@ -39,9 +40,9 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
     def cacheKey = Stub(BuildCacheKey)
     def cachingState = Mock(CachingState)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
-    def localStateFile = file("local-state.txt") << "local state"
+    def deleter = Mock(Deleter)
 
-    def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
+    def step = new CacheStep(buildCacheController, buildCacheCommandFactory, deleter, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
 
     @Override
@@ -54,6 +55,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
     def "loads from cache"() {
         def cachedOriginMetadata = Mock(OriginMetadata)
         def outputsFromCache = fingerprintsOf("test": [])
+        def localStateFile = file("local-state.txt") << "local state"
 
         when:
         def result = step.execute(context)
@@ -72,9 +74,18 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
         then:
+        _ * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
+            visitor.visitLocalStateRoot(localStateFile)
+        }
+        1 * deleter.deleteRecursively(_, _) >> { File root, boolean followSymlinks ->
+            assert root == localStateFile
+            return true
+        }
+
+        then:
         1 * loadMetadata.originMetadata >> cachedOriginMetadata
         1 * loadMetadata.resultingSnapshots >> outputsFromCache
-        interaction { localStateIsRemoved() }
+
         0 * _
     }
 
@@ -230,12 +241,5 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         1 * originMetadata.executionTime >> 123L
         1 * buildCacheCommandFactory.createStore(cacheKey, work, finalOutputs, 123L) >> storeCommand
         1 * buildCacheController.store(storeCommand) >> { storeResult() }
-    }
-
-    private void localStateIsRemoved() {
-        _ * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
-            visitor.visitLocalStateRoot(localStateFile)
-        }
-        !localStateFile.exists()
     }
 }
