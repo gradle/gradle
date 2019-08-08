@@ -89,16 +89,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
     TaskIdentity<?> getTaskIdentity();
 
     /**
-     * Replace this task's logger.
-     *
-     * Callers of {@link #getLogger()} will get the replacement logger after this method invocation.
-     *
-     * @param logger the replacement logger
-     */
-    @Deprecated
-    void replaceLogger(Logger logger);
-
-    /**
      * <p>Gets the shared resources required by this task.</p>
      */
     @Internal

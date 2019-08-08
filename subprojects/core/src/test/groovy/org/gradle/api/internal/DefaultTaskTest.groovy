@@ -524,19 +524,6 @@ class DefaultTaskTest extends AbstractTaskTest {
         then:
         task.actions[0].displayName == "Execute unnamed action"
     }
-
-    def "can replace task logger"() {
-        expect:
-        task.logger instanceof ContextAwareTaskLogger
-        task.logger.delegate == AbstractTask.BUILD_LOGGER
-
-        when:
-        def logger = Mock(Logger)
-        task.replaceLogger(logger)
-
-        then:
-        task.logger == logger
-    }
 }
 
 class TestConvention {

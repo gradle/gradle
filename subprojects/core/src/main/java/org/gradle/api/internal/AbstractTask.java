@@ -124,7 +124,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
-    private Logger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
+    private final Logger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
 
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
@@ -462,11 +462,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
         return loggingManager;
-    }
-
-    @Override
-    public void replaceLogger(Logger logger) {
-        this.logger = logger;
     }
 
     @Override
