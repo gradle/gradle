@@ -23,7 +23,6 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
@@ -139,15 +138,6 @@ public interface ExtensionContainer {
      * @see #add(String, Object)
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
-
-    /**
-     * Provides access to all known extensions types.
-     *
-     * @return A map of extensions public types, keyed by name
-     * @since 3.5
-     */
-    @Deprecated
-    Map<String, TypeOf<?>> getSchema();
 
     /**
      * Provides access to the schema of all known extensions.
