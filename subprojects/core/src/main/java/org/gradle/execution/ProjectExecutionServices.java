@@ -57,6 +57,7 @@ import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -99,7 +100,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,
                                     BuildCacheController buildCacheController,
-                                    TaskInputsListener inputsListener,
                                     TaskActionListener actionListener,
                                     OutputChangeListener outputChangeListener,
                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -118,6 +118,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskListenerInternal taskListenerInternal,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
                                     WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+                                    Deleter deleter,
                                     ListenerManager listenerManager,
                                     ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
                                     EmptySourceTaskSkipper emptySourceTaskSkipper
@@ -143,7 +144,14 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             emptySourceTaskSkipper,
             fileCollectionFactory
         );
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, outputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
+        executer = new CleanupStaleOutputsExecuter(
+            buildOperationExecutor,
+            cleanupRegistry,
+            deleter,
+            outputChangeListener,
+            outputFilesRepository,
+            executer
+        );
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, fileCollectionFactory, propertyWalker, executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
