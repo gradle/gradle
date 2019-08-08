@@ -35,7 +35,7 @@ public interface ExecutionPlan extends Describable {
     @Nullable
     Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
 
-    void nodeComplete(Node node);
+    void finishedExecuting(Node node);
 
     void abortAllAndFail(Throwable t);
 

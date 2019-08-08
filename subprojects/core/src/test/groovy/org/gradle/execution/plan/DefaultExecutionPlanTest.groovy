@@ -940,7 +940,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
             assert nextNode != null
             if (!nextNode.isComplete()) {
                 nodes << nextNode
-                executionPlan.nodeComplete(nextNode)
+                executionPlan.finishedExecuting(nextNode)
             }
         }
         return nodes
