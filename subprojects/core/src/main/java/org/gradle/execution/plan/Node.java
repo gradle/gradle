@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
@@ -106,24 +107,28 @@ public abstract class Node implements Comparable<Node> {
 
     public abstract void rethrowNodeFailure();
 
-    public void startExecution() {
+    public void startExecution(Consumer<Node> nodeStartAction) {
         assert isReady();
         state = ExecutionState.EXECUTING;
+        nodeStartAction.accept(this);
     }
 
-    public void finishExecution() {
+    public void finishExecution(Consumer<Node> completionAction) {
         assert state == ExecutionState.EXECUTING;
         state = ExecutionState.EXECUTED;
+        completionAction.accept(this);
     }
 
-    public void skipExecution() {
+    public void skipExecution(Consumer<Node> completionAction) {
         assert state == ExecutionState.SHOULD_RUN;
         state = ExecutionState.SKIPPED;
+        completionAction.accept(this);
     }
 
-    public void abortExecution() {
+    public void abortExecution(Consumer<Node> completionAction) {
         assert isReady();
         state = ExecutionState.SKIPPED;
+        completionAction.accept(this);
     }
 
     public void require() {

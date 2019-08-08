@@ -607,11 +607,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
 
                 if (node.allDependenciesSuccessful()) {
-                    recordNodeStarted(node);
-                    node.startExecution();
+                    node.startExecution(this::recordNodeStarted);
                 } else {
-                    node.skipExecution();
-                    recordNodeCompleted(node);
+                    node.skipExecution(this::recordNodeCompleted);
                 }
                 iterator.remove();
                 return node;
@@ -962,9 +960,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     LOGGER.debug("Node {} completed", node);
                 }
 
-                node.finishExecution();
                 runningNodes.remove(node);
-                recordNodeCompleted(node);
+                node.finishExecution(this::recordNodeCompleted);
             } else {
                 LOGGER.debug("Already completed node {} reported as completed", node);
             }
@@ -1047,15 +1044,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         for (Node node : nodeMapping) {
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (node.isRequired()) {
-                node.skipExecution();
-                recordNodeCompleted(node);
+                node.skipExecution(this::recordNodeCompleted);
                 aborted = true;
             }
 
             // If abortAll is set, also stop enforced tasks.
             if (abortAll && node.isReady()) {
-                node.abortExecution();
-                recordNodeCompleted(node);
+                node.abortExecution(this::recordNodeCompleted);
                 aborted = true;
             }
         }
