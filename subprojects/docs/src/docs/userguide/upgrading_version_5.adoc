@@ -94,6 +94,10 @@ The deprecated announce and build-announcements plugins have been removed.  Ther
 The deprecated Compare Gradle Builds plugin has been removed.
 Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
 
+==== Updates to bundled Gradle dependencies
+
+- Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
+
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
 Miscellaneous::
