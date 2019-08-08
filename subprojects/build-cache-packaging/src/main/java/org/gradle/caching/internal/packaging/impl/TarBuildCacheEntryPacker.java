@@ -89,12 +89,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
     private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = new ThreadLocal<byte[]>() {
-        @Override
-        protected byte[] initialValue() {
-            return new byte[BUFFER_SIZE];
-        }
-    };
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
     private final FileSystem fileSystem;
     private final StreamHasher streamHasher;
@@ -125,10 +120,10 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        writeMetadata.execute(baos);
-        createTarEntry(METADATA_PATH, baos.size(), UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
-        tarOutput.write(baos.toByteArray());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeMetadata.execute(output);
+        createTarEntry(METADATA_PATH, output.size(), UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
+        tarOutput.write(output.toByteArray());
         tarOutput.closeArchiveEntry();
     }
 
@@ -167,14 +162,12 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private UnpackResult unpack(CacheableEntity entity, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
         ImmutableMap.Builder<String, CacheableTree> treesBuilder = ImmutableMap.builder();
-        entity.visitOutputTrees((name, type, root) -> {
-            treesBuilder.put(name, new CacheableTree(type, root));
-        });
+        entity.visitOutputTrees((name, type, root) -> treesBuilder.put(name, new CacheableTree(type, root)));
         ImmutableMap<String, CacheableTree> treesByName = treesBuilder.build();
 
         TarArchiveEntry tarEntry;
         OriginMetadata originMetadata = null;
-        Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
+        Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         tarEntry = tarInput.getNextTarEntry();
         MutableLong entries = new MutableLong();
