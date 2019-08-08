@@ -133,6 +133,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
+    def deleter = TestFiles.deleter()
 
     WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
         // @formatter:off
@@ -150,7 +151,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
             new ResolveInputChangesStep<>(
-            new CleanupOutputsStep<>(
+            new CleanupOutputsStep<>(deleter,
             new ExecuteStep<>(
         ))))))))))))))))
         // @formatter:on

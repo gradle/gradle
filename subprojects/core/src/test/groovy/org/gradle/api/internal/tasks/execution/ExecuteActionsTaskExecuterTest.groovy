@@ -146,6 +146,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null)
+    def deleter = TestFiles.deleter()
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
@@ -161,7 +162,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new CatchExceptionStep<>(
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
-        new CleanupOutputsStep<>(
+        new CleanupOutputsStep<>(deleter,
         new ExecuteStep<>(
     )))))))))))))))
     // @formatter:on
