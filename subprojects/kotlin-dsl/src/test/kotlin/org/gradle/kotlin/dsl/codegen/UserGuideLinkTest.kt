@@ -66,7 +66,7 @@ val linkedPlugins =
         "base", "binary-base", "build-dashboard", "build-init",
         "c", "c-lang", "checkstyle", "clang-compiler", "codenarc",
         "cpp", "cpp-executable", "cpp-lang", "cpp-library",
-        "compare-gradle-builds", "component-base", "component-model-base",
+        "component-base", "component-model-base",
         "cunit", "cunit-test-suite",
         "distribution",
         "ear", "eclipse", "eclipse-wtp",
