@@ -106,6 +106,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
         }
 
+        if (isSameOrOlder("5.6")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_12) <= 0;
+        }
+
         return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0;
     }
 
