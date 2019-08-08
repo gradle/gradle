@@ -43,6 +43,13 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         val sourceDirectory = "src-directory"
     }
 
+    /**
+     * Resolves source distributions starting at [minimumVersion] when set and starting at
+     * the previous minor version when not set.
+     * Mainly for adjusting the integration test across major version boundaries.
+     */
+    var minimumVersion: String? = null
+
     override fun sourceDirs(): Collection<File> =
         try {
             collectSourceDirs()
@@ -131,7 +138,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun toVersionRange(gradleVersion: String) =
-        "(${previousMinor(gradleVersion)}, $gradleVersion]"
+        "(${minimumVersion ?: previousMinor(gradleVersion)}, $gradleVersion]"
 
     private
     fun previousMinor(gradleVersion: String): String =
