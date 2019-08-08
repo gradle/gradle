@@ -350,7 +350,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
-            return Optional.empty();
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            visitOutputProperties(((propertyName, type, roots) -> {
+                roots.forEach(root -> builder.add(root.getAbsolutePath()));
+            }));
+            return Optional.of(builder.build());
         }
 
         @Override
