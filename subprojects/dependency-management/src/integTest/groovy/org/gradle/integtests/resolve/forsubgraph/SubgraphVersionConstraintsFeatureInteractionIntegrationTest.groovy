@@ -75,8 +75,8 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:bar:1.0') {
-                    module('org:baz:1.0').byRequest()
-                    module('org:foo:1.0') {
+                    edge('org:baz:{require 1.0; subgraph}', 'org:baz:1.0').byRequest()
+                    edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.0') {
                         edge('org:baz:2.0', 'org:baz:1.0').byAncestor()
                     }
                 }
@@ -186,7 +186,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -232,7 +232,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:bar:1.0', 'org:bar:2.0').byConstraint()
+                constraint('org:bar:{require 1.0; subgraph}', 'org:bar:2.0').byConstraint()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
                     module('org:bar:2.0').byRequest().forced()
@@ -280,7 +280,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:bar:1.0', 'org:bar:2.0').byConstraint()
+                constraint('org:bar:{require 1.0; subgraph}', 'org:bar:2.0').byConstraint()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
                     module('org:bar:2.0').byRequest().forced()
@@ -328,7 +328,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:foo:1.0').byRequest()
+                edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byRequest()
                 module('org:bar:1.0') {
                     edge('org:old:2.0', 'org:foo:1.0').selectedByRule("better foo than old").byAncestor()
                 }
@@ -378,7 +378,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0', 'org:foo:0.11').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:0.11').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:0.11').byRequest().selectedByRule('because I can')
                 }
@@ -431,7 +431,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:1.0', 'org:new:1.0').byRequest().selectedByRule()
+                edge('org:foo:{require 1.0; subgraph}', 'org:new:1.0').byRequest().selectedByRule()
                 module('org:bar:1.0') {
                     module('org:foo:2.0')
                 }

@@ -61,7 +61,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:foo:1.0').byRequest()
+                edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byRequest()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -106,7 +106,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -165,10 +165,10 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                         edge('org:c:3.0', 'org:c:1.0').byAncestor()
                     }
                     if (publishedConstraintsSupported) {
-                        constraint('org:c:2.0', 'org:c:1.0')
+                        constraint('org:c:{require 2.0; subgraph}', 'org:c:1.0')
                     }
                 }
-                constraint('org:c:1.0').byConstraint()
+                constraint('org:c:{require 1.0; subgraph}', 'org:c:1.0').byConstraint()
             }
         }
     }
@@ -223,10 +223,10 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                         edge('org:c:2.0', 'org:c:1.0').byAncestor()
                     }
                     if (publishedConstraintsSupported) {
-                        constraint('org:c:1.0')
+                        constraint('org:c:{require 1.0; subgraph}', 'org:c:1.0')
                     }
                 }
-                constraint('org:c:1.0').byConstraint()
+                constraint('org:c:{require 1.0; subgraph}', 'org:c:1.0').byConstraint()
             }
         }
     }
@@ -278,11 +278,14 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                     module('org:b:1.0') {
                         module('org:c:2.0')
                     }
-                    edge('org:c:1.0', 'org:c:2.0').byConflictResolution("between versions 2.0 and 1.0").with {
-                        if (subgraphConstraintsSupported) { it.byAncestor() }
+                    if (subgraphConstraintsSupported) {
+                        edge('org:c:{require 1.0; subgraph}', 'org:c:2.0').byAncestor()
+                    } else {
+                        edge('org:c:1.0', 'org:c:2.0')
                     }
+
                 }
-                module('org:c:2.0').byRequest()
+                module('org:c:2.0').byRequest().byConflictResolution("between versions 2.0 and 1.0")
             }
         }
     }
@@ -337,10 +340,12 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
             root(':', ':test:') {
                 module('org:a:1.0') {
                     module('org:b:1.0') {
-                        edge('org:c:2.0', cResult)
+                        edge('org:c:2.0', cResult).byRequest()
                     }
-                    edge('org:c:1.0', cResult).byRequest().with {
-                        if (cResult == 'org:c:1.0') { it.byAncestor() } else { it.byConflictResolution("between versions 2.0 and 1.0") }
+                    if (cResult == 'org:c:1.0') {
+                        edge('org:c:{require 1.0; subgraph}', cResult).byAncestor()
+                    } else {
+                        edge('org:c:1.0', cResult).byConflictResolution("between versions 2.0 and 1.0")
                     }
                 }
             }
@@ -469,7 +474,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0').byAncestor()
                 }
@@ -515,7 +520,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge("org:foo:[2.0,3.0)", 'org:foo:1.0').byAncestor()
                 }
@@ -562,7 +567,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0', 'project :foo', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'project :foo', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'project :foo', 'org:foo:1.0') {}.byAncestor()
                 }
@@ -656,7 +661,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                     module('org:bar:1.0') {
                         module('org:foo:2.0').byRequest()
                     }
-                    constraint('org:foo:1.0', 'org:foo:2.0').byConstraint().byConflictResolution("between versions 2.0 and 1.0")
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:2.0').byConstraint().byConflictResolution("between versions 2.0 and 1.0")
                 }
                 module('org:x2:1.0') {
                     module('org:bar:1.0')
@@ -723,12 +728,12 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                     module('org:bar:1.0') {
                         edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                     }
-                    constraint('org:foo:1.0').byConstraint()
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 }
                 module('org:x2:1.0') {
                     module('org:bar:1.0')
                 }
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
             }
         }
     }
