@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.corefeature;
+package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import spock.lang.Unroll
 
-class VerboseTestOutputPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class VerboseTestOutputPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     @Unroll
     def "cleanTest test on #testProject with verbose test output"() {
