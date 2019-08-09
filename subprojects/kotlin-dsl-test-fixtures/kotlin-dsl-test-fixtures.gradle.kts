@@ -41,5 +41,5 @@ dependencies {
     implementation(library("junit"))
     implementation(testLibrary("mockito_kotlin"))
     implementation(testLibrary("jackson_kotlin"))
-    implementation("org.ow2.asm:asm:7.1")
+    implementation(library("asm"))
 }
