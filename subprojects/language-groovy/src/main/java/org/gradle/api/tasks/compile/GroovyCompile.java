@@ -144,7 +144,7 @@ public class GroovyCompile extends AbstractCompile {
 
     @Override
     protected void compile() {
-        compile(null);
+        throw new UnsupportedOperationException("This method has been superseded by compile(InputChanges inputChanges)!");
     }
 
     @TaskAction
