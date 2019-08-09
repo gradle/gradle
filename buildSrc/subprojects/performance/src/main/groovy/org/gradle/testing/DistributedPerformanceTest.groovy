@@ -144,11 +144,11 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 scenarioClass: scenarioResult.testSuite.name,
-                webUrl: scenarioResult.buildResult.webUrl,
-                status: scenarioResult.buildResult.status,
-                agentName: scenarioResult.buildResult.agent.name,
-                agentUrl: scenarioResult.buildResult.agent.webUrl,
-                testFailure: collectFailures(scenarioResult.testSuite))
+                webUrl: scenarioResult.buildResponse.webUrl,
+                status: scenarioResult.buildResponse.status,
+                agentName: scenarioResult.buildResponse.agent.name,
+                agentUrl: scenarioResult.buildResponse.agent.webUrl,
+                testFailure: scenarioResult.failureText)
         }
     }
 
@@ -336,11 +336,11 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     private void collectPerformanceTestResults(Map response, String jobId) {
         try {
             JUnitTestSuite testSuite = fetchTestResult(response)
-            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, buildResult: response))
+            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, testClassFullName: scheduledBuilds.get(jobId).className, testSuite: testSuite, buildResponse: response))
             fireTestListener(testSuite, response)
         } catch (e) {
             e.printStackTrace(System.err)
-            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, testClassFullName: scheduledBuilds.get(jobId).className, buildResult: response))
+            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, testClassFullName: scheduledBuilds.get(jobId).className, buildResponse: response))
         }
     }
 
@@ -427,7 +427,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void checkForErrors() {
-        def failedBuilds = finishedBuilds.values().findAll { it.buildResult.status != "SUCCESS" }
+        def failedBuilds = finishedBuilds.values().findAll { it.buildResponse.status != "SUCCESS" }
         if (failedBuilds) {
             throw new GradleException("${failedBuilds.size()} performance tests failed. See $reportDir for details.")
         }
@@ -459,10 +459,20 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     static class ScenarioResult {
         String name
         String testClassFullName
-        Map buildResult
+        JUnitTestSuite testSuite
+        Map buildResponse
 
         boolean isSuccessful() {
-            return buildResult.status == 'SUCCESS'
+            return buildResponse.status == 'SUCCESS'
+        }
+
+        @TypeChecked(TypeCheckingMode.SKIP)
+        String getFailureText() {
+            if (testSuite) {
+                collectFailures(testSuite)
+            } else {
+                return buildResponse.statusText
+            }
         }
 
         TestMethodResult toMethodResult(AtomicLong counter) {

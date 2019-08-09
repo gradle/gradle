@@ -84,7 +84,7 @@ class RerunableDistributedPerformanceTestTest extends Specification {
         return new ScenarioResult(
             name: methodName,
             testClassFullName: className,
-            buildResult: [status: status],
+            buildResponse: [status: status],
         )
     }
 }

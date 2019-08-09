@@ -68,7 +68,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    protected String collectFailures(JUnitTestSuite testSuite) {
+    protected static String collectFailures(JUnitTestSuite testSuite) {
         List<JUnitTestCase> testCases = testSuite.testCases ?: []
         List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten()
         return failures.collect { it.value }.join("\n")

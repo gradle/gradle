@@ -404,6 +404,3 @@ allprojects {
     }
 }
 
-if("Gradle_Check_IndividualPerformanceScenarioWorkersLinux" == System.getenv("BUILD_TYPE_ID")) {
-    throw GradleException()
-}
