@@ -387,6 +387,32 @@ class DefaultDependencyHandlerTest extends Specification {
         dep2.isInheriting()
     }
 
+    void "platform dependency can be made non-inheriting"() {
+        ModuleDependency dep1 = new DefaultExternalModuleDependency("org", "platform", "")
+        dep1.attributesFactory = AttributeTestUtil.attributesFactory()
+
+        when:
+        dependencyHandler.platform("org:platform") { it.notInheritConstraints() }
+
+        then:
+        1 * dependencyFactory.createDependency("org:platform") >> dep1
+        dep1.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
+        !dep1.isInheriting()
+    }
+
+    void "local platform dependency can be made non-inheriting"() {
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
+        dep1.attributesFactory = AttributeTestUtil.attributesFactory()
+
+        when:
+        dependencyHandler.platform(dep1) { it.notInheritConstraints() }
+
+        then:
+        1 * dependencyFactory.createDependency(dep1) >> dep1
+        dep1.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
+        !dep1.isInheriting()
+    }
+
     @CompileStatic
     void "can configure ExtensionAware statically"() {
         String dependency = "some:random-dependency:0.1.1"

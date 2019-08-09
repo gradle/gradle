@@ -213,6 +213,14 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     void inheritConstraints();
 
     /**
+     * Resets the {@link #isInheriting()} state of this dependency.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    void notInheritConstraints();
+
+    /**
      * Are the {@link VersionConstraint#isForSubgraph()} dependency constraints of the target module inherited?
      *
      * @since 5.7

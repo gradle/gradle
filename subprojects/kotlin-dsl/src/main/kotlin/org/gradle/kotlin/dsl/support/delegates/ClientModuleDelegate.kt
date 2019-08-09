@@ -147,6 +147,9 @@ abstract class ClientModuleDelegate : ClientModule {
     override fun inheritConstraints() =
         delegate.inheritConstraints()
 
+    override fun notInheritConstraints() =
+        delegate.notInheritConstraints()
+
     override fun isInheriting() =
         delegate.isInheriting
 }
