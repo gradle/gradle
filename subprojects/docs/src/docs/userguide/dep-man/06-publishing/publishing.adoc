@@ -136,7 +136,7 @@ In particular, Gradle Module Metadata supports:
 - <<rich_versions.adoc#rich-version-constraints,rich version constraints>>
 - <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
 - <<modeling_features.adoc#declaring-component-capabilities,component capabilities>>
-- <<modeling_features.adoc#understanding-variant-selection,variant-aware resolution>>
+- <<variant_model.adoc#understanding-variant-selection,variant-aware resolution>>
 
 Publication of Gradle Module Metadata will enable better dependency management for your consumers:
 
