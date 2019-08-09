@@ -24,14 +24,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Graph {
-    String id;
+public class ExecutionGraph {
+    // Execution 1,2,3, starting from 1
+    int index;
     String title;
     List<Line> data;
 
-    public Graph(String id, String title, Line... lines) {
-        this.id = id;
-        this.title = title;
+    public ExecutionGraph(int index, Line... lines) {
+        this.index = index;
+        this.title = "Execution " + index + " (ms)";
         this.data = Arrays.asList(lines);
     }
 
@@ -39,16 +40,18 @@ public class Graph {
         return JsonOutput.toJson(data);
     }
 
-    String getOptions() {
+    String getTicks() {
         List<List<Object>> ticks = IntStream.range(0, data.get(0).data.size())
             .mapToObj(index -> Arrays.<Object>asList(index, index))
             .collect(Collectors.toList());
-        return JsonOutput.toJson(ImmutableMap.of("xaxis", ImmutableMap.of("ticks", ticks)));
+        return JsonOutput.toJson(ImmutableMap.of("ticks", ticks));
     }
 
     void render(HtmlPageGenerator.MetricsHtml html) {
+        String id = "execution" + index;
         html.h3().text(title).end();
         html.div().id(id).classAttr("chart").end();
-        html.script().raw(String.format("$.plot('#%s', %s, %s)", id, getData(), getOptions())).end();
+        html.dir().id(id + "Legend").end();
+        html.script().raw(String.format("performanceTests.renderGraph(%s, %s, 'execution %d', 'ms', '%s', [])", getData(), getTicks(), index, id)).end();
     }
 }
