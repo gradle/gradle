@@ -62,8 +62,8 @@ class UserGuideLinkIntegrationTest(
 
 val linkedPlugins =
     listOf(
-        "announce", "antlr", "application", "assembler", "assembler-lang",
-        "base", "binary-base", "build-announcements", "build-dashboard", "build-init",
+        "antlr", "application", "assembler", "assembler-lang",
+        "base", "binary-base", "build-dashboard", "build-init",
         "c", "c-lang", "checkstyle", "clang-compiler", "codenarc",
         "cpp", "cpp-executable", "cpp-lang", "cpp-library",
         "component-base", "component-model-base",
