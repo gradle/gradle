@@ -76,6 +76,14 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
+    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+        if (inheriting == this.inheriting) {
+            return this;
+        }
+        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force);
+    }
+
+    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, inheriting, reason, force);
