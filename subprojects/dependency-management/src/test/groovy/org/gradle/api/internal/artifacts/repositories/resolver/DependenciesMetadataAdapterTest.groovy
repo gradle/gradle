@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
@@ -32,9 +31,11 @@ import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class DependenciesMetadataAdapterTest extends Specification {
+abstract class DependenciesMetadataAdapterTest extends Specification {
     List<ModuleDependencyMetadata> dependenciesMetadata = []
     TestDependenciesMetadataAdapter adapter
+
+    abstract ModuleDependencyMetadata newDependency(ModuleComponentSelector requested);
 
     def setup() {
         fillDependencyList(0)
@@ -211,7 +212,7 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = newSelector(DefaultModuleIdentifier.newId("org.gradle.test", "module$size"), "1.0")
-            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], false, false, null, false) ]
+            dependenciesMetadata += [newDependency(requested)]
         }
         adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
     }
