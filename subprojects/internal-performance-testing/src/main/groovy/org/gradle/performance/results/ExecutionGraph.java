@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Graph {
+public class ExecutionGraph {
     // Execution 1,2,3, starting from 1
     int index;
     String title;
     List<Line> data;
 
-    public Graph(int index, Line... lines) {
+    public ExecutionGraph(int index, Line... lines) {
         this.index = index;
         this.title = "Execution " + index + " (ms)";
         this.data = Arrays.asList(lines);
