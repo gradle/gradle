@@ -47,7 +47,7 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
         output.matches("""(?s).*
 build finished
 
-BUILD SUCCESSFUL in \\d+m?s
+BUILD SUCCESSFUL in [ \\dms]+
 1 actionable task: 1 executed
 failure is null: true
 \$""")
@@ -81,7 +81,7 @@ failure message: Execution failed for task ':t'.
 
 FAILURE: Build failed with an exception.
 .*
-BUILD FAILED in \\d+m?s
+BUILD FAILED in [ \\dms]+
 notified
 \$""")
     }
