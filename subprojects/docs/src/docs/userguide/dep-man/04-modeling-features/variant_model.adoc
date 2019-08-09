@@ -175,7 +175,7 @@ All dependencies of those scopes are considered _runtime dependencies_.
 ** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
 ** the `enforced-platform-runtime` is similar to `platform-runtime` but all the constraints are _forced_
 
-You can understand more about the use of platform and enforced platforms variants by looking at the <<controlling_transitive_dependencies#sec:bom_import, importing BOMs>> section of the manual.
+You can understand more about the use of platform and enforced platforms variants by looking at the <<controlling_transitive_dependencies#sub:bom_import, importing BOMs>> section of the manual.
 By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
 However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
 

@@ -360,7 +360,7 @@ include::sample[dir="userguide/mavenMigration/importBom/kotlin",files="build.gra
 <1> Applies the Spring Boot Dependencies BOM
 <2> Adds a dependency whose version is defined by that BOM
 
-You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<controlling_transitive_dependencies#sec:bom_import,importing version recommendations from a Maven BOM>>.
+You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<controlling_transitive_dependencies#sub:bom_import,importing version recommendations from a Maven BOM>>.
 
 NOTE: You can use this feature to apply the `<dependencyManagement>` information from any dependency's POM to the Gradle build, even those that don't have a packaging type of `pom`. Both `platform()` and `enforcedPlatform()` will ignore any dependencies declared in the `<dependencies>` block.
 

@@ -87,7 +87,7 @@ In addition Gradle defines <<controlling_transitive_dependencies#sec:virtual_pla
 
 [NOTE]
 ====
-Maven's BOM (bill-of-material) is a popular kind of platform that <<controlling_transitive_dependencies.adoc#sec:bom_import, Gradle supports>>.
+Maven's BOM (bill-of-material) is a popular kind of platform that <<controlling_transitive_dependencies.adoc#sub:bom_import, Gradle supports>>.
 ====
 
 [[sub:terminology_publication]]
