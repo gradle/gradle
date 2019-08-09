@@ -447,7 +447,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
-            return Optional.of(ImmutableList.of(workspace.getOutputDirectory().getAbsolutePath(), workspace.getResultsFile().getAbsolutePath()));
+            return Optional.of(ImmutableList.of(
+                workspace.getOutputDirectory().getAbsolutePath(),
+                // Ugly hack to support the subdirectories of the outputs used an an input by Android tasks
+                workspace.getOutputDirectory().getAbsolutePath() + "/full",
+                workspace.getResultsFile().getAbsolutePath())
+            );
         }
 
         @Override
