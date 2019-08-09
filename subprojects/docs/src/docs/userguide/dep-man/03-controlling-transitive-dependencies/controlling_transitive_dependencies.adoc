@@ -1,7 +1,7 @@
 [[controlling-transitive-dependencies]]
 = Controlling transitive dependencies
 
-[[direct-vs-transitive-deps]]
+[[sec:direct-vs-transitive-deps]]
 == Direct dependencies vs dependency constraints
 
 A component may have two different kinds of dependencies:
@@ -47,18 +47,18 @@ This means that currently they are only fully supported if Gradle is used for pu
 
 Dependency constraints themselves can also be added transitively.
 
-[[using-platform-to-control-transitive-deps]]
+[[sec:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 
-[[sharing-dep-versions-between-projects]]
+[[sub:sharing-dep-versions-between-projects]]
 === Sharing dependency versions between projects
 
 // A dependency to a platform inherits all subgraph constraints of the platform (can be turned off by 'notInheritConstraints()')
 
-[[enforced-platforms]]
+[[sub:enforced-platforms]]
 === Enforced platforms
 
-[[sec:bom_import]]
+[[sub:bom_import]]
 === Importing Maven BOMs
 
 Gradle provides support for importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[bill of materials (BOM) files], which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies.
@@ -201,7 +201,7 @@ For example the Spring BOM declares dependencies on Spring as well as Apache Gro
 [[aligning-for-your-deps]]
 === For dependencies you consume
 
-[[matching-dependencies-to-repos]]
+[[sec:matching-dependencies-to-repos]]
 == Matching dependencies to repositories
 
 Gradle exposes an API to declare what a repository may or may not contain.
@@ -239,7 +239,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 ====
 
 [[sec:dependency_resolve_rules]]
-=== Dependency resolve rules
+== Dependency resolve rules
 
 A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved.
 The feature currently offers the ability to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely different module during resolution.
@@ -352,7 +352,7 @@ As a build script author you often times know that you want to exclude a depende
 
 You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API. Some of these use cases are covered in <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>>.
 
-[[sub:disabling_resolution_transitive_dependencies]]
+[[sec:disabling_resolution_transitive_dependencies]]
 == Disabling transitive resolution
 
 By default Gradle resolves all transitive dependencies specified by the dependency metadata.
@@ -381,10 +381,10 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
 ====
 
-[[handling-mutually-exclusive-deps]]
+[[sec:handling-mutually-exclusive-deps]]
 == Handling mutually exclusive dependencies
 
-[[sec:capabilities]]
+[[sub:capabilities]]
 === Introduction to component capabilities
 
 Often a dependency graph would accidentally contain multiple implementations of the same API.
@@ -430,14 +430,14 @@ It is recommended to write such rules in _plugins_ which are then applied to you
 Then, users _have to_ express their preferences, if possible, or fix the problem of having incompatible things on the classpath, as explained in the following section.
 ====
 
-[[selecting-between-candidates]]
+[[sub:selecting-between-candidates]]
 === Selecting between candidates
 
 At some point, a dependency graph is going to include either _incompatible modules_, or modules which are _mutually exclusive_.
 For example, you may have different logger implementations and you need to choose one binding.
-<<#sec:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
+<<#sub:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
 
-[[sec:selecting-preferred-capability-provider]]
+[[sub:selecting-preferred-capability-provider]]
 ==== Selecting between different capability candidates
 
 In the relocation example above, Gradle was able to tell you that you have two versions of the same API on classpath: an "old" module and a "relocated" one.
@@ -468,9 +468,9 @@ For example, for tests, `slf4j-simple` may be enough but for production, `slf4-o
 For more information, check out the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#capabilitiesResolution[the capabilities resolution API].
 
 [[sec:module_replacement]]
-=== Module replacement rules
+== Module replacement rules
 
-It is preferable to express module conflicts in terms of <<sec:capabilities, capabilities conflicts>>.
+It is preferable to express module conflicts in terms of <<sub:capabilities, capabilities conflicts>>.
 However, if there's no such rule declared or that you are working on versions of Gradle which do not support capabilities, Gradle provides tooling to work around those issues.
 
 Module replacement rules allow a build to declare that a legacy library has been replaced by a new one.
@@ -515,7 +515,7 @@ Currently it is not possible to declare that a given module is replaced by a set
 However, it is possible to declare that multiple modules are replaced by a single module.
 
 [[sec:dependency_substitution_rules]]
-=== Using dependency substitution rules
+== Using dependency substitution rules
 
 Dependency substitution rules work similarly to dependency resolve rules.
 In fact, many capabilities of dependency resolve rules can be implemented with dependency substitution rules.
@@ -537,8 +537,8 @@ In the absence of dependency substitution rules, Gradle knows that an external m
 This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal.
 With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
 
-[[sec:module_to_project_substitution]]
-==== Substituting an external module dependency with a project dependency
+[[sub:module_to_project_substitution]]
+=== Substituting an external module dependency with a project dependency
 
 One use case for dependency substitution is to use a locally developed version of a module in place of one that is downloaded from an external repository.
 This could be useful for testing a local, patched version of a dependency.
@@ -554,8 +554,8 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/substi
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
 Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
 
-[[sec:project_to_module_substitution]]
-==== Substituting a project dependency with a module replacement
+[[sub:project_to_module_substitution]]
+=== Substituting a project dependency with a module replacement
 
 Another way to use substitution rules is to replace a project dependency with a module in a multi-project build.
 This can be useful to speed up development with a large multi-project build, by allowing a subset of the project dependencies to be downloaded from a repository rather than being built.
@@ -571,8 +571,8 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/substi
 When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build.
 However, tasks to build the replaced dependency will not be executed in order to resolve the depending `Configuration`.
 
-[[sec:conditional_dependency_substitution]]
-==== Conditionally substituting a dependency
+[[sub:conditional_dependency_substitution]]
+=== Conditionally substituting a dependency
 
 A common use case for dependency substitution is to allow more flexible assembly of sub-projects within a multi-project build.
 This can be useful for developing a local, patched version of an external dependency or for building a subset of the modules within a large multi-project build.
@@ -588,7 +588,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/condit
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
 Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
 
-[[fixing-bad-metadata]]
+[[sec:fixing-bad-metadata]]
 == Fixing bad metadata
 
 include::component_metadata_rules.adoc[leveloffset=+2]

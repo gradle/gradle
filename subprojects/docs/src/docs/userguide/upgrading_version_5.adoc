@@ -235,7 +235,7 @@ configurations.all {
 }
 ```
 
-See <<controlling_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
+See <<controlling_transitive_dependencies.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
 
 === Disabled debug argument parsing in JavaExec
 

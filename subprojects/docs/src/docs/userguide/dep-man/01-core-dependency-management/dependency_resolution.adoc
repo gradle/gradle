@@ -94,7 +94,7 @@ A conflict occurs the moment two modules either:
 * Attempt to select incompatible variants,
 * Declare the same capability
 
-Learn more about handling these type of conflicts in <<controlling_transitive_dependencies.adoc#selecting-between-candidates,Selecting between candidates>>.
+Learn more about handling these type of conflicts in <<controlling_transitive_dependencies.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
 
 [[sec:how-gradle-downloads-deps]]
 == How Gradle retrieves dependency metadata?
