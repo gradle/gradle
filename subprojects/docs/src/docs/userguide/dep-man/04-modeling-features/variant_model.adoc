@@ -35,7 +35,7 @@ In both cases, Gradle performs _variant aware selection_.
 [[sec:abm_configuration_attributes]]
 == Configuration and variant attributes
 
-Local components expose variants as _outgoing configurations_, which are <<declaring_dependencies.adoc#sub:resolvable-consumable-configs,consumable configurations>>.
+Local components expose variants as _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
 When dependency resolution happens, the engine will select one variant of an outgoing component by selecting one of its _consumable configurations).
 
 [NOTE]
