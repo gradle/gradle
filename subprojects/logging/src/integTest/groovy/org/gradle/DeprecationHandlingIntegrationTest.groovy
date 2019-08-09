@@ -114,7 +114,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and: "system stack frames are filtered"
         !output.contains('jdk.internal.')
-        !output.contains('sun.')
+        !output.contains('sun.') || output.contains('sun.run')
         !output.contains('org.codehaus.groovy.')
         !output.contains('org.gradle.internal.metaobject.')
         !output.contains('org.gradle.kotlin.dsl.execution.')
