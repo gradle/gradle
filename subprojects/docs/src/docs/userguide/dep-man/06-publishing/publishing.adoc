@@ -267,7 +267,7 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 
 The `AdhocComponentWithVariants` component declares a method called `addVariantsFromConfiguration` which accepts two parameters:
 
-- the <<declaring_dependencies.adoc#sub:resolvable-consumable-configs,outgoing configuration>> that is going to be used as a variant source
+- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is going to be used as a variant source
 - a configuration which allows you to _filter out_ what variants are going to be published
 
 In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
