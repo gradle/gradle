@@ -83,7 +83,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Working directory has not been specified")
         }
 
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(getClass().getName(), testId, [testProject].toSet(), resultsStore))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, [testProject].toSet(), resultsStore))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
