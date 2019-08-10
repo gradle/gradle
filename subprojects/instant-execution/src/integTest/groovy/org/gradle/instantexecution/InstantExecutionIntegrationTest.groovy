@@ -39,7 +39,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.junit.Rule
 import org.slf4j.Logger
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -783,83 +782,4 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
     }
-
-    @Ignore("wip")
-    def "reuses cached ClassLoaders"() {
-
-        given: 'a Task that holds some static data'
-        def staticDataLib = file("lib/StaticData.jar").tap {
-            parentFile.mkdirs()
-        }
-        jarWithClasses(
-            staticDataLib,
-            StaticData: """
-                import org.gradle.api.*;
-                import org.gradle.api.tasks.*;
-                import java.util.concurrent.atomic.AtomicInteger;
-
-                public class StaticData extends DefaultTask {
-
-                    private static final AtomicInteger value = new AtomicInteger(0);
-
-                    @TaskAction
-                    void printValue() {
-                        // When ClassLoaders are reused
-                        // the 1st run should print `<project name>.value = 1`
-                        // the 2nd run should print `<project name>.value = 2`
-                        // and so on.
-                        System.out.println(getProject().getName() + ".value = " + value.incrementAndGet());
-                    }
-                }
-            """
-        )
-
-        and: "multiple sub-projects"
-        settingsFile << """
-            include 'foo:foo'
-            include 'bar:bar'
-        """
-
-        // Make the classpath of :foo differ from :bar's
-        // thus causing :foo:foo and :bar:bar to have separate ClassLoaders.
-        def someLib = file('lib/someLib.jar')
-        jarWithClasses(someLib, SomeClass: 'class SomeClass {}')
-
-        file("foo/build.gradle") << """
-            buildscript { dependencies { classpath(files('${someLib.toURI()}')) } }
-        """
-
-        // Load the StaticData class in the different sub-sub-projects
-        // for a more interesting ClassLoader hierarchy.
-        for (projectDir in ['foo/foo', 'bar/bar']) {
-            file("$projectDir/build.gradle") << """
-                buildscript { dependencies { classpath(files('${staticDataLib.toURI()}')) } }
-
-                task ok(type: StaticData)
-            """
-        }
-
-        when:
-        instantRun ":foo:foo:ok", ":bar:bar:ok"
-
-        then:
-        outputContains("foo.value = 1")
-        outputContains("bar.value = 1")
-
-        when:
-        instantRun ":foo:foo:ok", ":bar:bar:ok"
-
-        then:
-        outputContains("foo.value = 2")
-        // TODO:instant-execution currently, when loading from the instant execution cache,
-        //  a single CachingClassLoader is used to serve all the classes,
-        // see `DefaultInstantExecution.classLoaderFor(List<ClassLoaderScopeSpec>): ClassLoader` for details,
-        // and because of that, :bar:bar:ok ends up using the same class as :foo:foo:ok and the final value is
-        // `3` instead of `2` as it would be the case with classic execution.
-        // Once the original ClassLoader structure is honoured the expection should be:
-        // outputContains("bar.value = 2")
-        // In the meantime:
-        outputContains("bar.value = 3")
-    }
-
 }
