@@ -38,6 +38,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.junit.Rule
 import org.slf4j.Logger
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -745,6 +746,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.owner = true")
     }
 
+    @Ignore("wip")
     def "reuses cached ClassLoaders"() {
 
         given: 'a Task that holds some static data'
