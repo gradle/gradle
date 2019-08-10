@@ -17,6 +17,7 @@
 package org.gradle.testing;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -84,6 +86,15 @@ public class PerformanceTest extends DistributionTest {
     @OutputDirectory
     public File getDebugArtifactsDirectory() {
         return debugArtifactsDirectory;
+    }
+
+    @TaskAction
+    @Override
+    public void executeTests() {
+        if("Gradle_Check_IndividualPerformanceScenarioWorkersLinux".equals(System.getenv("BUILD_TYPE_ID")) && scenarios.contains("help on the gradle build comparing gradle")) {
+            throw new GradleException();
+        }
+        super.executeTests();
     }
 
     @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
