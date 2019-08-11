@@ -25,10 +25,10 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new GlobalcopeServices());
+        registration.addProvider(new GlobalScopeServices());
     }
 
-    private static class GlobalcopeServices {
+    private static class GlobalScopeServices {
         SoftwareComponentFactory createSoftwareComponentFactory() {
             return new DefaultSoftwareComponentFactory();
         }
