@@ -62,6 +62,7 @@ import org.gradle.internal.serialize.SetSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.workers.WorkerExecutor
 import org.gradle.workers.internal.IsolatableSerializerRegistry
 import kotlin.reflect.KClass
 
@@ -133,6 +134,7 @@ class Codecs(
         bind(ImmutableMapCodec)
 
         bind(arrayCodec)
+        bind(BrokenValueCodec)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
@@ -160,6 +162,7 @@ class Codecs(
         bind(ownerService<ExecActionFactory>())
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
+        bind(ownerService<WorkerExecutor>())
 
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,

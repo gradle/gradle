@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -33,6 +34,7 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.codecs.BrokenValue
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import org.gradle.instantexecution.serialization.withPropertyTrace
@@ -99,7 +101,6 @@ class BeanPropertyReader(
 
     private
     fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit =
-
         when (val type = field.type) {
             DirectoryProperty::class.java -> { bean, value ->
                 field.set(bean, filePropertyFactory.newDirectoryProperty().apply {
@@ -129,6 +130,7 @@ class BeanPropertyReader(
             Provider::class.java -> { bean, value ->
                 field.set(bean, when (value) {
                     null -> Providers.notDefined()
+                    is BrokenValue -> DefaultProvider { value.rethrow() }
                     else -> Providers.of(value)
                 })
             }
