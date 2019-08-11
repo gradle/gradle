@@ -42,27 +42,27 @@ class FileCollectionCodec(
             visitor.elements
         }.apply {
             onSuccess { elements ->
-                writeBoolean(true)
                 write(elements)
             }
             onFailure { ex ->
-                writeBoolean(false)
-                writeString(ex.message)
+                write(BrokenValue(ex.message ?: "(no message)"))
             }
         }
     }
 
-    override suspend fun ReadContext.decode(): FileCollectionInternal =
-        if (readBoolean()) {
-            fileCollectionFactory.create(UnpackingFileCollection(read() as Collection<Any>))
+    override suspend fun ReadContext.decode(): FileCollectionInternal {
+        val contents = read()
+        return if (contents is Collection<*>) {
+            fileCollectionFactory.create(UnpackingFileCollection(contents))
         } else {
-            fileCollectionFactory.create(ErrorFileSet(readString()))
+            fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
         }
+    }
 }
 
 
 private
-class UnpackingFileCollection(private val elements: Collection<Any>) : MinimalFileSet {
+class UnpackingFileCollection(private val elements: Collection<*>) : MinimalFileSet {
     override fun getDisplayName(): String {
         return "file collection"
     }
@@ -119,11 +119,11 @@ class CollectingVisitor : FileCollectionStructureVisitor {
 
 
 private
-class ErrorFileSet(private val error: String) : MinimalFileSet {
+class ErrorFileSet(private val error: BrokenValue) : MinimalFileSet {
 
     override fun getDisplayName() =
         "error-file-collection"
 
     override fun getFiles() =
-        throw Exception(error)
+        error.rethrow()
 }

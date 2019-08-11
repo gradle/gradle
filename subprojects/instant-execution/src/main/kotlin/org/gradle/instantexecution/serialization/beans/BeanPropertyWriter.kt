@@ -27,6 +27,7 @@ import org.gradle.instantexecution.InstantExecutionException
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.codecs.BrokenValue
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
@@ -63,13 +64,22 @@ class BeanPropertyWriter(
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
-        is Provider<*> -> fieldValue.orNull
+        is Provider<*> -> unpack(fieldValue)
         is Closure<*> -> fieldValue.dehydrate()
         is Callable<*> -> fieldValue.call()
         is Supplier<*> -> fieldValue.get()
         is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
         is Lazy<*> -> unpack(fieldValue.value)
         else -> fieldValue
+    }
+
+    private
+    fun unpack(fieldValue: Provider<*>): Any? {
+        try {
+            return fieldValue.orNull
+        } catch (e: Exception) {
+            return BrokenValue(e.message ?: "(no message)")
+        }
     }
 }
 

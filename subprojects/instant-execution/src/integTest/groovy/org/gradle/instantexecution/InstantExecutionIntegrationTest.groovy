@@ -36,6 +36,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.invocation.DefaultGradle
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.workers.WorkerExecutor
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Ignore
@@ -474,6 +475,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         Logger.name                      | "logger"                                                    | "info('hi')"
         ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
+        WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
     }
 
     @Unroll
@@ -516,6 +518,42 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "Provider<String>" | "providers.provider { null }"             | "null"
         "Provider<String>" | "objects.property(String).value('value')" | "value"
         "Provider<String>" | "objects.property(String)"                | "null"
+    }
+
+    @Unroll
+    def "restores task fields whose value is broken #type"() {
+        def instantExecution = newInstantExecutionFixture()
+
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeTask extends DefaultTask {
+                ${type} value = ${reference} { throw new RuntimeException("broken!") }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.${query}
+                }
+            }
+
+            task broken(type: SomeTask) {
+            }
+        """
+
+        when:
+        instantFails "broken"
+        instantFails "broken"
+
+        then:
+        instantExecution.assertStateLoaded()
+        failure.assertTasksExecuted(":broken")
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasCause("broken!")
+
+        where:
+        type               | reference                    | query
+        "Provider<String>" | "project.providers.provider" | "get()"
+        "FileCollection"   | "project.files"              | "files"
     }
 
     @Unroll
