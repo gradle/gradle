@@ -130,6 +130,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     public class ToolingApiExperiment {
         final String projectName
         String displayName
+        String testClassName
         List<String> targetVersions = []
         String minimumVersion
         List<File> extraTestClassPath = []
@@ -168,8 +169,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private CrossVersionPerformanceResults run() {
             def testId = experiment.displayName
-            def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experiment.projectName].toSet(), resultStore))
+            Assume.assumeTrue(TestScenarioSelector.shouldRun(experiment.testClassName, testId, [experiment.projectName].toSet(), resultStore))
             profiler = Profiler.create()
             try {
                 doRun(testId)

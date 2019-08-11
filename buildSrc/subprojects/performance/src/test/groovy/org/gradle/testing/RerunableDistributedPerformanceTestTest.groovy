@@ -23,7 +23,6 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.openmbee.junit.model.JUnitTestSuite
 import spock.lang.Specification
 
 import static org.gradle.testing.DistributedPerformanceTest.ScenarioResult
@@ -82,12 +81,10 @@ class RerunableDistributedPerformanceTestTest extends Specification {
     }
 
     ScenarioResult createScenario(String className, String methodName, String status) {
-        JUnitTestSuite testSuite = new JUnitTestSuite()
-        testSuite.name = className
         return new ScenarioResult(
             name: methodName,
-            buildResult: [status: status],
-            testSuite: testSuite
+            testClassFullName: className,
+            buildResponse: [status: status],
         )
     }
 }
