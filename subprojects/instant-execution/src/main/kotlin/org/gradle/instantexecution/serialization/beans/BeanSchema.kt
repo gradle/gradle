@@ -74,6 +74,8 @@ val Class<*>.relevantFields: Sequence<Field>
                 || (field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
                 // Ignore the `__meta_class__` field that Gradle generates
                 || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
+                // Ignore a lambda field for now
+                || (field.name == "mFolderFilter" && field.declaringClass.name == "com.android.ide.common.resources.DataSet")
         }
         .filter { field ->
             field.declaringClass != AbstractTask::class.java || field.name == "actions"
