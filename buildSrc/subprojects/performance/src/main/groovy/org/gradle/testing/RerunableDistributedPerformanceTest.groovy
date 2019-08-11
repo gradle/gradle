@@ -50,7 +50,7 @@ class RerunableDistributedPerformanceTest extends DistributedPerformanceTest {
 
     @Override
     protected void generatePerformanceReport() {
-        if (isRerun() || finishedBuilds.values().every { it.successful }) {
+        if (!isFailedFirstRun()) {
             super.generatePerformanceReport()
         } else {
             generateResultsJson()
@@ -64,9 +64,6 @@ class RerunableDistributedPerformanceTest extends DistributedPerformanceTest {
     void writeBinaryResults() {
         AtomicLong counter = new AtomicLong()
         Map<String, List<ScenarioResult>> classNameToScenarioNames = finishedBuilds.values().findAll { it.testClassFullName != null }.groupBy { it.testClassFullName }
-
-        println("finishedBuilds: ${finishedBuilds}")
-
         List<TestClassResult> classResults = classNameToScenarioNames.entrySet().collect { Map.Entry<String, List<ScenarioResult>> entry ->
             TestClassResult classResult = new TestClassResult(counter.incrementAndGet(), entry.key, 0L)
             entry.value.each { ScenarioResult scenarioResult ->
@@ -76,6 +73,10 @@ class RerunableDistributedPerformanceTest extends DistributedPerformanceTest {
         }
 
         new TestResultSerializer(getBinResultsDir()).write(classResults)
+    }
+
+    private boolean isFailedFirstRun() {
+        return !isRerun() && !finishedBuilds.values().every { it.successful }
     }
 
     private boolean isRerun() {

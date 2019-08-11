@@ -462,8 +462,6 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         JUnitTestSuite testSuite
         Map buildResponse
 
-
-
         boolean isSuccessful() {
             return buildResponse.status == 'SUCCESS'
         }
@@ -485,16 +483,6 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 isSuccessful() ? TestResult.ResultType.SUCCESS : TestResult.ResultType.FAILURE,
                 0L,
                 0L)
-        }
-
-        @Override
-        public String toString() {
-            return "ScenarioResult{" +
-                "name='" + name + '\'' +
-                ", testClassFullName='" + testClassFullName + '\'' +
-                ", testSuite=" + testSuite +
-                ", buildResponse=" + buildResponse +
-                '}';
         }
     }
 }
