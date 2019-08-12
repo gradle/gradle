@@ -336,6 +336,73 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         }
     }
 
+    def "subgraph constraints apply to modules provided through substitution with version selector"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+            'org:foo:2.1'()
+            'org:foo:2.2'()
+            'org:foo:2.3'()
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'foo', version: '2.2')
+            }
+        }
+
+        buildFile << """
+
+            import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
+            
+            def VERSIONED_COMPARATOR = new DefaultVersionComparator()
+            def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR)
+            
+            
+            configurations.all {
+                resolutionStrategy {
+                    dependencySubstitution.all {
+                        def selector = VERSION_SCHEME.parseSelector("[2.1, 2.2]")
+                        if (it.requested.group.startsWith("org") && it.requested.module.startsWith("foo") && selector.accept(it.requested.version)) {
+                            it.useTarget("org:foo:2.3", "bad version")
+                        }
+                    }
+                }
+            }
+            
+            dependencies {
+                constraints {
+                    conf('org:foo:1.0') {
+                       version { forSubgraph() }
+                    }
+                }
+                conf('org:bar:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            // no version listing needed!
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                constraint('org:foo:1.0').byConstraint()
+                module('org:bar:1.0') {
+                    edge("org:foo:2.2", 'org:foo:1.0').selectedByRule("bad version").byAncestor()
+                }
+            }
+        }
+    }
+
+
     def "dependency resolve rules dominate over subgraph constraints"() {
         given:
         repository {
