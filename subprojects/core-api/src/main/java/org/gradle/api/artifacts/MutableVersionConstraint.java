@@ -84,6 +84,14 @@ public interface MutableVersionConstraint extends VersionConstraint {
     void forSubgraph();
 
     /**
+     * Reset the {@link #forSubgraph()} state of this version constraint.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    void notForSubgraph();
+
+    /**
      * Sets the version as strict.
      * <p>
      * Any version not matched by this version notation will be excluded. This is the strongest version declaration.

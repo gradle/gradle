@@ -75,9 +75,73 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:bar:1.0') {
-                    module('org:baz:1.0').byRequest()
-                    module('org:foo:1.0') {
+                    edge('org:baz:{require 1.0; subgraph}', 'org:baz:1.0').byRequest()
+                    edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.0') {
                         edge('org:baz:2.0', 'org:baz:1.0').byAncestor()
+                    }
+                }
+            }
+        }
+    }
+
+    def "can turn subgraph constraint into normal constraint by using a component metadata rule"() {
+        given:
+        repository {
+            'org:foo:1.0'() {
+                dependsOn 'org:baz:2.0'
+            }
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'baz', version: '1.0', forSubgraph: true)
+                dependsOn(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:baz:1.0'()
+            'org:baz:2.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org:bar') { ComponentMetadataDetails details ->
+                        details.allVariants {
+                            withDependencies {
+                                it.each { 
+                                    it.version { notForSubgraph() } 
+                                }
+                            }
+                        }
+                    }
+                }
+                conf('org:bar:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:baz:1.0' {
+                expectGetMetadata()
+            }
+            'org:baz:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:bar:1.0') {
+                    edge('org:baz:1.0', 'org:baz:2.0').byConflictResolution('between versions 2.0 and 1.0')
+                    module('org:foo:1.0') {
+                        module('org:baz:2.0').byRequest()
                     }
                 }
             }
@@ -122,7 +186,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -168,7 +232,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:bar:1.0', 'org:bar:2.0').byConstraint()
+                constraint('org:bar:{require 1.0; subgraph}', 'org:bar:2.0').byConstraint()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
                     module('org:bar:2.0').byRequest().forced()
@@ -216,7 +280,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:bar:1.0', 'org:bar:2.0').byConstraint()
+                constraint('org:bar:{require 1.0; subgraph}', 'org:bar:2.0').byConstraint()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
                     module('org:bar:2.0').byRequest().forced()
@@ -264,7 +328,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:foo:1.0').byRequest()
+                edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byRequest()
                 module('org:bar:1.0') {
                     edge('org:old:2.0', 'org:foo:1.0').selectedByRule("better foo than old").byAncestor()
                 }
@@ -314,9 +378,62 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0', 'org:foo:0.11').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:0.11').byConstraint()
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:0.11').byAncestor().selectedByRule('because I can')
+                    edge('org:foo:2.0', 'org:foo:0.11').byRequest().selectedByRule('because I can')
+                }
+            }
+        }
+    }
+
+    def "a substitution does not leak substituted subgraph constraint"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:new:1.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+        }
+
+        buildFile << """
+           configurations.conf.resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if (details.requested.name == 'foo' && details.requested.version == '1.0') {
+                    details.useTarget 'org:new:1.0' // this also has to remove the 'subgraph' state of all 'org:foo:1.0' edges
+                }
+            }
+            dependencies {
+                conf('org:foo:1.0') {
+                   version { forSubgraph() }
+                }
+                conf('org:bar:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:new:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:{require 1.0; subgraph}', 'org:new:1.0').byRequest().selectedByRule()
+                module('org:bar:1.0') {
+                    module('org:foo:2.0')
                 }
             }
         }

@@ -102,7 +102,8 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         return (getPreferredVersion().isEmpty() || getRequiredVersion().equals(getPreferredVersion()))
                 && getStrictVersion().isEmpty()
                 && getRejectedVersions().isEmpty()
-                && getBranch() == null;
+                && getBranch() == null
+                && !isForSubgraph();
     }
 
     private String rejectedVersionsString() {

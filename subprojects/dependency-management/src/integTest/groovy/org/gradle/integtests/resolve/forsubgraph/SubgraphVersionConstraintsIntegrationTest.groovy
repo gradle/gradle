@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.resolve.forsubgraph
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -58,7 +61,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:foo:1.0').byRequest()
+                edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byRequest()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -103,7 +106,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -162,10 +165,10 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                         edge('org:c:3.0', 'org:c:1.0').byAncestor()
                     }
                     if (publishedConstraintsSupported) {
-                        constraint('org:c:2.0', 'org:c:1.0')
+                        constraint('org:c:{require 2.0; subgraph}', 'org:c:1.0')
                     }
                 }
-                constraint('org:c:1.0').byConstraint()
+                constraint('org:c:{require 1.0; subgraph}', 'org:c:1.0').byConstraint()
             }
         }
     }
@@ -220,10 +223,10 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                         edge('org:c:2.0', 'org:c:1.0').byAncestor()
                     }
                     if (publishedConstraintsSupported) {
-                        constraint('org:c:1.0')
+                        constraint('org:c:{require 1.0; subgraph}', 'org:c:1.0')
                     }
                 }
-                constraint('org:c:1.0').byConstraint()
+                constraint('org:c:{require 1.0; subgraph}', 'org:c:1.0').byConstraint()
             }
         }
     }
@@ -275,11 +278,14 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
                     module('org:b:1.0') {
                         module('org:c:2.0')
                     }
-                    edge('org:c:1.0', 'org:c:2.0').byConflictResolution("between versions 2.0 and 1.0").with {
-                        if (subgraphConstraintsSupported) { it.byAncestor() }
+                    if (subgraphConstraintsSupported) {
+                        edge('org:c:{require 1.0; subgraph}', 'org:c:2.0').byAncestor()
+                    } else {
+                        edge('org:c:1.0', 'org:c:2.0')
                     }
+
                 }
-                module('org:c:2.0').byRequest()
+                module('org:c:2.0').byRequest().byConflictResolution("between versions 2.0 and 1.0")
             }
         }
     }
@@ -334,10 +340,12 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
             root(':', ':test:') {
                 module('org:a:1.0') {
                     module('org:b:1.0') {
-                        edge('org:c:2.0', cResult)
+                        edge('org:c:2.0', cResult).byRequest()
                     }
-                    edge('org:c:1.0', cResult).byRequest().with {
-                        if (cResult == 'org:c:1.0') { it.byAncestor() } else { it.byConflictResolution("between versions 2.0 and 1.0") }
+                    if (cResult == 'org:c:1.0') {
+                        edge('org:c:{require 1.0; subgraph}', cResult).byAncestor()
+                    } else {
+                        edge('org:c:1.0', cResult).byConflictResolution("between versions 2.0 and 1.0")
                     }
                 }
             }
@@ -466,7 +474,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0').byAncestor()
                 }
@@ -512,7 +520,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge("org:foo:[2.0,3.0)", 'org:foo:1.0').byAncestor()
                 }
@@ -559,7 +567,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0', 'project :foo', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'project :foo', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'project :foo', 'org:foo:1.0') {}.byAncestor()
                 }
@@ -596,5 +604,137 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
 
         then:
         failure.assertHasCause('Dependency org:foo of :test:unspecified defines conflicting forSubgraph constraints')
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
+    )
+    def "original version constraint is not ignored if there is another parent"() {
+        given:
+        repository {
+            'org:x1:1.0' {
+                dependsOn 'org:bar:1.0'
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:x2:1.0' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:x1:1.0')
+                conf('org:x2:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:x1:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:x2:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:2.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:x1:1.0') {
+                    module('org:bar:1.0') {
+                        module('org:foo:2.0').byRequest()
+                    }
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:2.0').byConstraint().byConflictResolution("between versions 2.0 and 1.0")
+                }
+                module('org:x2:1.0') {
+                    module('org:bar:1.0')
+                }
+            }
+        }
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
+    )
+    def "can reintroduce a subgraph constraint on the root level"() { // similar to test above, but reintroduces subgraph constraint in build script
+        given:
+        repository {
+            'org:x1:1.0' {
+                dependsOn 'org:bar:1.0'
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:x2:1.0' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:x1:1.0')
+                conf('org:x2:1.0')
+                constraints { 
+                    conf('org:foo:1.0') { version { forSubgraph() } }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:x1:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:x2:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:x1:1.0') {
+                    module('org:bar:1.0') {
+                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                    }
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+                }
+                module('org:x2:1.0') {
+                    module('org:bar:1.0')
+                }
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+            }
+        }
     }
 }

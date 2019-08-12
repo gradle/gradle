@@ -110,6 +110,11 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     @Override
+    public void notForSubgraph() {
+        forSubgraph = false;
+    }
+
+    @Override
     public String getStrictVersion() {
         return strictVersion;
     }
