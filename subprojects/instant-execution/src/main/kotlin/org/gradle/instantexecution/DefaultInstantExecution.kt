@@ -239,7 +239,8 @@ class DefaultInstantExecution internal constructor(
             isolatableSerializerRegistry = service(),
             actionScheme = service(),
             parameterScheme = service(),
-            classLoaderHierarchyHasher = service()
+            classLoaderHierarchyHasher = service(),
+            transformListener = service()
         )
     }
 

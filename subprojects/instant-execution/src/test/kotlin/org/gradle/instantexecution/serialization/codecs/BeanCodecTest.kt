@@ -139,7 +139,8 @@ class BeanCodecTest {
         isolatableSerializerRegistry = mock(),
         projectFinder = mock(),
         parameterScheme = mock(),
-        actionScheme = mock()
+        actionScheme = mock(),
+        transformListener = mock()
     )
 
     @Test

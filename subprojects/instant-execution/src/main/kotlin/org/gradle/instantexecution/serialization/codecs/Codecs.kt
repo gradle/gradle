@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
@@ -84,7 +85,8 @@ class Codecs(
     fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
     isolatableSerializerRegistry: IsolatableSerializerRegistry,
     parameterScheme: ArtifactTransformParameterScheme,
-    actionScheme: ArtifactTransformActionScheme
+    actionScheme: ArtifactTransformActionScheme,
+    transformListener: ArtifactTransformListener
 ) {
 
     private
@@ -177,8 +179,8 @@ class Codecs(
         bind(INTEGER_SERIALIZER)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
-        bind(InitialTransformationNodeCodec)
-        bind(ChainedTransformationNodeCodec)
+        bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
+        bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ResolvableArtifactCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
         bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))

@@ -177,7 +177,7 @@ public abstract class Node implements Comparable<Node> {
 
     public void addDependencySuccessor(Node toNode) {
         dependencySuccessors.add(toNode);
-        toNode.dependencyPredecessors.add(this);
+        toNode.getDependencyPredecessors().add(this);
     }
 
     @OverridingMethodsMustInvokeSuper
