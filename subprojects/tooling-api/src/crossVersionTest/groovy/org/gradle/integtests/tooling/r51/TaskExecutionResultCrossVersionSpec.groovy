@@ -28,6 +28,7 @@ import org.gradle.tooling.events.task.TaskOperationResult
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.UnsupportedMethodException
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
@@ -124,16 +125,25 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
     def "reports incremental task as incremental"() {
         given:
         file('src').mkdir()
+        def supportsInputChanges = targetVersion > GradleVersion.version("5.4")
+        def parameterType = supportsInputChanges ? 'InputChanges' : 'IncrementalTaskInputs'
         buildFile << """
             task incrementalTask(type: MyIncrementalTask) {
                 inputDir = file('src')
             }
             
             class MyIncrementalTask extends DefaultTask {
+                ${supportsInputChanges ? "@Incremental" : ""}
                 @InputDirectory
                 def File inputDir
                 @TaskAction
-                void doSomething(IncrementalTaskInputs inputs) {}
+                void doSomething(${parameterType} inputs) {}
+
+                @Optional
+                @OutputFile
+                public File getOutputFile() {
+                    return null;
+                }
             }
         """
 
