@@ -113,7 +113,7 @@ public class NodeState implements DependencyGraphNode {
 
     private SubgraphConstraints ancestorsSubgraphConstraints;
     private SubgraphConstraints ownSubgraphConstraints;
-    private SubgraphConstraints inheritedSubgraphConstraints = SubgraphConstraints.EMPTY;
+    private List<EdgeState> inheritsSubgraphConstraintsFrom;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -841,21 +841,21 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private SubgraphConstraints getInheritedSubgraphConstraints(EdgeState incomingEdge) {
-        if (incomingEdge.getDependencyState().getDependency().isInheriting()) {
-            return SubgraphConstraints.EMPTY; // skip the inherited constraints of the inheriting node
-        } else {
-            return incomingEdge.getFrom().inheritedSubgraphConstraints;
+        if (incomingEdge.getFrom().inheritsSubgraphConstraintsFrom == null) {
+            return SubgraphConstraints.EMPTY;
         }
-    }
 
-    void collectInheritedSubgraphConstraints(List<EdgeState> dependencies) {
+        boolean filterOwn = false;
         SubgraphConstraints singleSubgraphConstraints = SubgraphConstraints.EMPTY;
         Set<ModuleIdentifier> collectedConstraints = null;
-        for (EdgeState dependencyState : dependencies) {
-            if (!DependencyGraphBuilder.INHERITING_DEPENDENCY_SPEC.isSatisfiedBy(dependencyState)) {
+        for (EdgeState edgeState : incomingEdge.getFrom().inheritsSubgraphConstraintsFrom) {
+            if (edgeState == incomingEdge) {
+                // These are my own constraints. I can not treat them as inherited,
+                // because that assumes that they are defined in another node as well and might be ignored.
+                filterOwn = true;
                 continue;
             }
-            ComponentState targetComponent = dependencyState.getTargetComponent();
+            ComponentState targetComponent = edgeState.getTargetComponent();
             if (targetComponent != null) { // may be null if the build is about to fail
                 for (NodeState sourceNode : targetComponent.getNodes()) {
                     if (sourceNode.ownSubgraphConstraints == null) {
@@ -874,10 +874,48 @@ public class NodeState implements DependencyGraphNode {
                 }
             }
         }
+
+        if (filterOwn) {
+            Set<ModuleIdentifier> resultSet;
+            if (collectedConstraints != null) {
+                resultSet = collectedConstraints;
+            } else {
+                resultSet = singleSubgraphConstraints.getModules();
+            }
+            if (ownSubgraphConstraints == null) {
+                collectOwnSubgraphConstraints();
+            }
+            for (ModuleIdentifier ownConstraint : ownSubgraphConstraints.getModules()) {
+                if (resultSet.contains(ownConstraint)) {
+                    if (collectedConstraints == null) {
+                        collectedConstraints = Sets.newHashSet();
+                        collectedConstraints.addAll(singleSubgraphConstraints.getModules());
+                    }
+                    collectedConstraints.remove(ownConstraint);
+                }
+            }
+        }
+
         if (collectedConstraints != null) {
-            inheritedSubgraphConstraints = SubgraphConstraints.of(collectedConstraints);
+            return SubgraphConstraints.of(collectedConstraints);
         } else {
-            inheritedSubgraphConstraints = singleSubgraphConstraints;
+            return singleSubgraphConstraints;
+        }
+    }
+
+    void collectInheritedSubgraphConstraints(List<EdgeState> dependencies) {
+        if (inheritsSubgraphConstraintsFrom != null) {
+            // we are revisiting this node
+            inheritsSubgraphConstraintsFrom.clear();
+        }
+        for (EdgeState edgeState : dependencies) {
+            if (!DependencyGraphBuilder.INHERITING_DEPENDENCY_SPEC.isSatisfiedBy(edgeState)) {
+                continue;
+            }
+            if (inheritsSubgraphConstraintsFrom == null) {
+                inheritsSubgraphConstraintsFrom = Lists.newArrayList();
+            }
+            inheritsSubgraphConstraintsFrom.add(edgeState);
         }
     }
 

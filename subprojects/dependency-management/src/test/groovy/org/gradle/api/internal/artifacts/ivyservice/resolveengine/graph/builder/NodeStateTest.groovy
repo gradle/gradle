@@ -66,9 +66,10 @@ class NodeStateTest extends Specification {
         when:
         def inheritFrom = edge(root, false, null, nextNode(0), true)
         root.collectInheritedSubgraphConstraints([inheritFrom])
+        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
 
         then:
-        root.inheritedSubgraphConstraints == SubgraphConstraints.EMPTY
+        inheritedConstraints == SubgraphConstraints.EMPTY
         inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == SubgraphConstraints.EMPTY
     }
 
@@ -76,22 +77,24 @@ class NodeStateTest extends Specification {
         when:
         def inheritFrom = edge(root, false, null, nextNode(1), true)
         root.collectInheritedSubgraphConstraints([inheritFrom])
+        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
 
         then:
-        root.inheritedSubgraphConstraints.getModules().size() == 1
+        inheritedConstraints.getModules().size() == 1
         inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints.getModules().size() == 1
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == root.inheritedSubgraphConstraints //instance reused
+        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == inheritedConstraints //instance reused
     }
 
     def "collects multiple inherited subgraph constraints from one module"() {
         when:
         def inheritFrom = edge(root, false, null, nextNode(12), true)
         root.collectInheritedSubgraphConstraints([inheritFrom])
+        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
 
         then:
-        root.inheritedSubgraphConstraints.getModules().size() == 12
+        inheritedConstraints.getModules().size() == 12
         inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints.getModules().size() == 12
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == root.inheritedSubgraphConstraints //instance reused
+        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == inheritedConstraints //instance reused
     }
 
     def "collects inherited subgraph constraints from multiple sources"() {
@@ -100,9 +103,10 @@ class NodeStateTest extends Specification {
         def inheritFrom1 = edge(root, false, null, nextNode(1), true)
         def inheritFrom2 = edge(root, false, null, nextNode(4), true)
         root.collectInheritedSubgraphConstraints([inheritFrom1, inheritFrom2])
+        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
 
         then:
-        def modulesAll = root.inheritedSubgraphConstraints.getModules()
+        def modulesAll = inheritedConstraints.getModules()
         def modules1 = inheritFrom1.targetComponent.nodes[0].ownSubgraphConstraints.getModules()
         def modules2 = inheritFrom2.targetComponent.nodes[0].ownSubgraphConstraints.getModules()
 
@@ -112,8 +116,8 @@ class NodeStateTest extends Specification {
 
         modulesAll == modules1 + modules2
 
-        inheritFrom1.targetComponent.nodes[0].ownSubgraphConstraints != root.inheritedSubgraphConstraints
-        inheritFrom2.targetComponent.nodes[0].ownSubgraphConstraints != root.inheritedSubgraphConstraints
+        inheritFrom1.targetComponent.nodes[0].ownSubgraphConstraints != inheritedConstraints
+        inheritFrom2.targetComponent.nodes[0].ownSubgraphConstraints != inheritedConstraints
     }
 
     def "uses empty subgraph constraints object if there are no ancestor constraints"() {

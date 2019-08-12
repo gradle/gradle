@@ -205,6 +205,69 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         }
     }
 
+    def "a module from which constraints are inherited can itself be influenced by constraints inherited form elsewhere"() {
+        given:
+        repository {
+            'org:platform:1.0'() {
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:baz:1.0'() {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:bar:1.0'() {
+                dependsOn 'org:foo:2.0'
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:platform:1.0') {
+                    inheritConstraints()
+                }
+                conf('org:baz:1.0') {
+                    inheritConstraints()
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:platform:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:baz:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps', ':dependencies'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:platform:1.0') {
+                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+                }
+                module('org:baz:1.0') {
+                    module('org:bar:1.0') {
+                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                    }
+                }
+            }
+        }
+    }
+
     def "constraint inheritance can be consumed from metadata"() {
         given:
         repository {
