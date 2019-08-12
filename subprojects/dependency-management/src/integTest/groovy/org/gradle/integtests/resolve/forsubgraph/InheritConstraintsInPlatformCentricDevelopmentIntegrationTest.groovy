@@ -274,7 +274,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
         }
         if (platformType == ENFORCED_PLATFORM) {
-            // issue with enforced platform: consumer can not override platform decision
+            // issue with enforced platform: the forced version is always used and the conflict is 'hidden'
             succeeds ':checkDeps'
         } else {
             fails ':checkDeps'
@@ -292,7 +292,8 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
 
     @Unroll
     void "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with forSubgraph [#platformType]"() {
-        // issue with enforced platform: consumer can not override platform decision
+        // issue with enforced platform: consumer can not override platform decision via constraint
+        //                               (an override via an own forced dependency is possible)
         def expectedFooVersion = platformType == ENFORCED_PLATFORM ? '3.1.1' : '3.2'
 
         updatedRepository(platformType)
@@ -405,7 +406,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
         }
         if (platformType == ENFORCED_PLATFORM) {
-            // issue with enforced platform: consumer can not override platform decision
+            // issue with enforced platform: the forced version is always used and the conflict is 'hidden'
             succeeds ':checkDeps'
         } else {
             fails ':checkDeps'
