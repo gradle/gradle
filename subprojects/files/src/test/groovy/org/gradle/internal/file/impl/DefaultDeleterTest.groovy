@@ -90,6 +90,19 @@ class DefaultDeleterTest extends Specification {
         didWork
     }
 
+    def "creates directory if nothing existed before"() {
+        given:
+        TestFile dir = tmpDir.getTestDirectory()
+        def file = dir.file("someFile")
+
+        when:
+        boolean didWork = ensureEmptyDirectory(file)
+
+        then:
+        file.assertIsDir()
+        didWork
+    }
+
     def "didWork is false when nothing has been deleted"() {
         given:
         TestFile dir = tmpDir.file("unknown")

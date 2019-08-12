@@ -64,19 +64,18 @@ public class DefaultDeleter implements Deleter {
 
     @Override
     public boolean ensureEmptyDirectory(File root, boolean followSymlinks) throws IOException {
-        if (root.isDirectory()) {
-            return deleteRecursively(root, followSymlinks, true);
-        } else if (root.isFile()) {
+        if (root.exists()) {
+            if (root.isDirectory()) {
+                return deleteRecursively(root, followSymlinks, true);
+            }
             if (!delete(root)) {
-                throw new IOException("Couldn't delete file: " + root);
+                throw new IOException("Couldn't delete " + root);
             }
-            if (!root.mkdirs()) {
-                throw new IOException("Couldn't create directory: " + root);
-            }
-            return true;
-        } else {
-            return false;
         }
+        if (!root.mkdirs()) {
+            throw new IOException("Couldn't create directory: " + root);
+        }
+        return true;
     }
 
     private boolean deleteRecursively(File root, boolean followSymlinks, boolean keepRootDirectory) throws IOException {
