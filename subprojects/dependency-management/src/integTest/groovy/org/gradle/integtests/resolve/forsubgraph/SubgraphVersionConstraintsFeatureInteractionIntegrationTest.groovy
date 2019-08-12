@@ -349,12 +349,10 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         }
 
         buildFile << """
-
             import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
             
             def VERSIONED_COMPARATOR = new DefaultVersionComparator()
             def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR)
-            
             
             configurations.all {
                 resolutionStrategy {
@@ -394,7 +392,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:1.0').byConstraint()
+                constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
                     edge("org:foo:2.2", 'org:foo:1.0').selectedByRule("bad version").byAncestor()
                 }
