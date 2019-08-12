@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.plan.Node
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -28,17 +29,23 @@ import org.gradle.instantexecution.serialization.writeCollection
 
 internal
 class WorkNodeCodec(
+    private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>
 ) {
 
     suspend fun WriteContext.writeWork(nodes: List<Node>) {
-        val nodesById = HashMap<Node, Int>(nodes.size)
         // Share bean instances across all nodes (except tasks, which have their own isolate)
-        withIsolate(IsolateOwner.NoOwner(), internalTypesCodec) {
-            writeSmallInt(nodes.size)
-            for (node in nodes) {
-                writeNode(node, nodesById)
-            }
+        withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
+            writeNodes(nodes)
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeNodes(nodes: List<Node>) {
+        val nodesById = HashMap<Node, Int>(nodes.size)
+        writeSmallInt(nodes.size)
+        for (node in nodes) {
+            writeNode(node, nodesById)
         }
     }
 
@@ -53,28 +60,33 @@ class WorkNodeCodec(
         }
         val id = nodesById.size
         writeSmallInt(id)
-        internalTypesCodec.run { encode(node) }
+        write(node)
         writeCollection(node.dependencySuccessors) { writeSmallInt(nodesById.getValue(it)) }
         nodesById[node] = id
     }
 
     suspend fun ReadContext.readWork(): List<Node> {
-        return withIsolate(IsolateOwner.NoOwner(), internalTypesCodec) {
-            val count = readSmallInt()
-            val nodesById = HashMap<Int, Node>(count)
-            val nodes = ArrayList<Node>(count)
-            for (i in 0 until count) {
-                val node = readNode(nodesById)
-                nodes.add(node)
-            }
-            nodes
+        return withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
+            readNodes()
         }
+    }
+
+    private
+    suspend fun ReadContext.readNodes(): ArrayList<Node> {
+        val count = readSmallInt()
+        val nodesById = HashMap<Int, Node>(count)
+        val nodes = ArrayList<Node>(count)
+        for (i in 0 until count) {
+            val node = readNode(nodesById)
+            nodes.add(node)
+        }
+        return nodes
     }
 
     private
     suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node {
         val id = readSmallInt()
-        val node = internalTypesCodec.run { decode() } as Node
+        val node = read() as Node
         readCollection {
             val depId = readSmallInt()
             val dep = nodesById.getValue(depId)

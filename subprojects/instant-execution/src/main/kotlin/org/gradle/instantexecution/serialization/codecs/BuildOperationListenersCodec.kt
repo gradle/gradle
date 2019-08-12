@@ -17,8 +17,8 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.extensions.uncheckedCast
-import org.gradle.instantexecution.serialization.MutableReadContext
-import org.gradle.instantexecution.serialization.MutableWriteContext
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.makeAccessible
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
@@ -48,13 +48,13 @@ class BuildOperationListenersCodec {
         )
     }
 
-    suspend fun MutableWriteContext.writeBuildOperationListeners(manager: BuildOperationListenerManager) {
+    suspend fun WriteContext.writeBuildOperationListeners(manager: BuildOperationListenerManager) {
         writeCollection(manager.listeners) { listener ->
             write(listener)
         }
     }
 
-    suspend fun MutableReadContext.readBuildOperationListeners(): List<BuildOperationListener> =
+    suspend fun ReadContext.readBuildOperationListeners(): List<BuildOperationListener> =
         readList().uncheckedCast()
 
     private
