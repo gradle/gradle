@@ -188,6 +188,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public void withLenientState(Runnable runnable) {
+            DefaultProjectStateRegistry.this.withLenientState(runnable);
+        }
+
+        @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
             if (LENIENT_MUTATION_STATE.get()) {
                 return factory.create();
