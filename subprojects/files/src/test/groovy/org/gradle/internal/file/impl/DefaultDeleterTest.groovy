@@ -17,6 +17,7 @@ package org.gradle.internal.file.impl
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
@@ -75,6 +76,23 @@ class DefaultDeleterTest extends Specification {
         then:
         dir.assertIsEmptyDir()
         didWork
+    }
+
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "cleans symlinked target directory"() {
+        def target = tmpDir.createDir("target")
+        def content = target.createFile("content.txt")
+        def link = tmpDir.file("link").tap { Files.createSymbolicLink(it.toPath(), target.toPath()) }
+
+        when:
+        ensureEmptyDirectory(link)
+
+        then:
+        target.assertIsEmptyDir()
+        link.assertIsEmptyDir()
+        Files.readSymbolicLink(link.toPath()) == target.toPath()
+        content.assertDoesNotExist()
     }
 
     def "creates directory in place of file"() {
