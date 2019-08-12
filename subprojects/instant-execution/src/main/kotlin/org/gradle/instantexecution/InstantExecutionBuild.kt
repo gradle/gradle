@@ -16,17 +16,16 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.invocation.Gradle
 import org.gradle.execution.plan.Node
 
 
 interface InstantExecutionBuild {
 
-    val gradle: Gradle
+    val gradle: GradleInternal
 
-    fun createProject(path: String): Project
+    fun createProject(path: String): ProjectInternal
 
     fun getProject(path: String): ProjectInternal
 

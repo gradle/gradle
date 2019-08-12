@@ -38,7 +38,7 @@ class DefaultWriteContext(
     private
     val problemHandler: (PropertyProblem) -> Unit
 
-) : AbstractIsolateContext<WriteIsolate>(codec), MutableWriteContext, Encoder by encoder {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder {
     override val sharedIdentities = WriteIdentities()
 
     private
@@ -102,7 +102,7 @@ class DefaultReadContext(
     private
     val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
 
-) : AbstractIsolateContext<ReadIsolate>(codec), MutableReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
     override val sharedIdentities = ReadIdentities()
 
     private

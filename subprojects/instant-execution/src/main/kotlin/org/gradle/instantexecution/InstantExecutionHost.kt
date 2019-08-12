@@ -102,6 +102,9 @@ class InstantExecutionHost internal constructor(
         override val buildSrc: Boolean
             get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == BuildSourceBuilder.BUILD_SRC
 
+        override val gradle: GradleInternal
+            get() = this@InstantExecutionHost.gradle
+
         override val scheduledWork: List<Node>
             get() = gradle.taskGraph.scheduledWork
 

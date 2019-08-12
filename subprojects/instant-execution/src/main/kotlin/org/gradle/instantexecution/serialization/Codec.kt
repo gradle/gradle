@@ -328,11 +328,3 @@ inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, blo
         this.trace = previousTrace
     }
 }
-
-
-internal
-interface MutableWriteContext : WriteContext, MutableIsolateContext
-
-
-internal
-interface MutableReadContext : ReadContext, MutableIsolateContext
