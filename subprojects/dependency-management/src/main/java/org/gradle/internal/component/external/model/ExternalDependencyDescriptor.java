@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents dependency information as stored in an external descriptor file.
+ * Represents dependency information as stored in an external descriptor file (POM or IVY.XML).
  * This information is able to be transformed into a `ModuleDependencyMetadata` instance.
  */
 public abstract class ExternalDependencyDescriptor {

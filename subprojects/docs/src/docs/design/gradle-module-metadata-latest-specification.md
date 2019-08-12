@@ -131,6 +131,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `reason`: optional. A explanation why the dependency is used. Can typically be used to explain why a specific version is requested.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 - `requestedCapabilities`: optional. If set, declares the capabilities that the dependency must provide in order to be selected. See `capabilities` above for the format.
+- `inheritConstraints`: optional. If set to `true`, all `forSubgraph` version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
 
 #### `version` value
 

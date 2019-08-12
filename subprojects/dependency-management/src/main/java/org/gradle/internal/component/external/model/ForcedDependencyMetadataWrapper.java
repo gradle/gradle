@@ -54,6 +54,11 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
+    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+        return new ForcedDependencyMetadataWrapper(delegate.withInheritConstraints(inheriting));
+    }
+
+    @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
@@ -86,6 +91,11 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     @Override
     public boolean isConstraint() {
         return delegate.isConstraint();
+    }
+
+    @Override
+    public boolean isInheriting() {
+        return delegate.isInheriting();
     }
 
     @Override

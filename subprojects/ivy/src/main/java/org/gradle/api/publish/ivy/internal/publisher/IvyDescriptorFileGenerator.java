@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -295,7 +295,7 @@ public class IvyDescriptorFileGenerator {
     }
 
     private boolean isDynamicVersion(String version) {
-        return VersionRangeSelector.ALL_RANGE.matcher(version).matches() || version.endsWith("+") || version.startsWith("latest.");
+        return !ExactVersionSelector.isExact(version);
     }
 
     private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {

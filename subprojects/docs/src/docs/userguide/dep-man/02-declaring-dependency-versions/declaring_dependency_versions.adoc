@@ -35,6 +35,11 @@ In particular, if you are developing a library that others consume.
 The `forSubgraph` property of a dependency is published in <<publishing.adoc#understanding-gradle-module-md,Gradle Module Metadata>> and honored when your library is consumed, as long as there is no other library requesting the originally declared version to be used.
 More details about dealing with such situations are found in the <<controlling_transitive_dependencies.adoc#, controlling transitive dependencies>> chapter.
 
+You can also _inherit_ the `forSubgraph` constraints defined by another module so that they are applied to all your dependencies as well.
+This is the behavior you typically expect from a _platform_.
+A <<controlling_transitive_dependencies.adoc#using-platform-to-control-transitive-deps,platform dependency>> will enable it automatically.
+You can however activate it for arbitrary dependencies by setting `inheritConstraints()` on the dependency.
+
 [[sec:dynamic_versions_and_changing_modules]]
 == Dealing with versions which change over time
 

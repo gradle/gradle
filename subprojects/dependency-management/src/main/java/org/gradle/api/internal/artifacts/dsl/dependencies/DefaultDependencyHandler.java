@@ -240,8 +240,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
-        if (dependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, toCategory(Category.REGULAR_PLATFORM));
+        if (dependency instanceof ModuleDependency) {
+            ModuleDependency moduleDependency = (ModuleDependency) dependency;
+            moduleDependency.inheritConstraints();
+            platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
+        } else if (dependency instanceof HasConfigurableAttributes) {
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, toCategory(Category.REGULAR_PLATFORM));
         }
         return dependency;
     }

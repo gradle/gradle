@@ -579,12 +579,15 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         }
     }
 
-    def "fails if there are more than one subgraph constraint targeting the same module on the same level"() {
+    def "multiple subgraph constraint targeting the same module on the same level are conflict resolved"() {
         given:
         repository {
             'org:bar:1.0' {
                 dependsOn 'org:foo:2.0'
             }
+            'org:foo:1.0'()
+            'org:foo:1.1'()
+            'org:foo:2.0'()
         }
 
         buildFile << """
@@ -600,10 +603,28 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
         """
 
         when:
-        fails ':checkDeps'
+        repositoryInteractions {
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
 
         then:
-        failure.assertHasCause('Dependency org:foo of :test:unspecified defines conflicting forSubgraph constraints')
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:{require 1.0; subgraph}', 'org:foo:1.1').byConflictResolution("between versions 1.1 and 1.0")
+                edge('org:foo:{require 1.1; subgraph}', 'org:foo:1.1').byRequest()
+                module('org:bar:1.0') {
+                    edge('org:foo:2.0', 'org:foo:1.1').byAncestor()
+                }
+            }
+        }
     }
 
     @RequiredFeatures([

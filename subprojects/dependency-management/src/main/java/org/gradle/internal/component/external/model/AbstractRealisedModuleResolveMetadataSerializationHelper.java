@@ -117,9 +117,10 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         ModuleComponentSelector selector = componentSelectorSerializer.read(decoder);
         List<ExcludeMetadata> excludes = readMavenExcludes(decoder);
         boolean constraint = decoder.readBoolean();
+        boolean inheriting = decoder.readBoolean();
         boolean force = decoder.readBoolean();
         String reason = decoder.readNullableString();
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force);
     }
 
     protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
@@ -171,6 +172,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         writeMavenExcludeRules(encoder, excludes);
         encoder.writeBoolean(dependencyMetadata.isConstraint());
+        encoder.writeBoolean(dependencyMetadata.isInheriting());
         encoder.writeBoolean(dependencyMetadata.isForce());
         encoder.writeNullableString(dependencyMetadata.getReason());
     }

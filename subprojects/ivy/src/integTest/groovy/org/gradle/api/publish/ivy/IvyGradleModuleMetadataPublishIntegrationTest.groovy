@@ -545,6 +545,90 @@ class TestCapability implements Capability {
         }
     }
 
+    def "publishes component with subgraph version constraints"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                implementation("org:platform:1.0") {
+                    inheritConstraints()
+                }
+                implementation("org:foo") {
+                    version {
+                        forSubgraph()
+                    }
+                }
+                constraints {
+                    implementation("org:bar") {
+                        version {
+                            forSubgraph()
+                        }
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variants.size() == 1
+        def variant = module.parsedModuleMetadata.variants[0]
+        variant.dependencies.size() == 2
+        variant.dependencyConstraints.size() == 1
+
+        !variant.dependencies[0].forSubgraph
+        variant.dependencies[0].inheritConstraints
+        variant.dependencies[0].group == 'org'
+        variant.dependencies[0].module == 'platform'
+        variant.dependencies[0].version == '1.0'
+        variant.dependencies[0].prefers == null
+        variant.dependencies[0].strictly == null
+        variant.dependencies[0].rejectsVersion == []
+
+        variant.dependencies[1].forSubgraph
+        !variant.dependencies[1].inheritConstraints
+        variant.dependencies[1].group == 'org'
+        variant.dependencies[1].module == 'foo'
+        variant.dependencies[1].version == null
+        variant.dependencies[1].prefers == null
+        variant.dependencies[1].strictly == null
+        variant.dependencies[1].rejectsVersion == []
+
+        variant.dependencyConstraints[0].forSubgraph
+        variant.dependencyConstraints[0].group == 'org'
+        variant.dependencyConstraints[0].module == 'bar'
+        variant.dependencyConstraints[0].version == null
+        variant.dependencyConstraints[0].prefers == null
+        variant.dependencyConstraints[0].strictly == null
+        variant.dependencyConstraints[0].rejectsVersion == []
+    }
+
     @Unroll
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
         publishModuleMetadata = enableFeaturePreview

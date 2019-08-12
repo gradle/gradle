@@ -127,7 +127,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.add(variantMetadata)
         configuration(variant) //add variant also as configuration for plain ivy publishing
-        return variantMetadata;
+        return variantMetadata
     }
 
     @Override
@@ -403,16 +403,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision,
             variants.collect { v ->
+                def artifacts = v.artifacts
+                if (!artifacts && v.useDefaultArtifacts) {
+                    artifacts = defaultArtifacts
+                }
                 new VariantMetadataSpec(
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.collect { d ->
-                        new DependencySpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.reason, d.attributes)
+                        new DependencySpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, d.attributes)
                     },
                     v.dependencyConstraints + dependencyConstraints.collect { d ->
                         new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.reason, d.attributes)
                     },
-                    v.artifacts ?: defaultArtifacts,
+                    artifacts,
                     v.capabilities,
                     v.availableAt
                 )
