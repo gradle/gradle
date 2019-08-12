@@ -29,6 +29,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileSystem()",
+            "acceptation": "Legacy type removed",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }
