@@ -17,7 +17,10 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.Path;
+
+import javax.annotation.Nullable;
 
 public class RootScriptDomainObjectContext implements DomainObjectContext {
 
@@ -38,6 +41,12 @@ public class RootScriptDomainObjectContext implements DomainObjectContext {
 
     @Override
     public Path getProjectPath() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public ProjectInternal getProject() {
         return null;
     }
 

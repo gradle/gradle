@@ -34,7 +34,7 @@ class TransformationStepCodec(private val projectStateRegistry: ProjectStateRegi
     override suspend fun WriteContext.encode(value: TransformationStep) {
         val project = value.owningProject
         if (project == null) {
-            throw UnsupportedOperationException("Transformation must have an owning project to be encoded")
+            throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
         }
         writeString(project.path)
         write(value.transformer)
@@ -44,7 +44,7 @@ class TransformationStepCodec(private val projectStateRegistry: ProjectStateRegi
         val path = readString()
         val transformer = read() as Transformer
         val project = projectFinder.getProject(path)
-        val stateHandler = DomainObjectProjectStateHandler(projectStateRegistry, project.services.get(DomainObjectContext::class.java), projectFinder)
+        val stateHandler = DomainObjectProjectStateHandler(projectStateRegistry, project.services.get(DomainObjectContext::class.java))
         return TransformationStep(transformer, project.services.get(TransformerInvocationFactory::class.java), stateHandler, fingerprinterRegistry)
     }
 }

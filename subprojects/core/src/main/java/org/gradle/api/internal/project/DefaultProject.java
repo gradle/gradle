@@ -684,7 +684,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
      * This method is used when scripts access the project via project.x
      */
     @Override
-    public Project getProject() {
+    public ProjectInternal getProject() {
         return this;
     }
 

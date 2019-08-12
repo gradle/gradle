@@ -56,6 +56,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -1768,6 +1769,11 @@ All Artifacts:
             }
 
             @Override
+            ProjectInternal getProject() {
+                return null
+            }
+
+            @Override
             Path getBuildPath() {
                 Path.ROOT.append(Path.path(buildPath))
             }
@@ -1781,7 +1787,7 @@ All Artifacts:
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry), userCodeApplicationContext, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder), TestUtil.domainObjectCollectionFactory())
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry), userCodeApplicationContext, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext), TestUtil.domainObjectCollectionFactory())
     }
 
     private DefaultPublishArtifact artifact(String name) {

@@ -108,6 +108,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Supplier;
 
@@ -283,6 +284,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         @Override
         public Path getProjectPath() {
             return delegate.getProjectPath();
+        }
+
+        @Nullable
+        @Override
+        public ProjectInternal getProject() {
+            return delegate.getProject();
         }
 
         @Override
