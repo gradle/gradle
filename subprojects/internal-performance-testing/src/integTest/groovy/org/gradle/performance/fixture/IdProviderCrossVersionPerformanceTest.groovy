@@ -16,9 +16,9 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 
-class IdProviderCrossVersionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class IdProviderCrossVersionPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def "if no test id is set, the test method name is used"() {
         when:

@@ -63,7 +63,8 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
-        def debugArtifactsDirectory = new File(System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME))
+        def debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME)
+        def debugArtifactsDirectory = debugArtifactsDirectoryPath ? new File(debugArtifactsDirectoryPath) : temporaryFolder.testDirectory
         def resultCollector = new BenchmarkResultCollector(
             new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
             new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))

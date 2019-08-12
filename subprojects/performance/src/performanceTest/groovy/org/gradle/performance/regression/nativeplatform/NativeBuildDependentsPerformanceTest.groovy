@@ -16,10 +16,10 @@
 
 package org.gradle.performance.regression.nativeplatform
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import spock.lang.Unroll
 
-class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def setup() {
         runner.targetVersions = ["5.7-20190722220035+0000"]
