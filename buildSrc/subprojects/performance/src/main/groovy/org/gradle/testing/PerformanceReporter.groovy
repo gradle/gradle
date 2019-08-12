@@ -71,7 +71,6 @@ class PerformanceReporter {
     protected void generateResultsJson() {
         resultsJson.createNewFile()
         resultsJson.text = JsonOutput.toJson(generateResultsForReport())
-        println("Result JSON: ${resultsJson.text}")
     }
 
     protected List<ScenarioBuildResultData> generateResultsForReport() {
@@ -90,7 +89,7 @@ class PerformanceReporter {
 
     private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite) {
         List<JUnitTestCase> testCases = testSuite.testCases ?: []
-        return testCases.collect {
+        return testCases.findAll { !it.skipped }.collect {
             new ScenarioBuildResultData(scenarioName: it.name,
                 webUrl: TC_URL + performanceTest.buildId,
                 status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
