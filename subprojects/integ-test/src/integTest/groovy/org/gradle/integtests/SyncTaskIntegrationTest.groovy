@@ -390,6 +390,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails 'syncIt'
+
+        cleanup:
         ins.close()
     }
 

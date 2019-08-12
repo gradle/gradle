@@ -104,29 +104,23 @@ public class SyncCopyActionDecorator implements CopyAction {
 
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
-            maybeDelete(dirDetails, true);
+            maybeDelete(dirDetails);
         }
 
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
-            maybeDelete(fileDetails, false);
+            maybeDelete(fileDetails);
         }
 
-        private void maybeDelete(FileVisitDetails fileDetails, boolean isDir) {
+        private void maybeDelete(FileVisitDetails fileDetails) {
             RelativePath path = fileDetails.getRelativePath();
             if (!visited.contains(path)) {
                 if (preserveSet.isEmpty() || !preserveSpec.isSatisfiedBy(fileDetails)) {
-                    File file = fileDetails.getFile();
-                    if (isDir) {
-                        try {
-                            deleter.deleteRecursively(file, true);
-                        } catch (IOException ex) {
-                            throw new UncheckedIOException(ex);
-                        }
-                    } else {
-                        deleter.delete(file);
+                    try {
+                        didWork = deleter.deleteRecursively(fileDetails.getFile(), true);
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
                     }
-                    didWork = true;
                 }
             }
         }
