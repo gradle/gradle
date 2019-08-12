@@ -62,6 +62,14 @@ While this behavior could be helpful to maintain executing build no matter what,
 In Gradle 6.0 we are switching to failing fast, and both pack and unpack errors will result the build to fail.
 Doing so allows these problems to be surfaced more easily.
 
+==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
+
+If Gradle fails to locate the metadata file (`.pom` or `ivy.xml`) of a module in a repository defined in the `repositories { }` section, it now assumes that the module does not exist in that repository.
+Previously, Gradle was also looking for a default artifact (`.jar`) which usually also does not exist.
+This often caused large number of unnecessary requests when using multiple repositories.
+This change speeds up builds with many dependencies using multiple repositories.
+You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:repository-content-filtering,repository content filter>>.
+
 ==== `@Nullable` annotation is gone
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.

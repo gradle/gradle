@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -60,11 +59,10 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
-                                               FeaturePreviews featurePreviews,
                                                MavenMutableModuleMetadataFactory metadataFactory,
                                                IsolatableFactory isolatableFactory,
                                                ObjectFactory objectFactory) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
