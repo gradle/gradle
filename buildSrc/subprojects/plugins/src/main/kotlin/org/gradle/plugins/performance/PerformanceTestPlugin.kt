@@ -18,12 +18,9 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
-import org.gradle.testing.ReportGenerationPerformanceTest
-import org.gradle.testing.RerunableDistributedPerformanceTest
 import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
@@ -236,6 +233,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         create("performanceAdhocTest") {
             addDatabaseParameters(mapOf(PropertyNames.dbUrl to Config.adhocTestDbUrl))
+            performanceReporter.isEnabled = true
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test") { true }
         }
@@ -251,11 +249,11 @@ class PerformanceTestPlugin : Plugin<Project> {
             createDistributedPerformanceTestTask(name, clazz, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
-        create("distributedPerformanceTest", RerunableDistributedPerformanceTest::class) {
+        create("distributedPerformanceTest", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             channel = "commits"
         }
-        create("distributedPerformanceExperiment", RerunableDistributedPerformanceTest::class) {
+        create("distributedPerformanceExperiment", DistributedPerformanceTest::class) {
             (options as JUnitOptions).includeCategories(performanceExperimentCategory)
             channel = "experiments"
         }
@@ -266,7 +264,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
-            reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
+            performanceReporter.reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
             repeat = 3
             checks = "none"
             channel = "flakiness-detection"
@@ -364,7 +362,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<out PerformanceTest> {
-        val performanceTest = tasks.register(name, determineLocalPerformanceTestClass()) {
+        val performanceTest = tasks.register(name, PerformanceTest::class) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
@@ -386,11 +384,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         return performanceTest
-    }
-
-    private
-    fun Project.determineLocalPerformanceTestClass(): KClass<out PerformanceTest> {
-        return if (name == "buildScanPerformance") BuildScanPerformanceTest::class else PerformanceTest::class
     }
 
     private
@@ -447,12 +440,10 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
         }
 
-        if (task is ReportGenerationPerformanceTest) {
-            task.apply {
-                buildId = System.getenv("BUILD_ID")
-                reportDir = project.buildDir / Config.performanceTestReportsDir
-                resultsJson = project.buildDir / Config.performanceTestResultsJson
-            }
+        task.apply {
+            buildId = System.getenv("BUILD_ID")
+            reportDir = project.buildDir / Config.performanceTestReportsDir
+            performanceReporter.resultsJson = project.buildDir / Config.performanceTestResultsJson
         }
     }
 

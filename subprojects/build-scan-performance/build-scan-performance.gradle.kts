@@ -69,5 +69,7 @@ val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
 
 tasks.withType<PerformanceTest>().configureEach {
     dependsOn(generateTemplate)
+    performanceReporter.isEnabled = true
+    performanceReporter.reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 }

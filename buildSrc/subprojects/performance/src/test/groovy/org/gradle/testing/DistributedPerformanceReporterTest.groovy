@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 import static org.gradle.testing.DistributedPerformanceTest.ScenarioResult
 
-class RerunableDistributedPerformanceTestTest extends Specification {
+class DistributedPerformanceReporterTest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder = new TemporaryFolder()
 
@@ -48,11 +48,11 @@ class RerunableDistributedPerformanceTestTest extends Specification {
             scenario3: createScenario('org.gradle.test.MyTest2', 'scenario3', 'SUCCESS')
         ]
         when:
-        def task = project.tasks.create('distributedPerformanceTest', RerunableDistributedPerformanceTest)
+        def task = project.tasks.create('distributedPerformanceTest', DistributedPerformanceTest)
         task.finishedBuilds = finishedResults
         task.binResultsDir = project.buildDir
         task.binResultsDir.mkdirs()
-        task.writeBinaryResults()
+        task.performanceReporter.writeBinaryResults()
 
         then:
         def classResults = readClassResults(task.binResultsDir)

@@ -57,7 +57,7 @@ import java.util.zip.ZipInputStream
  */
 @CompileStatic
 @CacheableTask
-class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
+class DistributedPerformanceTest extends PerformanceTest {
     @Input
     String buildTypeId
 
@@ -72,6 +72,9 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @Internal
     String teamCityPassword
+
+    @Internal
+    String buildId
 
     /**
      * In FlakinessDetectionPerformanceTest, we simply repeat all scenarios several times.
@@ -99,12 +102,19 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
+        this.performanceReporter = new DistributedPerformanceReporter(this)
+        getOutputs().doNotCacheIf("rerun build depends on first run's output", { isRerun() })
         jvmArgumentProviders.add(new CommandLineArgumentProvider() {
             @Override
             Iterable<String> asArguments() {
                 return ["-Dorg.gradle.performance.scenario.list=$scenarioList".toString()]
             }
         })
+    }
+
+    @Internal
+    boolean isRerun() {
+        return Boolean.parseBoolean(project.findProperty("onlyPreviousFailedTestClasses")?.toString())
     }
 
     @Override
@@ -131,24 +141,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             e.printStackTrace()
             throw e
         } finally {
-            generatePerformanceReport()
+            performanceReporter.report()
             testEventsGenerator.release()
-        }
-    }
-
-    @Override
-    @TypeChecked(TypeCheckingMode.SKIP)
-    protected List<ScenarioBuildResultData> generateResultsForReport() {
-        finishedBuilds.collect { workerBuildId, scenarioResult ->
-            new ScenarioBuildResultData(
-                teamCityBuildId: workerBuildId,
-                scenarioName: scheduledBuilds.get(workerBuildId).id,
-                scenarioClass: scenarioResult.testClassFullName,
-                webUrl: scenarioResult.buildResponse.webUrl,
-                status: scenarioResult.buildResponse.status,
-                agentName: scenarioResult.buildResponse.agent.name,
-                agentUrl: scenarioResult.buildResponse.agent.webUrl,
-                testFailure: scenarioResult.failureText)
         }
     }
 
