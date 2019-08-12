@@ -126,6 +126,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         given:
         file('src').mkdir()
         def supportsInputChanges = targetVersion > GradleVersion.version("5.4")
+        def parameterType = supportsInputChanges ? 'InputChanges' : 'IncrementalTaskInputs'
         buildFile << """
             task incrementalTask(type: MyIncrementalTask) {
                 inputDir = file('src')
@@ -136,10 +137,10 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
                 @InputDirectory
                 def File inputDir
                 @TaskAction
-                void doSomething(${supportsInputChanges ? "InputChanges" : "IncrementalTaskInputs"} inputs) {}
+                void doSomething(${parameterType} inputs) {}
 
                 @Optional
-                @OutputFiles
+                @OutputFile
                 public File getOutputFile() {
                     return null;
                 }

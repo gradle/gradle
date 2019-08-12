@@ -134,7 +134,7 @@ public class AnnotationProcessingTasks {
         }
 
         @Optional
-        @OutputFiles
+        @OutputFile
         @Nullable
         public File getOutputFile() {
             return null;
@@ -177,7 +177,7 @@ public class AnnotationProcessingTasks {
         }
 
         @Optional
-        @OutputFiles
+        @OutputFile
         @Nullable
         public File getOutputFile() {
             return null;
