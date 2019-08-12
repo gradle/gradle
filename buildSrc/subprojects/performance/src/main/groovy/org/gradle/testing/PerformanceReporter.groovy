@@ -71,6 +71,7 @@ class PerformanceReporter {
     protected void generateResultsJson() {
         resultsJson.createNewFile()
         resultsJson.text = JsonOutput.toJson(generateResultsForReport())
+        println("Result JSON: ${resultsJson.text}")
     }
 
     protected List<ScenarioBuildResultData> generateResultsForReport() {
