@@ -204,4 +204,66 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
             }
         }
     }
+
+    def "constraint inheritance can be consumed from metadata"() {
+        given:
+        repository {
+            'org:platform:1.0'() {
+                constraint(group: 'org', artifact: 'bar', version: '1.0')
+                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+            }
+            'org:foo:1.0'()
+            'org:foo:2.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:2.0'
+            }
+            'org:baz:1.0' {
+                dependsOn(group: 'org', artifact: 'platform', version: '1.0', inheritConstraints: true)
+                dependsOn(group: 'org', artifact: 'bar')
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:baz:1.0')
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:platform:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:baz:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:baz:1.0') {
+                    module('org:platform:1.0') {
+                        constraint('org:bar:1.0').byConstraint()
+                        constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+                    }
+                    edge('org:bar', 'org:bar:1.0') {
+                        byRequest()
+                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                    }
+                }
+            }
+        }
+    }
 }

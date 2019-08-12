@@ -455,7 +455,7 @@ public class GradleModuleMetadataWriter {
 
             boolean inheriting = moduleDependency.isInheriting();
             if (inheriting) {
-                jsonWriter.name("inheriting");
+                jsonWriter.name("inheritConstraints");
                 jsonWriter.value(true);
             }
         }

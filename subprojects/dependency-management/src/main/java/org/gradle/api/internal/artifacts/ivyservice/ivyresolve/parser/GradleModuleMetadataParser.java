@@ -303,7 +303,7 @@ public class GradleModuleMetadataParser {
                     case "requestedCapabilities":
                         requestedCapabilities = consumeCapabilities(reader);
                         break;
-                    case "inheriting":
+                    case "inheritConstraints":
                         inheriting = reader.nextBoolean();
                         break;
                     default:

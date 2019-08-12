@@ -333,7 +333,7 @@ class GradleModuleMetadataParserTest extends Specification {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "dependencies": [ 
                     { "module": "m3", "group": "g3", "version": { "prefers": "v3" }, "requestedCapabilities":[{"group":"org", "name":"foo", "version":"1.0"}]},
-                    { "module": "m4", "inheriting": true, "version": { "strictly": "v5" }, "group": "g4"},
+                    { "module": "m4", "inheritConstraints": true, "version": { "strictly": "v5" }, "group": "g4"},
                     { "module": "m5", "version": { "prefers": "v5", "requires": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
                     { "module": "m6", "group": "g6", "version": { "strictly": "v6" }, "reason": "v5 is buggy"}
                 ],
@@ -430,7 +430,7 @@ class GradleModuleMetadataParserTest extends Specification {
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "dependencyConstraints": [ 
-                    { "inheriting": true, "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
+                    { "inheritConstraints": true, "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
                     { "version": { "requires": "v2" }, "group": "g2", "module": "m2", "attributes": {"custom": "foo", "other": "bar"} }
                 ],
                 "name": "runtime"
