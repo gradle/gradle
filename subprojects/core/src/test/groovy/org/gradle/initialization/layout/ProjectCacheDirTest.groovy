@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.layout
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.internal.VersionSpecificCacheCleanupFixture
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -37,8 +38,9 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
     def cacheDir = temporaryFolder.createDir(".gradle")
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
+    def deleter = TestFiles.deleter()
 
-    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, progressLoggerFactory)
+    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter)
 
     def "cleans up unused version-specific cache directories"() {
         given:
