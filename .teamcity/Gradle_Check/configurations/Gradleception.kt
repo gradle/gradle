@@ -18,6 +18,10 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
         param("env.JAVA_HOME", buildJavaHome)
     }
 
+    features {
+        publishBuildStatusToGithub(model)
+    }
+
     val buildScanTagForType = buildScanTag("Gradleception")
     val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType)).joinToString(separator = " ")
 
