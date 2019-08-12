@@ -55,7 +55,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionGradleProfilerPerf
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["5.7-20190722220035+0000"]
+        runner.targetVersions = ["5.7-20190811220031+0000"]
         runner.minimumVersion = "3.5"
         runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         def cacheDir = temporaryFolder.file("local-cache")
