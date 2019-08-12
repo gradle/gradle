@@ -56,6 +56,29 @@ dependencies {
 }
 ```
 
+Subgraph constraints can also be defined in a platform.
+Theses constraints will be _inherited_ when depending on the platform and treated as if they were defined directly.
+
+```groovy
+project(':platform') {
+    dependencies {
+        constraints {
+            api('org.apache.hadoop:hadoop-common:3.2.0') 
+            api('commons-io:commons-io:2.4') {
+                version { forSubgraph() } 
+            }
+        }
+    }
+}
+
+dependencies {
+    // 'commons-io:commons-io:2.4' win over '2.5' because the platform defines the constraint as 'forSubgraph()'
+    implementation(platform(project(':platform')))
+    implementation('org.apache.hadoop:hadoop-common')
+    implementation('commons-io:commons-io')
+}
+```
+
 ## Debug support for forked Java processes
 
 Gradle has now a new DSL element to configure debugging for Java processes.  

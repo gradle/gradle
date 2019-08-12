@@ -53,6 +53,8 @@ Dependency constraints themselves can also be added transitively.
 [[sharing-dep-versions-between-projects]]
 === Sharing dependency versions between projects
 
+// A dependency to a platform inherits all subgraph constraints of the platform (can be turned off by 'notInheritConstraints()')
+
 [[enforced-platforms]]
 === Enforced platforms
 
