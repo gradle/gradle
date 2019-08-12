@@ -27,9 +27,7 @@ public class PackerDirectoryUtil {
     public static void ensureDirectoryForTree(Deleter deleter, TreeType type, File root) throws IOException {
         switch (type) {
             case DIRECTORY:
-                if (!makeDirectory(deleter, root)) {
-                    deleter.cleanRecursively(root, true);
-                }
+                deleter.ensureEmptyDirectory(root, true);
                 break;
             case FILE:
                 if (!makeDirectory(deleter, root.getParentFile())) {

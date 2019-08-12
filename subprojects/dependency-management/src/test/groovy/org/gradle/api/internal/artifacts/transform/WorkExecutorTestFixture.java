@@ -119,10 +119,11 @@ public class WorkExecutorTestFixture {
             }
 
             @Override
-            public boolean cleanRecursively(File target, boolean followSymlinks) throws IOException {
-                boolean wasDirectory = target.isDirectory();
-                FileUtils.cleanDirectory(target);
-                return wasDirectory;
+            public boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException {
+                File[] children = target.listFiles();
+                FileUtils.forceDelete(target);
+                FileUtils.forceMkdir(target);
+                return children == null || children.length == 0;
             }
 
             @Override

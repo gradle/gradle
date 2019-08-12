@@ -105,7 +105,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                             break;
                         case DIRECTORY:
                             try {
-                                deleter.cleanRecursively(root, true);
+                                deleter.ensureEmptyDirectory(root, true);
                             } catch (IOException ex) {
                                 throw new UncheckedIOException(ex);
                             }
