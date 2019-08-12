@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -29,21 +28,15 @@ public class DomainObjectProjectStateHandler {
 
     private final ProjectStateRegistry projectStateRegistry;
     private final DomainObjectContext domainObjectContext;
-    private final ProjectFinder projectFinder;
 
-    public DomainObjectProjectStateHandler(ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder) {
+    public DomainObjectProjectStateHandler(ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext) {
         this.projectStateRegistry = projectStateRegistry;
         this.domainObjectContext = domainObjectContext;
-        this.projectFinder = projectFinder;
     }
 
     @Nullable
     public ProjectInternal maybeGetOwningProject() {
-        if (domainObjectContext.getProjectPath() != null) {
-            return projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-        } else {
-            return null;
-        }
+        return domainObjectContext.getProject();
     }
 
     public boolean hasMutableProjectState() {
