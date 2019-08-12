@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
@@ -25,7 +26,6 @@ import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.specs.AndSpec;
-import org.gradle.util.DeprecationLogger;
 
 @NonNullApi
 public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolver {
@@ -43,7 +43,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         if (!properties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             if (task.hasTaskActions()) {
                 if (requiresInputChanges(task)) {
-                    DeprecationLogger.nagUserOfDeprecated("Using the incremental task API without declaring any outputs", "Please declare output files for your task or use `TaskOutputs.upToDateWhen()`.");
+                    throw new InvalidUserCodeException("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API");
                 } else {
                     return TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS;
                 }
