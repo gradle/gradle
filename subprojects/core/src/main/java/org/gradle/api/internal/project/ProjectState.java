@@ -18,8 +18,8 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Encapsulates the identity and state of a particular project in a build tree.
  */
 @ThreadSafe
-public interface ProjectState {
+public interface ProjectState extends ModelContainer {
     /**
      * Returns the containing build of this project.
      */
@@ -49,19 +49,4 @@ public interface ProjectState {
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();
-
-    /**
-     * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     */
-    <T> T withMutableState(Factory<? extends T> factory);
-
-    /**
-     * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     */
-    void withMutableState(Runnable runnable);
-
-    /**
-     * Returns whether or not the current thread holds the mutable state for this project.
-     */
-    boolean hasMutableState();
 }

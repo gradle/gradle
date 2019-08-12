@@ -74,7 +74,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
@@ -150,7 +149,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
-    private final DomainObjectProjectStateHandler projectStateHandler;
+    private final DomainObjectContext owner;
+    private final ProjectStateRegistry projectStateRegistry;
     private CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private DefaultDependencySet allDependencies;
@@ -216,10 +216,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationFileCollection intrinsicFiles;
 
     private final DisplayName displayName;
-    private UserCodeApplicationContext userCodeApplicationContext;
+    private final UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    private AtomicInteger copyCount = new AtomicInteger(0);
+    private final AtomicInteger copyCount = new AtomicInteger(0);
 
     private Action<? super ConfigurationInternal> beforeLocking;
 
@@ -241,10 +241,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder,
                                 DocumentationRegistry documentationRegistry,
                                 UserCodeApplicationContext userCodeApplicationContext,
-                                DomainObjectProjectStateHandler domainObjectProjectStateHandler,
+                                DomainObjectContext owner,
+                                ProjectStateRegistry projectStateRegistry,
                                 DomainObjectCollectionFactory domainObjectCollectionFactory
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.projectStateRegistry = projectStateRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
@@ -266,7 +268,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.satisfyAll());
         this.documentationRegistry = documentationRegistry;
-        this.resolutionLock = domainObjectProjectStateHandler.newExclusiveOperationLock();
+        this.resolutionLock = projectStateRegistry.newExclusiveOperationLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -286,7 +288,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
-        this.projectStateHandler = domainObjectProjectStateHandler;
+        this.owner = owner;
         path = domainObjectContext.projectPath(name);
     }
 
@@ -563,16 +565,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
 
-        if (!projectStateHandler.hasMutableProjectState()) {
+        if (!owner.getModel().hasMutableState()) {
             // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
             // lenient locking to prevent deadlocks in user-managed threads.
             DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See " + documentationRegistry.getDocumentationFor("troubleshooting_dependency_resolution", "sub:configuration_resolution_constraints") + " for more details.");
-            projectStateHandler.withLenientState(new Runnable() {
-                @Override
-                public void run() {
-                    resolveExclusively(requestedState);
-                }
-            });
+            owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
         } else {
             resolveExclusively(requestedState);
         }
@@ -700,7 +697,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Nullable
             @Override
             public Project getProject() {
-                return projectStateHandler.maybeGetOwningProject();
+                return owner.getProject();
             }
 
             @Override
@@ -977,7 +974,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, projectStateHandler, domainObjectCollectionFactory);
+            rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, owner, projectStateRegistry, domainObjectCollectionFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

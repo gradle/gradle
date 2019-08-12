@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -46,6 +47,11 @@ public interface DomainObjectContext {
      */
     @Nullable
     ProjectInternal getProject();
+
+    /**
+     * The container that holds the model for this context, to allow synchronized access to the model.
+     */
+    ModelContainer getModel();
 
     /**
      * The path to the build that is associated with this object.

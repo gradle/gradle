@@ -18,11 +18,13 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.Factory;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
-public class RootScriptDomainObjectContext implements DomainObjectContext {
+public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer {
 
     public static final DomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
 
@@ -48,6 +50,31 @@ public class RootScriptDomainObjectContext implements DomainObjectContext {
     @Override
     public ProjectInternal getProject() {
         return null;
+    }
+
+    @Override
+    public ModelContainer getModel() {
+        return this;
+    }
+
+    @Override
+    public boolean hasMutableState() {
+        return true;
+    }
+
+    @Override
+    public <T> T withMutableState(Factory<? extends T> factory) {
+        return factory.create();
+    }
+
+    @Override
+    public void withMutableState(Runnable runnable) {
+        runnable.run();
+    }
+
+    @Override
+    public void withLenientState(Runnable runnable) {
+        runnable.run();
     }
 
     @Override

@@ -84,6 +84,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -290,6 +291,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         @Override
         public ProjectInternal getProject() {
             return delegate.getProject();
+        }
+
+        @Override
+        public ModelContainer getModel() {
+            return delegate.getModel();
         }
 
         @Override

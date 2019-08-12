@@ -20,6 +20,7 @@ import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.model.ModelContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,19 +48,19 @@ public class TransformationStep implements Transformation, TaskDependencyContain
 
     private final Transformer transformer;
     private final TransformerInvocationFactory transformerInvocationFactory;
-    private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
     private final ProjectInternal owningProject;
     private final FileCollectionFingerprinterRegistry globalFingerprinterRegistry;
+    private final ModelContainer owner;
 
-    public TransformationStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectProjectStateHandler projectStateHandler, FileCollectionFingerprinterRegistry globalFingerprinterRegistry) {
+    public TransformationStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectContext owner, ProjectStateRegistry projectRegistry, FileCollectionFingerprinterRegistry globalFingerprinterRegistry) {
         this.transformer = transformer;
         this.transformerInvocationFactory = transformerInvocationFactory;
-        this.projectStateHandler = projectStateHandler;
         this.globalFingerprinterRegistry = globalFingerprinterRegistry;
-        this.isolationLock = projectStateHandler.newExclusiveOperationLock();
-        this.owningProject = projectStateHandler.maybeGetOwningProject();
+        this.isolationLock = projectRegistry.newExclusiveOperationLock();
+        this.owningProject = owner.getProject();
+        this.owner = owner.getModel();
         this.isolateAction = transformer.isIsolated() ? null : new WorkNodeAction() {
             @Nullable
             @Override
@@ -69,7 +71,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             @Override
             public void run(NodeExecutionContext context) {
                 FileCollectionFingerprinterRegistry fingerprinterRegistry = context.getService(FileCollectionFingerprinterRegistry.class);
-                isolateExclusively(fingerprinterRegistry);
+                isolateTransformerParameters(fingerprinterRegistry);
             }
         };
     }
@@ -136,8 +138,8 @@ public class TransformationStep implements Transformation, TaskDependencyContain
 
     private void isolateTransformerParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         if (!transformer.isIsolated()) {
-            if (!projectStateHandler.hasMutableProjectState()) {
-                projectStateHandler.withLenientState(() -> isolateExclusively(fingerprinterRegistry));
+            if (!owner.hasMutableState()) {
+                owner.withLenientState(() -> isolateExclusively(fingerprinterRegistry));
             } else {
                 isolateExclusively(fingerprinterRegistry);
             }

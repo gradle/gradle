@@ -18,7 +18,6 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
@@ -44,7 +43,7 @@ class TransformationStepCodec(private val projectStateRegistry: ProjectStateRegi
         val path = readString()
         val transformer = read() as Transformer
         val project = projectFinder.getProject(path)
-        val stateHandler = DomainObjectProjectStateHandler(projectStateRegistry, project.services.get(DomainObjectContext::class.java))
-        return TransformationStep(transformer, project.services.get(TransformerInvocationFactory::class.java), stateHandler, fingerprinterRegistry)
+        val owner = project.services.get(DomainObjectContext::class.java)
+        return TransformationStep(transformer, project.services.get(TransformerInvocationFactory::class.java), owner, projectStateRegistry, fingerprinterRegistry)
     }
 }

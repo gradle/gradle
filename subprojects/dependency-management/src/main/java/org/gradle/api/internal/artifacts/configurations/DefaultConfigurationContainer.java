@@ -40,7 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalCompone
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -134,7 +133,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, new DomainObjectProjectStateHandler(projectStateRegistry, context), domainObjectCollectionFactory);
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -167,7 +166,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             context, name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), documentationRegistry, userCodeApplicationContext, new DomainObjectProjectStateHandler(projectStateRegistry, context), domainObjectCollectionFactory);
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
