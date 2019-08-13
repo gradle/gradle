@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.jvm.Jvm
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -41,6 +43,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << "apply plugin: 'base'\n"
+        // When adding support for a new JDK version, the previous release might not work with it yet.
+        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
