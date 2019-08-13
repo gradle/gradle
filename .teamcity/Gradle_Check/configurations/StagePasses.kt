@@ -33,10 +33,8 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
     """.trimIndent()
     val masterReleaseFilter = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
 
-    if (model.publishStatusToGitHub) {
-        features {
-            publishBuildStatusToGithub()
-        }
+    features {
+        publishBuildStatusToGithub(model)
     }
 
     if (stage.trigger == Trigger.eachCommit) {

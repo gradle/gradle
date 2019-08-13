@@ -22,9 +22,9 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
 
     applyPerformanceTestSettings(timeout = type.timeout)
 
-    if (type == PerformanceTestType.test) {
+    if (type in listOf(PerformanceTestType.test, PerformanceTestType.experiment)) {
         features {
-            publishBuildStatusToGithub()
+            publishBuildStatusToGithub(model)
         }
     }
 
