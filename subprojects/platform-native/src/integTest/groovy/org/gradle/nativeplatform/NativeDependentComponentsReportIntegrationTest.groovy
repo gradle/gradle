@@ -561,7 +561,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             No components.
 
             BUILD SUCCESSFUL
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     private static String simpleCppBuild() {
@@ -636,14 +636,14 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             +--- lib:sharedLibrary
             |    \\--- main:executable
             \\--- lib:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     private static String simpleCppMainDependents() {
         return '''
             main - Components that depend on native executable 'main'
             \\--- main:executable
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     private static String simpleCppUtilDependents() {
@@ -655,7 +655,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    +--- lib:staticLibrary
             |    \\--- main:executable
             \\--- util:staticLibrary
-        '''.stripIndent()
+            '''.stripIndent()
     }
 
     private static String multiProjectSettings() {
