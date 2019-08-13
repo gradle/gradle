@@ -53,7 +53,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers a project.
      */
-    void register(BuildState owner, ProjectInternal project);
+    ProjectState register(BuildState owner, ProjectInternal project);
 
     /**
      * Registers the projects of a build.

@@ -31,6 +31,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
@@ -38,7 +39,6 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
@@ -58,7 +58,6 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +81,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
+    private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
     private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -97,7 +97,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         List<NodeExecutor> nodeExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
-        WorkerLeaseService workerLeaseService,
         ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
         TaskNodeFactory taskNodeFactory,
@@ -105,6 +104,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
+        ProjectStateRegistry projectStateRegistry,
         ServiceRegistry globalServices
     ) {
         this.planExecutor = planExecutor;
@@ -115,8 +115,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
+        this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
-        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry);
+        this.executionPlan = new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry);
     }
 
     @Override
@@ -174,7 +175,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         Timer clock = Time.startTimer();
         ensurePopulated();
         if (!hasFiredWhenReady) {
-            ProjectStateRegistry projectStateRegistry = gradleInternal.getServices().get(ProjectStateRegistry.class);
             // We know that we're running single-threaded here, so we can use lenient project locking
             projectStateRegistry.withLenientState(new Runnable() {
                 @Override
