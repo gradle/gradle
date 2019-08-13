@@ -29,11 +29,11 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
@@ -105,20 +105,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     protected String rebuildClauseForChangedNonSourceFile(String description, FileChange fileChange) {
-        String changeName = determineChangeName(fileChange.getChangeType());
-        return description + " '" + fileChange.getFile().getName() + "' has been " + changeName;
-    }
-
-    private String determineChangeName(ChangeType changeType) {
-        switch (changeType) {
-            case ADDED:
-                return "added";
-            case REMOVED:
-                return "removed";
-            case MODIFIED:
-                return "modified";
-            default:
-                throw new AssertionError("Unknown change type: " + changeType);
-        }
+        return description + " '" + fileChange.getFile().getName() + "' has been " + fileChange.getChangeType().name().toLowerCase(Locale.US);
     }
 }

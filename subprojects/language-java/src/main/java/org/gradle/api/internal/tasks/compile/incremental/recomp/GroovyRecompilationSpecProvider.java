@@ -32,17 +32,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
-    private final Supplier<Iterable<FileChange>> sourceChanges;
+    private final Iterable<FileChange> sourceChanges;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
                                            FileTree sources,
                                            boolean incremental,
-                                           Supplier<Iterable<FileChange>> sourceChanges,
+                                           Iterable<FileChange> sourceChanges,
                                            GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
         super(fileOperations, sources);
         this.incremental = incremental;
@@ -116,7 +115,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
 
-        for (FileChange fileChange : sourceChanges.get()) {
+        for (FileChange fileChange : sourceChanges) {
             if (spec.isFullRebuildNeeded()) {
                 return;
             }

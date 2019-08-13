@@ -34,15 +34,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
-    private final Supplier<Iterable<FileChange>> sourceFileChanges;
+    private final Iterable<FileChange> sourceFileChanges;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, boolean incremental, Supplier<Iterable<FileChange>> sourceFileChanges) {
+    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, boolean incremental, Iterable<FileChange> sourceFileChanges) {
         super(fileOperations, sources);
         this.incremental = incremental;
         this.sourceFileChanges = sourceFileChanges;
@@ -115,7 +114,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         }
         boolean emptyAnnotationProcessorPath = current.getAnnotationProcessorPath().isEmpty();
         SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous);
-        for (FileChange fileChange : sourceFileChanges.get()) {
+        for (FileChange fileChange : sourceFileChanges) {
             if (spec.isFullRebuildNeeded()) {
                 return;
             }

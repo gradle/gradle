@@ -158,7 +158,12 @@ public class JavaCompile extends AbstractCompile {
             createCompiler(spec),
             getPath(),
             getSource(),
-            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs.isIncremental(), () -> inputs.getFileChanges(getStableSources()))
+            new JavaRecompilationSpecProvider(
+                ((ProjectInternal) getProject()).getFileOperations(),
+                (FileTreeInternal) getSource(),
+                inputs.isIncremental(),
+                () -> inputs.getFileChanges(getStableSources()).iterator()
+            )
         );
         performCompilation(spec, incrementalCompiler);
     }

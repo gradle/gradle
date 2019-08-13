@@ -117,6 +117,9 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
      * - If the InputChanges is not deprecated and the IncrementalTaskInputs method is, then we try to select one:
      *   - If a subclass overrides the IncrementalTaskInputs method, we create a {@link BridgingIncrementalInputsTaskActionFactory} which passes the {@link InputChanges} object into the IncrementalTaskInputs method
      *   - If no subclass overrides the IncrementalTaskInputs method, we use the InputChanges method directly.
+     *
+     *   All this is only required to support the Android Gradle plugin &lt; 3.6.
+     *   As soon as 3.6 is out we should drop the support for 3.5 and simplify the code here again.
      */
     @Nullable
     private AbstractIncrementalTaskActionFactory selectIncrementalTaskAction(Class<? extends Task> taskClass, AbstractIncrementalTaskActionFactory foundTaskActionFactory, TaskActionFactory currentTaskActionFactory, Class currentClass, Method currentMethod) {
@@ -165,7 +168,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     }
 
     private boolean isDeprecated(AbstractIncrementalTaskActionFactory foundIncrementalTaskActionFactory) {
-        return foundIncrementalTaskActionFactory.method.getAnnotation(Deprecated.class) != null;
+        return foundIncrementalTaskActionFactory.getMethod().getAnnotation(Deprecated.class) != null;
     }
 
     @Nullable

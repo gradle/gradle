@@ -233,7 +233,7 @@ public class GroovyCompile extends AbstractCompile {
             ((ProjectInternal) getProject()).getFileOperations(),
             getSource(),
             inputChanges.isIncremental(),
-            () -> inputChanges.getFileChanges(getStableSources()),
+            () -> inputChanges.getFileChanges(getStableSources()).iterator(),
             new GroovySourceFileClassNameConverter(sourceClassesMapping));
     }
 

@@ -249,24 +249,22 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions extends DefaultTask {
-        private final Action<IncrementalTaskInputs> incrementalTaskInputsAction;
-        private final Action<InputChanges> inputChangesAction;
+        private final Action<Object> changesAction;
 
-        public TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions(Action<IncrementalTaskInputs> incrementalTaskInputsAction, Action<InputChanges> inputChangesAction) {
-            this.incrementalTaskInputsAction = incrementalTaskInputsAction;
-            this.inputChangesAction = inputChangesAction;
+        public TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions(Action<Object> changesAction) {
+            this.changesAction = changesAction;
         }
 
         @TaskAction
         @Deprecated
         public void doStuff(IncrementalTaskInputs changes) {
-            incrementalTaskInputsAction.execute(changes);
+            changesAction.execute(changes);
             doStuff((InputChanges) changes);
         }
 
         @TaskAction
         public void doStuff(InputChanges changes) {
-            inputChangesAction.execute(changes);
+            changesAction.execute(changes);
         }
 
         @Optional
@@ -278,8 +276,8 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskOverridingDeprecatedIncrementalChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
-        public TaskOverridingDeprecatedIncrementalChangesActions(Action<IncrementalTaskInputs> incrementalTaskInputsAction, Action<InputChanges> inputChangesAction) {
-            super(incrementalTaskInputsAction, inputChangesAction);
+        public TaskOverridingDeprecatedIncrementalChangesActions(Action<Object> changesAction) {
+            super(changesAction);
         }
 
         @Override
@@ -289,8 +287,8 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskOverridingInputChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
-        public TaskOverridingInputChangesActions(Action<IncrementalTaskInputs> incrementalTaskInputsAction, Action<InputChanges> inputChangesAction) {
-            super(incrementalTaskInputsAction, inputChangesAction);
+        public TaskOverridingInputChangesActions(Action<Object> changesAction) {
+            super(changesAction);
         }
 
         @Override
