@@ -439,7 +439,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         task.apply {
             group = "verification"
             buildId = System.getenv("BUILD_ID")
-            reportDir = project.buildDir / Config.performanceTestReportsDir
+            reportDir = project.buildDir / task.name / Config.performanceTestReportsDir
             addDatabaseParameters(propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath

@@ -46,7 +46,7 @@ class PerformanceTest extends DistributionTest {
 
     private final Map<String, String> databaseParameters = new HashMap<>();
 
-    @Internal
+    @OutputDirectory
     File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName())
 
     /************** properties configured by command line arguments ***************/
