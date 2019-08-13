@@ -47,6 +47,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipInputStream
 
+import static org.gradle.testing.DefaultPerformanceReporter.collectFailures
+
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
  *

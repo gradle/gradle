@@ -23,6 +23,7 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.io.FileUtils
 import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 
@@ -40,8 +41,8 @@ class DistributedPerformanceReporter extends DefaultPerformanceReporter {
     boolean rerunable
 
     @Inject
-    DistributedPerformanceReporter(ProcessOperations processOperations) {
-        super(processOperations)
+    DistributedPerformanceReporter(ProcessOperations processOperations, FileOperations fileOperations) {
+        super(processOperations, fileOperations)
     }
 
     @Override

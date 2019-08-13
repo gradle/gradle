@@ -52,7 +52,9 @@ class DistributedPerformanceReporterTest extends Specification {
         task.finishedBuilds = finishedResults
         task.binResultsDir = project.buildDir
         task.binResultsDir.mkdirs()
-        task.performanceReporter.writeBinaryResults()
+
+        DistributedPerformanceReporter reporter = project.objects.newInstance(DistributedPerformanceReporter)
+        reporter.writeBinaryResults(task)
 
         then:
         def classResults = readClassResults(task.binResultsDir)

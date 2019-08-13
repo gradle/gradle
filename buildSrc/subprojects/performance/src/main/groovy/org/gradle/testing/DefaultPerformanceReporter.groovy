@@ -23,6 +23,7 @@ import groovy.transform.TypeCheckingMode
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Action
 import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.process.JavaExecSpec
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitFailure
@@ -43,6 +44,8 @@ class DefaultPerformanceReporter implements PerformanceReporter {
 
     String reportGeneratorClass
 
+    FileOperations fileOperations
+
     ProcessOperations processOperations
 
     String projectName
@@ -50,13 +53,16 @@ class DefaultPerformanceReporter implements PerformanceReporter {
     String githubToken
 
     @Inject
-    DefaultPerformanceReporter(ProcessOperations processOperations) {
+    DefaultPerformanceReporter(ProcessOperations processOperations, FileOperations fileOperations) {
         this.processOperations = processOperations
+        this.fileOperations = fileOperations
     }
 
     @Override
     void report(PerformanceTest performanceTest) {
         generateResultsJson(performanceTest)
+
+        fileOperations.delete(performanceTest.reportDir)
 
         processOperations.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
