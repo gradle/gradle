@@ -60,7 +60,6 @@ import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +106,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
     private boolean maybeNodesReady;
-    private final WorkerLeaseService workerLeaseService;
     private final SharedResourceLeaseRegistry sharedResourceLeaseRegistry;
     private final Map<Node, List<ResourceLock>> sharedResourceLocks = Maps.newIdentityHashMap();
     private final SharedResourceContainer sharedResourceContainer;
@@ -115,8 +113,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
-        this.workerLeaseService = workerLeaseService;
+    public DefaultExecutionPlan(GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
         this.gradle = gradle;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
@@ -352,7 +349,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 Project project = node.getProjectToLock();
                 if (project != null) {
-                    projectLocks.put(project, getOrCreateProjectLock(project));
+                    projectLocks.put(project, getProjectLock(project));
                 }
 
                 if (node instanceof TaskNode) {
@@ -659,7 +656,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private ResourceLock getProjectLock(Project project) {
-        return projectLocks.get(project);
+        return ((ProjectInternal)project).getMutationState().getAccessLock();
     }
 
     private boolean tryLockSharedResourceFor(Node node) {
@@ -777,12 +774,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         }
         return !projectLocks.isEmpty();
-    }
-
-    private ResourceLock getOrCreateProjectLock(Project project) {
-        Path buildPath = ((ProjectInternal) project).getMutationState().getOwner().getIdentityPath();
-        Path projectPath = ((ProjectInternal) project).getIdentityPath();
-        return workerLeaseService.getProjectLock(buildPath, projectPath);
     }
 
     private boolean canRunWithCurrentlyExecutedNodes(Node node, MutationInfo mutations) {

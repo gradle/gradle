@@ -69,7 +69,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void register(BuildState owner, ProjectInternal project) {
+    public ProjectState register(BuildState owner, ProjectInternal project) {
         synchronized (lock) {
             Path identityPath = project.getIdentityPath();
             ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(project.getProjectPath());
@@ -77,6 +77,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             projectsByPath.put(projectState.projectIdentityPath, projectState);
             projectsById.put(projectState.identifier, projectState);
             projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), project.getProjectPath()), projectState);
+            return projectState;
         }
     }
 
@@ -180,6 +181,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public ProjectComponentIdentifier getComponentIdentifier() {
             return identifier;
+        }
+
+        @Override
+        public ResourceLock getAccessLock() {
+            return projectLock;
         }
 
         @Override

@@ -18,8 +18,10 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -49,4 +51,12 @@ public interface ProjectState extends ModelContainer {
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();
+
+    /**
+     * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #withMutableState(Runnable)} and {@link #withMutableState(Factory)}.
+     * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
+     *
+     * <p>Note that the lock may be shared between projects.
+     */
+    ResourceLock getAccessLock();
 }

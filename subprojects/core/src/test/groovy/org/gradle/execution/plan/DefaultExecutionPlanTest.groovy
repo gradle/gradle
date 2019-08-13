@@ -18,56 +18,34 @@ package org.gradle.execution.plan
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
-import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
-import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
-import org.gradle.api.internal.tasks.TaskDestroyablesInternal
-import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.Path
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
-class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
-
+class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
-    ProjectInternal root
-    def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
-        root = createRootProject(temporaryFolder.testDirectory)
-        def taskNodeFactory = new TaskNodeFactory(root.gradle, Stub(IncludedBuildTaskGraph))
+        def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         def coordinationService = new DefaultResourceLockCoordinationService()
         def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
-        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
-        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
-            _ * isLocked() >> false
-            _ * tryLock() >> true
-        }
+        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
         _ * workerLease.tryLock() >> true
     }
 
@@ -895,7 +873,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "task cannot require more leases than shared resource maximum leases"() {
         given:
-        root.gradle.sharedResources {
+        thisBuild.sharedResources {
             resource {
                 leases = 5
             }
@@ -940,38 +918,16 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
             assert nextNode != null
             if (!nextNode.isComplete()) {
                 nodes << nextNode
-                executionPlan.finishedExecuting(nextNode)
             }
+            executionPlan.finishedExecuting(nextNode)
         }
         return nodes
-    }
-
-    private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
-        Mock(TaskDependency) {
-            getDependencies(task) >> tasks
-        }
     }
 
     private TaskDependency brokenDependencies() {
         Mock(TaskDependency) {
             0 * getDependencies(_)
         }
-    }
-
-    private void dependsOn(TaskInternal task, List<Task> dependsOnTasks) {
-        task.getTaskDependencies() >> taskDependencyResolvingTo(task, dependsOnTasks)
-    }
-
-    private void mustRunAfter(TaskInternal task, List<Task> mustRunAfterTasks) {
-        task.getMustRunAfter() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
-    }
-
-    private void finalizedBy(TaskInternal task, List<Task> finalizedByTasks) {
-        task.getFinalizedBy() >> taskDependencyResolvingTo(task, finalizedByTasks)
-    }
-
-    private void shouldRunAfter(TaskInternal task, List<Task> shouldRunAfterTasks) {
-        task.getShouldRunAfter() >> taskDependencyResolvingTo(task, shouldRunAfterTasks)
     }
 
     private void failure(TaskInternal task, final RuntimeException failure) {
@@ -981,22 +937,6 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     private TaskInternal task(final String name) {
         task([:], name)
-    }
-
-    private TaskOutputsInternal emptyTaskOutputs() {
-        Stub(TaskOutputsInternal)
-    }
-
-    private TaskDestroyables emptyTaskDestroys() {
-        Stub(TaskDestroyablesInternal)
-    }
-
-    private TaskLocalStateInternal emptyTaskLocalState() {
-        Stub(TaskLocalStateInternal)
-    }
-
-    private TaskInputsInternal emptyTaskInputs() {
-        Stub(TaskInputsInternal)
     }
 
     private TaskInternal task(Map options, final String name) {
@@ -1009,10 +949,6 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
             task.getSharedResources() >> options.resources
         }
         task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
-        task.getOutputs() >> emptyTaskOutputs()
-        task.getDestroyables() >> emptyTaskDestroys()
-        task.getLocalState() >> emptyTaskLocalState()
-        task.getInputs() >> emptyTaskInputs()
         return task
     }
 
@@ -1029,26 +965,6 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getMustRunAfter() >> brokenDependencies()
         task.getShouldRunAfter() >> brokenDependencies()
         task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
-        return task
-    }
-
-    private TaskInternal createTask(final String name) {
-        TaskInternal task = Mock()
-        TaskStateInternal state = Mock()
-        task.getProject() >> root
-        task.name >> name
-        task.path >> ':' + name
-        task.identityPath >> Path.path(':' + name)
-        task.state >> state
-        task.toString() >> "task $name"
-        task.compareTo(_ as TaskInternal) >> { TaskInternal taskInternal ->
-            return name.compareTo(taskInternal.getName())
-        }
-        task.getOutputs() >> emptyTaskOutputs()
-        task.getDestroyables() >> emptyTaskDestroys()
-        task.getLocalState() >> emptyTaskLocalState()
-        task.getInputs() >> emptyTaskInputs()
-        task.getTaskIdentity() >> TaskIdentity.create(name, DefaultTask, root)
         return task
     }
 }
