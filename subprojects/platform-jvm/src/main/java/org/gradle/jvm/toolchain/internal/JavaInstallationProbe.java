@@ -182,6 +182,7 @@ public class JavaInstallationProbe {
             return error(ex.getMessage());
         } finally {
             try {
+                // TODO This should use Deleter
                 FileUtils.deleteDirectory(workingDir);
             } catch (IOException e) {
                 throw new GradleException("Unable to delete temp directory", e);

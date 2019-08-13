@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -241,7 +242,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir, String version) {
             TestFile perVersionDir = new TestFile(workingDir, version)
             if (perVersionDir.exists()) {
-                GFileUtils.cleanDirectory(perVersionDir)
+                FileUtils.cleanDirectory(perVersionDir)
             } else {
                 perVersionDir.mkdirs()
             }
