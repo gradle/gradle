@@ -108,7 +108,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     private void storeClassLoader(ClassLoader classLoader) {
         final ClassLoader previous = currentClassloader.getAndSet(classLoader);
-        if (previous != null && previous instanceof Closeable) {
+        if (previous instanceof Closeable) {
             loadersToClose.add(new SoftReference<Closeable>(Cast.cast(Closeable.class, previous)));
         }
     }
