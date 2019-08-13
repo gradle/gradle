@@ -16,12 +16,32 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.instantexecution.extensions.uncheckedCast
+
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
+
+import org.gradle.internal.serialize.Serializer
+
+import kotlin.reflect.KClass
 
 
 class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
+
+    internal
+    companion object {
+
+        operator fun invoke(bindings: BindingsBuilder.() -> Unit) =
+            BindingsBackedCodec(
+                BindingsBuilder().apply(bindings).build()
+            )
+
+        private
+        const val NULL_VALUE: Byte = -1
+    }
+
     private
     val encodings = HashMap<Class<*>, Encoding>()
 
@@ -49,11 +69,6 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     private
     fun encoding(e: Encoding) = e
-
-    internal
-    companion object {
-        const val NULL_VALUE: Byte = -1
-    }
 }
 
 
@@ -65,3 +80,37 @@ data class Binding(
     val type: Class<*>,
     val codec: Codec<Any>
 )
+
+
+internal
+class BindingsBuilder {
+
+    private
+    val bindings = mutableListOf<Binding>()
+
+    fun build(): List<Binding> = bindings.toList()
+
+    fun bind(type: Class<*>, codec: Codec<*>) {
+        require(bindings.none { it.type === type })
+        val tag = bindings.size
+        require(tag < Byte.MAX_VALUE)
+        bindings.add(
+            Binding(tag.toByte(), type, codec.uncheckedCast())
+        )
+    }
+
+    inline fun <reified T> bind(codec: Codec<T>) =
+        bind(T::class.java, codec)
+
+    inline fun <reified T> bind(serializer: Serializer<T>) =
+        bind(T::class.java, serializer)
+
+    fun bind(type: KClass<*>, codec: Codec<*>) =
+        bind(type.java, codec)
+
+    fun bind(type: KClass<*>, serializer: Serializer<*>) =
+        bind(type.java, serializer)
+
+    fun bind(type: Class<*>, serializer: Serializer<*>) =
+        bind(type, SerializerCodec(serializer))
+}
