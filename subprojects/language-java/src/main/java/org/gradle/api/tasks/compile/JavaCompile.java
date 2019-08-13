@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.changedetection.changes.StatefulIncrementalTaskInputs;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
@@ -76,10 +77,10 @@ import java.util.concurrent.Callable;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
-    private final FileCollection stableSources = getProject().files(new Callable<FileTree>() {
+    private final FileCollection stableSources = getProject().files(new Callable<FileTree[]>() {
         @Override
-        public FileTree call() {
-            return getSource();
+        public FileTree[] call() {
+            return new FileTree[] { getSource(), getSources() };
         }
     });
 
@@ -96,6 +97,19 @@ public class JavaCompile extends AbstractCompile {
     @Internal
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    /**
+     * This method is overwritten by the Android plugin < 3.6.
+     * We add it here as hack so we can add the source from that method to stableSources.
+     * DO NOT USE!
+     *
+     * @since 5.7
+     */
+    @Deprecated
+    @Internal
+    public FileTree getSources() {
+        return getProject().files().getAsFileTree();
     }
 
     /**
@@ -120,10 +134,11 @@ public class JavaCompile extends AbstractCompile {
         this.toolChain = toolChain;
     }
 
-    protected void compile(IncrementalTaskInputs inputs) {
-        throw new UnsupportedOperationException("No more IncrementalTaskInputs");
-    }
     @TaskAction
+    protected void compile(IncrementalTaskInputs inputs) {
+        compile(((StatefulIncrementalTaskInputs) inputs).getInputChanges());
+    }
+
     protected void compile(InputChanges inputs) {
         if (!compileOptions.isIncremental()) {
             compile();

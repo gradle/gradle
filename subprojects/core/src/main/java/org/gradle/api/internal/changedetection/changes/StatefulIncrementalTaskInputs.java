@@ -19,10 +19,20 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.work.InputChanges;
 
 public abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
+    private final InputChanges inputChanges;
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
+
+    public StatefulIncrementalTaskInputs(InputChanges inputChanges) {
+        this.inputChanges = inputChanges;
+    }
+
+    public InputChanges getInputChanges() {
+        return inputChanges;
+    }
 
     @Override
     public void outOfDate(final Action<? super InputFileDetails> outOfDateAction) {

@@ -41,17 +41,17 @@ public class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskActi
 
         Iterable<InputFileDetails> allFileChanges = inputChanges.getAllFileChanges();
         IncrementalTaskInputs incrementalTaskInputs = inputChanges.isIncremental()
-            ? createIncrementalInputs(allFileChanges)
-            : createRebuildInputs(allFileChanges);
+            ? createIncrementalInputs(allFileChanges, inputChanges)
+            : createRebuildInputs(allFileChanges, inputChanges);
 
         JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
     }
 
-    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<InputFileDetails> allFileChanges) {
-        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, allFileChanges);
+    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<InputFileDetails> allFileChanges, InputChangesInternal inputChanges) {
+        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, allFileChanges, inputChanges);
     }
 
-    private RebuildIncrementalTaskInputs createRebuildInputs(Iterable<InputFileDetails> allFileChanges) {
-        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, allFileChanges);
+    private RebuildIncrementalTaskInputs createRebuildInputs(Iterable<InputFileDetails> allFileChanges, InputChangesInternal inputChanges) {
+        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, allFileChanges, inputChanges);
     }
 }
