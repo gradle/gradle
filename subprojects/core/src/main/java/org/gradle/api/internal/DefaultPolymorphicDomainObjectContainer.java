@@ -16,10 +16,15 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Set;
 
@@ -30,6 +35,15 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, namer, callbackDecorator);
         namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
+    }
+
+    /**
+     * This internal constructor is used by the 'idea-ext' plugin which we use in our build.
+     * */
+    @Deprecated
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+        this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)");
     }
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
