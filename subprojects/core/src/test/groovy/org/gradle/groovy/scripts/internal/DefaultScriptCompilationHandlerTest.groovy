@@ -62,8 +62,8 @@ import static org.junit.Assert.assertTrue
 
 class DefaultScriptCompilationHandlerTest extends Specification {
 
-    static final String TEST_EXPECTED_SYSTEMPROP_VALUE = "somevalue"
-    static final String TEST_EXPECTED_SYSTEMPROP_KEY = "somekey"
+    static final String TEST_EXPECTED_SYSTEM_PROP_VALUE = "someValue"
+    static final String TEST_EXPECTED_SYSTEM_PROP_KEY = "someKey"
 
     private DefaultScriptCompilationHandler scriptCompilationHandler
 
@@ -77,7 +77,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
     private ClassLoader classLoader = getClass().getClassLoader()
     private ClassLoaderScope targetScope = Stub() {
-        createChild(_) >> Stub(ClassLoaderScope)
+        createChild(_ as String) >> Stub(ClassLoaderScope)
         getExportClassLoader() >> classLoader
     }
 
@@ -102,7 +102,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         )
         scriptCacheDir = new File(testProjectDir, "cache")
         metadataCacheDir = new File(testProjectDir, "metadata")
-        scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE + "')"
+        scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEM_PROP_KEY + "', '" + TEST_EXPECTED_SYSTEM_PROP_VALUE + "')"
 
         scriptClassName = "ScriptClassName"
         scriptFileName = "script-file-name"
@@ -264,7 +264,7 @@ println 'hi'
     }
 
     def testCompileToDirWithSyntaxError() {
-        ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew HHHHJSJSJ jsj")
+        ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew invalid syntax")
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -272,7 +272,7 @@ println 'hi'
         then:
         ScriptCompilationException e = thrown()
         e.lineNumber == 3
-        e.cause.message.contains("script.gradle: 3: unexpected token: jsj")
+        e.cause.message.contains("script.gradle: 3: unexpected token: syntax")
 
         and:
         checkScriptCacheEmpty()
@@ -285,15 +285,15 @@ println 'hi'
             }
 
             @Override
-            public void call(SourceUnit source) throws CompilationFailedException {
+            void call(SourceUnit source) throws CompilationFailedException {
                 source.getAST().getStatementBlock().visit(new CodeVisitorSupport() {
                     @Override
-                    public void visitMethodCallExpression(MethodCallExpression call) {
+                    void visitMethodCallExpression(MethodCallExpression call) {
                         call.setObjectExpression(new ClassExpression(ClassHelper.make(System.class)))
                         call.setMethod(new ConstantExpression("setProperty"))
                         ArgumentListExpression arguments = (ArgumentListExpression) call.getArguments()
-                        arguments.addExpression(new ConstantExpression(TEST_EXPECTED_SYSTEMPROP_KEY))
-                        arguments.addExpression(new ConstantExpression(TEST_EXPECTED_SYSTEMPROP_VALUE))
+                        arguments.addExpression(new ConstantExpression(TEST_EXPECTED_SYSTEM_PROP_KEY))
+                        arguments.addExpression(new ConstantExpression(TEST_EXPECTED_SYSTEM_PROP_VALUE))
                     }
                 })
             }
@@ -301,7 +301,7 @@ println 'hi'
 
         def transformer = new CompileOperation<String>() {
             @Override
-            public String getId() {
+            String getId() {
                 return "id"
             }
 
@@ -311,18 +311,18 @@ println 'hi'
             }
 
             @Override
-            public Transformer getTransformer() {
+            Transformer getTransformer() {
                 return visitor
             }
 
 
             @Override
-            public String getExtractedData() {
+            String getExtractedData() {
                 return "extracted data"
             }
 
             @Override
-            public Serializer<String> getDataSerializer() {
+            Serializer<String> getDataSerializer() {
                 return new BaseSerializerFactory().getSerializerFor(String)
             }
         }
@@ -350,14 +350,14 @@ println 'hi'
             }
 
             @Override
-            public void call(SourceUnit source) throws CompilationFailedException {
+            void call(SourceUnit source) throws CompilationFailedException {
                 source.getAST().getStatementBlock().getStatements().clear()
             }
         }
 
         def transformer = new CompileOperation<String>() {
             @Override
-            public String getId() {
+            String getId() {
                 return "id"
             }
 
@@ -367,17 +367,17 @@ println 'hi'
             }
 
             @Override
-            public Transformer getTransformer() {
+            Transformer getTransformer() {
                 return visitor
             }
 
             @Override
-            public String getExtractedData() {
+            String getExtractedData() {
                 return "extracted data"
             }
 
             @Override
-            public Serializer<String> getDataSerializer() {
+            Serializer<String> getDataSerializer() {
                 return new BaseSerializerFactory().getSerializerFor(String)
             }
 
@@ -425,7 +425,7 @@ println 'hi'
         checkScriptCacheEmpty()
 
         where:
-        unknownClass << [ 'unknownclass', 'fully.qualified.unknownclass', 'not.java.util.Map.Entry' ]
+        unknownClass << [ 'unknownClass', 'fully.qualified.unknownClass', 'not.java.util.Map.Entry' ]
     }
 
     @Issue('GRADLE-3423')
@@ -518,12 +518,12 @@ Outer.Inner.Deeper weMustGoDeeper = null
     private void evaluateScript(Script script) {
         assertThat(script, instanceOf(expectedScriptClass))
         assertEquals(script.getClass().getSimpleName(), scriptClassName)
-        System.setProperty(TEST_EXPECTED_SYSTEMPROP_KEY, "not the expected value")
+        System.setProperty(TEST_EXPECTED_SYSTEM_PROP_KEY, "not the expected value")
         script.run()
-        assertEquals(TEST_EXPECTED_SYSTEMPROP_VALUE, System.getProperty(TEST_EXPECTED_SYSTEMPROP_KEY))
+        assertEquals(TEST_EXPECTED_SYSTEM_PROP_VALUE, System.getProperty(TEST_EXPECTED_SYSTEM_PROP_KEY))
     }
 
-    public abstract static class TestBaseScript extends Script {
+    abstract static class TestBaseScript extends Script {
     }
 
     private static HashCode hashFor(String scriptText) {
