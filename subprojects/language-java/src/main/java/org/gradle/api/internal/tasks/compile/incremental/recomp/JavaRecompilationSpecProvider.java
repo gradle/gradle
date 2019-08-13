@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedRes
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 
 import java.io.File;
@@ -132,23 +131,9 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 if (emptyAnnotationProcessorPath) {
                     continue;
                 }
-                String changeName = determineChangeName(fileChange.getChangeType());
-                spec.setFullRebuildCause(fileChange.getFile().getName() + " has been " + changeName, null);
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("resource", fileChange), null);
                 return;
             }
-        }
-    }
-
-    private String determineChangeName(ChangeType changeType) {
-        switch (changeType) {
-            case ADDED:
-                return "added";
-            case REMOVED:
-                return "removed";
-            case MODIFIED:
-                return "modified";
-            default:
-                throw new AssertionError("Unknown change type: " + changeType);
         }
     }
 

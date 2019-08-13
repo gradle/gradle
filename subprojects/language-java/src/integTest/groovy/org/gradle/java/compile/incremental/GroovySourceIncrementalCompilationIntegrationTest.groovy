@@ -163,7 +163,7 @@ class A2{}
         run 'compileGroovy', '--info'
 
         then:
-        outputContains('changes to non-Groovy files are not supported by incremental compilation')
+        outputContains("Full recompilation is required because non-Groovy file 'B.java' has been added.")
         !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('MyClass')
     }
 

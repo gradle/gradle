@@ -126,7 +126,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
 
             File changedFile = fileChange.getFile();
             if (!FileUtils.hasExtension(changedFile, ".groovy")) {
-                spec.setFullRebuildCause("changes to non-Groovy files are not supported by incremental compilation", changedFile);
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("non-Groovy file", fileChange), null);
                 return;
             }
 

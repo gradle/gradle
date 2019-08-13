@@ -29,6 +29,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
 
 import java.io.File;
 import java.util.List;
@@ -100,5 +102,23 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         File destinationDir = spec.getDestinationDir();
         classpath.add(destinationDir);
         spec.setCompileClasspath(classpath);
+    }
+
+    protected String rebuildClauseForChangedNonSourceFile(String description, FileChange fileChange) {
+        String changeName = determineChangeName(fileChange.getChangeType());
+        return description + " '" + fileChange.getFile().getName() + "' has been " + changeName;
+    }
+
+    private String determineChangeName(ChangeType changeType) {
+        switch (changeType) {
+            case ADDED:
+                return "added";
+            case REMOVED:
+                return "removed";
+            case MODIFIED:
+                return "modified";
+            default:
+                throw new AssertionError("Unknown change type: " + changeType);
+        }
     }
 }
