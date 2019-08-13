@@ -19,6 +19,7 @@ package org.gradle.testing
 import com.google.common.annotations.VisibleForTesting
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.io.FileUtils
@@ -31,6 +32,7 @@ import javax.inject.Inject
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicLong
 
+@CompileStatic
 class DistributedPerformanceReporter extends DefaultPerformanceReporter {
     /**
      * If the reporter supports rerun.
@@ -49,11 +51,11 @@ class DistributedPerformanceReporter extends DefaultPerformanceReporter {
     void report(PerformanceTest performanceTest) {
         DistributedPerformanceTest distributedPerformanceTest = (DistributedPerformanceTest) performanceTest
 
-        if (isGeneratingScenarioList()) {
+        if (isGeneratingScenarioList(distributedPerformanceTest)) {
             // do nothing
         } else if (!distributedPerformanceTest.isRerun()) {
             // first run, only write report when it succeeds
-            if (allWorkerBuildsAreSuccessful() || !rerunable) {
+            if (allWorkerBuildsAreSuccessful(distributedPerformanceTest) || !rerunable) {
                 super.report(distributedPerformanceTest)
             } else {
                 writeBinaryResults(distributedPerformanceTest)
