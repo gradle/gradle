@@ -73,9 +73,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Internal
     String teamCityPassword
 
-    @Internal
-    String buildId
-
     /**
      * In FlakinessDetectionPerformanceTest, we simply repeat all scenarios several times.
      * This field is used to control the iteration count.
@@ -102,7 +99,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
-        this.performanceReporter = new DistributedPerformanceReporter(this)
         getOutputs().doNotCacheIf("rerun build depends on first run's output", { isRerun() })
         jvmArgumentProviders.add(new CommandLineArgumentProvider() {
             @Override
@@ -141,7 +137,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             e.printStackTrace()
             throw e
         } finally {
-            performanceReporter.report()
+            performanceReporter.report(this)
             testEventsGenerator.release()
         }
     }

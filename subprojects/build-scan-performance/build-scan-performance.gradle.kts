@@ -1,6 +1,8 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.DefaultPerformanceReporter
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.kotlin.dsl.*
 
 /*
  * Copyright 2016 the original author or authors.
@@ -69,7 +71,5 @@ val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
 
 tasks.withType<PerformanceTest>().configureEach {
     dependsOn(generateTemplate)
-    performanceReporter.isEnabled = true
-    performanceReporter.reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 }

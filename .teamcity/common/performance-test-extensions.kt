@@ -56,4 +56,5 @@ val individualPerformanceTestArtifactRules = """
         subprojects/*/build/tmp/**/log.txt => failure-logs
         subprojects/*/build/tmp/**/profile.log => failure-logs
         subprojects/*/build/report-*-performance-tests.zip => .
+        subprojects/*/build/performance-tests/report => report 
     """.trimIndent()

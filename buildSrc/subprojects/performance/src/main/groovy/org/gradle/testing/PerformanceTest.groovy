@@ -88,8 +88,9 @@ class PerformanceTest extends DistributionTest {
     @OutputDirectory
     File reportDir
 
+    // Disable report by default, we don't need it in worker build - unless it's AdHoc performance test
     @Internal
-    PerformanceReporter performanceReporter = new PerformanceReporter(this)
+    PerformanceReporter performanceReporter = PerformanceReporter.NoOpPerformanceReporter.INSTANCE
 
     PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider());
@@ -111,7 +112,7 @@ class PerformanceTest extends DistributionTest {
         try {
             super.executeTests()
         } finally {
-            performanceReporter.report()
+            performanceReporter.report(this)
         }
     }
 
@@ -156,7 +157,6 @@ class PerformanceTest extends DistributionTest {
         this.channel = channel
     }
 
-
     @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
     void setFlamegraphs(String flamegraphs) {
         this.flamegraphs = Boolean.parseBoolean(flamegraphs)
@@ -188,10 +188,12 @@ class PerformanceTest extends DistributionTest {
 
         private void addJava9HomeSystemProperty(List<String> result) {
             String java9Home =
-                [getProject().findProperty("java9Home"),
-                 System.getProperty("java9Home"),
-                 System.getenv("java9Home"),
-                 JavaVersion.current().isJava9Compatible() ? System.getProperty("java.home") : null].collect { it }.first()
+                [
+                    getProject().findProperty("java9Home"),
+                    System.getProperty("java9Home"),
+                    System.getenv("java9Home"),
+                    JavaVersion.current().isJava9Compatible() ? System.getProperty("java.home") : null
+                ].findAll().first()
 
             addSystemPropertyIfExist(result, "java9Home", java9Home)
         }

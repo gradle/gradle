@@ -17,45 +17,65 @@
 package org.gradle.testing
 
 import com.google.common.annotations.VisibleForTesting
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.apache.commons.io.FileUtils
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 
+import javax.inject.Inject
+import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicLong
 
-class DistributedPerformanceReporter extends PerformanceReporter {
-    DistributedPerformanceReporter(PerformanceTest performanceTest) {
-        super(performanceTest)
-    }
+class DistributedPerformanceReporter extends DefaultPerformanceReporter {
+    /**
+     * If the reporter supports rerun.
+     *
+     * For the "rerun-able" distributed performance test, the report will only be generated when the first run fails,
+     * or the rerun finishes. For "non-rerun-able" performance test, the report will be generated when the first run finishes.
+     */
+    boolean rerunable
 
-    private DistributedPerformanceTest getDistributedPerformanceTest() {
-        return (DistributedPerformanceTest) performanceTest
+    @Inject
+    DistributedPerformanceReporter(ProcessOperations processOperations) {
+        super(processOperations)
     }
 
     @Override
-    void report() {
+    void report(PerformanceTest performanceTest) {
+        DistributedPerformanceTest distributedPerformanceTest = (DistributedPerformanceTest) performanceTest
+
         if (isGeneratingScenarioList()) {
             // do nothing
         } else if (!distributedPerformanceTest.isRerun()) {
             // first run, only write report when it succeeds
-            if (allWorkerBuildsAreSuccessful()) {
-                super.report()
+            if (allWorkerBuildsAreSuccessful() || !rerunable) {
+                super.report(distributedPerformanceTest)
             } else {
-                writeBinaryResults()
-                generateResultsJson()
+                writeBinaryResults(distributedPerformanceTest)
+                generateResultsJson(distributedPerformanceTest)
             }
         } else {
-            super.report()
+            super.report(distributedPerformanceTest)
         }
     }
 
-    boolean isGeneratingScenarioList() {
+    @Override
+    protected void generateResultsJson(PerformanceTest performanceTest) {
+        DistributedPerformanceTest distributedPerformanceTest = (DistributedPerformanceTest) performanceTest
+
+        List<ScenarioBuildResultData> resultData = distributedPerformanceTest.isRerun() ? getResultsFromCurrentRun(distributedPerformanceTest) + getResultsFromPreviousRun() : getResultsFromCurrentRun(distributedPerformanceTest)
+        FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
+    }
+
+    static boolean isGeneratingScenarioList(DistributedPerformanceTest distributedPerformanceTest) {
         return distributedPerformanceTest.finishedBuilds.isEmpty()
     }
 
-    boolean allWorkerBuildsAreSuccessful() {
+    static boolean allWorkerBuildsAreSuccessful(DistributedPerformanceTest distributedPerformanceTest) {
         return distributedPerformanceTest.finishedBuilds.values().every { it.successful }
     }
 
@@ -63,7 +83,7 @@ class DistributedPerformanceReporter extends PerformanceReporter {
      * This is for tagging plugin. See https://github.com/gradle/ci-health/blob/3e30ea146f594ee54a4efe4384f933534b40739c/gradle-build-tag-plugin/src/main/groovy/org/gradle/ci/tagging/plugin/TagSingleBuildPlugin.groovy
      */
     @VisibleForTesting
-    void writeBinaryResults() {
+    static void writeBinaryResults(DistributedPerformanceTest distributedPerformanceTest) {
         AtomicLong counter = new AtomicLong()
         Map<String, List<DistributedPerformanceTest.ScenarioResult>> classNameToScenarioNames = distributedPerformanceTest.finishedBuilds.values().findAll { it.testClassFullName != null }.groupBy {
             it.testClassFullName
@@ -79,21 +99,12 @@ class DistributedPerformanceReporter extends PerformanceReporter {
         new TestResultSerializer(distributedPerformanceTest.binResultsDir).write(classResults)
     }
 
-    @Override
-    protected List<ScenarioBuildResultData> generateResultsForReport() {
-        if (!distributedPerformanceTest.isRerun()) {
-            return getResultsFromCurrentRun()
-        } else {
-            return getResultsFromCurrentRun() + getResultsFromoPreviousRun()
-        }
-    }
-
-    private List<ScenarioBuildResultData> getResultsFromoPreviousRun() {
+    private List<ScenarioBuildResultData> getResultsFromPreviousRun() {
         return resultsJson.isFile() ? ((List<Map>) new JsonSlurper().parseText(resultsJson.text)).collect { new ScenarioBuildResultData(it) } : []
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private List<ScenarioBuildResultData> getResultsFromCurrentRun() {
+    private static List<ScenarioBuildResultData> getResultsFromCurrentRun(DistributedPerformanceTest distributedPerformanceTest) {
         return distributedPerformanceTest.finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 teamCityBuildId: workerBuildId,
