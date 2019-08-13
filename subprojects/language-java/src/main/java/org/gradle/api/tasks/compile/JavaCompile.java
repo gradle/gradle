@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.changedetection.changes.StatefulIncrementalTaskInputs;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
@@ -53,6 +52,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
@@ -80,7 +80,7 @@ public class JavaCompile extends AbstractCompile {
     private final FileCollection stableSources = getProject().files(new Callable<FileTree[]>() {
         @Override
         public FileTree[] call() {
-            return new FileTree[] { getSource(), getSources() };
+            return new FileTree[] {getSource(), getSources()};
         }
     });
 
@@ -100,7 +100,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     /**
-     * This method is overwritten by the Android plugin < 3.6.
+     * This method is overwritten by the Android plugin &lt; 3.6.
      * We add it here as hack so we can add the source from that method to stableSources.
      * DO NOT USE!
      *
@@ -134,11 +134,19 @@ public class JavaCompile extends AbstractCompile {
         this.toolChain = toolChain;
     }
 
+    /**
+     * Compile the sources, taking into account the changes reported by inputs.
+     *
+     * @deprecated Left for backwards compatibility.
+     */
+    @Deprecated
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
-        compile(((StatefulIncrementalTaskInputs) inputs).getInputChanges());
+        DeprecationLogger.nagUserOfDeprecatedThing("Extending the JavaCompile task", "Configure the task instead");
+        compile((InputChanges) inputs);
     }
 
+    @TaskAction
     protected void compile(InputChanges inputs) {
         if (!compileOptions.isIncremental()) {
             compile();

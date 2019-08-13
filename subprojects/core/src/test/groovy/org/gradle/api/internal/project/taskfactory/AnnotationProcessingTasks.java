@@ -248,6 +248,57 @@ public class AnnotationProcessingTasks {
         public void doStuff(InputChanges changes) {}
     }
 
+    public static class TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions extends DefaultTask {
+        private final Action<IncrementalTaskInputs> incrementalTaskInputsAction;
+        private final Action<InputChanges> inputChangesAction;
+
+        public TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions(Action<IncrementalTaskInputs> incrementalTaskInputsAction, Action<InputChanges> inputChangesAction) {
+            this.incrementalTaskInputsAction = incrementalTaskInputsAction;
+            this.inputChangesAction = inputChangesAction;
+        }
+
+        @TaskAction
+        @Deprecated
+        public void doStuff(IncrementalTaskInputs changes) {
+            incrementalTaskInputsAction.execute(changes);
+            doStuff((InputChanges) changes);
+        }
+
+        @TaskAction
+        public void doStuff(InputChanges changes) {
+            inputChangesAction.execute(changes);
+        }
+
+        @Optional
+        @OutputDirectory
+        @Nullable
+        public File getOutputDirectory() {
+            return null;
+        }
+    }
+
+    public static class TaskOverridingDeprecatedIncrementalChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
+        public TaskOverridingDeprecatedIncrementalChangesActions(Action<IncrementalTaskInputs> incrementalTaskInputsAction, Action<InputChanges> inputChangesAction) {
+            super(incrementalTaskInputsAction, inputChangesAction);
+        }
+
+        @Override
+        public void doStuff(IncrementalTaskInputs changes) {
+            super.doStuff(changes);
+        }
+    }
+
+    public static class TaskOverridingInputChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
+        public TaskOverridingInputChangesActions(Action<IncrementalTaskInputs> incrementalTaskInputsAction, Action<InputChanges> inputChangesAction) {
+            super(incrementalTaskInputsAction, inputChangesAction);
+        }
+
+        @Override
+        public void doStuff(InputChanges changes) {
+            super.doStuff(changes);
+        }
+    }
+
     public static class TaskWithSingleParamAction extends DefaultTask {
         @TaskAction
         public void doStuff(int value1) {

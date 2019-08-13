@@ -210,6 +210,49 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
+    def "uses IncrementalTaskInputsMethod when it is overriden"() {
+        given:
+        def incrementalTaskInputsAction = Mock(Action)
+        def inputChangesAction = Mock(Action)
+        def task = expectTaskCreated(AnnotationProcessingTasks.TaskOverridingDeprecatedIncrementalChangesActions, incrementalTaskInputsAction, inputChangesAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * incrementalTaskInputsAction.execute(_ as IncrementalTaskInputs)
+        1 * inputChangesAction.execute(_ as InputChanges)
+        0 * _
+    }
+
+    def "uses InputChanges method when two actions are present on the same class"() {
+        given:
+        def incrementalTaskInputsAction = Mock(Action)
+        def inputChangesAction = Mock(Action)
+        def task = expectTaskCreated(AnnotationProcessingTasks.TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions, incrementalTaskInputsAction, inputChangesAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * inputChangesAction.execute(_ as InputChanges)
+        0 * _
+    }
+
+    def "uses overridden InputChanges when two actions are present on the base class"() {
+        given:
+        def incrementalTaskInputsAction = Mock(Action)
+        def inputChangesAction = Mock(Action)
+        def task = expectTaskCreated(AnnotationProcessingTasks.TaskOverridingInputChangesActions, incrementalTaskInputsAction, inputChangesAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * inputChangesAction.execute(_ as InputChanges)
+        0 * _
+    }
+
     def createsContextualActionForOverriddenInputChangesTaskAction() {
         given:
         def action = Mock(Action)

@@ -18,13 +18,11 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.work.InputChanges;
 
 public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
     private final Iterable<InputFileDetails> inputChanges;
 
-    public RebuildIncrementalTaskInputs(Iterable<InputFileDetails> inputChanges, InputChanges inputChangesDelegate) {
-        super(inputChangesDelegate);
+    public RebuildIncrementalTaskInputs(Iterable<InputFileDetails> inputChanges) {
         this.inputChanges = inputChanges;
     }
 
