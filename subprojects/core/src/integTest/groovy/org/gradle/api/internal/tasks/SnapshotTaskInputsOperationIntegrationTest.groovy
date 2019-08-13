@@ -261,7 +261,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             normalization == "CLASSPATH"
         }
 
-        with(aCompileJava.source) {
+        with(aCompileJava.stableSources) {
             hash != null
             normalization == "RELATIVE_PATH"
             roots.size() == 1
@@ -304,7 +304,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 !containsKey("children")
             }
         }
-        with(bCompileJava.source) {
+        with(bCompileJava.stableSources) {
             hash != null
             roots.size() == 2
             with(roots[0]) {

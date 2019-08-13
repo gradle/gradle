@@ -19,34 +19,41 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.Supplier;
+
+import static org.gradle.internal.FileUtils.hasExtension;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
-    private final IncrementalTaskInputs inputs;
+    private final boolean incremental;
+    private final Supplier<Iterable<FileChange>> sourceFileChanges;
     private final JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
+    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, boolean incremental, Supplier<Iterable<FileChange>> sourceFileChanges, CompilationSourceDirs sourceDirs) {
         super(fileOperations, sources);
+        this.incremental = incremental;
+        this.sourceFileChanges = sourceFileChanges;
         this.sourceFileClassNameConverter = new JavaConventionalSourceFileClassNameConverter(sourceDirs);
-        this.inputs = inputs;
     }
 
     @Override
     public boolean isIncremental() {
-        return inputs.isIncremental();
+        return incremental;
     }
 
     @Override
@@ -106,12 +113,49 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+        if (spec.isFullRebuildNeeded()) {
+            return;
+        }
+        boolean emptyAnnotationProcessorPath = current.getAnnotationProcessorPath().isEmpty();
         SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous);
-        AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor = new AnnotationProcessorChangeProcessor(current, previous);
-        ResourceChangeProcessor resourceChangeProcessor = new ResourceChangeProcessor(current.getAnnotationProcessorPath());
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor, sourceFileClassNameConverter);
-        inputs.outOfDate(action);
-        inputs.removed(action);
+        for (FileChange fileChange : sourceFileChanges.get()) {
+            File file = fileChange.getFile();
+            if (fileChange.getFileType() != FileType.FILE) {
+                continue;
+            }
+            if (hasExtension(file, ".java")) {
+                Collection<String> classNames = sourceFileClassNameConverter.getClassNames(file);
+                if (classNames.isEmpty()) {
+                    // https://github.com/gradle/gradle/issues/9380
+                    // Remove a srcDir from a sourceSet
+                    spec.setFullRebuildCause("source dirs are changed", file);
+                    return;
+                } else {
+                    javaChangeProcessor.processChange(file, classNames, spec);
+                }
+            } else {
+                if (emptyAnnotationProcessorPath) {
+                    continue;
+                }
+                String changeName = determineChangeName(fileChange.getChangeType());
+                spec.setFullRebuildCause(fileChange.getFile().getName() + " has been " + changeName, null);
+                return;
+
+            }
+        }
+    }
+
+    private String determineChangeName(ChangeType changeType) {
+        switch (changeType) {
+            case ADDED:
+                return "added";
+            case REMOVED:
+                return "removed";
+            case MODIFIED:
+                return "modified";
+            default:
+                throw new AssertionError("Unknown change type: " + changeType);
+        }
     }
 
     private void prepareJavaPatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {

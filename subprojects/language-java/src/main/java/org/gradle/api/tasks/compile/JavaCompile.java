@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -35,10 +36,12 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilatio
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -50,10 +53,13 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.util.SingleMessageLogger;
+import org.gradle.work.Incremental;
+import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Compiles Java source files.
@@ -71,6 +77,12 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
+    private final FileCollection stableSources = getProject().files(new Callable<FileTree>() {
+        @Override
+        public FileTree call() {
+            return getSource();
+        }
+    });
 
     public JavaCompile() {
         CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
@@ -82,7 +94,7 @@ public class JavaCompile extends AbstractCompile {
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Internal
     public FileTree getSource() {
         return super.getSource();
     }
@@ -109,8 +121,11 @@ public class JavaCompile extends AbstractCompile {
         this.toolChain = toolChain;
     }
 
-    @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
+        throw new UnsupportedOperationException("No more IncrementalTaskInputs");
+    }
+    @TaskAction
+    protected void compile(InputChanges inputs) {
         if (!compileOptions.isIncremental()) {
             compile();
             return;
@@ -121,7 +136,7 @@ public class JavaCompile extends AbstractCompile {
             createCompiler(spec),
             getPath(),
             getSource(),
-            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs, new CompilationSourceDirs(spec.getSourceRoots()))
+            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs.isIncremental(), () -> inputs.getFileChanges(getStableSources()), new CompilationSourceDirs(spec.getSourceRoots()))
         );
         performCompilation(spec, incrementalCompiler);
     }
@@ -185,6 +200,7 @@ public class JavaCompile extends AbstractCompile {
 
     @Override
     @CompileClasspath
+    @Incremental
     public FileCollection getClasspath() {
         return super.getClasspath();
     }
@@ -205,5 +221,18 @@ public class JavaCompile extends AbstractCompile {
     public FileCollection getEffectiveAnnotationProcessorPath() {
         SingleMessageLogger.nagUserOfReplacedProperty("JavaCompile.effectiveAnnotationProcessorPath", "JavaCompile.options.annotationProcessorPath");
         return compileOptions.getAnnotationProcessorPath();
+    }
+
+    /**
+     * The sources for incremental change detection.
+     *
+     * @since 5.7
+     */
+    @Incubating
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    protected FileCollection getStableSources() {
+        return stableSources;
     }
 }

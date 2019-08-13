@@ -940,7 +940,7 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
     def "does not recompile when a resource changes"() {
         given:
         buildFile << """
-            compileJava.inputs.dir 'src/main/resources'
+            compileJava.source 'src/main/resources'
         """
         source("class A {}")
         source("class B {}")
