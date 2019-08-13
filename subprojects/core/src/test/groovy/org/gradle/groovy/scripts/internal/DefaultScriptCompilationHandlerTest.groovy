@@ -28,6 +28,7 @@ import org.codehaus.groovy.control.Phases
 import org.codehaus.groovy.control.SourceUnit
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
@@ -94,7 +95,11 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     def setup() {
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)
-        scriptCompilationHandler = new DefaultScriptCompilationHandler(new DummyClassLoaderCache(), importsReader)
+        scriptCompilationHandler = new DefaultScriptCompilationHandler(
+            new DummyClassLoaderCache(),
+            TestFiles.deleter(),
+            importsReader
+        )
         scriptCacheDir = new File(testProjectDir, "cache")
         metadataCacheDir = new File(testProjectDir, "metadata")
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE + "')"

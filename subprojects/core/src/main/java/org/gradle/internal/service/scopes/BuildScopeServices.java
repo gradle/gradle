@@ -283,14 +283,18 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-        CacheRepository cacheRepository, final StartParameter startParameter,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
+        BuildOperationExecutor buildOperationExecutor,
+        CacheRepository cacheRepository,
+        ClassLoaderCache classLoaderCache,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        BuildOperationExecutor buildOperationExecutor) {
+        Deleter deleter,
+        ImportsReader importsReader,
+        ProgressLoggerFactory progressLoggerFactory
+    ) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(
-                new DefaultScriptCompilationHandler(classLoaderCache, importsReader), buildOperationExecutor),
+                new DefaultScriptCompilationHandler(classLoaderCache, deleter, importsReader), buildOperationExecutor),
             progressLoggerFactory,
             classLoaderCache,
             classLoaderHierarchyHasher);
