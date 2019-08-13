@@ -51,8 +51,7 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
     }
 
     def "can assert build output is present in main content"() {
-        def output = """
-message
+        def output = """message
 message 2
 
 BUILD SUCCESSFUL in 12s
@@ -64,9 +63,9 @@ post build
 
         then:
         result.assertOutputContains("message")
-        result.assertOutputContains("\nmessage\nmessage 2")
-        result.assertOutputContains("\nmessage\nmessage 2\n")
-        result.assertOutputContains("\r\nmessage\r\nmessage 2")
+        result.assertOutputContains("message\nmessage 2")
+        result.assertOutputContains("message\nmessage 2\n")
+        result.assertOutputContains("message\r\nmessage 2")
 
         when:
         result.assertOutputContains("missing")
@@ -79,7 +78,6 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
@@ -97,7 +95,6 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
@@ -115,7 +112,6 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
@@ -133,7 +129,6 @@ post build
              
             Build output:
             =======
-             
             message
             message 2
              
@@ -141,24 +136,21 @@ post build
             '''))
 
         when:
-        result.assertOutputContains("\n\nmessage\n\n")
+        result.assertOutputContains("message\n\n")
 
         then:
         def e6 = thrown(AssertionError)
         error(e6).startsWith(error('''
             Did not find expected text in build output.
-            Expected: 
-
-            message
+            Expected: message
             
             
             
             Build output:
             =======
-             
             message
             message 2
-             
+            
             Output:
             '''))
     }
