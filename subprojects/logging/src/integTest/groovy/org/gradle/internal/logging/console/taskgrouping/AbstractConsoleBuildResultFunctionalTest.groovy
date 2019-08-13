@@ -124,7 +124,7 @@ BUILD SUCCESSFUL in \\d+m?s
         outputWithFailureAndNoDebugging.contains("""
             * What went wrong:
             Execution failed for task ':broken'.
-        """.stripIndent().trim())
+            """.stripIndent().trim())
 
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")

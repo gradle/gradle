@@ -106,6 +106,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
         }
 
+        // 5.4 officially added support for JDK 12
         if (isSameOrOlder("5.6")) {
             return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_12) <= 0;
         }
