@@ -369,6 +369,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
             publishing.publications.mavenJava.artifacts = [] 
             publishing.publications.mavenJava.artifact(sourceJar)
+            generateMetadataFileForMavenJavaPublication.enabled = false
         """
 
         when:
