@@ -182,4 +182,24 @@ class A2{}
         !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('A.groovy')
         file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('B.groovy')
     }
+
+    def "does recompile when a resource changes"() {
+        given:
+        buildFile << """
+            ${language.compileTaskName}.source 'src/main/resources'
+        """
+        source("class A {}")
+        source("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        resource.text = 'bar'
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses("A", "B")
+    }
 }

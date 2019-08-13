@@ -937,26 +937,6 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         outputs.recompiledClasses("A", "B")
     }
 
-    def "does not recompile when a resource changes"() {
-        given:
-        buildFile << """
-            compileJava.source 'src/main/resources'
-        """
-        source("class A {}")
-        source("class B {}")
-        def resource = file("src/main/resources/foo.txt")
-        resource.text = 'foo'
-
-        outputs.snapshot { succeeds language.compileTaskName }
-
-        when:
-        resource.text = 'bar'
-
-        then:
-        succeeds language.compileTaskName
-        outputs.noneRecompiled()
-    }
-
     @Issue('https://github.com/gradle/gradle/issues/9380')
     def 'can move source sets'() {
         given:
