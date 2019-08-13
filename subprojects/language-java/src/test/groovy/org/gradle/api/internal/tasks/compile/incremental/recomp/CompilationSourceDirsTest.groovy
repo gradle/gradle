@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-
 package org.gradle.api.internal.tasks.compile.incremental.recomp
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Subject
 
-class JavaConventionalSourceFileClassNameConverterTest extends Specification {
-
+class CompilationSourceDirsTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject
-        converter
 
-    def setup() {
-        converter = new JavaConventionalSourceFileClassNameConverter(new CompilationSourceDirs(["src/main/java", "src/main/java2"].collect { temp.file(it) }))
-    }
+    def compilationSourceDirs = new CompilationSourceDirs(["src/main/java", "src/main/java2"].collect { temp.file(it) })
 
-    def "knows java source class relative path"() {
+    def "relativizes source paths"() {
         expect:
-        converter.getClassNames(temp.file("src/main/java/Foo.java")) == ["Foo"]
-        converter.getClassNames(temp.file("src/main/java/org/bar/Bar.java")) == ["org.bar.Bar"]
-        converter.getClassNames(temp.file("src/main/java2/com/Com.java")) == ["com.Com"]
-        converter.getClassNames(temp.file("src/main/unknown/Xxx.java")) == []
+        compilationSourceDirs.relativize(temp.file("src/main/java/Foo.java")) == Optional.of("Foo.java")
+        compilationSourceDirs.relativize(temp.file("src/main/java/org/bar/Bar.java")) == Optional.of("org/bar/Bar.java")
+        compilationSourceDirs.relativize(temp.file("src/main/java2/com/Com.java")) == Optional.of("com/Com.java")
+        compilationSourceDirs.relativize(temp.file("src/main/unknown/Xxx.java")) == Optional.empty()
     }
 }

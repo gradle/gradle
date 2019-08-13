@@ -949,13 +949,9 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         when:
         // Remove last line
         buildFile.text = buildFile.text.readLines().findAll { !it.trim().startsWith('sourceSets') }.join('\n')
-        fails language.compileTaskName, '-i'
+        fails language.compileTaskName
 
         then:
-        if (language == CompiledLanguage.JAVA) {
-            // Full recompilation in Java incremental compiler
-            outputContains("source dirs are changed")
-        }
         failureCauseContains('Compilation failed')
     }
 }

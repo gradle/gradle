@@ -25,7 +25,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.work.FileChange;
-import org.gradle.work.InputChanges;
 import org.gradle.workers.internal.DefaultWorkResult;
 
 import java.io.File;
@@ -33,26 +32,27 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
-    private final InputChanges inputChanges;
-    private final Iterable<FileChange> sourceChanges;
+    private final boolean incremental;
+    private final Supplier<Iterable<FileChange>> sourceChanges;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(FileOperations fileOperations,
                                            FileTree sources,
-                                           InputChanges inputChanges,
-                                           Iterable<FileChange> sourceChanges,
+                                           boolean incremental,
+                                           Supplier<Iterable<FileChange>> sourceChanges,
                                            GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
         super(fileOperations, sources);
-        this.inputChanges = inputChanges;
+        this.incremental = incremental;
         this.sourceChanges = sourceChanges;
         this.sourceFileClassNameConverter = sourceFileClassNameConverter;
     }
 
     @Override
     public boolean isIncremental() {
-        return inputChanges.isIncremental();
+        return incremental;
     }
 
     @Override
@@ -116,7 +116,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         }
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
 
-        for (FileChange fileChange : sourceChanges) {
+        for (FileChange fileChange : sourceChanges.get()) {
             if (spec.isFullRebuildNeeded()) {
                 return;
             }

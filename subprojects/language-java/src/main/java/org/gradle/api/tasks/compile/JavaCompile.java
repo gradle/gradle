@@ -58,7 +58,6 @@ import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
@@ -136,7 +135,7 @@ public class JavaCompile extends AbstractCompile {
             createCompiler(spec),
             getPath(),
             getSource(),
-            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs.isIncremental(), () -> inputs.getFileChanges(getStableSources()), new CompilationSourceDirs(spec.getSourceRoots()))
+            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs.isIncremental(), () -> inputs.getFileChanges(getStableSources()))
         );
         performCompilation(spec, incrementalCompiler);
     }
@@ -180,7 +179,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
-        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.<File>of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);

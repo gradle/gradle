@@ -232,8 +232,8 @@ public class GroovyCompile extends AbstractCompile {
         return new GroovyRecompilationSpecProvider(
             ((ProjectInternal) getProject()).getFileOperations(),
             getSource(),
-            inputChanges,
-            inputChanges.getFileChanges(getStableSources()),
+            inputChanges.isIncremental(),
+            () -> inputChanges.getFileChanges(getStableSources()),
             new GroovySourceFileClassNameConverter(sourceClassesMapping));
     }
 

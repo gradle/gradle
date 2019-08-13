@@ -42,13 +42,11 @@ import static org.gradle.internal.FileUtils.hasExtension;
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
     private final Supplier<Iterable<FileChange>> sourceFileChanges;
-    private final JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, boolean incremental, Supplier<Iterable<FileChange>> sourceFileChanges, CompilationSourceDirs sourceDirs) {
+    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, boolean incremental, Supplier<Iterable<FileChange>> sourceFileChanges) {
         super(fileOperations, sources);
         this.incremental = incremental;
         this.sourceFileChanges = sourceFileChanges;
-        this.sourceFileClassNameConverter = new JavaConventionalSourceFileClassNameConverter(sourceDirs);
     }
 
     @Override
@@ -102,7 +100,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, Factory<PatternSet> patternSetFactory) {
-        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<GeneratedResource.Location, PatternSet>(GeneratedResource.Location.class);
+        Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<>(GeneratedResource.Location.class);
         for (GeneratedResource.Location location : GeneratedResource.Location.values()) {
             resourcesByLocation.put(location, patternSetFactory.create());
         }
@@ -119,20 +117,17 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         boolean emptyAnnotationProcessorPath = current.getAnnotationProcessorPath().isEmpty();
         SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous);
         for (FileChange fileChange : sourceFileChanges.get()) {
-            File file = fileChange.getFile();
+            if (spec.isFullRebuildNeeded()) {
+                return;
+            }
             if (fileChange.getFileType() != FileType.FILE) {
                 continue;
             }
+
+            File file = fileChange.getFile();
             if (hasExtension(file, ".java")) {
-                Collection<String> classNames = sourceFileClassNameConverter.getClassNames(file);
-                if (classNames.isEmpty()) {
-                    // https://github.com/gradle/gradle/issues/9380
-                    // Remove a srcDir from a sourceSet
-                    spec.setFullRebuildCause("source dirs are changed", file);
-                    return;
-                } else {
-                    javaChangeProcessor.processChange(file, classNames, spec);
-                }
+                String className = getClassNameForRelativePath(fileChange.getNormalizedPath());
+                javaChangeProcessor.processChange(file, Collections.singletonList(className), spec);
             } else {
                 if (emptyAnnotationProcessorPath) {
                     continue;
@@ -140,7 +135,6 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 String changeName = determineChangeName(fileChange.getChangeType());
                 spec.setFullRebuildCause(fileChange.getFile().getName() + " has been " + changeName, null);
                 return;
-
             }
         }
     }
@@ -157,6 +151,11 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 throw new AssertionError("Unknown change type: " + changeType);
         }
     }
+
+    private static String getClassNameForRelativePath(String relativePath) {
+        return relativePath.replace('/', '.').replaceAll("\\.java$", "");
+    }
+
 
     private void prepareJavaPatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
         for (String staleClass : staleClasses) {
