@@ -109,6 +109,9 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             if (Objects.equal(e.getMessage(), "Connection reset by peer")) {
                 return true;
             }
+            if (Objects.equal(e.getMessage(), "Connection reset")) {
+                return true;
+            }
         }
         return false;
     }
