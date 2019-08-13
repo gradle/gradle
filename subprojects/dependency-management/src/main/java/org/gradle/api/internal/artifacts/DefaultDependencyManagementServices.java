@@ -148,6 +148,7 @@ import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -245,6 +246,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
             BuildOperationExecutor buildOperationExecutor,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            Deleter deleter,
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
             OverlappingOutputDetector overlappingOutputDetector,
@@ -269,7 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new CatchExceptionStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
-                new CleanupOutputsStep<>(
+                new CleanupOutputsStep<>(deleter,
                 new ExecuteStep<>(
             ))))))))))))))));
             // @formatter:on

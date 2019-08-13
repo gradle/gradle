@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.Result
@@ -36,8 +37,9 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
+    def deleter = TestFiles.deleter()
 
-    def step = new CleanupOutputsStep<>(delegate)
+    def step = new CleanupOutputsStep<>(deleter, delegate)
 
     @Override
     protected InputChangesContext createContext() {
@@ -162,7 +164,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
-    
+
     def "does cleanup outputs when work does not request input changes"() {
         def outputs = new WorkOutputs()
         outputs.createContents()

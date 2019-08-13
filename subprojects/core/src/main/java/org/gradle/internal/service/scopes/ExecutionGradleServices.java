@@ -165,7 +165,7 @@ public class ExecutionGradleServices {
             new TimeoutStep<>(timeoutHandler,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
-            new CleanupOutputsStep<>(
+            new CleanupOutputsStep<>(deleter,
             new ExecuteStep<>(
         ))))))))))))))))))))));
         // @formatter:on

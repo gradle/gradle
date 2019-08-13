@@ -38,6 +38,28 @@ public interface Deleter {
     boolean deleteRecursively(File target, boolean followSymlinks) throws IOException;
 
     /**
+     * Makes sure that the given target is an empty directory.
+     *
+     * If target is...
+     *
+     * <ul>
+     *     <li>a directory, then its contents are removed recursively,</li>
+     *     <li>a symlink pointing to an existing directory, then the linked directory's contents are removed recursively,</li>
+     *     <li>a file, or a symlink to an existing file, it is deleted and a directory is created in its place,</li>
+     *     <li>non-existent, then a directory is created in its place.</li>
+     * </ul>
+     *
+     * Follows symlinks pointing to directories when instructed to.
+     *
+     * @return {@code true} if anything was removed, {@code false} if no change was
+     *         attempted (because {@code target} didn't exist).
+     *
+     * @throws IOException when {@code target} cannot be deleted (with detailed error
+     *         message).
+     */
+    boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException;
+
+    /**
      * Attempts to delete a single file or an empty directory.
      *
      * Does not follow symlinks.

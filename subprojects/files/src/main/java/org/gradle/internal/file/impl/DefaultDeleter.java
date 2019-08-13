@@ -56,31 +56,61 @@ public class DefaultDeleter implements Deleter {
     @Override
     public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
-            LOGGER.debug("Deleting {}", root);
-            long startTime = timeProvider.getAsLong();
-            Collection<String> failedPaths = new ArrayList<String>();
-            deleteRecursively(startTime, root, root, followSymlinks, failedPaths);
-            if (!failedPaths.isEmpty()) {
-                throwWithHelpMessage(startTime, root, followSymlinks, failedPaths, false);
-            }
-            return true;
+            return deleteRecursively(root, followSymlinks
+                ? Handling.FOLLOW_SYMLINKED_DIRECTORIES
+                : Handling.DO_NOT_FOLLOW_SYMLINKS);
         } else {
             return false;
         }
     }
 
-    private void deleteRecursively(long startTime, File baseDir, File file, boolean followSymlinks, Collection<String> failedPaths) throws IOException {
+    @Override
+    public boolean ensureEmptyDirectory(File root, boolean followSymlinks) throws IOException {
+        if (root.exists()) {
+            if (root.isDirectory()) {
+                return deleteRecursively(root, followSymlinks
+                    ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
+                    : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);
+            }
+            if (!delete(root)) {
+                throw new IOException("Couldn't delete " + root);
+            }
+        }
+        if (!root.mkdirs()) {
+            throw new IOException("Couldn't create directory: " + root);
+        }
+        return true;
+    }
 
-        if (shouldFollow(file, followSymlinks)) {
+    private boolean deleteRecursively(File root, Handling handling) throws IOException {
+        LOGGER.debug("Deleting {}", root);
+        long startTime = timeProvider.getAsLong();
+        Collection<String> failedPaths = new ArrayList<String>();
+        boolean attemptedToRemoveAnything = deleteRecursively(startTime, root, root, handling, failedPaths);
+        if (!failedPaths.isEmpty()) {
+            throwWithHelpMessage(startTime, root, handling, failedPaths, false);
+        }
+        return attemptedToRemoveAnything;
+    }
+
+    private boolean deleteRecursively(long startTime, File baseDir, File file, Handling handling, Collection<String> failedPaths) throws IOException {
+
+        if (shouldRemoveContentsOf(file, handling)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
             if (contents == null) {
-                return;
+                return false;
             }
 
+            boolean attemptedToDeleteAnything = false;
             for (File item : contents) {
-                deleteRecursively(startTime, baseDir, item, followSymlinks, failedPaths);
+                deleteRecursively(startTime, baseDir, item, handling.getDescendantHandling(), failedPaths);
+                attemptedToDeleteAnything = true;
+            }
+
+            if (handling.shouldKeepEntry()) {
+                return attemptedToDeleteAnything;
             }
         }
 
@@ -89,13 +119,14 @@ public class DefaultDeleter implements Deleter {
 
             // Fail fast
             if (failedPaths.size() == MAX_REPORTED_PATHS) {
-                throwWithHelpMessage(startTime, baseDir, followSymlinks, failedPaths, true);
+                throwWithHelpMessage(startTime, baseDir, handling, failedPaths, true);
             }
         }
+        return true;
     }
 
-    private boolean shouldFollow(File file, boolean followSymlinks) {
-        return file.isDirectory() && (followSymlinks || !isSymlink.test(file));
+    private boolean shouldRemoveContentsOf(File file, Handling handling) {
+        return file.isDirectory() && (handling.shouldFollowLinkedDirectory() || !isSymlink.test(file));
     }
 
     protected boolean deleteFile(File file) {
@@ -124,11 +155,11 @@ public class DefaultDeleter implements Deleter {
         return deleteFile(file);
     }
 
-    private void throwWithHelpMessage(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) throws IOException {
-        throw new IOException(buildHelpMessageForFailedDelete(startTime, file, followSymlinks, failedPaths, more));
+    private void throwWithHelpMessage(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) throws IOException {
+        throw new IOException(buildHelpMessageForFailedDelete(startTime, file, handling, failedPaths, more));
     }
 
-    private String buildHelpMessageForFailedDelete(long startTime, File file, boolean followSymlinks, Collection<String> failedPaths, boolean more) {
+    private String buildHelpMessageForFailedDelete(long startTime, File file, Handling handling, Collection<String> failedPaths, boolean more) {
 
         StringBuilder help = new StringBuilder("Unable to delete ");
         if (isSymlink.test(file)) {
@@ -141,7 +172,7 @@ public class DefaultDeleter implements Deleter {
         }
         help.append('\'').append(file).append('\'');
 
-        if (shouldFollow(file, followSymlinks)) {
+        if (shouldRemoveContentsOf(file, handling)) {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {
@@ -188,5 +219,59 @@ public class DefaultDeleter implements Deleter {
             }
         }
         return paths;
+    }
+
+    private enum Handling {
+        KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES(true, true) {
+            @Override
+            public Handling getDescendantHandling() {
+                return FOLLOW_SYMLINKED_DIRECTORIES;
+            }
+        },
+        KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS(true, true) {
+            @Override
+            public Handling getDescendantHandling() {
+                return DO_NOT_FOLLOW_SYMLINKS;
+            }
+        },
+        FOLLOW_SYMLINKED_DIRECTORIES(false, true) {
+            @Override
+            public Handling getDescendantHandling() {
+                return FOLLOW_SYMLINKED_DIRECTORIES;
+            }
+        },
+        DO_NOT_FOLLOW_SYMLINKS(false, false) {
+            @Override
+            public Handling getDescendantHandling() {
+                return DO_NOT_FOLLOW_SYMLINKS;
+            }
+        };
+
+        private final boolean shouldKeepEntry;
+        private final boolean shouldFollowLinkedDirectory;
+
+        Handling(boolean shouldKeepEntry, boolean shouldFollowLinkedDirectory) {
+            this.shouldKeepEntry = shouldKeepEntry;
+            this.shouldFollowLinkedDirectory = shouldFollowLinkedDirectory;
+        }
+
+        /**
+         * Whether or not the entry with this handling should be kept or deleted.
+         */
+        public boolean shouldKeepEntry() {
+            return shouldKeepEntry;
+        }
+
+        /**
+         * Whether or not this entry should be followed if it is a symlinked directory.
+         */
+        public boolean shouldFollowLinkedDirectory() {
+            return shouldFollowLinkedDirectory;
+        }
+
+        /**
+         * How to handle descendants.
+         */
+        abstract public Handling getDescendantHandling();
     }
 }

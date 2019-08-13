@@ -96,7 +96,14 @@ public class DefaultFileOperations implements FileOperations {
         this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textResourceLoader);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
+        this.fileCopier = new FileCopier(
+            deleter,
+            directoryFileTreeFactory,
+            fileLookup,
+            fileResolver,
+            fileSystem,
+            instantiator
+        );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
     }

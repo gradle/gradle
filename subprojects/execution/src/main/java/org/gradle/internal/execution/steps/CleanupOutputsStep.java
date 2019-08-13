@@ -24,8 +24,8 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,9 +35,14 @@ import java.util.Set;
 
 public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
+    private final Deleter deleter;
     private final Step<? super C, ? extends R> delegate;
 
-    public CleanupOutputsStep(Step<? super C, ? extends R> delegate) {
+    public CleanupOutputsStep(
+        Deleter deleter,
+        Step<? super C, ? extends R> delegate
+    ) {
+        this.deleter = deleter;
         this.delegate = delegate;
     }
 
@@ -96,10 +101,14 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                 if (root.exists()) {
                     switch (type) {
                         case FILE:
-                            GFileUtils.forceDelete(root);
+                            deleter.delete(root);
                             break;
                         case DIRECTORY:
-                            GFileUtils.cleanDirectory(root);
+                            try {
+                                deleter.ensureEmptyDirectory(root, true);
+                            } catch (IOException ex) {
+                                throw new UncheckedIOException(ex);
+                            }
                             break;
                         default:
                             throw new AssertionError();
