@@ -37,7 +37,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
+        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -55,10 +55,10 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample("maven-publish/quickstart")
     def "quickstart publish local with #dsl dsl"() {
         using m2
-        
+
         given:
         executer.beforeExecute m2
-        def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
+        def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0").withModuleMetadata()
 
         and:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -88,7 +88,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repos/releases"))
-        def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0")
+        def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -99,7 +99,8 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
             "javaProject-1.0.jar",
             "javaProject-1.0-sources.jar",
             "javaProject-1.0-javadoc.jar",
-            "javaProject-1.0.pom")
+            "javaProject-1.0.pom",
+            "javaProject-1.0.module")
         module.parsedPom.packaging == null
         module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
 
@@ -116,9 +117,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3")
-        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3")
+        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1").withModuleMetadata()
+        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3") // publication without component
+        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -152,11 +153,11 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def artifactId = "maven-conditional-publishing"
         def version = "1.0"
         def externalRepo = maven(sampleDir.file("build/repos/external"))
-        def binary = externalRepo.module("org.gradle.sample", artifactId, version)
+        def binary = externalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
         def internalRepo = maven(sampleDir.file("build/repos/internal"))
-        def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version)
+        def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
         def localRepo = maven(temporaryFolder.createDir("m2_repo"))
-        def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version)
+        def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
 
         when:
         args "-Dmaven.repo.local=${localRepo.rootDir.getAbsolutePath()}"
@@ -169,7 +170,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         and:
         binary.assertPublishedAsJavaModule()
         binaryAndSourcesInRepo.assertPublished()
-        binaryAndSourcesInRepo.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}.pom"
+        binaryAndSourcesInRepo.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}.pom", "${artifactId}-${version}.module"
         binaryAndSourcesLocal.assertPublished()
 
         where:

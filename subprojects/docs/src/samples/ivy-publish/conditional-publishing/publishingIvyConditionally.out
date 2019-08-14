@@ -3,13 +3,15 @@
 > Task :processResources
 > Task :classes
 > Task :jar
+> Task :generateMetadataFileForBinaryAndSourcesPublication
 > Task :sourcesJar
 > Task :publishBinaryAndSourcesPublicationToExternalRepository SKIPPED
 > Task :publishBinaryAndSourcesPublicationToInternalRepository
 > Task :generateDescriptorFileForBinaryPublication
+> Task :generateMetadataFileForBinaryPublication
 > Task :publishBinaryPublicationToExternalRepository
 > Task :publishBinaryPublicationToInternalRepository SKIPPED
 > Task :publish
 
 BUILD SUCCESSFUL in 0s
-8 actionable tasks: 8 executed
+10 actionable tasks: 10 executed

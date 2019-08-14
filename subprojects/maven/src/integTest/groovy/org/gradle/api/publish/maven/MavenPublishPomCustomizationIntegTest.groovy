@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -378,7 +377,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         settingsFile << """
             rootProject.name = 'customizePom'
         """
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         buildFile << """
             apply plugin: 'java-library'
             apply plugin: 'maven-publish'

@@ -179,11 +179,11 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         then:
 
         mavenRepo.module('com.example', 'plugins', '1.0')
-            .assertArtifactsPublished("plugins-1.0.pom", "plugins-1.0.jar", "plugins-1.0-sources.jar")
+            .assertArtifactsPublished("plugins-1.0.pom", "plugins-1.0.module", "plugins-1.0.jar", "plugins-1.0-sources.jar")
         mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
 
         ivyRepo.module('com.example', 'plugins', '1.0')
-            .assertArtifactsPublished("ivy-1.0.xml", "plugins-1.0.jar", "plugins-1.0-sources.jar")
+            .assertArtifactsPublished("ivy-1.0.xml", "plugins-1.0.module", "plugins-1.0.jar", "plugins-1.0-sources.jar")
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 

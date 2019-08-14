@@ -685,12 +685,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     MavenModule withModuleMetadata() {
+        gradleMetadataRedirect = true
         super.withModuleMetadata()
+        this
     }
 
     @Override
-    MavenModule withGradleMetadataRedirection() {
-        gradleMetadataRedirect = true
+    MavenModule withoutGradleMetadataRedirection() {
+        gradleMetadataRedirect = false
         return this
     }
 

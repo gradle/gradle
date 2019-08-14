@@ -225,8 +225,15 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     @Override
-    IvyModule withGradleMetadataRedirection() {
+    IvyModule withModuleMetadata() {
         writeGradleMetadataRedirection = true
+        super.withModuleMetadata()
+        this
+    }
+
+    @Override
+    IvyModule withoutGradleMetadataRedirection() {
+        writeGradleMetadataRedirection = false
         return this
     }
 
@@ -575,7 +582,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     void assertPublishedAsJavaModule() {
         assertPublished()
-        assertArtifactsPublished("${module}-${revision}.jar", "ivy-${revision}.xml")
+        def expectedArtifacts = ["${module}-${revision}.jar", "ivy-${revision}.xml"]
+        if (hasModuleMetadata) {
+            expectedArtifacts << "${module}-${revision}.module"
+        }
+        assertArtifactsPublished(*expectedArtifacts)
         parsedIvy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["compile"], null)
     }
 
