@@ -2,6 +2,10 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [improvements to make Groovy compilation faster](#groovy-improvements), a new plugin for [Java test fixtures](#test-fixtures) and [better management of plugin versions](#improved-plugin-management) in multi-project builds.
 
+This is the final minor release for Gradle 5.x. There are many other smaller features and improvements made, so please check out the full release notes below.
+
+This release also contains an [important security fix](https://github.com/gradle/gradle/security/advisories/GHSA-4cwg-f7qc-6r95) affecting some users. 
+
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -53,24 +57,28 @@ Gradle 5.6 includes two new features that accelerate Groovy compilation.
 ### Groovy compilation avoidance
 
 Gradle now supports experimental compilation avoidance for Groovy. 
+
 This speeds up Groovy compilation by avoiding re-compiling dependent projects if there are no changes that would affect the output of their compilation.
+
 See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
 ### Incremental Groovy compilation
 
-Even if recompilation is necessary, Gradle now has experimental support for incremental Groovy compilation.
-If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
-For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed classes (and the classes that are affected by them) will need to be recompiled.
+When compilation is necessary, Gradle now has experimental support for incremental Groovy compilation.
+
+If only a small set of Groovy source files have been changed, only the affected source files will be recompiled.
+For example, if you only change one Groovy test class, Gradle doesn't need to recompile all Groovy test source files. Gradle will recompile only the changed classes and the classes that are affected by them.
+
 See [Incremental Groovy compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) in the user manual for more details.
 
 <a name="test-fixtures"/>
 
 ## Test fixtures for Java projects
 
-Gradle 5.6 introduces a new [Java test fixtures plugin](userguide/java_testing.html#sec:java_test_fixtures), which, when applied in combination with the `java` or `java-library` plugin, will create a conventional `testFixtures` source set.
-Gradle will automatically perform the wiring so that the `test` compilation depends on test fixtures, but more importantly, it allows other projects to depend on the test fixtures of a library.
-For example:
+Gradle 5.6 introduces a new [Java test fixtures plugin](userguide/java_testing.html#sec:java_test_fixtures) that can be applied in combination with the `java` or `java-library` plugin to create a conventional `testFixtures` source set.
+Gradle will automatically perform the necessary wiring so that `test` compilation depends on test fixtures. More importantly, this plugin also allows other projects to depend on the test fixtures of the project.
 
+For example:
 ```groovy
 dependencies {
    // this will add the test fixtures of "my-lib" on the compile classpath of the tests of _this_ project
@@ -96,20 +104,20 @@ One benefit of managing plugin versions in this way is that the `pluginManagemen
 
 See [plugin version management](userguide/plugins.html#sec:plugin_version_management) for more details.
 
-## Performance fix for using the Java library plugin in very large projects on Windows
+## Better performance for very large projects on Windows using the Java library plugin
 
-Very large multi-projects can suffer from a significant performance decrease in Java compilation when switching from the `java` to the `java-library` plugin.
-This is caused by the large amount of class files on the classpath, which is only an issue on Windows systems.
+On Windows, very large multi-projects can suffer from a significant performance decrease in Java compilation when switching from the `java` to the `java-library` plugin. This is caused by the large number of class files on the classpath.
+
 You can now tell the `java-library` plugin to [prefer jars over class folders on the compile classpath](userguide/java_library_plugin.html#sec:java_library_known_issues_windows_performance) by setting the `org.gradle.java.compile-classpath-packaging` system property to `true`.
 
 ## Improved handling of ZIP archives on classpaths
 
 Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
-It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of [build cache hits](userguide/build_cache.html) for tasks
-that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
 
-The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
-This improves performance for projects with a large amount of resource files.
+Gradle will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of [build cache hits](userguide/build_cache.html) for tasks that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
+
+ZIP analysis also avoids unpacking entries that are irrelevant. e.g., Resource files on a compile classpath. 
+This improves performance for projects with a large number of resource files.
 
 ## Support for PMD incremental analysis
 
@@ -131,21 +139,23 @@ Under these circumstances, Gradle will assume that the single jar in the classpa
 
 Thanks to [Stephan Windmüller](https://github.com/stovocor) for contributing the basis of this feature.
 
-## File case changes when copying files on case-insensitive file systems are now handled correctly
+## Fail the build on deprecation warnings
+
+The `warning-mode` command line option now has a [new `fail` value](userguide/command_line_interface.html#sec:command_line_warnings) that will behave like `all` and in addition fail the build if any deprecation warning was reported during the execution.
+
+## Changes to file name case on case-insensitive file systems are now handled correctly
 
 On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. 
-For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. 
+
+For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` to be created in the destination directory. 
+
 The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
 
 ## Unavailable files are handled more gracefully
 
-Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files) found in inputs and outputs of tasks are handled gracefully from now on: as if they don't exist.
+Generally, broken symlinks, named pipes and unreadable files/directories (hereinafter referred to as unavailable files) found in inputs and outputs of tasks are handled gracefully from as if they don't exist.
 
-For example copying into a directory with a leftover named pipe or broken symbolic link won't break the build anymore.
-
-## Fail the build on deprecation warnings
-
-The `warning-mode` command line option now has a [new `fail` value](userguide/command_line_interface.html#sec:command_line_warnings) that will behave like `all` and in addition fail the build if any deprecation warning was reported during the execution.
+For example, copying into a directory with a leftover named pipe or broken symbolic link will no longer break the build.
 
 ## Rich console output on Linux aarch64 machines
 
@@ -277,6 +287,7 @@ See the [user manual](userguide/custom_gradle_types.html#sec:managed_nested_prop
 The [Tooling API](userguide/embedding.html) is now capable of launching tests in debug mode with the [`TestLauncher.debugTestsOn(port)`](javadoc/org/gradle/tooling/TestLauncher.html#debugTestsOn-int-) method.
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
@@ -288,7 +299,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Transforming dependency artifacts on resolution
 
-The API around [artifact transforms](userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms) is not incubating any more.
+The API around [artifact transforms](userguide/dependency_management_attribute_based_matching.html#sec:abm_artifact_transforms) is no longer incubating.
 
 ## Fixed issues
 
