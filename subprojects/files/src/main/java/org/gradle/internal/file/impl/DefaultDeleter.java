@@ -73,7 +73,7 @@ public class DefaultDeleter implements Deleter {
                     ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
                     : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);
             }
-            if (!delete(root)) {
+            if (!tryHardToDelete(root)) {
                 throw new IOException("Couldn't delete " + root);
             }
         }
@@ -81,6 +81,18 @@ public class DefaultDeleter implements Deleter {
             throw new IOException("Couldn't create directory: " + root);
         }
         return true;
+    }
+
+    @Override
+    public void delete(File target) throws IOException {
+        if (!tryHardToDelete(target)) {
+            throw new IOException("Couldn't delete " + target);
+        }
+    }
+
+    @Override
+    public boolean tryDelete(File target) {
+        return tryHardToDelete(target);
     }
 
     private boolean deleteRecursively(File root, Handling handling) throws IOException {
@@ -115,7 +127,7 @@ public class DefaultDeleter implements Deleter {
             }
         }
 
-        if (!delete(file)) {
+        if (!tryHardToDelete(file)) {
             failedPaths.add(file.getAbsolutePath());
 
             // Fail fast
@@ -134,8 +146,7 @@ public class DefaultDeleter implements Deleter {
         return file.delete() && !file.exists();
     }
 
-    @Override
-    public boolean delete(File file) {
+    private boolean tryHardToDelete(File file) {
         if (deleteFile(file)) {
             return true;
         }

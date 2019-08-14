@@ -60,6 +60,15 @@ public interface Deleter {
     boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException;
 
     /**
+     * Deletes a single file or an empty directory.
+     *
+     * Does not follow symlinks.
+     *
+     * @throws IOException if the file cannot be deleted.
+     */
+    void delete(File target) throws IOException;
+
+    /**
      * Attempts to delete a single file or an empty directory.
      *
      * Does not follow symlinks.
@@ -67,5 +76,5 @@ public interface Deleter {
      * @return {@code true} if the removal was successful, {@code false} otherwise
      *         (because {@code target} didn't exist).
      */
-    boolean delete(File target);
+    boolean tryDelete(File target);
 }
