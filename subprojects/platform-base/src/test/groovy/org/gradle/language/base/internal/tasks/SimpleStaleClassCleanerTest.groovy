@@ -16,18 +16,21 @@
 package org.gradle.language.base.internal.tasks
 
 import com.google.common.collect.Sets
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.file.Deleter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class SimpleStaleClassCleanerTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    Deleter deleter = TestFiles.deleter()
 
     def "deletes all previous output files"() {
         def file1 = tmpDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(files(file1, file2))
+        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1, file2))
         cleaner.addDirToClean(tmpDir.testDirectory)
 
         when:
@@ -44,7 +47,7 @@ class SimpleStaleClassCleanerTest extends Specification {
     def "deletes empty parent directories"() {
         def file1 = tmpDir.file('foo/bar/file1').createFile()
         tmpDir.file('foo/baz/file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(files(file1))
+        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1))
         cleaner.addDirToClean(tmpDir.testDirectory)
 
         when:
@@ -62,7 +65,7 @@ class SimpleStaleClassCleanerTest extends Specification {
     def "deletes parent directories regardless of order"() {
         def file1 = tmpDir.file('foo/file1').createFile()
         def file2 = tmpDir.file('foo/bar/file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(files(file1, file2))
+        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1, file2))
         cleaner.addDirToClean(tmpDir.testDirectory)
 
         when:
@@ -78,7 +81,7 @@ class SimpleStaleClassCleanerTest extends Specification {
 
     def "does not delete the root directory"() {
         def file1 = tmpDir.file('foo/bar/file1').createFile()
-        def cleaner = new SimpleStaleClassCleaner(files(file1))
+        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1))
         cleaner.addDirToClean(tmpDir.testDirectory)
 
         when:
@@ -96,7 +99,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         def destDir = tmpDir.file('dir')
         def file1 = destDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(files(file1, file2))
+        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1, file2))
         cleaner.addDirToClean(destDir)
 
         when:
@@ -111,7 +114,7 @@ class SimpleStaleClassCleanerTest extends Specification {
     }
 
     def "reports when no work was done"() {
-        def cleaner = new SimpleStaleClassCleaner(files())
+        def cleaner = new SimpleStaleClassCleaner(deleter, files())
         cleaner.addDirToClean(tmpDir.file('dir'))
 
         when:

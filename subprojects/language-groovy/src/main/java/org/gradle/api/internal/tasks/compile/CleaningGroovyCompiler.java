@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
@@ -23,10 +24,12 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 public class CleaningGroovyCompiler extends CleaningJavaCompilerSupport<GroovyJavaJointCompileSpec> {
     private final Compiler<GroovyJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
+    private final Deleter deleter;
 
-    public CleaningGroovyCompiler(Compiler<GroovyJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
+    public CleaningGroovyCompiler(Compiler<GroovyJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs, Deleter deleter) {
         this.compiler = compiler;
         this.taskOutputs = taskOutputs;
+        this.deleter = deleter;
     }
 
     @Override
@@ -36,6 +39,6 @@ public class CleaningGroovyCompiler extends CleaningJavaCompilerSupport<GroovyJa
 
     @Override
     protected StaleClassCleaner createCleaner(GroovyJavaJointCompileSpec spec) {
-        return new SimpleStaleClassCleaner(taskOutputs);
+        return new SimpleStaleClassCleaner(deleter, taskOutputs);
     }
 }

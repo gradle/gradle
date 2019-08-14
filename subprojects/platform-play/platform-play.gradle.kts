@@ -25,6 +25,7 @@ val integTestRuntimeResourcesClasspath by configurations.creating {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":messaging"))
     implementation(project(":processServices"))
     implementation(project(":logging"))

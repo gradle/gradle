@@ -18,6 +18,7 @@ package org.gradle.play.internal;
 
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.play.internal.spec.PlayCompileSpec;
@@ -25,15 +26,17 @@ import org.gradle.play.internal.spec.PlayCompileSpec;
 public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
     private TaskOutputsInternal taskOutputs;
+    private final Deleter deleter;
 
-    public CleaningPlayToolCompiler(Compiler<T> delegate, TaskOutputsInternal taskOutputs) {
+    public CleaningPlayToolCompiler(Compiler<T> delegate, TaskOutputsInternal taskOutputs, Deleter deleter) {
         this.delegate = delegate;
         this.taskOutputs = taskOutputs;
+        this.deleter = deleter;
     }
 
     @Override
     public WorkResult execute(T spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(taskOutputs);
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, taskOutputs);
         cleaner.addDirToClean(spec.getDestinationDir());
         cleaner.execute();
         return delegate.execute(spec);

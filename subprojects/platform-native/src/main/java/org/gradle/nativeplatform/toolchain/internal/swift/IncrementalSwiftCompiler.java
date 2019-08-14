@@ -88,7 +88,7 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
     }
 
     private boolean cleanPreviousOutputs(SwiftCompileSpec spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs);
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, outputs);
         cleaner.addDirToClean(spec.getObjectFileDir());
         cleaner.execute();
         return cleaner.getDidWork();

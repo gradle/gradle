@@ -40,7 +40,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
     final taskInputsListener = Mock(TaskInputsListener)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputChangeListener = Mock(OutputChangeListener)
-    final skipper = new DefaultEmptySourceTaskSkipper(taskInputsListener, outputChangeListener, cleanupRegistry)
+    final skipper = new DefaultEmptySourceTaskSkipper(cleanupRegistry, TestFiles.deleter(), outputChangeListener, taskInputsListener)
     final fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
     final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
 

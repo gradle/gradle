@@ -84,7 +84,11 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                         throw new AssertionError();
                 }
             });
-            OutputsCleaner cleaner = new OutputsCleaner(file -> true, dir -> !outputDirectoriesToPreserve.contains(dir));
+            OutputsCleaner cleaner = new OutputsCleaner(
+                deleter,
+                file -> true,
+                dir -> !outputDirectoriesToPreserve.contains(dir)
+            );
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
                 try {
                     cleaner.cleanupOutputs(fileCollectionFingerprint);

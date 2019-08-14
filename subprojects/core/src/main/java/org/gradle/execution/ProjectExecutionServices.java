@@ -91,11 +91,17 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     EmptySourceTaskSkipper createEmptySourceTaskSkipper(
-        TaskInputsListener taskInputsListener,
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
+        Deleter deleter,
         OutputChangeListener outputChangeListener,
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry
+        TaskInputsListener taskInputsListener
     ) {
-        return new DefaultEmptySourceTaskSkipper(taskInputsListener, outputChangeListener, buildOutputCleanupRegistry);
+        return new DefaultEmptySourceTaskSkipper(
+            buildOutputCleanupRegistry,
+            deleter,
+            outputChangeListener,
+            taskInputsListener
+        );
     }
 
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,

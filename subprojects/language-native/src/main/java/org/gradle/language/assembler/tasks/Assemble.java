@@ -30,6 +30,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
@@ -81,10 +82,15 @@ public class Assemble extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
     @TaskAction
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
         cleaner.addDirToClean(getObjectFileDir());
         cleaner.execute();
 

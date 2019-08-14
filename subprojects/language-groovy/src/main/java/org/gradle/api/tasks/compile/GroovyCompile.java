@@ -59,6 +59,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -227,7 +228,7 @@ public class GroovyCompile extends AbstractCompile {
         ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(workerDaemonFactory, inProcessWorkerFactory, forkOptionsFactory, processorDetector, jvmVersionDetector, workerDirectoryProvider, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
-        CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
+        CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs(), getDeleter());
         if (spec.incrementalCompilationEnabled()) {
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
@@ -243,6 +244,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         return new GroovyRecompilationSpecProvider(
+            getDeleter(),
             ((ProjectInternal) getProject()).getFileOperations(),
             getSource(),
             inputChanges,
@@ -271,6 +273,11 @@ public class GroovyCompile extends AbstractCompile {
     @Inject
     protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
     private FileCollection determineGroovyCompileClasspath() {

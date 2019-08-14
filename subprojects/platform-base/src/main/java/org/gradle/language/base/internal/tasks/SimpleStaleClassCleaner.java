@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 
 import java.io.File;
@@ -26,16 +27,18 @@ import java.io.IOException;
 import java.util.Set;
 
 public class SimpleStaleClassCleaner extends StaleClassCleaner {
+    private final Deleter deleter;
     private final Set<File> filesToDelete;
     private final Set<File> toClean = Sets.newHashSet();
     private final Set<String> prefixes = Sets.newHashSet();
     private boolean didWork;
 
-    public SimpleStaleClassCleaner(TaskOutputsInternal taskOutputs) {
-        this(taskOutputs.getPreviousOutputFiles());
+    public SimpleStaleClassCleaner(Deleter deleter, TaskOutputsInternal taskOutputs) {
+        this(deleter, taskOutputs.getPreviousOutputFiles());
     }
 
-    public SimpleStaleClassCleaner(Set<File> filesToDelete) {
+    public SimpleStaleClassCleaner(Deleter deleter, Set<File> filesToDelete) {
+        this.deleter = deleter;
         this.filesToDelete = filesToDelete;
     }
 
@@ -49,6 +52,7 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
     public void execute() {
         try {
             OutputsCleaner outputsCleaner = new OutputsCleaner(
+                deleter,
                 file -> {
                     for (String prefix : prefixes) {
                         if (file.getAbsolutePath().startsWith(prefix)) {

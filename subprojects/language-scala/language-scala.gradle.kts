@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
