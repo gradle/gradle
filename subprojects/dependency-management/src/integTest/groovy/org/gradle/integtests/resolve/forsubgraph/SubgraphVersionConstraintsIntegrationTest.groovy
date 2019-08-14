@@ -115,7 +115,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
     }
 
     def "a forSubgraph constraint wins over a nested forSubgraph constraint"() {
-        boolean publishedConstraintsSupported = gradleMetadataEnabled
+        boolean publishedConstraintsSupported = gradleMetadataPublished
 
         given:
         repository {
@@ -174,7 +174,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
     }
 
     def "identical forSubgraph constraints can co-exist in a graph"() {
-        boolean publishedConstraintsSupported = gradleMetadataEnabled
+        boolean publishedConstraintsSupported = gradleMetadataPublished
 
         given:
         repository {
@@ -232,7 +232,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
     }
 
     def "conflicting version constraints are conflict resolved"() {
-        boolean subgraphConstraintsSupported = gradleMetadataEnabled
+        boolean subgraphConstraintsSupported = gradleMetadataPublished
 
         given:
         repository {
@@ -293,7 +293,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
     def "forSubgraph is consumed from Gradle metadata"() {
         given:
         // If we do not use Gradle metadata, information is missing and we get a different result
-        String cResult = gradleMetadataEnabled ? 'org:c:1.0' : 'org:c:2.0'
+        String cResult = gradleMetadataPublished ? 'org:c:1.0' : 'org:c:2.0'
 
         repository {
             'org:a:1.0' {
@@ -436,7 +436,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
     }
 
     def "can bring back a rejected version"() {
-        String publishedFooDependencyVersion = gradleMetadataEnabled ? '{require 2.0; reject 1.0}' : '2.0'
+        String publishedFooDependencyVersion = gradleMetadataPublished ? '{require 2.0; reject 1.0}' : '2.0'
 
         given:
         repository {

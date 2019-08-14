@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
@@ -28,10 +27,9 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
     def setup() {
         resolve.prepare()
         settingsFile << "rootProject.name = 'test'"
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
     }
 
-    def "uses the module metadata when present and pom is not present"() {
+    def "uses the module metadata when configured as source and pom is not present"() {
         mavenRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
 
         given:
@@ -39,6 +37,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
+        metadataSources { gradleMetadata() }
     }
 }
 configurations { compile }

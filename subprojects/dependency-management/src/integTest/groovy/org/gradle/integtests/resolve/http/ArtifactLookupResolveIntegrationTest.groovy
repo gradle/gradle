@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.resolve.http
 
-class FeaturePreviewsFixture {
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-    static void enableGroovyCompilationAvoidance(File settings) {
-        settings << """
-enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
-"""
+class ArtifactLookupResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+
+    def "does not try to fetch the jar whenever the metadata artifact is not found"() {
+        buildFile << """
+            dependencies {
+                conf 'org:notfound:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:notfound:1.0' {
+                expectGetMetadataMissing()
+            }
+        }
+
+        then:
+        fails 'checkDeps'
     }
 }

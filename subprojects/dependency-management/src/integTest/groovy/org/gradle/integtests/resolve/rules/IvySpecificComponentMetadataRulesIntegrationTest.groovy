@@ -358,7 +358,7 @@ resolve.doLast { assert ruleInvoked }
                 withModule {
                     // todo: handle this properly in ModuleVersionSpec test fixture
                     getArtifact(name: 'ivy', ext: 'xml.sha1').allowGetOrHead()
-                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                         getArtifact(ext: 'module.sha1').allowGetOrHead()
                     }
                 }

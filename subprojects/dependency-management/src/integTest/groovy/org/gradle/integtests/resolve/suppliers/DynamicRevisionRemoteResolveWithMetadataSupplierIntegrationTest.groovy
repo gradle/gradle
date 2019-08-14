@@ -26,10 +26,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 
-@RequiredFeatures([
-    // we only need to check without experimental, it doesn't depend on this flag
-    @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
-])
 class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest implements CachingIntegrationFixture {
 
     def setup() {
@@ -589,8 +585,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
+        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
     ])
     def "custom metadata provider doesn't have to do something"() {
         given:

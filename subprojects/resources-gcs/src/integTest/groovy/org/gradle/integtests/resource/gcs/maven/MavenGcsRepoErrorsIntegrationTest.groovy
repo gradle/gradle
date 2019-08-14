@@ -87,7 +87,6 @@ repositories {
         buildFile << mavenGcsRepoDsl()
         when:
         module.pom.expectDownloadMissing()
-        module.artifact.expectMetadataRetrieveMissing()
         then:
         fails 'retrieve'
 
@@ -98,7 +97,6 @@ repositories {
             """Could not find org.gradle:test:1.85.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
 Required by:
 """)
     }

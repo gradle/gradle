@@ -48,7 +48,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         }
         // We are resolving with `gradleMetadata()` metadata: always use a directory listing (and not maven-metadata.xml)
         repository.directoryList('org.test', 'projectA').expectGet()
-        repositoryInteractions {
+        repositoryInteractions(HttpRepository.MetadataType.ONLY_GRADLE) {
             'org.test:projectA' {
 
                 '1.2' {
@@ -151,9 +151,9 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
     }
 
     def "will only search for defined metadata sources"() {
-        def metadataSource = isGradleMetadataEnabled() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
-        def metadataType = isGradleMetadataEnabled() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL
-        def metadataUri = isGradleMetadataEnabled() ? metadataURI("org.test", "projectA", "1.1"): legacyMetadataURI("org.test", "projectA", "1.1")
+        def metadataSource = isGradleMetadataPublished() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
+        def metadataType = isGradleMetadataPublished() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL
+        def metadataUri = isGradleMetadataPublished() ? gradleMetadataURI("org.test", "projectA", "1.1"): legacyMetadataURI("org.test", "projectA", "1.1")
         buildFile << """
             repositories.all {
                 metadataSources {

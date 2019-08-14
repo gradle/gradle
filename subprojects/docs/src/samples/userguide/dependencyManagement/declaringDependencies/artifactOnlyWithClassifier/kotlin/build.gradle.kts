@@ -5,6 +5,9 @@ repositories {
         patternLayout {
             artifact("[organization]/[revision]/[module](.[classifier]).[ext]")
         }
+        metadataSources {
+            artifact()
+        }
     }
 }
 

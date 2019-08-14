@@ -467,7 +467,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
     static String testedVariant() {
         def variant
-        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+        if (GradleMetadataResolveRunner.gradleMetadataPublished) {
             variant = 'api'
         } else {
             if (GradleMetadataResolveRunner.useIvy()) {
@@ -480,7 +480,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     static String variantTerm() {
-        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+        if (GradleMetadataResolveRunner.gradleMetadataPublished) {
             return "variant"
         }
         if (!GradleMetadataResolveRunner.useIvy()) {

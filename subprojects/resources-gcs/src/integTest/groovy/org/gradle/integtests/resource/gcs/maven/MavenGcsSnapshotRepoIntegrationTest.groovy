@@ -129,7 +129,7 @@ task retrieve(type: Sync) {
         file("libs/test-${artifactVersion}.jar").assertIsCopyOf(module.artifactFile)
     }
 
-    def "should list a dynamic snapshot module when maven root metadata is missing"() {
+    def "should list a dynamic snapshot module when maven root metadata is missing but artifact metadata source is enabled"() {
         setup:
         module.publish()
         m2.generateGlobalSettingsFile()
@@ -139,6 +139,12 @@ task retrieve(type: Sync) {
 buildscript {
       
     ${mavenGcsRepoDsl()}
+    repositories.all {
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
 
     dependencies {
         classpath 'org.gradle:test:$artifactVersion+'

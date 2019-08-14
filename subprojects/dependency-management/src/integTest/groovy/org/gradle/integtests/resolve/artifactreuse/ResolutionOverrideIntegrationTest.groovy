@@ -84,7 +84,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         module.pom.expectGetMissing()
-        artifact.expectHeadMissing()
 
         then:
         fails("showMissing")

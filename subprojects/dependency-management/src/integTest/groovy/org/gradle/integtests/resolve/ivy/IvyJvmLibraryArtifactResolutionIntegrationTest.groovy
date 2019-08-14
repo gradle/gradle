@@ -257,26 +257,22 @@ if (project.hasProperty('nocache')) {
 
         when:
         module.ivy.expectGetMissing()
-        module.jar.expectHeadMissing()
 
         then:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-  - ${module.ivy.uri}
-  - ${module.jar.uri}""")
+  - ${module.ivy.uri}""")
 
         when:
         server.resetExpectations()
         module.ivy.expectGetMissing()
-        module.jar.expectHeadMissing()
 
         then:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-  - ${module.ivy.uri}
-  - ${module.jar.uri}""")
+  - ${module.ivy.uri}""")
     }
 
     def "reports failure to resolve missing artifacts"() {
