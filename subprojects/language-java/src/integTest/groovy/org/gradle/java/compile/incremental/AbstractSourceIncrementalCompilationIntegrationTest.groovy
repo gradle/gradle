@@ -520,7 +520,7 @@ sourceSets {
 
     def "missing files are ignored as source roots"() {
         buildFile << """
-            compileJava {
+            ${language.compileTaskName} {
                 source([
                     fileTree('missing-tree'),
                     file('missing-file')
