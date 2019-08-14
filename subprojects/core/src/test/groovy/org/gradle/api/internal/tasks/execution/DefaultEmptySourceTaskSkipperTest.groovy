@@ -181,7 +181,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
 
         then:
         def ex = thrown Exception
-        ex.message.contains("java.nio.file.DirectoryNotEmptyException")
+        ex.message.contains("Couldn't delete ${previousFile.absolutePath}")
 
         and:
         1 * sourceFiles.empty >> true
