@@ -71,7 +71,11 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
             file("$projectDir/build.gradle") << """
                 buildscript { dependencies { classpath(files('${staticDataLib.toURI()}')) } }
 
-                task ok(type: StaticData)
+                task ok(type: StaticData) {
+                    // TODO:instant-execution ordering only matters because of the single CachingClassLoader currently used, see note below
+                    //   always run :foo:foo:ok first
+                    ${projectDir != 'foo/foo' ? "mustRunAfter ':foo:foo:ok'" : ""}
+                }
             """
         }
 
