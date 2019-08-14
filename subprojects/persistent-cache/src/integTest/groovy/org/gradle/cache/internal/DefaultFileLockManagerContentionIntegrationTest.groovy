@@ -89,7 +89,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         poll { assert requestReceived }
 
         // simulate additional requests
-        def socket = new DatagramSocket(0, addressFactory.localBindingAddress)
+        def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
         (1..500).each {
             addressFactory.communicationAddresses.each { address ->
                 byte[] bytes = [1, 0, 0, 0, 0, 0, 0, 0, 0]
