@@ -37,7 +37,7 @@ More details about dealing with such situations are found in the <<controlling_t
 
 You can also _inherit_ the `forSubgraph` constraints defined by another module so that they are applied to all your dependencies as well.
 This is the behavior you typically expect from a _platform_.
-A <<controlling_transitive_dependencies.adoc#using-platform-to-control-transitive-deps,platform dependency>> will enable it automatically.
+A <<controlling_transitive_dependencies.adoc#sec:using-platform-to-control-transitive-deps,platform dependency>> will enable it automatically.
 You can however activate it for arbitrary dependencies by setting `inheritConstraints()` on the dependency.
 
 [[sec:dynamic_versions_and_changing_modules]]
