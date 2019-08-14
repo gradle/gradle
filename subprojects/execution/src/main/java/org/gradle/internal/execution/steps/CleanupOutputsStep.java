@@ -99,19 +99,19 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         work.visitOutputProperties((name, type, roots) -> {
             for (File root : roots) {
                 if (root.exists()) {
-                    switch (type) {
-                        case FILE:
-                            deleter.delete(root);
-                            break;
-                        case DIRECTORY:
-                            try {
+                    try {
+                        switch (type) {
+                            case FILE:
+                                deleter.delete(root);
+                                break;
+                            case DIRECTORY:
                                 deleter.ensureEmptyDirectory(root, true);
-                            } catch (IOException ex) {
-                                throw new UncheckedIOException(ex);
-                            }
                             break;
-                        default:
-                            throw new AssertionError();
+                            default:
+                                throw new AssertionError();
+                        }
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
                     }
                 }
             }
