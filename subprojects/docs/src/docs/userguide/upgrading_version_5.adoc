@@ -62,6 +62,13 @@ While this behavior could be helpful to maintain executing build no matter what,
 In Gradle 6.0 we are switching to failing fast, and both pack and unpack errors will result the build to fail.
 Doing so allows these problems to be surfaced more easily.
 
+==== Gradle Module Metadata is always published
+
+[Gradle Module Metadata](https://blog.gradle.org/gradle-metadata-1.0), officially introduced in Gradle 5.3, was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
+With Gradle 6.0, Gradle Module Metadata is enabled by default.
+This means, if you are publishing libraries with Gradle, using the <<publishing_maven.adoc#,maven-publish>> or <<publishing_ivy.adoc#,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to the traditional metadata.
+The traditional metadata file will contain a marker so that Gradle knows that there is additional metadata to consume.
+
 ==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
 
 If Gradle fails to locate the metadata file (`.pom` or `ivy.xml`) of a module in a repository defined in the `repositories { }` section, it now assumes that the module does not exist in that repository.
