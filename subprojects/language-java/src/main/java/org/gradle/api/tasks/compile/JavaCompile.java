@@ -77,10 +77,10 @@ import java.util.concurrent.Callable;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
-    private final FileCollection stableSources = getProject().files(new Callable<FileTree[]>() {
+    private final FileCollection stableSources = getProject().files(new Callable<Object[]>() {
         @Override
-        public FileTree[] call() {
-            return new FileTree[] {getSource(), getSources()};
+        public Object[] call() {
+            return new Object[] {getSource(), getSources()};
         }
     });
 
@@ -108,7 +108,7 @@ public class JavaCompile extends AbstractCompile {
      */
     @Deprecated
     @Internal
-    public FileTree getSources() {
+    protected FileCollection getSources() {
         return getProject().files().getAsFileTree();
     }
 
