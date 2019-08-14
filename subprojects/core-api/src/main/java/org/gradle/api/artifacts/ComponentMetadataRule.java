@@ -17,13 +17,11 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * A rule that modify {@link ComponentMetadataDetails component metadata}.
  *
  * @since 4.9
  */
-@Incubating
 public interface ComponentMetadataRule extends Action<ComponentMetadataContext> {
 }

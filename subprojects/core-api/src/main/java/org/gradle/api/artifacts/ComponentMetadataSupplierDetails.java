@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
  *
  * @since 4.0
  */
-@Incubating
 public interface ComponentMetadataSupplierDetails {
     /**
      * Returns the identifier of the component being resolved

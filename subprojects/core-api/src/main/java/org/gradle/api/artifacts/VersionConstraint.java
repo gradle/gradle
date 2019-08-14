@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -92,7 +91,6 @@ import java.util.List;
  *
  * @since 4.4
  */
-@Incubating
 @UsedByScanPlugin
 public interface VersionConstraint extends Describable {
     /**

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -27,7 +26,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 4.8
  * @see MavenPom
  */
-@Incubating
 @HasInternalProtocol
 public interface MavenPomDistributionManagement {
 

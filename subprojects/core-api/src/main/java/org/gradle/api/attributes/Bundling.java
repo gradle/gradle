@@ -15,7 +15,6 @@
  */
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -49,7 +48,6 @@ import org.gradle.api.Named;
  *
  * @since 5.3
  */
-@Incubating
 public interface Bundling extends Named {
     Attribute<Bundling> BUNDLING_ATTRIBUTE = Attribute.of("org.gradle.dependency.bundling", Bundling.class);
 

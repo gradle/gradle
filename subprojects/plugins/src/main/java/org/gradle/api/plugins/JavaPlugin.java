@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -199,7 +198,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @since 4.6
      */
-    @Incubating
     public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
 
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
@@ -244,7 +242,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @since 4.6
      */
-    @Incubating
     public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "testAnnotationProcessor";
 
     /**

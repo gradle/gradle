@@ -15,8 +15,6 @@
  */
 package org.gradle.api.capabilities;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
@@ -24,7 +22,6 @@ import java.util.List;
  *
  * @since 4.7
  */
-@Incubating
 public interface CapabilitiesMetadata {
     /**
      * Returns an immutable view of the capabilities.

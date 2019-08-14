@@ -92,7 +92,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
      *
      * @since 5.3
      */
-    @Incubating
     public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
             ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
             ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,

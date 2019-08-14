@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -26,7 +24,6 @@ import javax.annotation.Nullable;
  *
  * @since 4.9
  */
-@Incubating
 public interface ComponentMetadataContext {
 
     /**

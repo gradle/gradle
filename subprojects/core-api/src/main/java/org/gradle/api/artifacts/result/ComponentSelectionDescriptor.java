@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -25,7 +24,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.6
  */
 @UsedByScanPlugin
-@Incubating
 @HasInternalProtocol
 public interface ComponentSelectionDescriptor {
 

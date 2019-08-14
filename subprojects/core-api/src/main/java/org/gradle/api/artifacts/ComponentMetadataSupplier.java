@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * A component metadata rule is responsible for providing the initial metadata of a component
@@ -26,7 +25,6 @@ import org.gradle.api.Incubating;
  *
  * @since 4.0
  */
-@Incubating
 public interface ComponentMetadataSupplier extends Action<ComponentMetadataSupplierDetails> {
     /**
      * Supply metadata for a component.

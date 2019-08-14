@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 
 /**
@@ -28,7 +27,6 @@ import org.gradle.api.attributes.Attribute;
  *
  * @since 5.1
  */
-@Incubating
 public interface RepositoryContentDescriptor {
 
     /**

@@ -19,7 +19,6 @@ package org.gradle.api.publish.tasks;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -65,7 +64,6 @@ import java.util.Set;
  *
  * @since 4.3
  */
-@Incubating
 public class GenerateModuleMetadata extends DefaultTask {
     private final Property<Publication> publication;
     private final ListProperty<Publication> publications;

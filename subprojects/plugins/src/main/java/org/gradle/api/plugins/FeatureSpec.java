@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -25,7 +24,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 5.3
  */
-@Incubating
 @HasInternalProtocol
 public interface FeatureSpec {
     /**
