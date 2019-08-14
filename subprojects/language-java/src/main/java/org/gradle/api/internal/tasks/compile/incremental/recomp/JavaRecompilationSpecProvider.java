@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.api.tasks.WorkResult;
@@ -41,8 +40,8 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     private final boolean incremental;
     private final Iterable<FileChange> sourceFileChanges;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, boolean incremental, Iterable<FileChange> sourceFileChanges) {
-        super(fileOperations, sources);
+    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTree sourceTree, boolean incremental, Iterable<FileChange> sourceFileChanges) {
+        super(fileOperations, sourceTree);
         this.incremental = incremental;
         this.sourceFileChanges = sourceFileChanges;
     }

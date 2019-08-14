@@ -154,13 +154,14 @@ public class JavaCompile extends AbstractCompile {
         }
 
         DefaultJavaCompileSpec spec = createSpec();
+        FileTree sources = getStableSources().getAsFileTree();
         Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
             createCompiler(spec),
             getPath(),
-            getSource(),
+            sources,
             new JavaRecompilationSpecProvider(
                 ((ProjectInternal) getProject()).getFileOperations(),
-                (FileTreeInternal) getSource(),
+                sources,
                 inputs.isIncremental(),
                 () -> inputs.getFileChanges(getStableSources()).iterator()
             )
@@ -181,7 +182,7 @@ public class JavaCompile extends AbstractCompile {
     @Override
     protected void compile() {
         DefaultJavaCompileSpec spec = createSpec();
-        spec.setSourceFiles(getSource());
+        spec.setSourceFiles(getStableSources().getAsFileTree());
         performCompilation(spec, createCompiler(spec));
     }
 
@@ -211,7 +212,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
-        spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource()));
+        spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree()));
         return spec;
     }
 
