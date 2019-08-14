@@ -551,7 +551,7 @@ include::sample[dir="userguide/java/fixtures/kotlin",files="build.gradle.kts[tag
 One of the advantages of using the `java-test-fixtures` plugin is that test fixtures are published.
 By convention, test fixtures will be published with an artifact having the `test-fixtures` classifier.
 For both Maven and Ivy, an artifact with that classifier is simply published alongside the regular artifacts.
-However, if you use the `maven-publish` or `ivy-publish` plugins and enable {metadata-file-spec}[experimental Gradle metadata], then test fixtures are published as additional variants, which implies that you can directly depend on test fixtures of external libraries:
+However, if you use the `maven-publish` or `ivy-publish` plugin, test fixtures are published as additional variants in {metadata-file-spec}[Gradle Module Metadata] and you can directly depend on test fixtures of external libraries in another Gradle project:
 
 .Adding a dependency on test fixtures of an external library
 ====
@@ -559,7 +559,7 @@ include::sample[dir="userguide/java/fixtures/groovy",files="build.gradle[tags=ex
 include::sample[dir="userguide/java/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
 ====
 
-It's worth noting that if the external project is _not_ publishing Gradle module metadata, then resolution will fail with an error indicating that such a variant cannot be found:
+It's worth noting that if the external project is _not_ publishing Gradle Module Metadata, then resolution will fail with an error indicating that such a variant cannot be found:
 
 .Output of **`gradle dependencyInsight --configuration functionalTestClasspath --dependency gson`**
 ----

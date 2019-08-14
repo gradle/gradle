@@ -2,7 +2,7 @@
 
 Consumption of Gradle Module Metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
 
-Publishing Gradle metadata can be enabled in Gradle settings file (`settings.gradle`):
+Publishing Gradle Module Metadata can be enabled in Gradle settings file (`settings.gradle`):
 
 ```
 enableFeaturePreview("GRADLE_METADATA")
