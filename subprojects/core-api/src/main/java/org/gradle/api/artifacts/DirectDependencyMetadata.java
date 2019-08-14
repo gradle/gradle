@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+
 /**
  * Describes a dependency declared in a resolved component's metadata, which typically originates from
  * a component descriptor (Gradle metadata file, Ivy file, Maven POM). This interface can be used to adjust

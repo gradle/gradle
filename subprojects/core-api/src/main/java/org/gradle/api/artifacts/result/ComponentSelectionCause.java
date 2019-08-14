@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**

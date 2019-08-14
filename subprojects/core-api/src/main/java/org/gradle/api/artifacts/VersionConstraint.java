@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;

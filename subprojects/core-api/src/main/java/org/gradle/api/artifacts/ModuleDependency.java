@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
