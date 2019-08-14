@@ -42,6 +42,7 @@ dependencies {
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
     integTestImplementation(testFixtures(project(":dependencyManagement")))
+    integTestImplementation(testFixtures(project(":jacoco")))
 
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))

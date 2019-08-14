@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.jacoco.plugins
+package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
