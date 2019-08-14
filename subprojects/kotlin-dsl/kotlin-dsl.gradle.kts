@@ -55,6 +55,15 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
 
+    implementation(futureKotlin("scripting-common")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm-host-embeddable")) {
+        isTransitive = false
+    }
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
