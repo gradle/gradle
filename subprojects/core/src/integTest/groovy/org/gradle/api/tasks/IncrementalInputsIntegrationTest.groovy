@@ -387,7 +387,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         PathSensitivity.NAME_ONLY | [modified: "input1.txt", added: "other-input.txt", removed: "input2.txt"]
     }
 
-    @Unroll
     def "provides the file type"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
@@ -403,8 +402,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @TaskAction
                 void copy(InputChanges changes) {
                     if (!changes.incremental) {
-                        println("Full rebuild - cleaning output directory")
-                        org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
+                        println("Full rebuild - recreating output directory")
+                        def outputDir = outputDirectory.get().asFile
+                        project.delete(outputDir)
+                        project.mkdir(outputDir)
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
                         File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
