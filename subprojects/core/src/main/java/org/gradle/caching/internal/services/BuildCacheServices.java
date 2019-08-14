@@ -32,7 +32,7 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCac
 import org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;

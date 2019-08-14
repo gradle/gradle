@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file.impl;
+package org.gradle.internal.file;
 
 import java.io.File;
 import java.io.IOException;

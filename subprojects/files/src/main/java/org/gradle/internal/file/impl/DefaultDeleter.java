@@ -16,6 +16,7 @@
 package org.gradle.internal.file.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.file.Deleter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.service.ServiceRegistration;
 

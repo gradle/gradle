@@ -26,7 +26,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 
 import javax.annotation.Nullable;
 import java.io.File;

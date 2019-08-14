@@ -16,7 +16,7 @@
 
 package org.gradle.caching.internal.packaging.impl
 
-import org.gradle.internal.file.impl.Deleter
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import spock.lang.Unroll
 
