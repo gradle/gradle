@@ -64,17 +64,9 @@ public interface Deleter {
      *
      * Does not follow symlinks.
      *
+     * @return {@code true} if the target existed, {@code false} if it didn't exist.
+     *
      * @throws IOException if the file cannot be deleted.
      */
-    void delete(File target) throws IOException;
-
-    /**
-     * Attempts to delete a single file or an empty directory.
-     *
-     * Does not follow symlinks.
-     *
-     * @return {@code true} if the removal was successful, {@code false} otherwise
-     *         (because {@code target} didn't exist).
-     */
-    boolean tryDelete(File target);
+    boolean delete(File target) throws IOException;
 }

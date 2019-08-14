@@ -127,8 +127,12 @@ public class WorkExecutorTestFixture {
             }
 
             @Override
-            public boolean delete(File target) {
-                return FileUtils.deleteQuietly(target);
+            public boolean delete(File target) throws IOException {
+                if (!target.exists()) {
+                    return false;
+                }
+                FileUtils.forceDelete(target);
+                return true;
             }
         };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(

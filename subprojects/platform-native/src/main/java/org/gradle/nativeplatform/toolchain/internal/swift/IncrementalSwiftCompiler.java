@@ -69,13 +69,12 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
         for (File removedSource : spec.getRemovedSourceFiles()) {
             File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
 
-            if (deleter.delete(objectFile)) {
-                didRemove = true;
-                try {
-                    deleter.deleteRecursively(objectFile.getParentFile(), true);
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
+            try {
+                if (deleter.deleteRecursively(objectFile.getParentFile(), true)) {
+                    didRemove = true;
                 }
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
             }
         }
         return didRemove;

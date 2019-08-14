@@ -84,15 +84,14 @@ public class DefaultDeleter implements Deleter {
     }
 
     @Override
-    public void delete(File target) throws IOException {
+    public boolean delete(File target) throws IOException {
+        if (!target.exists()) {
+            return false;
+        }
         if (!tryHardToDelete(target)) {
             throw new IOException("Couldn't delete " + target);
         }
-    }
-
-    @Override
-    public boolean tryDelete(File target) {
-        return tryHardToDelete(target);
+        return true;
     }
 
     private boolean deleteRecursively(File root, Handling handling) throws IOException {
