@@ -45,6 +45,7 @@ dependencies {
     testFixturesImplementation(testLibrary("jsoup"))
 
     testImplementation(project(":fileCollections"))
+    testImplementation(project(":internalIntegTesting"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
