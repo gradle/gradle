@@ -56,6 +56,10 @@ dependencies {
 }
 ```
 
+## Support for Java 13
+
+Gradle now supports running with Java 13.
+
 ## Debug support for forked Java processes
 
 Gradle has now a new DSL element to configure debugging for Java processes.  
