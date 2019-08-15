@@ -53,7 +53,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "shows deprecation warning when replace a unrealized task a second time when #description"() {
+    def "throws exception when replacing an unrealized task a second time when #description"() {
         buildFile << """
             tasks.register("foo", First)
             tasks.replace("foo", Second)  // will eagerly create the task
@@ -61,12 +61,8 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
-        outputDoesNotContain(":foo is a First")
-        outputContains(":foo is a Second")
-        outputContains(":foo is a Third")
+        fails 'help'
+        failure.assertHasCause("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('foo').")
 
         where:
         description               | api
@@ -75,18 +71,15 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "shows deprecation warning when replace an eagerly created task when #description"() {
+    def "throws exception when replacing an eagerly created task when #description"() {
         buildFile << """
             tasks.create("foo", First)
             tasks.${api}
         """
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains(":foo is a First")
-        outputContains(":foo is a Second")
-        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        fails 'help'
+        failure.assertHasCause("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('foo').")
 
         where:
         description               | api
@@ -94,33 +87,19 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: Second, overwrite: true)'
     }
 
-    def "shows deprecation warning when replace realized task"() {
+    def "throws exception when replace realized task"() {
         buildFile << '''
             tasks.register("foo", First).get()
             tasks.replace("foo", Second)
         '''
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
-    }
-
-    def "shows deprecation warning when replace realized task by configuration rule"() {
-        buildFile << '''
-            tasks.register("foo", First)
-            tasks.all { }
-            tasks.replace("foo", Second)
-        '''
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        fails 'help'
+        failure.assertHasCause("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('foo').")
     }
 
     @Unroll
-    def "shows deprecation warning with unrelated type when #description"() {
+    def "throws exception when replacing a task with an unrelated type when #description"() {
         buildFile << """
             class CustomTask extends DefaultTask {}
             class UnrelatedCustomTask extends DefaultTask {}
@@ -130,9 +109,8 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains("Replacing an existing task with an incompatible type has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (UnrelatedCustomTask) or avoid creating the original task you are trying to replace.")
+        fails 'help'
+        failure.assertHasCause("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('foo') or use a compatible type (UnrelatedCustomTask)")
 
         where:
         description               | api
@@ -141,7 +119,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "shows deprecation warning replace with more restrictive type when #description"() {
+    def "throws exception when replacing a task with more restrictive type when #description"() {
         buildFile << """
             class CustomTask extends DefaultTask {}
             class MyCustomTask extends CustomTask {}
@@ -151,9 +129,8 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains("Replacing an existing task with an incompatible type has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (CustomTask) or avoid creating the original task you are trying to replace.")
+        fails 'help'
+        failure.assertHasCause("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('foo') or use a compatible type (CustomTask)")
 
         where:
         description               | api
@@ -192,44 +169,15 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "applies only container wide configuration actions to the replaced task instance"() {
-        buildFile << '''
-            class CustomTask extends DefaultTask {
-                String prop
-            }
-
-            tasks.create("foo", CustomTask) { 
-                it.prop = "value" 
-            }
-            tasks.withType(CustomTask).configureEach { 
-                it.prop = (it.prop == null ? "value 1" : "value 2") 
-            }
-            assert foo.prop == "value 2"
-            
-            tasks.replace("foo", CustomTask)
-            tasks.withType(CustomTask).all { 
-                assert it.prop == "value 1"; 
-                it.prop = "value 3" 
-            }
-
-            assert foo.prop == "value 3"
-        '''
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-    }
-
     @Unroll
-    def "shows deprecation warning when replacing non-existent task when #description"() {
+    def "throws exception when replacing non-existent task when #description"() {
         buildFile << """
             tasks.${api}
         """
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
-        outputContains("Unnecessarily replacing a task that does not exist has been deprecated. This is scheduled to be removed in Gradle 6.0. Try using create() or register() directly instead. You attempted to replace a task named 'foo', but no task exists with that name already.")
+        fails 'help'
+        failure.assertHasCause("Unnecessarily replacing a task that does not exist is not supported.  Use create() or register() directly instead.  You attempted to replace a task named 'foo', but there is no existing task with that name.")
 
         where:
         description               | api
