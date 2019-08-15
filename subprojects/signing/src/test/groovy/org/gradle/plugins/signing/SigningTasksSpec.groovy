@@ -77,7 +77,7 @@ class SigningTasksSpec extends SigningProjectSpec {
         File libsDir = jarFile.parentFile
         libsDir.mkdirs()
         jarFile.createNewFile()
-        signTask.outputFiles == ["test.jar.asc:jar.asc:asc:": new File(libsDir, "test.jar.asc")]
+        signTask.signatures.collect { it.file } == [new File(libsDir, "test.jar.asc")]
         signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
     }
 
@@ -92,7 +92,6 @@ class SigningTasksSpec extends SigningProjectSpec {
         jar.enabled = false
 
         then:
-        signTask.outputFiles == [:]
         signTask.signaturesByKey == [:]
     }
 
