@@ -45,11 +45,13 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -102,7 +104,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         configureIncrementalCompilation(spec);
         Compiler<ScalaJavaJointCompileSpec> compiler = getCompiler(spec);
         if (isNonIncrementalCompilation()) {
-            compiler = new CleaningScalaCompiler(compiler, getOutputs());
+            compiler = new CleaningScalaCompiler(compiler, getOutputs(), getDeleter());
         }
         compiler.execute(spec);
     }
@@ -239,5 +241,10 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     @LocalState
     public RegularFileProperty getAnalysisMappingFile() {
         return analysisMappingFile;
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 }

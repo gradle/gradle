@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -31,7 +32,6 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
-import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -126,7 +126,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
-            GFileUtils.cleanDirectory(perVersion)
+            FileUtils.cleanDirectory(perVersion)
         }
         perVersion
     }

@@ -21,8 +21,8 @@ import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.file.impl.Deleter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy

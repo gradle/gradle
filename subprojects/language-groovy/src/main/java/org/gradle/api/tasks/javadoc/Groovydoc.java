@@ -36,7 +36,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

@@ -16,10 +16,12 @@
 
 package org.gradle.performance.fixture;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * Runs a single build experiment.
@@ -46,9 +48,13 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     protected abstract void doRun(BuildExperimentSpec experiment, MeasuredOperationList results);
 
     private static void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
-        File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
-        GFileUtils.cleanDirectory(workingDir);
-        GFileUtils.copyDirectory(templateDir, workingDir);
+        try {
+            File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
+            FileUtils.cleanDirectory(workingDir);
+            FileUtils.copyDirectory(templateDir, workingDir);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     private static String getExperimentOverride(String key) {

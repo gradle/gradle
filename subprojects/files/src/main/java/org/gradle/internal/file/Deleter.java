@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file.impl;
+package org.gradle.internal.file;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,12 +60,13 @@ public interface Deleter {
     boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException;
 
     /**
-     * Attempts to delete a single file or an empty directory.
+     * Deletes a single file or an empty directory.
      *
      * Does not follow symlinks.
      *
-     * @return {@code true} if the removal was successful, {@code false} otherwise
-     *         (because {@code target} didn't exist).
+     * @return {@code true} if the target existed, {@code false} if it didn't exist.
+     *
+     * @throws IOException if the file cannot be deleted.
      */
-    boolean delete(File target);
+    boolean delete(File target) throws IOException;
 }

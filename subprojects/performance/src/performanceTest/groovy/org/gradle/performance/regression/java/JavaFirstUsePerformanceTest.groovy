@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.java
 
+import org.apache.commons.io.FileUtils
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.util.GFileUtils
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -46,9 +46,9 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
-                    GFileUtils.deleteDirectory(new File(it, '.gradle'))
-                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
-                    GFileUtils.deleteDirectory(new File(it, 'gradle-user-home'))
+                    FileUtils.deleteDirectory(new File(it, '.gradle'))
+                    FileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
+                    FileUtils.deleteDirectory(new File(it, 'gradle-user-home'))
                 }
             }
         })
@@ -78,8 +78,8 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
-                    GFileUtils.deleteDirectory(new File(it, '.gradle'))
-                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
+                    FileUtils.deleteDirectory(new File(it, '.gradle'))
+                    FileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
                 }
             }
         })

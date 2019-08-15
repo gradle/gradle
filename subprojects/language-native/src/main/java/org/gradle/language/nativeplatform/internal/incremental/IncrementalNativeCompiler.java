@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
@@ -39,12 +40,20 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     private final Compiler<T> delegateCompiler;
     private final TaskOutputsInternal outputs;
+    private final Deleter deleter;
     private final PersistentStateCache<CompilationState> compileStateCache;
     private final IncrementalCompilation incrementalCompilation;
 
-    public IncrementalNativeCompiler(TaskOutputsInternal outputs, Compiler<T> delegateCompiler, PersistentStateCache<CompilationState> compileStateCache, IncrementalCompilation incrementalCompilation) {
+    public IncrementalNativeCompiler(
+        TaskOutputsInternal outputs,
+        Compiler<T> delegateCompiler,
+        Deleter deleter,
+        PersistentStateCache<CompilationState> compileStateCache,
+        IncrementalCompilation incrementalCompilation
+    ) {
         this.outputs = outputs;
         this.delegateCompiler = delegateCompiler;
+        this.deleter = deleter;
         this.compileStateCache = compileStateCache;
         this.incrementalCompilation = incrementalCompilation;
     }
@@ -123,7 +132,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     private boolean cleanPreviousOutputs(NativeCompileSpec spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs);
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, outputs);
         cleaner.addDirToClean(spec.getObjectFileDir());
         cleaner.execute();
         return cleaner.getDidWork();

@@ -29,7 +29,7 @@ import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -47,6 +47,7 @@ import org.gradle.internal.classloader.ImplementationHashAware;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -60,6 +61,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -75,26 +78,35 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final int HAS_METHODS_FLAG = 2;
 
     private final ClassLoaderCache classLoaderCache;
+    private final Deleter deleter;
     private final Map<String, List<String>> simpleNameToFQN;
 
-    public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
+    public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, Deleter deleter, ImportsReader importsReader) {
         this.classLoaderCache = classLoaderCache;
-        simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
+        this.deleter = deleter;
+        this.simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
     }
 
     @Override
     public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Timer clock = Time.startTimer();
-        GFileUtils.deleteDirectory(classesDir);
-        GFileUtils.mkdirs(classesDir);
+        try {
+            deleter.ensureEmptyDirectory(classesDir, true);
+        } catch (IOException ioex) {
+            throw new UncheckedIOException(ioex);
+        }
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {
             compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
-        } catch (GradleException e) {
-            GFileUtils.deleteDirectory(classesDir);
-            GFileUtils.deleteDirectory(metadataDir);
+        } catch (Exception e) {
+            try {
+                deleter.deleteRecursively(classesDir, true);
+                deleter.deleteRecursively(metadataDir, true);
+            } catch (IOException ioex) {
+                throw new UncheckedIOException(ioex);
+            }
             throw e;
         }
 

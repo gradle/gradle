@@ -16,8 +16,11 @@
 package org.gradle.language.jvm.tasks;
 
 import org.gradle.api.tasks.Copy;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
+
+import javax.inject.Inject;
 
 /**
  * Copies resources from their source to their target directory, potentially processing them.
@@ -27,9 +30,14 @@ public class ProcessResources extends Copy {
 
     @Override
     protected void copy() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
         cleaner.addDirToClean(getDestinationDir());
         cleaner.execute();
         super.copy();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 }

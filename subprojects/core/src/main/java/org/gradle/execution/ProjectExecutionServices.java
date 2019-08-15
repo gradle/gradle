@@ -54,10 +54,10 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.file.impl.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -91,11 +91,17 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     EmptySourceTaskSkipper createEmptySourceTaskSkipper(
-        TaskInputsListener taskInputsListener,
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
+        Deleter deleter,
         OutputChangeListener outputChangeListener,
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry
+        TaskInputsListener taskInputsListener
     ) {
-        return new DefaultEmptySourceTaskSkipper(taskInputsListener, outputChangeListener, buildOutputCleanupRegistry);
+        return new DefaultEmptySourceTaskSkipper(
+            buildOutputCleanupRegistry,
+            deleter,
+            outputChangeListener,
+            taskInputsListener
+        );
     }
 
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,

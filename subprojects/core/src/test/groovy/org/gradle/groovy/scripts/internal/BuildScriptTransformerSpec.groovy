@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
@@ -33,23 +34,27 @@ import spock.lang.Unroll
 class BuildScriptTransformerSpec extends Specification {
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def importsReader = Mock(ImportsReader) {
         getImportPackages() >> ([] as String[])
         getSimpleNameToFullClassNamesMapping() >> [:]
     }
 
-    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new DummyClassLoaderCache(), importsReader)
+    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(
+        new DummyClassLoaderCache(),
+        TestFiles.deleter(),
+        importsReader
+    )
 
     File scriptCacheDir
     File metadataCacheDir
     private classLoaderId = Mock(ClassLoaderId)
 
     def setup() {
-        File testProjectDir = tmpDir.createDir("projectDir");
-        scriptCacheDir = new File(testProjectDir, "cache");
-        metadataCacheDir = new File(testProjectDir, "metadata");
+        File testProjectDir = tmpDir.createDir("projectDir")
+        scriptCacheDir = new File(testProjectDir, "cache")
+        metadataCacheDir = new File(testProjectDir, "metadata")
     }
 
     private CompiledScript<Script, BuildScriptData> parse(String script) {
@@ -59,7 +64,7 @@ class BuildScriptTransformerSpec extends Specification {
             getClasspathBlockName() >> "buildscript"
         }
         def targetScope = Stub(ClassLoaderScope) {
-            createChild(_) >> Stub(ClassLoaderScope)
+            createChild(_ as String) >> Stub(ClassLoaderScope)
         }
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(source, target)

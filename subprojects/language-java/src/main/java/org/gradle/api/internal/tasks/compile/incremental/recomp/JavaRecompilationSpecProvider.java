@@ -27,6 +27,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.Deleter;
 
 import java.io.File;
 import java.util.Collection;
@@ -38,8 +39,14 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     private final IncrementalTaskInputs inputs;
     private final JavaConventionalSourceFileClassNameConverter sourceFileClassNameConverter;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTreeInternal sources, IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
-        super(fileOperations, sources);
+    public JavaRecompilationSpecProvider(
+        Deleter deleter,
+        FileOperations fileOperations,
+        FileTreeInternal sources,
+        IncrementalTaskInputs inputs,
+        CompilationSourceDirs sourceDirs
+    ) {
+        super(deleter, fileOperations, sources);
         this.sourceFileClassNameConverter = new JavaConventionalSourceFileClassNameConverter(sourceDirs);
         this.inputs = inputs;
     }

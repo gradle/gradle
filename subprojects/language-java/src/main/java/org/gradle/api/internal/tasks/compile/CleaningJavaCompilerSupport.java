@@ -24,7 +24,7 @@ import java.io.File;
 /**
  * Deletes stale classes before invoking the actual compiler
  */
-public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
+public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> implements Compiler<T> {
     @Override
     public WorkResult execute(T spec) {
         StaleClassCleaner cleaner = createCleaner(spec);

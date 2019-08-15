@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
@@ -26,6 +27,7 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":fileCollections"))
+    testImplementation(project(":files"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":launcher")))

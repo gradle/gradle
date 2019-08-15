@@ -24,7 +24,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.impl.OutputsCleaner;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.io.File;
@@ -84,7 +84,11 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                         throw new AssertionError();
                 }
             });
-            OutputsCleaner cleaner = new OutputsCleaner(file -> true, dir -> !outputDirectoriesToPreserve.contains(dir));
+            OutputsCleaner cleaner = new OutputsCleaner(
+                deleter,
+                file -> true,
+                dir -> !outputDirectoriesToPreserve.contains(dir)
+            );
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
                 try {
                     cleaner.cleanupOutputs(fileCollectionFingerprint);
@@ -99,19 +103,19 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         work.visitOutputProperties((name, type, roots) -> {
             for (File root : roots) {
                 if (root.exists()) {
-                    switch (type) {
-                        case FILE:
-                            deleter.delete(root);
-                            break;
-                        case DIRECTORY:
-                            try {
+                    try {
+                        switch (type) {
+                            case FILE:
+                                deleter.delete(root);
+                                break;
+                            case DIRECTORY:
                                 deleter.ensureEmptyDirectory(root, true);
-                            } catch (IOException ex) {
-                                throw new UncheckedIOException(ex);
-                            }
                             break;
-                        default:
-                            throw new AssertionError();
+                            default:
+                                throw new AssertionError();
+                        }
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
                     }
                 }
             }

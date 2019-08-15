@@ -16,6 +16,7 @@
 package org.gradle.internal.file.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.file.Deleter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,12 +73,23 @@ public class DefaultDeleter implements Deleter {
                     ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
                     : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);
             }
-            if (!delete(root)) {
+            if (!tryHardToDelete(root)) {
                 throw new IOException("Couldn't delete " + root);
             }
         }
         if (!root.mkdirs()) {
             throw new IOException("Couldn't create directory: " + root);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean delete(File target) throws IOException {
+        if (!target.exists()) {
+            return false;
+        }
+        if (!tryHardToDelete(target)) {
+            throw new IOException("Couldn't delete " + target);
         }
         return true;
     }
@@ -114,7 +126,7 @@ public class DefaultDeleter implements Deleter {
             }
         }
 
-        if (!delete(file)) {
+        if (!tryHardToDelete(file)) {
             failedPaths.add(file.getAbsolutePath());
 
             // Fail fast
@@ -133,8 +145,7 @@ public class DefaultDeleter implements Deleter {
         return file.delete() && !file.exists();
     }
 
-    @Override
-    public boolean delete(File file) {
+    private boolean tryHardToDelete(File file) {
         if (deleteFile(file)) {
             return true;
         }
