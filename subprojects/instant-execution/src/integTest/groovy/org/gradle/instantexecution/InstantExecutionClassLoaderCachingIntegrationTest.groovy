@@ -17,8 +17,9 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
+import spock.lang.Ignore
 
-
+@Ignore("wip")
 class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def "reuses cached ClassLoaders"() {
