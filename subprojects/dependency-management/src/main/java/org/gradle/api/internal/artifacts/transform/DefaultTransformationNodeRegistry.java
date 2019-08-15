@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -46,10 +45,8 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
         final List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         artifactSet.visitLocalArtifacts(artifact -> {
-            if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
-                TransformationNode transformationNode = getOrCreateInternal(artifact, transformationChain, dependenciesResolver);
-                builder.add(transformationNode);
-            }
+            TransformationNode transformationNode = getOrCreateInternal(artifact, transformationChain, dependenciesResolver);
+            builder.add(transformationNode);
         });
         return builder.build();
     }
