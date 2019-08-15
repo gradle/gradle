@@ -17,20 +17,28 @@
 package org.gradle.testing
 
 import com.google.common.collect.Sets
+import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import org.apache.commons.io.FileUtils
 import org.gradle.api.JavaVersion
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 import org.gradle.process.CommandLineArgumentProvider
+import org.openmbee.junit.JUnitMarshalling
+import org.openmbee.junit.model.JUnitFailure
+import org.openmbee.junit.model.JUnitTestCase
+import org.openmbee.junit.model.JUnitTestSuite
 
 import javax.annotation.Nullable
+import java.nio.charset.Charset
 
 /**
  * A test that checks execution time and memory consumption.
@@ -38,6 +46,7 @@ import javax.annotation.Nullable
 @CacheableTask
 @CompileStatic
 class PerformanceTest extends DistributionTest {
+    public static final String TC_URL = "https://builds.gradle.org/viewLog.html?buildId="
     public static final Set<String> NON_CACHEABLE_VERSIONS = Sets.newHashSet("last", "nightly", "flakiness-detection-commit");
     // Baselines configured by command line `--baselines`
     private Property<String> configuredBaselines = getProject().getObjects().property(String.class);
@@ -88,6 +97,9 @@ class PerformanceTest extends DistributionTest {
     @OutputDirectory
     File reportDir
 
+    @LocalState
+    File resultsJson
+
     // Disable report by default, we don't need it in worker build - unless it's AdHoc performance test
     @Internal
     PerformanceReporter performanceReporter = PerformanceReporter.NoOpPerformanceReporter.INSTANCE
@@ -128,13 +140,9 @@ class PerformanceTest extends DistributionTest {
     }
 
     @Internal
+    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
     Property<String> getConfiguredBaselines() {
         return configuredBaselines
-    }
-
-    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    void setBaselines(@Nullable String baselines) {
-        this.configuredBaselines.set(baselines)
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
@@ -174,6 +182,31 @@ class PerformanceTest extends DistributionTest {
 
     void addDatabaseParameters(Map<String, String> databaseConnectionParameters) {
         this.databaseParameters.putAll(databaseConnectionParameters)
+    }
+
+    protected void generateResultsJson() {
+        Collection<File> xmls = reports.junitXml.destination.listFiles().findAll { it.path.endsWith(".xml") }
+        List<ScenarioBuildResultData> resultData = xmls
+            .collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
+            .collect { extractResultFromTestSuite(it) }
+            .flatten() as List<ScenarioBuildResultData>
+        FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
+    }
+
+    static String collectFailures(JUnitTestSuite testSuite) {
+        List<JUnitTestCase> testCases = testSuite.testCases ?: []
+        List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten() as List<JUnitFailure>
+        return failures.collect { it.value }.join("\n")
+    }
+
+    private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite) {
+        List<JUnitTestCase> testCases = testSuite.testCases ?: []
+        return testCases.findAll { !it.skipped }.collect {
+            new ScenarioBuildResultData(scenarioName: it.name,
+                webUrl: TC_URL + buildId,
+                status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
+                testFailure: collectFailures(testSuite))
+        }
     }
 
     private class PerformanceTestJvmArgumentsProvider implements CommandLineArgumentProvider {
