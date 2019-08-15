@@ -92,9 +92,17 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    def "request an Maven POM for a Maven module with no metadata"() {
+    def "request an Maven POM for a Maven module with no metadata when artifact metadata source are configured"() {
         given:
         MavenHttpModule module = publishModuleWithoutMetadata()
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            }
+        """
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')

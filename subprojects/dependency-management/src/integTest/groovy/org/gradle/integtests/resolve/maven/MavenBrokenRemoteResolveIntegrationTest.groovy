@@ -38,7 +38,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -47,13 +46,11 @@ task showMissing { doLast { println configurations.missing.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
 Required by:
     project :""")
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -62,7 +59,6 @@ Required by:
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
 Required by:
     project :""")
 
@@ -101,9 +97,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleA.pom.expectGetMissing()
-        moduleA.artifact.expectHeadMissing()
         moduleB.pom.expectGetMissing()
-        moduleB.artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -112,13 +106,11 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
-  - ${moduleA.artifact.uri}
 Required by:
     project :""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
-  - ${moduleB.artifact.uri}
 Required by:
     project :""")
 
@@ -180,9 +172,7 @@ task showMissing { doLast { println configurations.compile.files } }
 
         when:
         moduleA.pom.expectGetMissing()
-        moduleA.artifact.expectHeadMissing()
         moduleB.pom.expectGetMissing()
-        moduleB.artifact.expectHeadMissing()
         moduleC.pom.expectGet()
         moduleD.pom.expectGet()
 
@@ -193,14 +183,12 @@ task showMissing { doLast { println configurations.compile.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
-  - ${moduleA.artifact.uri}
 Required by:
     project : > group:projectC:0.99
     project : > project :child1 > group:projectD:1.0GA""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
-  - ${moduleB.artifact.uri}
 Required by:
     project : > project :child1 > group:projectD:1.0GA""")
 
@@ -356,7 +344,6 @@ task showBroken { doLast { println configurations.broken.files } }
 
         when:
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
 
         then:
         fails("showBroken")

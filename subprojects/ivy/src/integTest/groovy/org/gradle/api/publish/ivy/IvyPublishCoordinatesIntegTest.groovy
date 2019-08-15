@@ -62,12 +62,9 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can produce multiple separate publications for single project"() {
-        // cannot yet publish Gradle metadata when there's no associated component
-        publishModuleMetadata = false
-
         given:
-        def module = ivyRepo.module('org.custom', 'custom', '2.2')
-        def apiModule = ivyRepo.module('org.custom', 'custom-api', '2')
+        def module = javaLibrary(ivyRepo.module('org.custom', 'custom', '2.2'))
+        def apiModule = ivyRepo.module('org.custom', 'custom-api', '2') // not a full 'IvyJavaModule', cannot yet publish Gradle metadata when there's no associated component
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -130,8 +127,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         and:
         resolveArtifacts(module) {
             withModuleMetadata {
-                // customizing publications is not supported with Gradle metadata
-                noComponentPublished()
+                expectFiles 'custom-2.2.jar'
             }
             withoutModuleMetadata {
                 expectFiles 'custom-2.2.jar'

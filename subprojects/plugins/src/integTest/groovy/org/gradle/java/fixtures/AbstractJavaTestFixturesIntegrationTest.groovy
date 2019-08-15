@@ -17,7 +17,6 @@
 package org.gradle.java.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.file.TestFile
@@ -236,8 +235,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
     }
 
     def "can publish test fixtures"() {
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-
         buildFile << """
             apply plugin: 'maven-publish'
             apply plugin: 'java-test-fixtures'
@@ -307,7 +304,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                 dependsOn("org.apache.commons:commons-lang3:3.9")
                 artifact("external-module-1.3-test-fixtures.jar")
             }
-            .withGradleMetadataRedirection()
             .withModuleMetadata()
             .publish()
         buildFile << """

@@ -1,12 +1,13 @@
-> Task :generatePomFileForMavenJavaPublication
 > Task :compileJava
 > Task :processResources
 > Task :classes
 > Task :jar
+> Task :generateMetadataFileForMavenJavaPublication
+> Task :generatePomFileForMavenJavaPublication
 > Task :javadoc
 > Task :javadocJar
 > Task :sourcesJar
 > Task :signMavenJavaPublication
 
 BUILD SUCCESSFUL in 0s
-8 actionable tasks: 8 executed
+9 actionable tasks: 9 executed

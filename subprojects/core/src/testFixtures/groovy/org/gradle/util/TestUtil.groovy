@@ -43,8 +43,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
-
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
@@ -108,12 +106,8 @@ class TestUtil {
         return services().get(NamedObjectInstantiator)
     }
 
-    static FeaturePreviews featurePreviews(boolean gradleMetadataEnabled = false) {
-        def previews = new FeaturePreviews()
-        if (gradleMetadataEnabled) {
-            previews.enableFeature(GRADLE_METADATA)
-        }
-        return previews
+    static FeaturePreviews featurePreviews() {
+        return new FeaturePreviews()
     }
 
     static TestUtil create(File rootDir) {

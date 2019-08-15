@@ -195,7 +195,6 @@ task retrieve(type: Sync) {
         child.artifact.expectGet()
 
         parentInRepo1.pom.expectGetMissing()
-        parentInRepo1.artifact.expectHeadMissing()
 
         parentInRepo2.pom.expectGet()
 
@@ -230,7 +229,6 @@ task retrieve(type: Sync) {
 
         when:
         missingChild.ivy.expectGetMissing()
-        missingChild.jar.expectHeadMissing()
         child.pom.expectGet()
         parent.ivy.expectGet()
 
@@ -287,7 +285,6 @@ task retrieveChild2(type: Sync) {
         when:
         child1.pom.expectGet()
         missingParent.pom.expectGetMissing()
-        missingParent.artifact.expectHeadMissing()
         parent.pom.expectGet()
 
         child1.artifact.expectGet()

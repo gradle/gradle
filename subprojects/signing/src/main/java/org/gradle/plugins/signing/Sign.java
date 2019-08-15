@@ -84,7 +84,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     public Map<String, File> getOutputFiles() {
         SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getOutputFiles()",
             "Please use Sign.getSignatures() and Signature.getFile() instead.");
-        return signatures.stream().collect(toMap(Signature::toKey, Signature::getFile));
+        return signaturesForExsitingFiles().stream().collect(toMap(Signature::toKey, Signature::getFile));
     }
 
     /**
@@ -224,7 +224,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
         }
 
-        for (Signature signature : signatures) {
+        for (Signature signature : signaturesForExsitingFiles()) {
             signature.generate();
         }
     }
@@ -244,7 +244,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Nested
     @Incubating
     public Map<String, Signature> getSignaturesByKey() {
-        return signatures.stream().collect(toMap(Signature::toKey, identity()));
+        return signaturesForExsitingFiles().stream().collect(toMap(Signature::toKey, identity()));
+    }
+
+    private DomainObjectSet<Signature> signaturesForExsitingFiles() {
+        return signatures.matching(signature -> signature.getToSign().exists());
     }
 
     /**

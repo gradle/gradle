@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
@@ -80,8 +79,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
-
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private Object baseUrl;
     private Set<String> schemes = null;
@@ -113,7 +110,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         InstantiatorFactory instantiatorFactory,
                                         FileResourceRepository fileResourceRepository,
                                         GradleModuleMetadataParser moduleMetadataParser,
-                                        FeaturePreviews featurePreviews,
                                         IvyMutableModuleMetadataFactory metadataFactory,
                                         IsolatableFactory isolatableFactory,
                                         ObjectFactory objectFactory) {
@@ -134,7 +130,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiatorFactory.decorateLenient();
         this.ivyContextManager = ivyContextManager;
-        this.metadataSources.setDefaults(featurePreviews);
+        this.metadataSources.setDefaults();
     }
 
     @Override
@@ -430,13 +426,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         boolean artifact;
         boolean ignoreGradleMetadataRedirection;
 
-        void setDefaults(FeaturePreviews featurePreviews) {
+        void setDefaults() {
             ivyDescriptor();
-            if (featurePreviews.isFeatureEnabled(GRADLE_METADATA)) {
-                gradleMetadata();
-            } else {
-                artifact();
-            }
             ignoreGradleMetadataRedirection = false;
         }
 

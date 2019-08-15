@@ -1,8 +1,8 @@
-# Gradle module metadata 1.0 specification
+# Gradle Module Metadata 1.0 specification
 
-Consumption of Gradle metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
+Consumption of Gradle Module Metadata is automatic. However publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
 
-Publishing Gradle metadata can be enabled in Gradle settings file (`settings.gradle`):
+Publishing Gradle Module Metadata can be enabled in Gradle settings file (`settings.gradle`):
 
 ```
 enableFeaturePreview("GRADLE_METADATA")

@@ -16,9 +16,7 @@
 
 package org.gradle.plugins.javascript.base
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import spock.lang.Unroll
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
@@ -34,12 +32,8 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         applyPlugin()
     }
 
-    @Unroll
-    def "can download from googles repo (gradleMetadata=#gradleMetadata)"() {
+    def "can download from googles repo"() {
         given:
-        if (gradleMetadata) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
         addGoogleRepoScript(buildFile)
 
         when:
@@ -63,19 +57,10 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         def jquery = file("jquery/jquery.min-1.7.2.js")
         jquery.exists()
         jquery.text.contains("jQuery v1.7.2")
-
-        where:
-        gradleMetadata | _
-        true           | _
-        false          | _
     }
 
-    @Unroll
-    def "can download from gradleJs repo (gradleMetadata=#gradleMetadata)"() {
+    def "can download from gradleJs repo"() {
         given:
-        if (gradleMetadata) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
         addGradlePublicJsRepoScript(buildFile)
 
         when:
@@ -99,11 +84,6 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         def jshint = file("jshint/jshint-r07.js")
         jshint.exists()
         jshint.text.contains("JSHint")
-
-        where:
-        gradleMetadata | _
-        true           | _
-        false          | _
     }
 
 }

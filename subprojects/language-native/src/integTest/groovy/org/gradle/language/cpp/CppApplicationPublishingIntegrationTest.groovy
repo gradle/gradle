@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -40,7 +39,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
     def setup() {
         when:
-        FeaturePreviewsFixture.enableGradleMetadata(consumer.file("settings.gradle"))
+        consumer.file("settings.gradle").createFile()
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
 

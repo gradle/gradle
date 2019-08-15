@@ -36,7 +36,6 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         module.ivy.expectGetMissing()
-        module.jar.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -45,13 +44,11 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-  - ${module.jar.uri}
 Required by:
     project :""")
 
         when:
         module.ivy.expectGetMissing()
-        module.jar.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -60,7 +57,6 @@ Required by:
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-  - ${module.jar.uri}
 Required by:
     project :""")
 
@@ -99,9 +95,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleA.ivy.expectGetMissing()
-        moduleA.jar.expectHeadMissing()
         moduleB.ivy.expectGetMissing()
-        moduleB.jar.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -110,13 +104,11 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.ivy.uri}
-  - ${moduleA.jar.uri}
 Required by:
     project :""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
-  - ${moduleB.jar.uri}
 Required by:
     project :""")
 
@@ -178,9 +170,7 @@ task showMissing { doLast { println configurations.compile.files } }
 
         when:
         moduleA.ivy.expectGetMissing()
-        moduleA.jar.expectHeadMissing()
         moduleB.ivy.expectGetMissing()
-        moduleB.jar.expectHeadMissing()
         moduleC.ivy.expectGet()
         moduleD.ivy.expectGet()
 
@@ -191,14 +181,12 @@ task showMissing { doLast { println configurations.compile.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.ivy.uri}
-  - ${moduleA.jar.uri}
 Required by:
     project : > group:projectC:0.99
     project : > project :child1 > group:projectD:1.0GA""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
-  - ${moduleB.jar.uri}
 Required by:
     project : > project :child1 > group:projectD:1.0GA""")
 
@@ -240,7 +228,6 @@ task showMissing { doLast { println configurations.missing.files } }
         when:
         module.ivy.expectGetMissing()
         def artifact = module.getArtifact(classifier: 'thing')
-        artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -249,7 +236,6 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-  - ${artifact.uri}
 Required by:
 """)
 
@@ -289,9 +275,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         when:
         moduleInRepo1.ivy.expectGetMissing()
-        moduleInRepo1.jar.expectHeadMissing()
         moduleInRepo2.ivy.expectGetMissing()
-        moduleInRepo2.jar.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -300,9 +284,7 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleInRepo1.ivy.uri}
-  - ${moduleInRepo1.jar.uri}
   - ${moduleInRepo2.ivy.uri}
-  - ${moduleInRepo2.jar.uri}
 Required by:
 """)
 

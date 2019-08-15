@@ -115,7 +115,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
         then:
         module.assertPublished()
-        def expectedFileNames = ["${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}-javadoc.jar", "${artifactId}-${version}.pom"]
+        def expectedFileNames = ["${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}-javadoc.jar", "${artifactId}-${version}.pom", "${artifactId}-${version}.module"]
         module.assertArtifactsPublished(expectedFileNames.collect { [it, "${it}.asc"] }.flatten())
 
         and:

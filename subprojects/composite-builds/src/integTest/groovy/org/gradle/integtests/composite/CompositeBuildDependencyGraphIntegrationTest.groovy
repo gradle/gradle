@@ -756,7 +756,6 @@ afterEvaluate {
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.toURL()}
-  - ${m.artifact.file.toURL()}
 Required by:
     project :buildC""")
 

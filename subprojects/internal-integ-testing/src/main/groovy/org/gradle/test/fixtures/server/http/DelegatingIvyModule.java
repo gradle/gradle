@@ -129,8 +129,8 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
-    public IvyModule withGradleMetadataRedirection() {
-        backingModule.withGradleMetadataRedirection();
+    public IvyModule withoutGradleMetadataRedirection() {
+        backingModule.withoutGradleMetadataRedirection();
         return t();
     }
 

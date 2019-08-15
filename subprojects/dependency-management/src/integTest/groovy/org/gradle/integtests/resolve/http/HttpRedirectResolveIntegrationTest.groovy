@@ -100,7 +100,13 @@ class HttpRedirectResolveIntegrationTest extends AbstractHttpDependencyResolutio
     def configurationWithIvyDependencyAndExpectedArtifact(String dependency, String expectedArtifact) {
         """
             repositories {
-                ivy { url "http://localhost:${server.port}/repo" }
+                ivy { 
+                    url "http://localhost:${server.port}/repo"
+                    metadataSources {
+                        ivyDescriptor()
+                        artifact()
+                    }
+                }
             }
             configurations { compile }
             dependencies { compile '$dependency' }

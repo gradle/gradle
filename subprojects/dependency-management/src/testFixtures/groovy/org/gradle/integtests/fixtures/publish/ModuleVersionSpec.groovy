@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.publish
 
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
@@ -151,21 +150,11 @@ class ModuleVersionSpec {
         }
     }
 
-    private static boolean hasGradleMetadata(HttpRepository repository) {
-        if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_ORIGINAL) {
-            return false
-        }
-        if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_GRADLE) {
-            return true
-        }
-        return GradleMetadataResolveRunner.isGradleMetadataEnabled()
-    }
-
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled = hasGradleMetadata(repository)
-        def newResolveBehaviorEnabled = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
-        if (gradleMetadataEnabled) {
+        def legacyMetadataIsRequested = repository.providesMetadata != HttpRepository.MetadataType.ONLY_GRADLE
+        def gradleMetadataWasPublished = repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL
+        if (gradleMetadataWasPublished) {
             module.withModuleMetadata()
         }
         expectGetMetadata.each {
@@ -173,62 +162,48 @@ class ModuleVersionSpec {
                 case InteractionExpectation.NONE:
                     break
                 case InteractionExpectation.MAYBE:
-                    if (newResolveBehaviorEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
-                    } else if (module instanceof MavenModule) {
+                    if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.allowGetOrHead()
                     }
+                    module.moduleMetadata.allowGetOrHead()
                     break
                 case InteractionExpectation.HEAD:
-                    if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
+                    if (legacyMetadataIsRequested) {
+                        if (module instanceof MavenModule) {
+                            module.pom.expectHead()
+                        } else if (module instanceof IvyModule) {
+                            module.ivy.expectHead()
+                        }
                     }
-                    if (newResolveBehaviorEnabled && gradleMetadataEnabled) {
+                    if (gradleMetadataWasPublished) {
                         module.moduleMetadata.expectHead()
-                    } else if (module instanceof MavenModule) {
-                        module.pom.expectHead()
-                    } else if (module instanceof IvyModule) {
-                        module.ivy.expectHead()
                     }
-
                     break
                 case InteractionExpectation.GET_MISSING:
-                    // Assume all metadata files are missing
-                    if (newResolveBehaviorEnabled && repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL) {
-                        module.moduleMetadata.expectGetMissing()
-                    }
-
-                    if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_GRADLE) {
-                        break
-                    }
-
-                    if (module instanceof MavenModule) {
-                        module.pom.expectGetMissing()
-                    } else if (module instanceof IvyModule) {
-                        module.ivy.expectGetMissing()
-                    }
-                    break
                 case InteractionExpectation.GET_MISSING_FOUND_ELSEWHERE:
-                    if (newResolveBehaviorEnabled || gradleMetadataEnabled) {
+                    // Assume all metadata files are missing
+                    if (legacyMetadataIsRequested) {
+                        if (module instanceof MavenModule) {
+                            module.pom.expectGetMissing()
+                        } else if (module instanceof IvyModule) {
+                            module.ivy.expectGetMissing()
+                        }
+                    } else {
                         module.moduleMetadata.expectGetMissing()
-                    } else if (module instanceof MavenModule) {
-                        module.pom.expectGetMissing()
-                    } else if (module instanceof IvyModule) {
-                        module.ivy.expectGetMissing()
                     }
                     break
                 default:
-                    if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
+                    if (legacyMetadataIsRequested) {
+                        if (module instanceof MavenModule) {
+                            module.pom.expectGet()
+                        } else if (module instanceof IvyModule) {
+                            module.ivy.expectGet()
+                        }
                     }
-                    if (gradleMetadataEnabled) {
+                    if (gradleMetadataWasPublished) {
                         module.moduleMetadata.expectGet()
-                    } else if (module instanceof MavenModule) {
-                        module.pom.expectGet()
-                    } else if (module instanceof IvyModule) {
-                        module.ivy.expectGet()
                     }
             }
         }

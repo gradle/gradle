@@ -93,9 +93,17 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    def "request an ivy descriptor for an ivy module with no descriptor"() {
+    def "request an ivy descriptor for an ivy module with no descriptor when artifact metadata source are configured"() {
         given:
         IvyHttpModule module = publishModuleWithoutMetadata()
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    ivyDescriptor()
+                    artifact()
+                }
+            }
+        """
 
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')

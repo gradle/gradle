@@ -13,7 +13,7 @@
 // limitations under the License.
 :maven-bom: https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
 :spring-boot-bom: https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-build-systems.html#using-boot-dependency-management
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[java_platform_plugin]]
 = The Java Platform Plugin
@@ -28,7 +28,7 @@ A platform can be used for different purposes:
 A platform is a special kind of software component which doesn't contain any sources:
 it is only used to reference other libraries, so that they play well together during dependency resolution.
 
-Platforms can be published as {maven-bom}[Maven BOMs] or with the experimental {metadata-file-spec}[Gradle metadata file] format.
+Platforms can be published as {metadata-file-spec}[Gradle Module Metadata] and {maven-bom}[Maven BOMs].
 
 [NOTE]
 ====

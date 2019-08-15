@@ -118,8 +118,20 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             apply plugin: "base"
 
             repositories {
-                maven { url "${emptyRepo.uri}" }
-                maven { url "${mavenHttpRepo.uri}" }
+                maven {
+                    url "${emptyRepo.uri}"
+                    metadataSources {
+                        mavenPom()
+                        artifact()
+                    }
+                }
+                maven { 
+                    url "${mavenHttpRepo.uri}"
+                    metadataSources {
+                        mavenPom()
+                        artifact()
+                    }
+                }
             }
             
             dependencies {
@@ -204,7 +216,13 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             apply plugin: "base"
 
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { 
+                    url "${mavenHttpRepo.uri}"
+                    metadataSources {
+                        mavenPom()
+                        artifact()
+                    }
+                }
             }
             
             dependencies {

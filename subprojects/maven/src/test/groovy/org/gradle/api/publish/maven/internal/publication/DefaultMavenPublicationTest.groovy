@@ -28,7 +28,6 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
@@ -192,7 +191,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithArtifact(artifact))
 
         then:
-        publication.publishableArtifacts.files.files == [pomFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
         publication.runtimeDependencies.empty
 
@@ -230,7 +229,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(component)
 
         then:
-        publication.publishableArtifacts.files.files == [pomFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
     }
 
@@ -465,21 +464,13 @@ class DefaultMavenPublicationTest extends Specification {
         publication.publishableArtifacts.files.isEmpty()
     }
 
-    def "Gradle metadata artifact is only added for components without variants if feature preview is enabled"() {
+    def "Gradle metadata artifact is added for components without variants"() {
         given:
         def publication = createPublication()
-        if (previewEnabled) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.GRADLE_METADATA)
-        }
         publication.from(createComponent([], []))
 
         and:
-        publication.publishableArtifacts.files.contains(gradleMetadataFile) == metadataFileExpected
-
-        where:
-        previewEnabled | metadataFileExpected
-        true           | true
-        false          | false
+        publication.publishableArtifacts.files.contains(gradleMetadataFile)
     }
 
     def createPublication() {

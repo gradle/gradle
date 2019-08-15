@@ -17,8 +17,6 @@ package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
 import org.gradle.test.fixtures.ModuleArtifact
@@ -31,10 +29,6 @@ import org.gradle.test.fixtures.maven.MavenModule
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
-
-    def setup() {
-        prepare()
-    }
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
         return new MavenJavaModule(mavenFileModule)
@@ -74,7 +68,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         def attributes = params.variant == null ?
             "" :
             """ 
@@ -162,7 +155,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         String classifier
         String ext
         String variant
-        boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+        boolean resolveModuleMetadata
         boolean expectFailure
 
         List<String> optionalFeatureCapabilities = []

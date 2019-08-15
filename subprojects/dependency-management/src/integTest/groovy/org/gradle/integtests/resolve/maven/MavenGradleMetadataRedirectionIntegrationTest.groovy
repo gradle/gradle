@@ -156,8 +156,8 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
     }
 
     private void createPomFile(boolean marker) {
-        if (marker) {
-            mainModule.withGradleMetadataRedirection()
+        if (!marker) {
+            mainModule.withoutGradleMetadataRedirection()
         }
         mainModule.publish()
         // and now we manually patch the Gradle metadata so that its dependencies

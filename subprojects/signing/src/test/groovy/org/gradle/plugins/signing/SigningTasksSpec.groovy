@@ -16,15 +16,15 @@
 package org.gradle.plugins.signing
 
 class SigningTasksSpec extends SigningProjectSpec {
-    
+
     def setup() {
         applyPlugin()
     }
-        
+
     def "sign jar with defaults"() {
         given:
         useJavadocAndSourceJars()
-        
+
         when:
         signing {
             sign jar
@@ -33,37 +33,37 @@ class SigningTasksSpec extends SigningProjectSpec {
 
         then:
         def signingTasks = [signJar, signSourcesJar, signJavadocJar]
-        
+
         and:
         jar in signJar.dependsOn
         sourcesJar in signSourcesJar.dependsOn
         javadocJar in signJavadocJar.dependsOn
-        
+
         and:
         signingTasks.every { it.singleSignature in configurations.signatures.artifacts }
 
         and:
         signingTasks.every { it.signatory == signing.signatory }
     }
-    
+
     def "sign method return values"() {
         given:
         useJavadocAndSourceJars()
-        
+
         when:
         def signJarTask = signing.sign(jar).first()
-        
+
         then:
         signJarTask.name == "signJar"
-        
+
         when:
         def (signSourcesJarTask, signJavadocJarTask) = signing.sign(sourcesJar, javadocJar)
-        
+
         then:
         [signSourcesJarTask, signJavadocJarTask]*.name == ["signSourcesJar", "signJavadocJar"]
     }
 
-    def "output files contain signature files"() {
+    def "output files contain signature files for existing files"() {
         given:
         useJavadocAndSourceJars()
         applyPlugin()
@@ -73,9 +73,27 @@ class SigningTasksSpec extends SigningProjectSpec {
         Sign signTask = signing.sign(jar).first()
 
         then:
-        File libsDir = jar.outputs.files.singleFile.parentFile
+        def jarFile = jar.outputs.files.singleFile
+        File libsDir = jarFile.parentFile
+        libsDir.mkdirs()
+        jarFile.createNewFile()
         signTask.outputFiles == ["test.jar.asc:jar.asc:asc:": new File(libsDir, "test.jar.asc")]
         signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
+    }
+
+    def "files to sign that do not exist are ignored"() {
+        given:
+        useJavadocAndSourceJars()
+        applyPlugin()
+        addSigningProperties()
+
+        when:
+        Sign signTask = signing.sign(jar).first()
+        jar.enabled = false
+
+        then:
+        signTask.outputFiles == [:]
+        signTask.signaturesByKey == [:]
     }
 
     def "sign task has description"() {

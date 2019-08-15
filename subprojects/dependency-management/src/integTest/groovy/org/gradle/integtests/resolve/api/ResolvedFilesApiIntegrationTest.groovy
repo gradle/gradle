@@ -433,7 +433,6 @@ task show {
 
         given:
         mavenHttpRepo.getModuleMetaData('org', 'test').expectGetMissing()
-        mavenHttpRepo.directory('org', 'test').expectGetMissing()
         def m = mavenHttpRepo.module('org', 'test2', '2.0').publish()
         m.pom.expectGetBroken()
 

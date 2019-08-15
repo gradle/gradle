@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import spock.lang.Unroll
 
@@ -239,7 +238,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
     }
 
     def "withXml should not loose Gradle metadata marker"() {
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         buildFile << """
             publishing {
                 repositories {

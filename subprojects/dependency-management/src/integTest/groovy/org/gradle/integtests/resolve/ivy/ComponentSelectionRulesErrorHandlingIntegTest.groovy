@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -247,9 +246,6 @@ dependencies {
                 expectVersionListing()
                 '2.1' {
                     expectGetMetadataMissing()
-                    if (!GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()) {
-                        expectHeadArtifactMissing()
-                    }
                 }
             }
         }
@@ -259,7 +255,7 @@ dependencies {
         failure.assertHasCause("""Could not find any matches for org.utils:api:+ as no versions of org.utils:api are available.
 Searched in the following locations:
   - ${versionListingURI('org.utils', 'api')}
-${triedMetadata('org.utils', 'api', '2.1', !GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled(), false)}
+${triedMetadata('org.utils', 'api', '2.1', false)}
 Required by:
 """)
 
@@ -296,17 +292,11 @@ dependencies {
             'org.utils:api' {
                 expectVersionListing()
                 '2.1' {
-                    if (!GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()) {
-                        withModule(IvyModule) {
-                            ivy.expectGetBroken()
-                        }
-                        withModule(MavenModule) {
-                            pom.expectGetBroken()
-                        }
-                    } else {
-                        withModule {
-                            moduleMetadata.expectGetBroken()
-                        }
+                    withModule(IvyModule) {
+                        ivy.expectGetBroken()
+                    }
+                    withModule(MavenModule) {
+                        pom.expectGetBroken()
                     }
                 }
             }
@@ -316,7 +306,7 @@ dependencies {
         fails ":checkDeps"
         failure.assertHasCause("Could not resolve org.utils:api:+.")
         failure.assertHasCause("Could not resolve org.utils:api:2.1.")
-        failure.assertHasCause("Could not GET '${metadataURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${legacyMetadataURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: broken")
 
         when:
         resetExpectations()
@@ -331,7 +321,7 @@ dependencies {
 
         then:
         fails ":checkDeps"
-        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+        if (gradleMetadataPublished) {
             // why is the error message different?!
             failure.assertHasCause("Could not download api-2.1.jar (org.utils:api:2.1)")
         } else {

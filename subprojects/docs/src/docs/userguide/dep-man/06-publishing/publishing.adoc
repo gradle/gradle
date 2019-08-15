@@ -206,7 +206,7 @@ It doesn't mean that consumption from Maven or Ivy would be broken either, only 
 
 [NOTE]
 ====
-This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2d request if the module was actually published with Gradle Module Metadata.
+This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
 ====
 
 If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls configuring the metadata sources for a repository:

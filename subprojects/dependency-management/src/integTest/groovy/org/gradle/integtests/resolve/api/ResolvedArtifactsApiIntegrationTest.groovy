@@ -636,7 +636,15 @@ task show {
     def "reports failure to resolve components when artifacts are queried"() {
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories {
+        maven {
+            url '$mavenHttpRepo.uri' 
+            metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+    }
 }
 dependencies {
     compile 'org:test:1.0+'
@@ -871,7 +879,6 @@ task resolveLenient {
         given:
         def m0 = mavenHttpRepo.module('org', 'missing-module', '1.0')
         m0.pom.expectGetMissing()
-        m0.artifact.expectHeadMissing()
 
         def m1 = mavenHttpRepo.module('org', 'missing-artifact', '1.0').publish()
         m1.pom.expectGet()
@@ -962,7 +969,6 @@ task resolveLenient {
         given:
         def m0 = mavenHttpRepo.module('org', 'missing-module', '1.0')
         m0.pom.expectGetMissing()
-        m0.artifact.expectHeadMissing()
 
         expect:
         succeeds 'resolveLenient'

@@ -50,9 +50,15 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     @Override
+    MavenFileModule withModuleMetadata() {
+        super.withModuleMetadata()
+        return this
+    }
+
+    @Override
     MavenFileModule withNonUniqueSnapshots() {
-        uniqueSnapshots = false;
-        return this;
+        uniqueSnapshots = false
+        return this
     }
 
     @Override

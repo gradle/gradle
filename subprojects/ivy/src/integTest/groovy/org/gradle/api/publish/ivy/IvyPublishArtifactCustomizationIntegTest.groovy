@@ -170,7 +170,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
     }
 
     def "can set custom artifacts to override component artifacts"() {
-        publishModuleMetadata = false
         given:
         createBuildScripts("""
             publications {
@@ -191,7 +190,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.jar")
+        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.module", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.jar")
         module.parsedIvy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
     }
 
