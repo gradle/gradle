@@ -159,10 +159,7 @@ pluginManagement {
     }
 }
 
-val ignoredFeatures = setOf(
-    // we don't want to publish Gradle metadata to public repositories until the format is stable.
-    FeaturePreviews.Feature.GRADLE_METADATA
-)
+val ignoredFeatures = setOf<FeaturePreviews.Feature>()
 
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive && feature !in ignoredFeatures) {
