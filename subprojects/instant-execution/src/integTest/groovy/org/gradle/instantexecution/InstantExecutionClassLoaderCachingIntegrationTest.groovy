@@ -17,9 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
-import spock.lang.Ignore
 
-@Ignore("wip")
 class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def "reuses cached ClassLoaders"() {
@@ -75,7 +73,7 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
                 task ok(type: StaticData) {
                     // TODO:instant-execution ordering only matters because of the single CachingClassLoader currently used, see note below
                     //   always run :foo:foo:ok first
-                    ${projectDir != 'foo/foo' ? "mustRunAfter ':foo:foo:ok'" : ""}
+                    ${projectDir != 'foo/foo' ? "dependsOn ':foo:foo:ok'" : ""}
                 }
             """
         }
