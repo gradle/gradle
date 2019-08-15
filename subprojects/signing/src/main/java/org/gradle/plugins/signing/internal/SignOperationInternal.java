@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.signing
+package org.gradle.plugins.signing.internal;
 
-class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
-    def "direct creation of SignOperation fails"() {
-        buildFile << """
-            new SignOperation()
-        """
+import org.gradle.plugins.signing.SignOperation;
 
-        when:
-        fails()
-
-        then:
-        failure.assertHasErrorOutput("You cannot create an instance from the abstract class 'org.gradle.plugins.signing.SignOperation'.")
-    }
+public class SignOperationInternal extends SignOperation {
 }

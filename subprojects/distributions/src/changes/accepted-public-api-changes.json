@@ -37,6 +37,14 @@
             "changes": [
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.SignOperation",
+            "member": "Class org.gradle.plugins.signing.SignOperation",
+            "acceptation": "Public type turned internal to forbid direct instantiation",
+            "changes": [
+                "Class is now abstract"
+            ]
         }
     ]
 }
