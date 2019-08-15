@@ -345,26 +345,6 @@ include::sample[dir="userguide/tasks/defineAndConfigure/groovy",files="build.gra
 include::sample[dir="userguide/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=all]"]
 ====
 
-
-[[sec:replacing_tasks]]
-== Replacing tasks
-
-Sometimes you want to replace a task. For example, if you want to exchange a task added by the Java plugin with a custom task of a different type. You can achieve this with:
-
-.Overwriting a task
-====
-include::sample[dir="userguide/tutorial/replaceTask/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tutorial/replaceTask/kotlin",files="build.gradle.kts[]"]
-
-.Output of **`gradle -q copy`**
-----
-> gradle -q copy
-include::{samplesPath}/userguide/tutorial/replaceTask/replaceTask.out[]
-----
-====
-
-This will replace a task of type `Copy` with the task you've defined, because it uses the same name. When you define the new task, you have to set the `overwrite` property to true. Otherwise Gradle throws an exception, saying that a task with that name already exists.
-
 [[sec:skipping_tasks]]
 == Skipping tasks
 
