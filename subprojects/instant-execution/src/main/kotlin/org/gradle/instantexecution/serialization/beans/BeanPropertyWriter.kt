@@ -31,8 +31,6 @@ import org.gradle.instantexecution.serialization.codecs.BrokenValue
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
-import java.util.concurrent.Callable
-import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
@@ -66,10 +64,6 @@ class BeanPropertyWriter(
         is Property<*> -> fieldValue.orNull
         is Provider<*> -> unpack(fieldValue)
         is Closure<*> -> fieldValue.dehydrate()
-        is Callable<*> -> fieldValue.call()
-        is Supplier<*> -> fieldValue.get()
-        is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
-        is Lazy<*> -> unpack(fieldValue.value)
         else -> fieldValue
     }
 
