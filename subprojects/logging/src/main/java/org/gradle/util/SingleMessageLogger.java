@@ -411,15 +411,8 @@ public class SingleMessageLogger {
 
     public static void nagUserOfReplacedConfiguration(String configurationName, ConfigurationDeprecationType deprecationType, List<String> replacements) {
         if (isEnabled()) {
-            String summary;
-            String suggestion;
-            if (replacements.isEmpty() && deprecationType == ConfigurationDeprecationType.DEPENDENCY_DECLARATION) {
-                summary = String.format("This behavior is deprecated: The %s configuration is not suitable for %s.", configurationName, deprecationType.displayName());
-                suggestion = "Please use/define another configuration with both canBeResolved and canBeConsumed set to false.";
-            } else {
-                summary = String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName());
-                suggestion = String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
-            }
+            String summary = String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName());
+            String suggestion = String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
             nagUserWith(
                 summary,
                 thisWillBecomeAnError(),

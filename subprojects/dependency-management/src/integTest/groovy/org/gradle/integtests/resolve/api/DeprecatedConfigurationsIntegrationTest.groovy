@@ -73,36 +73,6 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use the implementation configuration instead."
     }
 
-    def "warn if a dependency is declared on a configuration meant for consumption only"() {
-        given:
-        buildFile << """
-            dependencies {
-                apiElements 'module:foo:1.0'
-            }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        outputContains "The apiElements configuration is not suitable for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use/define another configuration with both canBeResolved and canBeConsumed set to false."
-    }
-
-    def "warn if a dependency is declared on a configuration meant for resolution only"() {
-        given:
-        buildFile << """
-            dependencies {
-                compileClasspath 'module:foo:1.0'
-            }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        outputContains "The compileClasspath configuration is not suitable for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use/define another configuration with both canBeResolved and canBeConsumed set to false."
-    }
-
     def "warn if a dependency constraint is declared on a deprecated configuration"() {
         given:
         buildFile << """
@@ -118,39 +88,6 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use the implementation configuration instead."
-    }
-    def "warn if a dependency constraint is declared on a configuration meant for consumption only"() {
-        given:
-        buildFile << """
-            dependencies {
-                constraints {
-                    apiElements 'module:foo:1.0'
-                }
-            }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        outputContains "The apiElements configuration is not suitable for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use/define another configuration with both canBeResolved and canBeConsumed set to false."
-    }
-
-    def "warn if a dependency constraint is declared on a configuration meant for resolution only"() {
-        given:
-        buildFile << """
-            dependencies {
-                constraints {
-                    compileClasspath 'module:foo:1.0'
-                }
-            }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        outputContains "The compileClasspath configuration is not suitable for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use/define another configuration with both canBeResolved and canBeConsumed set to false."
     }
 
     def "warn if an artifact is declared on a configuration that is fully deprecated"() {

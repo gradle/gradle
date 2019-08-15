@@ -1338,18 +1338,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     @Nullable
     public List<String> getDeclarationAlternatives() {
-        if (declarationAlternatives == null && isNotMeantForDeclaration()) {
-            declarationAlternatives = Collections.emptyList();
-        }
         return declarationAlternatives;
-    }
-
-    /**
-     * A configuration that is clearly marked as 'consumable' OR 'resolvable' is not meant for
-     * acting as a bucket for declared dependencies.
-     */
-    private boolean isNotMeantForDeclaration() {
-        return (canBeConsumed && consumptionAlternatives == null) != (canBeResolved && resolutionAlternatives == null);
     }
 
     @Nullable
@@ -1366,7 +1355,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean isFullyDeprecated() {
-        return (isNotMeantForDeclaration() || declarationAlternatives != null) &&
+        return declarationAlternatives != null &&
             (!canBeConsumed || consumptionAlternatives != null) &&
             (!canBeResolved || resolutionAlternatives != null);
     }
