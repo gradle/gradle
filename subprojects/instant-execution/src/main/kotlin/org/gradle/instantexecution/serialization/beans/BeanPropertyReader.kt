@@ -44,8 +44,6 @@ import java.io.File
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
-import java.util.concurrent.Callable
-import java.util.function.Supplier
 
 
 class BeanPropertyReader(
@@ -133,18 +131,6 @@ class BeanPropertyReader(
                     is BrokenValue -> DefaultProvider { value.rethrow() }
                     else -> Providers.of(value)
                 })
-            }
-            Callable::class.java -> { bean, value ->
-                field.set(bean, Callable { value })
-            }
-            Supplier::class.java -> { bean, value ->
-                field.set(bean, Supplier { value })
-            }
-            Function0::class.java -> { bean, value ->
-                field.set(bean, { value })
-            }
-            Lazy::class.java -> { bean, value ->
-                field.set(bean, lazyOf(value))
             }
             else -> { bean, value ->
                 if (isAssignableTo(type, value)) {
