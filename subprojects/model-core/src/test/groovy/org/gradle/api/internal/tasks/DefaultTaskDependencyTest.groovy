@@ -264,43 +264,30 @@ The following types/formats are supported:
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    def "can mutate dependency values by removing a Task instance from dependency"() {
+    def "can not mutate dependency values through remove methods"() {
         given:
         dependency.add(otherTask)
 
         when:
-        dependency.mutableValues.remove(otherTask)
+        dependency.mutableValues.removeAll([otherTask])
 
         then:
-        dependency.getDependencies(task) == toSet()
-    }
+        UnsupportedOperationException e1 = thrown()
+        e1.message == 'Removing a task dependency from a task instance is not supported.'
 
-    def "can mutate dependency values by removing a Task instance from dependency containing a Provider to the Task instance"() {
-        given:
-        otherTask.name >> "otherTask"
+        when:
+        dependency.mutableValues.retainAll([])
 
-        def provider = Mock(TestTaskProvider)
-        provider.type >> otherTask.class
-        provider.name >> otherTask.name
-        dependency.add(provider)
+        then:
+        UnsupportedOperationException e2 = thrown()
+        e2.message == 'Removing a task dependency from a task instance is not supported.'
 
         when:
         dependency.mutableValues.remove(otherTask)
 
         then:
-        dependency.getDependencies(task) == toSet()
-    }
-
-    def "can mutate dependency values by removing a Provider instance from dependency containing the Provider instance"() {
-        given:
-        def provider = Mock(TestTaskProvider)
-        dependency.add(provider)
-
-        when:
-        dependency.mutableValues.remove(provider)
-
-        then:
-        dependency.getDependencies(task) == toSet()
+        UnsupportedOperationException e3 = thrown()
+        e3.message == 'Removing a task dependency from a task instance is not supported.'
     }
 
     def "can nest iterables and maps and closures and callables"() {
