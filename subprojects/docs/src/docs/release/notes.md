@@ -104,6 +104,13 @@ The `debugOptions` configuration is available for `project.javaExec` and for tas
  
 In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
 
+## More robust file deletion on Windows
+
+Deleting complex file hierarchies on Windows can sometimes be tricky, and errors like `Unable to delete directory ...` can happen at times.
+To avoid these errors, Gradle has been employing workarounds in some but not all cases when it had to remove files.
+From now on Gradle uses these workarounds every time it removes file hierarchies.
+The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
