@@ -143,11 +143,6 @@ public class GroovyCompile extends AbstractCompile {
         return getFeaturePreviews().isFeatureEnabled(GROOVY_COMPILATION_AVOIDANCE);
     }
 
-    @Override
-    protected void compile() {
-        throw new UnsupportedOperationException("This method has been superseded by compile(InputChanges inputChanges)!");
-    }
-
     @TaskAction
     protected void compile(InputChanges inputChanges) {
         checkGroovyClasspathIsNonEmpty();

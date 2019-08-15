@@ -97,9 +97,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
 
     abstract protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
 
-    @Override
     @TaskAction
-    protected void compile() {
+    public void compile() {
         ScalaJavaJointCompileSpec spec = createSpec();
         configureIncrementalCompilation(spec);
         Compiler<ScalaJavaJointCompileSpec> compiler = getCompiler(spec);

@@ -133,6 +133,12 @@ Additionally, the following deprecated functionality now results in an error:
 - Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
 - Replacing a task that has never been registered.
 
+==== `AbstractCompile.compile()` is gone
+
+The abstrace method `compile()` is no longer declared by `AbstractCompile`.
+Tasks extending `AbstractCompile` can implement their own `@TaskAction` method with the name of their choosing.
+They are also free to add a `@TaskAction` method with an `InputChanges` parameter without having to implement a parameter-less one as well.
+
 ==== Updates to bundled Gradle dependencies
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
