@@ -23,7 +23,7 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
     def "reuses cached ClassLoaders"() {
 
         given: 'a Task that holds some static data'
-        def staticDataLib = file("lib/StaticData.jar").tap {
+        File staticDataLib = file("lib/StaticData.jar").tap {
             parentFile.mkdirs()
         }
         jarWithClasses(
@@ -57,7 +57,7 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
 
         // Make the classpath of :foo differ from :bar's
         // thus causing :foo:foo and :bar:bar to have separate ClassLoaders.
-        def someLib = file('lib/someLib.jar')
+        File someLib = file('lib/someLib.jar')
         jarWithClasses(someLib, SomeClass: 'class SomeClass {}')
 
         file("foo/build.gradle") << """
