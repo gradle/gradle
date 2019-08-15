@@ -579,52 +579,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    def "task is renamed"() {
-        given:
-        def sourceFile1 = file('source/source1.txt')
-        sourceFile1 << 'a'
-        def sourceFile2 = file('source/source2.txt')
-        sourceFile2 << 'b'
-        def targetFile1 = file('build/target/source1.txt')
-        def targetFile2 = file('build/target/source2.txt')
-        def taskPath = ':copy'
-
-        buildFile << """                     
-            task copy(type: Copy) {
-                from file('source')
-                into 'build/target'
-            }
-        """
-
-        when:
-        result = runWithMostRecentFinalRelease(taskPath)
-
-        then:
-        result.assertTaskExecuted(taskPath)
-        targetFile1.assertIsFile()
-        targetFile2.assertIsFile()
-
-        when:
-        def newTaskPath = ':newCopy'
-
-        buildFile << """
-            tasks.remove(copy)
-
-            task newCopy(type: Copy) {
-                from file('source')
-                into 'build/target'
-            }
-        """
-        forceDelete(sourceFile2)
-        executer.expectDeprecationWarning()
-        succeeds newTaskPath
-
-        then:
-        executedAndNotSkipped(newTaskPath)
-        targetFile1.assertIsFile()
-        targetFile2.assertDoesNotExist()
-    }
-
     private ExecutionResult runWithMostRecentFinalRelease(String... tasks) {
         result = mostRecentReleaseExecuter.withTasks(tasks).run()
         result
