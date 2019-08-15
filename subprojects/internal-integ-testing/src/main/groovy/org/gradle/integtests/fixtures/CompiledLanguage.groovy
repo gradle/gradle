@@ -39,7 +39,7 @@ enum CompiledLanguage {
             """
             ${allprojectsOrSubproject} {
                 dependencies {
-                    compile localGroovy()
+                    implementation localGroovy()
                 }
             }
 """

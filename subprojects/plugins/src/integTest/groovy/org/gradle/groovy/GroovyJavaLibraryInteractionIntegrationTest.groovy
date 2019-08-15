@@ -126,10 +126,10 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         'java-library' | 'implementation' | true              | true                      | "jar"     | false
         'java-library' | 'implementation' | false             | true                      | "jar"     | false
 
-        'java'         | 'compile'        | true              | true                      | "jar"     | false
-        'java'         | 'compile'        | false             | true                      | "jar"     | false
-        'java'         | 'implementation' | true              | true                      | "jar"     | true
-        'java'         | 'implementation' | false             | true                      | "jar"     | true
+        'java'         | 'compile'        | true              | true                      | "jar"     | true
+        'java'         | 'compile'        | false             | true                      | "jar"     | true
+        'java'         | 'implementation' | true              | true                      | "jar"     | false
+        'java'         | 'implementation' | false             | true                      | "jar"     | false
     }
 
     @Unroll

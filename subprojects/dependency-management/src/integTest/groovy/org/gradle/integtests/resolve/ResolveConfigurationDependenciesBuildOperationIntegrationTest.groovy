@@ -690,7 +690,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         succeeds ':test'
 
         then:
-        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('Classpath') }).result.every {
+        operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('Classpath') && !it.details.configurationName.endsWith('AnnotationProcessorClasspath') }).result.every {
             it.requestedAttributes.find { it.name == 'org.gradle.dependency.bundling' }.value == 'external'
             it.requestedAttributes.find { it.name == 'org.gradle.jvm.version' }.value
         }

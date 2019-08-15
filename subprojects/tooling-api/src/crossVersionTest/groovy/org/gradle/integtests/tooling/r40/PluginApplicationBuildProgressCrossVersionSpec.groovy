@@ -533,7 +533,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
     }
 
 
-    @TargetGradleVersion("<5.6") //FIXME change to 6.0
+    @TargetGradleVersion("<5.7") //FIXME change to 6.0
     def "generates Java plugin application events for buildSrc"() {
         given:
         def events = ProgressEvents.create()
@@ -558,7 +558,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc").children.empty // Java plugin is applied by groovy plugin, so it is not applied again
     }
 
-    @TargetGradleVersion(">=5.6") //FIXME change to 6.0
+    @TargetGradleVersion(">=5.7") //FIXME change to 6.0
     def "generates Java plugin application events for buildSrc in Gradle 6 and above"() {
         given:
         def events = ProgressEvents.create()
