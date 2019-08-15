@@ -53,14 +53,6 @@ public enum JavaVersion {
     VERSION_13,
 
     /**
-     * Java 13 major version.
-     *
-     * @since 5.7
-     */
-    @Incubating
-    VERSION_14,
-
-    /**
      * Higher version of Java.
      * @since 4.7
      */
