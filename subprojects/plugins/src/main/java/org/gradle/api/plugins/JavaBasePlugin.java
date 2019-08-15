@@ -52,6 +52,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -259,12 +260,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
         String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
         String annotationProcessorConfigurationName = sourceSet.getAnnotationProcessorConfigurationName();
+        String annotationProcessorClasspathConfigurationName = sourceSet.getAnnotationProcessorClasspathConfigurationName();
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
+        String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
+        String runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
         String sourceSetName = sourceSet.toString();
         Action<ConfigurationInternal> configureDefaultTargetPlatform = configureDefaultTargetPlatform(convention);
 
 
-        Configuration compileConfiguration = configurations.maybeCreate(compileConfigurationName);
+        DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);
         compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + "' instead).");
 
@@ -275,16 +279,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         implementationConfiguration.setCanBeResolved(false);
         implementationConfiguration.extendsFrom(compileConfiguration);
 
-        Configuration runtimeConfiguration = configurations.maybeCreate(runtimeConfigurationName);
+        DeprecatableConfiguration runtimeConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(runtimeConfigurationName);
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
         runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + "' instead).");
 
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
+        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathConfigurationName);
+        ConfigurationInternal compileClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(compileClasspathConfigurationName);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
@@ -292,9 +296,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
         compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
         compileClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        ((ConfigurationInternal)compileClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
+        compileClasspathConfiguration.beforeLocking(configureDefaultTargetPlatform);
 
-        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorConfigurationName);
+        DeprecatableConfiguration annotationProcessorConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         annotationProcessorConfiguration.setCanBeConsumed(false);
@@ -312,7 +316,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeOnlyConfiguration.setCanBeResolved(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
+        ConfigurationInternal runtimeClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setCanBeConsumed(false);
         runtimeClasspathConfiguration.setCanBeResolved(true);
@@ -321,11 +325,28 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         runtimeClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         runtimeClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        ((ConfigurationInternal)runtimeClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
+        runtimeClasspathConfiguration.beforeLocking(configureDefaultTargetPlatform);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
-        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
+        sourceSet.setAnnotationProcessorPath(annotationProcessorClasspathConfiguration);
+
+        compileConfiguration.deprecateForDeclaration(implementationConfigurationName);
+        compileConfiguration.deprecateForConsumption(apiElementsConfigurationName);
+        compileConfiguration.deprecateForResolution(compileClasspathConfigurationName);
+
+        compileOnlyConfiguration.deprecateForConsumption(apiElementsConfigurationName);
+        compileOnlyConfiguration.deprecateForResolution(compileClasspathConfigurationName);
+
+        runtimeConfiguration.deprecateForDeclaration(runtimeOnlyConfigurationName);
+        runtimeConfiguration.deprecateForConsumption(runtimeElementsConfigurationName);
+        runtimeConfiguration.deprecateForResolution(runtimeClasspathConfigurationName);
+
+        annotationProcessorConfiguration.deprecateForResolution(annotationProcessorClasspathConfigurationName);
+        annotationProcessorClasspathConfiguration.deprecateForDeclaration(annotationProcessorConfigurationName);
+
+        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
+        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
     }
 
     private Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {

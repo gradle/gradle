@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
