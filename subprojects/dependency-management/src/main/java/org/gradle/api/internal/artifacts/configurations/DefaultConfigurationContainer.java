@@ -58,6 +58,7 @@ import org.gradle.vcs.internal.VcsMappingsStore;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
     implements ConfigurationContainerInternal, ConfigurationsProvider {
@@ -79,7 +80,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final ProjectStateRegistry projectStateRegistry;
     private final DocumentationRegistry documentationRegistry;
 
-    private int detachedConfigurationDefaultNameCounter = 1;
+    private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
@@ -161,7 +162,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
-        String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
+        String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter.getAndIncrement();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
             context, name, detachedConfigurationsProvider, resolver,
