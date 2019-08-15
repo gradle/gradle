@@ -57,10 +57,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final FileCollection dirs;
     private final Property<File> outputDir;
 
-    // Note: don't actually remove this in 6.0, the deprecation is here to encourage people to use ObjectFactory instead. Just remove the overload and the nag and leave the method here
-    @Deprecated
     public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
-        DeprecationLogger.nagUserOfDeprecated("The DefaultSourceDirectorySet constructor", "Please use the ObjectFactory service to create instances of SourceDirectorySet instead.");
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
