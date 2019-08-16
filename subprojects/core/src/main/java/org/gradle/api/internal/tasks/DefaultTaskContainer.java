@@ -60,7 +60,6 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -647,14 +646,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public Action<? super Task> whenObjectRemoved(Action<? super Task> action) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer.whenObjectRemoved(Action)");
-        return super.whenObjectRemoved(action);
+        throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
     @Override
     public void whenObjectRemoved(Closure action) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer.whenObjectRemoved(Closure)");
-        super.whenObjectRemoved(action);
+        throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
     // Cannot be private due to reflective instantiation

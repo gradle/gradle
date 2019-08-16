@@ -88,7 +88,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             public void prepareForRuleBasedPlugins(Project project) {
                 ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DEFAULT_TASK_CONTAINER_MODEL_TYPE);
 
-                ModelRegistrations.Builder registrationBuilder = BridgedCollections.registration(
+                ModelRegistrations.Builder registrationBuilder = BridgedCollections.bridgeTaskCollection(
                     containerReference,
                     new Transformer<DefaultTaskContainer, MutableModelNode>() {
                         @Override
@@ -97,7 +97,6 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                             return tasks;
                         }
                     },
-                    new Task.Namer(),
                     "Project.<init>.tasks()",
                     new Namer()
                 );
