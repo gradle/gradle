@@ -121,6 +121,10 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "uses the API of a library when compiling production code against it using the #configuration configuration"() {
+        if (configuration == 'compile') {
+            executer.expectDeprecationWarning()
+        }
+
         given:
         subproject('a') {
             'build.gradle'("""
@@ -216,6 +220,10 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "uses the API of a library when compiling tests against it using the #configuration configuration"() {
+        if (configuration == 'testCompile') {
+            executer.expectDeprecationWarning()
+        }
+
         given:
         subproject('a') {
             'build.gradle'("""

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -103,6 +104,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -123,6 +125,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -223,6 +226,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Action<? super ConfigurationInternal> beforeLocking;
 
+    private List<String> declarationAlternatives;
+    private List<String> consumptionAlternatives;
+    private List<String> resolutionAlternatives;
+
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -279,7 +286,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
-        this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
+        this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), this, ownDependencyConstraints);
 
         this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
@@ -564,6 +571,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
+        warnIfConfigurationIsDeprecatedForResolving();
 
         if (!owner.getModel().hasMutableState()) {
             // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
@@ -572,6 +580,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
         } else {
             resolveExclusively(requestedState);
+        }
+    }
+
+    private void warnIfConfigurationIsDeprecatedForResolving() {
+        if (resolutionAlternatives != null) {
+            DeprecationLogger.nagUserOfReplacedConfiguration(this.name, DeprecationLogger.ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives);
         }
     }
 
@@ -798,7 +812,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
         }
-        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), inheritedDependencyConstraints);
+        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), this, inheritedDependencyConstraints);
     }
 
     @Override
@@ -1315,6 +1329,50 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
+    }
+
+
+    @Override
+    @Nullable
+    public List<String> getDeclarationAlternatives() {
+        return declarationAlternatives;
+    }
+
+    @Nullable
+    @Override
+    public List<String> getConsumptionAlternatives() {
+        return consumptionAlternatives;
+    }
+
+    @Nullable
+    @Override
+    public List<String> getResolutionAlternatives() {
+        return resolutionAlternatives;
+    }
+
+    @Override
+    public boolean isFullyDeprecated() {
+        return declarationAlternatives != null &&
+            (!canBeConsumed || consumptionAlternatives != null) &&
+            (!canBeResolved || resolutionAlternatives != null);
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForDeclaration(String... alternativesForDeclaring) {
+        this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
+        return this;
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForConsumption(String... alternativesForConsumption) {
+        this.consumptionAlternatives = ImmutableList.copyOf(alternativesForConsumption);
+        return this;
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
+        this.resolutionAlternatives =ImmutableList.copyOf(alternativesForResolving);
+        return this;
     }
 
     /**

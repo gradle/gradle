@@ -119,6 +119,11 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     }
 
     @Override
+    public List<String> getConsumptionAlternatives() {
+        return null;
+    }
+
+    @Override
     public boolean isCanBeResolved() {
         return false;
     }

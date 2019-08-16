@@ -31,8 +31,8 @@ apply plugin: 'eclipse'
 repositories.jcenter()
 
 dependencies {
-     compile "com.google.guava:guava:21.0"
-     testCompile "junit:junit:4.12"
+     implementation "com.google.guava:guava:21.0"
+     testImplementation "junit:junit:4.12"
 }
 
 """

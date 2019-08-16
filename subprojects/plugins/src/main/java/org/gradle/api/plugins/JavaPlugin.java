@@ -53,6 +53,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.util.DeprecationLogger;
 
@@ -147,6 +148,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @deprecated Users should prefer {@link #API_CONFIGURATION_NAME} or {@link #IMPLEMENTATION_CONFIGURATION_NAME}.
      */
+    @Deprecated
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
 
     /**
@@ -161,6 +163,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @deprecated Consumers should use {@link #RUNTIME_ELEMENTS_CONFIGURATION_NAME} instead.
      */
+    @Deprecated
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
 
     /**
@@ -200,6 +203,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      */
     public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
 
+    /**
+     * The name of the test compile dependencies configuration.
+     *
+     * @deprecated Use {@link #TEST_IMPLEMENTATION_CONFIGURATION_NAME} instead.
+     */
+    @Deprecated
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
     /**
@@ -447,7 +456,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
-        final Configuration apiElementsConfiguration = configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
+        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
         apiElementsConfiguration.setVisible(false);
         apiElementsConfiguration.setDescription("API elements for main.");
         apiElementsConfiguration.setCanBeResolved(false);
@@ -458,7 +467,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         apiElementsConfiguration.extendsFrom(runtimeConfiguration);
 
-        final Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
         runtimeElementsConfiguration.setVisible(false);
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
@@ -471,6 +480,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
 
+        apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
+        runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
         configureTargetPlatform(apiElementsConfiguration, convention);
         configureTargetPlatform(runtimeElementsConfiguration, convention);

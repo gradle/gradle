@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
@@ -147,9 +148,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (toConfiguration == null) {
             throw new ConfigurationNotFoundException(componentId, moduleConfiguration, targetConfiguration, targetComponent.getId());
         }
-        if (!toConfiguration.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
-        }
+        verifyConsumability(targetComponent, toConfiguration);
         if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
             // need to validate that the selected configuration still matches the consumer attributes
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
@@ -159,6 +158,16 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             }
         }
         return ImmutableList.of(toConfiguration);
+    }
+
+    private void verifyConsumability(ComponentResolveMetadata targetComponent, ConfigurationMetadata toConfiguration) {
+        if (!toConfiguration.isCanBeConsumed()) {
+            throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
+        }
+        List<String> consumptionAlternatives = toConfiguration.getConsumptionAlternatives();
+        if (consumptionAlternatives != null) {
+            DeprecationLogger.nagUserOfReplacedConfiguration(toConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION, consumptionAlternatives);
+        }
     }
 
     @Override

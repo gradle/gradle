@@ -13,7 +13,7 @@ digraph configurations {
 
    "testCompileClasspath" [shape="box", label=<<B>testCompileClasspath</B>(R)>, color="lightblue", bgcolor="lightblue", style="filled"]
    "testCompileClasspath" -> "testCompileOnly"
-   "testCompileOnly" [shape="box", label=<<B>testCompileOnly</B>(C, R)>, ]
+   "testCompileOnly" [shape="box", label=<<B>testCompileOnly</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "testCompileClasspath" -> "testImplementation"
    "testImplementation" [shape="box", label=<<B>testImplementation</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "testImplementation" -> "implementation"

@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class IvyVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
     public void "version range is mapped to ivy syntax in published ivy file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
