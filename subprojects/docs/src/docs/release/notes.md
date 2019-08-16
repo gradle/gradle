@@ -58,7 +58,6 @@ dependencies {
 }
 ```
 
-<<<<<<< HEAD
 Subgraph constraints can also be defined in a platform.
 Theses constraints will be _inherited_ when depending on the platform and treated as if they were defined directly.
 
@@ -81,35 +80,10 @@ dependencies {
     implementation('commons-io:commons-io')
 }
 ```
-=======
+
 ## Support for Java 13
 
 Gradle now supports running with Java 13.
->>>>>>> origin/sg/60/jdk13
-
-## Debug support for forked Java processes
-
-Gradle has now a new DSL element to configure debugging for Java processes.  
- 
-```groovy
-project.javaexec {
-
-  debugOptions {
-     enabled = true
-     port = 4455
-     server = true
-     suspend = true
-   }
-}
-```
-
-This configuration appends the following JVM argument to the process: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4455` 
- 
-The `debugOptions` configuration is available for `project.javaExec` and for tasks using the `JavaExec` type, including the `test` task.
- 
-## Debug tests via the Tooling API
- 
-In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
 
 ## More robust file deletion on Windows
 
