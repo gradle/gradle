@@ -87,16 +87,11 @@ public abstract class BridgedCollections {
                             }
                         }
                     });
-                    DeprecationLogger.whileDisabled(new Runnable() {
+                    container.whenObjectRemovedInternal(new Action<I>() {
                         @Override
-                        public void run() {
-                            container.whenObjectRemovedInternal(new Action<I>() {
-                                @Override
-                                public void execute(I item) {
-                                    String name = namer.determineName(item);
-                                    containerNode.removeLink(name);
-                                }
-                            });
+                        public void execute(I item) {
+                            String name = namer.determineName(item);
+                            containerNode.removeLink(name);
                         }
                     });
                 }
