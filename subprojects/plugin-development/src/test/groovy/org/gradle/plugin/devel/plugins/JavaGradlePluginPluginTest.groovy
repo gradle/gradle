@@ -157,7 +157,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         null    | 'x.y.z'   | null
     }
 
-    def "apply adds java-librar plugin"() {
+    def "apply adds java-library plugin"() {
         when:
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
