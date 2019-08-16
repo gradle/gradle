@@ -526,7 +526,6 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         configureBuildSrcB.children("Apply plugin org.gradle.java to project ':buildSrc:b'").empty
 
         groovyPlugin.child("Apply plugin org.gradle.api.plugins.GroovyBasePlugin to project ':buildSrc'")
-        groovyPlugin.child("Register task :buildSrc:groovydoc")
 
         applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:a").child("Apply plugin org.gradle.java to project ':buildSrc:a'")
         applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:b").child("Apply plugin org.gradle.java to project ':buildSrc:b'")
