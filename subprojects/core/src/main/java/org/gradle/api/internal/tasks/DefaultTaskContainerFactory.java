@@ -97,6 +97,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                             return tasks;
                         }
                     },
+                    new Task.Namer(),
                     "Project.<init>.tasks()",
                     new Namer()
                 );
