@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
@@ -43,7 +42,7 @@ class BeanPropertyWriter(
         writingProperties {
             for (field in relevantFields) {
                 val fieldName = field.name
-                val fieldValue = unpack(field.get(bean), bean, fieldName)
+                val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
                 writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
             }
         }
@@ -54,8 +53,8 @@ class BeanPropertyWriter(
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
 
-    fun unpack(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
-        is Closure<*> -> fieldValue.dehydrate()
+    private
+    fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
         is Property<*> -> {
             if (!fieldValue.isPresent) {
                 // TODO - disallow using convention mapping + property types

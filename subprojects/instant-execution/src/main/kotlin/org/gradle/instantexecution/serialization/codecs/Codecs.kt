@@ -117,7 +117,6 @@ class Codecs(
         bind(PATH_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
-        bind(GroovyMetaClassCodec)
 
         // Only serialize certain List implementations
         bind(arrayListCodec)
@@ -153,6 +152,9 @@ class Codecs(
 
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
+
+        bind(ClosureCodec)
+        bind(GroovyMetaClassCodec)
 
         // Dependency management types
         bind(ArtifactCollectionCodec)
