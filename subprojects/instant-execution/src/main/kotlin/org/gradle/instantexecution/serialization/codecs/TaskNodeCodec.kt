@@ -168,7 +168,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
 ) = propertyWriter.run {
 
     suspend fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
-        val value = unpack(propertyValue.call()) ?: return false
+        val value = propertyValue.call() ?: return false
         return writeNextProperty(propertyName, value, kind)
     }
 

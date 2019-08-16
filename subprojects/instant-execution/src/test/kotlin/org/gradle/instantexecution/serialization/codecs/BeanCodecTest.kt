@@ -17,25 +17,19 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
-
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.internal.serialize.Encoder
-
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
-
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
@@ -117,14 +111,14 @@ class BeanCodecTest {
         DefaultReadContext(
             codec = codecs().userTypesCodec,
             decoder = KryoBackedDecoder(inputStream),
-            logger = mock(),
-            beanPropertyReaderFactory = BeanPropertyReader.factoryFor(mock())
+            logger = mock()
         )
 
     private
     fun codecs() = Codecs(
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
+        filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),
         listenerManager = mock(),
