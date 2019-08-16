@@ -81,9 +81,9 @@ dependencies {
 }
 ```
 
-## Support for Java 13
+## Support for Java 13 EA
 
-Gradle now supports running with Java 13.
+Gradle now supports running with Java 13 EA (tested with OpenJDK build 13-ea+32).
 
 ## More robust file deletion on Windows
 
