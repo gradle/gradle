@@ -115,6 +115,7 @@ class Codecs(
         bind(PATH_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
+        bind(GroovyMetaClassCodec)
 
         // Only serialize certain List implementations
         bind(arrayListCodec)
