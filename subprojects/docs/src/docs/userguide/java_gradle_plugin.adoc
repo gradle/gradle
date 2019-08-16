@@ -15,9 +15,9 @@
 [[java_gradle_plugin]]
 = Gradle Plugin Development Plugin
 
-The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins. It automatically applies the <<java_plugin.adoc#java_plugin,Java>> plugin, adds the `gradleApi()` dependency to the compile configuration and performs validation of plugin metadata during `jar` task execution.
+The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins. It automatically applies the <<java_library_plugin.adoc#,Java Library>> plugin, adds the `gradleApi()` dependency to the `api` configuration and performs validation of plugin metadata during `jar` task execution.
 
-The plugin also integrates with <<test_kit.adoc#test_kit,TestKit>>, a library that aids in writing and executing functional tests for plugin code. It automatically adds the `gradleTestKit()` dependency to the test compile configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found. Please refer to <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Automatic classpath injection with the Plugin Development Plugin>> for more on its usage, configuration options and samples.
+The plugin also integrates with <<test_kit.adoc#test_kit,TestKit>>, a library that aids in writing and executing functional tests for plugin code. It automatically adds the `gradleTestKit()` dependency to the `testImplementation` configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found. Please refer to <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Automatic classpath injection with the Plugin Development Plugin>> for more on its usage, configuration options and samples.
 
 
 [[sec:gradle_plugin_dev_usage]]
@@ -31,7 +31,7 @@ include::sample[dir="javaGradlePlugin/groovy",files="build.gradle[tags=use-java-
 include::sample[dir="javaGradlePlugin/kotlin",files="build.gradle.kts[tags=use-java-gradle-plugin-plugin]"]
 ====
 
-Applying the plugin automatically applies the <<java_plugin.adoc#java_plugin,Java>> plugin and adds the `gradleApi()` dependency to the compile configuration. It also adds some validations to the build.
+Applying the plugin automatically applies the <<java_library_plugin.adoc#,Java Library>> plugin and adds the `gradleApi()` dependency to the `api` configuration. It also adds some validations to the build.
 
 The following validations are performed:
 

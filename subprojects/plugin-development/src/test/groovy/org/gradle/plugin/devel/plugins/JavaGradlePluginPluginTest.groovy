@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.internal.plugins.PluginDescriptor
+import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.events.LogEvent
@@ -156,11 +157,12 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         null    | 'x.y.z'   | null
     }
 
-    def "apply adds java plugin"() {
+    def "apply adds java-librar plugin"() {
         when:
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
         then:
+        project.plugins.findPlugin(JavaLibraryPlugin)
         project.plugins.findPlugin(JavaPlugin)
     }
 

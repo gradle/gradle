@@ -3,8 +3,9 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Nathan Strong](https://github.com/NathanStrong-Tripwire)
-[Roberto Perez Alcolea](https://github.com/rpalcolea)
+[Nathan Strong](https://github.com/NathanStrong-Tripwire),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Mike Kobit](https://github.com/mkobit)
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
