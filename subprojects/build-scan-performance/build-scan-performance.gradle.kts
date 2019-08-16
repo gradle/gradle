@@ -1,8 +1,6 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.DefaultPerformanceReporter
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
-import org.gradle.kotlin.dsl.*
 
 /*
  * Copyright 2016 the original author or authors.
