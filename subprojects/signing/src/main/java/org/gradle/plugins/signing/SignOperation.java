@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ import java.util.List;
  * operation manages one or more {@link Signature} objects. The {@code sign} methods are used to register things to generate signatures for. The {@link #execute()} method generates the signatures for
  * all of the registered items at that time.
  */
-public class SignOperation implements SignatureSpec {
+abstract public class SignOperation implements SignatureSpec {
 
     /**
      * The file representation of the signature(s).
@@ -54,16 +53,6 @@ public class SignOperation implements SignatureSpec {
     private boolean required;
 
     private final List<Signature> signatures = new ArrayList<Signature>();
-
-    /**
-     * Creates a new {@code SignOperation}
-     *
-     * @deprecated Please use the methods of {@link SigningExtension} to create {@code SignOperation} instances instead.
-     */
-    @Deprecated
-    public SignOperation() {
-        DeprecationLogger.nagUserOfDiscontinuedInvocation("Creating instances of SignOperation");
-    }
 
     public String getDisplayName() {
         return "SignOperation";
