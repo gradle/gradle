@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.beans
 
+import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
@@ -26,6 +27,8 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
+import java.util.concurrent.Callable
+import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
@@ -65,6 +68,12 @@ class BeanPropertyWriter(
             }
             fieldValue
         }
+        is Closure<*> -> fieldValue
+        // TODO - do not eagerly evaluate these types
+        is Callable<*> -> fieldValue.call()
+        is Supplier<*> -> fieldValue.get()
+        is Function0<*> -> fieldValue.invoke()
+        is Lazy<*> -> fieldValue.value
         else -> fieldValue ?: conventionalValueOf(bean, fieldName)
     }
 }

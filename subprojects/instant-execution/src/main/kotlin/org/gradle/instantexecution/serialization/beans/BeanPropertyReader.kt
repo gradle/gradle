@@ -30,6 +30,8 @@ import sun.reflect.ReflectionFactory
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
+import java.util.concurrent.Callable
+import java.util.function.Supplier
 
 
 class BeanPropertyReader(
@@ -73,9 +75,20 @@ class BeanPropertyReader(
     }
 
     private
-    fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit {
-        val type = field.type
-        return { bean, value ->
+    fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit = when (val type = field.type) {
+        Callable::class.java -> { bean, value ->
+            field.set(bean, Callable { value })
+        }
+        Supplier::class.java -> { bean, value ->
+            field.set(bean, Supplier { value })
+        }
+        Function0::class.java -> { bean, value ->
+            field.set(bean, { value })
+        }
+        Lazy::class.java -> { bean, value ->
+            field.set(bean, lazyOf(value))
+        }
+        else -> { bean, value ->
             if (isAssignableTo(type, value)) {
                 field.set(bean, value)
             } else if (value != null) {
