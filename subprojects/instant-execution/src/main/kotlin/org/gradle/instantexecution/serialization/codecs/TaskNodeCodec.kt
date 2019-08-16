@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
+import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
@@ -49,6 +50,7 @@ import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeEnum
+import org.gradle.util.DeferredUtil
 
 
 class TaskNodeCodec(
@@ -167,15 +169,17 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     propertyWriter: BeanPropertyWriter
 ) = propertyWriter.run {
 
-    suspend fun writeProperty(propertyName: String, propertyValue: PropertyValue, kind: PropertyKind): Boolean {
-        val value = propertyValue.call() ?: return false
-        return writeNextProperty(propertyName, value, kind)
+    suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind): Boolean {
+        if (propertyValue == null) {
+            return false
+        }
+        return writeNextProperty(propertyName, propertyValue, kind)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
+    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?): Boolean =
         writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
 
-    suspend fun writeOutputProperty(propertyName: String, propertyValue: PropertyValue): Boolean =
+    suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?): Boolean =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
 
     writingProperties {
@@ -184,7 +188,8 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
             property.run {
                 when (this) {
                     is RegisteredProperty.InputFile -> {
-                        if (writeInputProperty(propertyName, propertyValue)) {
+                        val finalValue = DeferredUtil.unpack(propertyValue)
+                        if (writeInputProperty(propertyName, finalValue)) {
                             writeBoolean(optional)
                             writeBoolean(true)
                             writeEnum(filePropertyType)
@@ -193,7 +198,8 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                         }
                     }
                     is RegisteredProperty.Input -> {
-                        if (writeInputProperty(propertyName, propertyValue)) {
+                        val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
+                        if (writeInputProperty(propertyName, finalValue)) {
                             writeBoolean(optional)
                             writeBoolean(false)
                         }
@@ -207,7 +213,8 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
         val properties = collectRegisteredOutputsOf(task)
         properties.forEach {
             it.run {
-                if (writeOutputProperty(propertyName, propertyValue)) {
+                val finalValue = DeferredUtil.unpack(propertyValue)
+                if (writeOutputProperty(propertyName, finalValue)) {
                     writeBoolean(optional)
                     writeEnum(filePropertyType)
                 }
