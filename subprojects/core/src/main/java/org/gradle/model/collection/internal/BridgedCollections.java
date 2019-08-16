@@ -32,7 +32,6 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.DeprecationLogger;
 
 public abstract class BridgedCollections {
 
