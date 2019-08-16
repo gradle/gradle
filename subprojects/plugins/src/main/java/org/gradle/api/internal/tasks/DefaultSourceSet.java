@@ -156,11 +156,6 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
-    public String getAnnotationProcessorClasspathConfigurationName() {
-        return configurationNameOf(JavaPlugin.ANNOTATION_PROCESSOR_CLASSPATH_CONFIGURATION_NAME);
-    }
-
-    @Override
     public String getApiConfigurationName() {
         return configurationNameOf(JavaPlugin.API_CONFIGURATION_NAME);
     }

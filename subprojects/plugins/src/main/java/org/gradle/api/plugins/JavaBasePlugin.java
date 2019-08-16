@@ -260,7 +260,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
         String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
         String annotationProcessorConfigurationName = sourceSet.getAnnotationProcessorConfigurationName();
-        String annotationProcessorClasspathConfigurationName = sourceSet.getAnnotationProcessorClasspathConfigurationName();
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
         String runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
@@ -304,12 +303,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeResolved(true);
 
-        DeprecatableConfiguration annotationProcessorClasspathConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(annotationProcessorClasspathConfigurationName);
-        annotationProcessorClasspathConfiguration.setVisible(false);
-        annotationProcessorClasspathConfiguration.extendsFrom(annotationProcessorConfiguration);
-        annotationProcessorClasspathConfiguration.setDescription("Classpath of annotation processors and their dependencies for " + sourceSetName + ".");
-        annotationProcessorClasspathConfiguration.setCanBeConsumed(false);
-
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setCanBeConsumed(false);
@@ -329,7 +322,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
-        sourceSet.setAnnotationProcessorPath(annotationProcessorClasspathConfiguration);
+        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
 
         compileConfiguration.deprecateForDeclaration(implementationConfigurationName);
         compileConfiguration.deprecateForConsumption(apiElementsConfigurationName);
@@ -341,9 +334,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeConfiguration.deprecateForDeclaration(runtimeOnlyConfigurationName);
         runtimeConfiguration.deprecateForConsumption(runtimeElementsConfigurationName);
         runtimeConfiguration.deprecateForResolution(runtimeClasspathConfigurationName);
-
-        annotationProcessorConfiguration.deprecateForResolution(annotationProcessorClasspathConfigurationName);
-        annotationProcessorClasspathConfiguration.deprecateForDeclaration(annotationProcessorConfigurationName);
 
         compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
         runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);

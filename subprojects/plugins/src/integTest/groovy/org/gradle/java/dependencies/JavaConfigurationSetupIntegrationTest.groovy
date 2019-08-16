@@ -74,7 +74,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'compileClasspath'             | "implementation or compileOnly"
         'java'         | 'runtimeClasspath'             | "implementation or compileOnly or runtimeOnly"
         'java'         | 'annotationProcessor'          | VALID
-        'java'         | 'annotationProcessorClasspath' | "annotationProcessor"
 
         'java-library' | 'compile'                      | "implementation or api"
         'java-library' | 'runtime'                      | "runtimeOnly"
@@ -86,7 +85,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileClasspath'             | "implementation or api or compileOnly"
         'java-library' | 'runtimeClasspath'             | "implementation or api or compileOnly or runtimeOnly"
         'java-library' | 'annotationProcessor'          | VALID
-        'java-library' | 'annotationProcessorClasspath' | "annotationProcessor"
         'java-library' | 'api'                          | VALID
     }
 
@@ -133,7 +131,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'compileClasspath'             | FORBIDDEN
         'java'         | 'runtimeClasspath'             | FORBIDDEN
         'java'         | 'annotationProcessor'          | FORBIDDEN
-        'java'         | 'annotationProcessorClasspath' | FORBIDDEN
 
         'java-library' | 'compile'                      | "apiElements"
         'java-library' | 'runtime'                      | "runtimeElements"
@@ -145,7 +142,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileClasspath'             | FORBIDDEN
         'java-library' | 'runtimeClasspath'             | FORBIDDEN
         'java-library' | 'annotationProcessor'          | FORBIDDEN
-        'java-library' | 'annotationProcessorClasspath' | FORBIDDEN
         'java-library' | 'api'                          | FORBIDDEN
     }
 
@@ -188,8 +184,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'apiElements'                  | FORBIDDEN
         'java'         | 'compileClasspath'             | VALID
         'java'         | 'runtimeClasspath'             | VALID
-        'java'         | 'annotationProcessor'          | "annotationProcessorClasspath"
-        'java'         | 'annotationProcessorClasspath' | VALID
+        'java'         | 'annotationProcessor'          | VALID
 
         'java-library' | 'compile'                      | "compileClasspath"
         'java-library' | 'runtime'                      | "runtimeClasspath"
@@ -200,8 +195,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'apiElements'                  | FORBIDDEN
         'java-library' | 'compileClasspath'             | VALID
         'java-library' | 'runtimeClasspath'             | VALID
-        'java-library' | 'annotationProcessor'          | "annotationProcessorClasspath"
-        'java-library' | 'annotationProcessorClasspath' | VALID
+        'java-library' | 'annotationProcessor'          | VALID
         'java-library' | 'api'                          | FORBIDDEN
     }
 }
