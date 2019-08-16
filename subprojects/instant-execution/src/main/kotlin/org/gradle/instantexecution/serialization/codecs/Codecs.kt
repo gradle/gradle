@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -71,6 +72,7 @@ import kotlin.reflect.KClass
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
+    filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
     listenerManager: ListenerManager,
@@ -138,6 +140,13 @@ class Codecs(
 
         bind(arrayCodec)
         bind(BrokenValueCodec)
+
+        bind(ListPropertyCodec)
+        bind(MapPropertyCodec)
+        bind(DirectoryPropertyCodec(filePropertyFactory))
+        bind(RegularFilePropertyCodec(filePropertyFactory))
+        bind(PropertyCodec)
+        bind(ProviderCodec)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
