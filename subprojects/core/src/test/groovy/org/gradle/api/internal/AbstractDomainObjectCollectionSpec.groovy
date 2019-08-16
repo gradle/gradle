@@ -29,7 +29,6 @@ import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.ConfigureUtil
 import org.hamcrest.CoreMatchers
-import org.junit.Assume
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -37,6 +36,7 @@ import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assert.assertThat
+import static org.junit.Assume.assumeTrue
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
@@ -71,12 +71,28 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     abstract boolean isExternalProviderAllowed()
 
+    abstract boolean isDirectElementAdditionAllowed()
+
+    abstract boolean isElementRemovalAllowed()
+
+    void containerAllowsElementAddition() {
+        assumeTrue("the container doesn't allow direct element addition", isDirectElementAdditionAllowed())
+    }
+
+    void containerAllowsElementRemoval() {
+        assumeTrue("the container doesn't allow element removal", isElementRemovalAllowed())
+    }
+
     void containerAllowsExternalProviders() {
-        Assume.assumeTrue("the container doesn't allow external provider to be added", isExternalProviderAllowed())
+        assumeTrue("the container doesn't allow external provider to be added", isExternalProviderAllowed())
     }
 
     void containerSupportsBuildOperations() {
-        Assume.assumeTrue("the container doesn't support build operations", isSupportsBuildOperations())
+        assumeTrue("the container doesn't support build operations", isSupportsBuildOperations())
+    }
+
+    protected void addToContainer(T element) {
+        container.add(element)
     }
 
     Class<? extends DomainObjectCollection<T>> getContainerPublicType() {
@@ -103,6 +119,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "does not add elements with duplicate name"() {
+        containerAllowsElementAddition()
+
         given:
         container.add(a)
 
@@ -159,12 +177,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * providerOfIterable.size() >> 2
 
         given:
-        container.add(a)
+        addToContainer(a)
         container.addLater(provider)
         container.addAllLater(providerOfIterable)
 
         when:
-        container.add(b)
+        addToContainer(b)
 
         then:
         0 * provider._
@@ -177,8 +195,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "can check for membership"() {
         given:
-        container.add(b)
-        container.add(a)
+        addToContainer(b)
+        addToContainer(a)
 
         expect:
         !container.contains(c)
@@ -190,7 +208,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider = Mock(ProviderInternal)
 
         given:
-        container.add(b)
+        addToContainer(b)
         container.addLater(provider)
 
         when:
@@ -208,7 +226,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider = Mock(CollectionProviderInternal)
 
         given:
-        container.add(b)
+        addToContainer(b)
         container.addAllLater(provider)
 
         when:
@@ -223,18 +241,18 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "can get all domain objects ordered by order added"() {
         given:
-        container.add(b)
-        container.add(a)
-        container.add(c)
+        addToContainer(b)
+        addToContainer(a)
+        addToContainer(c)
 
         expect:
         toList(container) == iterationOrder(b, a, c)
     }
 
     def "can iterate over domain objects ordered by order added"() {
-        container.add(b)
-        container.add(a)
-        container.add(c)
+        addToContainer(b)
+        addToContainer(a)
+        addToContainer(c)
 
         expect:
         def seen = []
@@ -252,10 +270,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider2 = Mock(ProviderInternal)
 
         given:
-        container.add(b)
+        addToContainer(b)
         container.addLater(provider1)
         container.addLater(provider2)
-        container.add(c)
+        addToContainer(c)
 
         when:
         def result = toList(container)
@@ -274,9 +292,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider1 = Mock(CollectionProviderInternal)
 
         given:
-        container.add(b)
+        addToContainer(b)
         container.addAllLater(provider1)
-        container.add(c)
+        addToContainer(c)
 
         when:
         def result = toList(container)
@@ -293,8 +311,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     def "can execute action for all elements in a collection"() {
         def action = Mock(Action)
 
-        container.add(c)
-        container.add(d)
+        addToContainer(c)
+        addToContainer(d)
 
         when:
         container.all(action)
@@ -305,7 +323,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         1 * action.execute(a)
@@ -315,7 +333,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     def "can add action to execute only when object added"() {
         def action = Mock(Action)
 
-        container.add(c)
+        addToContainer(c)
 
         when:
         container.whenObjectAdded(action)
@@ -325,19 +343,23 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         1 * action.execute(a)
         0 * action._
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         0 * action._
 
         when:
+        containerAllowsElementAddition()
+        containerAllowsElementRemoval()
+
+        and:
         container.remove(c)
         container.addAll(a, b, c, d)
 
@@ -349,9 +371,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "can add action to execute only when object removed"() {
+        containerAllowsElementRemoval()
+
         def action = Mock(Action)
 
-        container.add(c)
+        addToContainer(c)
 
         when:
         container.whenObjectRemoved(action)
@@ -361,7 +385,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
 
         when:
-        container.add(a)
+        addToContainer(a)
         container.remove(c)
         container.remove(a)
 
@@ -435,9 +459,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "can get filtered collection containing all objects which have type"() {
-        container.add(c)
-        container.add(a)
-        container.add(d)
+        addToContainer(c)
+        addToContainer(a)
+        addToContainer(d)
 
         expect:
         toList(container.withType(type)) == iterationOrder(c, a)
@@ -448,9 +472,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
 
-        container.add(c)
+        addToContainer(c)
         container.addLater(provider)
-        container.add(d)
+        addToContainer(d)
 
         when:
         def filtered = container.withType(type)
@@ -480,9 +504,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider = Mock(CollectionProviderInternal)
         _ * provider.elementType >> type
 
-        container.add(c)
+        addToContainer(c)
         container.addAllLater(provider)
-        container.add(d)
+        addToContainer(d)
 
         when:
         def filtered = container.withType(type)
@@ -512,9 +536,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider = Mock(ProviderInternal)
         _ * provider.type >> type
 
-        container.add(c)
+        addToContainer(c)
         container.addLater(provider)
-        container.add(d)
+        addToContainer(d)
 
         when:
         def filtered = container.withType(otherType)
@@ -543,9 +567,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider = Mock(CollectionProviderInternal)
         _ * provider.elementType >> type
 
-        container.add(c)
+        addToContainer(c)
         container.addAllLater(provider)
-        container.add(d)
+        addToContainer(d)
 
         when:
         def filtered = container.withType(otherType)
@@ -574,8 +598,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     def "can execute action for all elements in a type filtered collection"() {
         def action = Mock(Action)
 
-        container.add(c)
-        container.add(d)
+        addToContainer(c)
+        addToContainer(d)
 
         when:
         container.withType(type, action)
@@ -585,7 +609,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         1 * action.execute(a)
@@ -596,8 +620,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def seen = []
         def closure = { seen << it }
 
-        container.add(c)
-        container.add(d)
+        addToContainer(c)
+        addToContainer(d)
 
         when:
         container.withType(type, closure)
@@ -606,13 +630,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         seen == [c]
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         seen == [c, a]
     }
 
     def "action for all elements in a type filtered collection can add more elements"() {
+        containerAllowsElementAddition()
+
         def action = Mock(Action)
 
         container.add(c)
@@ -636,7 +662,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider2 = Mock(ProviderInternal)
 
         container.addLater(provider1)
-        container.add(d)
+        addToContainer(d)
 
         when:
         container.withType(type, action)
@@ -664,7 +690,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def provider2 = Mock(CollectionProviderInternal)
 
         container.addAllLater(provider1)
-        container.add(d)
+        addToContainer(d)
 
         when:
         container.withType(type, action)
@@ -695,7 +721,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * provider1.type >> type
 
         container.addLater(provider1)
-        container.add(d)
+        addToContainer(d)
 
         when:
         container.withType(otherType, action)
@@ -720,7 +746,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * provider1.elementType >> type
 
         container.addAllLater(provider1)
-        container.add(d)
+        addToContainer(d)
 
         when:
         container.withType(otherType, action)
@@ -820,6 +846,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "runs configure element action immediately when element added directly"() {
+        containerAllowsElementAddition()
+
         def action = Mock(Action)
 
         given:
@@ -1534,7 +1562,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     @Unroll
     def "disallow mutating from common methods when #mutatingMethods.key"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         String methodUnderTest = mutatingMethods.key
         Closure method = bind(mutatingMethods.value)
 
@@ -1564,15 +1592,27 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         // TODO:
         // "addLater(Provider)"    | { it.addLater(Providers.of(b)) }
         // "addAllLater(Provider)" | { it.addAllLater(Providers.collectionOf(b)) }
-        return [
-            "add(T)": { container.add(b) },
-            "addAll(Collection<T>)": { container.addAll([b]) },
-            "clear()": { container.clear() },
-            "remove(Object)": { container.remove(b) },
-            "removeAll(Collection)": { container.removeAll([b]) },
-            "retainAll(Collection)": { container.retainAll([b]) },
-            "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
-            "configureEach(Action)": { container.configureEach(Actions.doNothing()) },
+        def methods = [:]
+
+        if (isDirectElementAdditionAllowed()) {
+            methods += [
+                "add(T)": { container.add(b) },
+                "addAll(Collection<T>)": { container.addAll([b]) }
+            ]
+        }
+
+        if (isElementRemovalAllowed()) {
+            methods += [
+                "clear()": { container.clear() },
+                "remove(Object)": { container.remove(b) },
+                "removeAll(Collection)": { container.removeAll([b]) },
+                "retainAll(Collection)": { container.retainAll([b]) },
+                "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
+                "configureEach(Action)": { container.configureEach(Actions.doNothing()) }
+            ]
+        }
+
+        return methods + [
             "whenObjectAdded(Action)": { container.whenObjectAdded(Actions.doNothing()) },
             "withType(Class, Action)": { container.withType(type, Actions.doNothing()) },
             "all(Action)": { container.all(Actions.doNothing()) },
@@ -1592,7 +1632,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     @Unroll
     def "allow common querying methods when #queryMethods.key"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(queryMethods.value)
 
         when:
@@ -1617,7 +1657,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     @Unroll
     def "allow common querying and mutating methods when #methods.key"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(methods.value)
 
         when:
@@ -1632,7 +1672,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     @Unroll
     def "allow common querying and mutating methods when #methods.key on filtered container by type"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(methods.value)
 
         when:
@@ -1647,7 +1687,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     @Unroll
     def "allow common querying and mutating methods when #methods.key on filtered container by spec"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(methods.value)
 
         when:
@@ -1672,7 +1712,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         }
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         def callbacks1 = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
@@ -1689,7 +1729,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         }
 
         and:
-        container.add(b)
+        addToContainer(b)
 
         then:
         def callbacks = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
@@ -1709,7 +1749,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         }
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
@@ -1726,7 +1766,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         }
 
         when:
-        container.add(a)
+        addToContainer(a)
 
         then:
         buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
@@ -1736,8 +1776,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         containerSupportsBuildOperations()
 
-        container.add(a)
-        container.add(b)
+        addToContainer(a)
+        addToContainer(b)
 
         when:
         UserCodeApplicationId id = null
@@ -1766,7 +1806,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.all {
             ids << userCodeApplicationContext.current()
         }
-        container.add(a)
+        addToContainer(a)
 
         then:
         ids.size() == 1
@@ -1796,8 +1836,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
                 }
             }
         }
-        container.add(a)
-        container.add(b)
+        addToContainer(a)
+        addToContainer(b)
 
         then:
         def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)

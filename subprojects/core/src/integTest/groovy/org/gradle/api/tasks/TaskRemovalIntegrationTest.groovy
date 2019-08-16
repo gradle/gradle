@@ -17,100 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 
 class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
-
-    def "can remove task"() {
-        given:
-        buildScript """
-            task foo {}
-            tasks.remove(foo)
-            task foo {}
-            tasks.remove(foo)
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        fails "foo"
-
-        then:
-        failure.assertThatDescription(CoreMatchers.startsWith("Task 'foo' not found in root project"))
-    }
-
-    def "can remove task in after evaluate"() {
-        given:
-        buildScript """
-            task foo {}
-            afterEvaluate {
-                tasks.remove(foo)
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        fails "foo"
-
-        then:
-        failure.assertThatDescription(CoreMatchers.startsWith("Task 'foo' not found in root project"))
-    }
-
     @Unroll
-    def "can remove task in after evaluate if task is used by unbound #annotationClass rule"() {
-        given:
-        buildScript """
-            task foo {}
-
-            afterEvaluate {
-                tasks.remove(foo)
-            }
-
-            class Rules extends RuleSource {
-                @$annotationClass
-                void linkFooToBar(String bar, @Path("tasks.foo") Task foo) {
-                   // do nothing
-                }
-            }
-
-            apply plugin: Rules
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        fails "dependencies"
-
-        then:
-        failure.assertThatCause(CoreMatchers.startsWith("The following model rules could not be applied"))
-
-        where:
-        annotationClass << ["Defaults", "Mutate", "Finalize", "Validate"]
-    }
-
-    def "cant remove task if used by rule"() {
-        when:
-        buildScript """
-            task foo {}
-            task bar { doLast { tasks.remove(foo) } }
-
-            class Rules extends RuleSource {
-                @Mutate
-                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
-                   // do nothing
-                }
-            }
-
-            apply plugin: Rules
-        """
-
-        then:
-        executer.expectDeprecationWarning()
-        fails ":bar"
-        failure.assertThatCause(CoreMatchers.startsWith("Tried to remove model 'tasks.foo' but it is depended on by: 'tasks.bar'"))
-    }
-
-    @Unroll
-    def "prints deprecation warning when removing a task with #description"() {
+    def "throws exception when removing a task with #description"() {
         given:
         buildFile << """
             task foo(type: Zip) {}
@@ -121,11 +32,11 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds ("dummy")
+        fails ("dummy")
 
         then:
-        outputContains("Using method ${description} to remove tasks has been deprecated. This will fail with an error in Gradle 6.0. Prefer disabling tasks instead, see Task.setEnabled(boolean).")
+        failure.assertHasCause("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.")
+
         where:
         description                                | code
         "TaskContainer.remove(Object)"             | "tasks.remove(foo)"
