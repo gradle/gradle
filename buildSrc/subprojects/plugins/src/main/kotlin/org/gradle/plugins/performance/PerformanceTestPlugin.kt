@@ -18,12 +18,10 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.testing.BuildScanPerformanceTest
+import org.gradle.testing.DefaultPerformanceReporter
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
-import org.gradle.testing.ReportGenerationPerformanceTest
-import org.gradle.testing.RerunableDistributedPerformanceTest
 import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
@@ -213,6 +211,13 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
         }
 
+    private
+    fun Project.createPerformanceReporter() =
+        objects.newInstance(DefaultPerformanceReporter::class).also {
+            it.projectName = name
+            it.reportGeneratorClass = "org.gradle.performance.results.DefaultReportGenerator"
+            it.githubToken = stringPropertyOrEmpty("githubToken")
+        }
 
     private
     fun Project.createLocalPerformanceTestTasks(
@@ -236,6 +241,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         create("performanceAdhocTest") {
             addDatabaseParameters(mapOf(PropertyNames.dbUrl to Config.adhocTestDbUrl))
+            performanceReporter = createPerformanceReporter()
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test") { true }
         }
@@ -251,22 +257,26 @@ class PerformanceTestPlugin : Plugin<Project> {
             createDistributedPerformanceTestTask(name, clazz, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
-        create("distributedPerformanceTest", RerunableDistributedPerformanceTest::class) {
+        create("distributedPerformanceTest", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            rerunable = true
             channel = "commits"
         }
-        create("distributedPerformanceExperiment", RerunableDistributedPerformanceTest::class) {
+        create("distributedPerformanceExperiment", DistributedPerformanceTest::class) {
             (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            rerunable = true
             channel = "experiments"
         }
         create("distributedFullPerformanceTest", DistributedPerformanceTest::class) {
-            setBaselines(Config.baseLineList)
+            configuredBaselines.set(Config.baseLineList)
+            rerunable = false
             checks = "none"
             channel = "historical"
         }
         create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
-            reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
+            rerunable = false
+            distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
             repeat = 3
             checks = "none"
             channel = "flakiness-detection"
@@ -319,6 +329,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
             teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
+            distributedPerformanceReporter = createPerformanceReporter()
         }
 
         createAndWireCommitDistributionTasks(performanceTest, true)
@@ -364,11 +375,16 @@ class PerformanceTestPlugin : Plugin<Project> {
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<out PerformanceTest> {
-        val performanceTest = tasks.register(name, determineLocalPerformanceTestClass()) {
+        val performanceTest = tasks.register(name, PerformanceTest::class) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
+            }
+            if (project.name == "buildScanPerformance") {
+                performanceReporter = createPerformanceReporter().also {
+                    it.reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
+                }
             }
         }
         createAndWireCommitDistributionTasks(performanceTest, false)
@@ -386,11 +402,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         return performanceTest
-    }
-
-    private
-    fun Project.determineLocalPerformanceTestClass(): KClass<out PerformanceTest> {
-        return if (name == "buildScanPerformance") BuildScanPerformanceTest::class else PerformanceTest::class
     }
 
     private
@@ -424,6 +435,9 @@ class PerformanceTestPlugin : Plugin<Project> {
     ) {
         task.apply {
             group = "verification"
+            buildId = System.getenv("BUILD_ID")
+            reportDir = project.buildDir / task.name / Config.performanceTestReportsDir
+            resultsJson = project.buildDir / Config.performanceTestResultsJson
             addDatabaseParameters(propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
@@ -433,7 +447,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.setBaselines(baselines as String)
+                task.configuredBaselines.set(baselines as String)
             }
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
@@ -444,14 +458,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
-            }
-        }
-
-        if (task is ReportGenerationPerformanceTest) {
-            task.apply {
-                buildId = System.getenv("BUILD_ID")
-                reportDir = project.buildDir / Config.performanceTestReportsDir
-                resultsJson = project.buildDir / Config.performanceTestResultsJson
             }
         }
     }
