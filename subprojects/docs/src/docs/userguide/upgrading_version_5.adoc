@@ -124,8 +124,8 @@ The following deprecated methods on the task container now result in errors:
 Additionally, the following deprecated functionality now results in an error:
 
 - Replacing a task that has already been realized.
-- Replacing a registered (unrealized) task with a task that has an incompatible type (i.e. a type that is not the same type or a sub-type of the previously registered type)
-- Attempting to replace a task that has not been previously been registered.
+- Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
+- Replacing a task that has never been registered.
 
 ==== Updates to bundled Gradle dependencies
 
