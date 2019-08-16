@@ -118,6 +118,6 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
             Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
             Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 }

@@ -80,7 +80,7 @@ dependencies {
     testImplementation(testLibrary("mockito_kotlin"))
     testImplementation(testLibrary("jackson_kotlin"))
 
-    testImplementation("com.tngtech.archunit:archunit:0.8.3")
+    testImplementation(testLibrary("archunit"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
     testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 

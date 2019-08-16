@@ -14,7 +14,7 @@ dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
     
-    testImplementation("com.tngtech.archunit:archunit-junit4:0.9.1")
+    testImplementation(testLibrary("archunit_junit4"))
     testImplementation(library("jsr305"))
     testImplementation(library("guava"))
 

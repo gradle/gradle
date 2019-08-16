@@ -58,6 +58,7 @@ dependencies {
 }
 ```
 
+<<<<<<< HEAD
 Subgraph constraints can also be defined in a platform.
 Theses constraints will be _inherited_ when depending on the platform and treated as if they were defined directly.
 
@@ -80,6 +81,11 @@ dependencies {
     implementation('commons-io:commons-io')
 }
 ```
+=======
+## Support for Java 13
+
+Gradle now supports running with Java 13.
+>>>>>>> origin/sg/60/jdk13
 
 ## Debug support for forked Java processes
 
