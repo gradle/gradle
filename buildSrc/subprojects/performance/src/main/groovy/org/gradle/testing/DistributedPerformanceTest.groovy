@@ -221,7 +221,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         fillScenarioList()
 
-        def scenarios = scenarioList.readLines().collect { String line -> new Scenario(line) }.sort { -it.estimatedRuntime }
+        def scenarios = [scenarioList.readLines().collect { String line -> new Scenario(line) }.sort { -it.estimatedRuntime }[-1]]
 
         createClient()
 

@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -26,17 +27,28 @@ import java.lang.reflect.Type;
 import java.net.URL;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
+    private final PerformanceFlakinessDataProvider flakinessDataProvider;
+
+    public AbstractReportGenerator() {
+        this(EmptyPerformanceFlakinessDataProvider.INSTANCE);
+    }
+
+    public AbstractReportGenerator(PerformanceFlakinessDataProvider flakinessDataProvider) {
+        this.flakinessDataProvider = flakinessDataProvider;
+    }
 
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);
         File resultJson = new File(args[1]);
         String projectName = args[2];
-        generate(PerformanceFlakinessAnalyzer.create(), outputDirectory, resultJson, projectName);
+
+        generate(outputDirectory, resultJson, projectName);
     }
 
-    protected void generate(PerformanceFlakinessAnalyzer flakinessAnalyzer, File outputDirectory, File resultJson, String projectName) {
+    protected void generate(File outputDirectory, File resultJson, String projectName) {
         try (ResultsStore store = getResultsStore()) {
-            renderIndexPage(flakinessAnalyzer, store, resultJson, outputDirectory);
+
+            renderIndexPage(store, resultJson, outputDirectory);
 
             for (String testName : store.getTestNames()) {
                 PerformanceTestHistory testResults = store.getTestResults(testName, 500, 90, ResultsStoreHelper.determineChannel());
@@ -55,8 +67,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         }
     }
 
-    protected void renderIndexPage(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore store, File resultJson, File outputDirectory) throws IOException {
-        new FileRenderer().render(store, new IndexPageGenerator(flakinessAnalyzer, store, resultJson), new File(outputDirectory, "index.html"));
+    protected void renderIndexPage(ResultsStore store, File resultJson, File outputDirectory) throws IOException {
+        new FileRenderer().render(store, new IndexPageGenerator(flakinessDataProvider, store, resultJson), new File(outputDirectory, "index.html"));
     }
 
     protected void renderScenarioPage(String projectName, File outputDirectory, PerformanceTestHistory testResults) throws IOException {

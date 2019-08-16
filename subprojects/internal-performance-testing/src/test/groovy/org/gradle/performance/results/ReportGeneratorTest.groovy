@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider.*
+
 class ReportGeneratorTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -49,7 +51,7 @@ class ReportGeneratorTest extends ResultSpecification {
         store.report(result2)
 
         when:
-        generator.generate(Mock(PerformanceFlakinessAnalyzer), reportDir, resultsJson, 'testProject')
+        generator.generate(reportDir, resultsJson, 'testProject')
 
         then:
         reportDir.file("index.html").isFile()

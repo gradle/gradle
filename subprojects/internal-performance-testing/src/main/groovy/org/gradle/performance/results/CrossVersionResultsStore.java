@@ -378,4 +378,30 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             resultSet.close();
         }
     }
+
+    public Map<String, BigDecimal> getFlakinessRates() {
+        return queryFlakinessData(PerformanceFlakinessDataProvider.FLAKINESS_RATE_SQL);
+    }
+
+    public Map<String, BigDecimal> getFailureThresholds() {
+        return queryFlakinessData(PerformanceFlakinessDataProvider.FAILURE_THRESOLD_SQL);
+    }
+
+    private Map<String, BigDecimal> queryFlakinessData(String sql) {
+        try {
+            return db.withConnection(connection -> {
+                Map<String, BigDecimal> results = Maps.newHashMap();
+                try (PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String scenario = resultSet.getString(1);
+                        BigDecimal value = resultSet.getBigDecimal(2);
+                        results.put(scenario, value);
+                    }
+                }
+                return results;
+            });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
