@@ -46,7 +46,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         "TaskContainer.iterator()#remove()"        | "def it = tasks.iterator(); it.next(); it.remove()"
     }
 
-    def "prints deprecation warning when using whenObjectRemoved"() {
+    def "throws exception when using whenObjectRemoved"() {
         given:
         buildFile << """
             task foo(type: Zip) {}
@@ -57,10 +57,9 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds ("dummy")
+        fails ("dummy")
 
         then:
-        outputContains("The TaskContainer.whenObjectRemoved(Action) method has been deprecated. This is scheduled to be removed in Gradle 6.0.")
+        failure.assertHasCause("Registering actions on task removal is not supported.")
     }
 }
