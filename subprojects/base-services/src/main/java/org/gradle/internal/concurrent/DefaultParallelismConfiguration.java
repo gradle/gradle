@@ -27,6 +27,7 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
 
     private boolean parallelProjectExecution;
     private int maxWorkerCount;
+    private boolean maxWorkerCountRetreived = false;
 
     public DefaultParallelismConfiguration() {
         maxWorkerCount = Runtime.getRuntime().availableProcessors();
@@ -58,6 +59,7 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
      */
     @Override
     public int getMaxWorkerCount() {
+        maxWorkerCountRetreived = true;
         return maxWorkerCount;
     }
 
@@ -66,6 +68,9 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
      */
     @Override
     public void setMaxWorkerCount(int maxWorkerCount) {
+        if (maxWorkerCountRetreived) {
+            throw new IllegalStateException("Max worker count was already retrieved. Setting the value at this time has no effect.");
+        }
         if (maxWorkerCount < 1) {
             throw new IllegalArgumentException("Max worker count must be > 0");
         } else {

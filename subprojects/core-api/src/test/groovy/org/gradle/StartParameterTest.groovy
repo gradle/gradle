@@ -25,7 +25,9 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.isSerializable
+import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -377,5 +379,23 @@ class StartParameterTest extends Specification {
         then:
         parameter.taskNames == []
         parameter.taskRequests == []
+    }
+
+    def 'cannot set max workers after get'() {
+        StartParameter parameter = new StartParameter()
+
+        when:
+        parameter.setMaxWorkerCount(8)
+
+        then:
+        parameter.maxWorkerCount == 8
+
+        try {
+            parameter.setMaxWorkerCount(6)
+            fail()
+        } catch (IllegalStateException e) {
+            assertEquals(e.message, "Max worker count was already retrieved. Setting the value at this time has no effect.")
+
+        }
     }
 }

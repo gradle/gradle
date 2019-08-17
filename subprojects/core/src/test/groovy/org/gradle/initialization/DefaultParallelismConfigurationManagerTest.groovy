@@ -23,6 +23,9 @@ import org.gradle.internal.concurrent.ParallelismConfigurationListener
 import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.fail
+
 
 class DefaultParallelismConfigurationManagerTest extends Specification {
     ParallelismConfigurationListener broadcaster = Mock(ParallelismConfigurationListener)
@@ -58,5 +61,18 @@ class DefaultParallelismConfigurationManagerTest extends Specification {
         expect:
         parallelExecutionManager.parallelismConfiguration.maxWorkerCount == DefaultParallelismConfiguration.DEFAULT.maxWorkerCount
         parallelExecutionManager.parallelismConfiguration.parallelProjectExecutionEnabled == DefaultParallelismConfiguration.DEFAULT.parallelProjectExecutionEnabled
+    }
+
+    def "can only set maxworker count once"() {
+        parallelExecutionManager.parallelismConfiguration.setMaxWorkerCount(2)
+        expect:
+        parallelExecutionManager.parallelismConfiguration.maxWorkerCount == 2
+
+        try {
+            parallelExecutionManager.parallelismConfiguration.setMaxWorkerCount(4)
+            fail()
+        } catch(IllegalStateException e) {
+            assertEquals(e.message, "Max worker count was already retrieved. Setting the value at this time has no effect.")
+        }
     }
 }
