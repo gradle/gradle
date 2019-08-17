@@ -17,7 +17,17 @@
 package org.gradle.performance.results;
 
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
+    public DefaultReportGenerator() {
+        super(getFlakinessDataProvider());
+    }
+
     public static void main(String[] args) {
         new DefaultReportGenerator().generateReport(args);
+    }
+
+    private static PerformanceFlakinessDataProvider getFlakinessDataProvider() {
+        try (CrossVersionResultsStore resultsStore = new CrossVersionResultsStore()) {
+            return new DefaultPerformanceFlakinessDataProvider(resultsStore);
+        }
     }
 }

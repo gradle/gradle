@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.Sets;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +44,8 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             .thenComparing(ScenarioBuildResultData::getScenarioName);
 
 
-    public FlakinessIndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
-        super(flakinessAnalyzer, resultsStore, resultJson);
+    public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson) {
+        super(EmptyPerformanceFlakinessDataProvider.INSTANCE, resultsStore, resultJson);
     }
 
     @Override
@@ -110,11 +111,6 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             }
         };
     }
-
-    public void reportToIssueTracker() {
-        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(flakinessAnalyzer::report);
-    }
-
     private static boolean isFlaky(ScenarioBuildResultData scenario) {
         return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }

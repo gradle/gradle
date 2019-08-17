@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Subject
 
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider.INSTANCE
+
 class IndexPageGeneratorTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -33,7 +35,7 @@ class IndexPageGeneratorTest extends ResultSpecification {
 
     def setup() {
         resultsJson << '[]'
-        generator = new IndexPageGenerator(Mock(PerformanceFlakinessAnalyzer), mockStore, resultsJson)
+        generator = new IndexPageGenerator(INSTANCE, mockStore, resultsJson)
     }
 
     def 'can sort scenarios correctly'() {
