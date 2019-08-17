@@ -36,7 +36,6 @@ import static org.gradle.performance.results.ScenarioBuildResultData.ExecutionDa
 import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_SUCCESS;
 import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_UNKNOWN;
 import static org.gradle.performance.results.Tag.FixedTag.FAILED;
-import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
 import static org.gradle.performance.results.Tag.FixedTag.FROM_CACHE;
 import static org.gradle.performance.results.Tag.FixedTag.IMPROVED;
 import static org.gradle.performance.results.Tag.FixedTag.NEARLY_FAILED;
@@ -52,7 +51,6 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
     static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
         .thenComparing(ScenarioBuildResultData::isSuccessful)
         .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
-        .thenComparing(comparing(IndexPageGenerator::isFlaky).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
@@ -188,12 +186,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                     result.add(FROM_CACHE);
                 }
 
-                if (isFlaky(scenario)) {
-                    result.add(FLAKY);
-                }
-
                 markFlakyTestInfo(scenario, result);
-
 
                 if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
@@ -215,13 +208,10 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             private void markFlakyTestInfo(ScenarioBuildResultData scenario, Set<Tag> result) {
                 BigDecimal rate = flakinessDataProvider.getFlakinessRate(scenario.getScenarioName());
-                if (rate != null) {
+                if (rate != null && rate.doubleValue() > FAILURE_THRESHOLD) {
                     result.add(Tag.FlakinessInfoTag.createFlakinessRateTag(rate));
-
                     BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(scenario.getScenarioName());
-                    if (rate.doubleValue() > FAILURE_THRESHOLD) {
-                        result.add(Tag.FlakinessInfoTag.createFailureThresholdTag(failureThreshold));
-                    }
+                    result.add(Tag.FlakinessInfoTag.createFailureThresholdTag(failureThreshold));
                 }
             }
 
@@ -247,14 +237,5 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 }
             }
         };
-    }
-
-    private static boolean isFlaky(ScenarioBuildResultData scenario) {
-        if (scenario.getRawData().size() < 1) {
-            return false;
-        }
-
-        Set<String> statuses = scenario.getRawData().stream().map(ScenarioBuildResultData::getStatus).collect(toSet());
-        return statuses.size() > 1 && statuses.contains(STATUS_SUCCESS);
     }
 }

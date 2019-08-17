@@ -41,10 +41,6 @@ class ScenarioBuildResultData {
     // For rerun scenarios
     List<ScenarioBuildResultData> rawData = []
 
-    String getFlakyIssueTestName() {
-        return "${scenarioClass}.${scenarioName}"
-    }
-
     boolean isCrossVersion() {
         return !crossBuild
     }

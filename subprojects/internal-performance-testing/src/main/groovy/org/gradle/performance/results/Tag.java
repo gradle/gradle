@@ -40,7 +40,7 @@ public interface Tag {
         REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
         UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
-        FLAKY("FLAKY", "badge badge-danger", "The scenario's difference confidence > 95% even when running identical code."),
+//        FLAKY("FLAKY", "badge badge-danger", "The scenario's difference confidence > 95% even when running identical code."),
         //        KNOWN_FLAKY("KNOWN-FLAKY", "badge badge-danger", "The scenario was marked as flaky in gradle-private issue tracker recently."),
         UNTAGGED("UNTAGGED", null, null);
 
@@ -84,11 +84,11 @@ public interface Tag {
         private String title;
 
         static FlakinessInfoTag createFlakinessRateTag(BigDecimal rate) {
-            return new FlakinessInfoTag(String.format("FLAKINESS-RATE: %.2f", rate.doubleValue()), FLAKINESS_RATE_TITLE);
+            return new FlakinessInfoTag(String.format("FLAKY(%.2f%%)", rate.doubleValue() * 100), FLAKINESS_RATE_TITLE);
         }
 
         static FlakinessInfoTag createFailureThresholdTag(BigDecimal threshold) {
-            return new FlakinessInfoTag(String.format("FAILURE-THRESHOLD: %.2f", threshold.doubleValue()), FAILURE_THRESHOLD_TITLE);
+            return new FlakinessInfoTag(String.format("FAILURE-THRESHOLD(%.2f%%)", threshold.doubleValue() * 100), FAILURE_THRESHOLD_TITLE);
         }
 
         private FlakinessInfoTag(String name, String title) {
