@@ -60,6 +60,12 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     fun getProject(path: String): ProjectInternal
 
+    /**
+     * When in immediate mode, [read] calls are NOT suspending.
+     * Useful for bridging with non-suspending serialization protocols such as [java.io.Serializable].
+     */
+    var immediateMode: Boolean // TODO:instant-execution prevent StackOverflowErrors when crossing protocols
+
     suspend fun read(): Any?
 
     fun readClass(): Class<*>
@@ -295,6 +301,18 @@ interface ReadIsolate : Isolate {
 interface MutableIsolateContext {
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
+}
+
+
+internal
+inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
+    val immediateMode = this.immediateMode
+    try {
+        this.immediateMode = true
+        return block()
+    } finally {
+        this.immediateMode = immediateMode
+    }
 }
 
 

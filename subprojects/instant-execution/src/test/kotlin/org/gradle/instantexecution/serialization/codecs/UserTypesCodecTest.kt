@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -38,7 +39,7 @@ import java.io.OutputStream
 import java.io.Serializable
 
 
-class BeanCodecTest {
+class UserTypesCodecTest {
 
     @Test
     fun `can handle deeply nested graphs`() {
@@ -54,46 +55,77 @@ class BeanCodecTest {
     }
 
     @Test
-    fun `can handle mix of Serializable and regular beans`() {
+    fun `can handle mix of Serializable and plain beans`() {
 
-        val deepGraph = Peano.fromInt(1024)
+        val bean = Pair(42, "42")
 
-        val serializableBean = SerializableBean(deepGraph)
+        /**
+         * A [Serializable] object that holds a reference to a plain bean.
+         **/
+        val serializable = SerializableWriteObjectBean(bean)
 
-        val read = roundtrip(serializableBean)
+        /**
+         * A plain bean that holds a reference to a serializable object
+         * sharing a reference to another plain bean.
+         **/
+        val beanGraph = Pair(serializable, bean)
+
+        val decodedGraph = roundtrip(beanGraph)
+
+        val (decodedSerializable, decodedBean) = decodedGraph
 
         assertThat(
-            read.value.toInt(),
-            equalTo(serializableBean.value.toInt())
+            "defaultWriteObject / defaultReadObject handles non-transient fields",
+            decodedSerializable.value,
+            equalTo(serializable.value)
         )
 
         assertThat(
-            read.computedValue,
-            equalTo(serializableBean.computedValue)
+            decodedSerializable.transientInt,
+            equalTo(SerializableWriteObjectBean.EXPECTED_INT)
+        )
+
+        assertThat(
+            decodedSerializable.transientString,
+            equalTo(SerializableWriteObjectBean.EXPECTED_STRING)
+        )
+
+        assertThat(
+            "preserves identities across protocols",
+            decodedSerializable.value,
+            sameInstance<Any>(decodedBean)
         )
     }
 
-    class SerializableBean(val value: Peano) : Serializable {
+    class SerializableWriteObjectBean(val value: Any) : Serializable {
+
+        companion object {
+
+            const val EXPECTED_INT: Int = 42
+
+            const val EXPECTED_STRING: String = "42"
+        }
 
         @Transient
-        private
-        var transientValue: Int = value.toInt() / 2
+        var transientInt: Int? = null
 
-        val computedValue: Int
-            get() = transientValue
+        @Transient
+        var transientString: String? = null
 
         private
         fun writeObject(objectOutputStream: ObjectOutputStream) {
             objectOutputStream.run {
                 defaultWriteObject()
-                writeInt(transientValue)
+                writeInt(EXPECTED_INT)
+                writeUTF(EXPECTED_STRING)
             }
         }
 
         private
         fun readObject(objectInputStream: ObjectInputStream) {
             objectInputStream.defaultReadObject()
-            transientValue = objectInputStream.readInt()
+            transientInt = objectInputStream.readInt()
+            transientString = objectInputStream.readUTF()
         }
     }
 
