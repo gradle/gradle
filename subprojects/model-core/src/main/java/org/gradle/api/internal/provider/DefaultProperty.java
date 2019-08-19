@@ -97,7 +97,11 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
         return this;
     }
 
-    public Property<T> provider(Provider<? extends T> provider) {
+    public ProviderInternal<? extends T> getProvider() {
+        return provider;
+    }
+
+    public DefaultProperty<T> provider(Provider<? extends T> provider) {
         set(provider);
         return this;
     }
