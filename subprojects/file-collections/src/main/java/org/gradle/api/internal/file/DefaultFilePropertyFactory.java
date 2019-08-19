@@ -234,7 +234,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class DefaultRegularFileVar extends AbstractFileVar<RegularFile, RegularFileProperty> implements RegularFileProperty, Managed {
+    public static class DefaultRegularFileVar extends AbstractFileVar<RegularFile, RegularFileProperty> implements RegularFileProperty, Managed {
         private final PathToFileResolver fileResolver;
 
         DefaultRegularFileVar(PathToFileResolver fileResolver) {
@@ -273,7 +273,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class DefaultDirectoryVar extends AbstractFileVar<Directory, DirectoryProperty> implements DirectoryProperty, Managed {
+    public static class DefaultDirectoryVar extends AbstractFileVar<Directory, DirectoryProperty> implements DirectoryProperty, Managed {
         private final FileResolver resolver;
 
         DefaultDirectoryVar(FileResolver resolver) {

@@ -18,12 +18,16 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 
-class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> {
+public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> {
     private final Transformer<? extends OUT, ? super IN> transformer;
 
     public TransformBackedProvider(Transformer<? extends OUT, ? super IN> transformer, ProviderInternal<? extends IN> provider) {
         super(null, provider);
         this.transformer = transformer;
+    }
+
+    public Transformer<? extends OUT, ? super IN> getTransformer() {
+        return transformer;
     }
 
     @Override

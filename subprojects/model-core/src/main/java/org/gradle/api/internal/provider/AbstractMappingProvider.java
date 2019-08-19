@@ -35,6 +35,21 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
         return type;
     }
 
+    public ProviderInternal<? extends IN> getProvider() {
+        return provider;
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        // Need the content in order to transform the value
+        return provider.isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return provider.isContentProducedByTask();
+    }
+
     @Override
     public boolean isPresent() {
         return provider.isPresent();

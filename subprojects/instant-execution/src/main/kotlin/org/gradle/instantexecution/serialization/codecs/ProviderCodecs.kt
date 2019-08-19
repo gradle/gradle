@@ -16,36 +16,80 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.Transformer
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
+import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.TransformBackedProvider
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import java.io.File
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Proxy
 
 
 private
-suspend fun WriteContext.writeProvider(value: Provider<*>) {
-    write(unpack(value))
+suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
+    if (value.isValueProducedByTask && value is TransformBackedProvider<*, *>) {
+        // Need to serialize the transformation and its source, as the value is not available until execution time
+        writeBoolean(true)
+        writeTransformer(value.transformer)
+        writeProvider(value.provider)
+    } else {
+        // Can serialize the value and discard the provider
+        writeBoolean(false)
+        write(unpack(value))
+    }
 }
 
 
 private
-suspend fun ReadContext.readProvider(): Provider<Any> {
-    val value = read()
-    return when (value) {
-        is BrokenValue -> DefaultProvider { value.rethrow() }
-        else -> Providers.ofNullable(value)
+suspend fun ReadContext.readProvider(): ProviderInternal<Any> {
+    return if (readBoolean()) {
+        val transformer = readTransformer()
+        val provider = readProvider()
+        TransformBackedProvider(transformer, provider)
+    } else {
+        val value = read()
+        when (value) {
+            is BrokenValue -> DefaultProvider<Any> { value.rethrow() }
+            else -> Providers.ofNullable(value)
+        }
+    }
+}
+
+
+private
+suspend fun WriteContext.writeTransformer(value: Transformer<*, *>) {
+    // TODO - should just have another codec (or codec supplier) that knows how to serialize proxies
+    if (Proxy.isProxyClass(value.javaClass)) {
+        writeBoolean(true)
+        write(Proxy.getInvocationHandler(value))
+    } else {
+        writeBoolean(false)
+        write(value)
+    }
+}
+
+
+private
+suspend fun ReadContext.readTransformer(): Transformer<Any, Any> {
+    return if (readBoolean()) {
+        val invocationHandler = read() as InvocationHandler
+        Proxy.newProxyInstance(classLoader, arrayOf(Transformer::class.java), invocationHandler) as Transformer<Any, Any>
+    } else {
+        read() as Transformer<Any, Any>
     }
 }
 
@@ -61,8 +105,8 @@ fun unpack(value: Provider<*>): Any? {
 
 
 object
-ProviderCodec : Codec<Provider<*>> {
-    override suspend fun WriteContext.encode(value: Provider<*>) {
+ProviderCodec : Codec<ProviderInternal<*>> {
+    override suspend fun WriteContext.encode(value: ProviderInternal<*>) {
         // TODO - should write the provider value type
         writeProvider(value)
     }
@@ -72,13 +116,13 @@ ProviderCodec : Codec<Provider<*>> {
 
 
 object
-PropertyCodec : Codec<Property<*>> {
-    override suspend fun WriteContext.encode(value: Property<*>) {
+PropertyCodec : Codec<DefaultProperty<*>> {
+    override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
         // TODO - should write the property type
-        writeProvider(value)
+        writeProvider(value.provider)
     }
 
-    override suspend fun ReadContext.decode(): Property<*>? {
+    override suspend fun ReadContext.decode(): DefaultProperty<*> {
         val value = readProvider()
         return DefaultProperty(Any::class.java).provider(value)
     }
@@ -86,27 +130,27 @@ PropertyCodec : Codec<Property<*>> {
 
 
 class
-DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory) : Codec<DirectoryProperty> {
-    override suspend fun WriteContext.encode(value: DirectoryProperty) {
-        writeProvider(value.asFile)
+DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory) : Codec<DefaultDirectoryVar> {
+    override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
+        writeProvider(value.provider)
     }
 
-    override suspend fun ReadContext.decode(): DirectoryProperty? {
-        val value = readProvider() as Provider<File>
-        return filePropertyFactory.newDirectoryProperty().fileProvider(value)
+    override suspend fun ReadContext.decode(): DefaultDirectoryVar {
+        val value = readProvider() as Provider<Directory>
+        return filePropertyFactory.newDirectoryProperty().value(value) as DefaultDirectoryVar
     }
 }
 
 
 class
-RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory) : Codec<RegularFileProperty> {
-    override suspend fun WriteContext.encode(value: RegularFileProperty) {
-        writeProvider(value.asFile)
+RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory) : Codec<DefaultRegularFileVar> {
+    override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
+        writeProvider(value.provider)
     }
 
-    override suspend fun ReadContext.decode(): RegularFileProperty? {
-        val value = readProvider() as Provider<File>
-        return filePropertyFactory.newFileProperty().fileProvider(value)
+    override suspend fun ReadContext.decode(): DefaultRegularFileVar {
+        val value = readProvider() as Provider<RegularFile>
+        return filePropertyFactory.newFileProperty().value(value) as DefaultRegularFileVar
     }
 }
 
@@ -115,7 +159,7 @@ object
 ListPropertyCodec : Codec<ListProperty<*>> {
     override suspend fun WriteContext.encode(value: ListProperty<*>) {
         // TODO - should write the element type
-        writeProvider(value)
+        writeProvider(value as ProviderInternal<*>)
     }
 
     override suspend fun ReadContext.decode(): ListProperty<*>? {
@@ -129,7 +173,7 @@ object
 MapPropertyCodec : Codec<MapProperty<*, *>> {
     override suspend fun WriteContext.encode(value: MapProperty<*, *>) {
         // TODO - should write the key and value types
-        writeProvider(value)
+        writeProvider(value as ProviderInternal<*>)
     }
 
     override suspend fun ReadContext.decode(): MapProperty<*, *>? {

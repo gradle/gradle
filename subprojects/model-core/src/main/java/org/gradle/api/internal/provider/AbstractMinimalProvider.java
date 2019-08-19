@@ -69,6 +69,16 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public boolean isValueProducedByTask() {
+        return false;
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return false;
+    }
+
+    @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         return false;
     }
