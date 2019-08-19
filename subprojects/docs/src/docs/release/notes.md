@@ -96,6 +96,12 @@ To avoid these errors, Gradle has been employing workarounds in some but not all
 From now on Gradle uses these workarounds every time it removes file hierarchies.
 The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
 
+## Features for plugin authors
+
+### File and directory property methods
+
+TBD - Added `fileValue()` and `fileProvider()` methods.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
