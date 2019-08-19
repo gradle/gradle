@@ -26,15 +26,16 @@ import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
+import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.provider.TransformBackedProvider
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readList
+import org.gradle.instantexecution.serialization.writeCollection
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 
@@ -123,8 +124,8 @@ PropertyCodec : Codec<DefaultProperty<*>> {
     }
 
     override suspend fun ReadContext.decode(): DefaultProperty<*> {
-        val value = readProvider()
-        return DefaultProperty(Any::class.java).provider(value)
+        val provider = readProvider()
+        return DefaultProperty(Any::class.java).provider(provider)
     }
 }
 
@@ -136,8 +137,8 @@ DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory) : C
     }
 
     override suspend fun ReadContext.decode(): DefaultDirectoryVar {
-        val value = readProvider() as Provider<Directory>
-        return filePropertyFactory.newDirectoryProperty().value(value) as DefaultDirectoryVar
+        val provider = readProvider() as Provider<Directory>
+        return filePropertyFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
 }
 
@@ -149,35 +150,49 @@ RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory) :
     }
 
     override suspend fun ReadContext.decode(): DefaultRegularFileVar {
-        val value = readProvider() as Provider<RegularFile>
-        return filePropertyFactory.newFileProperty().value(value) as DefaultRegularFileVar
+        val provider = readProvider() as Provider<RegularFile>
+        return filePropertyFactory.newFileProperty().value(provider) as DefaultRegularFileVar
     }
 }
 
 
 object
-ListPropertyCodec : Codec<ListProperty<*>> {
-    override suspend fun WriteContext.encode(value: ListProperty<*>) {
+ListPropertyCodec : Codec<DefaultListProperty<*>> {
+    override suspend fun WriteContext.encode(value: DefaultListProperty<*>) {
         // TODO - should write the element type
-        writeProvider(value as ProviderInternal<*>)
+        writeCollection(value.providers) { writeProvider(it) }
     }
 
-    override suspend fun ReadContext.decode(): ListProperty<*>? {
-        val value = readProvider() as Provider<List<Any>>
-        return DefaultListProperty(Any::class.java).value(value)
+    override suspend fun ReadContext.decode(): DefaultListProperty<*> {
+        val providers = readList { readProvider() } as List<ProviderInternal<List<Any>>>
+        return DefaultListProperty(Any::class.java).apply { providers(providers) }
     }
 }
 
 
 object
-MapPropertyCodec : Codec<MapProperty<*, *>> {
-    override suspend fun WriteContext.encode(value: MapProperty<*, *>) {
-        // TODO - should write the key and value types
-        writeProvider(value as ProviderInternal<*>)
+SetPropertyCodec : Codec<DefaultSetProperty<*>> {
+    override suspend fun WriteContext.encode(value: DefaultSetProperty<*>) {
+        // TODO - should write the element type
+        writeCollection(value.providers) { writeProvider(it) }
     }
 
-    override suspend fun ReadContext.decode(): MapProperty<*, *>? {
-        val value = readProvider() as Provider<Map<Any, Any>>
-        return DefaultMapProperty(Any::class.java, Any::class.java).value(value)
+    override suspend fun ReadContext.decode(): DefaultSetProperty<*> {
+        val providers = readList { readProvider() } as List<ProviderInternal<List<Any>>>
+        return DefaultSetProperty(Any::class.java).apply { providers(providers) }
+    }
+}
+
+
+object
+MapPropertyCodec : Codec<DefaultMapProperty<*, *>> {
+    override suspend fun WriteContext.encode(value: DefaultMapProperty<*, *>) {
+        // TODO - should write the key and value types
+        writeCollection(value.providers) { writeProvider(it) }
+    }
+
+    override suspend fun ReadContext.decode(): DefaultMapProperty<*, *> {
+        val providers = readList { readProvider() } as List<ProviderInternal<Map<Any, Any>>>
+        return DefaultMapProperty(Any::class.java, Any::class.java).apply { providers(providers) }
     }
 }

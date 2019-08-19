@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface MapCollector<K, V> {
@@ -32,6 +33,8 @@ public interface MapCollector<K, V> {
     void collectKeysInto(ValueCollector<K> collector, Collection<K> dest);
 
     boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
+
+    void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
 
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 

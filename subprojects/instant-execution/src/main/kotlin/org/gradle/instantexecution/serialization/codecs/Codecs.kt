@@ -132,6 +132,7 @@ class Codecs(
         bind(BrokenValueCodec)
 
         bind(ListPropertyCodec)
+        bind(SetPropertyCodec)
         bind(MapPropertyCodec)
         bind(DirectoryPropertyCodec(filePropertyFactory))
         bind(RegularFilePropertyCodec(filePropertyFactory))

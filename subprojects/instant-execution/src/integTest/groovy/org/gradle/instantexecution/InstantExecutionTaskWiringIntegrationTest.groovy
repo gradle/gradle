@@ -19,7 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
-    def "task can consume the mapped output of another task"() {
+    def "task input property can consume the mapped output of another task"() {
         taskTypeWithInputFileProperty()
         taskTypeWithInputProperty()
 
@@ -62,5 +62,116 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         instantExecution.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "22"
+
+        when:
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    def "task input collection property can consume the mapped output of another task"() {
+        taskTypeWithInputFileProperty()
+        taskTypeWithInputListProperty()
+
+        buildFile << """
+            task producer(type: InputFileTask) {
+                inFile = file("in.txt")
+                outFile = layout.buildDirectory.file("out.txt")
+            }
+            task transformer(type: InputTask) {
+                inValue = producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> [i, i + 2] }
+                outFile = file("out.txt")
+            } 
+        """
+        def input = file("in.txt")
+        def output = file("out.txt")
+        def instantExecution = newInstantExecutionFixture()
+
+        when:
+        input.text = "12"
+        instantRun(":transformer")
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "22,24"
+
+        when:
+        input.text = "4"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "14,16"
+
+        when:
+        input.text = "10"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "20,22"
+
+        when:
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    def "task input map property can consume the mapped output of another task"() {
+        taskTypeWithInputFileProperty()
+        taskTypeWithInputMapProperty()
+
+        buildFile << """
+            task producer(type: InputFileTask) {
+                inFile = file("in.txt")
+                outFile = layout.buildDirectory.file("out.txt")
+            }
+            task transformer(type: InputTask) {
+                inValue = producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> [a: i, b: i + 2] }
+                outFile = file("out.txt")
+            } 
+        """
+        def input = file("in.txt")
+        def output = file("out.txt")
+        def instantExecution = newInstantExecutionFixture()
+
+        when:
+        input.text = "12"
+        instantRun(":transformer")
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "a=22,b=24"
+
+        when:
+        input.text = "4"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "a=14,b=16"
+
+        when:
+        input.text = "10"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "a=20,b=22"
+
+        when:
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksSkipped(":producer", ":transformer")
     }
 }

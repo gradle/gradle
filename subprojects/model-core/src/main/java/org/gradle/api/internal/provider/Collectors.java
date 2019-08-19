@@ -17,12 +17,14 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 
 public class Collectors {
     public interface ProvidedCollector<T> extends Collector<T> {
@@ -42,6 +44,10 @@ public class Collectors {
 
         @Override
         public void collectInto(ValueCollector<Object> collector, Collection<Object> collection) {
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends Object>>> sources) {
         }
 
         @Override
@@ -86,6 +92,11 @@ public class Collectors {
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
             collector.add(element, collection);
             return true;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(Providers.of(ImmutableList.of(element)));
         }
 
         @Override
@@ -160,6 +171,11 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(providerOfElement.map(e -> ImmutableList.of(e)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfElement.maybeVisitBuildDependencies(context);
         }
@@ -218,6 +234,11 @@ public class Collectors {
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
             collector.addAll(value, collection);
             return true;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(Providers.of(value));
         }
 
         @Override
@@ -287,6 +308,11 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(provider);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return provider.maybeVisitBuildDependencies(context);
         }
@@ -350,6 +376,10 @@ public class Collectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
         }
@@ -393,6 +423,11 @@ public class Collectors {
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
             collectInto(collector, dest);
             return true;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            sources.add(Providers.of(ImmutableList.copyOf(value)));
         }
 
         @Override
@@ -454,6 +489,11 @@ public class Collectors {
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>)delegate).isProvidedBy(provider);
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            delegate.visit(sources);
         }
 
         @Override

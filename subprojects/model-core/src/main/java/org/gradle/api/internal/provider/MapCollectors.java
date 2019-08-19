@@ -17,9 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class MapCollectors {
@@ -47,6 +49,10 @@ public class MapCollectors {
         @Override
         public boolean maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
             return true;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
         }
 
         @Override
@@ -100,6 +106,11 @@ public class MapCollectors {
         public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
             collectKeysInto(collector, dest);
             return true;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(Providers.of(ImmutableMap.of(key, value)));
         }
 
         @Override
@@ -186,6 +197,11 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(providerOfValue.map(v -> ImmutableMap.of(key, v)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfValue.maybeVisitBuildDependencies(context);
         }
@@ -234,6 +250,11 @@ public class MapCollectors {
         public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
             collectKeysInto(collector, dest);
             return true;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(Providers.of(entries));
         }
 
         @Override
@@ -298,6 +319,11 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(providerOfEntries);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfEntries.maybeVisitBuildDependencies(context);
         }
@@ -338,6 +364,10 @@ public class MapCollectors {
         @Override
         public boolean maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
             return false;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
         }
 
         @Override
