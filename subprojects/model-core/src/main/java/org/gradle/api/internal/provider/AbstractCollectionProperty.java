@@ -111,6 +111,28 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return elementType;
     }
 
+    /**
+     * Unpacks this property into a list of element providers.
+     */
+    public List<ProviderInternal<? extends Iterable<? extends T>>> getProviders() {
+        List<ProviderInternal<? extends Iterable<? extends T>>> sources = new ArrayList<>();
+        value.visit(sources);
+        return sources;
+    }
+
+    /**
+     * Sets the value of this property the given list of element providers.
+     */
+    public void providers(List<ProviderInternal<? extends Iterable<? extends T>>> providers) {
+        if (!beforeMutate()) {
+            return;
+        }
+        value = defaultValue;
+        for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
+            value = new PlusCollector<>(value, new ElementsFromCollectionProvider<>(provider));
+        }
+    }
+
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         if (super.maybeVisitBuildDependencies(context)) {
@@ -302,6 +324,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return right.maybeCollectInto(collector, dest);
             }
             return false;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            left.visit(sources);
+            right.visit(sources);
         }
 
         @Override

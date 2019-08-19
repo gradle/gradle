@@ -24,9 +24,11 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -277,6 +279,22 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         this.convention = collector;
     }
 
+    public List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> getProviders() {
+        List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
+        value.visit(providers);
+        return providers;
+    }
+
+    public void providers(List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> providers) {
+        if (!beforeMutate()) {
+            return;
+        }
+        value = defaultValue;
+        for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
+            value = new PlusCollector<K, V>(value, new MapCollectors.EntriesFromMapProvider<K, V>(provider));
+        }
+    }
+
     @Override
     public Provider<Set<K>> keySet() {
         return new KeySetProvider();
@@ -394,6 +412,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
                 return right.maybeCollectKeysInto(collector, dest);
             }
             return false;
+        }
+
+        @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            left.visit(sources);
+            right.visit(sources);
         }
 
         @Override

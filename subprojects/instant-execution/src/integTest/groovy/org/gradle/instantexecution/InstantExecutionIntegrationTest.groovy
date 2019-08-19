@@ -610,6 +610,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
     }
