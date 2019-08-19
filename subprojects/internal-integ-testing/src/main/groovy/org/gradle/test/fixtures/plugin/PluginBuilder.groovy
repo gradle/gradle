@@ -150,10 +150,10 @@ class PluginBuilder {
         file("src/main/resources/META-INF/gradle-plugins")
     }
 
-    private addPluginSource(String id, String className, String impl) {
+    PluginBuilder addPluginSource(String id, String className, String impl) {
         pluginIds[id] = className
-
         groovy("${className}.groovy") << impl
+        this
     }
 
     PluginBuilder addPlugin(String impl, String id = "test-plugin", String className = "TestPlugin") {
