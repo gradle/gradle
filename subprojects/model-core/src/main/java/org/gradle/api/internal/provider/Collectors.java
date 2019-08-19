@@ -50,6 +50,16 @@ public class Collectors {
         }
 
         @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
+        }
+
+        @Override
         public int size() {
             return 0;
         }
@@ -80,6 +90,16 @@ public class Collectors {
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -145,6 +165,16 @@ public class Collectors {
         }
 
         @Override
+        public boolean isContentProducedByTask() {
+            return providerOfElement.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return providerOfElement.isValueProducedByTask();
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -192,6 +222,16 @@ public class Collectors {
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -252,6 +292,16 @@ public class Collectors {
         }
 
         @Override
+        public boolean isContentProducedByTask() {
+            return provider.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return provider.isValueProducedByTask();
+        }
+
+        @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return Objects.equal(provider, provider);
         }
@@ -305,6 +355,16 @@ public class Collectors {
         }
 
         @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
+        }
+
+        @Override
         public int size() {
             return 0;
         }
@@ -337,6 +397,16 @@ public class Collectors {
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -389,6 +459,16 @@ public class Collectors {
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return delegate.maybeVisitBuildDependencies(context);
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return delegate.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return delegate.isValueProducedByTask();
         }
 
         @Override

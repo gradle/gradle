@@ -31,7 +31,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OU
     }
 
     @Override
-    protected OUT map(IN v) {
+    protected OUT mapValue(IN v) {
         OUT result = transformer.transform(v);
         if (result == null) {
             throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);

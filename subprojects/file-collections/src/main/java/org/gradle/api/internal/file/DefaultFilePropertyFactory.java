@@ -144,7 +144,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        protected RegularFile map(CharSequence path) {
+        protected RegularFile mapValue(CharSequence path) {
             return new FixedFile(resolver.resolve(path));
         }
     }
@@ -267,7 +267,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        protected Directory map(CharSequence path) {
+        protected Directory mapValue(CharSequence path) {
             File dir = resolver.resolve(path);
             return new FixedDirectory(dir, resolver.newResolver(dir));
         }
@@ -317,7 +317,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         public Provider<Directory> dir(final String path) {
             return new AbstractMappingProvider<Directory, Directory>(Directory.class, this) {
                 @Override
-                protected Directory map(Directory dir) {
+                protected Directory mapValue(Directory dir) {
                     return dir.dir(path);
                 }
             };
@@ -337,7 +337,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         public Provider<RegularFile> file(final String path) {
             return new AbstractMappingProvider<RegularFile, Directory>(RegularFile.class, this) {
                 @Override
-                protected RegularFile map(Directory dir) {
+                protected RegularFile mapValue(Directory dir) {
                     return dir.file(path);
                 }
             };
@@ -360,7 +360,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        protected File map(FileSystemLocation provider) {
+        protected File mapValue(FileSystemLocation provider) {
             return provider.getAsFile();
         }
     }

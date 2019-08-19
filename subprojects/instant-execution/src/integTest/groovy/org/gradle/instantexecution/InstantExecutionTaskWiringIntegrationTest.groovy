@@ -29,7 +29,7 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
                 outFile = layout.buildDirectory.file("out.txt")
             }
             task transformer(type: InputTask) {
-                inValue = producer.outFile.map { it.asFile.text as Integer }
+                inValue = producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> i + 2 }
                 outFile = file("out.txt")
             } 
         """
@@ -43,7 +43,7 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
 
         then:
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
-        output.text == "22"
+        output.text == "24"
 
         when:
         input.text = "4"
@@ -52,7 +52,7 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
-        output.text == "14"
+        output.text == "16"
 
         when:
         input.text = "10"
@@ -61,6 +61,6 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
-        output.text == "20"
+        output.text == "22"
     }
 }

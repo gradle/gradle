@@ -1138,6 +1138,78 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         0 * context._
     }
 
+    def "has build dependencies when value is provider with producer task"() {
+        def provider = Mock(ProviderInternal)
+        _ * provider.type >> type()
+        def context = Mock(TaskDependencyResolveContext)
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        when:
+        def known = property.maybeVisitBuildDependencies(context)
+
+        then:
+        known
+        1 * provider.maybeVisitBuildDependencies(context) >> true
+        0 * context._
+    }
+
+    def "has content producer when producer task attached"() {
+        def task = Mock(Task)
+        def property = propertyWithDefaultValue()
+
+        expect:
+        !property.contentProducedByTask
+        !property.valueProducedByTask
+
+        property.attachProducer(task)
+
+        property.contentProducedByTask
+        !property.valueProducedByTask
+    }
+
+    def "has content producer when value is provider with content producer"() {
+        def provider = Mock(ProviderInternal)
+        _ * provider.type >> type()
+        _ * provider.contentProducedByTask >> true
+
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        property.contentProducedByTask
+        !property.valueProducedByTask
+    }
+
+    def "mapped value has value producer when producer task attached"() {
+        def task = Mock(Task)
+        def property = propertyWithDefaultValue()
+        def mapped = property.map { it }
+
+        expect:
+        !mapped.contentProducedByTask
+        !mapped.valueProducedByTask
+
+        property.attachProducer(task)
+
+        mapped.contentProducedByTask
+        mapped.valueProducedByTask
+    }
+
+    def "mapped value has value producer when value is provider with content producer"() {
+        def provider = Mock(ProviderInternal)
+        _ * provider.type >> type()
+        _ * provider.contentProducedByTask >> true
+
+        def property = propertyWithNoValue()
+        property.set(provider)
+        def mapped = property.map { it }
+
+        expect:
+        mapped.contentProducedByTask
+        mapped.valueProducedByTask
+    }
+
     def "can unpack state and recreate instance"() {
         given:
         def property = propertyWithNoValue()

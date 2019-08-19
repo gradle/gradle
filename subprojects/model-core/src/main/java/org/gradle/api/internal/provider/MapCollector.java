@@ -34,4 +34,8 @@ public interface MapCollector<K, V> {
     boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
 
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
+
+    boolean isContentProducedByTask();
+
+    boolean isValueProducedByTask();
 }

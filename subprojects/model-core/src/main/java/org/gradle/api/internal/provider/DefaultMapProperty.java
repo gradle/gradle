@@ -307,6 +307,24 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
     }
 
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        if (super.maybeVisitBuildDependencies(context)) {
+            return true;
+        }
+        return value.maybeVisitBuildDependencies(context);
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return super.isContentProducedByTask() || value.isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return value.isValueProducedByTask();
+    }
+
     private class KeySetProvider extends AbstractReadOnlyProvider<Set<K>> {
 
         @Nullable
@@ -384,6 +402,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
                 return right.maybeVisitBuildDependencies(context);
             }
             return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return left.isValueProducedByTask() || right.isContentProducedByTask();
         }
     }
 }
