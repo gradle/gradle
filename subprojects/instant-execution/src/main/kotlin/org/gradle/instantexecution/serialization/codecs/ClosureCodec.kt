@@ -22,8 +22,8 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 
 
-object
-ClosureCodec : Codec<Closure<*>> {
+object ClosureCodec : Codec<Closure<*>> {
+
     private
     val beanCodec = BeanCodec()
 
