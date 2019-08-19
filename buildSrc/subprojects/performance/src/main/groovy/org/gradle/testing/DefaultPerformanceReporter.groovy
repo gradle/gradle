@@ -63,6 +63,8 @@ class DefaultPerformanceReporter implements PerformanceReporter {
                 spec.systemProperty("org.gradle.performance.execution.branch", performanceTest.branchName)
                 spec.systemProperty("githubToken", githubToken)
                 spec.setClasspath(performanceTest.classpath)
+                spec.setStandardOutput(System.out)
+                spec.setErrorOutput(System.err)
             }
         })
     }

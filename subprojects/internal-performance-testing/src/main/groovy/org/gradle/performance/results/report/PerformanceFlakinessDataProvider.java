@@ -19,7 +19,10 @@ package org.gradle.performance.results.report;
 import java.math.BigDecimal;
 
 public interface PerformanceFlakinessDataProvider {
-
+    /**
+     * For the scenario whose flakiness rate is higher than 5%, we see it as "flaky scenario"
+     */
+    double FLAKY_THRESHOLD = 0.05;
 
     /**
      * Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99%

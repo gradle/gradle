@@ -29,7 +29,6 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.performance.results.report.DefaultPerformanceExecutionDataProvider.FAILURE_THRESHOLD;
 import static org.gradle.performance.results.report.Tag.FixedTag.FAILED;
 import static org.gradle.performance.results.report.Tag.FixedTag.FROM_CACHE;
 import static org.gradle.performance.results.report.Tag.FixedTag.IMPROVED;
@@ -123,7 +122,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             private void markFlakyTestInfo(ScenarioBuildResultData scenario, Set<Tag> result) {
                 BigDecimal rate = flakinessDataProvider.getFlakinessRate(scenario.getScenarioName());
-                if (rate != null && rate.doubleValue() > FAILURE_THRESHOLD) {
+                if (rate != null && rate.doubleValue() > PerformanceFlakinessDataProvider.FLAKY_THRESHOLD) {
                     result.add(Tag.FlakinessInfoTag.createFlakinessRateTag(rate));
                     BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(scenario.getScenarioName());
                     result.add(Tag.FlakinessInfoTag.createFailureThresholdTag(failureThreshold));

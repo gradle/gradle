@@ -38,7 +38,6 @@ import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_UNKN
 
 public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     private static final int DEFAULT_RETRY_COUNT = 3;
-    public static final double FAILURE_THRESHOLD = 0.05;
     @VisibleForTesting
     static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
         .thenComparing(ScenarioBuildResultData::isSuccessful)
