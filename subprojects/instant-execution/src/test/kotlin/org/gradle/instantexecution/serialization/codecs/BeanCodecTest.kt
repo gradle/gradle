@@ -212,10 +212,10 @@ class BeanCodecTest {
         data class Succ(val n: Peano) : Peano()
 
         private
-        fun sequence() = generateSequence(this) {
-            when (it) {
+        fun sequence() = generateSequence(this) { previous ->
+            when (previous) {
                 is Zero -> null
-                is Succ -> it.n
+                is Succ -> previous.n
             }
         }
     }
