@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Tetsuya Ikenaga](https://github.com/ikngtty),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Andrey Mischenko](https://github.com/gildor),
 and [Mike Kobit](https://github.com/mkobit).
 
 <!-- 
