@@ -32,7 +32,10 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.io.OutputStream
+import java.io.Serializable
 
 
 class BeanCodecTest {
@@ -45,9 +48,53 @@ class BeanCodecTest {
         val read = roundtrip(deepGraph)
 
         assertThat(
-            deepGraph.toInt(),
-            equalTo(read.toInt())
+            read.toInt(),
+            equalTo(deepGraph.toInt())
         )
+    }
+
+    @Test
+    fun `can handle mix of Serializable and regular beans`() {
+
+        val deepGraph = Peano.fromInt(1024)
+
+        val serializableBean = SerializableBean(deepGraph)
+
+        val read = roundtrip(serializableBean)
+
+        assertThat(
+            read.value.toInt(),
+            equalTo(serializableBean.value.toInt())
+        )
+
+        assertThat(
+            read.computedValue,
+            equalTo(serializableBean.computedValue)
+        )
+    }
+
+    class SerializableBean(val value: Peano) : Serializable {
+
+        @Transient
+        private
+        var transientValue: Int = value.toInt() / 2
+
+        val computedValue: Int
+            get() = transientValue
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.run {
+                defaultWriteObject()
+                writeInt(transientValue)
+            }
+        }
+
+        private
+        fun readObject(objectInputStream: ObjectInputStream) {
+            objectInputStream.defaultReadObject()
+            transientValue = objectInputStream.readInt()
+        }
     }
 
     private

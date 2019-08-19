@@ -118,7 +118,10 @@ class BindingsBuilder {
         bind(encodingProducer, codecForAny)
     }
 
-    private
+    fun <T> bind(codec: T) where T : EncodingProducer, T : Decoding {
+        bind(codec, codec)
+    }
+
     fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
         val tag = bindings.size
         require(tag < Byte.MAX_VALUE)

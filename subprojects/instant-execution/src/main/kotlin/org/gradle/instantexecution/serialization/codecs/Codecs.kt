@@ -172,6 +172,8 @@ class Codecs(
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
 
+        bind(SerializableWriteObjectCodec())
+
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
