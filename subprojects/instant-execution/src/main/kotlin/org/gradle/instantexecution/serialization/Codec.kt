@@ -25,7 +25,6 @@ import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import org.gradle.internal.service.UnknownServiceException
 import kotlin.reflect.KClass
 
 
@@ -225,6 +224,7 @@ sealed class PropertyTrace {
             }
         }
 
+    private
     val tail: PropertyTrace?
         get() = when (this) {
             is Bean -> trace
@@ -254,20 +254,11 @@ sealed class IsolateOwner {
     abstract val delegate: Any
 
     class OwnerTask(override val delegate: Task) : IsolateOwner() {
-        override fun <T> service(type: Class<T>) = (delegate.project as ProjectInternal).services.get(type)
+        override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
     }
 
     class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
-        override fun <T> service(type: Class<T>) = (delegate as GradleInternal).services.get(type)
-    }
-
-    class NoOwner() : IsolateOwner() {
-        override val delegate: Any
-            get() = this
-
-        override fun <T> service(type: Class<T>): T {
-            throw UnknownServiceException(type, "No services available in this isolate.")
-        }
+        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
 }
 
