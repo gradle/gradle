@@ -38,11 +38,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            if (state == null) {
-                return type.cast(Providers.notDefined());
-            } else {
-                return type.cast(Providers.of(state));
-            }
+            return type.cast(Providers.ofNullable(state));
         }
 
         @Override
