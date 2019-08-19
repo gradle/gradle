@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
 import com.google.common.collect.ImmutableMap;
 import groovy.json.JsonOutput;

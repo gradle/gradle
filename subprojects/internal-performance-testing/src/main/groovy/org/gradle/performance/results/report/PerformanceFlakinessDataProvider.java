@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
 import java.math.BigDecimal;
 
 public interface PerformanceFlakinessDataProvider {
-    String FLAKINESS_RATE_SQL =
-        "SELECT TESTID, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.99, 1, 0), DECIMAL)) AS FAILURE_RATE\n" +
-            "FROM TESTEXECUTION\n" +
-            "WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release')\n" +
-            "GROUP BY TESTID";
-    String FAILURE_THRESOLD_SQL =
-        "SELECT TESTID, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
-        "FROM TESTEXECUTION\n" +
-        "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND DIFFCONFIDENCE > 0.99\n" +
-        "GROUP BY TESTID";
+
 
     /**
      * Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99%

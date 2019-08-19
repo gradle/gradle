@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results
+package org.gradle.performance.results.report
 
 import org.gradle.performance.ResultSpecification
+import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.ResultsStore
+import org.gradle.performance.results.ScenarioBuildResultData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Subject
 
-import static org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider.INSTANCE
-
-class IndexPageGeneratorTest extends ResultSpecification {
+class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Subject
-    IndexPageGenerator generator
+    DefaultPerformanceExecutionDataProvider provider
 
     File resultsJson = tmpDir.file('results.json')
     ResultsStore mockStore = Mock(ResultsStore)
 
     def setup() {
         resultsJson << '[]'
-        generator = new IndexPageGenerator(INSTANCE, mockStore, resultsJson)
+        provider = new DefaultPerformanceExecutionDataProvider(mockStore, resultsJson)
     }
 
     def 'can sort scenarios correctly'() {
@@ -47,7 +48,7 @@ class IndexPageGeneratorTest extends ResultSpecification {
             createHighConfidenceRegressedData(),
             createFailedData()
         ]
-        buildResults.sort(IndexPageGenerator.SCENARIO_COMPARATOR)
+        buildResults.sort(DefaultPerformanceExecutionDataProvider.SCENARIO_COMPARATOR)
 
         then:
         buildResults.collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']

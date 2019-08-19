@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
+
+import org.gradle.performance.results.CrossVersionResultsStore;
 
 import java.math.BigDecimal;
 import java.util.Map;

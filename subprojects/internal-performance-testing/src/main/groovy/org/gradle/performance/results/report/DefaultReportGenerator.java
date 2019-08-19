@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
+
+import org.gradle.performance.results.AllResultsStore;
+import org.gradle.performance.results.CrossVersionResultsStore;
 
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
-    public DefaultReportGenerator() {
-        super(getFlakinessDataProvider());
-    }
-
     public static void main(String[] args) {
         new DefaultReportGenerator().generateReport(args);
     }
 
-    private static PerformanceFlakinessDataProvider getFlakinessDataProvider() {
+    @Override
+    protected PerformanceFlakinessDataProvider getFlakinessDataProvider() {
         try (CrossVersionResultsStore resultsStore = new CrossVersionResultsStore()) {
             return new DefaultPerformanceFlakinessDataProvider(resultsStore);
         }
+    }
+
+    @Override
+    protected void checkResult(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
     }
 }

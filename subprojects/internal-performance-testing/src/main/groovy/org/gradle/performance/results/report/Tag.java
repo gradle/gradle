@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
 import java.math.BigDecimal;
 
-import static org.gradle.performance.results.Tag.FixedTag.UNTAGGED;
+import static org.gradle.performance.results.report.Tag.FixedTag.UNTAGGED;
 
 public interface Tag {
     String getName();
