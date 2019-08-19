@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -44,7 +45,7 @@ public class NotifyingBuildLoader implements BuildLoader {
     }
 
     @Override
-    public void load(final SettingsInternal settings, final GradleInternal gradle) {
+    public void load(final SettingsInternal settings, final GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
         final String buildPath = gradle.getIdentityPath().toString();
         buildOperationExecutor.call(new CallableBuildOperation<Void>() {
             @Override
@@ -60,7 +61,7 @@ public class NotifyingBuildLoader implements BuildLoader {
 
             @Override
             public Void call(BuildOperationContext context) {
-                buildLoader.load(settings, gradle);
+                buildLoader.load(settings, gradle, projectClassLoaderScope);
                 context.setResult(createOperationResult(gradle, buildPath));
                 return null;
             }

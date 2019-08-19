@@ -59,10 +59,10 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * propertiesLoader.mergeProperties(!null) >> [:]
 
         when:
-        loader.load(settings, gradle)
+        loader.load(settings, gradle, projectClassLoaderScope)
 
         then:
-        1 * target.load(settings, gradle)
+        1 * target.load(settings, gradle, projectClassLoaderScope)
         0 * target._
     }
 
@@ -71,7 +71,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
 
         when:
-        loader.load(settings, gradle)
+        loader.load(settings, gradle, projectClassLoaderScope)
 
         then:
         1 * rootProperties.set('prop', 'value')
@@ -83,7 +83,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
 
         when:
-        loader.load(settings, gradle)
+        loader.load(settings, gradle, projectClassLoaderScope)
 
         then:
         1 * rootProperties.set('prop', 'value')
@@ -95,7 +95,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         GUtil.saveProperties(new Properties([prop: 'childValue']), new File(childProjectDir, Project.GRADLE_PROPERTIES))
 
         when:
-        loader.load(settings, gradle)
+        loader.load(settings, gradle, projectClassLoaderScope)
 
         then:
         1 * propertiesLoader.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
@@ -109,7 +109,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         2 * propertiesLoader.mergeProperties([:]) >> [version: '1.0']
 
         when:
-        loader.load(settings, gradle)
+        loader.load(settings, gradle, projectClassLoaderScope)
 
         then:
         1 * rootProject.setVersion('1.0')

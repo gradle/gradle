@@ -39,7 +39,7 @@ class DefaultSettingsLoaderTest extends Specification {
     def settingsFinder = Mock(ISettingsFinder)
     def settingsProcessor = Mock(SettingsProcessor)
     def buildSourceBuilder = Mock(BuildSourceBuilder)
-    def settingsHandler = new DefaultSettingsLoader(settingsFinder, settingsProcessor, buildSourceBuilder);
+    def settingsHandler = new DefaultSettingsLoader(settingsFinder, settingsProcessor);
 
     void findAndLoadSettingsWithExistingSettings() {
         when:

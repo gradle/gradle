@@ -55,7 +55,6 @@ class SettingsFactoryTest extends Specification {
         1 * settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
         1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
-        1 * scope.deprecated() >> scope
         1 * scope.createChild(_) >> scope
 
         when:

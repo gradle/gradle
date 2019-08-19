@@ -27,6 +27,7 @@ import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildState;
@@ -77,11 +78,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         DefaultGradleLauncher launcher = doNewInstance(buildDefinition, build, null, parentRegistry, ImmutableList.of(new Stoppable() {
-                @Override
-                public void stop() {
-                    rootBuild = null;
-                }
-            }));
+            @Override
+            public void stop() {
+                rootBuild = null;
+            }
+        }));
         rootBuild = launcher;
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
@@ -148,8 +149,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             includedBuildControllers,
             settingsPreparer,
             taskExecutionPreparer,
-            gradle.getServices().get(InstantExecution.class)
-        );
+            gradle.getServices().get(InstantExecution.class),
+            gradle.getServices().get(BuildSourceBuilder.class));
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(buildTreeScopeServices.get(BuildCancellationToken.class));
         return gradleLauncher;

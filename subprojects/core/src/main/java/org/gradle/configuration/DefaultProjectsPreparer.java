@@ -17,6 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
@@ -32,7 +33,13 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildStateRegistry buildRegistry;
     private final ModelConfigurationListener modelConfigurationListener;
 
-    public DefaultProjectsPreparer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry, BuildLoader buildLoader, ModelConfigurationListener modelConfigurationListener, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultProjectsPreparer(
+        ProjectConfigurer projectConfigurer,
+        BuildStateRegistry buildRegistry,
+        BuildLoader buildLoader,
+        ModelConfigurationListener modelConfigurationListener,
+        BuildOperationExecutor buildOperationExecutor
+    ) {
         this.projectConfigurer = projectConfigurer;
         this.buildRegistry = buildRegistry;
         this.buildLoader = buildLoader;
@@ -41,10 +48,12 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     }
 
     @Override
-    public void prepareProjects(GradleInternal gradle) {
+    public void prepareProjects(GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
         maybeInformAboutIncubatingMode(gradle);
 
-        buildLoader.load(gradle.getSettings(), gradle);
+
+
+        buildLoader.load(gradle.getSettings(), gradle, projectClassLoaderScope);
 
         if (gradle.getParent() == null) {
             buildRegistry.beforeConfigureRootBuild();

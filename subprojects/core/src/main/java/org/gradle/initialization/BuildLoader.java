@@ -17,11 +17,12 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 public interface BuildLoader {
     /**
      * Creates prepares the {@link org.gradle.api.internal.project.ProjectInternal} instances for the given settings,
      * ready for the projects to be configured.
      */
-    void load(SettingsInternal settings, GradleInternal gradle);
+    void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope projectClassLoaderScope);
 }

@@ -43,7 +43,7 @@ class DefaultProjectsPreparerTest extends Specification {
 
     def "configures build for standard mode"() {
         when:
-        configurer.prepareProjects(gradle)
+        configurer.prepareProjects(gradle, projectClassLoaderScope)
 
         then:
         1 * projectConfigurer.configureHierarchy(rootProject)
@@ -51,7 +51,7 @@ class DefaultProjectsPreparerTest extends Specification {
 
     def "configures build for on demand mode"() {
         when:
-        configurer.prepareProjects(gradle)
+        configurer.prepareProjects(gradle, projectClassLoaderScope)
 
         then:
         startParameter.isConfigureOnDemand() >> true

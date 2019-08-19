@@ -238,17 +238,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return locked;
     }
 
-    @Override
-    public ClassLoaderScope deprecated() {
-        ClassLoaderScopeIdentifier childId = id.child("deprecated");
-        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(childId, parent, classLoaderCache, export.plus(local), listener);
-        childScopeCreated(childId);
-        if (isLocked()) {
-            deprecatedScope.lock();
-        }
-        return deprecatedScope;
-    }
-
     protected void exportClasspathAdded(ClassPath classPath) {
         listener.exportClasspathAdded(id, classPath);
     }

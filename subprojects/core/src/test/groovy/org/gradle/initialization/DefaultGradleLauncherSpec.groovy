@@ -65,7 +65,7 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             buildCompletionListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
-            settingsPreparerMock, taskExecutionPreparerMock, instantExecution)
+            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
     }
 
     void testRunTasks() {
@@ -103,7 +103,7 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
-        1 * buildConfigurerMock.prepareProjects(gradleMock)
+        1 * buildConfigurerMock.prepareProjects(gradleMock, projectClassLoaderScope)
 
         DefaultGradleLauncher gradleLauncher = launcher()
         def result = gradleLauncher.getConfiguredBuild()
@@ -117,7 +117,7 @@ class DefaultGradleLauncherSpec extends Specification {
         isRootBuild()
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
-        1 * buildConfigurerMock.prepareProjects(gradleMock)
+        1 * buildConfigurerMock.prepareProjects(gradleMock, projectClassLoaderScope)
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()

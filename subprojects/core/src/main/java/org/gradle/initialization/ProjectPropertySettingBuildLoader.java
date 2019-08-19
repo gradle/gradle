@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
@@ -45,8 +46,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     }
 
     @Override
-    public void load(SettingsInternal settings, GradleInternal gradle) {
-        buildLoader.load(settings, gradle);
+    public void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
+        buildLoader.load(settings, gradle, projectClassLoaderScope);
         setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
     }
 
