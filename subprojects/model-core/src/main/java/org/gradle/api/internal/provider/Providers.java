@@ -99,6 +99,14 @@ public class Providers {
         return Cast.uncheckedCast(value);
     }
 
+    public static <T> ProviderInternal<T> ofNullable(@Nullable T value) {
+        if (value == null) {
+            return notDefined();
+        } else {
+            return of(value);
+        }
+    }
+
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
         private final T value;
 

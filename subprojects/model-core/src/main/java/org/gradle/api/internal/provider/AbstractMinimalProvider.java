@@ -76,10 +76,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public ProviderInternal<T> withFinalValue() {
         T value = getOrNull();
-        if (value == null) {
-            return Providers.notDefined();
-        }
-        return Providers.of(value);
+        return Providers.ofNullable(value);
     }
 
     @Override

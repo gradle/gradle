@@ -20,6 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 /**
  * Represents some configurable regular file location, whose value is mutable.
  *
@@ -44,6 +47,18 @@ public interface RegularFileProperty extends FileSystemLocationProperty<RegularF
      */
     @Override
     RegularFileProperty value(Provider<? extends RegularFile> provider);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty fileValue(@Nullable File file);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty fileProvider(Provider<File> provider);
 
     /**
      * {@inheritDoc}
