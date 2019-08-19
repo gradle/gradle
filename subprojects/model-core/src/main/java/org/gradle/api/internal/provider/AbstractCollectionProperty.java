@@ -120,6 +120,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public boolean isContentProducedByTask() {
+        return super.isContentProducedByTask() || value.isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return value.isValueProducedByTask();
+    }
+
+    @Override
     public boolean isPresent() {
         beforeRead();
         return value.present();
@@ -300,6 +310,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return right.maybeVisitBuildDependencies(context);
             }
             return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return left.isValueProducedByTask() || right.isValueProducedByTask();
         }
     }
 }

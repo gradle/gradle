@@ -53,6 +53,16 @@ public class MapCollectors {
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
         }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
+        }
     }
 
     public static class SingleEntry<K, V> implements MapCollector<K, V> {
@@ -94,6 +104,16 @@ public class MapCollectors {
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -169,6 +189,16 @@ public class MapCollectors {
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfValue.maybeVisitBuildDependencies(context);
         }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return providerOfValue.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return providerOfValue.isValueProducedByTask();
+        }
     }
 
     public static class EntriesFromMap<K, V> implements MapCollector<K, V> {
@@ -208,6 +238,16 @@ public class MapCollectors {
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
     }
@@ -261,6 +301,16 @@ public class MapCollectors {
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfEntries.maybeVisitBuildDependencies(context);
         }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return providerOfEntries.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return providerOfEntries.isValueProducedByTask();
+        }
     }
 
     public static class NoValue implements MapCollector<Object, Object> {
@@ -293,6 +343,16 @@ public class MapCollectors {
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
         }
     }
 }

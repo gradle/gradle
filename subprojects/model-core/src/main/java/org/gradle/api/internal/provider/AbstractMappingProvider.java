@@ -57,19 +57,19 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
 
     @Override
     public OUT get() {
-        return map(provider.get());
+        return mapValue(provider.get());
     }
 
     @Override
     public OUT getOrNull() {
         IN value = provider.getOrNull();
         if (value != null) {
-            return map(value);
+            return mapValue(value);
         }
         return null;
     }
 
-    protected abstract OUT map(IN v);
+    protected abstract OUT mapValue(IN v);
 
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {

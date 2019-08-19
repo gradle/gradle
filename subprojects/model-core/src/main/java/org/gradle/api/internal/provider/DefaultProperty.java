@@ -59,6 +59,16 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     @Override
+    public boolean isContentProducedByTask() {
+        return super.isContentProducedByTask() || provider.isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return provider.isValueProducedByTask();
+    }
+
+    @Override
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
             set((Provider<T>) object);

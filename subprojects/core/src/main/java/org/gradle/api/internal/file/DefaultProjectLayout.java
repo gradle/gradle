@@ -98,7 +98,7 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
     public Provider<RegularFile> file(Provider<File> provider) {
         return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, Providers.internal(provider)) {
             @Override
-            protected RegularFile map(File file) {
+            protected RegularFile mapValue(File file) {
                 return new FixedFile(projectDir.fileResolver.resolve(file));
             }
         };

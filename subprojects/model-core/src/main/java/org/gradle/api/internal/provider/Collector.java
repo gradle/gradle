@@ -30,4 +30,8 @@ public interface Collector<T> {
     int size();
 
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
+
+    boolean isContentProducedByTask();
+
+    boolean isValueProducedByTask();
 }
