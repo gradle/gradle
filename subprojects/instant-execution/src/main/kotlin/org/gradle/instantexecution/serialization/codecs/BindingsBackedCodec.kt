@@ -19,6 +19,8 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.instantexecution.extensions.uncheckedCast
 
 import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.DecodingProvider
+import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
@@ -47,39 +49,58 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeByte(NULL_VALUE)
-        else -> {
-            val encoding = encodings.computeIfAbsent(value.javaClass, ::computeEncoding)
-            encoding(value)
+        else -> taggedEncodingFor(value.javaClass).run {
+            encode(value)
         }
     }
 
     override suspend fun ReadContext.decode() = when (val tag = readByte()) {
         NULL_VALUE -> null
-        else -> bindings[tag.toInt()].codec.run { decode() }
+        else -> bindings[tag.toInt()].decoding.run { decode() }
     }
 
     private
-    fun computeEncoding(type: Class<*>): Encoding =
-        bindings.find { it.type.isAssignableFrom(type) }?.run {
-            encoding { value ->
-                writeByte(tag)
-                codec.run { encode(value) }
-            }
-        } ?: throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
+    fun taggedEncodingFor(type: Class<*>): Encoding =
+        encodings.computeIfAbsent(type, ::computeEncoding)
 
     private
-    fun encoding(e: Encoding) = e
+    fun computeEncoding(type: Class<*>): Encoding {
+        for (binding in bindings) {
+            val encoding = binding.encodingForType(type)
+            if (encoding != null) {
+                return TaggedEncoding(binding.tag, encoding)
+            }
+        }
+        throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
+    }
+
+    private
+    class TaggedEncoding(
+        private val tag: Byte,
+        private val encoding: Encoding
+    ) : Encoding {
+        override suspend fun WriteContext.encode(value: Any) {
+            writeByte(tag)
+            encoding.run { encode(value) }
+        }
+    }
 }
-
-
-typealias Encoding = suspend WriteContext.(value: Any) -> Unit
 
 
 data class Binding(
     val tag: Byte,
-    val type: Class<*>,
-    val codec: Codec<Any>
+    val encodingForType: EncodingProducer,
+    val decoding: Decoding
 )
+
+
+typealias EncodingProducer = (Class<*>) -> Encoding?
+
+
+typealias Encoding = EncodingProvider<Any>
+
+
+typealias Decoding = DecodingProvider<Any>
 
 
 internal
@@ -91,13 +112,28 @@ class BindingsBuilder {
     fun build(): List<Binding> = bindings.toList()
 
     fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.none { it.type === type })
+        require(bindings.all { it.encodingForType(type) == null })
+        val codecForAny = codec.uncheckedCast<Codec<Any>>()
+        val encodingProducer = encodingForSubTypesOf(type, codecForAny)
+        bind(encodingProducer, codecForAny)
+    }
+
+    private
+    fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
         val tag = bindings.size
         require(tag < Byte.MAX_VALUE)
         bindings.add(
-            Binding(tag.toByte(), type, codec.uncheckedCast())
+            Binding(
+                tag = tag.toByte(),
+                encodingForType = encodingProducer,
+                decoding = decoding
+            )
         )
     }
+
+    private
+    fun encodingForSubTypesOf(type: Class<*>, codec: Codec<Any>): EncodingProducer =
+        { candidate -> codec.takeIf { type.isAssignableFrom(candidate) } }
 
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)
