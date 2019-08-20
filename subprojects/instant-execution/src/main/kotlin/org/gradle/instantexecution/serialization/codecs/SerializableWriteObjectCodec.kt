@@ -24,6 +24,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.withImmediateMode
 
 import java.io.InputStream
@@ -49,16 +50,18 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
         decodePreservingIdentity { id ->
             withImmediateMode {
                 val beanType = readClass()
-                val beanStateReader = beanStateReaderFor(beanType)
-                beanStateReader.run { newBeanWithId(id) }.also { bean ->
-                    readObjectMethodOf(beanType).invoke(
-                        bean,
-                        ObjectInputStreamAdapter(
+                withBeanTrace(beanType) {
+                    val beanStateReader = beanStateReaderFor(beanType)
+                    beanStateReader.run { newBeanWithId(id) }.also { bean ->
+                        readObjectMethodOf(beanType).invoke(
                             bean,
-                            beanStateReader,
-                            this@decode
+                            ObjectInputStreamAdapter(
+                                bean,
+                                beanStateReader,
+                                this@decode
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -118,8 +121,10 @@ class RecordingObjectOutputStream(
     val operations = mutableListOf<suspend WriteContext.() -> Unit>()
 
     suspend fun WriteContext.playback() {
-        operations.forEach { operation ->
-            operation()
+        withBeanTrace(beanType) {
+            operations.forEach { operation ->
+                operation()
+            }
         }
     }
 

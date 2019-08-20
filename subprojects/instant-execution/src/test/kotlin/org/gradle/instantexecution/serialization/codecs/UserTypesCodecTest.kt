@@ -17,20 +17,29 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
+
+import org.gradle.api.Project
+
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.PropertyProblem
 import org.gradle.instantexecution.serialization.withIsolate
+
+import org.gradle.internal.io.NullOutputStream
+
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
@@ -122,6 +131,30 @@ class UserTypesCodecTest {
         )
     }
 
+    @Test
+    fun `leaves bean trace of Serializable objects`() {
+
+        val bean = SerializableWriteObjectBean(mock<Project>())
+
+        val problems = serializationProblemsOf(bean)
+
+        assertThat(
+            problems.single().trace.toString(),
+            equalTo(
+                "field `value` of `${bean.javaClass.name}` bean found in unknown property"
+            )
+        )
+    }
+
+    private
+    fun serializationProblemsOf(bean: Any): List<PropertyProblem> =
+        mutableListOf<PropertyProblem>().also { problems ->
+            writeTo(
+                NullOutputStream.nullOutputStream(),
+                bean
+            ) { problems += it }
+        }
+
     class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
 
         private
@@ -179,9 +212,13 @@ class UserTypesCodecTest {
     }
 
     private
-    fun writeTo(outputStream: OutputStream, graph: Any) {
+    fun writeTo(
+        outputStream: OutputStream,
+        graph: Any,
+        problemHandler: (PropertyProblem) -> Unit = mock()
+    ) {
         KryoBackedEncoder(outputStream).use { encoder ->
-            writeContextFor(encoder).run {
+            writeContextFor(encoder, problemHandler).run {
                 withIsolateMock {
                     runToCompletion {
                         write(graph)
@@ -213,12 +250,12 @@ class UserTypesCodecTest {
         }
 
     private
-    fun writeContextFor(encoder: Encoder) =
+    fun writeContextFor(encoder: Encoder, problemHandler: (PropertyProblem) -> Unit) =
         DefaultWriteContext(
             codec = codecs().userTypesCodec,
             encoder = encoder,
             logger = mock(),
-            problemHandler = mock()
+            problemHandler = problemHandler
         )
 
     private
