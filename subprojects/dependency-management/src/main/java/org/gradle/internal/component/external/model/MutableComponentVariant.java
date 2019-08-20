@@ -20,13 +20,15 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
 
-    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting);
+    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting, @Nullable IvyArtifactName artifact);
 
     void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes);
 
