@@ -157,11 +157,13 @@ class UserTypesCodecTest {
 
     class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
 
+        @Suppress("unused")
         private
         fun writeReplace() = Memento()
 
         private
         class Memento {
+            @Suppress("unused")
             fun readResolve() = SerializableWriteReplaceBean("42")
         }
     }
