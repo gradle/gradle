@@ -65,6 +65,13 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         if (buildFailure.get() + stableScenarioRegression.get() + flakyScenarioBigRegression.get() != 0) {
             throw new GradleException(formatErroString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get()));
         }
+        if (!executionDataProvider.getScenarioExecutionData().stream().allMatch(ScenarioBuildResultData::isSuccessful)) {
+            markBuildAsSuccessful();
+        }
+    }
+
+    private void markBuildAsSuccessful() {
+        System.out.println("##teamcity[buildStatus status='SUCCESS' text='First run failed but the rerun succeeded.']");
     }
 
     private String formatErroString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {

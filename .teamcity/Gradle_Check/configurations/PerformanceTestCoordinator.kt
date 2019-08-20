@@ -54,6 +54,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
             val rerunnerParameters = listOf(
                     "-PteamCityBuildId=%teamcity.build.id%",
                     "-PonlyPreviousFailedTestClasses=true",
+                    "-PignoreTagging=true",
                     "-Dscan.tag.RERUN_TESTS")
             runner("GRADLE_RERUNNER", "tagBuild distributed${type.taskId}s", rerunnerParameters.joinToString(" "), ExecutionMode.RUN_ON_FAILURE)
         } else {
