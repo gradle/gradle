@@ -38,6 +38,12 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
+==== Dependencies should no longer be declared using the compile and runtime configurations
+
+The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged for some time now.
+These configurations, and their counterparts in other sources sets (e.g. `testCompile` and `testRuntime`), should not be utilised anymore.
+Instead, use the `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
+
 ==== Local build cache type shouldn't be specified
 
 When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
@@ -108,6 +114,24 @@ The deprecated announce and build-announcements plugins have been removed.  Ther
 
 The deprecated Compare Gradle Builds plugin has been removed.
 Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
+
+==== Changes to the task container
+
+The following deprecated methods on the task container now result in errors:
+
+- `TaskContainer.add()`
+- `TaskContainer.addAll()`
+- `TaskContainer.remove()`
+- `TaskContainer.removeAll()`
+- `TaskContainer.retainAll()`
+- `TaskContainer.clear()`
+- `TaskContainer.iterator().remove()`
+
+Additionally, the following deprecated functionality now results in an error:
+
+- Replacing a task that has already been realized.
+- Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
+- Replacing a task that has never been registered.
 
 ==== Updates to bundled Gradle dependencies
 

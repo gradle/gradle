@@ -148,7 +148,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     @Unroll
@@ -226,7 +226,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
             Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
 
         where:
         annotation                | _
@@ -269,7 +269,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.
             Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.
             Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -311,7 +311,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "no problems with Copy task"() {
@@ -417,7 +417,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself
-        """.stripIndent().trim()
+            """.stripIndent().trim()
 
         where:
         type << [ConfigurableFileCollection.name, "${Property.name}<String>", RegularFileProperty.name]
@@ -502,7 +502,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Type 'MyTask': property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Type 'MyTask': property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "detects annotations on private getter methods"() {
@@ -547,7 +547,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Type 'MyTask': property 'badTime' is private and annotated with @Input.
             Warning: Type 'MyTask': property 'options.badNested' is private and annotated with @Input.
             Warning: Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "detects annotations on non-property methods"() {
@@ -586,7 +586,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input
             Warning: Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "detects annotations on setter methods"() {
@@ -643,7 +643,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input
             Warning: Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -766,7 +766,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "can validate properties of an artifact transform action"() {
@@ -829,7 +829,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.
             Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.
             Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "can validate properties of an artifact transform parameters object"() {
@@ -898,7 +898,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.
             Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
             Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "reports conflicting types when property is replaced but keeps old annotations"() {
@@ -934,6 +934,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'MyTask': property 'oldProperty' has conflicting type annotations declared: @Input, @ReplacedBy; assuming @Input.
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 }

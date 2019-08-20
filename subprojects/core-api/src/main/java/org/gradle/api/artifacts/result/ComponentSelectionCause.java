@@ -69,7 +69,7 @@ public enum ComponentSelectionCause {
     /**
      * This component was selected because it was requested by a parent with {@link org.gradle.api.artifacts.MutableVersionConstraint#forSubgraph()}.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     BY_ANCESTOR("by ancestor");

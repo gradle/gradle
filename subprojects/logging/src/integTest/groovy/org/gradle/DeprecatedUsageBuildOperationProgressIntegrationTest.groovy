@@ -76,7 +76,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def initDeprecation = operations.only("Apply script init.gradle to build").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         initDeprecation.details.summary == 'Init script has been deprecated.'
-        initDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        initDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         initDeprecation.details.advice == null
         initDeprecation.details.contextualAdvice == null
         initDeprecation.details.stackTrace.size > 0
@@ -85,7 +85,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def pluginDeprecation = operations.only("Apply plugin SomePlugin to root project 'root'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         pluginDeprecation.details.summary == 'Plugin has been deprecated.'
-        pluginDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        pluginDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         pluginDeprecation.details.advice == null
         pluginDeprecation.details.contextualAdvice == null
         pluginDeprecation.details.type == 'USER_CODE_DIRECT'
@@ -95,7 +95,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def invocationDeprecation = operations.only("Apply script build.gradle to root project 'root'").progress.findAll {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}[0]
         invocationDeprecation.details.summary == 'Some invocation feature has been deprecated.'
-        invocationDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        invocationDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         invocationDeprecation.details.advice == "Don't do custom invocation."
         invocationDeprecation.details.type == "BUILD_INVOCATION"
         invocationDeprecation.details.stackTrace.size > 0
@@ -104,7 +104,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def userIndirectCodeDeprecation = operations.only("Apply script build.gradle to root project 'root'").progress.findAll {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}[1]
         userIndirectCodeDeprecation.details.summary == 'Some indirect deprecation has been deprecated.'
-        userIndirectCodeDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        userIndirectCodeDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         userIndirectCodeDeprecation.details.advice == "Some advice."
         userIndirectCodeDeprecation.details.type == 'USER_CODE_INDIRECT'
         userIndirectCodeDeprecation.details.stackTrace.size > 0
@@ -113,7 +113,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def scriptPluginDeprecation = operations.only("Apply script script.gradle to root project 'root'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         scriptPluginDeprecation.details.summary == 'Plugin script has been deprecated.'
-        scriptPluginDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        scriptPluginDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         scriptPluginDeprecation.details.advice == null
         scriptPluginDeprecation.details.type == 'USER_CODE_DIRECT'
         scriptPluginDeprecation.details.stackTrace.size > 0
@@ -132,7 +132,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def typedTaskDeprecation = operations.only("Execute someAction for :t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         typedTaskDeprecation.details.summary == 'Typed task has been deprecated.'
-        typedTaskDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        typedTaskDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         typedTaskDeprecation.details.advice == null
         typedTaskDeprecation.details.contextualAdvice == null
         typedTaskDeprecation.details.type == 'USER_CODE_DIRECT'
@@ -143,7 +143,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def typedTaskDeprecation2 = operations.only("Execute someAction for :t2").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         typedTaskDeprecation2.details.summary == 'Typed task has been deprecated.'
-        typedTaskDeprecation2.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        typedTaskDeprecation2.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         typedTaskDeprecation2.details.advice == null
         typedTaskDeprecation2.details.contextualAdvice == null
         typedTaskDeprecation2.details.type == 'USER_CODE_DIRECT'
@@ -166,7 +166,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def buildSrcDeprecations = operations.only("Apply script build.gradle to project ':buildSrc'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         buildSrcDeprecations.details.summary.contains('BuildSrc script has been deprecated.')
-        buildSrcDeprecations.details.removalDetails.contains('This is scheduled to be removed in Gradle 6.0.')
+        buildSrcDeprecations.details.removalDetails.contains('This is scheduled to be removed in Gradle 7.0.')
         buildSrcDeprecations.details.advice == null
         buildSrcDeprecations.details.contextualAdvice == null
         buildSrcDeprecations.details.type == 'USER_CODE_DIRECT'
@@ -203,7 +203,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def includedBuildScriptDeprecations = operations.only("Apply script build.gradle to project ':included'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         includedBuildScriptDeprecations.details.summary == 'Included build script has been deprecated.'
-        includedBuildScriptDeprecations.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        includedBuildScriptDeprecations.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         includedBuildScriptDeprecations.details.advice == null
         includedBuildScriptDeprecations.details.contextualAdvice == null
         includedBuildScriptDeprecations.details.type == 'USER_CODE_DIRECT'
@@ -213,7 +213,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         def includedBuildTaskDeprecations = operations.only("Execute doLast {} action for :included:t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         includedBuildTaskDeprecations.details.summary == 'Included build task has been deprecated.'
-        includedBuildTaskDeprecations.details.removalDetails == 'This is scheduled to be removed in Gradle 6.0.'
+        includedBuildTaskDeprecations.details.removalDetails == 'This is scheduled to be removed in Gradle 7.0.'
         includedBuildTaskDeprecations.details.advice == null
         includedBuildTaskDeprecations.details.contextualAdvice == null
         includedBuildTaskDeprecations.details.type == 'USER_CODE_DIRECT'

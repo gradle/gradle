@@ -83,7 +83,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                  ⤷ DeclarationRules#mutateMyComponentSource(UnmanagedLanguageSourceSet)
                                  ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet) > afterEach()
                                  ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     def "model report for managed software components show them all with their managed properties"() {
@@ -162,7 +162,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources
                                   | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myComponentSource)
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 
     @Unroll

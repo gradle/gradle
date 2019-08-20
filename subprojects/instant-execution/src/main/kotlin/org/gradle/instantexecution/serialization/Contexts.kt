@@ -97,12 +97,9 @@ class DefaultReadContext(
     private
     val decoder: Decoder,
 
-    override val logger: Logger,
-
-    private
-    val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
-
+    override val logger: Logger
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+
     override val sharedIdentities = ReadIdentities()
 
     private
@@ -126,6 +123,8 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
+    override var immediateMode: Boolean = false
+
     override suspend fun read(): Any? = getCodec().run {
         decode()
     }
@@ -134,7 +133,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type) }
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()

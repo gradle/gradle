@@ -16,9 +16,8 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.ci.common.model.FlakyTest;
+import java.math.BigDecimal;
 
-import static org.gradle.performance.results.Tag.FixedTag.KNOWN_FLAKY;
 import static org.gradle.performance.results.Tag.FixedTag.UNTAGGED;
 
 public interface Tag {
@@ -42,7 +41,6 @@ public interface Tag {
         IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
         UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
         FLAKY("FLAKY", "badge badge-danger", "The scenario's difference confidence > 95% even when running identical code."),
-        KNOWN_FLAKY("KNOWN-FLAKY", "badge badge-danger", "The scenario was marked as flaky in gradle-private issue tracker recently."),
         UNTAGGED("UNTAGGED", null, null);
 
         private String name;
@@ -76,31 +74,45 @@ public interface Tag {
         }
     }
 
-    class KnownFlakyTag implements Tag {
-        private String url;
+    class FlakinessInfoTag implements Tag {
+        private static final String FLAKINESS_RATE_TITLE = "Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99% " +
+            " in the flakiness detection builds divided by the total number of runs of the scenario.";
+        private static final String FAILURE_THRESHOLD_TITLE = "The failure threshold of flaky scenario, if a flaky scenario performance test's difference is higher than this value, " +
+            " it will be recognized as a real failure.";
+        private String name;
+        private String title;
 
-        public KnownFlakyTag(FlakyTest flakyTest) {
-            this.url = flakyTest.getIssue().getHtmlUrl().toString();
+        static FlakinessInfoTag createFlakinessRateTag(BigDecimal rate) {
+            return new FlakinessInfoTag(String.format("FLAKY(%.2f%%)", rate.doubleValue() * 100), FLAKINESS_RATE_TITLE);
+        }
+
+        static FlakinessInfoTag createFailureThresholdTag(BigDecimal threshold) {
+            return new FlakinessInfoTag(String.format("FAILURE-THRESHOLD(%.2f%%)", threshold.doubleValue() * 100), FAILURE_THRESHOLD_TITLE);
+        }
+
+        private FlakinessInfoTag(String name, String title) {
+            this.name = name;
+            this.title = title;
         }
 
         @Override
         public String getName() {
-            return KNOWN_FLAKY.name;
+            return name;
         }
 
         @Override
         public String getClassAttr() {
-            return KNOWN_FLAKY.classAttr;
-        }
-
-        @Override
-        public String getTitle() {
-            return KNOWN_FLAKY.title;
+            return "badge badge-warning";
         }
 
         @Override
         public String getUrl() {
-            return url;
+            return "https://builds.gradle.org/viewType.html?buildTypeId=Gradle_Check_PerformanceFlakinessDetectionCoordinator&tab=buildTypeHistoryList";
+        }
+
+        @Override
+        public String getTitle() {
+            return title;
         }
     }
 }

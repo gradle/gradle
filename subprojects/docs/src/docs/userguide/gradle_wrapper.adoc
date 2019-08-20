@@ -117,7 +117,7 @@ A Gradle project typically provides a `build.gradle` and a `settings.gradle` fil
 The Wrapper JAR file containing code for downloading the Gradle distribution.
 
 `gradle-wrapper.properties`::
-A properties file responsible for configuring the Wrapper runtime behavior e.g. the Gradle version compatible with this version.
+A properties file responsible for configuring the Wrapper runtime behavior e.g. the Gradle version compatible with this version. Note that more generic settings, like <<build_environment.adoc#sec:accessing_the_web_via_a_proxy,configuring the Wrapper to use a proxy>>, need to go into a <<build_environment.adoc#sec:gradle_configuration_properties,different file>>.
 
 `gradlew`, `gradlew.bat`::
 A shell script and a Windows batch script for executing the build with the Wrapper.

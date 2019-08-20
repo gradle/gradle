@@ -59,7 +59,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         // module will be published a second time via 'maven-publish'
         module.artifact.expectPublish()
         module.pom.expectPublish()
-        if (targetVersion.compareTo(GradleVersion.version("5.7")) >= 0) {
+        if (targetVersion.compareTo(GradleVersion.version("6.0")) >= 0) {
             module.moduleMetadata.expectPublish() // Gradle Module Metadata is published with Gradle 6+
         }
         metadataDownloads.times {

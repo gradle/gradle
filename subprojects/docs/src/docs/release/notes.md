@@ -3,8 +3,13 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Nathan Strong](https://github.com/NathanStrong-Tripwire)
-[Roberto Perez Alcolea](https://github.com/rpalcolea)
+[Nathan Strong](https://github.com/NathanStrong-Tripwire),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Tetsuya Ikenaga](https://github.com/ikngtty),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Andrey Mischenko](https://github.com/gildor),
+[Alex Saveau](https://github.com/SUPERCILEX),
+and [Mike Kobit](https://github.com/mkobit).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -80,29 +85,9 @@ dependencies {
 }
 ```
 
-## Debug support for forked Java processes
+## Support for Java 13 EA
 
-Gradle has now a new DSL element to configure debugging for Java processes.  
- 
-```groovy
-project.javaexec {
-
-  debugOptions {
-     enabled = true
-     port = 4455
-     server = true
-     suspend = true
-   }
-}
-```
-
-This configuration appends the following JVM argument to the process: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4455` 
- 
-The `debugOptions` configuration is available for `project.javaExec` and for tasks using the `JavaExec` type, including the `test` task.
- 
-## Debug tests via the Tooling API
- 
-In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
+Gradle now supports running with Java 13 EA (tested with OpenJDK build 13-ea+32).
 
 ## More robust file deletion on Windows
 

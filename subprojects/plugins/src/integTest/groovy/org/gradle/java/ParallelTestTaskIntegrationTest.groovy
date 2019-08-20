@@ -57,7 +57,7 @@ subprojects {
     targetCompatibility = ${version}
 
     ${mavenCentralRepository()}
-    dependencies { testCompile 'junit:junit:4.12' }
+    dependencies { testImplementation 'junit:junit:4.12' }
 
     test {
         doFirst {

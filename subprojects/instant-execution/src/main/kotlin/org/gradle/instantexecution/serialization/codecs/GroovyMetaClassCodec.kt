@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import groovy.lang.MetaClass
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
 
-/**
- * A container of {@link SharedResource}s.
- *
- * @since 6.0
- */
-@Incubating
-public interface SharedResourceContainer extends NamedDomainObjectContainer<SharedResource> {
+
+object
+GroovyMetaClassCodec : Codec<MetaClass> {
+    override suspend fun WriteContext.encode(value: MetaClass) {
+        writeClass(value.theClass)
+    }
+
+    override suspend fun ReadContext.decode(): MetaClass? {
+        return InvokerHelper.getMetaClass(readClass())
+    }
 }

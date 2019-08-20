@@ -24,7 +24,6 @@ import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
@@ -216,8 +215,7 @@ class DefaultInstantExecution internal constructor(
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
         codecs.userTypesCodec,
         decoder,
-        logger,
-        BeanPropertyReader.factoryFor(service())
+        logger
     )
 
     private
@@ -225,6 +223,7 @@ class DefaultInstantExecution internal constructor(
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
+            filePropertyFactory = service(),
             fileResolver = service(),
             instantiator = service(),
             listenerManager = service(),

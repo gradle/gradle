@@ -17,10 +17,8 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 
 class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
-    def nextMajor = GradleVersion.current().nextMajor.version
 
     def setup() {
         executer.expectDeprecationWarning()
@@ -70,7 +68,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use the implementation configuration instead."
+        outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
     }
 
     def "warn if a dependency constraint is declared on a deprecated configuration"() {
@@ -87,7 +85,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle $nextMajor. Please use the implementation configuration instead."
+        outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
     }
 
     def "warn if an artifact is declared on a configuration that is fully deprecated"() {
@@ -102,7 +100,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        outputContains "The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle $nextMajor. Please use the implementation or compileElements configuration instead."
+        outputContains "The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 7.0. Please use the implementation or compileElements configuration instead."
     }
 
     def "warn if a deprecated configuration is resolved"() {
@@ -119,7 +117,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'resolve'
 
         then:
-        outputContains "The compileOnly configuration has been deprecated for resolution. This will fail with an error in Gradle $nextMajor. Please resolve the compileClasspath configuration instead."
+        outputContains "The compileOnly configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. Please resolve the compileClasspath configuration instead."
     }
 
     def "warn if a deprecated project configuration is consumed"() {
@@ -143,7 +141,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:resolve'
 
         then:
-        outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle $nextMajor. Please use attributes to consume the compileElements configuration instead."
+        outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the compileElements configuration instead."
     }
 
     def "warn if a deprecated project configuration is consumed directly"() {
@@ -168,6 +166,6 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:resolve', ':b:dependencies'
 
         then:
-        outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle $nextMajor. Please use attributes to consume the compileElements configuration instead."
+        outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the compileElements configuration instead."
     }
 }

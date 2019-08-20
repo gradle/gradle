@@ -32,12 +32,12 @@ Aside from configuring the build environment, you can configure a given project 
 
 Gradle provides several options that make it easy to configure the Java process that will be used to execute your build. While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to store certain settings like JVM memory configuration and Java home location in version control so that an entire team can work with a consistent environment.
 
-Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is applied in following order (if an option is configured in multiple locations the _last one wins_):
+Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is a combination of all your `gradle.properties` files, but if an option is configured in multiple locations, the _first one wins_:
 
-* `gradle.properties` in Gradle installation directory.
-* `gradle.properties` in project root directory.
-* `gradle.properties` in `GRADLE_USER_HOME` directory.
 * system properties, e.g. when `-Dgradle.user.home` is set on the command line.
+* `gradle.properties` in `GRADLE_USER_HOME` directory.
+* `gradle.properties` in project root directory.
+* `gradle.properties` in Gradle installation directory.
 
 The following properties can be used to configure the Gradle build environment:
 

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.internal.time.Clock
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
@@ -30,18 +30,20 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 import spock.lang.Issue
 
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentRelease
-    final Clock clock = Time.clock()
 
     TestFile projectDir
 
     def setup() {
         projectDir = temporaryFolder.testDirectory
+        // When adding support for a new JDK version, the previous release might not work with it yet.
+        Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
     }
 
     def "tooling api uses to the current version of gradle when none has been specified"() {

@@ -389,7 +389,7 @@ public class SigningExtension {
             public void execute(Publication publication) {
                 TaskContainer tasks = project.getTasks();
                 Task task = tasks.getByName(determineSignTaskNameForPublication(publication));
-                tasks.remove(task);
+                task.setEnabled(false);
                 result.remove(task);
             }
         });

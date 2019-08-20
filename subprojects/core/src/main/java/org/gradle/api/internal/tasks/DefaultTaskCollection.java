@@ -192,6 +192,10 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         };
     }
 
+    public Action<? super T> whenObjectRemovedInternal(Action<? super T> action) {
+        return super.whenObjectRemoved(action);
+    }
+
     // Cannot be private due to reflective instantiation
     public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
         public ExistingTaskProvider(String name, Class type) {

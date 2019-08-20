@@ -110,7 +110,7 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
             - Plugin Repositories (could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
               Searched in the following repositories:
                 Gradle Central Plugin Repository
-        """.stripIndent().trim())
+            """.stripIndent().trim())
     }
 
     def "can resolve and plugin from portal with buildscript notation"() {
