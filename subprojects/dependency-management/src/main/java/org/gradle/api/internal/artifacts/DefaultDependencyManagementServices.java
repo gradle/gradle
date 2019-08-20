@@ -96,6 +96,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -395,7 +396,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ArtifactTransformParameterScheme parameterScheme,
             ArtifactTransformActionScheme actionScheme,
             FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup
         ) {
             return new DefaultTransformationRegistrationFactory(
                 buildOperationExecutor,
@@ -404,6 +406,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformerInvocationFactory,
                 valueSnapshotter,
                 fileCollectionFactory,
+                fileLookup,
                 fileCollectionFingerprinterRegistry,
                 domainObjectContext,
                 projectStateRegistry,

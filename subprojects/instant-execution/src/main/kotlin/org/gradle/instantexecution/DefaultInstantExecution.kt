@@ -224,6 +224,7 @@ class DefaultInstantExecution internal constructor(
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
+            fileLookup = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
             instantiator = service(),

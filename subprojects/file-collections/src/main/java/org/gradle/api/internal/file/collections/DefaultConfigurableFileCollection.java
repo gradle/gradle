@@ -18,18 +18,17 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.AbstractSet;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -189,7 +188,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private void calculateFinalizedValue() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver().getPatternSetFactory());
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(PatternSets.getNonCachingPatternSetFactory());
         UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
         nested.add(files);
         files.clear();

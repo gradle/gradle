@@ -28,6 +28,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.internal.tasks.properties.PropertyWalker
@@ -72,6 +73,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         transformerInvocationFactory,
         valueSnapshotter,
         fileCollectionFactory,
+        Mock(FileLookup),
         fileCollectionFingerprinterRegistry,
         Mock(DomainObjectContext),
         Mock(ProjectStateRegistry),

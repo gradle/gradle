@@ -21,10 +21,11 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -59,8 +60,9 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     // Do not use this. It's here because some of the services this type needs are not easily accessed in certain cases and will be removed ay some point. Use one of the other methods instead
+    @Deprecated
     public static DefaultExecActionFactory root() {
-        IdentityFileResolver resolver = new IdentityFileResolver();
+        FileResolver resolver = new DefaultFileLookup(PatternSets.getNonCachingPatternSetFactory()).getFileResolver();
         return of(resolver, new DefaultFileCollectionFactory(resolver, null), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 

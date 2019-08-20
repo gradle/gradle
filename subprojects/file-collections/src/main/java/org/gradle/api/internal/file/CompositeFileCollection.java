@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveC
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.internal.PatternSets;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -169,7 +170,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     protected List<? extends FileCollectionInternal> getSourceCollections() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver().getPatternSetFactory());
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(PatternSets.getNonCachingPatternSetFactory());
         visitContents(context);
         return context.resolveAsFileCollections();
     }
