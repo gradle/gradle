@@ -75,7 +75,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     }
 
     private String formatErroString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
-        StringBuilder sb = new StringBuilder("Performance test failed");
+        StringBuilder sb = new StringBuilder();
         if (buildFailure != 0) {
             sb.append(", ").append(buildFailure).append(" scenario(s) failed");
         }

@@ -43,7 +43,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();
             generateReport(store, flakinessDataProvider, executionDataProvider, outputDirectory, projectName);
             checkResult(flakinessDataProvider, executionDataProvider);
-        } catch (Exception e) {
+        } catch (IOException | ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -88,7 +88,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         fileRenderer.render(testResults, testDataRenderer, new File(outputDirectory, "tests/" + testResults.getId() + ".json"));
     }
 
-    protected ResultsStore getResultsStore() throws Exception {
+    protected ResultsStore getResultsStore() throws ReflectiveOperationException {
         Type superClass = getClass().getGenericSuperclass();
         Class<? extends ResultsStore> resultsStoreClass = (Class<R>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
         return resultsStoreClass.getConstructor().newInstance();

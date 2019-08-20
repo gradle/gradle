@@ -56,7 +56,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
                     "-PonlyPreviousFailedTestClasses=true",
                     "-PignoreTagging=true",
                     "-Dscan.tag.RERUN_TESTS")
-            runner("GRADLE_RERUNNER", "tagBuild distributed${type.taskId}s", rerunnerParameters.joinToString(" "), ExecutionMode.RUN_ON_FAILURE)
+            runner("GRADLE_RERUNNER", "distributed${type.taskId}s", rerunnerParameters.joinToString(" "), ExecutionMode.RUN_ON_FAILURE)
         } else {
             tagBuild(model, true)
         }
