@@ -19,7 +19,6 @@ package org.gradle.jvm.internal;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
@@ -46,11 +45,9 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -121,36 +118,21 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public boolean includeFiles() {
-                return true;
-            }
-
-            @Override
             public boolean requireArtifactFiles() {
                 return true;
-            }
-
-            @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-                result.add(file);
             }
         });
         return result;
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(final TaskDependencyResolveContext context) {
-                ensureResolved(false);
-                FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
-                resolveResult.artifactsResults.getArtifacts().visitDependencies(collectingContext);
-                if (!collectingContext.getFailures().isEmpty()) {
-                    throw new ResolveException(getDisplayName(), collectingContext.getFailures());
-                }
-            }
-        };
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        ensureResolved(false);
+        FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+        resolveResult.artifactsResults.getArtifacts().visitDependencies(collectingContext);
+        if (!collectingContext.getFailures().isEmpty()) {
+            throw new ResolveException(getDisplayName(), collectingContext.getFailures());
+        }
     }
 
     private void ensureResolved(boolean failFast) {

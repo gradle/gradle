@@ -107,7 +107,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             ResolvableArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
             if (resolvedArtifact == null) {
                 Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                resolvedArtifact = new DefaultResolvedArtifact(ownerId, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
+                resolvedArtifact = new DefaultResolvedArtifact(ownerId, artifactName, artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource);
                 allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
             }
             resolvedArtifacts.add(resolvedArtifact);

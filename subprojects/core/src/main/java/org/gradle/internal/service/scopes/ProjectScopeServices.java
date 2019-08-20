@@ -78,11 +78,13 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -92,7 +94,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -108,6 +109,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Supplier;
 
@@ -164,12 +166,37 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem, Clock clock) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory, fileSystem, clock);
+    protected DefaultFileOperations createFileOperations(
+        FileResolver fileResolver,
+        TemporaryFileProvider temporaryFileProvider,
+        Instantiator instantiator,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        TextResourceLoader textResourceLoader,
+        FileCollectionFactory fileCollectionFactory,
+        FileSystem fileSystem,
+        Deleter deleter
+    ) {
+        return new DefaultFileOperations(
+            fileResolver,
+            project.getTasks(),
+            temporaryFileProvider,
+            instantiator,
+            fileLookup,
+            directoryFileTreeFactory,
+            streamHasher,
+            fileHasher,
+            textResourceLoader,
+            fileCollectionFactory,
+            fileSystem,
+            deleter
+        );
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory) {
-        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient());
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {
+        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory);
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -258,6 +285,17 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         @Override
         public Path getProjectPath() {
             return delegate.getProjectPath();
+        }
+
+        @Nullable
+        @Override
+        public ProjectInternal getProject() {
+            return delegate.getProject();
+        }
+
+        @Override
+        public ModelContainer getModel() {
+            return delegate.getModel();
         }
 
         @Override

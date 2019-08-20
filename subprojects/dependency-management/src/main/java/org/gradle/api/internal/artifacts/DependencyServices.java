@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -57,16 +56,12 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return listenerManager.getBroadcaster(ArtifactTransformListener.class);
         }
 
-        TransformationNodeRegistry createTransformationNodeRegistry() {
-            return new DefaultTransformationNodeRegistry();
+        TransformationNodeRegistry createTransformationNodeRegistry(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            return new DefaultTransformationNodeRegistry(buildOperationExecutor, transformListener);
         }
 
-        TransformationNodeDependencyResolver createTransformationNodeDependencyResolver(TransformationNodeRegistry transformationNodeRegistry) {
-            return new TransformationNodeDependencyResolver(transformationNodeRegistry);
-        }
-
-        TransformationNodeExecutor createTransformationNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            return new TransformationNodeExecutor(buildOperationExecutor, transformListener);
+        TransformationNodeDependencyResolver createTransformationNodeDependencyResolver() {
+            return new TransformationNodeDependencyResolver();
         }
     }
 }

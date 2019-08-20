@@ -103,7 +103,6 @@ object UserGuideLink {
     private
     val linkForPlugin =
         mapOf(
-            "announce" to "announce_plugin.html",
             "antlr" to "antlr_plugin.html",
             "application" to "application_plugin.html",
 
@@ -114,7 +113,6 @@ object UserGuideLink {
 
             "binary-base" to "software_model_concepts.html",
 
-            "build-announcements" to "build_announcements_plugin.html",
             "build-dashboard" to "build_dashboard_plugin.html",
 
             "build-init" to "build_init_plugin.html",
@@ -148,8 +146,6 @@ object UserGuideLink {
 
             // "envjs" to "envjs_plugin.html",
 
-            "findbugs" to "findbugs_plugin.html",
-
             "gcc-compiler" to "native_software.html#native_binaries:tool_chain",
 
             "google-test" to "native_software.html#native_binaries:google_test",
@@ -178,8 +174,6 @@ object UserGuideLink {
 
             // "javascript-base" to "javascript_base_plugin.html",
 
-            "jdepend" to "jdepend_plugin.html",
-
             // "jshint" to "jshint_plugin.html",
 
             "junit-test-suite" to "java_software.html#sec:testing_java_libraries",
@@ -203,8 +197,6 @@ object UserGuideLink {
 
             "objective-cpp" to "native_software.html#sec:objectivecpp_sources",
             "objective-cpp-lang" to "native_software.html#sec:objectivecpp_sources",
-
-            "osgi" to "osgi_plugin.html",
 
             "play" to "play_plugin.html",
             "play-application" to "play_plugin.html",

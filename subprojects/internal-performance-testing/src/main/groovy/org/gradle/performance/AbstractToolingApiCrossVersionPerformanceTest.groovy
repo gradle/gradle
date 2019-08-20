@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -34,8 +35,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestConditions
@@ -130,6 +131,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     public class ToolingApiExperiment {
         final String projectName
         String displayName
+        String testClassName
         List<String> targetVersions = []
         String minimumVersion
         List<File> extraTestClassPath = []
@@ -168,8 +170,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private CrossVersionPerformanceResults run() {
             def testId = experiment.displayName
-            def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experiment.projectName].toSet(), resultStore))
+            Assume.assumeTrue(TestScenarioSelector.shouldRun(experiment.testClassName, testId, [experiment.projectName].toSet(), resultStore))
             profiler = Profiler.create()
             try {
                 doRun(testId)
@@ -203,7 +204,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             )
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()
+                List<String> baselines = AbstractCrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()
                 [*baselines, 'current'].each { String version ->
                     def experimentSpec = new ToolingApiBuildExperimentSpec(version, temporaryFolder.testDirectory, experiment)
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
@@ -241,7 +242,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir, String version) {
             TestFile perVersionDir = new TestFile(workingDir, version)
             if (perVersionDir.exists()) {
-                GFileUtils.cleanDirectory(perVersionDir)
+                FileUtils.cleanDirectory(perVersionDir)
             } else {
                 perVersionDir.mkdirs()
             }

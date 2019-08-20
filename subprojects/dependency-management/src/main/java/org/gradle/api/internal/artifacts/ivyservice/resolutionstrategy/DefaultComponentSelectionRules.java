@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -32,6 +29,7 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
+import org.gradle.internal.rules.DefaultRuleActionValidator;
 import org.gradle.internal.rules.RuleAction;
 import org.gradle.internal.rules.RuleActionAdapter;
 import org.gradle.internal.rules.RuleActionValidator;
@@ -43,29 +41,25 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
-    public static final List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private Set<SpecRuleAction<? super ComponentSelection>> rules;
 
-    private final RuleActionAdapter allRuleActionAdapter;
-    private final RuleActionAdapter withModuleRuleActionAdapter;
+    private final RuleActionAdapter ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
 
     public DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this(moduleIdentifierFactory, createAdapter("all("), createAdapter("withModule(Object,"));
+        this(moduleIdentifierFactory, createAdapter());
     }
 
-    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter allRuleActionAdapter, RuleActionAdapter withModuleRuleActionAdapter) {
-        this.allRuleActionAdapter = allRuleActionAdapter;
-        this.withModuleRuleActionAdapter = withModuleRuleActionAdapter;
+    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter ruleActionAdapter) {
+        this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
             .toType(ModuleIdentifier.class)
             .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
@@ -79,8 +73,8 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         this.mutationValidator = mutationValidator;
     }
 
-    private static RuleActionAdapter createAdapter(String deprecationPrefix) {
-        RuleActionValidator ruleActionValidator = new ComponentSelectionRulesActionValidator(VALID_INPUT_TYPES, deprecationPrefix);
+    private static RuleActionAdapter createAdapter() {
+        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator();
         return new DefaultRuleActionAdapter(ruleActionValidator, "ComponentSelectionRules");
     }
 
@@ -91,32 +85,32 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     @Override
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
-        return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromAction(selectionAction)));
+        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromAction(selectionAction)));
     }
 
     @Override
     public ComponentSelectionRules all(Closure<?> closure) {
-        return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
+        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     @Override
     public ComponentSelectionRules all(Object ruleSource) {
-        return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
+        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     @Override
     public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction) {
-        return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromAction(selectionAction)));
+        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
     }
 
     @Override
     public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
-        return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
+        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     @Override
     public ComponentSelectionRules withModule(Object id, Object ruleSource) {
-        return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
+        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     @Override

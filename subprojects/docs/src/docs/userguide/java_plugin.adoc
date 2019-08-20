@@ -173,6 +173,7 @@ include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=def
 include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
 ====
 
+[[source_sets]]
 == Source sets
 
 The plugin adds the following <<building_java_projects.adoc#sec:java_source_sets,source sets>>:
@@ -464,7 +465,7 @@ See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapte
 == Publishing
 
 `components.java`::
-A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_overview.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
 
 [[sec:incremental_compile]]
 == Incremental Java compilation
@@ -669,6 +670,10 @@ Many popular annotation processors support incremental annotation processing (se
 
 | MapStruct
 | link:https://github.com/mapstruct/mapstruct/issues/1420[Open issue]
+| N/A
+
+| link:https://github.com/square/AssistedInject[Assisted Inject]
+| link:https://github.com/square/AssistedInject/blob/master/CHANGELOG.md#version-050-2019-08-08[0.5.0]
 | N/A
 
 | Realm

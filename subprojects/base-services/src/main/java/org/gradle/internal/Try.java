@@ -21,11 +21,19 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * An object to represent the result of an operation that can potentially fail.
+ * The object either holds the result of a successful execution, or an exception encountered during a failed one.
+ */
 public abstract class Try<T> {
 
     private Try() {
     }
 
+    /**
+     * Construct a {@code Try} by executing the given operation.
+     * The returned object will either hold the result or the exception thrown during the operation.
+     */
     public static <U> Try<U> ofFailable(Callable<U> failable) {
         try {
             return Try.successful(failable.call());
@@ -34,40 +42,88 @@ public abstract class Try<T> {
         }
     }
 
-    public static <U> Try<U> successful(U u) {
-        return new Success<U>(u);
+    /**
+     * Construct a {@code Try} representing a successful execution.
+     * The returned object will hold the given result.
+     */
+    public static <U> Try<U> successful(U result) {
+        return new Success<U>(result);
     }
 
-    public static <U> Try<U> failure(Throwable e) {
-        return new Failure<U>(e);
+    /**
+     * Construct a {@code Try} representing a failed execution.
+     * The returned object will hold the given failure.
+     */
+    public static <U> Try<U> failure(Throwable failure) {
+        return new Failure<U>(failure);
     }
 
+    /**
+     * Returns whether this {@code Try} represents a successful execution.
+     */
     public abstract boolean isSuccessful();
 
+    /**
+     * Return the result if the represented operation was successful.
+     * Throws the original failure otherwise (wrapped in an {@link UncheckedException} if necessary).
+     */
     public abstract T get();
 
-    public abstract T orElseMapFailure(Function<Throwable, T> f);
+    /**
+     * Return the result if the represented operation was successful or return the result of the given function.
+     * In the latter case the failure is passed to the function.
+     */
+    public abstract T getOrMapFailure(Function<Throwable, T> f);
 
+    /**
+     * Returns the failure for a failed result, or {@link Optional#empty()} otherwise.
+     */
     public abstract Optional<Throwable> getFailure();
 
+    /**
+     * If the represented operation was successful, returns the result of applying the given
+     * {@code Try}-bearing mapping function to the value, otherwise returns
+     * the {@code Try} representing the original failure.
+     *
+     * Exceptions thrown by the given function are propagated.
+     */
     public abstract <U> Try<U> flatMap(Function<? super T, Try<U>> f);
 
-    public <U> Try<U> map(final Function<? super T, U> f) {
-        return flatMap(new Function<T, Try<U>>() {
-            @Override
-            public Try<U> apply(T input) {
-                return Try.successful(f.apply(input));
-            }
-        });
-    }
+    /**
+     * If the represented operation was successful, returns the result of applying the given
+     * mapping function to the value, otherwise returns
+     * the {@code Try} representing the original failure.
+     *
+     * This is similar to {@link #tryMap(Function)} but propagates any exception the given function throws.
+     */
+    public abstract <U> Try<U> map(Function<? super T, U> f);
 
+    /**
+     * If the represented operation was successful, returns the result of applying the given
+     * mapping function to the value, otherwise returns
+     * the {@code Try} representing the original failure.
+     *
+     * This is similar to {@link #map(Function)} but converts any exception the given function
+     * throws into a failed {@code Try}.
+     */
+    public abstract <U> Try<U> tryMap(Function<? super T, U> f);
+
+    /**
+     * If the represented operation was successful, returns the original result,
+     * otherwise returns the given mapping function applied to the failure.
+     */
     public abstract Try<T> mapFailure(Function<Throwable, Throwable> f);
 
+    /**
+     * Calls the given consumer with the result iff the represented operation was successful.
+     */
     public abstract void ifSuccessful(Consumer<T> consumer);
 
+    /**
+     * Calls {successConsumer} with the result if the represented operation was successful,
+     * otherwise calls {failureConsumer} with the failure.
+     */
     public abstract void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer);
-
-    public abstract <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction);
 
     private static final class Success<T> extends Try<T> {
         private final T value;
@@ -87,7 +143,7 @@ public abstract class Try<T> {
         }
 
         @Override
-        public T orElseMapFailure(Function<Throwable, T> f) {
+        public T getOrMapFailure(Function<Throwable, T> f) {
             return value;
         }
 
@@ -98,11 +154,22 @@ public abstract class Try<T> {
 
         @Override
         public <U> Try<U> flatMap(Function<? super T, Try<U>> f) {
-            try {
-                return f.apply(value);
-            } catch (Exception e) {
-                return Try.failure(e);
-            }
+            return f.apply(value);
+        }
+
+        @Override
+        public <U> Try<U> map(Function<? super T, U> f) {
+            return Try.successful(f.apply(value));
+        }
+
+        @Override
+        public <U> Try<U> tryMap(final Function<? super T, U> f) {
+            return Try.ofFailable(new Callable<U>() {
+                @Override
+                public U call() {
+                    return f.apply(value);
+                }
+            });
         }
 
         @Override
@@ -118,11 +185,6 @@ public abstract class Try<T> {
         @Override
         public void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
             successConsumer.accept(value);
-        }
-
-        @Override
-        public <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction) {
-            return successFunction.apply(value);
         }
 
         @Override
@@ -163,7 +225,7 @@ public abstract class Try<T> {
         }
 
         @Override
-        public T orElseMapFailure(Function<Throwable, T> f) {
+        public T getOrMapFailure(Function<Throwable, T> f) {
             return f.apply(failure);
         }
 
@@ -174,7 +236,17 @@ public abstract class Try<T> {
 
         @Override
         public <U> Try<U> flatMap(Function<? super T, Try<U>> f) {
-            return Try.failure(failure);
+            return Cast.uncheckedNonnullCast(this);
+        }
+
+        @Override
+        public <U> Try<U> map(Function<? super T, U> f) {
+            return Cast.uncheckedNonnullCast(this);
+        }
+
+        @Override
+        public <U> Try<U> tryMap(Function<? super T, U> f) {
+            return Cast.uncheckedNonnullCast(this);
         }
 
         @Override
@@ -189,11 +261,6 @@ public abstract class Try<T> {
         @Override
         public void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
             failureConsumer.accept(failure);
-        }
-
-        @Override
-        public <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction) {
-            return failureFunction.apply(failure);
         }
 
         @Override

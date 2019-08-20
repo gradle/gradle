@@ -18,7 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileCollectionLeafVisitor
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
@@ -50,22 +50,24 @@ class FileTreeCodec(
     private
     fun fileTreeRootsOf(value: FileTreeInternal): LinkedHashSet<File> {
         val visitor = FileTreeVisitor()
-        value.visitLeafCollections(visitor)
+        value.visitStructure(visitor)
         return visitor.roots
     }
 
     private
-    class FileTreeVisitor : FileCollectionLeafVisitor {
+    class FileTreeVisitor : FileCollectionStructureVisitor {
 
         internal
         var roots = LinkedHashSet<File>()
 
-        override fun visitCollection(fileCollection: FileCollectionInternal) = throw UnsupportedOperationException()
+        override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
 
         override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
 
-        override fun visitFileTree(root: File, patterns: PatternSet) {
+        override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
             roots.add(root)
         }
+
+        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) = throw UnsupportedOperationException()
     }
 }

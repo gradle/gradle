@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
@@ -1412,7 +1411,6 @@ org:middle:1.0 FAILED
       - Could not find org:middle:2.0.
         Searched in the following locations:
           - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
-          - ${mavenRepoURL}/org/middle/2.0/middle-2.0.jar
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
@@ -1580,7 +1578,6 @@ org:leaf:1.0 FAILED
       - Could not find org:leaf:1.0.
         Searched in the following locations:
           - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
-          - ${ivyRepoURL}/org/leaf/1.0/leaf-1.0.jar
 
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
@@ -2133,6 +2130,7 @@ org:leaf3:1.0
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
+                api.canBeConsumed = false
                 api.canBeResolved = false
                 compile.extendsFrom api
             }
@@ -2604,7 +2602,6 @@ org:leaf -> 1.0
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -2845,8 +2842,6 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
                 .withModuleMetadata()
                 .publish()
         }
-
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'

@@ -57,6 +57,14 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
+    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+        if (delegate instanceof ModuleDependencyMetadata) {
+            return new ModuleDependencyMetadataWrapper(((ModuleDependencyMetadata) delegate).withInheritConstraints(inheriting));
+        }
+        return this;
+    }
+
+    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
@@ -89,6 +97,11 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     @Override
     public boolean isConstraint() {
         return delegate.isConstraint();
+    }
+
+    @Override
+    public boolean isInheriting() {
+        return delegate.isInheriting();
     }
 
     @Override

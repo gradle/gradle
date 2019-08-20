@@ -40,7 +40,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -69,22 +68,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(task -> isRequired() || getSignatory() != null);
-    }
-
-    @Internal
-    @Deprecated
-    public Iterable<File> getInputFiles() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getInputFiles()",
-            "Please use Sign.getSignatures() and Signature.getToSign() instead.");
-        return Iterables.transform(signatures, Signature::getToSign);
-    }
-
-    @Internal
-    @Deprecated
-    public Map<String, File> getOutputFiles() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("Sign.getOutputFiles()",
-            "Please use Sign.getSignatures() and Signature.getFile() instead.");
-        return signatures.stream().collect(toMap(Signature::toKey, Signature::getFile));
     }
 
     /**
@@ -224,7 +207,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
         }
 
-        for (Signature signature : signatures) {
+        for (Signature signature : signaturesForExsitingFiles()) {
             signature.generate();
         }
     }
@@ -244,7 +227,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Nested
     @Incubating
     public Map<String, Signature> getSignaturesByKey() {
-        return signatures.stream().collect(toMap(Signature::toKey, identity()));
+        return signaturesForExsitingFiles().stream().collect(toMap(Signature::toKey, identity()));
+    }
+
+    private DomainObjectSet<Signature> signaturesForExsitingFiles() {
+        return signatures.matching(signature -> signature.getToSign().exists());
     }
 
     /**
@@ -273,7 +260,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     public FileCollection getFilesToSign() {
         return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' files to sign",
-            Lists.newLinkedList(Iterables.filter(getInputFiles(), Predicates.notNull())));
+            Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getToSign), Predicates.notNull())));
     }
 
     /**

@@ -27,9 +27,6 @@
                 <td>destinationFile</td>
             </tr>
             <tr>
-                <td>append</td>
-            </tr>
-            <tr>
                 <td>includes</td>
             </tr>
             <tr>

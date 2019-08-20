@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
@@ -38,7 +39,6 @@ import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoMerge;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -70,7 +70,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         this.project = project;
         addJacocoConfigurations();
-        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, project);
+        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, project.getServices().get(FileOperations.class));
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
@@ -84,12 +84,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
         applyToDefaultTasks(extension);
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                configureDefaultOutputPathForJacocoMerge();
-            }
-        });
+        configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
     }
@@ -161,27 +156,18 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    /**
-     * Don't use this.
-     *
-     * @deprecated This method will be made private in a future version of Gradle.
-     */
-    @Deprecated
-    public Object configureDefaultOutputPathForJacocoMerge() {
-        DeprecationLogger
-            .nagUserOfDiscontinuedMethod("JacocoPlugin.configureDefaultOutputPathForJacocoMerge()");
+    private void configureDefaultOutputPathForJacocoMerge() {
         project.getTasks().withType(JacocoMerge.class).configureEach(new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 task.setDestinationFile(project.provider(new Callable<File>() {
                     @Override
-                    public File call() throws Exception {
+                    public File call() {
                         return new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec");
                     }
                 }));
             }
         });
-        return project.getTasks().withType(JacocoMerge.class);
     }
 
     private void configureJacocoReportsDefaults(final JacocoPluginExtension extension) {

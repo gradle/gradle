@@ -100,7 +100,6 @@ task show {
         when:
         def m1 = mavenHttpRepo.module("test", "test1", "1.2")
         m1.pom.expectGetMissing()
-        m1.artifact.expectHeadMissing()
         def m2 = mavenHttpRepo.module("test", "test2", "1.2")
         m2.pom.expectGetUnauthorized()
         def m3 = mavenHttpRepo.module("test", "test3", "1.2").publish()

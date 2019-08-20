@@ -19,9 +19,7 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.readClass
 import org.gradle.instantexecution.serialization.readClassArray
-import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeClassArray
 import java.lang.reflect.Method
 

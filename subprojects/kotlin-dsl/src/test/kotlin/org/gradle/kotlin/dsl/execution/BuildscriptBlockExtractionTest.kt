@@ -112,5 +112,5 @@ class BuildscriptBlockExtractionTest {
 
     private
     fun extractBuildscriptBlockFrom(script: String) =
-        lex(script, "buildscript").second.singleBlockSectionOrNull()?.wholeRange
+        lex(script, "buildscript").document.topLevelBlocks.singleBlockSectionOrNull()?.wholeRange
 }

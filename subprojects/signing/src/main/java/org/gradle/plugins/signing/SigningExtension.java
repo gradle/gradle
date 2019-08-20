@@ -35,6 +35,7 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider;
@@ -44,7 +45,6 @@ import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
 import org.gradle.util.DeferredUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -389,7 +389,7 @@ public class SigningExtension {
             public void execute(Publication publication) {
                 TaskContainer tasks = project.getTasks();
                 Task task = tasks.getByName(determineSignTaskNameForPublication(publication));
-                tasks.remove(task);
+                task.setEnabled(false);
                 result.remove(task);
             }
         });
@@ -613,7 +613,7 @@ public class SigningExtension {
     }
 
     protected SignOperation doSignOperation(Action<SignOperation> setup) {
-        SignOperation operation = DeprecationLogger.whileDisabled(() -> instantiator().newInstance(SignOperation.class));
+        SignOperation operation = instantiator().newInstance(SignOperationInternal.class);
         addSignatureSpecConventions(operation);
         setup.execute(operation);
         operation.execute();

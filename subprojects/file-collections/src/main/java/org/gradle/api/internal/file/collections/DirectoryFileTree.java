@@ -24,7 +24,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -106,16 +105,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     @Override
     public boolean contains(File file) {
         return DirectoryTrees.contains(fileSystem, this, file) && file.isFile();
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        builder.add(this);
-    }
-
-    @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
     }
 
     @Override

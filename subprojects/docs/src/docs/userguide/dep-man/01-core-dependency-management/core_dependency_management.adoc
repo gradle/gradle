@@ -14,7 +14,7 @@ For a general overview on the terms used throughout the user guide, refer to <<d
 [[sec:dependency-mgmt-in-gradle]]
 == Dependency management in Gradle
 
-Gradle has built-in support for dependency management and lives up the task of fulfilling typical scenarios encountered in modern software projects.
+Gradle has built-in support for dependency management and lives up to the task of fulfilling typical scenarios encountered in modern software projects.
 We’ll explore the main concepts with the help of an example project.
 The illustration below should give you an rough overview on all the moving parts.
 
@@ -41,9 +41,9 @@ The reference on <<declaring_repositories.adoc#sec:repository-types,repository t
 At runtime, Gradle will locate the declared dependencies if needed for operating a specific task.
 The dependencies might need to be downloaded from a remote repository, retrieved from a local directory or requires another project to be built in a multi-project setting.
 This process is called _dependency resolution_.
-You can find a detailed discussion in <<declaring_repositories.adoc#sec:how-gradle-downloads-deps,How Gradle downloads dependencies>>.
+You can find a detailed discussion in <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,How Gradle downloads dependencies>>.
 
-Once resolved, the resolution mechanism <<declaring_repositories.adoc#sec:dependency_cache,stores the underlying files of a dependency in a local cache>>, also referred to as the _dependency cache_.
+Once resolved, the resolution mechanism <<dependency_resolution.adoc#sec:dependency_cache,stores the underlying files of a dependency in a local cache>>, also referred to as the _dependency cache_.
 Future builds reuse the files stored in the cache to avoid unnecessary network calls.
 
 Modules can provide additional metadata.
@@ -93,7 +93,7 @@ A typical example in the Java world is the Guava library which is published in d
 
 However, it's the consumer responsibility to tell what version to use, and it's the dependency management engine responsibility to ensure _consistency of the graph_ (for example making sure that you don't end up with both Java and Android versions of Guava on your classpath).
 
-In Gradle, _producer variants_ are exposed via <<declaring_dependencies.adoc#sub:resolvable-consumable-configs,consumable configurations>>.
+In Gradle, _producer variants_ are exposed via <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
 
 [[sub:strong-encapsulation]]
 === Strong encapsulation
@@ -128,3 +128,5 @@ Always keep in mind that the solution you choose to fix a problem can "leak" to 
 This documentation aims at guiding you to find the right solution to the right problem, and more importantly, make decisions which help the resolution engine to take the right decisions in case of conflicts.
 
 include::viewing_debugging_dependencies.adoc[leveloffset=+1]
+
+include::dependency_resolution.adoc[leveloffset=+1]

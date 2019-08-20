@@ -89,6 +89,11 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
+    public List<String> getConsumptionAlternatives() {
+        return delegate.getConsumptionAlternatives();
+    }
+
+    @Override
     public boolean isCanBeResolved() {
         return delegate.isCanBeResolved();
     }

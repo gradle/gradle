@@ -156,7 +156,6 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         when:
         server.resetExpectations()
         module1.ivy.expectGetMissing()
-        module1.jar.expectHeadMissing()
         module2.ivy.expectGet()
         module2.jar.expectDownload()
 

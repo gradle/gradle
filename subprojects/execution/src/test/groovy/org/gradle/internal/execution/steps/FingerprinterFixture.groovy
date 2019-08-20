@@ -17,32 +17,36 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
-abstract trait FingerprinterFixture {
+@CompileStatic
+trait FingerprinterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
-    private snapshotter = TestFiles.fileCollectionSnapshotter()
 
-    final inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
+    private DefaultFileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
+    private AbsolutePathFileCollectionFingerprinter inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
 
-    final OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
+    private OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
+    def getOutputFingerprinter() { outputFingerprinter }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintsOf(Map<String, Object> properties) {
         def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
         properties.each { propertyName, value ->
-            def files = (value instanceof Iterable
-                ? (Collection<?>) value
-                : [value]).collect {
+            def values = (value instanceof Collection) ? (Collection<?>) value : [value]
+            def files = values.collect {
                 it instanceof File
-                    ? it
+                    ? it as File
                     : temporaryFolder.file(it)
             }
-            builder.put(propertyName, inputFingerprinter.fingerprint(ImmutableFileCollection.of(files)))
+            def fingerprint = inputFingerprinter.fingerprint(ImmutableFileCollection.of(files))
+            builder.put(propertyName, fingerprint)
         }
         return builder.build()
     }

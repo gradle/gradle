@@ -63,7 +63,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
 
-    public static final String FORMAT_VERSION = "1.0";
+    public static final String FORMAT_VERSION = "1.1";
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final ExcludeRuleConverter excludeRuleConverter;
@@ -219,7 +219,7 @@ public class GradleModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, dependency.requestedCapabilities);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, dependency.requestedCapabilities, dependency.inheriting);
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
             variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason, dependencyConstraint.attributes);
@@ -262,7 +262,7 @@ public class GradleModuleMetadataParser {
         assertDefined(reader, "version", version);
         reader.endObject();
 
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList()));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList(), false));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -276,6 +276,7 @@ public class GradleModuleMetadataParser {
             VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
             List<VariantCapability> requestedCapabilities = ImmutableList.of();
+            boolean inheriting = false;
 
             reader.beginObject();
             while (reader.peek() != END_OBJECT) {
@@ -302,6 +303,9 @@ public class GradleModuleMetadataParser {
                     case "requestedCapabilities":
                         requestedCapabilities = consumeCapabilities(reader);
                         break;
+                    case "inheritConstraints":
+                        inheriting = reader.nextBoolean();
+                        break;
                     default:
                         consumeAny(reader);
                         break;
@@ -311,7 +315,7 @@ public class GradleModuleMetadataParser {
             assertDefined(reader, "module", module);
             reader.endObject();
 
-            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities));
+            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities, inheriting));
         }
         reader.endArray();
         return dependencies;
@@ -400,6 +404,7 @@ public class GradleModuleMetadataParser {
         String preferredVersion = "";
         String strictVersion = "";
         List<String> rejects = Lists.newArrayList();
+        boolean forSubgraph = false;
 
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
@@ -422,14 +427,16 @@ public class GradleModuleMetadataParser {
                     }
                     reader.endArray();
                     break;
+                case "forSubgraph":
+                    forSubgraph = reader.nextBoolean();
+                    break;
                 default:
                     consumeAny(reader);
                     break;
             }
         }
         reader.endObject();
-
-        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects);
+        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects, forSubgraph);
     }
 
     private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {
@@ -547,8 +554,9 @@ public class GradleModuleMetadataParser {
         final String reason;
         final ImmutableAttributes attributes;
         final List<? extends Capability> requestedCapabilities;
+        final boolean inheriting;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
@@ -556,6 +564,7 @@ public class GradleModuleMetadataParser {
             this.reason = reason;
             this.attributes = attributes;
             this.requestedCapabilities = requestedCapabilities;
+            this.inheriting = inheriting;
         }
     }
 

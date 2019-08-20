@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
@@ -25,7 +23,6 @@ import java.util.List;
  *
  * @since 4.9
  */
-@Incubating
 public interface ComponentMetadataListerDetails {
     /**
      * Gives access to the module identifier for which the version lister should

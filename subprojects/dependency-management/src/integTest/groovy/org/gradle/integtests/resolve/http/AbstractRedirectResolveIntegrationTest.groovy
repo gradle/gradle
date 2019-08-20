@@ -123,7 +123,13 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
     def configurationWithIvyDependencyAndExpectedArtifact(String dependency, String expectedArtifact) {
         """
             repositories {
-                ivy { url "$frontServerBaseUrl/repo" }
+                ivy { 
+                    url "$frontServerBaseUrl/repo"
+                    metadataSources {
+                        ivyDescriptor()
+                        artifact()
+                    }
+                }
             }
             configurations { compile }
             dependencies { compile '$dependency' }

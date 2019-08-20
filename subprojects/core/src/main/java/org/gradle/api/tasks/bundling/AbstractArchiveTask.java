@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
@@ -30,13 +31,12 @@ import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -67,19 +67,16 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveClassifier = objectFactory.property(String.class).value("");
 
         archiveName = objectFactory.property(String.class);
-        archiveName.set(getProject().provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                // [baseName]-[appendix]-[version]-[classifier].[extension]
-                String name = GUtil.elvis(archiveBaseName.getOrNull(), "");
-                name += maybe(name, archiveAppendix.getOrNull());
-                name += maybe(name, archiveVersion.getOrNull());
-                name += maybe(name, archiveClassifier.getOrNull());
+        archiveName.set(getProject().provider(() -> {
+            // [baseName]-[appendix]-[version]-[classifier].[extension]
+            String name = GUtil.elvis(archiveBaseName.getOrNull(), "");
+            name += maybe(name, archiveAppendix.getOrNull());
+            name += maybe(name, archiveVersion.getOrNull());
+            name += maybe(name, archiveClassifier.getOrNull());
 
-                String extension = archiveExtension.getOrNull();
-                name += GUtil.isTrue(extension) ? "." + extension : "";
-                return name;
-            }
+            String extension = archiveExtension.getOrNull();
+            name += GUtil.isTrue(extension) ? "." + extension : "";
+            return name;
         }));
 
         archiveFile = objectFactory.fileProperty();
@@ -87,6 +84,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).value(true);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).value(false);
+
+        getRootSpec().setDuplicatesStrategy(DuplicatesStrategy.FAIL);
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {

@@ -56,6 +56,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Nullable
     private String configuration;
     private boolean transitive = true;
+    private boolean inheriting;
 
     protected AbstractModuleDependency(@Nullable String configuration) {
         this.configuration = configuration;
@@ -225,6 +226,21 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             return Collections.emptyList();
         }
         return moduleDependencyCapabilities.getRequestedCapabilities();
+    }
+
+    @Override
+    public void inheritConstraints() {
+        this.inheriting = true;
+    }
+
+    @Override
+    public void notInheritConstraints() {
+        this.inheriting = false;
+    }
+
+    @Override
+    public boolean isInheriting() {
+        return this.inheriting;
     }
 
     private void warnAboutInternalApiUse(String thing) {

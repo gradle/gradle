@@ -18,12 +18,6 @@ package org.gradle.integtests.fixtures
 
 class FeaturePreviewsFixture {
 
-    static void enableGradleMetadata(File settings) {
-        settings << """
-enableFeaturePreview("GRADLE_METADATA")
-"""
-    }
-
     static void enableGroovyCompilationAvoidance(File settings) {
         settings << """
 enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')

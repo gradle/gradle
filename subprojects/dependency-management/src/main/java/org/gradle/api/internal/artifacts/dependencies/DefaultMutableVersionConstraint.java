@@ -32,6 +32,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private String strictVersion;
     private String branch;
     private final List<String> rejectedVersions = Lists.newArrayListWithExpectedSize(1);
+    private boolean forSubgraph;
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
         this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
@@ -69,7 +70,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public ImmutableVersionConstraint asImmutable() {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch);
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch, forSubgraph);
     }
 
     @Nullable
@@ -104,6 +105,16 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     @Override
+    public void forSubgraph() {
+        forSubgraph = true;
+    }
+
+    @Override
+    public void notForSubgraph() {
+        forSubgraph = false;
+    }
+
+    @Override
     public String getStrictVersion() {
         return strictVersion;
     }
@@ -128,6 +139,11 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     @Override
     public List<String> getRejectedVersions() {
        return rejectedVersions;
+    }
+
+    @Override
+    public boolean isForSubgraph() {
+        return forSubgraph;
     }
 
     public String getVersion() {

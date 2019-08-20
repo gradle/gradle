@@ -170,6 +170,10 @@ public class GradleModuleMetadataWriter {
             }
             jsonWriter.endArray();
         }
+        if (versionConstraint.isForSubgraph()) {
+            jsonWriter.name("forSubgraph");
+            jsonWriter.value(true);
+        }
         jsonWriter.endObject();
     }
 
@@ -448,6 +452,12 @@ public class GradleModuleMetadataWriter {
             writeExcludes(moduleDependency, additionalExcludes, jsonWriter);
             writeAttributes(moduleDependency.getAttributes(), jsonWriter);
             writeCapabilities("requestedCapabilities", moduleDependency.getRequestedCapabilities(), jsonWriter);
+
+            boolean inheriting = moduleDependency.isInheriting();
+            if (inheriting) {
+                jsonWriter.name("inheritConstraints");
+                jsonWriter.value(true);
+            }
         }
         String reason = dependency.getReason();
         if (StringUtils.isNotEmpty(reason)) {

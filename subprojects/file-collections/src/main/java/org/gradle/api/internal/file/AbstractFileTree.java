@@ -23,8 +23,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -167,13 +167,10 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
-    }
-
-    @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        visitor.visitGenericFileTree(this);
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
+        if (visitor.prepareForVisit(OTHER) != FileCollectionStructureVisitor.VisitType.NoContents) {
+            visitor.visitGenericFileTree(this);
+        }
     }
 
     private static class FilteredFileTreeImpl extends AbstractFileTree {
@@ -191,8 +188,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return fileTree.getBuildDependencies();
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(fileTree);
         }
 
         @Override
@@ -216,14 +213,9 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public void registerWatchPoints(FileSystemSubset.Builder builder) {
-            // TODO: we aren't considering the filter
-            fileTree.registerWatchPoints(builder);
-        }
-
-        @Override
-        public void visitTreeOrBackingFile(FileVisitor visitor) {
-            fileTree.visitTreeOrBackingFile(visitor);
+        public void visitStructure(FileCollectionStructureVisitor visitor) {
+            // TODO: should consider the filter
+            fileTree.visitStructure(visitor);
         }
     }
 }

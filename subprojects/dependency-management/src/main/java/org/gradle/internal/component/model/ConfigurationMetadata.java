@@ -78,6 +78,8 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     boolean isCanBeConsumed();
 
+    List<String> getConsumptionAlternatives();
+
     boolean isCanBeResolved();
 
     /**

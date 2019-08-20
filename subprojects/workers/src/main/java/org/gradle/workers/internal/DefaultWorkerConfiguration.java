@@ -17,23 +17,61 @@
 package org.gradle.workers.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.util.GUtil;
+import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
+import org.gradle.workers.ProcessWorkerSpec;
 import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerSpec;
 
 import java.io.File;
 import java.util.List;
 
-public class DefaultWorkerConfiguration extends DefaultBaseWorkerSpec implements WorkerConfiguration {
+public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
     private final ActionConfiguration actionConfiguration = new DefaultActionConfiguration();
+    private final JavaForkOptions forkOptions;
+    private IsolationMode isolationMode = IsolationMode.AUTO;
+    private String displayName;
     private List<File> classpath = Lists.newArrayList();
 
     public DefaultWorkerConfiguration(JavaForkOptionsFactory forkOptionsFactory) {
-        super(forkOptionsFactory);
+        this.forkOptions = forkOptionsFactory.newJavaForkOptions();
+    }
+
+    @Override
+    public IsolationMode getIsolationMode() {
+        return isolationMode;
+    }
+
+    @Override
+    public void setIsolationMode(IsolationMode isolationMode) {
+        this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
+    }
+
+    @Override
+    public void forkOptions(Action<? super JavaForkOptions> forkOptionsAction) {
+        forkOptionsAction.execute(forkOptions);
+    }
+
+    @Override
+    public JavaForkOptions getForkOptions() {
+        return forkOptions;
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override
@@ -93,6 +131,19 @@ public class DefaultWorkerConfiguration extends DefaultBaseWorkerSpec implements
             case ALWAYS:
                 setIsolationMode(IsolationMode.PROCESS);
                 break;
+        }
+    }
+
+    void adaptTo(WorkerSpec workerSpec) {
+        if (workerSpec instanceof ClassLoaderWorkerSpec) {
+            ClassLoaderWorkerSpec classLoaderWorkerSpec = (ClassLoaderWorkerSpec) workerSpec;
+            classLoaderWorkerSpec.getClasspath().from(getClasspath());
+        }
+
+        if (workerSpec instanceof ProcessWorkerSpec) {
+            ProcessWorkerSpec processWorkerSpec = (ProcessWorkerSpec) workerSpec;
+            processWorkerSpec.getClasspath().from(getClasspath());
+            getForkOptions().copyTo(processWorkerSpec.getForkOptions());
         }
     }
 

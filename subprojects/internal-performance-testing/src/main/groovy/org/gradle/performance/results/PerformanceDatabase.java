@@ -19,15 +19,17 @@ package org.gradle.performance.results;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 public class PerformanceDatabase {
     private final String databaseName;
-    private final ConnectionAction<Void> schemaInitializer;
+    private final List<ConnectionAction<Void>> databaseInitializers;
     private Connection connection;
 
-    public PerformanceDatabase(String databaseName, ConnectionAction<Void> schemaInitializer) {
+    public PerformanceDatabase(String databaseName, ConnectionAction<Void>... schemaInitializers) {
         this.databaseName = databaseName;
-        this.schemaInitializer = schemaInitializer;
+        this.databaseInitializers = Arrays.asList(schemaInitializers);
     }
 
     public void close() {
@@ -45,15 +47,17 @@ public class PerformanceDatabase {
     public <T> T withConnection(ConnectionAction<T> action) throws SQLException {
         if (connection == null) {
             connection = DriverManager.getConnection(getUrl(), getUserName(), getPassword());
-            try {
-                schemaInitializer.execute(connection);
-            } catch (SQLException e) {
-                if (e.getErrorCode() == 90096) {
-                    System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
-                } else {
-                    connection.close();
-                    connection = null;
-                    throw e;
+            for (ConnectionAction<Void> initializer : databaseInitializers) {
+                try {
+                    initializer.execute(connection);
+                } catch (SQLException e) {
+                    if (e.getErrorCode() == 90096) {
+                        System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
+                    } else {
+                        connection.close();
+                        connection = null;
+                        throw e;
+                    }
                 }
             }
         }

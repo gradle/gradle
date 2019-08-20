@@ -18,7 +18,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -73,68 +72,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    void "can publish java-library-platform to ivy repository"() {
-        requiresExternalDependencies = true
-
-        given:
-        createBuildScripts("""
-            publishing {
-                publications {
-                    ivy(IvyPublication) {
-                        from components.javaLibraryPlatform
-                    }
-                }
-            }
-
-            $dependencies            
-""")
-        executer.expectDeprecationWarning()
-
-        when:
-        run "publish"
-
-        then:
-        def backingModule = javaLibrary.backingModule
-
-        backingModule.assertPublished()
-        backingModule.assertArtifactsPublished(backingModule.ivyFile.name, backingModule.moduleMetadataFile.name)
-
-        // No files are published for either variant
-        with(javaLibrary.parsedModuleMetadata) {
-            variants*.name as Set == ['api', 'runtime'] as Set
-            variant('api').files.empty
-            variant('runtime').files.empty
-        }
-
-        with(javaLibrary.parsedIvy) {
-            configurations.keySet() == ["default", "compile", "runtime"] as Set
-            configurations["default"].extend == ["runtime", "compile"] as Set
-            configurations["runtime"].extend == null
-
-            artifacts.empty
-        }
-        with(javaLibrary.parsedModuleMetadata) {
-            variant('api') {
-                dependency('commons-collections:commons-collections:3.2.2')
-                noMoreDependencies()
-            }
-        }
-        with(javaLibrary.parsedModuleMetadata) {
-            variant('runtime') {
-                dependency('commons-collections:commons-collections:3.2.2')
-                dependency('commons-io:commons-io:1.4')
-                noMoreDependencies()
-            }
-        }
-
-        and:
-        resolveArtifacts(javaLibrary) {
-            expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar"
-        }
-    }
-
     @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
     void "maps dependencies in the correct Ivy configuration"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
+
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest' 
@@ -184,17 +127,17 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         where:
-        plugin         | gradleConfiguration | ivyConfiguration
-        'java'         | 'compile'           | 'compile'
-        'java'         | 'runtime'           | 'compile'
-        'java'         | 'implementation'    | 'runtime'
-        'java'         | 'runtimeOnly'       | 'runtime'
+        plugin         | gradleConfiguration | ivyConfiguration | deprecatedConfiguration
+        'java'         | 'compile'           | 'compile'        | true
+        'java'         | 'runtime'           | 'compile'        | true
+        'java'         | 'implementation'    | 'runtime'        | false
+        'java'         | 'runtimeOnly'       | 'runtime'        | false
 
-        'java-library' | 'api'               | 'compile'
-        'java-library' | 'compile'           | 'compile'
-        'java-library' | 'runtime'           | 'compile'
-        'java-library' | 'runtimeOnly'       | 'runtime'
-        'java-library' | 'implementation'    | 'runtime'
+        'java-library' | 'api'               | 'compile'        | false
+        'java-library' | 'compile'           | 'compile'        | true
+        'java-library' | 'runtime'           | 'compile'        | true
+        'java-library' | 'runtimeOnly'       | 'runtime'        | false
+        'java-library' | 'implementation'    | 'runtime'        | false
 
     }
 
@@ -1124,9 +1067,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll
-    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
-        publishModuleMetadata = enableFeaturePreview
-
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
             publishing {
@@ -1143,9 +1084,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             generateMetadataFileForIvyPublication.enabled = $enabled
         """)
         settingsFile.text = "rootProject.name = 'publishTest' "
-        if (enableFeaturePreview) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
 
         when:
         succeeds 'publish'
@@ -1155,11 +1093,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         module.hasGradleMetadataRedirectionMarker() == hasMarker
 
         where:
-        enableFeaturePreview | enabled | hasMarker
-        false                | false   | false
-        false                | true    | false
-        true                 | false   | false
-        true                 | true    | true
+        enabled | hasMarker
+        false   | false
+        true    | true
     }
 
     @Unroll

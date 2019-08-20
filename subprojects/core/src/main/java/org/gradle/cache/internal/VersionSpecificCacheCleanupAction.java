@@ -20,9 +20,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;
@@ -47,12 +47,14 @@ public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
     private final long maxUnusedDaysForReleases;
     private final long maxUnusedDaysForSnapshots;
+    private final Deleter deleter;
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleasesAndSnapshots) {
-        this(cacheBaseDir, maxUnusedDaysForReleasesAndSnapshots, maxUnusedDaysForReleasesAndSnapshots);
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleasesAndSnapshots, Deleter deleter) {
+        this(cacheBaseDir, maxUnusedDaysForReleasesAndSnapshots, maxUnusedDaysForReleasesAndSnapshots, deleter);
     }
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleases, long maxUnusedDaysForSnapshots) {
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleases, long maxUnusedDaysForSnapshots, Deleter deleter) {
+        this.deleter = deleter;
         Preconditions.checkArgument(maxUnusedDaysForReleases >= maxUnusedDaysForSnapshots,
             "maxUnusedDaysForReleases (%s) must be greater than or equal to maxUnusedDaysForSnapshots (%s)", maxUnusedDaysForReleases, maxUnusedDaysForSnapshots);
         this.versionSpecificCacheDirectoryScanner = new VersionSpecificCacheDirectoryScanner(cacheBaseDir);
@@ -131,7 +133,7 @@ public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction
 
     private void deleteCacheDir(File cacheDir) throws IOException {
         LOGGER.debug("Deleting version-specific cache directory at {}", cacheDir);
-        FileUtils.deleteDirectory(cacheDir);
+        deleter.deleteRecursively(cacheDir, true);
     }
 
     private static class CleanupCondition implements Spec<VersionSpecificCacheDirectory> {

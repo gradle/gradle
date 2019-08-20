@@ -152,7 +152,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.0
      */
-    @Incubating
     void setTargetConfiguration(@Nullable String name);
 
     /**
@@ -170,7 +169,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 4.8
      */
     @Override
-    @Incubating
     AttributeContainer getAttributes();
 
     /**
@@ -182,7 +180,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 4.8
      */
     @Override
-    @Incubating
     ModuleDependency attributes(Action<? super AttributeContainer> configureAction);
 
     /**
@@ -191,7 +188,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 5.3
      */
-    @Incubating
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
 
     /**
@@ -200,6 +196,30 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 5.3
      */
-    @Incubating
     List<Capability> getRequestedCapabilities();
+
+    /**
+     * Inherit version constraints with {@link VersionConstraint#isForSubgraph()} from the target module.
+     * For this, the version constraint of this dependency needs to strictly point at one version.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void inheritConstraints();
+
+    /**
+     * Resets the {@link #isInheriting()} state of this dependency.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void notInheritConstraints();
+
+    /**
+     * Are the {@link VersionConstraint#isForSubgraph()} dependency constraints of the target module inherited?
+     *
+     * @since 6.0
+     */
+    @Incubating
+    boolean isInheriting();
 }

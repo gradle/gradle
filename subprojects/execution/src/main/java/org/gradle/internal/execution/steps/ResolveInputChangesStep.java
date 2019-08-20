@@ -42,7 +42,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
 
     @Override
     public Result execute(C context) {
-        final UnitOfWork work = context.getWork();
+        UnitOfWork work = context.getWork();
         Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
             ? Optional.of(determineInputChanges(work, context))
             : Optional.empty();

@@ -47,7 +47,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin'
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
             assert handle.standardOutput.contains("1: Groovy")
             assert handle.standardOutput.contains("2: Kotlin")
@@ -55,7 +55,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
@@ -80,7 +80,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'java'
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Select implementation language:")
             assert handle.standardOutput.contains("1: C++")
             assert handle.standardOutput.contains("2: Groovy")
@@ -91,26 +91,26 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin' DSL
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'junit'
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Select test framework:")
             assert handle.standardOutput.contains("1: JUnit 4")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Enter a package name
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Source package (default: some.thing)")
         }
         handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
@@ -132,7 +132,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         def handle = executer.start()
 
         // Select 'yes'
-        ConcurrentTestUtil.poll(20) {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
@@ -157,13 +157,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         def handle = executer.start()
 
         // Select 'no'
-        ConcurrentTestUtil.poll(20) {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
         handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'basic'
-        ConcurrentTestUtil.poll(20) {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
             assert handle.standardOutput.contains(basicType)
             assert !handle.standardOutput.contains("pom")
@@ -171,13 +171,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin'
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)

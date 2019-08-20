@@ -161,7 +161,12 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        toolingApi.withConnection(cl)
+        try {
+            toolingApi.withConnection(cl)
+        } catch (GradleConnectionException e) {
+            caughtGradleConnectionException = e
+            throw e
+        }
     }
 
     public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
@@ -191,7 +196,9 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("5.3")) {
+        if (targetVersion >= GradleVersion.version("6.0")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'prepareKotlinBuildScriptModel']
+        } else if (targetVersion >= GradleVersion.version("5.3")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'prepareKotlinBuildScriptModel']
         } else if (targetVersion > GradleVersion.version("3.1")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model']

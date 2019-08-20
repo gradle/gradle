@@ -42,6 +42,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -121,7 +122,13 @@ public class JavaCompile extends AbstractCompile {
             createCompiler(spec),
             getPath(),
             getSource(),
-            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs, new CompilationSourceDirs(spec.getSourceRoots()))
+            new JavaRecompilationSpecProvider(
+                getDeleter(),
+                ((ProjectInternal) getProject()).getFileOperations(),
+                (FileTreeInternal) getSource(),
+                inputs,
+                new CompilationSourceDirs(spec.getSourceRoots())
+            )
         );
         performCompilation(spec, incrementalCompiler);
     }
@@ -136,6 +143,11 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
     @Override
     protected void compile() {
         DefaultJavaCompileSpec spec = createSpec();
@@ -146,7 +158,7 @@ public class JavaCompile extends AbstractCompile {
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getOutputs());
+        return new CleaningJavaCompiler(javaCompiler, getOutputs(), getDeleter());
     }
 
     @Nested

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -65,11 +64,10 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import javax.annotation.Nonnull;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = new DefaultMavenPomMetadataSource.MavenMetadataValidator() {
@@ -106,13 +104,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
-                                          FeaturePreviews featurePreviews,
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
-            resourcesFileStore, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
+            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -126,7 +123,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
-                                          FeaturePreviews featurePreviews,
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory) {
@@ -144,7 +140,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.fileResourceRepository = fileResourceRepository;
         this.metadataFactory = metadataFactory;
         this.isolatableFactory = isolatableFactory;
-        this.metadataSources.setDefaults(featurePreviews);
+        this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
     }
 
@@ -227,6 +223,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             .setMetadataSources(metadataSources.asList())
             .setArtifactUrls(Sets.newHashSet(getArtifactUrls()))
             .create();
+    }
+
+    @Override
+    protected Collection<URI> getRepositoryUrls() {
+        // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
+        ImmutableList.Builder<URI> builder = ImmutableList.builder();
+        URI root = getUrl();
+        if (root != null) {
+            builder.add(root);
+        }
+        builder.addAll(getArtifactUrls());
+        return builder.build();
     }
 
     @Nonnull
@@ -346,15 +354,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         boolean artifact;
         boolean ignoreGradleMetadataRedirection;
 
-        void setDefaults(FeaturePreviews featurePreviews) {
+        void setDefaults() {
             mavenPom();
-            if (featurePreviews.isFeatureEnabled(GRADLE_METADATA)) {
-                gradleMetadata();
-            } else {
-                artifact();
-            }
             ignoreGradleMetadataRedirection = false;
-
         }
 
         void reset() {

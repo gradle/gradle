@@ -12,8 +12,10 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
         withBuildScript("""
 
-            val resolver = ${SourceDistributionResolver::class.qualifiedName}(project)
-            val sourceDirs = resolver.sourceDirs()
+            val sourceDirs =
+                ${SourceDistributionResolver::class.qualifiedName}(project).run {
+                    sourceDirs()
+                }
             require(sourceDirs.isNotEmpty()) {
                 "Expected source directories but got none"
             }

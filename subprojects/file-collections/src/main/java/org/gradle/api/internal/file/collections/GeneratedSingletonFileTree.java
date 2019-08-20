@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -38,7 +37,7 @@ import java.util.Arrays;
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
+public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implements GeneratedFiles {
     private final Factory<File> tmpDirSource;
     private final FileSystem fileSystem = FileSystems.getDefault();
 
@@ -194,9 +193,5 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree {
             return new RelativePath(true, fileName);
         }
 
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
     }
 }

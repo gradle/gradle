@@ -56,12 +56,9 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
-import java.util.Collections;
-import java.util.List;
-
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataHandlerInternal, ComponentMetadataProcessorFactory {
     private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
-    private static final List<Class<?>> VALIDATOR_PARAM_LIST = Collections.<Class<?>>singletonList(IvyModuleDescriptor.class);
+    private static final Class<?> VALIDATOR_PARAM = IvyModuleDescriptor.class;
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
 
     private final Instantiator instantiator;
@@ -102,7 +99,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private static RuleActionAdapter createAdapter() {
-        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator(VALIDATOR_PARAM_LIST);
+        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator(VALIDATOR_PARAM);
         return new DefaultRuleActionAdapter(ruleActionValidator, ADAPTER_NAME);
     }
 

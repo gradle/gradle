@@ -21,24 +21,34 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
 public class FileCopier {
-    private final Instantiator instantiator;
-    private final FileSystem fileSystem;
-    private final FileResolver fileResolver;
-    private final FileLookup fileLookup;
+    private final Deleter deleter;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final FileLookup fileLookup;
+    private final FileResolver fileResolver;
+    private final FileSystem fileSystem;
+    private final Instantiator instantiator;
 
-    public FileCopier(Instantiator instantiator, FileSystem fileSystem, FileResolver fileResolver, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this.instantiator = instantiator;
-        this.fileSystem = fileSystem;
-        this.fileResolver = fileResolver;
-        this.fileLookup = fileLookup;
+    public FileCopier(
+        Deleter deleter,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        FileLookup fileLookup,
+        FileResolver fileResolver,
+        FileSystem fileSystem,
+        Instantiator instantiator
+    ) {
+        this.deleter = deleter;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.fileLookup = fileLookup;
+        this.fileResolver = fileResolver;
+        this.fileSystem = fileSystem;
+        this.instantiator = instantiator;
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
@@ -58,7 +68,7 @@ public class FileCopier {
     public WorkResult sync(Action<? super CopySpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), directoryFileTreeFactory));
+        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), deleter, directoryFileTreeFactory));
     }
 
     private FileCopyAction getCopyVisitor(File destination) {

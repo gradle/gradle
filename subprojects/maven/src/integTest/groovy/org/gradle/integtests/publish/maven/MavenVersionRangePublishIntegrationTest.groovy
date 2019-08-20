@@ -23,6 +23,8 @@ import spock.lang.Unroll
 class MavenVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 

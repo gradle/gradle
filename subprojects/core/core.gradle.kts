@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import java.util.concurrent.Callable
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
@@ -67,7 +66,6 @@ dependencies {
     implementation(library("commons_compress"))
     implementation(library("xmlApis"))
 
-    runtimeOnly(project(":instantExecution"))
     runtimeOnly(project(":docs"))
 
     testImplementation(project(":plugins"))
@@ -143,6 +141,7 @@ dependencies {
     integTestImplementation(library("jetbrains_annotations"))
     integTestImplementation(testLibrary("jetty"))
     integTestImplementation(testLibrary("littleproxy"))
+    integTestImplementation(testFixtures(project(":native")))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     integTestRuntimeOnly(project(":maven"))

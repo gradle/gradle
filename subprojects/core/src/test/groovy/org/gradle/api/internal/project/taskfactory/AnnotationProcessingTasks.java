@@ -27,6 +27,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -130,6 +132,13 @@ public class AnnotationProcessingTasks {
         public void doStuff(IncrementalTaskInputs changes) {
             action.execute(changes);
         }
+
+        @Optional
+        @OutputFile
+        @Nullable
+        public File getOutputFile() {
+            return null;
+        }
     }
 
     public static class TaskWithOverriddenIncrementalAction extends TaskWithIncrementalAction {
@@ -165,6 +174,13 @@ public class AnnotationProcessingTasks {
         @TaskAction
         public void doStuff(InputChanges changes) {
             action.execute(changes);
+        }
+
+        @Optional
+        @OutputFile
+        @Nullable
+        public File getOutputFile() {
+            return null;
         }
     }
 

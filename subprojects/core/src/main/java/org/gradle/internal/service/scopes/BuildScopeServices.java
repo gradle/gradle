@@ -110,6 +110,7 @@ import org.gradle.initialization.BuildOperationSettingsProcessor;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultSettingsFinder;
@@ -148,6 +149,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -282,14 +284,18 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-        CacheRepository cacheRepository, final StartParameter startParameter,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
+        BuildOperationExecutor buildOperationExecutor,
+        CacheRepository cacheRepository,
+        ClassLoaderCache classLoaderCache,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        BuildOperationExecutor buildOperationExecutor) {
+        Deleter deleter,
+        ImportsReader importsReader,
+        ProgressLoggerFactory progressLoggerFactory
+    ) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(
-                new DefaultScriptCompilationHandler(classLoaderCache, importsReader), buildOperationExecutor),
+                new DefaultScriptCompilationHandler(classLoaderCache, deleter, importsReader), buildOperationExecutor),
             progressLoggerFactory,
             classLoaderCache,
             classLoaderHierarchyHasher);
@@ -322,7 +328,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ExecFactory.class),
             get(FileCollectionFactory.class),
             get(AutoAppliedPluginHandler.class),
-            get(Clock.class));
+            get(Deleter.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {
@@ -429,8 +435,22 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new BuildScopeServiceRegistryFactory(services);
     }
 
-    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCache classLoaderCache) {
-        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache);
+    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
+        ClassLoaderRegistry classLoaderRegistry,
+        ClassLoaderCache classLoaderCache,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultClassLoaderScopeRegistry(
+            classLoaderRegistry,
+            classLoaderCache,
+            classLoaderScopeRegistryListenerFor(listenerManager)
+        );
+    }
+
+    private ClassLoaderScopeRegistryListener classLoaderScopeRegistryListenerFor(ListenerManager listenerManager) {
+        return listenerManager.hasListeners(ClassLoaderScopeRegistryListener.class)
+            ? listenerManager.getBroadcaster(ClassLoaderScopeRegistryListener.class)
+            : ClassLoaderScopeRegistryListener.NULL;
     }
 
     protected ProjectTaskLister createProjectTaskLister() {

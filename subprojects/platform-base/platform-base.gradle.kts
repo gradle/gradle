@@ -22,6 +22,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
+    testImplementation(project(":processServices"))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 

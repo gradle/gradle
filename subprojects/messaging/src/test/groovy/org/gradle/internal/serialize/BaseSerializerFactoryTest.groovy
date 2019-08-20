@@ -16,6 +16,9 @@
 
 package org.gradle.internal.serialize
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 class BaseSerializerFactoryTest extends SerializerSpec {
     def factory = new BaseSerializerFactory()
 
@@ -29,6 +32,14 @@ class BaseSerializerFactoryTest extends SerializerSpec {
         expect:
         def serializer = factory.getSerializerFor(File)
         usesEfficientSerialization(new File("some-file"), serializer, 10) == new File("some-file")
+    }
+
+    def "uses efficient serialization for Paths"() {
+        expect:
+        def serializer = factory.getSerializerFor(Path)
+        def encoded = toBytes(Paths.get("some-file"), serializer)
+        fromBytes(encoded, serializer) == Paths.get("some-file")
+        encoded.length == 10
     }
 
     def "uses efficient serialization for Long"() {

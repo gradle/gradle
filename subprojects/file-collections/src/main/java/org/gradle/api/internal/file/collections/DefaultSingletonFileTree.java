@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -46,11 +45,6 @@ public class DefaultSingletonFileTree extends AbstractSingletonFileTree {
     @Override
     protected FileVisitDetails createFileVisitDetails() {
         return new DefaultFileVisitDetails(file, fileSystem, fileSystem);
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        builder.add(file);
     }
 
     @Override

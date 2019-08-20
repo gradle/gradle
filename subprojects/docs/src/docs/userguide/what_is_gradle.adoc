@@ -48,6 +48,7 @@ Gradle allows you to build any software, because it makes few assumptions about 
 
 This doesn't mean you have to do a lot of work to create a build. Gradle makes it easy to build common types of project — say Java libraries — by adding a layer of conventions and prebuilt functionality through <<plugins#plugins,_plugins_>>. You can even create and publish custom plugins to encapsulate your own conventions and build functionality.
 
+[[2_the_core_model_is_based_on_tasks]]
 === 2. The core model is based on tasks
 
 Gradle models its builds as Directed Acyclic Graphs (DAGs) of tasks (units of work). What this means is that a build essentially configures a set of tasks and wires them together — based on their dependencies — to create that DAG. Once the task graph has been created, Gradle determines which tasks need to be run in which order and then proceeds to execute them.
@@ -69,7 +70,7 @@ In fact, all of the above are optional depending on what the task needs to do. S
 
 NOTE: You choose which task to run. Save time by specifying the task that does what you need, but no more than that. If you just want to run the unit tests, choose the task that does that — typically `test`. If you want to package an application, most builds have an `assemble` task for that.
 
-One last thing: Gradle's <<more_about_tasks#sec:up_to_date_checks,incremental build>> support is robust and reliable, so keep your builds running fast by avoiding the `clean` task unless you actually do want to perform a clean. 
+One last thing: Gradle's <<more_about_tasks#sec:up_to_date_checks,incremental build>> support is robust and reliable, so keep your builds running fast by avoiding the `clean` task unless you actually do want to perform a clean.
 
 === 3. Gradle has several fixed build phases
 
@@ -107,7 +108,7 @@ It would be great if you could build your project using only the build logic bun
 
 Gradle provides several mechanisms that allow you to extend it, such as:
 
- * <<custom_tasks,Custom task types>>.
+ * <<custom_tasks#,Custom task types>>.
 +
 When you want the build to do some work that an existing task can't do, you can simply write your own task type. It's typically best to put the source file for a custom task type in the <<organizing_gradle_projects#sec:build_sources,_buildSrc_>> directory or in a packaged plugin. Then you can use the custom task type just like any of the Gradle-provided ones.
 
@@ -115,7 +116,7 @@ When you want the build to do some work that an existing task can't do, you can 
 +
 You can attach custom build logic that executes before or after a task via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst()] and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast()] methods.
 
- * Extra properties on <<writing_build_scripts#sec:extra_properties,projects>> and <<writing_build_scripts#sec:extra_task_properties,tasks>>.
+ * <<writing_build_scripts#sec:extra_properties,Extra properties>> on projects and tasks.
 +
 These allows you to add your own properties to a project or task that you can then use from your own custom actions or any other build logic. Extra properties can even be applied to tasks that aren't explicitly created by you, such as those created by Gradle's core plugins.
 

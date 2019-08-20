@@ -21,11 +21,12 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Assert
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
@@ -91,6 +92,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         def collection = factory.empty("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
@@ -110,20 +112,48 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection2.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with a list containing nothing"() {
+    def "constructs empty collection with display name"() {
+        expect:
+        def collection = factory.empty("some collection")
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "some collection"
+    }
+
+    def "returns empty collection when constructed with no sources"() {
+        expect:
+        def collection = factory.resolving()
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.toString() == "file collection"
+    }
+
+    def "returns empty collection when constructed with display name and a list containing nothing"() {
         expect:
         def collection = factory.resolving("some collection", [])
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with an array containing nothing"() {
+    def "returns empty collection when constructed with display name and an array containing nothing"() {
         expect:
         def collection = factory.resolving("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
         collection.toString() == "some collection"
+    }
+
+    def "returns original file collection when constructed with a single collection"() {
+        def original = Stub(FileCollectionInternal)
+
+        expect:
+        def collection = factory.resolving(original)
+        collection.is(original)
     }
 
     def 'resolves specified files using FileResolver'() {
@@ -228,11 +258,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
             Set<File> getFiles() {
                 return ImmutableSet.copyOf(files)
             }
-
-            @Override
-            TaskDependency getBuildDependencies() {
-                return new DefaultTaskDependency()
-            }
         }
     }
 
@@ -256,5 +281,27 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'Path'      | tmpDir.file('abc').toPath()
         'URI'       | tmpDir.file('abc').toURI()
         'URL'       | tmpDir.file('abc').toURI().toURL()
+    }
+
+    static class BrokenVisitor implements FileCollectionStructureVisitor {
+        @Override
+        void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            Assert.fail()
+        }
+
+        @Override
+        void visitGenericFileTree(FileTreeInternal fileTree) {
+            Assert.fail()
+        }
+
+        @Override
+        void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+            Assert.fail()
+        }
+
+        @Override
+        void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+            Assert.fail()
+        }
     }
 }

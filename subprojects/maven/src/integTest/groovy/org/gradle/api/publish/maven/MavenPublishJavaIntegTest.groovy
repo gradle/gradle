@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -589,89 +588,11 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    def "can publish java-library-platform with dependencies and constraints"() {
-        given:
-        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
-
-        createBuildScripts("""
-            dependencies {
-                api "org.test:bar"
-                implementation "org.test:foo:1.0"
-                
-                constraints {
-                    api "org.test:bar:1.0"
-                    implementation "org.test:bar:1.1"
-                }
-            }
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.javaLibraryPlatform
-                    }
-                }
-            }
-""")
-        executer.expectDeprecationWarning()
-
-        when:
-        run "publish"
-
-        then:
-        def mavenModule = javaLibrary.mavenModule
-        mavenModule.removeGradleMetadataRedirection()
-
-        mavenModule.assertPublished()
-        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
-
-        and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
-            files.empty
-            dependency('org.test:bar:').exists()
-            constraint('org.test:bar:1.0').exists()
-            noMoreDependencies()
-        }
-
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
-            files.empty
-            dependency('org.test:bar:').exists()
-            dependency('org.test:foo:1.0').exists()
-            constraint('org.test:bar:1.0').exists()
-            constraint('org.test:bar:1.1').exists()
-            noMoreDependencies()
-        }
-
-
-        // Published with pom packaging
-        assert javaLibrary.parsedPom.packaging == 'pom'
-        javaLibrary.parsedPom.scopes.compile.assertDependsOn('org.test:bar:')
-        javaLibrary.parsedPom.scopes.compile.assertDependencyManagement('org.test:bar:1.0')
-        javaLibrary.parsedPom.scopes.runtime.assertDependsOn('org.test:foo:1.0')
-        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement('org.test:bar:1.1')
-
-        and:
-        resolveArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.0.jar"
-        }
-        resolveApiArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.0.jar"
-            }
-            withoutModuleMetadata {
-                // To allow this, we would need to support multiple dependency management entries with different scopes
-                // for the same module. This is not supported by Maven and an attempt to implement it in Gradle failed.
-                // See: https://github.com/gradle/gradle/issues/4202
-                expectFiles "bar-1.1.jar"
-            }
-        }
-        resolveRuntimeArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.0.jar"
-        }
-    }
-
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest' 
@@ -720,17 +641,17 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         where:
-        plugin         | gradleConfiguration | mavenScope
-        'java'         | 'compile'           | 'compile'
-        'java'         | 'runtime'           | 'compile'
-        'java'         | 'implementation'    | 'runtime'
-        'java'         | 'runtimeOnly'       | 'runtime'
+        plugin         | gradleConfiguration | mavenScope | deprecatedConfiguration
+        'java'         | 'compile'           | 'compile'  | true
+        'java'         | 'runtime'           | 'compile'  | true
+        'java'         | 'implementation'    | 'runtime'  | false
+        'java'         | 'runtimeOnly'       | 'runtime'  | false
 
-        'java-library' | 'api'               | 'compile'
-        'java-library' | 'compile'           | 'compile'
-        'java-library' | 'runtime'           | 'compile'
-        'java-library' | 'runtimeOnly'       | 'runtime'
-        'java-library' | 'implementation'    | 'runtime'
+        'java-library' | 'api'               | 'compile'  | false
+        'java-library' | 'compile'           | 'compile'  | true
+        'java-library' | 'runtime'           | 'compile'  | true
+        'java-library' | 'runtimeOnly'       | 'runtime'  | false
+        'java-library' | 'implementation'    | 'runtime'  | false
 
     }
 
@@ -1218,9 +1139,7 @@ include(':platform')
     }
 
     @Unroll
-    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
-        publishModuleMetadata = enableFeaturePreview
-
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
             publishing {
@@ -1237,9 +1156,6 @@ include(':platform')
             generateMetadataFileForMavenPublication.enabled = $enabled
         """)
         settingsFile.text = "rootProject.name = 'publishTest' "
-        if (enableFeaturePreview) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
 
         when:
         succeeds 'publish'
@@ -1249,11 +1165,9 @@ include(':platform')
         module.hasGradleMetadataRedirectionMarker() == hasMarker
 
         where:
-        enableFeaturePreview | enabled | hasMarker
-        false                | false   | false
-        false                | true    | false
-        true                 | false   | false
-        true                 | true    | true
+        enabled | hasMarker
+        false   | false
+        true    | true
     }
 
 }

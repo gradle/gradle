@@ -110,8 +110,8 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule withGradleMetadataRedirection() {
-        backingModule.withGradleMetadataRedirection();
+    public MavenModule withoutGradleMetadataRedirection() {
+        backingModule.withoutGradleMetadataRedirection();
         return t();
     }
 

@@ -22,14 +22,14 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     boolean featureAvailable() {
-        gradleMetadataEnabled
+        gradleMetadataPublished
     }
 
-    void "dependency constraint is ignored when feature is not enabled"() {
+    @RequiredFeatures(
+        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")]
+    )
+    void "published dependency constraint is ignored when Gradle module metadata is not available"() {
         given:
-        // Do not enable feature
-        settingsFile.text = "rootProject.name = '$rootProjectName'"
-
         repository {
             'org:foo:1.0'()
             'org:foo:1.1'()
@@ -148,7 +148,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                        if (GradleMetadataResolveRunner.gradleMetadataPublished) {
                             constraint("org:foo:1.1", "org:foo:1.1").byConstraint('published dependency constraint')
                         } else {
                             constraint("org:foo:1.1", "org:foo:1.1")

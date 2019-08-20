@@ -18,7 +18,6 @@ package org.gradle.caching.configuration.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
-import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
@@ -120,8 +119,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         !localBuildCache.empty
     }
 
-    @Unroll
-    def "last #cache cache configuration wins"() {
+    def "last remote cache configuration wins"() {
         settingsFile << """
             import org.gradle.caching.internal.NoOpBuildCacheService
 
@@ -144,23 +142,15 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
                 registerBuildCacheService(AnotherBuildCache, AnotherBuildCacheFactory)
 
-                $cache(CustomBuildCache)
-                $cache(AnotherBuildCache)
+                remote(CustomBuildCache)
+                remote(AnotherBuildCache)
             }
             
-            assert buildCache.$cache instanceof AnotherBuildCache
+            assert buildCache.remote instanceof AnotherBuildCache
         """
-        if (expectDeprecation) {
-            executer.expectDeprecationWarning()
-        }
 
         expect:
         succeeds("help")
-
-        where:
-        cache    | expectDeprecation
-        "local"  | true
-        "remote" | false
     }
 
     def "disables remote cache with --offline"() {
@@ -275,8 +265,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         localBuildCache.empty
     }
 
-    @Unroll
-    def "shows deprecation warning when using custom local cache using #customCacheConfig"() {
+    def "throws error when trying to use custom local cache"() {
         settingsFile << """
             class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
@@ -288,22 +277,15 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
                 
-                $customCacheConfig
+                local(CustomBuildCache)
             }
         """
-        executer.expectDeprecationWarning()
 
-        when:
-        run "help"
+        expect:
+        fails "help"
 
-        then:
-        output.contains("Using a local build cache type other than DirectoryBuildCache has been deprecated. This is scheduled to be removed in Gradle 6.0.")
-
-        where:
-        customCacheConfig << [
-            "local(CustomBuildCache).enabled = false",
-            "local(CustomBuildCache) { enabled = false }"
-        ]
+        and:
+        failureHasCause("Using a local build cache type other than DirectoryBuildCache is not allowed")
     }
 
     private static String customTaskCode() {

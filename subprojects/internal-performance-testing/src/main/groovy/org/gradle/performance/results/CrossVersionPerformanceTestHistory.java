@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CrossVersionPerformanceTestHistory implements PerformanceTestHistory {
     private final String name;
@@ -54,7 +55,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     public List<String> getKnownVersions() {
         if (knownVersions == null) {
-            ArrayList<String> result = new ArrayList<String>();
+            ArrayList<String> result = new ArrayList<>();
             result.addAll(versions);
             result.addAll(branches);
             knownVersions = result;
@@ -74,7 +75,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
      */
     public List<CrossVersionPerformanceResults> getResultsOldestFirst() {
         if (oldestFirst == null) {
-            oldestFirst = new ArrayList<CrossVersionPerformanceResults>(newestFirst);
+            oldestFirst = new ArrayList<>(newestFirst);
             Collections.reverse(oldestFirst);
         }
         return oldestFirst;
@@ -82,12 +83,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     @Override
     public List<PerformanceTestExecution> getExecutions() {
-        return Lists.transform(getResults(), new Function<CrossVersionPerformanceResults, PerformanceTestExecution>() {
-            @Override
-            public PerformanceTestExecution apply(final CrossVersionPerformanceResults result) {
-                return new KnownVersionsPerformanceTestExecution(result);
-            }
-        });
+        return getResults().stream().map(KnownVersionsPerformanceTestExecution::new).collect(Collectors.toList());
     }
 
     @Override
@@ -96,47 +92,42 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             return Collections.emptyList();
         }
         final CrossVersionPerformanceResults mostRecent = newestFirst.get(0);
-        return Lists.transform(getKnownVersions(), new Function<String, ScenarioDefinition>() {
+        return Lists.transform(getKnownVersions(), (Function<String, ScenarioDefinition>) input -> new ScenarioDefinition() {
             @Override
-            public ScenarioDefinition apply(final String input) {
-                return new ScenarioDefinition() {
-                    @Override
-                    public String getDisplayName() {
-                        return input;
-                    }
+            public String getDisplayName() {
+                return input;
+            }
 
-                    @Override
-                    public String getTestProject() {
-                        return mostRecent.getTestProject();
-                    }
+            @Override
+            public String getTestProject() {
+                return mostRecent.getTestProject();
+            }
 
-                    @Override
-                    public List<String> getTasks() {
-                        return mostRecent.getTasks();
-                    }
+            @Override
+            public List<String> getTasks() {
+                return mostRecent.getTasks();
+            }
 
-                    @Override
-                    public List<String> getCleanTasks() {
-                        return mostRecent.getCleanTasks();
-                    }
+            @Override
+            public List<String> getCleanTasks() {
+                return mostRecent.getCleanTasks();
+            }
 
-                    @Override
-                    public List<String> getArgs() {
-                        return mostRecent.getArgs();
-                    }
+            @Override
+            public List<String> getArgs() {
+                return mostRecent.getArgs();
+            }
 
-                    @Nullable
-                    @Override
-                    public List<String> getGradleOpts() {
-                        return mostRecent.getGradleOpts();
-                    }
+            @Nullable
+            @Override
+            public List<String> getGradleOpts() {
+                return mostRecent.getGradleOpts();
+            }
 
-                    @Nullable
-                    @Override
-                    public Boolean getDaemon() {
-                        return mostRecent.getDaemon();
-                    }
-                };
+            @Nullable
+            @Override
+            public Boolean getDaemon() {
+                return mostRecent.getDaemon();
             }
         });
     }
@@ -195,12 +186,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
         @Override
         public List<MeasuredOperationList> getScenarios() {
-            return Lists.transform(getKnownVersions(), new Function<String, MeasuredOperationList>() {
-                @Override
-                public MeasuredOperationList apply(String version) {
-                    return result.version(version).getResults();
-                }
-            });
+            return getKnownVersions().stream().map(version -> result.version(version).getResults()).collect(Collectors.toList());
         }
 
         @Override

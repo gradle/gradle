@@ -80,13 +80,18 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
+    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+        return this;
+    }
+
+    @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         if (targetComponent instanceof LenientPlatformResolveMetadata) {
             LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponent;
             return Collections.singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState(), platformId));
         }
         // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, false, null).selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, false, false, null).selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override
@@ -117,6 +122,11 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     @Override
     public boolean isConstraint() {
         return true;
+    }
+
+    @Override
+    public boolean isInheriting() {
+        return false;
     }
 
     @Override

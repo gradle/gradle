@@ -43,7 +43,6 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 
         when:
         module.ivy.expectMetadataRetrieve()
-        module.jar.expectMetadataRetrieve()
 
         then:
         fails 'retrieve'
@@ -52,7 +51,6 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
                 .assertHasCause("""Could not find org.group.name:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-  - ${module.jar.uri}
 Required by:
 """)
     }

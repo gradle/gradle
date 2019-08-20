@@ -159,8 +159,8 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
     }
 
     private void createIvyFile(boolean marker) {
-        if (marker) {
-            mainModule.withGradleMetadataRedirection()
+        if (!marker) {
+            mainModule.withoutGradleMetadataRedirection()
         }
         mainModule.publish()
         // and now we manually patch the Gradle metadata so that its dependencies

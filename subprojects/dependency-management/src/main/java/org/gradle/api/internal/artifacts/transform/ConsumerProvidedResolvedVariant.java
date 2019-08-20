@@ -21,17 +21,18 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 
 /**
  * Transformed artifact set that performs the transformation itself when requested.
  */
-public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
+public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, ConsumerProvidedVariantFiles {
     private final ComponentIdentifier componentIdentifier;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
@@ -56,11 +57,19 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     }
 
     @Override
+    public String toString() {
+        return componentIdentifier + " " + attributes;
+    }
+
+    @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
+        if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
+            return visitor -> visitor.endVisitCollection(ConsumerProvidedResolvedVariant.this);
+        }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Map<File, TransformationResult> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver(), transformationNodeRegistry));
-        return new TransformCompletion(result, attributes, artifactResults, fileResults);
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry));
+        return new TransformCompletion(result, attributes, artifactResults);
     }
 
     @Override
@@ -70,7 +79,15 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(new DefaultTransformationDependency(transformation, delegate, getDependenciesResolver()));
+        Collection<TransformationNode> scheduledNodes = transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
+        if (!scheduledNodes.isEmpty()) {
+            context.add(new DefaultTransformationDependency(scheduledNodes));
+        }
+    }
+
+    @Override
+    public Collection<TransformationNode> getScheduledNodes() {
+        return transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
     }
 
     private ExecutionGraphDependenciesResolver getDependenciesResolver() {

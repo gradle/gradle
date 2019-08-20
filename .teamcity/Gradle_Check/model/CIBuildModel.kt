@@ -90,7 +90,6 @@ data class CIBuildModel(
         )
     ),
     val subProjects: List<GradleSubproject> = listOf(
-        GradleSubproject("announce"),
         GradleSubproject("antlr"),
         GradleSubproject("baseServices"),
         GradleSubproject("baseServicesGroovy", functionalTests = false),
@@ -98,7 +97,6 @@ data class CIBuildModel(
         GradleSubproject("buildCache"),
         GradleSubproject("buildCacheHttp"),
         GradleSubproject("buildCachePackaging"),
-        GradleSubproject("buildComparison"),
         GradleSubproject("buildProfile"),
         GradleSubproject("buildOption"),
         GradleSubproject("buildInit"),
@@ -139,7 +137,6 @@ data class CIBuildModel(
         GradleSubproject("modelCore"),
         GradleSubproject("modelGroovy"),
         GradleSubproject("native"),
-        GradleSubproject("osgi"),
         GradleSubproject("persistentCache"),
         GradleSubproject("pineapple", unitTests = false, functionalTests = false),
         GradleSubproject("platformBase"),

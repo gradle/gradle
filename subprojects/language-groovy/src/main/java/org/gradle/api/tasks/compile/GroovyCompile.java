@@ -37,11 +37,11 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovySourceFileClassNameConverter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.model.ObjectFactory;
@@ -59,6 +59,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -144,7 +145,7 @@ public class GroovyCompile extends AbstractCompile {
 
     @Override
     protected void compile() {
-        compile(null);
+        throw new UnsupportedOperationException("This method has been superseded by compile(InputChanges inputChanges)!");
     }
 
     @TaskAction
@@ -227,7 +228,7 @@ public class GroovyCompile extends AbstractCompile {
         ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(workerDaemonFactory, inProcessWorkerFactory, forkOptionsFactory, processorDetector, jvmVersionDetector, workerDirectoryProvider, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
-        CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
+        CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs(), getDeleter());
         if (spec.incrementalCompilationEnabled()) {
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
@@ -243,6 +244,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         return new GroovyRecompilationSpecProvider(
+            getDeleter(),
             ((ProjectInternal) getProject()).getFileOperations(),
             getSource(),
             inputChanges,
@@ -273,6 +275,11 @@ public class GroovyCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
     private FileCollection determineGroovyCompileClasspath() {
         if (experimentalCompilationAvoidanceEnabled()) {
             return astTransformationClasspath.plus(getClasspath());
@@ -281,17 +288,14 @@ public class GroovyCompile extends AbstractCompile {
         }
     }
 
-    private boolean enableIncrementalCompilation(List<File> sourceRoots, boolean annotationProcessingConfigured) {
-        if (getOptions().isIncremental() && sourceRoots.isEmpty()) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.");
+    private static void validateIncrementalCompilationOptions(List<File> sourceRoots, boolean annotationProcessingConfigured) {
+        if (sourceRoots.isEmpty()) {
+            throw new InvalidUserDataException("Unable to infer source roots. Incremental Groovy compilation requires the source roots. Change the configuration of your sources or disable incremental Groovy compilation.");
         }
 
-        if (getOptions().isIncremental() && annotationProcessingConfigured) {
-            DeprecationLogger.nagUserOfDeprecated(
-                "Incremental Groovy compilation has been disabled since Java annotation processors are configured. Enabling incremental compilation and configuring Java annotation processors for Groovy compilation",
-                "Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
+        if (annotationProcessingConfigured) {
+            throw new InvalidUserDataException("Enabling incremental compilation and configuring Java annotation processors for Groovy compilation is not allowed. Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
         }
-        return getOptions().isIncremental() && !sourceRoots.isEmpty() && !annotationProcessingConfigured;
     }
 
     private GroovyJavaJointCompileSpec createSpec() {
@@ -311,7 +315,8 @@ public class GroovyCompile extends AbstractCompile {
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
-        if (enableIncrementalCompilation(sourceRoots, spec.annotationProcessingConfigured())) {
+        if (getOptions().isIncremental()) {
+            validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
             spec.setCompilationMappingFile(getSourceClassesMappingFile());
         }
         if (spec.getGroovyCompileOptions().getStubDir() == null) {

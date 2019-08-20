@@ -38,6 +38,6 @@ class PlayJavaScriptPluginGoodBehaviourIntegrationTest extends WellBehavedPlugin
         succeeds("help")
 
         then:
-        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the org.gradle.playframework-javascript plugin instead.")
+        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-javascript plugin instead.")
     }
 }

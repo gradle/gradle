@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.MutableBoolean;
@@ -26,7 +25,6 @@ import org.gradle.internal.MutableReference;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
@@ -82,15 +80,12 @@ public class DefaultPlanExecutor implements PlanExecutor {
      * Blocks until all nodes in the plan have been processed. This method will only return when every node in the plan has either completed, failed or been skipped.
      */
     private void awaitCompletion(final ExecutionPlan executionPlan, final Collection<? super Throwable> failures) {
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                if (executionPlan.allNodesComplete()) {
-                    executionPlan.collectFailures(failures);
-                    return FINISHED;
-                } else {
-                    return RETRY;
-                }
+        coordinationService.withStateLock(resourceLockState -> {
+            if (executionPlan.allNodesComplete()) {
+                executionPlan.collectFailures(failures);
+                return FINISHED;
+            } else {
+                return RETRY;
             }
         });
     }
@@ -126,17 +121,14 @@ public class DefaultPlanExecutor implements PlanExecutor {
 
             WorkerLease childLease = parentWorkerLease.createChild();
             while (true) {
-                boolean nodesRemaining = executeNextNode(childLease, new Action<Node>() {
-                    @Override
-                    public void execute(Node work) {
-                        LOGGER.info("{} ({}) started.", work, Thread.currentThread());
-                        executionTimer.reset();
-                        nodeExecutor.execute(work);
-                        long duration = executionTimer.getElapsedMillis();
-                        busy.addAndGet(duration);
-                        if (LOGGER.isInfoEnabled()) {
-                            LOGGER.info("{} ({}) completed. Took {}.", work, Thread.currentThread(), TimeFormatting.formatDurationVerbose(duration));
-                        }
+                boolean nodesRemaining = executeNextNode(childLease, work -> {
+                    LOGGER.info("{} ({}) started.", work, Thread.currentThread());
+                    executionTimer.reset();
+                    nodeExecutor.execute(work);
+                    long duration = executionTimer.getElapsedMillis();
+                    busy.addAndGet(duration);
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("{} ({}) completed. Took {}.", work, Thread.currentThread(), TimeFormatting.formatDurationVerbose(duration));
                     }
                 });
                 if (!nodesRemaining) {
@@ -160,31 +152,28 @@ public class DefaultPlanExecutor implements PlanExecutor {
         private boolean executeNextNode(final WorkerLease workerLease, final Action<Node> nodeExecutor) {
             final MutableReference<Node> selected = MutableReference.empty();
             final MutableBoolean nodesRemaining = new MutableBoolean();
-            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                @Override
-                public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                    if (cancellationToken.isCancellationRequested()) {
-                        executionPlan.cancelExecution();
-                    }
+            coordinationService.withStateLock(resourceLockState -> {
+                if (cancellationToken.isCancellationRequested()) {
+                    executionPlan.cancelExecution();
+                }
 
-                    nodesRemaining.set(executionPlan.hasNodesRemaining());
-                    if (!nodesRemaining.get()) {
-                        return FINISHED;
-                    }
+                nodesRemaining.set(executionPlan.hasNodesRemaining());
+                if (!nodesRemaining.get()) {
+                    return FINISHED;
+                }
 
-                    try {
-                        selected.set(executionPlan.selectNext(workerLease, resourceLockState));
-                    } catch (Throwable t) {
-                        resourceLockState.releaseLocks();
-                        executionPlan.abortAllAndFail(t);
-                        nodesRemaining.set(false);
-                    }
+                try {
+                    selected.set(executionPlan.selectNext(workerLease, resourceLockState));
+                } catch (Throwable t) {
+                    resourceLockState.releaseLocks();
+                    executionPlan.abortAllAndFail(t);
+                    nodesRemaining.set(false);
+                }
 
-                    if (selected.get() == null && nodesRemaining.get()) {
-                        return RETRY;
-                    } else {
-                        return FINISHED;
-                    }
+                if (selected.get() == null && nodesRemaining.get()) {
+                    return RETRY;
+                } else {
+                    return FINISHED;
                 }
             });
 
@@ -205,12 +194,9 @@ public class DefaultPlanExecutor implements PlanExecutor {
                     }
                 }
             } finally {
-                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                    @Override
-                    public ResourceLockState.Disposition transform(ResourceLockState state) {
-                        executionPlan.nodeComplete(selected);
-                        return unlock(workerLease).transform(state);
-                    }
+                coordinationService.withStateLock(state -> {
+                    executionPlan.finishedExecuting(selected);
+                    return unlock(workerLease).transform(state);
                 });
             }
         }

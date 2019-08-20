@@ -26,6 +26,13 @@ dependencies {
     implementation(project(":pineapple"))
     implementation(library("jsr305"))
     implementation(library("guava"))
+    implementation(library("slf4j_api"))
+
+    testImplementation(project(":native"))
+    testImplementation(project(":baseServices")) {
+        because("TextUtil is needed")
+    }
+    testImplementation(testFixtures(project(":native")))
 }
 
 gradlebuildJava {

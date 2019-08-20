@@ -33,9 +33,13 @@ repositories {
             name 'Gradle distributions'
             url 'https://services.gradle.org'
             patternLayout {
-                // Dummy 'ivy' pattern: Ivy files do not exist on services.gradle.org
-                ivy '[module]-[revision]-ivy.xml'
                 artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeModule('gradle', 'gradle')
             }
         }
     }

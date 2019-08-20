@@ -34,6 +34,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final BuildExperimentRunner experimentRunner
     final Clock clock = Time.clock()
 
+    String testClassName
     String testId
     String testGroup
     List<BuildExperimentSpec> specs = []
@@ -94,8 +95,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert !specs.empty
         assert testId
 
-        def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName.toSet(), (ResultsStore) reporter))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.projectName.toSet(), (ResultsStore) reporter))
 
         def results = newResult()
 

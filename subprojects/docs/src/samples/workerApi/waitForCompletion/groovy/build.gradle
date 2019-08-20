@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 
-
-import org.gradle.workers.WorkerExecutor
-
 import javax.inject.Inject
 
-// The implementation of a single unit of work
-class ReverseFile implements Runnable {
-    File fileToReverse
-    File destinationFile
-
-    @Inject
-    public ReverseFile(File fileToReverse, File destinationFile) {
-        this.fileToReverse = fileToReverse
-        this.destinationFile = destinationFile
-    }
-
-    @Override
-    public void run() {
-        destinationFile.text = fileToReverse.text.reverse()
-    }
+// The parameters for a single unit of work
+interface ReverseParameters extends WorkParameters {
+    Property<File> getFileToReverse()
+    Property<File> getDestinationFile()
 }
 
+// The implementation of a single unit of work. 
+abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    @Override
+    public void execute() {
+        parameters.destinationFile.get().text = parameters.fileToReverse.get().text.reverse()
+    }
+}
 
 class ReverseFiles extends SourceTask {
     final WorkerExecutor workerExecutor
@@ -52,18 +45,21 @@ class ReverseFiles extends SourceTask {
     @TaskAction
     void reverseFiles() {
         // tag::wait-for-completion[]
+        // Create a WorkQueue to submit work items
+        WorkQueue workQueue = workerExecutor.noIsolation()
+
         // Create and submit a unit of work for each file
         source.each { file ->
-            workerExecutor.submit(ReverseFile.class) { config ->
-                config.isolationMode = IsolationMode.NONE
-                // Constructor parameters for the unit of work implementation
-                config.params file, project.file("${outputDir}/${file.name}")
+            workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
+                parameters.fileToReverse = file
+                parameters.destinationFile = project.file("$outputDir/${file.name}")
             }
         }
 
-        // Wait for all asynchronous work to complete before continuing
-        workerExecutor.await()
+        // Wait for all asynchronous work submitted to this queue to complete before continuing
+        workQueue.await()
         logger.lifecycle("Created ${outputDir.listFiles().size()} reversed files in ${project.relativePath(outputDir)}")
+
         // end::wait-for-completion[]
     }
 }

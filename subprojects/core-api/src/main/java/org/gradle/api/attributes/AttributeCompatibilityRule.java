@@ -17,7 +17,6 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * A rule that determines whether a given attribute value is compatible some provided attribute value.
@@ -32,6 +31,5 @@ import org.gradle.api.Incubating;
  * @param <T> The attribute value type.
  * @see CompatibilityCheckDetails
  */
-@Incubating
 public interface AttributeCompatibilityRule<T> extends Action<CompatibilityCheckDetails<T>> {
 }

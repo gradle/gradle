@@ -106,12 +106,12 @@ Here is a list of some of the main Maven phases and the Gradle tasks that they m
 Use the `clean` task provided by the Base Plugin.
 
 `compile`::
-Use the `classes` task provided by the <<java_plugin.html#sec:java_tasks,Java Plugin>> and other JVM language plugins.
+Use the `classes` task provided by the <<java_plugin.adoc#sec:java_tasks,Java Plugin>> and other JVM language plugins.
 This compiles all classes for all source files of all languages and also performs <<migmvn:filtering_resources,resource filtering>> via the `processResources` task.
 
 `test`::
 Use the `test` task provided by the Java Plugin.
-It runs just the unit tests, or more specifically, the tests that make up the <<java_plugin.html#source_sets,`test` source set>>.
+It runs just the unit tests, or more specifically, the tests that make up the <<java_plugin.adoc#source_sets,`test` source set>>.
 
 `package`::
 Use the `assemble` task provided by the Base Plugin.
@@ -125,7 +125,7 @@ If you want to include integration tests, you will have to <<migmvn:integration_
 `install`::
 Use the `publishToMavenLocal` task provided by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>>.
 +
-Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<dependency_types#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#composite_builds,composite builds>>.
+Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies.adoc#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#,composite builds>>.
 You should only use `publishToMavenLocal` for interoperating with Maven builds.
 +
 Gradle also allows you to resolve dependencies against the local Maven cache, as described in the <<migmvn:declaring_repos,Declaring repositories>> section.
@@ -135,7 +135,7 @@ Use the `publish` task provided by the <<publishing_maven#publishing_maven:tasks
 This will publish your package to all configured publication repositories.
 There are also other tasks that allow you to publish to a single repository even when multiple ones are defined.
 +
-Note that the Maven Publish Plugin does not publish *source and Javadoc JARs* by default, but this can easily be configured as explained <<publishing_overview#sec:publishing_custom_artifacts_to_maven,elsewhere in the user manual>>.
+Note that the Maven Publish Plugin does not publish *source and Javadoc JARs* by default, but this can easily be configured as explained <<publishing#sec:publishing_custom_artifacts_to_maven,elsewhere in the user manual>>.
 
 [[migmvn:automatic_conversion]]
 == Performing an automatic conversion
@@ -156,9 +156,9 @@ You'll find that the new Gradle build includes the following:
 
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
- * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins)
+ * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven.adoc#,Maven Publish>>, <<java_plugin.adoc#,Java>> and <<war_plugin.adoc#,War>> Plugins)
 
-See the <<build_init_plugin#sec:pom_maven_conversion_,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
+See the <<build_init_plugin#sec:pom_maven_conversion,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
 
 One thing to bear in mind is that assemblies are not automatically converted.
 They aren't necessarily problematic to convert, but you will need to do some manual work.
@@ -187,7 +187,7 @@ Gradle's dependency management system is more flexible than Maven's, but it stil
 In fact, Gradle works perfectly with Maven-compatible repositories, which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
-Don't worry though, you have a lot of control over which versions are selected, as documented in <<managing_transitive_dependencies#managing_transitive_dependencies,Managing Transitive Dependencies>>.
+Don't worry though, you have a lot of control over which versions are selected, as documented in <<controlling_transitive_dependencies#,Managing Transitive Dependencies>>.
 
 Over the following sections, we will show you how to migrate the most common elements of a Maven build's dependency management information.
 
@@ -196,7 +196,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-So all you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#declaring_dependencies,Declaring Dependencies>> chapter.
+So all you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 
@@ -280,7 +280,7 @@ Dependencies with other scopes will be ignored.
 
 Gradle allows you to retrieve declared dependencies from any Maven-compatible or Ivy-compatible repository.
 Unlike Maven, it has no default repository and so you have to declare at least one.
-In order to have the same behavior as your Maven build, just configure <<repository_types#sub:maven_central,Maven Central>> in your Gradle build, like this:
+In order to have the same behavior as your Maven build, just configure <<declaring_repositories.adoc#sub:maven_central,Maven Central>> in your Gradle build, like this:
 
 .Configuring the build to use Maven Central
 ====
@@ -290,11 +290,11 @@ include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.
 
 You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories.adoc#sec:maven_repo,Repository Types>> chapter.
 
-Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sec:maven_local,local Maven cache/repository>>.
+Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sub:maven_local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
 If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a file:// URL.
 
-You might also be interested in learning about Gradle's own <<declaring_repositories.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
+You might also be interested in learning about Gradle's own <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
 [[migmvn:controlling_dep_versions]]
 === Controlling dependency versions
@@ -305,9 +305,9 @@ That's why it provides several mechanisms for controlling which version of a giv
 
 On a per-project basis, you can use:
 
- * <<managing_transitive_dependencies#sec:dependency_constraints,Dependency constraints>>
+ * <<controlling_transitive_dependencies#sec:adding-constraints-transitive-deps,Dependency constraints>>
  * <<migmvn:using_boms,Bills of materials>> (Maven BOMs)
- * <<managing_transitive_dependencies#sec:enforcing_dependency_version,Version forcing>>
+ * <<controlling_transitive_dependencies#sec:enforcing_dependency_version,Version forcing>>
 
 There are even more, specialized options listed in the <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> chapter.
 
@@ -324,7 +324,7 @@ Maven builds use exclusions to keep unwanted dependencies -- or unwanted _versio
 You can do the same thing with Gradle, but that's not necessarily the _right_ thing to do.
 Gradle provides other options that may be more appropriate for a given situation, so you really need to understand _why_ an exclusion is in place to migrate it properly.
 
-If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<managing_transitive_dependencies#sec:excluding_transitive_module_dependencies,Excluding transitive module dependencies>>.
+If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<controlling_transitive_dependencies#excluding-transitive-deps>>.
 It shows you how to attach an exclusion either to an entire configuration (often the most appropriate solution) or to a dependency.
 You can even easily apply an exclusion to all configurations.
 
@@ -360,14 +360,14 @@ include::sample[dir="userguide/mavenMigration/importBom/kotlin",files="build.gra
 <1> Applies the Spring Boot Dependencies BOM
 <2> Adds a dependency whose version is defined by that BOM
 
-You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<managing_transitive_dependencies#sec:bom_import,importing version recommendations from a Maven BOM>>.
+You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<controlling_transitive_dependencies#sub:bom_import,importing version recommendations from a Maven BOM>>.
 
 NOTE: You can use this feature to apply the `<dependencyManagement>` information from any dependency's POM to the Gradle build, even those that don't have a packaging type of `pom`. Both `platform()` and `enforcedPlatform()` will ignore any dependencies declared in the `<dependencies>` block.
 
 [[migmvn:multimodule_builds]]
 == Migrating multi-module builds (project aggregation)
 
-Maven's multi-module builds map nicely to Gradle's <<multi_project_build#multi_project_build,multi-project builds>>.
+Maven's multi-module builds map nicely to Gradle's <<multi_project_builds#,multi-project builds>>.
 Try the corresponding link:{guidesUrl}/creating-multi-project-builds/[tutorial] to see how a basic multi-project Gradle build is set up.
 
 To migrate a multi-module Maven build, simply follow these steps:
@@ -399,7 +399,7 @@ include::sample[dir="userguide/mavenMigration/multiModule/kotlin",files="setting
 > gradle projects
 include::{samplesPath}/userguide/mavenMigration/multiModule/projects.out[]
 ----
- 2. Replace cross-module dependencies with <<dependency_types#sub:project_dependencies,project dependencies>>.
+ 2. Replace cross-module dependencies with <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>>.
  3. Replicate project inheritance with <<multi_project_builds#sec:cross_project_configuration,cross-project configuration>>.
 +
 This basically involves creating a root project build script that injects shared configuration into the appropriate subprojects.

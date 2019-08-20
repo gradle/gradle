@@ -22,7 +22,9 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
@@ -95,12 +97,29 @@ public class TestFiles {
         return new DefaultDirectoryFileTreeFactory(getPatternSetFactory(), fileSystem());
     }
 
+    public static Deleter deleter() {
+        return new DefaultDeleter(Time.clock()::getCurrentTime, fileSystem()::isSymlink, false);
+    }
+
     public static FileOperations fileOperations(File basedDir) {
         return fileOperations(basedDir, null);
     }
 
     public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
-        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoaderFactory(), fileCollectionFactory(basedDir), fileSystem(), Time.clock());
+        return new DefaultFileOperations(
+            resolver(basedDir),
+            null,
+            temporaryFileProvider,
+            TestUtil.instantiatorFactory().inject(),
+            fileLookup(),
+            directoryFileTreeFactory(),
+            streamHasher(),
+            fileHasher(),
+            textResourceLoaderFactory(),
+            fileCollectionFactory(basedDir),
+            fileSystem(),
+            deleter()
+        );
     }
 
     public static TextResourceLoader textResourceLoaderFactory() {
@@ -145,7 +164,7 @@ public class TestFiles {
     }
 
     public static ExecFactory execFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), fileCollectionFactory(baseDir), TestUtil.instantiatorFactory().inject());
+        return execFactory().forContext(resolver(baseDir), fileCollectionFactory(baseDir), TestUtil.instantiatorFactory().inject(), TestUtil.objectFactory());
     }
 
     public static ExecActionFactory execActionFactory() {

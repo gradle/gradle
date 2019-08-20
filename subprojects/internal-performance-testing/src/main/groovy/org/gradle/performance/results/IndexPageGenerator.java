@@ -17,11 +17,11 @@
 package org.gradle.performance.results;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.ci.common.model.FlakyTest;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +36,6 @@ import static org.gradle.performance.results.ScenarioBuildResultData.ExecutionDa
 import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_SUCCESS;
 import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_UNKNOWN;
 import static org.gradle.performance.results.Tag.FixedTag.FAILED;
-import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
 import static org.gradle.performance.results.Tag.FixedTag.FROM_CACHE;
 import static org.gradle.performance.results.Tag.FixedTag.IMPROVED;
 import static org.gradle.performance.results.Tag.FixedTag.NEARLY_FAILED;
@@ -46,19 +45,19 @@ import static org.gradle.performance.results.Tag.FixedTag.UNTAGGED;
 
 public class IndexPageGenerator extends AbstractTablePageGenerator {
     private static final int DEFAULT_RETRY_COUNT = 3;
+    private static final double FAILURE_THRESHOLD = 0.05;
 
     @VisibleForTesting
     static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
         .thenComparing(ScenarioBuildResultData::isSuccessful)
         .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
-        .thenComparing(comparing(IndexPageGenerator::isFlaky).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
         .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    public IndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
-        super(flakinessAnalyzer, resultsStore, resultJson);
+    public IndexPageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, ResultsStore resultsStore, File resultJson) {
+        super(flakinessDataProvider, resultsStore, resultJson);
     }
 
     @Override
@@ -187,12 +186,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                     result.add(FROM_CACHE);
                 }
 
-                if (isFlaky(scenario)) {
-                    result.add(FLAKY);
-                }
-
-                markKnownFlakyTestIfFound(scenario, result);
-
+                markFlakyTestInfo(scenario, result);
 
                 if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
@@ -212,10 +206,12 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 return result;
             }
 
-            private void markKnownFlakyTestIfFound(ScenarioBuildResultData scenario, Set<Tag> result) {
-                FlakyTest flakyTest = flakinessAnalyzer.findKnownFlakyTest(scenario);
-                if (flakyTest != null) {
-                    result.add(new Tag.KnownFlakyTag(flakyTest));
+            private void markFlakyTestInfo(ScenarioBuildResultData scenario, Set<Tag> result) {
+                BigDecimal rate = flakinessDataProvider.getFlakinessRate(scenario.getScenarioName());
+                if (rate != null && rate.doubleValue() > FAILURE_THRESHOLD) {
+                    result.add(Tag.FlakinessInfoTag.createFlakinessRateTag(rate));
+                    BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(scenario.getScenarioName());
+                    result.add(Tag.FlakinessInfoTag.createFailureThresholdTag(failureThreshold));
                 }
             }
 
@@ -241,14 +237,5 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 }
             }
         };
-    }
-
-    private static boolean isFlaky(ScenarioBuildResultData scenario) {
-        if (scenario.getRawData().size() < 1) {
-            return false;
-        }
-
-        Set<String> statuses = scenario.getRawData().stream().map(ScenarioBuildResultData::getStatus).collect(toSet());
-        return statuses.size() > 1 && statuses.contains(STATUS_SUCCESS);
     }
 }

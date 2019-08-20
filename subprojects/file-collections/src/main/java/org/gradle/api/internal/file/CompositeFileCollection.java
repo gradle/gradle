@@ -25,11 +25,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -164,22 +162,6 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         };
     }
 
-    // This is final - use {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
-    @Override
-    public final TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public String toString() {
-                return CompositeFileCollection.this.toString() + " dependencies";
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                CompositeFileCollection.this.visitDependencies(context);
-            }
-        };
-    }
-
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
@@ -193,16 +175,9 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        for (FileCollectionInternal files : getSourceCollections()) {
-            files.registerWatchPoints(builder);
-        }
-    }
-
-    @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
         for (FileCollectionInternal element : getSourceCollections()) {
-            element.visitLeafCollections(visitor);
+            element.visitStructure(visitor);
         }
     }
 }

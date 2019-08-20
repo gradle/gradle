@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resolve.caching;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -42,6 +43,7 @@ import java.util.List;
  * method can still be called, in which case it creates a non capturing instance.
  *
  */
+@NonNullApi
 public class ImplicitInputsCapturingInstantiator implements Instantiator {
     private final ServiceRegistry serviceRegistry;
     private final InstantiatorFactory factory;

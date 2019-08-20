@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.corefeature;
+package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 
-class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class DeprecationCreationPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def "create many deprecation warnings"() {
         given:

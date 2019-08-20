@@ -20,6 +20,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -110,6 +111,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
                 visitor.visitFailure(failure);
             } else {
                 visitor.visitArtifact(variantName, variantAttributes, artifact);
+                visitor.endVisitCollection(FileCollectionInternal.OTHER);
             }
         }
 

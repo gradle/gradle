@@ -154,18 +154,22 @@ class DefaultConventionTest {
 
     @Test void honoursHasPublicTypeForAddedExtension() {
         convention.add("pet", new ExtensionWithPublicType())
-        assert convention.schema["pet"] == typeOf(PublicExtensionType)
+        assert publicTypeOf("pet") == typeOf(PublicExtensionType)
     }
 
     @Test void honoursHasPublicTypeForCreatedExtension() {
         convention.create("pet", ExtensionWithPublicType)
-        assert convention.schema["pet"] == typeOf(PublicExtensionType)
+        assert publicTypeOf("pet") == typeOf(PublicExtensionType)
     }
 
     @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
-        def convention = new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient())
+        convention = new DefaultConvention(TestUtil.instantiatorFactory().decorateLenient())
         assert convention.create("foo", FooExtension).class != FooExtension
-        assert convention.schema["foo"] == typeOf(FooExtension)
+        assert publicTypeOf("foo") == typeOf(FooExtension)
+    }
+
+    private TypeOf<?> publicTypeOf(String extension) {
+        convention.extensionsSchema.find { it.name == extension }.publicType
     }
 
     interface PublicExtensionType {

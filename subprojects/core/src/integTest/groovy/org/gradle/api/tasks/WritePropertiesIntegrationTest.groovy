@@ -50,7 +50,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("output.properties").text == normalize("""
             #Line comment
-        """)
+            """)
     }
 
     def "simple properties are written sorted alphabetically"() {
@@ -71,7 +71,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             one=1
             three=three
             two=2
-        """)
+            """)
     }
 
     @Unroll
@@ -92,7 +92,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("output.properties").text == normalize("""
             #Es\\u0151 les\\u0151
             n\\u00E9v=Rezs\\u0151
-        """)
+            """)
 
         where:
         encoding              | description
@@ -118,7 +118,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("output.properties").getText("utf-8") == normalize("""
             #Es\\u0151 les\\u0151
             név=Rezső
-        """)
+            """)
     }
 
     def "specified line separator is used"() {
@@ -140,7 +140,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             one=1
             three=three
             two=2
-        """).split("\n", -1).join("EOL")
+            """).split("\n", -1).join("EOL")
     }
 
     @Unroll

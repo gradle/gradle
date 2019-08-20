@@ -38,19 +38,19 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "7.5.5"
+        static nebulaDependencyRecommender = "8.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "11.2.12"
+        static nebulaPluginPlugin = "12.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "11.5.0"
+        static nebulaLint = "12.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.0", "7.3.4")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.4", "7.6.7")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.1.0"
+        static nebulaResolutionRules = "7.2.5"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("4.0.4", "5.0.0")
@@ -80,7 +80,7 @@ abstract class AbstractSmokeTest extends Specification {
         static androidGradle = Versions.of("3.2.1", androidGradle3x, "3.4.1")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of('1.2.31', '1.2.41', '1.2.51', '1.2.61', '1.2.71', '1.3.0', '1.3.11', '1.3.21', '1.3.31', '1.3.41')
+        static kotlin = Versions.of('1.3.31', '1.3.41')
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = "2.3.1"
@@ -95,10 +95,10 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "3.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.21.0"
+        static gradleVersions = "0.22.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.6"
+        static playframework = "0.7"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "0.8.1"

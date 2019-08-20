@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlTemplateFormat;
@@ -145,7 +146,7 @@ public class TwirlCompile extends SourceTask {
         getSource().visit(relativeFileCollector);
         TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports);
         if (!inputs.isIncremental()) {
-            new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
+            new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs(), getDeleter()).execute(spec);
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
             inputs.outOfDate(new Action<InputFileDetails>() {
@@ -180,6 +181,11 @@ public class TwirlCompile extends SourceTask {
 
     public void setPlatform(PlayPlatform platform) {
         this.platform = platform;
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
     /**

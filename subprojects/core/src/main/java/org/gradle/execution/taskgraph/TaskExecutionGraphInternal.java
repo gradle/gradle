@@ -17,10 +17,11 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.plan.Node;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
@@ -35,6 +36,11 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * are executed before any tasks from a subsequent call to this method are executed.
      */
     void addEntryTasks(Iterable<? extends Task> tasks);
+
+    /**
+     * Adds the given nodes to this graph.
+     */
+    void addNodes(Collection<? extends Node> nodes);
 
     /**
      * Does the work to populate the task graph based on tasks that have been added. Does not fire events.
@@ -63,13 +69,12 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     Set<Task> getFilteredTasks();
 
     /**
-     * Returns the number of work items in the graph.
+     * Returns the number of work items in this graph.
      */
     int size();
 
     /**
-     * Returns the root project of this graph.
+     * Returns all of the work items in this graph scheduled for execution.
      */
-    ProjectInternal getRootProject();
-
+    List<Node> getScheduledWork();
 }

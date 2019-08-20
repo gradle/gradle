@@ -56,13 +56,14 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), forcedDependencies));
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), forcedDependencies));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of()),
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
+                false,
                 dependencyConstraint.getReason(),
                 forcedDependencies
             ));
@@ -109,6 +110,11 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
     @Override
     public boolean isCanBeConsumed() {
         return true;
+    }
+
+    @Override
+    public List<String> getConsumptionAlternatives() {
+        return null;
     }
 
     @Override

@@ -16,16 +16,16 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_GROOVY_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     @Unroll
     def "assemble for non-abi change on #testProject"() {
@@ -35,6 +35,10 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.tasksToRun = ['assemble']
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.targetVersions = ["5.7-20190722220035+0000"]
+        if (testProject.name().contains("GROOVY")) {
+            runner.minimumVersion = '5.0'
+        }
+
 
         when:
         def result = runner.run()

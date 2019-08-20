@@ -149,9 +149,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
                     }
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        layout "pattern"
-                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](.[ext])"
-                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](.[ext])"
+                        patternLayout {
+                            artifact "[artifact]-[revision](.[ext])"
+                            ivy "[artifact]-[revision](.[ext])"
+                        }
                     }
                 }
             }

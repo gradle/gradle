@@ -20,12 +20,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.DefaultFileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
@@ -46,18 +46,18 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     @Override
     public List<FileSystemSnapshot> snapshot(FileCollection fileCollection) {
-        FileCollectionLeafVisitorImpl visitor = new FileCollectionLeafVisitorImpl();
-        ((FileCollectionInternal) fileCollection).visitLeafCollections(visitor);
+        SnapshotingVisitor visitor = new SnapshotingVisitor();
+        ((FileCollectionInternal) fileCollection).visitStructure(visitor);
         return visitor.getRoots();
     }
 
 
-    private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
-        private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+    private class SnapshotingVisitor implements FileCollectionStructureVisitor {
+        private final List<FileSystemSnapshot> roots = new ArrayList<>();
 
         @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
-            for (File file : fileCollection) {
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            for (File file : contents) {
                 roots.add(fileSystemSnapshotter.snapshot(file));
             }
         }
@@ -68,8 +68,13 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns) {
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             roots.add(fileSystemSnapshotter.snapshotDirectoryTree(root, new PatternSetSnapshottingFilter(patterns, stat)));
+        }
+
+        @Override
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+            roots.add(fileSystemSnapshotter.snapshot(file));
         }
 
         public List<FileSystemSnapshot> getRoots() {
@@ -79,7 +84,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
         final FileSystemSnapshotBuilder builder = fileSystemSnapshotter.newFileSystemSnapshotBuilder();
-        tree.visitTreeOrBackingFile(new FileVisitor() {
+        tree.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 builder.addDir(dirDetails.getFile(), dirDetails.getRelativePath().getSegments());

@@ -29,7 +29,7 @@ import org.gradle.api.file.CopySpec;
  * apply plugin: 'application'
  *
  * application {
- *   mainClassName 'com.foo.bar.FooBar'
+ *   mainClassName = "com.foo.bar.FooBar"
  * }
  * </pre>
  *

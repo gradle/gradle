@@ -54,6 +54,8 @@ public interface ComponentVariant extends VariantResolveMetadata {
         ImmutableAttributes getAttributes();
 
         List<Capability> getRequestedCapabilities();
+
+        boolean isInheriting();
     }
 
     interface DependencyConstraint {

@@ -40,6 +40,7 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
@@ -47,7 +48,6 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
@@ -65,7 +65,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def instantiator = Mock(Instantiator)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
-    def scopeClassLoader = Mock(ClassLoader)
     def baseChildClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
@@ -83,11 +82,28 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def fileHasher = Mock(FileHasher)
     def execFactory = Mock(ExecFactory)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
-    def clock = Mock(Clock)
+    def deleter = Mock(Deleter)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, TestFiles.fileSystem(), fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
-        streamHasher, fileHasher, execFactory, Stub(FileCollectionFactory), autoAppliedPluginHandler, clock)
+    def factory = new DefaultScriptPluginFactory(
+        scriptCompilerFactory,
+        loggingManagerFactory,
+        instantiator,
+        scriptHandlerFactory,
+        pluginRequestApplicator,
+        TestFiles.fileSystem(),
+        fileLookup,
+        directoryFileTreeFactory,
+        documentationRegistry,
+        new ModelRuleSourceDetector(),
+        providerFactory,
+        textResourceLoader,
+        streamHasher,
+        fileHasher,
+        execFactory,
+        Stub(FileCollectionFactory),
+        autoAppliedPluginHandler,
+        deleter
+    )
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
@@ -98,9 +114,8 @@ class DefaultScriptPluginFactoryTest extends Specification {
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
-        classpathHasher.hash(_) >> HashCode.fromInt(123)
+        classpathHasher.hash(_ as ClassPath) >> HashCode.fromInt(123)
 
-        1 * targetScope.getLocalClassLoader() >> scopeClassLoader
         1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> new DefaultPluginRequests(Lists.newArrayList())
     }
 
@@ -115,9 +130,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(DefaultScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         1 * scriptRunner.run(target, _ as ServiceRegistry)
@@ -135,9 +150,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> true
@@ -159,9 +174,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> false
@@ -182,9 +197,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> true
@@ -205,9 +220,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> false
@@ -227,9 +242,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> false
         _ * scriptRunner.hasMethods >> false
@@ -249,9 +264,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(DefaultScript, _ as NoDataCompileOperation, baseChildClassLoader, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == otherScriptPluginFactory })

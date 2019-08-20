@@ -28,7 +28,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 
 import java.lang.reflect.Method;
 
-public class ProcessBootstrap {
+public class    ProcessBootstrap {
     /**
      * Sets up the ClassLoader structure for the given class, creates an instance and invokes {@link EntryPoint#run(String[])} on it.
      */

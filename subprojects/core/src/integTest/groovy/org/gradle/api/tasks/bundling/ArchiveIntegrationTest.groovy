@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.bundling
 
-
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
@@ -688,8 +687,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         "test.tar"  | "tarTree" | "createTar"
     }
 
-
-    def ensureDuplicatesIncludedInTarByDefault() {
+    def 'ensure duplicates not included in tar by default'() {
         given:
         createFilesStructureForDupeTests()
         buildFile << '''
@@ -702,12 +700,30 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
             '''
         when:
-        run 'tar'
+        fails 'tar'
+        then:
+        failure.assertHasCause('Encountered duplicate path "file1.txt" during copy operation configured with DuplicatesStrategy.FAIL')
+    }
 
+    def 'ensure duplicates can be included in tar'() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << '''
+            task tar(type: Tar) {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+            }
+            '''
+        when:
+        run 'tar'
         then:
         def tar = new TarTestFixture(file("build/test.tar"))
         tar.assertContainsFile('file1.txt', 2)
-        tar.assertContainsFile('file2.txt')
+        tar.assertContainsFile('file2.txt', 1)
     }
 
     def ensureDuplicatesCanBeExcludedFromTar() {

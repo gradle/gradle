@@ -30,25 +30,6 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         executer.withRepositoryMirrors()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/publicRepository/groovy")
-    def "can declare JCenter repository and resolve binary dependency"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('copyLibs')
-
-        then:
-        sample.dir.file('build/libs/guava-23.0.jar').isFile()
-    }
-
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/customRepository/groovy")
-    def "can declare repository with custom URL"() {
-        executer.inDirectory(sample.dir)
-
-        expect:
-        succeeds('checkRepositories')
-    }
-
     @UsesSample("userguide/dependencyManagement/declaringRepositories/multipleRepositories/groovy")
     def "can declare multiple repositories and resolve binary dependency"() {
         executer.inDirectory(sample.dir)

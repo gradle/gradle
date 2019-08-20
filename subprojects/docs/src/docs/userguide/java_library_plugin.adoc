@@ -121,7 +121,6 @@ image::java-library-ignore-deprecated-main.png[]
 * The configurations in _green_ are the ones a user should use to declare dependencies
 * The configurations in _pink_ are the ones used when a component compiles, or runs against the library
 * The configurations in _blue_ are internal to the component, for its own use
-* The configurations in _white_ are configurations inherited from the Java plugin
 
 And the next graph describes the test configurations setup:
 
@@ -153,8 +152,8 @@ The role of each configuration is described in the following tables:
 
 | `compileOnly`
 | Declaring compile only dependencies
-| yes
-| yes
+| no
+| no
 | This is where you should declare dependencies which are only required at compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `runtimeOnly`
@@ -171,8 +170,8 @@ The role of each configuration is described in the following tables:
 
 | `testCompileOnly`
 | Declaring test compile only dependencies
-| yes
-| yes
+| no
+| no
 | This is where you should declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `testRuntimeOnly`

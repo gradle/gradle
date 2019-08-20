@@ -18,6 +18,12 @@ package org.gradle.integtests.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
     public void "can publish jar and meta-data to ivy repository"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

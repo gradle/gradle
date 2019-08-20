@@ -16,17 +16,12 @@
 
 package org.gradle.performance.results;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Line {
-    private static final Map<String, Object> SHOW_TRUE = ImmutableMap.of("show", true);
-    private static final Map<String, Object> SHOW_FALSE = ImmutableMap.of("show", false);
     String label;
     List<List<Number>> data;
 
@@ -44,21 +39,5 @@ public class Line {
 
     public List<List<Number>> getData() {
         return data;
-    }
-
-    public boolean getStack() {
-        return false;
-    }
-
-    public Map getBars() {
-        return SHOW_FALSE;
-    }
-
-    public Map getLines() {
-        return SHOW_TRUE;
-    }
-
-    public Map getPoints() {
-        return SHOW_TRUE;
     }
 }

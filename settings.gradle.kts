@@ -46,9 +46,7 @@ include("scala")
 include("ide")
 include("ideNative")
 include("idePlay")
-include("osgi")
 include("maven")
-include("announce")
 include("codeQuality")
 include("antlr")
 include("toolingApi")
@@ -65,7 +63,6 @@ include("internalAndroidPerformanceTesting")
 include("performance")
 include("buildScanPerformance")
 include("javascript")
-include("buildComparison")
 include("reporting")
 include("diagnostics")
 include("publish")
@@ -162,10 +159,7 @@ pluginManagement {
     }
 }
 
-val ignoredFeatures = setOf(
-    // we don't want to publish Gradle metadata to public repositories until the format is stable.
-    FeaturePreviews.Feature.GRADLE_METADATA
-)
+val ignoredFeatures = setOf<FeaturePreviews.Feature>()
 
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive && feature !in ignoredFeatures) {

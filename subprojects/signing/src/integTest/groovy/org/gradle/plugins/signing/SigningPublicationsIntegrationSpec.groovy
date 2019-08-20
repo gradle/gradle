@@ -18,8 +18,6 @@ package org.gradle.plugins.signing
 
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableGradleMetadata
-
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
     def "signs single Maven publication"() {
@@ -216,9 +214,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        enableGradleMetadata(settingsFile)
-
-        and:
         run "signIvyPublication", "signMavenPublication"
 
         then:
@@ -265,9 +260,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
         """
 
-        and:
-        enableGradleMetadata(settingsFile)
-
         when:
         succeeds "publishMavenJavaPublicationToM2Repository"
 
@@ -310,9 +302,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        layout "pattern"
-                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
-                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        patternLayout {
+                            artifact "[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[artifact]-[revision](-[classifier])(.[ext])"
+                        }
                     }
                 }
             }
@@ -322,9 +315,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 sign publishing.publications.ivyJava
             }
         """
-
-        and:
-        enableGradleMetadata(settingsFile)
 
         when:
         succeeds "publishIvyJavaPublicationToIvyRepository"
@@ -369,6 +359,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
             publishing.publications.mavenJava.artifacts = [] 
             publishing.publications.mavenJava.artifact(sourceJar)
+            generateMetadataFileForMavenJavaPublication.enabled = false
         """
 
         when:
@@ -521,9 +512,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                     }
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        layout "pattern"
-                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
-                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        patternLayout {
+                            artifact "[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[artifact]-[revision](-[classifier])(.[ext])"
+                        }
                     }
                 }
             }

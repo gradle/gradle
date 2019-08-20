@@ -40,6 +40,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     help()
                     init()
                     model()
+                    outgoingVariants()
                     prepareKotlinBuildScriptModel()
                     projects()
                     properties()
@@ -336,6 +337,12 @@ model {
           | Type:   \torg.gradle.api.reporting.model.ModelReport
           | Value:  \ttask ':model\'
           | Creator: \tProject.<init>.tasks.model()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + outgoingVariants
+          | Type:   \torg.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask
+          | Value:  \ttask ':outgoingVariants\'
+          | Creator: \tProject.<init>.tasks.outgoingVariants()
           | Rules:
              ⤷ copyToTaskContainer
     + prepareKotlinBuildScriptModel

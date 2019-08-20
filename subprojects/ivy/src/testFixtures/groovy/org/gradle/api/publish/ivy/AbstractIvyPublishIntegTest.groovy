@@ -17,8 +17,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
 import org.gradle.test.fixtures.ModuleArtifact
@@ -30,10 +28,6 @@ import org.gradle.test.fixtures.ivy.IvyModule
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
-
-    def setup() {
-        prepare()
-    }
 
     protected static IvyJavaModule javaLibrary(IvyFileModule module) {
         new IvyJavaModule(module)
@@ -53,7 +47,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         String attributes = params.variant == null ?
             "" :
             """ 
@@ -141,7 +134,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         String configuration
         String status
         String variant
-        boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+        boolean resolveModuleMetadata
         boolean expectFailure
     }
 

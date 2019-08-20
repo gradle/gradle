@@ -28,12 +28,14 @@ public interface FileSystem extends Chmod, Stat {
     /**
      * Default Unix permissions for directories, {@code 755}.
      */
-    public static final int DEFAULT_DIR_MODE = 0755;
+    @SuppressWarnings("OctalInteger")
+    int DEFAULT_DIR_MODE = 0755;
 
     /**
      * Default Unix permissions for files, {@code 644}.
      */
-    public static final int DEFAULT_FILE_MODE = 0644;
+    @SuppressWarnings("OctalInteger")
+    int DEFAULT_FILE_MODE = 0644;
 
     /**
      * Tells whether the file system is case sensitive.

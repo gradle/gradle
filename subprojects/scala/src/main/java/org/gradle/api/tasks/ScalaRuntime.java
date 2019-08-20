@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
  *     }
  *
  *     dependencies {
- *         compile "org.scala-lang:scala-library:2.10.1"
+ *         implementation "org.scala-lang:scala-library:2.10.1"
  *     }
  *
  *     def scalaClasspath = scalaRuntime.inferScalaClasspath(configurations.compile)

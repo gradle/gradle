@@ -16,7 +16,11 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
@@ -34,7 +38,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     }
 
     /**
-     * This internal constructor is used by the 'nebula.lint' plugin which we test as part of our ci pipeline.
+     * This internal constructor is used by the 'idea-ext' plugin which we use in our build.
      * */
     @Deprecated
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {

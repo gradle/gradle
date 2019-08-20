@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.RelativePathUtil;
@@ -49,7 +49,7 @@ public class CompilationSourceDirs {
 
     public static List<File> inferSourceRoots(FileTreeInternal sources) {
         SourceRoots visitor = new SourceRoots();
-        sources.visitLeafCollections(visitor);
+        sources.visitStructure(visitor);
         return visitor.canInferSourceRoots ? visitor.sourceRoots : Collections.emptyList();
     }
 
@@ -64,13 +64,13 @@ public class CompilationSourceDirs {
             .findFirst();
     }
 
-    private static class SourceRoots implements FileCollectionLeafVisitor {
+    private static class SourceRoots implements FileCollectionStructureVisitor {
         private boolean canInferSourceRoots = true;
         private List<File> sourceRoots = Lists.newArrayList();
 
         @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
-            cannotInferSourceRoots(fileCollection);
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            cannotInferSourceRoots(contents);
         }
 
         @Override
@@ -79,7 +79,12 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitFileTree(File root, PatternSet patterns) {
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+            cannotInferSourceRoots(fileTree);
+        }
+
+        @Override
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             // We need to add missing files as source roots, since the package name for deleted files provided by IncrementalTaskInputs also need to be determined.
             if (!root.exists() || root.isDirectory()) {
                 sourceRoots.add(root);

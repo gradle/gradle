@@ -19,87 +19,25 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TaskDependencyIntegrationTest extends AbstractIntegrationSpec {
-    def "can remove a Task instance from task dependencies containing the Task instance"() {
-        given:
-        buildFile << '''
-            tasks.configureEach {
-                doLast {
-                    println "Executing $it"
-                }
-            }
-            task bar
-            task foo {
-                dependsOn bar
-            }
 
-            foo.dependsOn.remove(bar)
-        '''
+    def "removing is not supported by task dependencies set"() {
+        given:
+        buildFile << """
+            task t
+            task foo { dependsOn t }
+            foo.dependsOn.$removalMethod
+        """
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds "foo"
+        fails()
 
         then:
-        result.assertTasksExecuted(":foo")
-        result.assertTaskNotExecuted(":bar")
+        failure.assertHasCause('Removing a task dependency from a task instance is not supported.')
 
-        and:
-        outputContains("Do not remove a task dependency from a Task instance. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.")
-    }
-
-    def "can remove a Task instance from task dependencies containing a Provider to the Task instance"() {
-        given:
-        buildFile << '''
-            tasks.configureEach {
-                doLast {
-                    println "Executing $it"
-                }
-            }
-            def provider = tasks.register("bar")
-            task foo {
-                dependsOn provider
-            }
-
-            foo.dependsOn.remove(provider.get())
-        '''
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "foo"
-
-        then:
-        result.assertTasksExecuted(":foo")
-        result.assertTaskNotExecuted(":bar")
-
-        and:
-        outputContains("Do not remove a task dependency from a Task instance. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.")
-    }
-
-    def "can remove a Provider instance from task dependencies containing the Provider"() {
-        given:
-        buildFile << '''
-            tasks.configureEach {
-                doLast {
-                    println "Executing $it"
-                }
-            }
-            def provider = tasks.register("bar")
-            task foo {
-                dependsOn provider
-            }
-
-            foo.dependsOn.remove(provider)
-        '''
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "foo"
-
-        then:
-        result.assertTasksExecuted(":foo")
-        result.assertTaskNotExecuted(":bar")
-
-        and:
-        outputContains("Do not remove a task dependency from a Task instance. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.")
+        where:
+        removalMethod   | _
+        'remove(t)'     | _
+        'removeAll([])' | _
+        'retainAll([])' | _
     }
 }

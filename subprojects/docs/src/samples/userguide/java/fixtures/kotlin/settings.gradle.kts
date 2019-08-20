@@ -17,5 +17,3 @@
 rootProject.name = "sample-fixtures"
 
 include("lib")
-
-enableFeaturePreview("GRADLE_METADATA")

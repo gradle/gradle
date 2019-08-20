@@ -39,8 +39,14 @@ public class LocalTaskNode extends TaskNode {
 
     @Nullable
     @Override
-    public Project getProject() {
+    public Project getProjectToLock() {
         // Running the task requires access to the task's owning project
+        return task.getProject();
+    }
+
+    @Nullable
+    @Override
+    public Project getOwningProject() {
         return task.getProject();
     }
 
@@ -88,11 +94,16 @@ public class LocalTaskNode extends TaskNode {
             processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
-            addMustSuccessor(targetNode);
+            addMustSuccessor((TaskNode) targetNode);
         }
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
         }
+    }
+
+    @Override
+    public boolean requiresMonitoring() {
+        return false;
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {

@@ -66,13 +66,14 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         for (ComponentVariant.Dependency dependency : dependencies) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), force));
+            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), force));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
             result.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of()),
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
+                false,
                 dependencyConstraint.getReason(),
                 force
             ));

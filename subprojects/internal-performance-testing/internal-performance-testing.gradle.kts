@@ -35,6 +35,10 @@ dependencies {
     reports("jquery:jquery.min:1.11.0@js")
     reports("flot:flot:0.8.1:min@js")
 
+    api(library("gradleProfiler")) {
+        because("Consumers need to instantiate BuildMutators")
+    }
+
     implementation(project(":baseServices"))
     implementation(project(":native"))
     implementation(project(":cli"))
@@ -91,4 +95,3 @@ tasks.jar {
 
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
-

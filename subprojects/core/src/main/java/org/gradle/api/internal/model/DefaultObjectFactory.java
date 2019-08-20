@@ -17,6 +17,7 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -43,12 +44,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,13 +87,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return DeprecationLogger.whileDisabled(new Factory<SourceDirectorySet>() {
-            @Nullable
-            @Override
-            public SourceDirectorySet create() {
-                return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, DefaultObjectFactory.this);
-            }
-        });
+        return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, DefaultObjectFactory.this);
     }
 
     @Override
@@ -134,18 +126,22 @@ public class DefaultObjectFactory implements ObjectFactory {
             return Cast.uncheckedCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
         if (List.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() to create a property of type List<T>", "ObjectFactory.listProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
         } else if (Set.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Set<T>", "ObjectFactory.setProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("setProperty()", "Set<T>"));
         } else if (Map.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Map<K, V>", "ObjectFactory.mapProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("mapProperty()", "Map<K, V>"));
         } else if (Directory.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Directory", "ObjectFactory.directoryProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("directoryProperty()", "Directory"));
         } else if (RegularFile.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type RegularFile", "ObjectFactory.fileProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("fileProperty()", "RegularFile"));
         }
 
         return new DefaultProperty<T>(valueType);
+    }
+
+    private String invalidPropertyCreationError(String correctMethodName, String propertyType) {
+        return "Please use the ObjectFactory." + correctMethodName + " method to create a property of type " + propertyType + ".";
     }
 
     @Override

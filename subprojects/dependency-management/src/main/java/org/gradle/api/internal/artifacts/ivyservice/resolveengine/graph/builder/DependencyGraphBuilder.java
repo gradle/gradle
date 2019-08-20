@@ -95,6 +95,9 @@ public class DependencyGraphBuilder {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
 
+    final static Spec<EdgeState> INHERITING_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isInheriting();
+    final static Spec<EdgeState> NOT_INHERITING_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isInheriting();
+
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver,
                                   ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
@@ -178,7 +181,9 @@ public class DependencyGraphBuilder {
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
                 node.visitOutgoingDependencies(dependencies);
-                resolveEdges(node, dependencies, resolveState, componentIdentifierCache);
+                boolean edgeWasProcessed = resolveEdges(node, dependencies, INHERITING_DEPENDENCY_SPEC, false, resolveState, componentIdentifierCache);
+                node.collectInheritedSubgraphConstraints(dependencies);
+                resolveEdges(node, dependencies, NOT_INHERITING_DEPENDENCY_SPEC, edgeWasProcessed, resolveState, componentIdentifierCache);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
@@ -230,21 +235,34 @@ public class DependencyGraphBuilder {
         });
     }
 
-    private void resolveEdges(final NodeState node,
+    private boolean resolveEdges(final NodeState node,
                               final List<EdgeState> dependencies,
+                              final Spec<EdgeState> dependencyFilter,
+                              final boolean recomputeSelectors,
                               final ResolveState resolveState,
                               final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
         if (dependencies.isEmpty()) {
-            return;
+            return false;
         }
-        performSelectionSerially(dependencies, resolveState);
-        maybeDownloadMetadataInParallel(node, componentIdentifierCache, dependencies);
-        attachToTargetRevisionsSerially(dependencies);
+        if (performSelectionSerially(dependencies, dependencyFilter, resolveState, recomputeSelectors)) {
+            maybeDownloadMetadataInParallel(node, componentIdentifierCache, dependencies, dependencyFilter);
+            attachToTargetRevisionsSerially(dependencies, dependencyFilter);
+            return true;
+        } else {
+            return false;
+        }
 
     }
 
-    private void performSelectionSerially(List<EdgeState> dependencies, ResolveState resolveState) {
+    private boolean performSelectionSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter, ResolveState resolveState, boolean recomputeSelectors) {
+        boolean processed = false;
         for (EdgeState dependency : dependencies) {
+            if (!dependencyFilter.isSatisfiedBy(dependency)) {
+                continue;
+            }
+            if (recomputeSelectors) {
+                dependency.computeSelector();
+            }
             SelectorState selector = dependency.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
@@ -254,12 +272,14 @@ public class DependencyGraphBuilder {
             }
 
             module.addUnattachedDependency(dependency);
+            processed = true;
         }
+        return processed;
     }
 
     /**
      * Attempts to resolve a target `ComponentState` for the given dependency.
-     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link ModuleResolveState#selected},
+     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link ModuleResolveState#getSelected()},
      * and added to the graph.
      * On resolve failure, the failure is recorded and no `ComponentState` is selected.
      */
@@ -297,9 +317,12 @@ public class DependencyGraphBuilder {
      * Prepares the resolution of edges, either serially or concurrently.
      * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved metadata.
      */
-    private void maybeDownloadMetadataInParallel(NodeState node, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache, List<EdgeState> dependencies) {
+    private void maybeDownloadMetadataInParallel(NodeState node, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache, List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter) {
         List<ComponentState> requiringDownload = null;
         for (EdgeState dependency : dependencies) {
+            if (!dependencyFilter.isSatisfiedBy(dependency)) {
+                continue;
+            }
             ComponentState targetComponent = dependency.getTargetComponent();
             if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
                 if (!metaDataResolver.isFetchingMetadataCheap(toComponentId(targetComponent.getId(), componentIdentifierCache))) {
@@ -335,12 +358,14 @@ public class DependencyGraphBuilder {
         return identifier;
     }
 
-    private void attachToTargetRevisionsSerially(List<EdgeState> dependencies) {
+    private void attachToTargetRevisionsSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState dependency : dependencies) {
-            dependency.attachToTargetConfigurations();
+            if (dependencyFilter.isSatisfiedBy(dependency)) {
+                dependency.attachToTargetConfigurations();
+            }
         }
     }
 

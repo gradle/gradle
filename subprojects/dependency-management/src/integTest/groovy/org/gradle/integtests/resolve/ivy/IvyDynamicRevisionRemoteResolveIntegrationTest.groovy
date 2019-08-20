@@ -143,10 +143,16 @@ dependencies {
         identifier << Identifier.all
     }
 
-    def "determines latest version with jar only"() {
+    def "determines latest version with jar only if artifact metadata source is configured"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
+repositories.all {
+    metadataSources {
+        ivyDescriptor()
+        artifact()
+    }
+}
 configurations { compile }
 dependencies {
   compile group: "group", name: "projectA", version: "1.+"
@@ -1135,7 +1141,6 @@ dependencies {
         def projectA = ivyHttpRepo.module("group", "projectA", "1.2").withStatus("release").publish()
         directoryList.expectGet()
         projectA.ivy.expectGetMissing()
-        projectA.jar.expectHeadMissing()
 
         then:
         fails "checkDeps"
@@ -1143,7 +1148,6 @@ dependencies {
 Searched in the following locations:
   - ${directoryList.uri}
   - ${projectA.ivy.uri}
-  - ${projectA.jar.uri}
 Required by:
 """)
 

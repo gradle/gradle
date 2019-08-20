@@ -56,7 +56,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory))
+        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory))
 
     def "creates local repository"() {
         given:

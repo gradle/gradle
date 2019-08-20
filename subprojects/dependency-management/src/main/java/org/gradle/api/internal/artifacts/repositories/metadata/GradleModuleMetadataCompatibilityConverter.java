@@ -40,6 +40,8 @@ public class GradleModuleMetadataCompatibilityConverter {
     }
 
     public void process(MutableModuleComponentResolveMetadata metaDataFromResource) {
+        // This code path will always be a no-op following the changes in DefaultImmutableAttributesFactory
+        // However this code will have to remain forever while the other one should be removed at some point (Gradle 7.0?)
         for (MutableComponentVariant variant : metaDataFromResource.getMutableVariants()) {
             ImmutableAttributes attributes = variant.getAttributes();
             ImmutableAttributes updatedAttributes = ImmutableAttributes.EMPTY;

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -29,9 +30,11 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
@@ -40,6 +43,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 public class WorkExecutorTestFixture {
@@ -108,13 +112,38 @@ public class WorkExecutorTestFixture {
                 return false;
             }
         };
+        Deleter deleter = new Deleter() {
+            @Override
+            public boolean deleteRecursively(File target, boolean followSymlinks) {
+                return FileUtils.deleteQuietly(target);
+            }
+
+            @Override
+            public boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException {
+                File[] children = target.listFiles();
+                FileUtils.forceDelete(target);
+                FileUtils.forceMkdir(target);
+                return children == null || children.length == 0;
+            }
+
+            @Override
+            public boolean delete(File target) throws IOException {
+                if (!target.exists()) {
+                    return false;
+                }
+                FileUtils.forceDelete(target);
+                return true;
+            }
+        };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheCommandFactory,
             buildCacheController,
             cancellationToken,
             buildInvocationScopeId,
+            new TestBuildOperationExecutor(),
             buildScanPluginApplied,
             classLoaderHierarchyHasher,
+            deleter,
             new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,

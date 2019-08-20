@@ -32,7 +32,7 @@ class PropertiesUtilsTest extends Specification {
         expect:
         write([:], "Line comment") == normalize("""
             #Line comment
-        """)
+            """)
     }
 
     def "simple properties are written sorted alphabetically"() {
@@ -42,7 +42,7 @@ class PropertiesUtilsTest extends Specification {
             one=1
             three=three
             two=2
-        """)
+            """)
     }
 
     @Unroll
@@ -51,7 +51,7 @@ class PropertiesUtilsTest extends Specification {
         write([név: "Rezső"], "Eső leső", Charsets.ISO_8859_1) == normalize("""
             #Es\\u0151 les\\u0151
             n\\u00E9v=Rezs\\u0151
-        """)
+            """)
     }
 
     def "unicode characters are not escaped when encoding utf-8 encoding is used"() {
@@ -59,7 +59,7 @@ class PropertiesUtilsTest extends Specification {
         write([név: "Rezső"], "Eső leső", Charsets.UTF_8) == normalize("""
             #Es\\u0151 les\\u0151
             név=Rezső
-        """)
+            """)
     }
 
     def "specified line separator is used"() {
@@ -69,7 +69,7 @@ class PropertiesUtilsTest extends Specification {
             one=1
             three=three
             two=2
-        """).split("\n", -1).join("EOL")
+            """).split("\n", -1).join("EOL")
     }
 
     private static String write(Map<?, ?> properties, String comment = null, Charset charset = Charsets.ISO_8859_1, String lineSeparator = "\n") {

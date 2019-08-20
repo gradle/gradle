@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.alignment
 
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
@@ -91,9 +90,6 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
                     missedVersions.each {
                         version(it) {
                             expectGetMetadataMissing()
-                            if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                                expectHeadArtifactMissing()
-                            }
                         }
                     }
                 }

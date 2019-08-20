@@ -144,6 +144,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning()
         executer.withBuildCacheEnabled()
         succeeds "compileJava", "--info"
         then:
@@ -151,9 +152,11 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Using remote in-memory build cache for the root build."
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "clean"
 
         when:
+        executer.expectDeprecationWarning()
         executer.withBuildCacheEnabled()
         succeeds "compileJava"
         then:

@@ -130,7 +130,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         this.dependencies << [groupId: target.group, artifactId: target.module, version: target.version,
                               type: attributes.type, scope: attributes.scope, classifier: attributes.classifier,
                               optional: attributes.optional, exclusions: attributes.exclusions, rejects: attributes.rejects,
-                              prefers: attributes.prefers, strictly: attributes.strictly, reason: attributes.reason
+                              prefers: attributes.prefers, strictly: attributes.strictly, forSubgraph: attributes.forSubgraph,
+                              inheritConstraints: attributes.inheritConstraints, reason: attributes.reason
         ]
         return this
     }
@@ -463,10 +464,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
-                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.exclusions, d.reason, d.attributes)
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, d.attributes)
                     },
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
-                        new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
+                        new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.reason, d.attributes)
                     },
                     artifacts,
                     v.capabilities,
@@ -684,12 +685,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     MavenModule withModuleMetadata() {
+        gradleMetadataRedirect = true
         super.withModuleMetadata()
+        this
     }
 
     @Override
-    MavenModule withGradleMetadataRedirection() {
-        gradleMetadataRedirect = true
+    MavenModule withoutGradleMetadataRedirection() {
+        gradleMetadataRedirect = false
         return this
     }
 

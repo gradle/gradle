@@ -249,14 +249,15 @@ class ExtensionContainerTest extends Specification {
         container.add "cat", new Thing("gizmo")
         container.add "meo", container.instantiator.newInstance(Thing, "w")
 
+        def schemaMap = container.extensionsSchema.collectEntries { [it.name, it.publicType] }
         expect:
-        container.schema == [ext: typeOf(ExtraPropertiesExtension),
-                             foo: typeOf(Parent),
-                             bar: typeOf(Capability),
-                             boo: typeOf(Child),
-                             baz: new TypeOf<List<String>>() {},
-                             cat: typeOf(Thing),
-                             meo: typeOf(Thing)]
+        schemaMap == [ext: typeOf(ExtraPropertiesExtension),
+                      foo: typeOf(Parent),
+                      bar: typeOf(Capability),
+                      boo: typeOf(Child),
+                      baz: new TypeOf<List<String>>() {},
+                      cat: typeOf(Thing),
+                      meo: typeOf(Thing)]
     }
 
     def "can configure extensions by name"() {
@@ -272,10 +273,13 @@ class ExtensionContainerTest extends Specification {
 }
 
 interface Capability {}
+
 class Impl implements Capability {}
 
 class Parent {}
+
 class Child extends Parent {}
+
 class Thing {
     String name
 

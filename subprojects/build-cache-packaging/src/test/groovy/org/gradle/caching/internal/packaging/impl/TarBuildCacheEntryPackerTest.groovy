@@ -16,71 +16,34 @@
 
 package org.gradle.caching.internal.packaging.impl
 
-import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.nativeplatform.filesystem.FileSystem
-import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
-@CleanupTestDirectory
-class TarBuildCacheEntryPackerTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    def readOrigin = Stub(OriginReader)
-    def writeOrigin = Stub(OriginWriter)
+class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec {
+    @Override
+    protected FileSystem createFileSystem() {
+        TestFiles.fileSystem()
+    }
 
-    def fileSystem = Mock(FileSystem)
-    def streamHasher = new DefaultStreamHasher()
-    def stringInterner = new StringInterner()
-    def packer = new TarBuildCacheEntryPacker(fileSystem, streamHasher, stringInterner)
-    def snapshotter = TestFiles.fileSystemSnapshotter()
-
-    @Unroll
-    def "can pack single file with file mode #mode"() {
-        def sourceOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("source.txt").absolutePath]) as File
-        sourceOutputFile << "output"
-        def targetOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("target.txt").absolutePath]) as File
-        def output = new ByteArrayOutputStream()
-        def unixMode = Integer.parseInt(mode, 8)
-
-        when:
-        pack output, prop(FILE, sourceOutputFile)
-
-        then:
-        1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
-        _ * sourceOutputFile._
-        0 * _
-
-        when:
-        def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, prop(FILE, targetOutputFile)
-
-        then:
-        targetOutputFile.text == "output"
-        1 * fileSystem.chmod(targetOutputFile, unixMode)
-        _ * targetOutputFile._
-        0 * _
-
-        where:
-        mode << [ "0644", "0755" ]
+    @Override
+    protected Deleter createDeleter() {
+        TestFiles.deleter()
     }
 
     def "can pack directory"() {
@@ -96,9 +59,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
         def packResult = pack output, prop(DIRECTORY, sourceOutputDir)
 
         then:
-        1 * fileSystem.getUnixMode(sourceSubDir) >> 0711
-        1 * fileSystem.getUnixMode(sourceDataFile) >> 0600
-        0 * _
         packResult.entries == 4
 
         when:
@@ -106,11 +66,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
         def result = unpack input, prop(DIRECTORY, targetOutputDir)
 
         then:
-        1 * fileSystem.chmod(targetOutputDir, 0755)
-        1 * fileSystem.chmod(targetSubDir, 0711)
-        1 * fileSystem.chmod(targetDataFile, 0600)
-        0 * _
-        and:
         targetDataFile.text == "output"
         result.entries == 4
     }
@@ -160,12 +115,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         sourceOutputFile << "output"
         def targetOutputFile = temporaryFolder.file("target.txt")
         def output = new ByteArrayOutputStream()
-        when:
         pack output, prop(FILE, sourceOutputFile)
-
-        then:
-        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
-        0 * _
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
@@ -173,8 +123,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
         then:
         targetOutputFile.text == "output"
-        1 * fileSystem.chmod(targetOutputFile, 0644)
-        0 * _
 
         where:
         type      | treeName
@@ -186,16 +134,11 @@ class TarBuildCacheEntryPackerTest extends Specification {
     @Unroll
     def "can pack tree directory with files having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
-        def sourceOutputFile = sourceOutputDir.file(fileName) << "output"
+        sourceOutputDir.file(fileName) << "output"
         def targetOutputDir = temporaryFolder.file("target")
         def targetOutputFile = targetOutputDir.file(fileName)
         def output = new ByteArrayOutputStream()
-        when:
         pack output, prop(DIRECTORY, sourceOutputDir)
-
-        then:
-        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
-        0 * _
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
@@ -203,9 +146,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
         then:
         targetOutputFile.text == "output"
-        1 * fileSystem.chmod(targetOutputDir, 0755)
-        1 * fileSystem.chmod(targetOutputFile, 0644)
-        0 * _
 
         where:
         type          | fileName
@@ -220,16 +160,11 @@ class TarBuildCacheEntryPackerTest extends Specification {
     @Unroll
     def "can pack trees having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
-        def sourceOutputFile = sourceOutputDir.file("output.txt") << "output"
+        sourceOutputDir.file("output.txt") << "output"
         def targetOutputDir = temporaryFolder.file("target")
         def targetOutputFile = targetOutputDir.file("output.txt")
         def output = new ByteArrayOutputStream()
-        when:
         pack output, prop(treeName, DIRECTORY, sourceOutputDir)
-
-        then:
-        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
-        0 * _
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
@@ -237,9 +172,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
         then:
         targetOutputFile.text == "output"
-        1 * fileSystem.chmod(targetOutputDir, 0755)
-        1 * fileSystem.chmod(targetOutputFile, 0644)
-        0 * _
 
         where:
         type          | treeName
@@ -253,14 +185,14 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     def "can pack entity with all optional, null trees"() {
-        def output = new ByteArrayOutputStream()
         when:
+        def output = new ByteArrayOutputStream()
         pack output,
             prop("out1", FILE, null),
             prop("out2", DIRECTORY, null)
 
         then:
-        0 * _
+        noExceptionThrown()
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
@@ -269,7 +201,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
             prop("out2", DIRECTORY, null)
 
         then:
-        0 * _
+        noExceptionThrown()
     }
 
     def "can pack entity with missing files"() {
@@ -287,7 +219,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
             prop("missingDir", DIRECTORY, missingSourceDir)
 
         then:
-        0 * _
+        noExceptionThrown()
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
@@ -296,18 +228,18 @@ class TarBuildCacheEntryPackerTest extends Specification {
             prop("missingDir", DIRECTORY, missingTargetDir)
 
         then:
-        0 * _
+        noExceptionThrown()
     }
 
     def "can pack entity with empty directory"() {
         def sourceDir = temporaryFolder.file("source").createDir()
         def targetDir = temporaryFolder.file("target")
-        def output = new ByteArrayOutputStream()
         when:
+        def output = new ByteArrayOutputStream()
         pack output, prop("empty", DIRECTORY, sourceDir)
 
         then:
-        0 * _
+        noExceptionThrown()
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
@@ -315,8 +247,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
         then:
         targetDir.assertIsEmptyDir()
-        1 * fileSystem.chmod(targetDir, 0755)
-        0 * _
     }
 
     def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {
@@ -332,7 +262,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
     def entity(TreeDefinition... treeDefs) {
         Stub(CacheableEntity) {
-            visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+            visitOutputTrees(_ as CacheableEntity.CacheableTreeVisitor) >> { CacheableEntity.CacheableTreeVisitor visitor ->
                 treeDefs.each {
                     if (it.tree.root != null) {
                         visitor.visitOutputTree(it.tree.name, it.tree.type, it.tree.root)

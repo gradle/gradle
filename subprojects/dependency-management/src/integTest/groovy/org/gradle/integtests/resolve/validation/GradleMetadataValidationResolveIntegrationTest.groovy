@@ -30,11 +30,6 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
     def "can resolve if component gav information is missing"() {
         GradleFileModuleAdapter.printComponentGAV = false
         buildFile << """
-            repositories.all {
-                metadataSources {
-                    gradleMetadata()
-                }
-            }
             dependencies {
                 conf 'org.test:projectA:1.1'
             }
@@ -67,11 +62,6 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
     ])
     def "fails with proper error if a mandatory attribute is not defined"() {
         buildFile << """
-            repositories.all {
-                metadataSources {
-                    gradleMetadata()
-                }
-            }
             dependencies {
                 conf 'org.test:projectA:1.1'
             }

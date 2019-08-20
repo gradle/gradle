@@ -39,6 +39,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -218,9 +219,14 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
     @TaskAction
     public void link() {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
         cleaner.addDirToClean(getDestinationDirectory().get().getAsFile());
         cleaner.execute();
 

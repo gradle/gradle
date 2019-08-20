@@ -89,7 +89,7 @@ class DefaultPlanExecutorTest extends Specification {
         1 * executionPlan.hasNodesRemaining() >> true
         1 * executionPlan.selectNext(_, _) >> node
         1 * worker.execute(node)
-        1 * executionPlan.nodeComplete(node)
+        1 * executionPlan.finishedExecuting(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true

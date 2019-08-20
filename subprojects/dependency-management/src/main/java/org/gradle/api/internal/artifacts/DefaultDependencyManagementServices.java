@@ -33,7 +33,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -77,9 +76,8 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterSch
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
@@ -88,7 +86,7 @@ import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
+import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -139,15 +137,16 @@ import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
+import org.gradle.internal.execution.steps.LoadExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
-import org.gradle.internal.execution.steps.StoreSnapshotsStep;
+import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -243,7 +242,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          * Currently used for running artifact transformations in buildscript blocks.
          */
         WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
+            BuildOperationExecutor buildOperationExecutor,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            Deleter deleter,
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
             OverlappingOutputDetector overlappingOutputDetector,
@@ -255,22 +256,22 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
             return new DefaultWorkExecutor<>(
-                new LoadPreviousExecutionStateStep<>(
+                new LoadExecutionStateStep<>(
                 new ValidateStep<>(
-                new CaptureStateBeforeExecutionStep(classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                 new NoOpCachingStateStep(
                 new ResolveChangesStep<>(changeDetector,
                 new SkipUpToDateStep<>(
                 new BroadcastChangingOutputsStep<>(outputChangeListener,
-                new StoreSnapshotsStep<>(
-                new SnapshotOutputsStep<>(fixedUniqueId,
+                new StoreExecutionStateStep<>(
+                new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId,
                 new CreateOutputsStep<>(
                 new CatchExceptionStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
-                new CleanupOutputsStep<>(
-                new ExecuteStep<>()
-            )))))))))))))));
+                new CleanupOutputsStep<>(deleter,
+                new ExecuteStep<>(
+            ))))))))))))))));
             // @formatter:on
         }
     }
@@ -361,16 +362,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-                                                    FileSystemSnapshotter fileSystemSnapshotter,
-                                                    ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
-                                                    ArtifactTransformListener artifactTransformListener,
-                                                    FileCollectionFactory fileCollectionFactory,
-                                                    FileCollectionSnapshotter fileCollectionSnapshotter,
-                                                    ProjectFinder projectFinder,
-                                                    BuildOperationExecutor buildOperationExecutor
+        TransformerInvocationFactory createTransformerInvocationFactory(
+            WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+            FileSystemSnapshotter fileSystemSnapshotter,
+            ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
+            ArtifactTransformListener artifactTransformListener,
+            FileCollectionFactory fileCollectionFactory,
+            FileCollectionSnapshotter fileCollectionSnapshotter,
+            ProjectFinder projectFinder,
+            BuildOperationExecutor buildOperationExecutor
         ) {
-            return new DefaultTransformerInvoker(
+            return new DefaultTransformerInvocationFactory(
                 workExecutor,
                 fileSystemSnapshotter,
                 artifactTransformListener,
@@ -383,26 +385,28 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformationRegistrationFactory createTransformationRegistrationFactory(
+            BuildOperationExecutor buildOperationExecutor,
             IsolatableFactory isolatableFactory,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            TransformerInvoker transformerInvoker,
+            TransformerInvocationFactory transformerInvocationFactory,
             ValueSnapshotter valueSnapshotter,
             ProjectStateRegistry projectStateRegistry,
             DomainObjectContext domainObjectContext,
-            ProjectFinder projectFinder,
             ArtifactTransformParameterScheme parameterScheme,
             ArtifactTransformActionScheme actionScheme,
             FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
             FileCollectionFactory fileCollectionFactory
         ) {
             return new DefaultTransformationRegistrationFactory(
+                buildOperationExecutor,
                 isolatableFactory,
                 classLoaderHierarchyHasher,
-                transformerInvoker,
+                transformerInvocationFactory,
                 valueSnapshotter,
                 fileCollectionFactory,
                 fileCollectionFingerprinterRegistry,
-                new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder),
+                domainObjectContext,
+                projectStateRegistry,
                 parameterScheme,
                 actionScheme
             );
@@ -425,7 +429,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                           InstantiatorFactory instantiatorFactory,
                                                           FileResourceRepository fileResourceRepository,
-                                                          FeaturePreviews featurePreviews,
                                                           MavenMutableModuleMetadataFactory metadataFactory,
                                                           IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                                           IsolatableFactory isolatableFactory,
@@ -446,7 +449,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 moduleIdentifierFactory,
                 instantiatorFactory,
                 fileResourceRepository,
-                featurePreviews,
                 metadataFactory,
                 ivyMetadataFactory,
                 isolatableFactory,

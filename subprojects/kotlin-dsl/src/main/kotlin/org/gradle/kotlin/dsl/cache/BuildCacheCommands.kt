@@ -63,7 +63,7 @@ class LoadDirectory(
 
     override fun getKey(): BuildCacheKey = cacheKey
 
-    override fun load(inputStream: InputStream): BuildCacheLoadCommand.Result<OriginMetadata>? {
+    override fun load(inputStream: InputStream): BuildCacheLoadCommand.Result<OriginMetadata> {
 
         val (metadata, entryCount) = unpack(inputStream, directory)
 

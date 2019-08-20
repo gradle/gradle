@@ -17,6 +17,9 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import java.util.zip.ZipFile
 
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
@@ -47,7 +50,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'commons-io-2.6.jar' : 'f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
             'commons-lang-2.6.jar' : '50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c',
             'failureaccess-1.0.1.jar' : 'a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26',
-            'groovy-all-1.0-2.5.4.jar' : '704d3307616c57234871c4db3a355c3e81ea975db8dac8ee6c9264b91c74d2b7',
+            'groovy-all-1.3-2.5.8.jar': '25394ae305024c27bca108eeb7e9895e97c6dc1e9701f341502bf10dd00bef33',
             'guava-27.1-android.jar' : '686404f2d1d4d221911f96bd627ff60dac2226a5dfa6fb8ba517073eb97ec0ef',
             'jansi-1.17.1.jar' : 'b2234bfb0d8f245562d64ed9325df6b907093f4daa702c9082d4796db2a2d894',
             'javax.inject-1.jar' : '91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff',
@@ -98,7 +101,6 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'plugins/aws-java-sdk-s3-1.11.407.jar' : '15255fde9a9acbe226109c6767bc37d7415beeae2cca959bccf12e939da53280',
             'plugins/bcpg-jdk15on-1.61.jar' : 'd31561762756bdc8b70be5c1c72d9e972914e5549eaffe25e684b73aa15d1f63',
             'plugins/bcprov-jdk15on-1.61.jar' : 'dba6e408f205215ad1a89b70b37353d3cdae4ec61037e1feee885704e2413458',
-            'plugins/biz.aQute.bndlib-4.0.0.jar' : 'd1a328c8f63aea4f7ce6028a49255137664a7138fadc4af9d25461192b71e098',
             'plugins/bsh-2.0b6.jar' : 'a17955976070c0573235ee662f2794a78082758b61accffce8d3f8aedcd91047',
             'plugins/commons-codec-1.11.jar' : 'e599d5318e97aa48f42136a2927e6dfa4e8881dff0e6c8e3109ddbbff51d7b7d',
             'plugins/dd-plist-1.21.jar' : '019c61abd93ecf614e3d214e9fed942dcf47d9d2d9548fe59d70f0840ba32fb6',
@@ -173,12 +175,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         }
         Map<String, TestFile> depJars = filtered.collectEntries { [libDir.relativePath(it), it] }
 
-        def added = depJars.keySet() - expectedHashes.keySet()
-        def removed = expectedHashes.keySet() - depJars.keySet()
-
-        expect:
-        assert (added + removed).isEmpty()
-
+        when:
         def errors = []
         depJars.each { String jarPath, TestFile jar ->
             def expected = expectedHashes[jarPath]
@@ -187,8 +184,32 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
                 errors << "SHA-256 hash does not match for ${jarPath}: expected=${expected}, actual=${actual}"
             }
         }
+        then:
+        errors.empty
 
-        assert errors.empty
+        when:
+        def added = depJars.keySet() - expectedHashes.keySet()
+        def removed = expectedHashes.keySet() - depJars.keySet()
+        then:
+        (added + removed).isEmpty()
+    }
+
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
+    def "validate dependency archives"() {
+        when:
+        def jars = collectJars(unpackDistribution())
+        then:
+        jars != []
+
+        when:
+        def invalidArchives = jars.findAll {
+            new ZipFile(it).withCloseable {
+                def names = it.entries()*.name
+                names.size() != names.toUnique().size()
+            }
+        }
+        then:
+        invalidArchives == []
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {

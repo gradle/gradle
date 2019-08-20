@@ -752,7 +752,6 @@ include 'other'
 
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
@@ -802,7 +801,6 @@ include 'other'
     @Unroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -850,7 +848,7 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'enforcedPlatform' : 'enforced-platform-runtime'
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedPlatform' : 'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
@@ -872,7 +870,6 @@ include 'other'
 
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     @Unroll("can force a published platform version by forcing the platform itself via a constraint")
     def "can force a published platform version by forcing the platform itself via a constraint"() {
@@ -936,7 +933,6 @@ include 'other'
 
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
@@ -992,7 +988,6 @@ include 'other'
 
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-            @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")

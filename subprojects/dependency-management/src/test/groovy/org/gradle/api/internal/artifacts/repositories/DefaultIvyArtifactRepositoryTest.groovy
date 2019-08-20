@@ -58,7 +58,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final GradleModuleMetadataParser moduleMetadataParser = new GradleModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
 
-    final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, TestUtil.featurePreviews(), metadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory))
+    final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, metadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory))
 
     def "default values"() {
         expect:

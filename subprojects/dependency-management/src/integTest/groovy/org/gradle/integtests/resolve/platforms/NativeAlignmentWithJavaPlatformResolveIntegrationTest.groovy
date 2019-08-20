@@ -152,7 +152,6 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
         when:
         settingsFile.text = """
             rootProject.name = 'consumer'
-            enableFeaturePreview('GRADLE_METADATA')
         """
 
         buildFile.text = """

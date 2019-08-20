@@ -16,14 +16,23 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.collect.ImmutableList
 import org.gradle.performance.results.BuildDisplayInfo
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+
+import java.util.function.Function
 
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
+    final ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
+    final ImmutableList<String> measuredBuildOperations
 
-    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer, List<Function<InvocationSettings, BuildMutator>> buildMutators, ImmutableList<String> measuredBuildOperations) {
         super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
         this.invocation = invocation
+        this.buildMutators = buildMutators
+        this.measuredBuildOperations = measuredBuildOperations
     }
 
     static GradleBuilder builder() {
@@ -43,6 +52,8 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer warmUpCount
         Integer invocationCount
         BuildExperimentListener listener
+        List<Function<InvocationSettings, BuildMutator>> buildMutators
+        ImmutableList<String> measuredBuildOperations
         InvocationCustomizer invocationCustomizer
 
         GradleBuilder displayName(String displayName) {
@@ -75,6 +86,16 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
+        GradleBuilder buildMutators(List<Function<InvocationSettings, BuildMutator>> mutators) {
+            this.buildMutators = ImmutableList.copyOf(mutators)
+            this
+        }
+
+        GradleBuilder measuredBuildOperations(List<String> measuredBuildOperations) {
+            this.measuredBuildOperations = ImmutableList.copyOf(measuredBuildOperations)
+            this
+        }
+
         GradleBuilder invocationCustomizer(InvocationCustomizer invocationCustomizer) {
             this.invocationCustomizer = invocationCustomizer
             this
@@ -85,7 +106,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, listener, invocationCustomizer)
+            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators, measuredBuildOperations)
         }
     }
 }

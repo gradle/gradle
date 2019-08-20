@@ -10,6 +10,7 @@ org.gradle.listener.ListenerManager
 org.gradle.platform.base.internal.toolchain.ToolResolver
 org.gradle.runtime.jvm.toolchain.JavaToolChain
 org.gradle.api.internal.tasks.compile.Compiler
+org.gradle.api.internal.tasks.compile.GroovyJavaJointCompiler
 org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler
 org.gradle.api.internal.xml.XmlTransformer
 org.gradle.api.internal.XmlTransformer

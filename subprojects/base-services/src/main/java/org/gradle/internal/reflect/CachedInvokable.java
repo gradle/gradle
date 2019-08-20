@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect;
 
+import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 
 public class CachedInvokable<T> {
@@ -25,6 +26,7 @@ public class CachedInvokable<T> {
         this.invokable = new WeakReference<T>(invokable);
     }
 
+    @Nullable
     public T getMethod() {
         return invokable.get();
     }

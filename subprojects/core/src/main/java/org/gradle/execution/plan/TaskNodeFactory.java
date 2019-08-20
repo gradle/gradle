@@ -90,7 +90,14 @@ public class TaskNodeFactory {
 
         @Nullable
         @Override
-        public Project getProject() {
+        public Project getProjectToLock() {
+            // Ignore, as the node in the other build's execution graph takes care of this
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Project getOwningProject() {
             // Ignore, as the node in the other build's execution graph takes care of this
             return null;
         }
@@ -125,6 +132,11 @@ public class TaskNodeFactory {
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+        }
+
+        @Override
+        public boolean requiresMonitoring() {
+            return true;
         }
 
         @Override

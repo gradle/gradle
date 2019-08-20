@@ -1,7 +1,7 @@
 [[sec:abm_artifact_transforms]]
 = Transforming dependency artifacts on resolution
 
-As described in <<sec:abm_configuration_kinds,different kinds of configurations>>, there may be different variants for the same dependency.
+As described in <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,different kinds of configurations>>, there may be different variants for the same dependency.
 For example, an external Maven dependency has a variant which should be used when compiling against the dependency (`java-api`), and a variant for running an application which uses the dependency (`java-runtime`).
 A project dependency has even more variants, for example the classes of the project which are used for compilation are available as classes directories (`org.gradle.usage=java-api, org.gradle.libraryelements=classes`) or as JARs (`org.gradle.usage=java-api, org.gradle.libraryelements=jar`).
 
@@ -9,10 +9,10 @@ The variants of a dependency may differ in its transitive dependencies or in the
 For example, the `java-api` and `java-runtime` variants of a Maven dependency only differ in the transitive dependencies and both use the same artifact - the JAR file.
 For a project dependency, the `java-api,classes` and the `java-api,jars` variants have the same transitive dependencies and different artifacts - the classes directories and the JAR files respectively.
 
-Gradle identifies a variant of a dependency uniquely by its set of <<declaring_dependencies.adoc#sec:abm_configuration_attributes,attributes>>.
+Gradle identifies a variant of a dependency uniquely by its set of <<variant_model.adoc#sec:abm_configuration_attributes,attributes>>.
 The `java-api` variant of a dependency is the variant identified by the `org.gradle.usage` attribute with value `java-api`.
 
-When Gradle resolves a configuration, the <<declaring_dependencies.adoc#sec:abm_configuration_attributes,attributes>> on the resolved configuration determine the _requested attributes_.
+When Gradle resolves a configuration, the <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> on the resolved configuration determine the _requested attributes_.
 For all dependencies in the configuration, the variant with the requested attributes is selected when resolving the configuration.
 For example, when the configuration requests `org.gradle.usage=java-api, org.gradle.libraryelements=classes` on a project dependency, then the classes directory is selected as the artifact.
 

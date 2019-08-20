@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -74,7 +72,6 @@ public interface Dependency {
      *
      * @since 4.6
      */
-    @Incubating
     @Nullable
     String getReason();
 
@@ -83,6 +80,5 @@ public interface Dependency {
      *
      * @since 4.6
      */
-    @Incubating
     void because(@Nullable String reason);
 }

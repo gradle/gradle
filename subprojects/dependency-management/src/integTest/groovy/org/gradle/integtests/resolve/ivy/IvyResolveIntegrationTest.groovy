@@ -148,13 +148,21 @@ task check {
         succeeds "check"
     }
 
-    def "dependency that references a classifier can resolve module with no metadata"() {
+    def "dependency that references a classifier can resolve module with no metadata when artifact metadata source is configured"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { 
+    ivy { 
+        url "${ivyRepo.uri}" 
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
+    }
+}
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45:classifier"
@@ -219,9 +227,13 @@ task check {
 
         and:
         buildFile << """
-repositories {
-    ivy {
-        url "${ivyHttpRepo.uri}"
+repositories { 
+    ivy { 
+        url "${ivyHttpRepo.uri}" 
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
     }
 }
 configurations { compile }

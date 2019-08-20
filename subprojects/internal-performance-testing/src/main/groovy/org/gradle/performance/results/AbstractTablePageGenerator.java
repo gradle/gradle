@@ -44,12 +44,12 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
     protected final Set<ScenarioBuildResultData> scenarios;
     protected final ResultsStore resultsStore;
-    protected final PerformanceFlakinessAnalyzer flakinessAnalyzer;
+    protected final PerformanceFlakinessDataProvider flakinessDataProvider;
     protected final String commitId = Git.current().getCommitId();
 
-    public AbstractTablePageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
+    public AbstractTablePageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, ResultsStore resultsStore, File resultJson) {
         this.resultsStore = resultsStore;
-        this.flakinessAnalyzer = flakinessAnalyzer;
+        this.flakinessDataProvider = flakinessDataProvider;
         this.scenarios = readBuildResultData(resultJson);
     }
 

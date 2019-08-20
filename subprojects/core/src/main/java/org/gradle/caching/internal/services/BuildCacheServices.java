@@ -32,9 +32,10 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCac
 import org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -55,8 +56,14 @@ public class BuildCacheServices {
     private static final Path ROOT_BUILD_SRC_PATH = Path.path(":" + BuildSourceBuilder.BUILD_SRC);
     private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
-    BuildCacheEntryPacker createResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
-        return new GZipBuildCacheEntryPacker(new TarBuildCacheEntryPacker(fileSystem, fileHasher, stringInterner));
+    BuildCacheEntryPacker createResultPacker(
+        Deleter deleter,
+        FileSystem fileSystem,
+        StreamHasher fileHasher,
+        StringInterner stringInterner
+    ) {
+        return new GZipBuildCacheEntryPacker(
+            new TarBuildCacheEntryPacker(deleter, fileSystem, fileHasher, stringInterner));
     }
 
     OriginMetadataFactory createOriginMetadataFactory(

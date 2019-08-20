@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -55,7 +54,6 @@ public interface ComponentSelector {
      *
      * @since 4.9
      */
-    @Incubating
     AttributeContainer getAttributes();
 
     /**
@@ -64,6 +62,5 @@ public interface ComponentSelector {
      *
      * @since 5.3
      */
-    @Incubating
     List<Capability> getRequestedCapabilities();
 }

@@ -16,12 +16,12 @@
 
 package org.gradle.performance.regression.kotlindsl
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.junit.Ignore
 import spock.lang.Unroll
 
 @Ignore
-class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     @Unroll
     def "configuration of #testProject"() {

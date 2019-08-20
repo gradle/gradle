@@ -35,6 +35,10 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
     @Issue("https://github.com/gradle/gradle/issues/7398")
     @Unroll
     def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (compileClasspath)"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
+
         given:
         resolve = new ResolveTestFixture(buildFile, "compileClasspath")
         resolve.prepare()
@@ -102,34 +106,38 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         }
 
         where:
-        consumerPlugin | consumerConf     | groovyWithJavaLib | compileClasspathPackaging | expected
-        'java-library' | 'api'            | true              | false                     | "classes"
-        'java-library' | 'api'            | false             | false                     | "jar"
-        'java-library' | 'compile'        | true              | false                     | "classes"
-        'java-library' | 'compile'        | false             | false                     | "jar"
-        'java-library' | 'implementation' | true              | false                     | "classes"
-        'java-library' | 'implementation' | false             | false                     | "jar"
+        consumerPlugin | consumerConf     | groovyWithJavaLib | compileClasspathPackaging | expected  | deprecatedConfiguration
+        'java-library' | 'api'            | true              | false                     | "classes" | false
+        'java-library' | 'api'            | false             | false                     | "jar"     | false
+        'java-library' | 'compile'        | true              | false                     | "classes" | true
+        'java-library' | 'compile'        | false             | false                     | "jar"     | true
+        'java-library' | 'implementation' | true              | false                     | "classes" | false
+        'java-library' | 'implementation' | false             | false                     | "jar"     | false
 
-        'java'         | 'compile'        | true              | false                     | "classes"
-        'java'         | 'compile'        | false             | false                     | "jar"
-        'java'         | 'implementation' | true              | false                     | "classes"
-        'java'         | 'implementation' | false             | false                     | "jar"
+        'java'         | 'compile'        | true              | false                     | "classes" | true
+        'java'         | 'compile'        | false             | false                     | "jar"     | true
+        'java'         | 'implementation' | true              | false                     | "classes" | false
+        'java'         | 'implementation' | false             | false                     | "jar"     | false
 
-        'java-library' | 'api'            | true              | true                      | "jar"
-        'java-library' | 'api'            | false             | true                      | "jar"
-        'java-library' | 'compile'        | true              | true                      | "jar"
-        'java-library' | 'compile'        | false             | true                      | "jar"
-        'java-library' | 'implementation' | true              | true                      | "jar"
-        'java-library' | 'implementation' | false             | true                      | "jar"
+        'java-library' | 'api'            | true              | true                      | "jar"     | false
+        'java-library' | 'api'            | false             | true                      | "jar"     | false
+        'java-library' | 'compile'        | true              | true                      | "jar"     | true
+        'java-library' | 'compile'        | false             | true                      | "jar"     | true
+        'java-library' | 'implementation' | true              | true                      | "jar"     | false
+        'java-library' | 'implementation' | false             | true                      | "jar"     | false
 
-        'java'         | 'compile'        | true              | true                      | "jar"
-        'java'         | 'compile'        | false             | true                      | "jar"
-        'java'         | 'implementation' | true              | true                      | "jar"
-        'java'         | 'implementation' | false             | true                      | "jar"
+        'java'         | 'compile'        | true              | true                      | "jar"     | true
+        'java'         | 'compile'        | false             | true                      | "jar"     | true
+        'java'         | 'implementation' | true              | true                      | "jar"     | false
+        'java'         | 'implementation' | false             | true                      | "jar"     | false
     }
 
     @Unroll
     def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
+
         given:
         resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
         resolve.prepare()
@@ -197,17 +205,17 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         }
 
         where:
-        consumerPlugin | consumerConf     | groovyWithJavaLib
-        'java-library' | 'api'            | true
-        'java-library' | 'api'            | false
-        'java-library' | 'compile'        | true
-        'java-library' | 'compile'        | false
-        'java-library' | 'implementation' | true
-        'java-library' | 'implementation' | false
+        consumerPlugin | consumerConf     | groovyWithJavaLib | deprecatedConfiguration
+        'java-library' | 'api'            | true              | false
+        'java-library' | 'api'            | false             | false
+        'java-library' | 'compile'        | true              | true
+        'java-library' | 'compile'        | false             | true
+        'java-library' | 'implementation' | true              | false
+        'java-library' | 'implementation' | false             | false
 
-        'java'         | 'compile'        | true
-        'java'         | 'compile'        | false
-        'java'         | 'implementation' | true
-        'java'         | 'implementation' | false
+        'java'         | 'compile'        | true              | true
+        'java'         | 'compile'        | false             | true
+        'java'         | 'implementation' | true              | false
+        'java'         | 'implementation' | false             | false
     }
 }

@@ -78,6 +78,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             }
 
             if (spec.getScalaCompileOptions().isForce()) {
+                // TODO This should use Deleter
                 GFileUtils.deleteDirectory(spec.getDestinationDir());
             }
             LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());

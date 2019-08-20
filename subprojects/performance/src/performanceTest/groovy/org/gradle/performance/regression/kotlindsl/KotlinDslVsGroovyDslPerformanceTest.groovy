@@ -107,7 +107,7 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
         def rawResults = results.buildResult(name)
         def shift = rawResults.totalTime.median.value * medianPercentageShift / 100
         baselineResults.results.addAll(rawResults.collect {
-            new MeasuredOperation([start: it.start, end: it.end, totalTime: Amount.valueOf(it.totalTime.value + shift, it.totalTime.units), exception: it.exception])
+            new MeasuredOperation([totalTime: Amount.valueOf(it.totalTime.value + shift, it.totalTime.units), exception: it.exception])
         })
         return baselineResults
     }

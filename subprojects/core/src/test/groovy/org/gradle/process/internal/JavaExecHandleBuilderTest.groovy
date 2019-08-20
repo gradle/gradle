@@ -30,9 +30,9 @@ import java.util.concurrent.Executor
 import static java.util.Arrays.asList
 
 class JavaExecHandleBuilderTest extends Specification {
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), Mock(Executor), new DefaultBuildCancellationToken())
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), Mock(Executor), new DefaultBuildCancellationToken(), TestFiles.execFactory())
 
-    FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory()
+    FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(TestFiles.resolver(), null)
 
     def cannotSetAllJvmArgs() {
         when:

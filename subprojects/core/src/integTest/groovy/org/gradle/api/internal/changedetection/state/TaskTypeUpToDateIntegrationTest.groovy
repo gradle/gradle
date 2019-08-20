@@ -181,7 +181,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9723")
-    def "declaring a task action receiving #incrementalChangesType without declaring outputs is deprecated"() {
+    def "declaring a task action receiving #incrementalChangesType without declaring outputs is not allowed"() {
         def input = file('input.txt').createFile()
         buildFile << """
             class IncrementalTask extends DefaultTask {
@@ -197,11 +197,10 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning()
-        run 'noOutput'
+        fails 'noOutput'
         then:
-        outputContains("Using the incremental task API without declaring any outputs has been deprecated. This is scheduled to be removed in Gradle 6.0. Please declare output files for your task or use `TaskOutputs.upToDateWhen()`.")
-        noneSkipped()
+        failure.assertHasDescription("Execution failed for task ':noOutput'.")
+        failure.assertHasCause("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API")
 
         where:
         incrementalChangesType << [IncrementalTaskInputs, InputChanges]*.simpleName

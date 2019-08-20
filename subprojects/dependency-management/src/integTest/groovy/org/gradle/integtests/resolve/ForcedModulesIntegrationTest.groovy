@@ -334,7 +334,7 @@ task checkDeps {
     }
 
     void "when forcing the same module last declaration wins"() {
-        mavenRepo.module("org", "foo", '2.0').publish()
+        mavenRepo.module("org", "foo", '1.9').publish()
 
         buildFile << """
 apply plugin: 'java'
@@ -347,14 +347,14 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         force 'org:foo:1.5'
-        force 'org:foo:1.9'
         force 'org:foo:2.0'
+        force 'org:foo:1.9'
     }
 }
 
 task checkDeps {
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-2.0.jar']
+        assert configurations.compileClasspath*.name == ['foo-1.9.jar']
     }
 }
 """
@@ -407,4 +407,45 @@ task checkDeps {
         where:
         forced << ['d3', 'd2']
     }
+
+    void "first level force wins"() {
+        mavenRepo.module("org", "foo", '1.3.3').publish()
+
+        settingsFile << "include 'dep'"
+
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${mavenRepo.uri}" }
+	}
+}
+
+project(':dep') {
+    dependencies {
+        implementation('org:foo:1.4.4') {
+            force = true
+        }
+    }
+}
+
+dependencies {
+    implementation('org:foo:1.3.3') {
+        force = true
+    }
+    implementation project(':dep')
+}
+
+task checkDeps {
+    doLast {
+        assert configurations.runtimeClasspath*.name.contains('foo-1.3.3.jar')
+    }
+}
+"""
+
+        expect:
+        run 'checkDeps'
+    }
+
+
 }

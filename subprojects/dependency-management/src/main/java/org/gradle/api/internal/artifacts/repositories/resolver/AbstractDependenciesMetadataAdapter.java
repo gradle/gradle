@@ -55,6 +55,8 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
 
     protected abstract boolean isConstraint();
 
+    protected abstract boolean isInheriting(T details);
+
     @Override
     public T get(int index) {
         if (!dependencyMetadataAdapters.containsKey(index)) {
@@ -114,6 +116,6 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
     private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(T details) {
         // TODO: CC make capabilities accessible to rules
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getModule(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()), details.getAttributes(), ImmutableList.of());
-        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), isConstraint(), details.getReason(), false);
+        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), isConstraint(), isInheriting(details), details.getReason(), false);
     }
 }

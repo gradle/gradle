@@ -47,6 +47,7 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -54,7 +55,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
@@ -87,28 +87,29 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final FileSystem fileSystem;
-    private final Clock clock;
+    private final Deleter deleter;
     private ScriptPluginFactory scriptPluginFactory;
 
-    public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
-                                      Factory<LoggingManagerInternal> loggingManagerFactory,
-                                      Instantiator instantiator,
-                                      ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginRequestApplicator pluginRequestApplicator,
-                                      FileSystem fileSystem,
-                                      FileLookup fileLookup,
-                                      DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      DocumentationRegistry documentationRegistry,
-                                      ModelRuleSourceDetector modelRuleSourceDetector,
-                                      ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader,
-                                      StreamHasher streamHasher,
-                                      FileHasher fileHasher,
-                                      ExecFactory execFactory,
-                                      FileCollectionFactory fileCollectionFactory,
-                                      AutoAppliedPluginHandler autoAppliedPluginHandler,
-                                      Clock clock) {
-
+    public DefaultScriptPluginFactory(
+        ScriptCompilerFactory scriptCompilerFactory,
+        Factory<LoggingManagerInternal> loggingManagerFactory,
+        Instantiator instantiator,
+        ScriptHandlerFactory scriptHandlerFactory,
+        PluginRequestApplicator pluginRequestApplicator,
+        FileSystem fileSystem,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        DocumentationRegistry documentationRegistry,
+        ModelRuleSourceDetector modelRuleSourceDetector,
+        ProviderFactory providerFactory,
+        TextResourceLoader textResourceLoader,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        ExecFactory execFactory,
+        FileCollectionFactory fileCollectionFactory,
+        AutoAppliedPluginHandler autoAppliedPluginHandler,
+        Deleter deleter
+    ) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -126,7 +127,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.clock = clock;
+        this.deleter = deleter;
         this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
@@ -182,7 +183,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);
             services.add(FileCollectionFactory.class, fileCollectionFactory);
-            services.add(Clock.class, clock);
+            services.add(Deleter.class, deleter);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
@@ -196,7 +197,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
             CompileOperation<?> initialOperation = new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
 
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
@@ -213,7 +214,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String operationId = scriptTarget.getId();
             CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 scriptTarget.attachScript(runner.getScript());
             }

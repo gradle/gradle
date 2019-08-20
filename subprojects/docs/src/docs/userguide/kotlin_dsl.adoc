@@ -299,7 +299,7 @@ The IDE won't be able to help you discover the available configurations in this 
 
 ==== Project extensions and conventions
 
-Project extensions and <<sec:kotlin_dsl_about_conventions,conventions>> have both a name and a unique type, but the Kotlin DSL only needs to know the type in order to configure them.
+Project extensions and <<#sec:kotlin_dsl_about_conventions,conventions>> have both a name and a unique type, but the Kotlin DSL only needs to know the type in order to configure them.
 As the following sample shows for the `sourceSets {}` and `java {}` blocks from the original example build script, you can use the link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-project/configure.html[`configure<T>()`] function with the corresponding type to do that:
 
 .Project extensions and conventions
@@ -615,13 +615,13 @@ Kotlin DSL allows you to access extra properties and create new ones via delegat
 [source,kotlin]
 ----
 val myNewProperty by extra("initial value")  // <1>
-val myOtherNewProperty by extra { "lazy initial value" }  // <2>
+val myOtherNewProperty by extra { "calculated initial value" }  // <2>
 
 val myProperty: String by extra  // <3>
 val myNullableProperty: String? by extra  // <4>
 ----
 <1> Creates a new extra property called `myNewProperty` in the current context (the project in this case) and initializes it with the value `"initial value"`, which also determines the property's _type_
-<2> Create a new extra property whose initial value is calculated when the property is accessed
+<2> Create a new extra property whose initial value is calculated by the provided lambda
 <3> Binds an existing extra property from the current context (the project in this case) to a `myProperty` reference
 <4> Does the same as the previous line but allows the property to have a null value
 
@@ -705,7 +705,7 @@ tasks.create("myTask") {
 == The Kotlin DSL Plugin
 
 The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
-That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#composite_builds, included builds>> and link:{guidesUrl}/designing-gradle-plugins/[Gradle plugins].
+That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#, included builds>> and link:{guidesUrl}/designing-gradle-plugins/[Gradle plugins].
 
 The plugin achieves this by doing the following:
 
@@ -730,7 +730,7 @@ include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts
 ====
 
 Be aware that the Kotlin DSL Plugin turns on experimental Kotlin compiler features.
-See the <<sec:kotlin_compiler_arguments>> section below for more information.
+See the <<#sec:kotlin_compiler_arguments>> section below for more information.
 
 By default, the plugin warns about using experimental features of the Kotlin compiler.
 You can silence the warning by setting the `experimentalWarning` property of the `kotlinDslPluginOptions` extension to `false` as follows:

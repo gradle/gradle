@@ -17,36 +17,128 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
-import spock.lang.Ignore
 
 class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements ArtifactTransformTestFixture {
-    @Ignore
-    def "task input files can include artifact transform output"() {
-        setupBuildWithColorTransformAction()
+    def setup() {
+        // So that dependency resolution results from previous executions do not interfere
+        requireOwnGradleUserHomeDir()
+    }
+
+    def "task input files can include the output of artifact transform of project dependencies"() {
         settingsFile << """
             include 'a', 'b'
         """
+        setupBuildWithSimpleColorTransform()
         buildFile << """
+            dependencies.artifactTypes {
+                green {
+                    attributes.attribute(color, 'green')
+                }
+            }
             dependencies {
                 implementation project(':a')
+                implementation files('root.green')
                 implementation project(':b')
             }
+        """
+        file('root.green') << 'root'
 
-            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-                @InputArtifact
-                abstract Provider<FileSystemLocation> getInputArtifact()
-                
-                void transform(TransformOutputs outputs) {
-                    def input = inputArtifact.get().asFile
-                    println "processing \${input.name}"
-                    def output = outputs.file(input.name + ".green")
-                    output.text = input.text + ".green"
+        expect:
+        instantRun(":resolve")
+        assertTransformed("a.jar", "b.jar")
+        outputContains("result = [root.green, a.jar.green, b.jar.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        assertTransformed("a.jar", "b.jar")
+        outputContains("result = [root.green, a.jar.green, b.jar.green]")
+    }
+
+    def "task input files can include the output of artifact transform of external dependencies"() {
+        withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
+        withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
+
+        setupBuildWithSimpleColorTransform()
+        buildFile << """
+            repositories {
+                maven { 
+                    url = uri('${mavenRepo.uri}') 
+                    metadataSources { gradleMetadata() }
                 }
+            } 
+            dependencies {
+                implementation "group:thing1:1.2"
+                implementation "group:thing2:1.2"
             }
         """
 
         expect:
         instantRun(":resolve")
+        assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
+        outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
+
         instantRun(":resolve")
+        assertTransformed()
+        outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
+    }
+
+    def "task input files can include the output of artifact transforms of prebuilt file dependencies"() {
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithSimpleColorTransform()
+        buildFile << """
+            dependencies.artifactTypes {
+                blue {
+                    attributes.attribute(color, 'blue')
+                }
+            }
+            dependencies {
+                implementation files('root.blue')
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation files('a.blue')
+                }
+            }
+        """
+        file('root.blue') << 'root'
+        file('a/a.blue') << 'a'
+
+        expect:
+        instantRun(":resolve")
+        assertTransformed("root.blue", "a.blue", "a.jar")
+        outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        assertTransformed("a.jar")
+        outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
+    }
+
+    def "task input files can include the output of chained artifact transform of project dependencies"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithChainedSimpleColorTransform()
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+            }
+        """
+
+        expect:
+        instantRun(":resolve")
+        assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
+        outputContains("result = [a.jar.red.green, b.jar.red.green]")
+
+        instantRun(":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
+        outputContains("result = [a.jar.red.green, b.jar.red.green")
     }
 }

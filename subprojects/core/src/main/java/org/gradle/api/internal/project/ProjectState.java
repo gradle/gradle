@@ -20,6 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Encapsulates the identity and state of a particular project in a build tree.
  */
 @ThreadSafe
-public interface ProjectState {
+public interface ProjectState extends ModelContainer {
     /**
      * Returns the containing build of this project.
      */
@@ -51,17 +53,10 @@ public interface ProjectState {
     ProjectComponentIdentifier getComponentIdentifier();
 
     /**
-     * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
+     * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #withMutableState(Runnable)} and {@link #withMutableState(Factory)}.
+     * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
+     *
+     * <p>Note that the lock may be shared between projects.
      */
-    <T> T withMutableState(Factory<? extends T> factory);
-
-    /**
-     * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     */
-    void withMutableState(Runnable runnable);
-
-    /**
-     * Returns whether or not the current thread holds the mutable state for this project.
-     */
-    boolean hasMutableState();
+    ResourceLock getAccessLock();
 }

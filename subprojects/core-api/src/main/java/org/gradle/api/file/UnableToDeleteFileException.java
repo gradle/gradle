@@ -23,7 +23,10 @@ import java.io.File;
 
 /**
  * Thrown by Gradle when it is unable to delete a file.
+ *
+ * @deprecated This exception is not thrown anymore, and is replaced by a {@link RuntimeException}.
  */
+@Deprecated
 public class UnableToDeleteFileException extends UncheckedIOException {
 
     private final File file;

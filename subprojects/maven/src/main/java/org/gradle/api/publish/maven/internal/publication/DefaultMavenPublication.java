@@ -36,7 +36,6 @@ import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
-import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -54,7 +53,6 @@ import org.gradle.api.internal.component.MavenPublishingAwareContext;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -85,7 +83,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -96,8 +93,6 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
     private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
@@ -255,9 +250,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             throw new InvalidUserDataException(String.format("Maven publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
-        if (component instanceof JavaLibraryPlatform) {
-            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("components.javaLibraryPlatform", "Use the 'java-platform' plugin instead.");
-        }
         artifactsOverridden = false;
         updateModuleDescriptorArtifact();
     }
@@ -665,15 +657,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private boolean canPublishModuleMetadata() {
-        if (getComponent() == null) {
-            // Cannot yet publish module metadata without component
-            return false;
-        }
-        if (getComponent() instanceof ComponentWithVariants) {
-            // Always publish `ComponentWithVariants`
-            return true;
-        }
-        return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
+        // Cannot yet publish module metadata without component
+        return getComponent() != null;
     }
 
     @Override

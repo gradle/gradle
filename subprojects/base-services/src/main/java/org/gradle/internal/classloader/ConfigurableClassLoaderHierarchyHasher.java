@@ -68,7 +68,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
                 hasher.putBytes(knownId);
                 return false;
             }
-            if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
+            if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader || cl instanceof DeprecatedClassloader) {
                 return true;
             }
             HashCode hash = classLoaderFactory.getClassLoaderClasspathHash(cl);

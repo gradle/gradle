@@ -19,7 +19,7 @@ package org.gradle.api.internal
 class FeaturePreviewsActivationFixture {
 
     static def activeFeatures() {
-        EnumSet.of(FeaturePreviews.Feature.GRADLE_METADATA, FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE)
+        EnumSet.of(FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE)
     }
 
     static def inactiveFeatures() {

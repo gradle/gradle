@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntr
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.history.changes.DefaultFileChange;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
@@ -35,11 +36,16 @@ import java.util.List;
 import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
+    private final Deleter deleter;
     protected final FileOperations fileOperations;
     protected final FileTree sourceTree;
 
-    public AbstractRecompilationSpecProvider(FileOperations fileOperations,
-                                             FileTree sourceTree) {
+    public AbstractRecompilationSpecProvider(
+        Deleter deleter,
+        FileOperations fileOperations,
+        FileTree sourceTree
+    ) {
+        this.deleter = deleter;
         this.fileOperations = fileOperations;
         this.sourceTree = sourceTree;
     }
@@ -49,7 +55,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             return;
         }
         Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(toDelete);
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, toDelete);
         cleaner.addDirToClean(destinationDir);
         cleaner.execute();
     }

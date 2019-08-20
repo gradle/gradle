@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.net.URI;
 import java.util.Set;
@@ -102,7 +101,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @since 4.5
      */
-    @Incubating
     void metadataSources(Action<? super MetadataSources> configureAction);
 
     /**
@@ -111,7 +109,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @since 4.5
      *
      */
-    @Incubating
     interface MetadataSources {
         /**
          * Indicates that this repository will contain Gradle metadata.
@@ -147,6 +144,5 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @since 5.1
      */
-    @Incubating
     void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction);
 }

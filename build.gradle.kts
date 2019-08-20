@@ -18,6 +18,7 @@ import org.gradle.build.BuildReceipt
 import org.gradle.build.Install
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
+import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
@@ -211,7 +212,11 @@ subprojects {
     }
 
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-    apply(plugin = "gradlebuild.task-properties-validation")
+
+    if (project !in kotlinJsProjects) {
+        apply(plugin = "gradlebuild.task-properties-validation")
+    }
+
     apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
@@ -343,6 +348,7 @@ dependencies {
     gradlePlugins(project(":testKit"))
 
     coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
+    coreRuntimeExtensions(project(":instantExecution"))
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
     coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))

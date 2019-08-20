@@ -46,7 +46,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         then:
         result.formattedOutput.contains(buildSuccessful.output)
         result.plainTextOutput.matches """(?s).*
-BUILD SUCCESSFUL in \\d+m?s
+BUILD SUCCESSFUL in [ \\dms]+
 2 actionable tasks: 2 executed
 .*"""
 
@@ -56,7 +56,7 @@ BUILD SUCCESSFUL in \\d+m?s
         then:
         result.formattedOutput.contains(buildSuccessful.output)
         result.plainTextOutput.matches """(?s).*
-BUILD SUCCESSFUL in \\d+m?s
+BUILD SUCCESSFUL in [ \\dms]+
 2 actionable tasks: 1 executed, 1 up-to-date
 .*"""
     }
@@ -91,7 +91,7 @@ BUILD SUCCESSFUL in \\d+m?s
         then:
         result.plainTextOutput.matches """(?s).*build finished
 
-BUILD SUCCESSFUL in \\d+m?s
+BUILD SUCCESSFUL in [ \\dms]+
 1 actionable task: 1 executed
 .*"""
     }
@@ -124,7 +124,7 @@ BUILD SUCCESSFUL in \\d+m?s
         outputWithFailureAndNoDebugging.contains("""
             * What went wrong:
             Execution failed for task ':broken'.
-        """.stripIndent().trim())
+            """.stripIndent().trim())
 
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")

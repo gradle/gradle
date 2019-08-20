@@ -18,10 +18,12 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     private boolean locked;
 
-    private ClassPath export = ClassPath.EMPTY;
+    protected ClassPath export = ClassPath.EMPTY;
     private List<ClassLoader> exportLoaders; // if not null, is not empty
     private ClassPath local = ClassPath.EMPTY;
     private List<ClassLoader> ownLoaders;
@@ -46,12 +48,12 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
-        super(id, classLoaderCache);
+    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+        super(id, classLoaderCache, listener);
         this.parent = parent;
     }
 
-    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath) {
+    protected ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return parent.getExportClassLoader();
         }
@@ -65,14 +67,14 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return new CachingClassLoader(new MultiParentClassLoader(additional, loader(id, classPath)));
     }
 
-    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {
+    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath, @Nullable List<ClassLoader> loaders) {
         if (loaders != null) {
             return new CachingClassLoader(buildMultiLoader(id, classPath, loaders));
         }
         return buildLockedLoader(id, classPath);
     }
 
-    private MultiParentClassLoader buildMultiLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {
+    private MultiParentClassLoader buildMultiLoader(ClassLoaderId id, ClassPath classPath, @Nullable List<ClassLoader> loaders) {
         int numParents = 1;
         if (loaders != null) {
             numParents += loaders.size();
@@ -91,7 +93,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return new MultiParentClassLoader(parents);
     }
 
-    private void buildEffectiveLoaders() {
+    protected void buildEffectiveLoaders() {
         if (effectiveLocalClassLoader == null) {
             boolean hasExports = !export.isEmpty() || exportLoaders != null;
             boolean hasLocals = !local.isEmpty();
@@ -183,6 +185,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             local = local.plus(classPath);
         }
 
+        localClasspathAdded(classPath);
         return this;
     }
 
@@ -199,6 +202,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             export = export.plus(classPath);
         }
 
+        exportClasspathAdded(classPath);
         return this;
     }
 
@@ -232,5 +236,24 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public boolean isLocked() {
         return locked;
+    }
+
+    @Override
+    public ClassLoaderScope deprecated() {
+        ClassLoaderScopeIdentifier childId = id.child("deprecated");
+        DeprecatedClassLoaderScope deprecatedScope = new DeprecatedClassLoaderScope(childId, parent, classLoaderCache, export.plus(local), listener);
+        childScopeCreated(childId);
+        if (isLocked()) {
+            deprecatedScope.lock();
+        }
+        return deprecatedScope;
+    }
+
+    protected void exportClasspathAdded(ClassPath classPath) {
+        listener.exportClasspathAdded(id, classPath);
+    }
+
+    protected void localClasspathAdded(ClassPath classPath) {
+        listener.localClasspathAdded(id, classPath);
     }
 }

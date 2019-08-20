@@ -53,7 +53,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
-        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -133,7 +132,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
-        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -220,7 +218,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
-        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -311,7 +308,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
-        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.1") {

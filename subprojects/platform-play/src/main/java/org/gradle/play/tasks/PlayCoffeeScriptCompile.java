@@ -19,9 +19,12 @@ package org.gradle.play.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
+
+import javax.inject.Inject;
 
 /**
  * Task for compiling CoffeeScript sources into JavaScript.
@@ -44,9 +47,14 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
 
     @Override
     public void doCompile() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
         cleaner.addDirToClean(getDestinationDir());
         cleaner.execute();
         super.doCompile();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 }

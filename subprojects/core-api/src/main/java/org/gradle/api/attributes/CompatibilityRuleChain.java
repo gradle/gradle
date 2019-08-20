@@ -17,7 +17,6 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Comparator;
@@ -66,7 +65,6 @@ public interface CompatibilityRuleChain<T> {
      * @param rule the rule to add to the chain
      * @since 4.0
      */
-    @Incubating
     void add(Class<? extends AttributeCompatibilityRule<T>> rule);
 
     /**
@@ -76,7 +74,6 @@ public interface CompatibilityRuleChain<T> {
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
-    @Incubating
     void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
 }

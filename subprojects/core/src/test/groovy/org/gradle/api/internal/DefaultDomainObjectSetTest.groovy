@@ -27,6 +27,8 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
     StringBuffer c = new StringBuffer("c")
     StringBuilder d = new StringBuilder("d")
     boolean externalProviderAllowed = true
+    boolean directElementAdditionAllowed = true
+    boolean elementRemovalAllowed = true
     final boolean supportsBuildOperations = true
 
     def "findAll() filters elements and retains iteration order"() {

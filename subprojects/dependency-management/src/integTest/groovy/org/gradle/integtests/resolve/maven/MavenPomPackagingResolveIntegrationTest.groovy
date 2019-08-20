@@ -61,7 +61,6 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
         and:
         // First attempts to resolve in repo1
         projectARepo1.pom.expectGetMissing()
-        projectARepo1.artifact.expectHeadMissing()
 
         projectARepo2.pom.expectGet()
         projectARepo2.artifact.expectHead()

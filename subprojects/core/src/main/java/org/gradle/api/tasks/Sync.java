@@ -26,8 +26,10 @@ import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -73,7 +75,13 @@ public class Sync extends AbstractCopyTask {
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(getFileLookup().getFileResolver(destinationDir)), preserveInDestination, getDirectoryFileTreeFactory());
+        return new SyncCopyActionDecorator(
+            destinationDir,
+            new FileCopyAction(getFileLookup().getFileResolver(destinationDir)),
+            preserveInDestination,
+            getDeleter(),
+            getDirectoryFileTreeFactory()
+        );
     }
 
     @Override
@@ -133,4 +141,8 @@ public class Sync extends AbstractCopyTask {
         return this;
     }
 
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
 }

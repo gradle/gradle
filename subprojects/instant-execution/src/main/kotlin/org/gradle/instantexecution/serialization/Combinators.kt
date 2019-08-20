@@ -93,6 +93,9 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
     override suspend fun ReadContext.decode(): T? =
         when {
+            immediateMode -> {
+                codec.run { decode() }
+            }
             decodeStack.isEmpty() -> {
                 decodeStack.push(DecodeFrame(null))
                 decodeLoop(coroutineContext)
@@ -125,9 +128,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
         var result: T? = null
         do {
             suspend {
-                codec.run {
-                    decode()
-                }
+                codec.run { decode() }
             }.startCoroutine(
                 Continuation(coroutineContext) {
                     when (val k = decodeStack.pop().k) {
@@ -168,17 +169,6 @@ data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
 
 
 internal
-fun WriteContext.writeClass(value: Class<*>) {
-    writeString(value.name)
-}
-
-
-internal
-fun ReadContext.readClass(): Class<*> =
-    Class.forName(readString(), false, classLoader)
-
-
-internal
 fun WriteContext.writeClassArray(values: Array<Class<*>>) {
     writeArray(values) { writeClass(it) }
 }
@@ -215,6 +205,12 @@ suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory
 internal
 suspend fun WriteContext.writeMap(value: Map<*, *>) {
     writeSmallInt(value.size)
+    writeMapEntries(value)
+}
+
+
+internal
+suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
     for (entry in value.entries) {
         write(entry.key)
         write(entry.value)
@@ -226,12 +222,19 @@ internal
 suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
     val items = factory(size)
+    readMapEntriesInto(items, size)
+    return items
+}
+
+
+internal
+suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T, size: Int) {
+    @Suppress("unchecked_cast")
     for (i in 0 until size) {
-        val key = read()
-        val value = read()
+        val key = read() as K
+        val value = read() as V
         items[key] = value
     }
-    return items
 }
 
 
@@ -288,7 +291,7 @@ inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: 
 
 
 internal
-fun Decoder.readCollection(readElement: () -> Unit) {
+inline fun Decoder.readCollection(readElement: () -> Unit) {
     val size = readSmallInt()
     for (i in 0 until size) {
         readElement()

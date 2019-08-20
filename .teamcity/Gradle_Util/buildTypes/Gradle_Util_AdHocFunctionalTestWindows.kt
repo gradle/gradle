@@ -2,6 +2,7 @@ package Gradle_Util.buildTypes
 
 import common.Os
 import common.checkCleanM2
+import common.filterDefaultBranch
 import common.gradleWrapper
 import common.verifyTestFilesCleanup
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
@@ -24,7 +25,7 @@ object Gradle_Util_AdHocFunctionalTestWindows : BuildType({
     params {
         param("maxParallelForks", "4")
         select("subproject", "", display = ParameterDisplay.PROMPT,
-                options = listOf("announce", "antlr", "baseServices", "baseServicesGroovy", "buildCache", "buildCacheHttp", "buildComparison", "buildInit", "buildScanPerformance", "cli", "codeQuality", "compositeBuilds", "core", "coreApi", "dependencyManagement", "diagnostics", "distributions", "docs", "ear", "ide", "ideNative", "idePlay", "installationBeacon", "integTest", "internalAndroidPerformanceTesting", "internalIntegTesting", "internalPerformanceTesting", "internalTesting", "ivy", "jacoco", "javascript", "jvmServices", "languageGroovy", "languageJava", "languageJvm", "languageNative", "languageScala", "launcher", "logging", "maven", "messaging", "modelCore", "modelGroovy", "native", "osgi", "performance", "persistentCache", "platformBase", "platformJvm", "platformNative", "platformPlay", "pluginDevelopment", "pluginUse", "plugins", "processServices", "publish", "reporting", "resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp", "runtimeApiInfo", "scala", "signing", "smokeTest", "soak", "testKit", "testingBase", "testingJvm", "testingNative", "toolingApi", "toolingApiBuilders", "workers", "wrapper"))
+                options = listOf("antlr", "baseServices", "baseServicesGroovy", "buildCache", "buildCacheHttp", "buildInit", "buildScanPerformance", "cli", "codeQuality", "compositeBuilds", "core", "coreApi", "dependencyManagement", "diagnostics", "distributions", "docs", "ear", "ide", "ideNative", "idePlay", "installationBeacon", "integTest", "internalAndroidPerformanceTesting", "internalIntegTesting", "internalPerformanceTesting", "internalTesting", "ivy", "jacoco", "javascript", "jvmServices", "languageGroovy", "languageJava", "languageJvm", "languageNative", "languageScala", "launcher", "logging", "maven", "messaging", "modelCore", "modelGroovy", "native", "performance", "persistentCache", "platformBase", "platformJvm", "platformNative", "platformPlay", "pluginDevelopment", "pluginUse", "plugins", "processServices", "publish", "reporting", "resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp", "runtimeApiInfo", "scala", "signing", "smokeTest", "soak", "testKit", "testingBase", "testingJvm", "testingNative", "toolingApi", "toolingApiBuilders", "workers", "wrapper"))
         param("env.JAVA_HOME", "%windows.java9.oracle.64bit%")
         select("buildType", "", display = ParameterDisplay.PROMPT,
                 options = listOf("quickTest", "platformTest", "crossVersionTest", "quickFeedbackCrossVersionTest", "parallelTest", "noDaemonTest", "java9SmokeTest"))
@@ -34,7 +35,7 @@ object Gradle_Util_AdHocFunctionalTestWindows : BuildType({
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
 
         checkoutMode = CheckoutMode.ON_AGENT
-        buildDefaultBranch = false
+        filterDefaultBranch()
     }
 
     steps {

@@ -18,17 +18,6 @@ package org.gradle.instantexecution.serialization.beans
 
 import groovy.lang.GroovyObjectSupport
 import org.gradle.api.GradleException
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.internal.file.FilePropertyFactory
-import org.gradle.api.internal.provider.DefaultListProperty
-import org.gradle.api.internal.provider.DefaultMapProperty
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
@@ -38,7 +27,6 @@ import org.gradle.instantexecution.serialization.logPropertyWarning
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
 import sun.reflect.ReflectionFactory
-import java.io.File
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
@@ -47,18 +35,8 @@ import java.util.function.Supplier
 
 
 class BeanPropertyReader(
-    private val beanType: Class<*>,
-    private val filePropertyFactory: FilePropertyFactory
-) {
-
-    companion object {
-
-        fun factoryFor(
-            filePropertyFactory: FilePropertyFactory
-        ): (Class<*>) -> BeanPropertyReader = { type ->
-            BeanPropertyReader(type, filePropertyFactory)
-        }
-    }
+    private val beanType: Class<*>
+) : BeanStateReader {
 
     private
     val setterByFieldName = relevantStateOf(beanType).associateBy(
@@ -68,6 +46,8 @@ class BeanPropertyReader(
 
     private
     val constructorForSerialization by lazy {
+        // Initialize the super types of the bean type, as this does not seem to happen via the generated constructors
+        maybeInit(beanType)
         if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
             // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
             newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
@@ -76,10 +56,19 @@ class BeanPropertyReader(
         }
     }
 
-    fun newBean(): Any =
+    private
+    fun maybeInit(beanType: Class<*>) {
+        val superclass = beanType.superclass
+        if (superclass?.classLoader != null) {
+            Class.forName(superclass.name, true, superclass.classLoader)
+            maybeInit(superclass)
+        }
+    }
+
+    override suspend fun ReadContext.newBean() =
         constructorForSerialization.newInstance()
 
-    suspend fun ReadContext.readFieldsOf(bean: Any) {
+    override suspend fun ReadContext.readStateOf(bean: Any) {
         readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
             val setter = setterByFieldName.getValue(fieldName)
             setter(bean, fieldValue)
@@ -87,65 +76,32 @@ class BeanPropertyReader(
     }
 
     private
-    fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit =
-
-        when (val type = field.type) {
-            DirectoryProperty::class.java -> { bean, value ->
-                field.set(bean, filePropertyFactory.newDirectoryProperty().apply {
-                    set(value as File?)
-                })
-            }
-            RegularFileProperty::class.java -> { bean, value ->
-                field.set(bean, filePropertyFactory.newFileProperty().apply {
-                    set(value as File?)
-                })
-            }
-            MapProperty::class.java -> { bean, value ->
-                field.set(bean, DefaultMapProperty(Any::class.java, Any::class.java).apply {
-                    set(value as Map<Any?, Any?>)
-                })
-            }
-            ListProperty::class.java -> { bean, value ->
-                field.set(bean, DefaultListProperty(Any::class.java).apply {
-                    set(value as List<Any?>)
-                })
-            }
-            Property::class.java -> { bean, value ->
-                field.set(bean, DefaultProperty(Any::class.java).apply {
-                    set(value)
-                })
-            }
-            Provider::class.java -> { bean, value ->
-                field.set(bean, when (value) {
-                    null -> Providers.notDefined()
-                    else -> Providers.of(value)
-                })
-            }
-            Callable::class.java -> { bean, value ->
-                field.set(bean, Callable { value })
-            }
-            Supplier::class.java -> { bean, value ->
-                field.set(bean, Supplier { value })
-            }
-            Function0::class.java -> { bean, value ->
-                field.set(bean, { value })
-            }
-            Lazy::class.java -> { bean, value ->
-                field.set(bean, lazyOf(value))
-            }
-            else -> { bean, value ->
-                if (isAssignableTo(type, value)) {
-                    field.set(bean, value)
-                } else if (value != null) {
-                    logPropertyWarning("deserialize") {
-                        text("value ")
-                        reference(value.toString())
-                        text(" is not assignable to ")
-                        reference(type)
-                    }
-                } // else null value -> ignore
-            }
+    fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit = when (val type = field.type) {
+        Callable::class.java -> { bean, value ->
+            field.set(bean, Callable { value })
         }
+        Supplier::class.java -> { bean, value ->
+            field.set(bean, Supplier { value })
+        }
+        Function0::class.java -> { bean, value ->
+            field.set(bean, { value })
+        }
+        Lazy::class.java -> { bean, value ->
+            field.set(bean, lazyOf(value))
+        }
+        else -> { bean, value ->
+            if (isAssignableTo(type, value)) {
+                field.set(bean, value)
+            } else if (value != null) {
+                logPropertyWarning("deserialize") {
+                    text("value ")
+                    reference(value.toString())
+                    text(" is not assignable to ")
+                    reference(type)
+                }
+            } // else null value -> ignore
+        }
+    }
 
     private
     fun isAssignableTo(type: Class<*>, value: Any?) =

@@ -67,14 +67,13 @@ public interface CacheableInvocation<T> {
      *               Creating the invocation may be expensive, so this method avoids calling the mapper twice if possible.
      */
     default <U> CacheableInvocation<U> flatMap(Function<? super T, CacheableInvocation<U>> mapper) {
-        Optional<CacheableInvocation<U>> cachedInvocation = getCachedResult()
-            .map(cachedResult -> cachedResult.map(mapper).getSuccessfulOrElse(
-                Function.identity(),
-                failure -> cached(Try.failure(failure))
-            ));
-        return cachedInvocation.orElseGet(() ->
-            nonCached(() ->
-                invoke().flatMap(intermediateResult -> mapper.apply(intermediateResult).invoke())
+        return getCachedResult()
+            .map(cachedResult -> cachedResult
+                .tryMap(mapper)
+                .getOrMapFailure(failure -> cached(Try.failure(failure)))
+            ).orElseGet(() ->
+                nonCached(() ->
+                    invoke().flatMap(intermediateResult -> mapper.apply(intermediateResult).invoke())
             )
         );
     }

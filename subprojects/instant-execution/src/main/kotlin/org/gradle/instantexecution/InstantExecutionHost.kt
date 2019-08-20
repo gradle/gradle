@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Task
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -28,6 +27,7 @@ import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.BuildLoader
 import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
@@ -41,6 +41,7 @@ import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
@@ -67,7 +68,7 @@ class InstantExecutionHost internal constructor(
     val startParameter = gradle.startParameter
 
     override val skipLoadingStateReason: String?
-        get() = if (gradle.startParameter.isRefreshDependencies) {
+        get() = if (startParameter.isRefreshDependencies) {
             "--refresh-dependencies"
         } else {
             null
@@ -99,16 +100,16 @@ class InstantExecutionHost internal constructor(
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val buildSrc: Boolean
-            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == "buildSrc"
+            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == BuildSourceBuilder.BUILD_SRC
 
-        override val scheduledTasks: List<Task>
-            get() = gradle.taskGraph.allTasks
+        override val gradle: GradleInternal
+            get() = this@InstantExecutionHost.gradle
+
+        override val scheduledWork: List<Node>
+            get() = gradle.taskGraph.scheduledWork
 
         override val rootProject: ProjectInternal
             get() = gradle.rootProject
-
-        override fun dependenciesOf(task: Task): Set<Task> =
-            gradle.taskGraph.getDependencies(task)
     }
 
     inner class DefaultInstantExecutionBuild(
@@ -224,9 +225,9 @@ class InstantExecutionHost internal constructor(
             )
         }
 
-        override fun scheduleTasks(tasks: Iterable<Task>) {
+        override fun scheduleNodes(nodes: Collection<Node>) {
             gradle.taskGraph.run {
-                addEntryTasks(tasks)
+                addNodes(nodes)
                 populate()
             }
 

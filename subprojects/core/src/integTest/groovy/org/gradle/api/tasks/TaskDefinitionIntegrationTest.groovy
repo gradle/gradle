@@ -459,7 +459,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains('hello 42')
     }
 
-    def "renders deprecation warning when adding a pre-created task to the task container"() {
+    def "throws exception when adding a pre-created task to the task container"() {
         given:
         buildFile << """
             Task foo = tasks.create("foo")
@@ -484,11 +484,10 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds("help")
+        fails("help")
 
         then:
-        outputContains("Using method TaskContainer.add() has been deprecated. This will fail with an error in Gradle 6.0. Please use the TaskContainer.register() method instead.")
+        failure.assertHasCause("Adding a task directly to the task container is not supported.  Use register() instead.")
     }
 
     def "cannot add a pre-created task provider to the task container"() {
@@ -522,7 +521,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            assert schema.size() == 17
+            assert schema.size() == 18
             
             assert schema["help"] == "Help"
             

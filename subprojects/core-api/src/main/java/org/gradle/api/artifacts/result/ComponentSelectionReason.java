@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -63,7 +62,6 @@ public interface ComponentSelectionReason {
      *
      * @since 4.5
      */
-    @Incubating
     boolean isCompositeSubstitution();
 
     /**
@@ -90,6 +88,5 @@ public interface ComponentSelectionReason {
      *
      * @since 4.6
      */
-    @Incubating
     List<ComponentSelectionDescriptor> getDescriptions();
 }

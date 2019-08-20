@@ -36,28 +36,28 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         buildFile << """
-import org.gradle.api.artifacts.transform.TransformParameters
-
-def usage = Attribute.of('usage', String)
-def artifactType = Attribute.of('artifactType', String)
-def extraAttribute = Attribute.of('extra', String)
-    
-allprojects {
-
-    dependencies {
-        attributesSchema {
-            attribute(usage)
-        }
-    }
-    configurations {
-        compile {
-            attributes { attribute usage, 'api' }
-        }
-    }
-}
-
-$fileSizer
-"""
+            import org.gradle.api.artifacts.transform.TransformParameters
+            
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
+                
+            allprojects {
+            
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
+                    }
+                }
+                configurations {
+                    compile {
+                        attributes { attribute usage, 'api' }
+                    }
+                }
+            }
+            
+            $fileSizer
+        """
     }
 
     private static String getFileSizer() {
@@ -1382,7 +1382,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken")
 
         and:
@@ -1508,7 +1508,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Execution failed for ToNullTransform: ${file("a.jar").absolutePath}.")
         failure.assertHasCause("Transform returned null result.")
     }
@@ -1537,7 +1537,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output this_file_does_not.exist must exist.")
 
         when:
@@ -1601,7 +1601,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertThatCause(matchesRegexp("Transform ${failureMessage}."))
 
         when:
@@ -1729,7 +1729,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
@@ -1769,7 +1769,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
@@ -1800,7 +1800,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
     }
@@ -1856,10 +1856,10 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform broken.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
         failure.assertHasCause("Could not download a.jar (test:a:1.3)")
-        failure.assertHasCause("Failed to transform artifact 'broken.jar (test:broken:2.0)' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform broken.jar (test:broken:2.0) to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken-2.0.jar")
 
         and:

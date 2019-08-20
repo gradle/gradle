@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.internal.file.DefaultFileMetadata
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

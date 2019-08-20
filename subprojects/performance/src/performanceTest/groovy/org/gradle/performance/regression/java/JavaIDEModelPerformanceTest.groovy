@@ -27,12 +27,14 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
+    private static final BASELINE_VERSION = "5.7-20190812220043+0000"
+
     @Unroll
     def "get IDE model on #testProject for Eclipse"() {
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["5.7-20190722220035+0000"]
+            targetVersions = [BASELINE_VERSION]
             invocationCount = iterations
             warmUpCount = iterations
             action {
@@ -92,7 +94,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["5.7-20190722220035+0000"]
+            targetVersions = [BASELINE_VERSION]
             invocationCount = iterations
             warmUpCount = iterations
             action {

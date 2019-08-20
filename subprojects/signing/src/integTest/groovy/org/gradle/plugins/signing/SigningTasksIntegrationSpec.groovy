@@ -19,7 +19,6 @@ import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvide
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.Unroll
 
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.GPG_CMD
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_GPG
@@ -260,31 +259,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
         then:
         skipped(":signCustomFiles")
-    }
-
-    @Unroll
-    def "emits deprecation warning when Sign.#method is used"() {
-        given:
-        buildFile << """
-            ${keyInfo.addAsPropertiesScript()}
-            signing {
-                ${signingConfiguration()}
-                sign jar
-            }
-            signJar.doLast {
-                println $method
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds("signJar")
-
-        then:
-        outputContains("The Sign.$method method has been deprecated")
-
-        where:
-        method << ["getInputFiles()", "getOutputFiles()"]
     }
 
     def "trying to sign a task that isn't an archive task gives nice enough message"() {

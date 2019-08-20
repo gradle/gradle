@@ -23,7 +23,7 @@ class KotlinCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Spek framework build"() {
         def testRepoUri = "https://github.com/gradle/kotlin-relocation-test"
-        def testRepoBranch = "master"
+        def testRepoBranch = "gradle-6.0"
 
         def projectDir = testProjectDir.root
 

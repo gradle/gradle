@@ -24,73 +24,74 @@ import com.google.common.annotations.VisibleForTesting
 @VisibleForTesting
 object ProgramParser {
 
-    fun parse(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program = try {
+    fun parse(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Packaged<Program> = try {
         programFor(source, kind, target)
     } catch (unexpectedBlock: UnexpectedBlock) {
         handleUnexpectedBlock(unexpectedBlock, source.text, source.path)
     }
 
     private
-    fun programFor(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program {
+    fun programFor(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Packaged<Program> {
 
-        val topLevelBlockIds =
-            when (target) {
-                ProgramTarget.Project -> arrayOf("buildscript", "plugins")
-                ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement")
-                ProgramTarget.Gradle -> arrayOf("initscript")
-            }
+        val topLevelBlockIds = topLevelBlockIdsFor(target)
 
-        val (comments, topLevelBlocks) = lex(source.text, *topLevelBlockIds)
+        return lex(source.text, *topLevelBlockIds).map { (comments, topLevelBlocks) ->
 
-        checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
+            checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
 
-        val sourceWithoutComments =
-            source.map { it.erase(comments) }
+            val sourceWithoutComments =
+                source.map { it.erase(comments) }
 
-        val buildscriptFragment =
-            topLevelBlocks
-                .singleSectionOf(topLevelBlockIds[0])
-                ?.let { sourceWithoutComments.fragment(it) }
+            val buildscriptFragment =
+                topLevelBlocks
+                    .singleSectionOf(topLevelBlockIds[0])
+                    ?.let { sourceWithoutComments.fragment(it) }
 
-        val pluginsFragment =
-            topLevelBlocks
-                .takeIf { target == ProgramTarget.Project && kind == ProgramKind.TopLevel }
-                ?.singleSectionOf("plugins")
-                ?.let { sourceWithoutComments.fragment(it) }
+            val pluginsFragment =
+                topLevelBlocks
+                    .takeIf { target == ProgramTarget.Project && kind == ProgramKind.TopLevel }
+                    ?.singleSectionOf("plugins")
+                    ?.let { sourceWithoutComments.fragment(it) }
 
-        val buildscript =
-            buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
+            val buildscript =
+                buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
 
-        val plugins =
-            pluginsFragment?.takeIf { it.isNotBlank() }?.let(Program::Plugins)
+            val plugins =
+                pluginsFragment?.takeIf { it.isNotBlank() }?.let(Program::Plugins)
 
-        val stage1 =
-            buildscript?.let { bs ->
-                plugins?.let { ps ->
-                    Program.Stage1Sequence(bs, ps)
-                } ?: bs
-            } ?: plugins
+            val stage1 =
+                buildscript?.let { bs ->
+                    plugins?.let { ps ->
+                        Program.Stage1Sequence(bs, ps)
+                    } ?: bs
+                } ?: plugins
 
-        val remainingSource =
-            sourceWithoutComments.map {
-                it.erase(
-                    listOfNotNull(
-                        buildscriptFragment?.range,
-                        pluginsFragment?.range))
-            }
+            val remainingSource =
+                sourceWithoutComments.map {
+                    it.erase(
+                        listOfNotNull(
+                            buildscriptFragment?.range,
+                            pluginsFragment?.range))
+                }
 
-        val stage2 = remainingSource
-            .takeIf { it.text.isNotBlank() }
-            ?.let(Program::Script)
+            val stage2 = remainingSource
+                .takeIf { it.text.isNotBlank() }
+                ?.let(Program::Script)
 
-        stage1?.let { s1 ->
-            return stage2?.let { s2 ->
-                Program.Staged(s1, s2)
-            } ?: s1
-        }
-
-        return stage2
+            stage1?.let { s1 ->
+                stage2?.let { s2 ->
+                    Program.Staged(s1, s2)
+                } ?: s1
+            } ?: stage2
             ?: Program.Empty
+        }
+    }
+
+    private
+    fun topLevelBlockIdsFor(target: ProgramTarget): Array<String> = when (target) {
+        ProgramTarget.Project -> arrayOf("buildscript", "plugins")
+        ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement")
+        ProgramTarget.Gradle -> arrayOf("initscript")
     }
 
     private
@@ -107,7 +108,7 @@ object ProgramParser {
 
     private
     fun ProgramSourceFragment.isNotBlank() =
-        source.text.subSequence(section.block.start + 1, section.block.endInclusive).isNotBlank()
+        source.text.subSequence(section.block.first + 1, section.block.last).isNotBlank()
 }
 
 

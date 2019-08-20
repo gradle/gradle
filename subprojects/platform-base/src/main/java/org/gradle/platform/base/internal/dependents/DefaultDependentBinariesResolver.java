@@ -42,7 +42,7 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
 
     @Override
     public <T extends DependentBinariesResolutionStrategy> T getStrategy(String name, Class<T> type) {
-        return Cast.cast(type, strategies.get(name));
+        return Cast.castNullable(type, strategies.get(name));
     }
 
     @Override

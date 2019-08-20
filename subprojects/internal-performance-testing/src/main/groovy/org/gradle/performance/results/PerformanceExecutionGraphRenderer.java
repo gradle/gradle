@@ -24,13 +24,13 @@ import java.util.stream.IntStream;
 import static java.util.stream.Collectors.toList;
 
 public interface PerformanceExecutionGraphRenderer {
-    default List<Graph> getGraphs(PerformanceTestHistory history) {
+    default List<ExecutionGraph> getGraphs(PerformanceTestHistory history) {
         List<PerformanceTestExecution> executions = history.getExecutions()
             .stream()
             .filter(this::sameCommit)
             .filter(this::hasTwoDataLines)
             .collect(toList());
-        return IntStream.range(0, executions.size()).mapToObj(i -> toGraph(executions.get(i), i + 1)).collect(toList());
+        return IntStream.range(0, executions.size()).mapToObj(i -> toExecutionGraph(executions.get(i), i + 1)).collect(toList());
     }
 
     default boolean hasTwoDataLines(PerformanceTestExecution execution) {
@@ -41,14 +41,11 @@ public interface PerformanceExecutionGraphRenderer {
         return !measuredOperations.getTotalTime().isEmpty();
     }
 
-    default Graph toGraph(PerformanceTestExecution execution, int index) {
-        String id = "execution_" + index;
-        String title = "Execution " + index + "(ms)";
-
+    default ExecutionGraph toExecutionGraph(PerformanceTestExecution execution, int index) {
         Line baseline = new Line(execution.getScenarios().stream().filter(this::hasData).findFirst().orElse(new MeasuredOperationList()));
         Line current = new Line(execution.getScenarios().get(execution.getScenarios().size() - 1));
 
-        return new Graph(id, title, baseline, current);
+        return new ExecutionGraph(index, baseline, current);
     }
 
     default boolean sameCommit(PerformanceTestExecution execution) {

@@ -72,6 +72,8 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
@@ -88,6 +90,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -96,6 +99,7 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -340,5 +344,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     OverlappingOutputDetector createOverlappingOutputDetector() {
         return new DefaultOverlappingOutputDetector();
+    }
+
+    Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
+        return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 }

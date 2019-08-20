@@ -16,9 +16,9 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 
-class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class TaskCreationPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def "create many tasks"() {
         given:

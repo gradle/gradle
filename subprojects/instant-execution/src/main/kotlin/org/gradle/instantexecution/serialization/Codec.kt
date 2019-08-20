@@ -21,8 +21,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
-import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
+import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import kotlin.reflect.KClass
@@ -31,42 +31,44 @@ import kotlin.reflect.KClass
 /**
  * Binary encoding for type [T].
  */
-interface Codec<T> {
-
-    suspend fun WriteContext.encode(value: T)
-
-    suspend fun ReadContext.decode(): T?
-}
+interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 
-interface WriteContext : IsolateContext, Encoder {
+interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
+
+    val sharedIdentities: WriteIdentities
 
     override val isolate: WriteIsolate
 
-    fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter
+    fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter
 
-    fun writeActionFor(value: Any?): Encoding?
+    suspend fun write(value: Any?)
 
-    suspend fun write(value: Any?) {
-        writeActionFor(value)!!(value)
-    }
+    fun writeClass(type: Class<*>)
 }
 
 
-typealias Encoding = suspend WriteContext.(value: Any?) -> Unit
+interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
-
-interface ReadContext : IsolateContext, Decoder {
+    val sharedIdentities: ReadIdentities
 
     override val isolate: ReadIsolate
 
     val classLoader: ClassLoader
 
-    fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader
+    fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 
     fun getProject(path: String): ProjectInternal
 
+    /**
+     * When in immediate mode, [read] calls are NOT suspending.
+     * Useful for bridging with non-suspending serialization protocols such as [java.io.Serializable].
+     */
+    var immediateMode: Boolean // TODO:instant-execution prevent StackOverflowErrors when crossing protocols
+
     suspend fun read(): Any?
+
+    fun readClass(): Class<*>
 }
 
 
@@ -228,6 +230,7 @@ sealed class PropertyTrace {
             }
         }
 
+    private
     val tail: PropertyTrace?
         get() = when (this) {
             is Bean -> trace
@@ -252,17 +255,17 @@ enum class PropertyKind {
 
 sealed class IsolateOwner {
 
-    fun <T> service(type: Class<T>): T =
-        when (this) {
-            is OwnerTask -> (delegate.project as ProjectInternal).services.get(type)
-            is OwnerGradle -> (delegate as GradleInternal).services.get(type)
-        }
+    abstract fun <T> service(type: Class<T>): T
 
     abstract val delegate: Any
 
-    class OwnerTask(override val delegate: Task) : IsolateOwner()
+    class OwnerTask(override val delegate: Task) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
+    }
 
-    class OwnerGradle(override val delegate: Gradle) : IsolateOwner()
+    class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+    }
 }
 
 
@@ -279,32 +282,47 @@ interface Isolate {
 
 interface WriteIsolate : Isolate {
 
+    /**
+     * Identities of objects that are shared within this isolate only.
+     */
     val identities: WriteIdentities
 }
 
 
 interface ReadIsolate : Isolate {
 
+    /**
+     * Identities of objects that are shared within this isolate only.
+     */
     val identities: ReadIdentities
 }
 
 
-internal
 interface MutableIsolateContext {
-
-    fun enterIsolate(owner: IsolateOwner)
-
-    fun leaveIsolate()
+    fun push(owner: IsolateOwner, codec: Codec<Any?>)
+    fun pop()
 }
 
 
 internal
-inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
-    enterIsolate(owner)
+inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
+    val immediateMode = this.immediateMode
+    try {
+        this.immediateMode = true
+        return block()
+    } finally {
+        this.immediateMode = immediateMode
+    }
+}
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
+    push(owner, codec)
     try {
         return block()
     } finally {
-        leaveIsolate()
+        pop()
     }
 }
 
@@ -319,11 +337,3 @@ inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, blo
         this.trace = previousTrace
     }
 }
-
-
-internal
-interface MutableWriteContext : WriteContext, MutableIsolateContext
-
-
-internal
-interface MutableReadContext : ReadContext, MutableIsolateContext

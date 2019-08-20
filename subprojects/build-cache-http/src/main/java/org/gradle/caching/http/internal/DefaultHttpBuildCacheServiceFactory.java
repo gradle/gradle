@@ -65,6 +65,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         if (credentialsPresent(credentials)) {
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
             basicAuthentication.setCredentials(credentials);
+            basicAuthentication.addHost(url.getHost(), url.getPort());
             authentications = Collections.<Authentication>singleton(basicAuthentication);
         }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.api.JavaVersion;
  *
  * @since 4.10
  */
-@Incubating
 public interface JavaPluginExtension {
     /**
      * Returns the source compatibility used for compiling Java sources.
@@ -70,7 +68,6 @@ public interface JavaPluginExtension {
      *
      * @since 5.3
      */
-    @Incubating
     void disableAutoTargetJvm();
 
 }

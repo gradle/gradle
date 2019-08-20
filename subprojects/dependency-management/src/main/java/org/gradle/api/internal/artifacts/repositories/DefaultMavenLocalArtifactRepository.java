@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -34,7 +34,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
@@ -57,11 +56,10 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
-                                               FeaturePreviews featurePreviews,
                                                MavenMutableModuleMetadataFactory metadataFactory,
                                                IsolatableFactory isolatableFactory,
                                                ObjectFactory objectFactory) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory);
     }
 
     @Override

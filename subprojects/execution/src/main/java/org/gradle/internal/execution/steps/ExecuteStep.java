@@ -34,12 +34,14 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
         return () -> Try.successful(outcome);
     }
 
-    private ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
+    private static ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
         switch (result) {
             case DID_NO_WORK:
                 return ExecutionOutcome.UP_TO_DATE;
             case DID_WORK:
-                return incremental ? ExecutionOutcome.EXECUTED_INCREMENTALLY : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+                return incremental
+                    ? ExecutionOutcome.EXECUTED_INCREMENTALLY
+                    : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
             default:
                 throw new IllegalArgumentException("Unknown result: " + result);
         }

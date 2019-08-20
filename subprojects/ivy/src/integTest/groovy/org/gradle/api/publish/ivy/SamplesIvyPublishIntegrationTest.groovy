@@ -34,7 +34,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = ivy(sampleDir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
+        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -55,15 +55,15 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = ivy(sampleDir.file("build/repo"))
-        def project1module = fileRepo.module("org.gradle.sample", "project1", "1.0")
-        def project2module = fileRepo.module("org.gradle.sample", "project2", "1.0")
+        def project1module = fileRepo.module("org.gradle.sample", "project1", "1.0").withModuleMetadata()
+        def project2module = fileRepo.module("org.gradle.sample", "project2", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
 
         then:
         project1module.assertPublished()
-        project1module.assertArtifactsPublished("project1-1.0.jar", "project1-1.0-sources.jar", "ivy-1.0.xml")
+        project1module.assertArtifactsPublished("project1-1.0.jar", "project1-1.0-sources.jar", "ivy-1.0.xml", "project1-1.0.module")
 
         project1module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
         project1module.parsedIvy.description.text() == "The first project"
@@ -71,7 +71,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         project2module.assertPublished()
-        project2module.assertArtifactsPublished("project2-1.0.jar", "project2-1.0-sources.jar", "ivy-1.0.xml")
+        project2module.assertArtifactsPublished("project2-1.0.jar", "project2-1.0-sources.jar", "ivy-1.0.xml", "project2-1.0.module")
 
         project2module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
         project2module.parsedIvy.description.text() == "The second project"
@@ -93,7 +93,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = ivy(sampleDir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "descriptor-customization", "1.0")
+        def module = fileRepo.module("org.gradle.sample", "descriptor-customization", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -123,9 +123,9 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def artifactId = "maven-conditional-publishing"
         def version = "1.0"
         def externalRepo = ivy(sampleProject.dir.file("build/repos/external"))
-        def binary = externalRepo.module("org.gradle.sample", artifactId, version)
+        def binary = externalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
         def internalRepo = ivy(sampleProject.dir.file("build/repos/internal"))
-        def binaryAndSources = internalRepo.module("org.gradle.sample", artifactId, version)
+        def binaryAndSources = internalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -137,7 +137,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         and:
         binary.assertPublishedAsJavaModule()
         binaryAndSources.assertPublished()
-        binaryAndSources.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "ivy-${version}.xml"
+        binaryAndSources.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "ivy-${version}.xml", "${artifactId}-${version}.module"
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
@@ -175,7 +175,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def artifactId = "publish-artifact"
         def version = "1.0"
         def repo = ivy(sampleProject.dir.file("build/repo"))
-        def module = repo.module("org.gradle.sample", artifactId, version)
+        def module = repo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -199,7 +199,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def repo = ivy(sampleDir.file("build/repo"))
         def artifactId = "distribution"
         def version = "1.0"
-        def module = repo.module("org.gradle.sample", artifactId, version)
+        def module = repo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
 
         when:
         succeeds "publish"

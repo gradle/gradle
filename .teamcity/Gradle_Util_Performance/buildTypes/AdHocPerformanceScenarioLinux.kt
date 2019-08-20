@@ -6,9 +6,13 @@ import common.buildToolGradleParameters
 import common.builtInRemoteBuildCacheNode
 import common.checkCleanM2
 import common.gradleWrapper
+import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
+import configurations.killAllGradleProcesses
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 
 object AdHocPerformanceScenarioLinux : BuildType({
     uuid = "a3183d81-e07d-475c-8ef6-04ed60bf4053"
@@ -16,10 +20,7 @@ object AdHocPerformanceScenarioLinux : BuildType({
     id("Gradle_Util_Performance_AdHocPerformanceScenarioLinux")
 
     applyPerformanceTestSettings(timeout = 420)
-    artifactRules = """
-        subprojects/*/build/test-results-*.zip => results
-        subprojects/*/build/tmp/**/log.txt => failure-logs
-    """.trimIndent()
+    artifactRules = individualPerformanceTestArtifactRules
 
     params {
         text("baselines", "defaults", display = ParameterDisplay.PROMPT, allowEmpty = false)
@@ -39,12 +40,20 @@ object AdHocPerformanceScenarioLinux : BuildType({
     }
 
     steps {
+        script {
+            name = "KILL_GRADLE_PROCESSES"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = killAllGradleProcesses
+        }
         gradleWrapper {
             name = "GRADLE_RUNNER"
             gradleParams = (
-                performanceTestCommandLine("clean %templates% performance:performanceAdHocTest", "%baselines%",
-                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""") +
-                    buildToolGradleParameters() +
+                performanceTestCommandLine(
+                    "clean %templates% performance:performanceAdHocTest",
+                    "%baselines%",
+                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%"""
+                ) +
+                    buildToolGradleParameters(isContinue = false) +
                     builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
                 ).joinToString(separator = " ")
         }

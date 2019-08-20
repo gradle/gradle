@@ -35,7 +35,7 @@ class GradleModuleMetadata {
             JsonReader reader = new JsonReader(r)
             values = readObject(reader)
         }
-        assert values.formatVersion == '1.0'
+        assert values.formatVersion == '1.1'
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
@@ -163,7 +163,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.reason, normalizeForTests(it.attributes))
+                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], it.version?.forSubgraph, exclusions, it.inheritConstraints, it.reason, normalizeForTests(it.attributes))
                 }
             }
             dependencies
@@ -180,7 +180,7 @@ class GradleModuleMetadata {
         List<DependencyConstraint> getDependencyConstraints() {
             if (dependencyConstraints == null) {
                 dependencyConstraints = (values.dependencyConstraints ?: []).collect {
-                    new DependencyConstraint(it.group, it.module, it.version.requires, it.version.prefers, it.version.strictly, it.version.rejects ?: [], it.reason, normalizeForTests(it.attributes))
+                    new DependencyConstraint(it.group, it.module, it.version.requires, it.version.prefers, it.version.strictly, it.version.rejects ?: [], it.version?.forSubgraph, it.reason, normalizeForTests(it.attributes))
                 }
             }
             dependencyConstraints
@@ -399,16 +399,18 @@ class GradleModuleMetadata {
         final String prefers
         final String strictly
         final List<String> rejectsVersion
+        final boolean forSubgraph
         final String reason
         final Map<String, String> attributes
 
-        Coords(String group, String module, String version, String prefers = '', String strictly = '', List<String> rejectsVersion = [], String reason = null, Map<String, String> attributes = [:]) {
+        Coords(String group, String module, String version, String prefers = '', String strictly = '', List<String> rejectsVersion = [], Boolean forSubgraph = false, String reason = null, Map<String, String> attributes = [:]) {
             this.group = group
             this.module = module
             this.version = version
             this.prefers = prefers
             this.strictly = strictly
             this.rejectsVersion = rejectsVersion
+            this.forSubgraph = forSubgraph
             this.reason = reason
             this.attributes = attributes
         }
@@ -439,10 +441,12 @@ class GradleModuleMetadata {
     @EqualsAndHashCode
     static class Dependency extends Coords {
         final List<String> excludes
+        final boolean inheritConstraints
 
-        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, String reason, Map<String, String> attributes) {
-            super(group, module, requires, prefers, strictly, rejectedVersions, reason, attributes)
+        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, Boolean forSubgraph, List<String> excludes, Boolean inheritConstraints, String reason, Map<String, String> attributes) {
+            super(group, module, requires, prefers, strictly, rejectedVersions, forSubgraph, reason, attributes)
             this.excludes = excludes*.toString()
+            this.inheritConstraints = inheritConstraints
         }
 
         String toString() {
@@ -456,8 +460,8 @@ class GradleModuleMetadata {
 
     @EqualsAndHashCode
     static class DependencyConstraint extends Coords {
-        DependencyConstraint(String group, String module, String version, String prefers, String strictly, List<String> rejectedVersions, String reason, Map<String, String> attributes) {
-            super(group, module, version, prefers, strictly, rejectedVersions, reason, attributes)
+        DependencyConstraint(String group, String module, String version, String prefers, String strictly, List<String> rejectedVersions, Boolean forSubgraph, String reason, Map<String, String> attributes) {
+            super(group, module, version, prefers, strictly, rejectedVersions, forSubgraph, reason, attributes)
         }
     }
 

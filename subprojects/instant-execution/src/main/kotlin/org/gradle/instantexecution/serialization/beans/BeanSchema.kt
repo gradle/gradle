@@ -16,15 +16,11 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.GroovyObject
-import groovy.lang.MetaClass
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
-
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
@@ -56,7 +52,6 @@ fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
 private
 val irrelevantDeclaringClasses = setOf(
     Object::class.java,
-    GroovyObject::class.java,
     Task::class.java,
     TaskInternal::class.java,
     DefaultTask::class.java,
@@ -69,10 +64,9 @@ val Class<*>.relevantFields: Sequence<Field>
     get() = declaredFields.asSequence()
         .filterNot { field ->
             Modifier.isStatic(field.modifiers)
-                // Ignore the `metaClass` field that Groovy generates
-                || (field.name == "metaClass" && MetaClass::class.java.isAssignableFrom(field.type))
-                // Ignore the `__meta_class__` field that Gradle generates
-                || (field.name == "__meta_class__" && MetaClass::class.java.isAssignableFrom(field.type))
+                || Modifier.isTransient(field.modifiers)
+                // Ignore a lambda field for now
+                || (field.name == "mFolderFilter" && field.declaringClass.name == "com.android.ide.common.resources.DataSet")
         }
         .filter { field ->
             field.declaringClass != AbstractTask::class.java || field.name == "actions"

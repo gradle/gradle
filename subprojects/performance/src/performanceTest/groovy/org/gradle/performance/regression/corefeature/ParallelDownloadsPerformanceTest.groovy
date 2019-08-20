@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -35,7 +35,7 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicInteger
 
-class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
+class ParallelDownloadsPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest implements WithExternalRepository {
     private final static String TEST_PROJECT_NAME = 'springBootApp'
 
     File tmpRepoDir = temporaryFolder.createDir('repository')

@@ -50,7 +50,6 @@ task listJars {
         projectB.ivy.expectGet()
         projectB.jar.expectGet()
         projectAInRepo1.ivy.expectGetMissing()
-        projectAInRepo1.jar.expectHeadMissing()
         projectAInRepo2.pom.expectGet()
         projectAInRepo2.artifact.expectGet()
 

@@ -88,6 +88,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
@@ -603,6 +604,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public ModelContainer getModel() {
+        return getMutationState();
+    }
+
+    @Override
     public Path getBuildPath() {
         return gradle.getIdentityPath();
     }
@@ -684,7 +690,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
      * This method is used when scripts access the project via project.x
      */
     @Override
-    public Project getProject() {
+    public ProjectInternal getProject() {
         return this;
     }
 
