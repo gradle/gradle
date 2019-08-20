@@ -328,6 +328,13 @@ inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, cod
 
 
 internal
+inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
+    withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
+        action()
+    }
+
+
+internal
 inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
     val previousTrace = this.trace
     this.trace = trace

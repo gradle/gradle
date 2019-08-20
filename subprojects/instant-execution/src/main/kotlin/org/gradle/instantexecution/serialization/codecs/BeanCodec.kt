@@ -17,13 +17,14 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.GeneratedSubclasses
+
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.IsolateContext
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.withPropertyTrace
+import org.gradle.instantexecution.serialization.withBeanTrace
+
 import org.gradle.internal.reflect.ClassInspector
+
 import java.io.Serializable
 import java.lang.reflect.Method
 
@@ -133,12 +134,6 @@ class BeanCodec : Codec<Any> {
     fun serializableMethodOrNull(type: Class<*>, methodName: String): Method? =
         ClassInspector.inspect(type)
             .allMethods
-            .find { it.name == methodName && it.parameters.isEmpty() }
+            .find { it.name == methodName && it.parameterCount == 0 }
             ?.apply { isAccessible = true }
-
-    private
-    inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
-        withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
-            action()
-        }
 }
