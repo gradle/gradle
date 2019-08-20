@@ -1,15 +1,10 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.api.Plugin
-import org.gradle.api.initialization.Settings
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.test.fixtures.plugin.PluginBuilder
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 
 
