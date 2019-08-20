@@ -43,18 +43,40 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
     override fun encodingForType(type: Class<*>): Encoding? =
         writeObjectMethodOf(type)?.let(::WriteObjectEncoding)
 
-    override suspend fun ReadContext.decode(): Any? = withImmediateMode {
-        val beanType = readClass()
-        val beanStateReader = beanStateReaderFor(beanType)
-        beanStateReader.run { newBean() }.also { bean ->
-            readObjectMethodOf(beanType).invoke(
-                bean,
-                ObjectInputStreamAdapter(
-                    bean,
-                    beanStateReader,
-                    this@decode
-                )
-            )
+    override suspend fun ReadContext.decode(): Any? =
+        decodePreservingIdentity { id ->
+            withImmediateMode {
+                val beanType = readClass()
+                val beanStateReader = beanStateReaderFor(beanType)
+                beanStateReader.run { newBean() }.also { bean ->
+                    isolate.identities.putInstance(id, bean)
+                    readObjectMethodOf(beanType).invoke(
+                        bean,
+                        ObjectInputStreamAdapter(
+                            bean,
+                            beanStateReader,
+                            this@decode
+                        )
+                    )
+                }
+            }
+        }
+
+    private
+    class WriteObjectEncoding(private val writeObject: Method) : EncodingProvider<Any> {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+
+                val beanType = value.javaClass
+
+                val recordingObjectOutputStream = RecordingObjectOutputStream(beanType, value)
+                writeObject.invoke(value, recordingObjectOutputStream)
+
+                writeClass(beanType)
+                recordingObjectOutputStream.run {
+                    playback()
+                }
+            }
         }
     }
 
@@ -76,25 +98,6 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
         parameterCount == 1
             && name == "readObject"
             && parameterTypes[0].isAssignableFrom(ObjectInputStream::class.java)
-    }
-
-    private
-    class WriteObjectEncoding(
-        private val writeObject: Method
-    ) : EncodingProvider<Any> {
-
-        override suspend fun WriteContext.encode(value: Any) {
-
-            val beanType = value.javaClass
-
-            val recordingObjectOutputStream = RecordingObjectOutputStream(beanType, value)
-            writeObject.invoke(value, recordingObjectOutputStream)
-
-            writeClass(beanType)
-            recordingObjectOutputStream.run {
-                playback()
-            }
-        }
     }
 }
 

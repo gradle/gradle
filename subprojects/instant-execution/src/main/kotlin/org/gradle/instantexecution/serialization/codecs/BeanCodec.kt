@@ -25,14 +25,37 @@ import org.gradle.instantexecution.serialization.withBeanTrace
 
 
 internal
+inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) {
+    val id = isolate.identities.getId(reference)
+    if (id != null) {
+        writeSmallInt(id)
+    } else {
+        writeSmallInt(isolate.identities.putInstance(reference))
+        encode(reference)
+    }
+}
+
+
+internal
+inline fun ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> Any): Any {
+    val id = readSmallInt()
+    val previousValue = isolate.identities.getInstance(id)
+    return when {
+        previousValue != null -> previousValue
+        else -> decode(id).also {
+            require(isolate.identities.getInstance(id) === it) {
+                "`decode(id)` should register the decoded instance"
+            }
+        }
+    }
+}
+
+
+internal
 class BeanCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
-        val id = isolate.identities.getId(value)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            writeSmallInt(isolate.identities.putInstance(value))
+        encodePreservingIdentityOf(value) {
             val beanType = GeneratedSubclasses.unpackType(value)
             withBeanTrace(beanType) {
                 writeBeanOf(beanType, value)
@@ -40,17 +63,13 @@ class BeanCodec : Codec<Any> {
         }
     }
 
-    override suspend fun ReadContext.decode(): Any? {
-        val id = readSmallInt()
-        val previousValue = isolate.identities.getInstance(id)
-        if (previousValue != null) {
-            return previousValue
+    override suspend fun ReadContext.decode(): Any? =
+        decodePreservingIdentity { id ->
+            val beanType = readClass()
+            withBeanTrace(beanType) {
+                readBeanOf(beanType, id)
+            }
         }
-        val beanType = readClass()
-        return withBeanTrace(beanType) {
-            readBeanOf(beanType, id)
-        }
-    }
 
     private
     suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {

@@ -105,6 +105,23 @@ class UserTypesCodecTest {
         )
     }
 
+    @Test
+    fun `preserves identity of Serializable objects`() {
+        val writeReplaceBean = SerializableWriteReplaceBean()
+        val writeObjectBean = SerializableWriteObjectBean(Pair(writeReplaceBean, writeReplaceBean))
+        val graph = Pair(writeObjectBean, writeObjectBean)
+        val decodedGraph = roundtrip(graph)
+        assertThat(
+            decodedGraph.first,
+            sameInstance(decodedGraph.second)
+        )
+        val decodedPair = decodedGraph.first.value as Pair<*, *>
+        assertThat(
+            decodedPair.first,
+            sameInstance(decodedPair.second)
+        )
+    }
+
     class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
 
         private

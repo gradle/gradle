@@ -43,13 +43,28 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
      * Reads a bean resulting from a `writeReplace` method invocation
      * honouring `readResolve` if it's present.
      */
-    override suspend fun ReadContext.decode(): Any? {
-        val bean = read()!!
-        return when (val readResolve = readResolveMethod.forObject(bean)) {
+    override suspend fun ReadContext.decode(): Any? =
+        decodePreservingIdentity { id ->
+            readResolve(read()!!).also { bean ->
+                isolate.identities.putInstance(id, bean)
+            }
+        }
+
+    private
+    class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+                write(writeReplace.invoke(value))
+            }
+        }
+    }
+
+    private
+    fun readResolve(bean: Any): Any =
+        when (val readResolve = readResolveMethod.forObject(bean)) {
             null -> bean
             else -> readResolve.invoke(bean)
         }
-    }
 
     private
     fun writeReplaceMethodOf(type: Class<*>) = type
@@ -57,14 +72,4 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
         ?.firstMatchingMethodOrNull {
             parameterCount == 0 && name == "writeReplace"
         }
-
-    private
-    class WriteReplaceEncoding(
-        private val writeReplace: Method
-    ) : EncodingProvider<Any> {
-
-        override suspend fun WriteContext.encode(value: Any) {
-            write(writeReplace.invoke(value))
-        }
-    }
 }
