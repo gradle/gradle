@@ -9,4 +9,10 @@ sourceSets {
     integTest {
         java.srcDirs = ['src/integTest/java']
     }
+    main {
+        java.srcDir 'src/main/testbutnottest'
+    }
+    test {
+        java.srcDir 'src/test/t_e_s_t'
+    }
 }
