@@ -97,6 +97,25 @@ class UserTypesCodecTest {
         )
     }
 
+    @Test
+    fun `can handle Serializable writeReplace readResolve`() {
+        assertThat(
+            roundtrip(SerializableWriteReplaceBean()).value,
+            equalTo<Any>("42")
+        )
+    }
+
+    class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
+
+        private
+        fun writeReplace() = Memento()
+
+        private
+        class Memento {
+            fun readResolve() = SerializableWriteReplaceBean("42")
+        }
+    }
+
     class SerializableWriteObjectBean(val value: Any) : Serializable {
 
         companion object {

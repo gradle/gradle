@@ -17,13 +17,12 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.runToCompletion
+
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.withImmediateMode
-
-import org.gradle.internal.reflect.ClassInspector
 
 import java.io.InputStream
 import java.io.ObjectInputStream
@@ -287,30 +286,3 @@ class ObjectInputStreamAdapter(
     val inputStream: InputStream
         get() = readContext.inputStream
 }
-
-
-// TODO:instant-execution extract SerializableWriteReplaceCodec from BeanCodec and reuse this
-internal
-class MethodCache(
-
-    private
-    val predicate: Method.() -> Boolean
-
-) {
-    private
-    val methodCache = hashMapOf<Class<*>, Method?>()
-
-    fun forObject(value: Any) =
-        forClass(value.javaClass)
-
-    fun forClass(type: Class<*>) =
-        methodCache.computeIfAbsent(type) { it.firstMatchingMethodOrNull(predicate) }
-}
-
-
-internal
-fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    ClassInspector.inspect(this)
-        .allMethods
-        .find(predicate)
-        ?.apply { isAccessible = true }
