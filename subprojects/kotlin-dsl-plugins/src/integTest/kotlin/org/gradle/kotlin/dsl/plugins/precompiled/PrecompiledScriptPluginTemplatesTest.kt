@@ -162,7 +162,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         projectRoot.withFolders {
 
-            "buildSrc" {
+            "plugin" {
 
                 "src/main/kotlin" {
 
@@ -203,15 +203,28 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         }
 
+        executer.inDirectory(file("plugin")).withTasks("jar").run()
+
+        val pluginJar = file("plugin/build/libs/plugin.jar")
+        assertThat("pluginJar was built", pluginJar.exists())
+        val movedPluginJar = file("plugin.jar")
+        pluginJar.renameTo(movedPluginJar)
+
         withSettings("""
-
-            // Apply Gradle plugin via type as it cannot be applied via id
-            // because `buildSrc` is not in the `gradle` object
-            // plugin search classpath
-
+            buildscript {
+                dependencies {
+                    classpath(files("${movedPluginJar.name}"))
+                }
+            }
+            
             gradle.apply<MyInitPluginPlugin>()
-
             apply(plugin = "my-settings-plugin")
+        """)
+
+        withFile("buildSrc/build.gradle", """
+            dependencies {
+                api files("../${movedPluginJar.name}")            
+            }
         """)
 
         withBuildScript("""
@@ -221,15 +234,14 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         """)
 
-        executer.expectDeprecationWarning()
+
         assertThat(
             build("help").output,
             allOf(
                 containsString("my-init-plugin applied!"),
                 containsString("my-settings-plugin applied!"),
                 containsString("my-plugin applied!"),
-                containsString("my-other-plugin applied!"),
-                containsString("Access to the buildSrc project and its dependencies in settings scripts has been deprecated.")
+                containsString("my-other-plugin applied!")
             )
         )
     }
