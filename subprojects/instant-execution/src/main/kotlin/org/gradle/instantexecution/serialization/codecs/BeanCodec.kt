@@ -57,9 +57,8 @@ class BeanCodec : Codec<Any> {
     private
     suspend fun ReadContext.readBeanOf(beanType: Class<*>, id: Int): Any =
         beanStateReaderFor(beanType).run {
-            val bean = newBean()
-            isolate.identities.putInstance(id, bean)
-            readStateOf(bean)
-            bean
+            newBeanWithId(id).also {
+                readStateOf(it)
+            }
         }
 }

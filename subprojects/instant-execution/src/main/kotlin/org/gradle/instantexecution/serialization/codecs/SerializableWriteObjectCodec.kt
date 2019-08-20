@@ -50,8 +50,7 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
             withImmediateMode {
                 val beanType = readClass()
                 val beanStateReader = beanStateReaderFor(beanType)
-                beanStateReader.run { newBean() }.also { bean ->
-                    isolate.identities.putInstance(id, bean)
+                beanStateReader.run { newBeanWithId(id) }.also { bean ->
                     readObjectMethodOf(beanType).invoke(
                         bean,
                         ObjectInputStreamAdapter(
