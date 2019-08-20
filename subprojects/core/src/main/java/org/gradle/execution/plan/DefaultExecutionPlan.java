@@ -85,7 +85,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private final Set<Node> runningNodes = Sets.newIdentityHashSet();
     private final Set<Node> filteredNodes = Sets.newIdentityHashSet();
-    private final Map<Node, MutationInfo> mutations = Maps.newIdentityHashMap();
+    private final Set<Node> producedButNotYetConsumed = Sets.newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
     private boolean maybeNodesReady;
@@ -324,10 +324,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     dependenciesWhichRequireMonitoring.add(node);
                 }
 
-                MutationInfo mutations = getOrCreateMutationsOf(node);
                 for (Node dependency : node.getDependencySuccessors()) {
-                    getOrCreateMutationsOf(dependency).consumingNodes.add(node);
-                    mutations.producingNodes.add(dependency);
+                    dependency.getMutationInfo().consumingNodes.add(node);
                 }
 
                 Project project = node.getProjectToLock();
@@ -371,15 +369,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
-    }
-
-    private MutationInfo getOrCreateMutationsOf(Node node) {
-        MutationInfo mutations = this.mutations.get(node);
-        if (mutations == null) {
-            mutations = node.getMutationInfo();
-            this.mutations.put(node, node.getMutationInfo());
-        }
-        return mutations;
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
@@ -519,7 +508,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         executionQueue.clear();
         projectLocks.clear();
         failureCollector.clearFailures();
-        mutations.clear();
+        producedButNotYetConsumed.clear();
         reachableCache.clear();
         dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
@@ -707,20 +696,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean doesDestroyNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
         if (!destroyablePaths.isEmpty()) {
-            for (MutationInfo producingNode : mutations.values()) {
-                if (!producingNode.node.isComplete()) {
-                    // We don't care about producing nodes that haven't finished yet
-                    continue;
-                }
-                if (producingNode.consumingNodes.isEmpty()) {
-                    // We don't care about nodes whose output is not consumed by anyone anymore
-                    continue;
-                }
-                if (!hasOverlap(destroyablePaths, producingNode.outputPaths)) {
+            for (Node producingNode : producedButNotYetConsumed) {
+                MutationInfo producingNodeMutations = producingNode.getMutationInfo();
+                assert !producingNodeMutations.consumingNodes.isEmpty();
+                if (!hasOverlap(destroyablePaths, producingNodeMutations.outputPaths)) {
                     // No overlap no cry
                     continue;
                 }
-                for (Node consumer : producingNode.consumingNodes) {
+                for (Node consumer : producingNodeMutations.consumingNodes) {
                     if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
                         // If there's an explicit dependency from consuming node to destroyer,
                         // then we accept that as the will of the user
@@ -803,21 +786,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private void recordNodeCompleted(Node node) {
         LOGGER.debug("Node {} completed, executed: {}", node, node.isExecuted());
         MutationInfo mutations = node.getMutationInfo();
-        for (Node producer : mutations.producingNodes) {
+        for (Node producer : node.getDependencySuccessors()) {
             MutationInfo producerMutations = producer.getMutationInfo();
-            if (producerMutations.consumingNodes.remove(node) && canRemoveMutation(producerMutations)) {
-                this.mutations.remove(producer);
+            if (producerMutations.consumingNodes.remove(node) && producerMutations.consumingNodes.isEmpty()) {
+                producedButNotYetConsumed.remove(producer);
             }
         }
 
-        if (canRemoveMutation(mutations)) {
-            this.mutations.remove(node);
+        if (!mutations.consumingNodes.isEmpty() && !mutations.outputPaths.isEmpty()) {
+            producedButNotYetConsumed.add(node);
         }
-        updateAllDependenciesCompleteForPredecessors(node);
-    }
 
-    private static boolean canRemoveMutation(@Nullable MutationInfo mutations) {
-        return mutations != null && mutations.node.isComplete() && mutations.consumingNodes.isEmpty();
+        updateAllDependenciesCompleteForPredecessors(node);
     }
 
     @Override
