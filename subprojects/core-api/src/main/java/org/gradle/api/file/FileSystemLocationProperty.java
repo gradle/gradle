@@ -52,7 +52,7 @@ public interface FileSystemLocationProperty<T extends FileSystemLocation> extend
      * <p>This method is the same as {@link #set(File)} but allows method chaining.</p>
      *
      * @return this
-     * @since 5.7
+     * @since 6.0
      */
     FileSystemLocationProperty<T> fileValue(@Nullable File file);
 
@@ -61,7 +61,7 @@ public interface FileSystemLocationProperty<T extends FileSystemLocation> extend
      * that owns this property instance.
      *
      * @return this
-     * @since 5.7
+     * @since 6.0
      */
     FileSystemLocationProperty<T> fileProvider(Provider<File> provider);
 
