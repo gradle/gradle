@@ -62,6 +62,11 @@ public interface UrlArtifactRepository {
      *     serve malicious executable code onto the system.
      * </a>
      * </b>
+     * <p>
+     * See also:
+     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e">
+     *     Want to take over the Java ecosystem? All you need is a MITM!
+     * </a>
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 
@@ -78,6 +83,11 @@ public interface UrlArtifactRepository {
      *     serve malicious executable code onto the system.
      * </a>
      * </b>
+     * <p>
+     * See also:
+     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e">
+     *     Want to take over the Java ecosystem? All you need is a MITM!
+     * </a>
      */
     boolean isAllowInsecureProtocol();
 }
