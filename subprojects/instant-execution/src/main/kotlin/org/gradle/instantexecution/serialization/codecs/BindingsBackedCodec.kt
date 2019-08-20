@@ -151,11 +151,11 @@ class BindingsBuilder {
 
     private
     fun producerForSubtypesOf(
-        type: Class<*>,
+        superType: Class<*>,
         codec: Codec<Any>
     ): EncodingProducer = object : EncodingProducer {
 
-        override fun encodingForType(candidate: Class<*>) =
-            codec.takeIf { type.isAssignableFrom(candidate) }
+        override fun encodingForType(type: Class<*>) =
+            codec.takeIf { superType.isAssignableFrom(type) }
     }
 }
