@@ -19,6 +19,8 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 
 import java.io.Serializable
 

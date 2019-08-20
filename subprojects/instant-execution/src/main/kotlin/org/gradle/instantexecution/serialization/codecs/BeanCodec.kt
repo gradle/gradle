@@ -21,34 +21,9 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.withBeanTrace
-
-
-internal
-inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) {
-    val id = isolate.identities.getId(reference)
-    if (id != null) {
-        writeSmallInt(id)
-    } else {
-        writeSmallInt(isolate.identities.putInstance(reference))
-        encode(reference)
-    }
-}
-
-
-internal
-inline fun ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> Any): Any {
-    val id = readSmallInt()
-    val previousValue = isolate.identities.getInstance(id)
-    return when {
-        previousValue != null -> previousValue
-        else -> decode(id).also {
-            require(isolate.identities.getInstance(id) === it) {
-                "`decode(id)` should register the decoded instance"
-            }
-        }
-    }
-}
 
 
 internal

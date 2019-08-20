@@ -22,6 +22,8 @@ import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.withImmediateMode
 
 import java.io.InputStream
