@@ -99,6 +99,7 @@ class DefaultReadContext(
 
     override val logger: Logger
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+
     override val sharedIdentities = ReadIdentities()
 
     private
@@ -121,6 +122,8 @@ class DefaultReadContext(
     fun initProjectProvider(projectProvider: ProjectProvider) {
         this.projectProvider = projectProvider
     }
+
+    override var immediateMode: Boolean = false
 
     override suspend fun read(): Any? = getCodec().run {
         decode()

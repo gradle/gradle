@@ -47,13 +47,13 @@ class LoadDirectoryTest : TestWithTempFiles() {
 
         // then:
         assertThat(
-            subject.load(packProducedBy(currentBuildInvocation))!!.metadata.buildInvocationId,
+            subject.load(packProducedBy(currentBuildInvocation)).metadata.buildInvocationId,
             equalTo(currentBuildInvocation)
         )
 
         // and:
         assertThat(
-            subject.load(packProducedBy(previousBuildInvocation))!!.metadata.buildInvocationId,
+            subject.load(packProducedBy(previousBuildInvocation)).metadata.buildInvocationId,
             not(equalTo(currentBuildInvocation))
         )
     }

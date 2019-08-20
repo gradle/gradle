@@ -37,6 +37,7 @@ import java.util.function.Supplier
 class BeanPropertyReader(
     private val beanType: Class<*>
 ) : BeanStateReader {
+
     private
     val setterByFieldName = relevantStateOf(beanType).associateBy(
         { it.name },
