@@ -45,15 +45,15 @@ open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : Defa
 
     @TaskAction
     fun determineForkPointCommitBaseline() {
-        if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
+//        if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
             determinedBaselines.set(defaultBaseline)
-        } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
-            determinedBaselines.set(determineFlakinessDetectionBaseline())
-        } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
-            determinedBaselines.set(forkPointCommitBaseline())
-        } else {
-            determinedBaselines.set(configuredBaselines)
-        }
+//        } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
+//            determinedBaselines.set(determineFlakinessDetectionBaseline())
+//        } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
+//            determinedBaselines.set(forkPointCommitBaseline())
+//        } else {
+//            determinedBaselines.set(configuredBaselines)
+//        }
     }
 
     /**
