@@ -19,11 +19,13 @@ package org.gradle.initialization
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -39,6 +41,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildConfigurerMock = Mock(ProjectsPreparer)
     def buildBroadcaster = Mock(BuildListener)
     def buildExecuter = Mock(BuildWorkExecutor)
+    def buildSourceBuilder = Mock(BuildSourceBuilder)
 
     def settingsMock = Mock(SettingsInternal.class)
     def gradleMock = Mock(GradleInternal.class)
@@ -103,7 +106,10 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
-        1 * buildConfigurerMock.prepareProjects(gradleMock, projectClassLoaderScope)
+        and:
+        def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> buildSrcClassLoaderScope
+        1 * buildConfigurerMock.prepareProjects(gradleMock, buildSrcClassLoaderScope)
 
         DefaultGradleLauncher gradleLauncher = launcher()
         def result = gradleLauncher.getConfiguredBuild()
@@ -117,7 +123,11 @@ class DefaultGradleLauncherSpec extends Specification {
         isRootBuild()
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
-        1 * buildConfigurerMock.prepareProjects(gradleMock, projectClassLoaderScope)
+
+        and:
+        def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> buildSrcClassLoaderScope
+        1 * buildConfigurerMock.prepareProjects(gradleMock, buildSrcClassLoaderScope)
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()

@@ -22,6 +22,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 
 public class InstantiatingBuildLoader implements BuildLoader {
     private final IProjectFactory projectFactory;
@@ -39,8 +40,16 @@ public class InstantiatingBuildLoader implements BuildLoader {
         attachDefaultProject(settings.getDefaultProject(), gradle);
     }
 
-    private void attachDefaultProject(ProjectDescriptor defaultProject, GradleInternal gradle) {
-        gradle.setDefaultProject(gradle.getRootProject().getProjectRegistry().getProject(defaultProject.getPath()));
+    private void attachDefaultProject(ProjectDescriptor defaultProjectDescriptor, GradleInternal gradle) {
+        ProjectInternal rootProject = gradle.getRootProject();
+        ProjectRegistry<ProjectInternal> projectRegistry = rootProject.getProjectRegistry();
+        String defaultProjectPath = defaultProjectDescriptor.getPath();
+        ProjectInternal defaultProject = projectRegistry.getProject(defaultProjectPath);
+        if (defaultProject == null) {
+            throw new IllegalStateException("Did not find project with path " + defaultProjectPath);
+        }
+
+        gradle.setDefaultProject(defaultProject);
     }
 
     private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope buildRootClassLoaderScope) {
