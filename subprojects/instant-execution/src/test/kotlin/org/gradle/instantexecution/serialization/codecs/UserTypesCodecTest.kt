@@ -150,7 +150,7 @@ class UserTypesCodecTest {
     fun serializationProblemsOf(bean: Any): List<PropertyProblem> =
         mutableListOf<PropertyProblem>().also { problems ->
             writeTo(
-                NullOutputStream.nullOutputStream(),
+                NullOutputStream.INSTANCE,
                 bean
             ) { problems += it }
         }
