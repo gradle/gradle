@@ -5,6 +5,7 @@ import org.gradle.api.initialization.Settings
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -16,29 +17,25 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
-
-        withFile("buildSrc/src/main/java/MySettingsPlugin.java", """
-            import ${Plugin::class.qualifiedName};
-            import ${Settings::class.qualifiedName};
-
-            public class MySettingsPlugin implements Plugin<Settings> {
-                public void apply(Settings settings) {}
-            }
-        """)
+        val pluginBuilder = PluginBuilder(file("plugin"))
+        pluginBuilder.packageName = null
+        pluginBuilder.addSettingsPlugin("", "test.MySettingsPlugin", "MySettingsPlugin")
+        val pluginJar = file("plugin.jar")
+        pluginBuilder.publishTo(executer, pluginJar)
 
         withSettings("""
+            buildscript {
+                dependencies {
+                    classpath(files("${pluginJar.name}"))
+                }
+            }
             apply {
                 plugin<MySettingsPlugin>()
             }
         """)
 
         withBuildScript("")
-
-        executer.expectDeprecationWarnings(1)
-        val output = build("help").output
-        assertThat(
-            output,
-            containsString("Access to the buildSrc project and its dependencies in settings scripts has been deprecated."))
+        build("help", "-q")
     }
 
     @Test
