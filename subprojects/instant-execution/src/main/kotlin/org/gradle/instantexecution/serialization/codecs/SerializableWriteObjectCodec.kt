@@ -62,8 +62,8 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
     fun writeObjectMethodOf(type: Class<*>) = type
         .takeIf { Serializable::class.java.isAssignableFrom(type) }
         ?.firstMatchingMethodOrNull {
-            name == "writeObject"
-                && parameterCount == 1
+            parameterCount == 1
+                && name == "writeObject"
                 && parameterTypes[0].isAssignableFrom(ObjectOutputStream::class.java)
         }
 
@@ -73,8 +73,8 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
     // TODO:instant-execution readObjectNoData
     private
     val readObjectCache = MethodCache {
-        name == "readObject"
-            && parameterCount == 1
+        parameterCount == 1
+            && name == "readObject"
             && parameterTypes[0].isAssignableFrom(ObjectInputStream::class.java)
     }
 
