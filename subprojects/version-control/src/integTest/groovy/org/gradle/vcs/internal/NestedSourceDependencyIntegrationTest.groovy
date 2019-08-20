@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.TextUtil
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
@@ -224,23 +225,24 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
     def "prefers a source mapping defined in the root build to one defined in a nested build when they differ only by plugins"() {
         given:
-        singleProjectBuild("buildSrc") {
-            file("src/main/groovy/MyPlugin.groovy") << """
-                import org.gradle.api.*
-                import org.gradle.api.initialization.*
-                
-                class MyPlugin implements Plugin<Settings> {
-                    void apply(Settings settings) {
-                        settings.gradle.allprojects {
-                            println "Hello from root build's plugin"
-                        }
-                    }
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addSettingsPlugin """
+            settings.gradle.allprojects {
+                println "Hello from root build's plugin"
+            }
+        """, "com.example.MyPlugin", "MyPlugin"
+
+
+        def pluginJar = file("plugin.jar")
+        pluginBuilder.publishTo(executer, pluginJar)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath files("$pluginJar.name")
                 }
-            """
-            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
-                implementation-class=MyPlugin
-            """
-        }
+            }
+        """
 
         vcsMapping('org.test:first', first)
         // root build applies a plugin to second
@@ -252,13 +254,11 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         shouldResolve(first, second)
 
         when:
-        executer.expectDeprecationWarning()
         succeeds("resolve")
 
         then:
-        result.ignoreBuildSrc.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
         outputContains("Hello from root build's plugin")
-        outputContains('Access to the buildSrc project and its dependencies in settings scripts has been deprecated.')
     }
 
     def "prefers a source mapping defined in the root build to one defined in a nested build when the nested build requests plugins"() {

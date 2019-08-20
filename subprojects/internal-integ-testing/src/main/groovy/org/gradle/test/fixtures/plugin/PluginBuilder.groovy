@@ -20,6 +20,7 @@ import com.google.common.base.Splitter
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
@@ -169,6 +170,18 @@ class PluginBuilder {
         this
     }
 
+    PluginBuilder addSettingsPlugin(String impl, String id = "test-settings-plugin", String className = "TestSettingsPlugin") {
+        addPluginSource(id, className, """
+            package $packageName
+
+            class $className implements $Plugin.name<$Settings.name> {
+                void apply($Settings.name settings) {
+                    $impl
+                }
+            }
+        """)
+        this
+    }
     PluginBuilder addUnloadablePlugin(String id = "test-plugin", String className = "TestPlugin") {
         addPluginSource(id, className, """
             package $packageName
