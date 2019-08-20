@@ -31,7 +31,6 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultProjectLayout;
@@ -70,7 +69,6 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -150,8 +148,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DeferredProjectConfiguration(project);
     }
 
-    protected FileResolver createFileResolver(Factory<PatternSet> patternSetFactory) {
-        return new BaseDirFileResolver(project.getProjectDir(), patternSetFactory);
+    protected FileResolver createFileResolver(FileLookup fileLookup) {
+        return fileLookup.getFileResolver(project.getProjectDir());
     }
 
     protected SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
