@@ -328,6 +328,13 @@ inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, cod
 
 
 internal
+inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
+    withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
+        action()
+    }
+
+
+internal
 inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
     val previousTrace = this.trace
     this.trace = trace
@@ -335,5 +342,32 @@ inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, blo
         return block()
     } finally {
         this.trace = previousTrace
+    }
+}
+
+
+internal
+inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) {
+    val id = isolate.identities.getId(reference)
+    if (id != null) {
+        writeSmallInt(id)
+    } else {
+        writeSmallInt(isolate.identities.putInstance(reference))
+        encode(reference)
+    }
+}
+
+
+internal
+inline fun ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> Any): Any {
+    val id = readSmallInt()
+    val previousValue = isolate.identities.getInstance(id)
+    return when {
+        previousValue != null -> previousValue
+        else -> decode(id).also {
+            require(isolate.identities.getInstance(id) === it) {
+                "`decode(id)` should register the decoded instance"
+            }
+        }
     }
 }

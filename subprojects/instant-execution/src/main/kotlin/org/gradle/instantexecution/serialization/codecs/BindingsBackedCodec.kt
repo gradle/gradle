@@ -45,12 +45,13 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    val encodings = HashMap<Class<*>, Encoding>()
+    val encodings = HashMap<Class<*>, TaggedEncoding>()
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeByte(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
-            encode(value)
+            writeByte(tag)
+            encoding.run { encode(value) }
         }
     }
 
@@ -60,11 +61,11 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    fun taggedEncodingFor(type: Class<*>): Encoding =
+    fun taggedEncodingFor(type: Class<*>): TaggedEncoding =
         encodings.computeIfAbsent(type, ::computeEncoding)
 
     private
-    fun computeEncoding(type: Class<*>): Encoding {
+    fun computeEncoding(type: Class<*>): TaggedEncoding {
         for (binding in bindings) {
             val encoding = binding.encodingForType(type)
             if (encoding != null) {
@@ -75,26 +76,26 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    class TaggedEncoding(
-        private val tag: Byte,
-        private val encoding: Encoding
-    ) : Encoding {
-        override suspend fun WriteContext.encode(value: Any) {
-            writeByte(tag)
-            encoding.run { encode(value) }
-        }
-    }
+    data class TaggedEncoding(
+        val tag: Byte,
+        val encoding: Encoding
+    )
 }
 
 
 data class Binding(
     val tag: Byte,
-    val encodingForType: EncodingProducer,
+    val encoding: EncodingProducer,
     val decoding: Decoding
-)
+) {
+    fun encodingForType(type: Class<*>) = encoding.encodingForType(type)
+}
 
 
-typealias EncodingProducer = (Class<*>) -> Encoding?
+interface EncodingProducer {
+
+    fun encodingForType(type: Class<*>): Encoding?
+}
 
 
 typealias Encoding = EncodingProvider<Any>
@@ -111,33 +112,6 @@ class BindingsBuilder {
 
     fun build(): List<Binding> = bindings.toList()
 
-    fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.all { it.encodingForType(type) == null })
-        val codecForAny = codec.uncheckedCast<Codec<Any>>()
-        val encodingProducer = encodingForSubTypesOf(type, codecForAny)
-        bind(encodingProducer, codecForAny)
-    }
-
-    fun <T> bind(codec: T) where T : EncodingProducer, T : Decoding {
-        bind(codec, codec)
-    }
-
-    fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
-        val tag = bindings.size
-        require(tag < Byte.MAX_VALUE)
-        bindings.add(
-            Binding(
-                tag = tag.toByte(),
-                encodingForType = encodingProducer,
-                decoding = decoding
-            )
-        )
-    }
-
-    private
-    fun encodingForSubTypesOf(type: Class<*>, codec: Codec<Any>): EncodingProducer =
-        { candidate -> codec.takeIf { type.isAssignableFrom(candidate) } }
-
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)
 
@@ -152,4 +126,36 @@ class BindingsBuilder {
 
     fun bind(type: Class<*>, serializer: Serializer<*>) =
         bind(type, SerializerCodec(serializer))
+
+    fun bind(type: Class<*>, codec: Codec<*>) {
+        require(bindings.all { it.encodingForType(type) == null })
+        val codecForAny = codec.uncheckedCast<Codec<Any>>()
+        val encodingProducer = producerForSubtypesOf(type, codecForAny)
+        bind(encodingProducer, codecForAny)
+    }
+
+    fun <T> bind(codec: T) where T : EncodingProducer, T : Decoding =
+        bind(codec, codec)
+
+    fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
+        val tag = bindings.size
+        require(tag < Byte.MAX_VALUE)
+        bindings.add(
+            Binding(
+                tag = tag.toByte(),
+                encoding = encodingProducer,
+                decoding = decoding
+            )
+        )
+    }
+
+    private
+    fun producerForSubtypesOf(
+        superType: Class<*>,
+        codec: Codec<Any>
+    ): EncodingProducer = object : EncodingProducer {
+
+        override fun encodingForType(type: Class<*>) =
+            codec.takeIf { superType.isAssignableFrom(type) }
+    }
 }

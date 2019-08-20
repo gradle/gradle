@@ -95,7 +95,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         given:
         def tasks = tasksToAssembleDebug - [
             // unsupported tasks
-            ":app:mainApkListPersistenceDebug",
             ":app:createDebugCompatibleScreenManifests",
             ":app:processDebugManifest",
             ":app:processDebugResources",
@@ -125,7 +124,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         given:
         def tasks = tasksToAssembleDebug - [
             // unsupported tasks
-            ":app:mainApkListPersistenceDebug",
             ":app:createDebugCompatibleScreenManifests",
             ":app:processDebugManifest",
             ":app:processDebugResources",

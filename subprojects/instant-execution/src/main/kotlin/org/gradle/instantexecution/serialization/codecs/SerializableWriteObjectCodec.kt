@@ -17,13 +17,15 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.runToCompletion
+
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.withImmediateMode
-
-import org.gradle.internal.reflect.ClassInspector
 
 import java.io.InputStream
 import java.io.ObjectInputStream
@@ -41,21 +43,44 @@ import java.lang.reflect.Method
  */
 class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 
-    override fun invoke(type: Class<*>): Encoding? =
+    override fun encodingForType(type: Class<*>): Encoding? =
         writeObjectMethodOf(type)?.let(::WriteObjectEncoding)
 
-    override suspend fun ReadContext.decode(): Any? = withImmediateMode {
-        val beanType = readClass()
-        val beanStateReader = beanStateReaderFor(beanType)
-        beanStateReader.run { newBean() }.also { bean ->
-            readObjectMethodOf(beanType).invoke(
-                bean,
-                ObjectInputStreamAdapter(
-                    bean,
-                    beanStateReader,
-                    this@decode
-                )
-            )
+    override suspend fun ReadContext.decode(): Any? =
+        decodePreservingIdentity { id ->
+            withImmediateMode {
+                val beanType = readClass()
+                withBeanTrace(beanType) {
+                    val beanStateReader = beanStateReaderFor(beanType)
+                    beanStateReader.run { newBeanWithId(id) }.also { bean ->
+                        readObjectMethodOf(beanType).invoke(
+                            bean,
+                            ObjectInputStreamAdapter(
+                                bean,
+                                beanStateReader,
+                                this@decode
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+    private
+    class WriteObjectEncoding(private val writeObject: Method) : EncodingProvider<Any> {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+
+                val beanType = value.javaClass
+
+                val recordingObjectOutputStream = RecordingObjectOutputStream(beanType, value)
+                writeObject.invoke(value, recordingObjectOutputStream)
+
+                writeClass(beanType)
+                recordingObjectOutputStream.run {
+                    playback()
+                }
+            }
         }
     }
 
@@ -63,8 +88,8 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
     fun writeObjectMethodOf(type: Class<*>) = type
         .takeIf { Serializable::class.java.isAssignableFrom(type) }
         ?.firstMatchingMethodOrNull {
-            name == "writeObject"
-                && parameterCount == 1
+            parameterCount == 1
+                && name == "writeObject"
                 && parameterTypes[0].isAssignableFrom(ObjectOutputStream::class.java)
         }
 
@@ -74,28 +99,9 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
     // TODO:instant-execution readObjectNoData
     private
     val readObjectCache = MethodCache {
-        name == "readObject"
-            && parameterCount == 1
+        parameterCount == 1
+            && name == "readObject"
             && parameterTypes[0].isAssignableFrom(ObjectInputStream::class.java)
-    }
-
-    private
-    class WriteObjectEncoding(
-        private val writeObject: Method
-    ) : EncodingProvider<Any> {
-
-        override suspend fun WriteContext.encode(value: Any) {
-
-            val beanType = value.javaClass
-
-            val recordingObjectOutputStream = RecordingObjectOutputStream(beanType, value)
-            writeObject.invoke(value, recordingObjectOutputStream)
-
-            writeClass(beanType)
-            recordingObjectOutputStream.run {
-                playback()
-            }
-        }
     }
 }
 
@@ -115,8 +121,10 @@ class RecordingObjectOutputStream(
     val operations = mutableListOf<suspend WriteContext.() -> Unit>()
 
     suspend fun WriteContext.playback() {
-        operations.forEach { operation ->
-            operation()
+        withBeanTrace(beanType) {
+            operations.forEach { operation ->
+                operation()
+            }
         }
     }
 
@@ -287,30 +295,3 @@ class ObjectInputStreamAdapter(
     val inputStream: InputStream
         get() = readContext.inputStream
 }
-
-
-// TODO:instant-execution extract SerializableWriteReplaceCodec from BeanCodec and reuse this
-internal
-class MethodCache(
-
-    private
-    val predicate: Method.() -> Boolean
-
-) {
-    private
-    val methodCache = hashMapOf<Class<*>, Method?>()
-
-    fun forObject(value: Any) =
-        forClass(value.javaClass)
-
-    fun forClass(type: Class<*>) =
-        methodCache.computeIfAbsent(type) { it.firstMatchingMethodOrNull(predicate) }
-}
-
-
-internal
-fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    ClassInspector.inspect(this)
-        .allMethods
-        .find(predicate)
-        ?.apply { isAccessible = true }
