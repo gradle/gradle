@@ -95,8 +95,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         given:
         def tasks = tasksToAssembleDebug - [
             // unsupported tasks
-            ":app:createDebugCompatibleScreenManifests",
-            ":app:processDebugManifest",
             ":app:processDebugResources",
             ":app:compileDebugJavaWithJavac",
             ":app:compileDebugSources",
@@ -124,20 +122,11 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         given:
         def tasks = tasksToAssembleDebug - [
             // unsupported tasks
-            ":app:createDebugCompatibleScreenManifests",
-            ":app:processDebugManifest",
             ":app:processDebugResources",
             ":app:compileDebugJavaWithJavac",
             ":app:compileDebugSources",
-            ":app:mergeDebugShaders",
-            ":app:compileDebugShaders",
-            ":app:generateDebugAssets",
-            ":app:mergeDebugAssets",
             ":app:dexBuilderDebug",
             ":app:mergeProjectDexDebug",
-            ":app:mergeDebugJniLibFolders",
-            ":app:mergeDebugNativeLibs",
-            ":app:stripDebugDebugSymbols",
             ":app:packageDebug",
             ":app:assembleDebug"
         ]
