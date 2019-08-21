@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -806,6 +807,34 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         includeEmptyDirs | expectedDescendants
         true             | ["file2.txt", "file3.txt", "dir3"]
         false            | ["file2.txt", "file3.txt"]
+    }
+
+    @Ignore
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/10311")
+    def "can clear version property on #taskType tasks"() {
+        buildFile << """
+            apply plugin: 'base'
+            version = "1.0"
+            task archive(type: $taskType) {
+                from("src")
+                version = null
+            }
+        """
+        settingsFile << """
+            rootProject.name = "archive"
+        """
+        file("src/input").touch()
+        when:
+        succeeds "archive"
+        then:
+        file(archiveFile).assertExists()
+
+        where:
+        taskType | archiveFile
+        "Zip" | "build/distributions/archive.zip"
+        "Jar" | "build/libs/archive.jar"
+        "Tar" | "build/distributions/archive.tar"
     }
 
     private def createTar(String name, Closure cl) {
