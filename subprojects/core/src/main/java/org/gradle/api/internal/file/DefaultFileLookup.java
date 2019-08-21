@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -26,7 +28,7 @@ public class DefaultFileLookup implements FileLookup {
     private final IdentityFileResolver fileResolver;
 
     public DefaultFileLookup(Factory<PatternSet> patternSetFactory) {
-        this.fileResolver = new IdentityFileResolver(patternSetFactory);
+        this.fileResolver = new IdentityFileResolver(patternSetFactory, DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
     @Override
@@ -42,6 +44,11 @@ public class DefaultFileLookup implements FileLookup {
     @Override
     public FileResolver getFileResolver(File baseDirectory) {
         return fileResolver.withBaseDir(baseDirectory);
+    }
+
+    @Override
+    public FileResolver getFileResolver(File baseDirectory, TaskDependencyFactory taskDependencyFactory) {
+        return new BaseDirFileResolver(baseDirectory, fileResolver.getPatternSetFactory(), taskDependencyFactory);
     }
 
     @Override

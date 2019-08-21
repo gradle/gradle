@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
@@ -63,7 +64,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Deprecated
     public static DefaultExecActionFactory root() {
         FileResolver resolver = new DefaultFileLookup(PatternSets.getNonCachingPatternSetFactory()).getFileResolver();
-        return of(resolver, new DefaultFileCollectionFactory(resolver, null), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        return of(resolver, new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject()), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
     public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {

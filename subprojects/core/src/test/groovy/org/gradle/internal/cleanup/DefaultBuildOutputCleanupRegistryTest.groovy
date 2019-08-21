@@ -16,7 +16,8 @@
 
 package org.gradle.internal.cleanup
 
-import org.gradle.api.internal.file.IdentityFileResolver
+
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -24,7 +25,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class DefaultBuildOutputCleanupRegistryTest extends Specification {
 
-    def fileResolver = new IdentityFileResolver()
+    def fileResolver = TestFiles.resolver()
     def registry = new DefaultBuildOutputCleanupRegistry(fileResolver)
 
     def "can register files, directories and file collections"() {

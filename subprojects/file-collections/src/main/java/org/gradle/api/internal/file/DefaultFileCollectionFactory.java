@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,36 +24,43 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.UnpackingVisitor;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.file.PathToFileResolver;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
     public static final String DEFAULT_DISPLAY_NAME = "file collection";
     private final PathToFileResolver fileResolver;
-    @Nullable
-    private final TaskResolver taskResolver;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
+    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         this.fileResolver = fileResolver;
-        this.taskResolver = taskResolver;
+        this.taskDependencyFactory = taskDependencyFactory;
+    }
+
+    @Override
+    public FileCollectionFactory withBaseDir(PathToFileResolver fileResolver) {
+        if (fileResolver == this.fileResolver) {
+            return this;
+        }
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory);
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles() {
-        return new DefaultConfigurableFileCollection(fileResolver, taskResolver);
+        return new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, Collections.emptyList());
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles(String displayName) {
-        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver);
+        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, Collections.emptyList());
     }
 
     @Override

@@ -28,7 +28,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.DeprecationLogger;
 
@@ -37,12 +37,12 @@ import java.io.File;
 public class DefaultProjectLayout extends DefaultFilePropertyFactory implements ProjectLayout, TaskFileVarFactory {
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
-    private final TaskResolver taskResolver;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskResolver taskResolver, FileCollectionFactory fileCollectionFactory) {
+    public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         super(resolver);
-        this.taskResolver = taskResolver;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectDir = new FixedDirectory(projectDir, resolver);
         this.buildDir = new DefaultDirectoryVar(resolver, Project.DEFAULT_BUILD_DIR_NAME);
@@ -86,7 +86,7 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
 
     @Override
     public ConfigurableFileCollection newInputFileCollection(Task consumer) {
-        return new CachingTaskInputFileCollection(projectDir.fileResolver, taskResolver);
+        return new CachingTaskInputFileCollection(projectDir.fileResolver, projectDir.fileResolver.getPatternSetFactory(), taskDependencyFactory);
     }
 
     @Override

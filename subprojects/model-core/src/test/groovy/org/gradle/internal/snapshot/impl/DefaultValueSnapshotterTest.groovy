@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -36,6 +37,8 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory
 
 class DefaultValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
@@ -752,7 +755,7 @@ class DefaultValueSnapshotterTest extends Specification {
         files1.from(new File("a").absoluteFile)
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> new org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory(TestFiles.resolver())
+        _ * managedFactoryRegistry.lookup(ConfigurableFileCollectionManagedFactory.FACTORY_ID) >> new ConfigurableFileCollectionManagedFactory(TestFiles.resolver(), DefaultTaskDependencyFactory.withNoAssociatedProject())
 
         expect:
         def isolatedEmpty = snapshotter.isolate(empty)

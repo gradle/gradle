@@ -22,10 +22,14 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
@@ -34,21 +38,21 @@ import java.io.File;
  * TODO - keep the file entries to snapshot later, to avoid a stat on each file during snapshot
  */
 public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareValue {
-    private final FileResolver fileResolver;
+    private final Factory<PatternSet> patternSetFactory;
     private boolean canCache;
     private MinimalFileSet cachedValue;
 
     // TODO - display name
-    public CachingTaskInputFileCollection(FileResolver fileResolver, TaskResolver taskResolver) {
-        super(fileResolver, taskResolver);
-        this.fileResolver = fileResolver;
+    public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory) {
+        super(null, fileResolver, taskDependencyFactory, Collections.emptyList());
+        this.patternSetFactory = patternSetFactory;
     }
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
         if (canCache) {
             if (cachedValue == null) {
-                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver.getPatternSetFactory());
+                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(patternSetFactory);
                 super.visitContents(nested);
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
