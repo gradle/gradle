@@ -23,14 +23,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Common base class for the lazy versions of {@link ModuleComponentResolveMetadata} implementations.
@@ -87,21 +91,59 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         return configurationDefinitions;
     }
 
-    private Optional<ImmutableList<? extends ConfigurationMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> buildVariantsForGraphTraversal() {
+        ImmutableList<? extends ComponentVariant> variants = getVariants();
         if (variants.isEmpty()) {
-            return maybeDeriveVariants();
+            return addVariantsByRule(maybeDeriveVariants());
         }
-        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<ConfigurationMetadata>();
+        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
         }
-        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(configurations.build());
+        return addVariantsByRule(Optional.of(configurations.build()));
+
+    }
+
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> addVariantsByRule(Optional<ImmutableList<? extends ConfigurationMetadata>> variants) {
+        if (variantMetadataRules.getAdditionalVariants().isEmpty()) {
+            return variants;
+        }
+        Map<String, ConfigurationMetadata> byName = variants.or(ImmutableList.of()).stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
+        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        if (variants.isPresent()) {
+            builder.addAll(variants.get());
+        }
+        for (Map.Entry<String, String> variantName : variantMetadataRules.getAdditionalVariants().entrySet()) {
+            ConfigurationMetadata base;
+            if (variants.isPresent()) {
+                base = byName.get(variantName.getValue());
+            } else {
+                base = getConfiguration(variantName.getValue());
+            }
+            ImmutableAttributes attributes;
+            ImmutableCapabilities capabilities;
+            List<? extends ModuleDependencyMetadata> dependencies;
+            if (base instanceof ModuleConfigurationMetadata) {
+                attributes = base.getAttributes();
+                capabilities = (ImmutableCapabilities) base.getCapabilities();
+                dependencies = ((ModuleConfigurationMetadata) base).getDependencies();
+            } else {
+                attributes = getAttributes();
+                capabilities = ImmutableCapabilities.EMPTY;
+                dependencies = ImmutableList.of();
+            }
+
+            ComponentVariant variant = new AbstractMutableModuleComponentResolveMetadata.ImmutableVariantImpl(getId(), variantName.getKey(), attributes, ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), capabilities);
+            ConfigurationMetadata configurationMetadata = new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules, dependencies);
+            builder.add(configurationMetadata);
+        }
+        return Optional.of(builder.build());
     }
 
     @Override
     public synchronized Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
-            graphVariants = buildVariantsForGraphTraversal(getVariants());
+            graphVariants = buildVariantsForGraphTraversal();
         }
         return graphVariants;
     }

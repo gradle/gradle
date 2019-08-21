@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 
@@ -71,6 +72,22 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * @since 4.5
      */
     void allVariants(Action<? super VariantMetadata> action);
+
+    /**
+     * Add a rule for adding a new variant to the component. The new variant will be based on an existing variant
+     * of the component and initialized with the same attributes, capabilities and dependencies.
+     * These can the be modified in the given configuration action.
+     *
+     * Note: files (artifacts) are not initialized automatically and always need to be added through {@link VariantMetadata#withFiles(Action)}.
+     *
+     * @param name a name for the variant
+     * @param baseVariant name of the variant from which the new variant will be initialized
+     * @param action the action to populate the variant
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void addVariant(String name, String baseVariant, Action<? super VariantMetadata> action);
 
     /**
      * Declares that this component belongs to a virtual platform, which should be

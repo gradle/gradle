@@ -25,8 +25,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-import java.util.List;
-
 public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantBackedConfigurationMetadata {
 
     public RealisedVariantBackedConfigurationMetadata(ModuleComponentIdentifier id, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, ImmutableAttributesFactory attributesFactory) {
@@ -76,7 +74,7 @@ public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantB
         }
 
         @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
+        public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
             return delegate.getArtifacts();
         }
 

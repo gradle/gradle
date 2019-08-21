@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.List;
@@ -49,7 +48,7 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
     }
 
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
+    public List<? extends ModuleDependencyMetadata> getDependencies() {
         return getConfigDependencies();
     }
 

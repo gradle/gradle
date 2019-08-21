@@ -513,7 +513,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
     }
 
-    protected static class ImmutableVariantImpl implements ComponentVariant, VariantResolveMetadata {
+    public static class ImmutableVariantImpl implements ComponentVariant, VariantResolveMetadata {
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;
@@ -568,12 +568,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            List<ComponentArtifactMetadata> artifacts = new ArrayList<ComponentArtifactMetadata>(files.size());
+        public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
+            ImmutableList.Builder<ComponentArtifactMetadata> artifacts = new ImmutableList.Builder<>();
             for (ComponentVariant.File file : files) {
                 artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
             }
-            return artifacts;
+            return artifacts.build();
         }
 
         @Override

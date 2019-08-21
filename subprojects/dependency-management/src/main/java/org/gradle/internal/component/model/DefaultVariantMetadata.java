@@ -16,19 +16,18 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
 
-import java.util.List;
-
 public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
-    private final List<? extends ComponentArtifactMetadata> artifacts;
+    private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final CapabilitiesMetadata capabilitiesMetadata;
 
-    public DefaultVariantMetadata(DisplayName displayName, AttributeContainerInternal attributes, List<? extends ComponentArtifactMetadata> artifacts, CapabilitiesMetadata capabilitiesMetadata) {
+    public DefaultVariantMetadata(DisplayName displayName, AttributeContainerInternal attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, CapabilitiesMetadata capabilitiesMetadata) {
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
@@ -51,7 +50,7 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     }
 
     @Override
-    public List<? extends ComponentArtifactMetadata> getArtifacts() {
+    public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         return artifacts;
     }
 

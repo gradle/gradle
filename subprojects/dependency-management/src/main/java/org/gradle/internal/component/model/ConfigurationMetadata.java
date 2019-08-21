@@ -95,7 +95,7 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     /**
      * Was this variant derived from pom metadata and requires the maven mechanism of discovering artifacts
-     * that are not may not be directly defined in the metadata (e.g. the default 'jar' artifact).
+     * that may not be directly defined in the metadata (e.g. the default 'jar' artifact).
      */
     boolean requiresMavenArtifactDiscovery();
 }
