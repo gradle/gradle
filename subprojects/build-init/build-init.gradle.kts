@@ -46,9 +46,12 @@ dependencies {
 
     testImplementation(project(":cli"))
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":native"))
+    testImplementation(project(":snapshots"))
+    testImplementation(project(":processServices"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformNative")))
-    
+
     testFixturesImplementation(project(":baseServices"))
 
     integTestImplementation(project(":native"))
@@ -58,7 +61,7 @@ dependencies {
     allTestRuntimeDependencies.forEach {
         integTestRuntimeOnly(it)
     }
-    
+
     testFixturesImplementation(project(":internalTesting"))
 
     testRuntimeOnly(project(":runtimeApiInfo"))

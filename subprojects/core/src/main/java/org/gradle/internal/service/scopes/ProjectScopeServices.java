@@ -64,8 +64,9 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
@@ -148,8 +149,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DeferredProjectConfiguration(project);
     }
 
-    protected FileResolver createFileResolver(FileLookup fileLookup) {
-        return fileLookup.getFileResolver(project.getProjectDir());
+    protected FileResolver createFileResolver(FileLookup fileLookup, TaskDependencyFactory taskDependencyFactory) {
+        return fileLookup.getFileResolver(project.getProjectDir(), taskDependencyFactory);
     }
 
     protected SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
@@ -343,16 +344,20 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultInputNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
     }
 
-    protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultProjectLayout(project.getProjectDir(), fileResolver, project.getTasks(), fileCollectionFactory);
+    protected TaskDependencyFactory createTaskDependencyFactory() {
+        return DefaultTaskDependencyFactory.forProject(project.getTasks());
+    }
+
+    protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory) {
+        return new DefaultProjectLayout(project.getProjectDir(), fileResolver, taskDependencyFactory, fileCollectionFactory);
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
         return ConfigurationTargetIdentifier.of(project);
     }
 
-    protected FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskResolver taskResolver) {
-        return new DefaultFileCollectionFactory(fileResolver, taskResolver);
+    protected FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory);
     }
 
     protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
@@ -366,9 +371,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
     }
 
-    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver) {
+    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         return new DefaultManagedFactoryRegistry(parent).withFactories(
-            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver),
+            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
             new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver)

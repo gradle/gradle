@@ -18,6 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -39,9 +41,16 @@ import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
-import static org.gradle.api.internal.provider.ManagedFactories.*;
-import static org.gradle.api.internal.file.ManagedFactories.*;
-import static org.gradle.api.internal.file.collections.ManagedFactories.*;
+import static org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.RegularFileManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory;
+import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.ListPropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.MapPropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.PropertyManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.ProviderManagedFactory;
+import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManagedFactory;
 
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
@@ -72,11 +81,15 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new NamedObjectInstantiator(cacheFactory);
     }
-    
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, InstantiatorFactory instantiatorFactory) {
+
+    TaskDependencyFactory createTaskDependencyFactory() {
+        return DefaultTaskDependencyFactory.withNoAssociatedProject();
+    }
+
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
                 instantiatorFactory.getManagedFactory(),
-                new ConfigurableFileCollectionManagedFactory(fileResolver),
+                new ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
                 new RegularFileManagedFactory(),
                 new RegularFilePropertyManagedFactory(fileResolver),
                 new DirectoryManagedFactory(fileResolver),

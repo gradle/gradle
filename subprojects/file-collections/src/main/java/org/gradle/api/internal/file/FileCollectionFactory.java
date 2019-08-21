@@ -20,12 +20,15 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 public interface FileCollectionFactory {
+    FileCollectionFactory withBaseDir(PathToFileResolver fileResolver);
+
     /**
      * Creates a {@link FileCollection} with the given contents.
      *

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
@@ -27,8 +28,8 @@ public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
     /**
      * Do not create instances of this type. Use {@link FileLookup} instead.
      */
-    public BaseDirFileResolver(File baseDir, Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
+    public BaseDirFileResolver(File baseDir, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory) {
+        super(patternSetFactory, taskDependencyFactory);
         assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);
         this.baseDir = baseDir;
     }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -96,7 +97,7 @@ public class BasicGlobalScopeServices {
     }
 
     FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver) {
-        return new DefaultFileCollectionFactory(fileResolver, null);
+        return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
     PatternSpecFactory createPatternSpecFactory() {

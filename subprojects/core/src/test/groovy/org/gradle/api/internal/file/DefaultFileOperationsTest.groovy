@@ -21,7 +21,6 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
@@ -184,11 +183,11 @@ class DefaultFileOperationsTest extends Specification {
     }
 
     def deletes() {
-        TestFile fileToBeDeleted = tmpDir.file("file")
-        ConfigurableFileCollection fileCollection = new DefaultConfigurableFileCollection(resolver, null, "file")
+        def fileToBeDeleted = tmpDir.file("file")
+        def fileCollection = Stub(FileCollectionInternal)
         resolver.resolveFiles(["file"] as Object[]) >> fileCollection
-        resolver.resolve("file") >> fileToBeDeleted
-        fileToBeDeleted.touch();
+        fileCollection.iterator() >> [fileToBeDeleted].iterator()
+        fileToBeDeleted.touch()
 
         expect:
         fileOperations.delete('file') == true

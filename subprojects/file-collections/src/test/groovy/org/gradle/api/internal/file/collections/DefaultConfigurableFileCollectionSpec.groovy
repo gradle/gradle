@@ -21,6 +21,8 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 
@@ -30,13 +32,16 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def fileResolver = Mock(FileResolver)
     def taskResolver = Mock(TaskResolver)
-    def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskResolver)
+    def taskDependencyFactory = Stub(TaskDependencyFactory) {
+        _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
+    }
+    def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, [])
 
     @Override
     AbstractFileCollection containing(File... files) {
         def resolver = Stub(FileResolver)
         _ * resolver.resolve(_) >> { File f -> f }
-        return new DefaultConfigurableFileCollection("<display>", resolver, taskResolver, files as List)
+        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, files as List)
     }
 
     def resolvesSpecifiedFilesUsingFileResolver() {
@@ -45,7 +50,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def file2 = new File("2")
 
         when:
-        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(fileResolver, taskResolver, ["a", "b"])
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, ["a", "b"])
         def from = collection.from
         def files = collection.files
 
