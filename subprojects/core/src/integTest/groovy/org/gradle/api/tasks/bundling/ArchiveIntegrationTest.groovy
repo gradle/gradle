@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.bundling
 
-
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
@@ -23,7 +22,6 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -809,7 +807,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         false            | ["file2.txt", "file3.txt"]
     }
 
-    @Ignore
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/10311")
     def "can clear version property on #taskType tasks"() {
@@ -818,7 +815,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             version = "1.0"
             task archive(type: $taskType) {
                 from("src")
-                version = null
+                $prop = null
             }
         """
         settingsFile << """
@@ -831,10 +828,15 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file(archiveFile).assertExists()
 
         where:
-        taskType | archiveFile
-        "Zip" | "build/distributions/archive.zip"
-        "Jar" | "build/libs/archive.jar"
-        "Tar" | "build/distributions/archive.tar"
+        taskType | prop | archiveFile
+        "Zip"    | "version"   | "build/distributions/archive.zip"
+        "Jar"    | "version"   | "build/libs/archive.jar"
+        "Tar"    | "version"   | "build/distributions/archive.tar"
+
+        "Zip"    | "baseName"   | "build/distributions/1.0.zip"
+        "Jar"    | "baseName"   | "build/libs/1.0.jar"
+        "Tar"    | "baseName"   | "build/distributions/1.0.tar"
+
     }
 
     private def createTar(String name, Closure cl) {
