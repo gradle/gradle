@@ -55,6 +55,9 @@ class WorkerExecutorFixture {
     }
 
     def prepareTaskTypeUsingWorker() {
+        withParameterClassInBuildSrc()
+        withFileHelperClassInBuildSrc()
+
         buildFile << """
             import org.gradle.workers.*
             $taskTypeUsingWorker
@@ -62,9 +65,6 @@ class WorkerExecutorFixture {
     }
 
     String getTaskTypeUsingWorker() {
-        withParameterClassInBuildSrc()
-        withFileHelperClassInBuildSrc()
-
         return """
             import javax.inject.Inject
             import org.gradle.other.Foo
@@ -241,7 +241,7 @@ class WorkerExecutorFixture {
             import java.io.FileWriter;
             
             public class FileHelper {
-                static void write(String id, File outputFile) {
+                public static void write(String id, File outputFile) {
                     PrintWriter out = null;
                     try {
                         outputFile.getParentFile().mkdirs();
