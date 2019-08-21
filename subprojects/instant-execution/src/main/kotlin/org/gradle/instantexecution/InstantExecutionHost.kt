@@ -61,8 +61,7 @@ import java.io.File
 class InstantExecutionHost internal constructor(
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-    private val projectFactory: IProjectFactory,
-    private val buildSourceBuilder: BuildSourceBuilder
+    private val projectFactory: IProjectFactory
 ) : DefaultInstantExecution.Host {
 
     private
@@ -182,11 +181,9 @@ class InstantExecutionHost internal constructor(
             val settingsLocation = SettingsLocation(rootProject.projectDir, File(rootProject.projectDir, "settings.gradle"))
             settingsProcessor.process(gradle, settingsLocation, coreAndPluginsScope, startParameter)
 
-            val projectClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(gradle.settings.rootDir, gradle.startParameter)
-
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
             val buildLoader = NotifyingBuildLoader(BuildLoader { _, _, _ -> }, buildOperationExecutor)
-            buildLoader.load(gradle.settings, gradle, projectClassLoaderScope)
+            buildLoader.load(gradle.settings, gradle, gradle.settings.baseProjectClassLoaderScope)
 
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {
@@ -259,7 +256,10 @@ class InstantExecutionHost internal constructor(
                     rootDir,
                     settingsSource,
                     startParameter
-                )
+                ).also {
+                    // In “classic” mode, this is different in that it includes buildSrc
+                    it.baseProjectClassLoaderScope = coreScope
+                }
             }
     }
 

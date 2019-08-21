@@ -29,15 +29,6 @@ import org.gradle.initialization.IncludedBuildSpec;
 import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal {
-    /**
-     * Returns the scope containing classes that should be visible to all settings scripts and build scripts invoked by this build.
-     */
-    ClassLoaderScope getRootClassLoaderScope();
-
-    /**
-     * Returns the scope into which the main settings script should define classes, and from which plugins applied to this settings object should be resolved.
-     */
-    ClassLoaderScope getClassLoaderScope();
 
     @Override
     StartParameter getStartParameter();
@@ -54,5 +45,33 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     GradleInternal getGradle();
 
     List<IncludedBuildSpec> getIncludedBuilds();
+
+    /**
+     * The parent scope for this and all settings objects.
+     *
+     * Gradle runtime.
+     */
+    ClassLoaderScope getBaseClassLoaderScope();
+
+    /**
+     * The scope for this settings object.
+     *
+     * Gradle runtime + this object's script's additions.
+     */
+    ClassLoaderScope getClassLoaderScope();
+
+    /**
+     * The basis for project build scripts.
+     *
+     * It is the Gradle runtime + buildSrc's contributions.
+     * This is used as the parent scope for the root project's build script, and all script plugins.
+     *
+     * This is only on this object for convenience due to legacy.
+     * Pre Gradle 6, what is now called {@link #getBaseClassLoaderScope()} was used as the equivalent scope for project scripts.
+     * Since Gradle 6, it does not include buildSrc, whereas this scope does.
+     */
+    ClassLoaderScope getBaseProjectClassLoaderScope();
+
+    void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope);
 
 }

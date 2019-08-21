@@ -16,13 +16,13 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r54
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 
 import static org.junit.Assert.assertThat
-
 
 @TargetGradleVersion(">=5.4")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -56,7 +56,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         def classPath = canonicalClassPathFor(projectDir, settings)
 
         then:
-        assertContainsBuildSrc(classPath)
+        assertAppropriatelyContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
         assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
@@ -92,7 +92,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         def classPath = canonicalClassPathFor(projectDir, settings)
 
         then:
-        assertContainsBuildSrc(classPath)
+        assertAppropriatelyContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
         assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
@@ -126,5 +126,13 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         assertThat(
             sourcePathFor(settings),
             matchesProjectsSourceRoots(sourceRoots))
+    }
+
+    void assertAppropriatelyContainsBuildSrc(List<File> classPath) {
+        if (targetVersion < GradleVersion.version("6.0")) {
+            assertContainsBuildSrc(classPath)
+        } else {
+            assertNotContainsBuildSrc(classPath)
+        }
     }
 }

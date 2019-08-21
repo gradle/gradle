@@ -290,7 +290,7 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal)
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = settings,
         scriptFile = scriptFile,
-        baseScope = settings.rootClassLoaderScope,
+        baseScope = settings.baseClassLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
         project = project,
         resourceDescription = "settings file"
@@ -486,7 +486,7 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
 } catch (error: Exception) {
     getSettings().run {
         serviceOf<ClassPathModeExceptionCollector>().collect(error)
-        compilationClassPathOf(rootClassLoaderScope)
+        compilationClassPathOf(baseProjectClassLoaderScope)
     }
 }
 

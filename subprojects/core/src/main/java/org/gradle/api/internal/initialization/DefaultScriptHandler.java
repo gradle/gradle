@@ -78,6 +78,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, notation);
     }
 
+
     @Override
     public ClassPath getScriptClassPath() {
         return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
