@@ -69,9 +69,16 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
      * This is only on this object for convenience due to legacy.
      * Pre Gradle 6, what is now called {@link #getBaseClassLoaderScope()} was used as the equivalent scope for project scripts.
      * Since Gradle 6, it does not include buildSrc, whereas this scope does.
+     *
+     * This method is not named as a property getter to avoid getProperties() invoking it.
+     *
+     * @throws IllegalStateException if called before {@link #setBaseProjectClassLoaderScope(ClassLoaderScope)}
      */
-    ClassLoaderScope getBaseProjectClassLoaderScope();
+    ClassLoaderScope baseProjectClassLoaderScope();
 
+    /**
+     * @throws IllegalStateException if called more than once
+     */
     void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope);
 
 }

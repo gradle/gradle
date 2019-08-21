@@ -183,7 +183,7 @@ class InstantExecutionHost internal constructor(
 
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
             val buildLoader = NotifyingBuildLoader(BuildLoader { _, _, _ -> }, buildOperationExecutor)
-            buildLoader.load(gradle.settings, gradle, gradle.settings.baseProjectClassLoaderScope)
+            buildLoader.load(gradle.settings, gradle, gradle.settings.baseProjectClassLoaderScope())
 
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {
@@ -258,7 +258,7 @@ class InstantExecutionHost internal constructor(
                     startParameter
                 ).also {
                     // In “classic” mode, this is different in that it includes buildSrc
-                    it.baseProjectClassLoaderScope = coreScope
+                    it.setBaseProjectClassLoaderScope(coreScope)
                 }
             }
     }

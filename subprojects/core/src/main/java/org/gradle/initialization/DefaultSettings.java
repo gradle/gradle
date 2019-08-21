@@ -243,13 +243,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             getFileResolver(),
             getScriptPluginFactory(),
             getScriptHandlerFactory(),
-            getBaseProjectClassLoaderScope(),
+            baseProjectClassLoaderScope(),
             getResourceLoader(),
             this);
     }
 
     @Override
-    public ClassLoaderScope getBaseProjectClassLoaderScope() {
+    public ClassLoaderScope baseProjectClassLoaderScope() {
         if (baseProjectClassLoaderScope == null) {
             throw new IllegalStateException("baseProjectClassLoaderScope not yet set");
         }
@@ -258,6 +258,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope) {
+        if (classLoaderScope == null) {
+            throw new IllegalArgumentException("classLoaderScope must not be null");
+        }
+        if (baseProjectClassLoaderScope != null) {
+            throw new IllegalStateException("baseProjectClassLoaderScope is already set");
+        }
+
         this.baseProjectClassLoaderScope = classLoaderScope;
     }
 
