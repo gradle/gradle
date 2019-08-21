@@ -47,7 +47,7 @@ public enum JavaVersion {
     /**
      * Java 13 major version.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     VERSION_13,
@@ -215,7 +215,7 @@ public enum JavaVersion {
     /**
      * Returns if this version is compatible with the given version
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     public boolean isCompatibleWith(JavaVersion otherVersion) {

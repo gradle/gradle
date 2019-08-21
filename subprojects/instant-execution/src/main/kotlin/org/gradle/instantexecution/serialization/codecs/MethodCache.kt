@@ -16,23 +16,33 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import groovy.lang.Closure
-import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.internal.reflect.ClassInspector
+
+import java.lang.reflect.Method
 
 
-object ClosureCodec : Codec<Closure<*>> {
+internal
+class MethodCache(
 
     private
-    val beanCodec = BeanCodec()
+    val predicate: Method.() -> Boolean
 
-    override suspend fun WriteContext.encode(value: Closure<*>) {
-        // TODO - should write the owner, delegate and thisObject, replacing project and script references
-        beanCodec.run { encode(value.dehydrate()) }
-    }
+) {
+    private
+    val methodCache = hashMapOf<Class<*>, Method?>()
 
-    override suspend fun ReadContext.decode(): Closure<*>? {
-        return beanCodec.run { decode() as Closure<*> }
+    fun forObject(value: Any) =
+        forClass(value.javaClass)
+
+    fun forClass(type: Class<*>) = methodCache.computeIfAbsent(type) {
+        it.firstMatchingMethodOrNull(predicate)
     }
 }
+
+
+internal
+fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
+    ClassInspector.inspect(this)
+        .allMethods
+        .find(predicate)
+        ?.apply { isAccessible = true }

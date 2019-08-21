@@ -38,6 +38,12 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
+==== Dependencies should no longer be declared using the compile and runtime configurations
+
+The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged for some time now.
+These configurations, and their counterparts in other sources sets (e.g. `testCompile` and `testRuntime`), should not be utilised anymore.
+Instead, use the `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
+
 ==== Local build cache type shouldn't be specified
 
 When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.

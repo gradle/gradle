@@ -140,7 +140,7 @@ public interface VersionConstraint extends Describable {
     /**
      * Returns true if the version constraint wins over other transitively brought in constraints on the same component.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     boolean isForSubgraph();

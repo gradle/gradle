@@ -202,7 +202,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Inherit version constraints with {@link VersionConstraint#isForSubgraph()} from the target module.
      * For this, the version constraint of this dependency needs to strictly point at one version.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void inheritConstraints();
@@ -210,7 +210,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     /**
      * Resets the {@link #isInheriting()} state of this dependency.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void notInheritConstraints();
@@ -218,7 +218,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     /**
      * Are the {@link VersionConstraint#isForSubgraph()} dependency constraints of the target module inherited?
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     boolean isInheriting();

@@ -77,7 +77,7 @@ public interface MutableVersionConstraint extends VersionConstraint {
      * This effectively gives this constraint a higher weight to accept previously rejected versions
      * (e.g. to downgrade the version of a transitive dependency)
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void forSubgraph();
@@ -85,7 +85,7 @@ public interface MutableVersionConstraint extends VersionConstraint {
     /**
      * Reset the {@link #forSubgraph()} state of this version constraint.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void notForSubgraph();

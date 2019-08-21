@@ -52,6 +52,7 @@ import java.nio.file.Files
 import java.util.ArrayDeque
 import java.util.ArrayList
 import java.util.SortedSet
+import java.util.TreeSet
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
@@ -300,15 +301,13 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun relevantProjectPathsFor(nodes: List<Node>) =
-        nodes.mapNotNull { node ->
-            val owningProject = node.owningProject
-            if (owningProject != null && owningProject.parent != null) {
-                Path.path(owningProject.path)
-            } else {
-                null
-            }
-        }.toSortedSet()
+    fun relevantProjectPathsFor(nodes: List<Node>): SortedSet<Path> =
+        nodes.mapNotNullTo(TreeSet()) { node ->
+            node.owningProject
+                ?.takeIf { it.parent != null }
+                ?.path
+                ?.let(Path::path)
+        }
 
     private
     val buildOperationExecutor: BuildOperationExecutor
@@ -372,7 +371,7 @@ class DefaultInstantExecution internal constructor(
     val instantExecutionStateFile by lazy {
         val currentGradleVersion = GradleVersion.current().version
         val cacheDir = File(host.rootDir, ".instant-execution-state/$currentGradleVersion").absoluteFile
-        val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
+        val baseName = compactMD5For(host.requestedTaskNames)
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
@@ -398,6 +397,10 @@ class DefaultInstantExecution internal constructor(
     private
     fun systemProperty(propertyName: String) =
         host.getSystemProperty(propertyName)
+
+    private
+    fun compactMD5For(taskNames: List<String>) =
+        HashUtil.createCompactMD5(taskNames.joinToString("/"))
 }
 
 

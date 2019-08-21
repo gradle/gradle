@@ -35,9 +35,6 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.instantexecution.extensions.uncheckedCast
-import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
@@ -59,14 +56,12 @@ import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.gradle.workers.internal.IsolatableSerializerRegistry
-import kotlin.reflect.KClass
 
 
 class Codecs(
@@ -94,8 +89,7 @@ class Codecs(
     private
     val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
 
-    private
-    val userTypeBindings = bindings {
+    val userTypesCodec = BindingsBackedCodec {
 
         bind(unsupported<Project>())
         bind(unsupported<Gradle>())
@@ -124,14 +118,12 @@ class Codecs(
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(EnumSetCodec)
         bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
         bind(ImmutableSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
-        bind(EnumMapCodec)
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
@@ -178,16 +170,17 @@ class Codecs(
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
 
+        bind(SerializableWriteObjectCodec())
+        bind(SerializableWriteReplaceCodec())
+
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
         bind(reentrant(BeanCodec()))
     }
 
-    val userTypesCodec = BindingsBackedCodec(userTypeBindings)
+    val internalTypesCodec = BindingsBackedCodec {
 
-    private
-    val internalTypeBindings = bindings {
         bind(INTEGER_SERIALIZER)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
@@ -199,45 +192,4 @@ class Codecs(
         bind(LegacyTransformerCodec(classLoaderHierarchyHasher, isolatableFactory, actionScheme))
         bind(ExecutionGraphDependenciesResolverCodec)
     }
-
-    val internalTypesCodec = BindingsBackedCodec(internalTypeBindings)
-}
-
-
-private
-inline fun bindings(block: BindingsBuilder.() -> Unit): List<Binding> =
-    BindingsBuilder().apply(block).build()
-
-
-private
-class BindingsBuilder {
-
-    private
-    val bindings = mutableListOf<Binding>()
-
-    fun build(): List<Binding> = bindings.toList()
-
-    fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.none { it.type === type })
-        val tag = bindings.size
-        require(tag < Byte.MAX_VALUE)
-        bindings.add(
-            Binding(tag.toByte(), type, codec.uncheckedCast())
-        )
-    }
-
-    inline fun <reified T> bind(codec: Codec<T>) =
-        bind(T::class.java, codec)
-
-    inline fun <reified T> bind(serializer: Serializer<T>) =
-        bind(T::class.java, serializer)
-
-    fun bind(type: KClass<*>, codec: Codec<*>) =
-        bind(type.java, codec)
-
-    fun bind(type: KClass<*>, serializer: Serializer<*>) =
-        bind(type.java, serializer)
-
-    fun bind(type: Class<*>, serializer: Serializer<*>) =
-        bind(type, SerializerCodec(serializer))
 }
