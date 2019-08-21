@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -26,6 +27,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
     def build1 = testDirectory.createDir("build1")
 
     @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/10317")
     def "can use worker api with composite builds using #pluginId"() {
         settingsFile << """
             includeBuild "plugin"
@@ -33,7 +35,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         """
 
         withFileHelperInPluginBuild()
-        withLegacyRunnableAndTaskInPluginBuild()
+        withLegacyWorkerPluginInPluginBuild()
         withTypedWorkerPluginInPluginBuild()
 
         build1.file("build.gradle") << """
@@ -76,11 +78,15 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         expect:
         succeeds("runWork")
 
+        and:
+        file("build/workOutput").text == "foo"
+        build1.file("build/workOutput").text == "foo"
+
         where:
         pluginId << [ 'legacy-worker-plugin', 'typed-worker-plugin' ]
     }
 
-    private void withLegacyRunnableAndTaskInPluginBuild() {
+    private void withLegacyWorkerPluginInPluginBuild() {
         plugin.file("src/main/java/LegacyParameter.java") << """
             import java.io.File;
             import java.io.Serializable;
