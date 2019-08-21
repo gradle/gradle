@@ -345,9 +345,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             import ${type.name}
 
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
                 dependencies {
                     classpath 'com.google.guava:guava:28.0-jre' 
                 }

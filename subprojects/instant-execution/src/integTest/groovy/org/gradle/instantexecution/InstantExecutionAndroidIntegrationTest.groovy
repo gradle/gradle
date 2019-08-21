@@ -32,6 +32,7 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         AndroidHome.assumeIsSet()
         executer.noDeprecationChecks()
         executer.beforeExecute {
+            withRepositoryMirrors()
             inDirectory(file("android-3.6-mini"))
         }
         instantExecution = newInstantExecutionFixture()
