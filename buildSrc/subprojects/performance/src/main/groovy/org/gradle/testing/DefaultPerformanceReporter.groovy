@@ -52,6 +52,8 @@ class DefaultPerformanceReporter implements PerformanceReporter {
     void report(PerformanceTest performanceTest) {
         performanceTest.generateResultsJson()
 
+        performanceTest.resultsJson.text.split("\\{").each { println(it) }
+
         fileOperations.delete(performanceTest.reportDir)
         ByteArrayOutputStream output = new ByteArrayOutputStream()
 
@@ -71,8 +73,11 @@ class DefaultPerformanceReporter implements PerformanceReporter {
             }
         })
 
+        String outputString = output.toString()
         // SLF4J: Class path contains multiple SLF4J bindings.
-        String message = output.toString().readLines().findAll { !it.contains("WARNING: ") && !it.contains("SLF4J") }.join("\n")
+        String message = outputString.readLines().findAll { !it.contains("WARNING: ") && !it.contains("SLF4J") }.join("\n")
+
+        println(outputString)
 
         if (result.exitValue != 0) {
             // WARNING: All illegal access operations will be denied in a future release

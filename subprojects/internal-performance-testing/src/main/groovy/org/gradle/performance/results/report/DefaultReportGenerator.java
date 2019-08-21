@@ -63,8 +63,9 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                 }
             });
         if (buildFailure.get() + stableScenarioRegression.get() + flakyScenarioBigRegression.get() != 0) {
-            throw new GradleException(formatErroString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get()));
+            throw new GradleException(formatErrorString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get()));
         }
+        System.out.println(executionDataProvider.getScenarioExecutionData().stream().map(s -> s.getScenarioName() + s.getStatus()).collect(Collectors.joining("\n")));
         if (!executionDataProvider.getScenarioExecutionData().stream().allMatch(ScenarioBuildResultData::isSuccessful)) {
             markBuildAsSuccessful();
         }
@@ -74,7 +75,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         System.out.println("##teamcity[buildStatus status='SUCCESS' text='First run failed but the rerun succeeded.']");
     }
 
-    private String formatErroString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
+    private String formatErrorString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
         StringBuilder sb = new StringBuilder();
         if (buildFailure != 0) {
             sb.append(", ").append(buildFailure).append(" scenario(s) failed");
