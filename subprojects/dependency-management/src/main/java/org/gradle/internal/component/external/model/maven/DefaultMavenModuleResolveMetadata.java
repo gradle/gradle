@@ -94,7 +94,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes());
+        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes(), true);
         configuration.setConfigDependenciesFactory(new Factory<List<ModuleDependencyMetadata>>() {
             @Nullable
             @Override
@@ -128,7 +128,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
             // we construct should _not_ include the constraints. We keep the constraints in the descriptors
             // because if we actually use attribute matching, we can select the platform variant which
             // does use constraints.
-            return md.withoutConstraints();
+            return md.mutate().withoutConstraints().build();
         }
         return md;
     }

@@ -109,6 +109,11 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
+    public boolean requiresMavenArtifactDiscovery() {
+        return delegate.requiresMavenArtifactDiscovery();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

@@ -169,6 +169,11 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         return capabilities;
     }
 
+    @Override
+    public boolean requiresMavenArtifactDiscovery() {
+        return false;
+    }
+
     ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {
         if (configDependenciesFactory != null) {
             configDependencies = ImmutableList.copyOf(configDependenciesFactory.create());

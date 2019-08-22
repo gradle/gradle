@@ -509,6 +509,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return capabilities;
         }
 
+        @Override
+        public boolean requiresMavenArtifactDiscovery() {
+            return false;
+        }
+
         private boolean include(DefaultLocalConfigurationMetadata configuration) {
             return hierarchy.contains(configuration.getName());
         }
