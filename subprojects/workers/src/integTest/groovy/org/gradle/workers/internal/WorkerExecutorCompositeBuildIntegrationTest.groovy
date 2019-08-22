@@ -42,12 +42,8 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
         lib.file("build.gradle") << """
             buildscript {
-                repositories {
-                    ${jcenterRepository()}
-                }
-
                 dependencies {
-                    classpath "org.apache.commons:commons-math:2.2"
+                    classpath files('foo.jar')
                 }
             }
 
