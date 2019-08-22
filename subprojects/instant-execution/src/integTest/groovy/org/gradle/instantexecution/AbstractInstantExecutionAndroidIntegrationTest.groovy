@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.fixtures
+package org.gradle.instantexecution
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.test.fixtures.file.TestFile
 
 
 @CompileStatic
-class InstantExecutionAndroidFixture {
+abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     static final String AGP_VERSION = "3.6.0-20190820155739+0200"
 
@@ -44,10 +46,37 @@ class InstantExecutionAndroidFixture {
         }
     """
 
-    static String replaceAgpVersion(String scriptText) {
+    def setup() {
+        AndroidHome.assumeIsSet()
+    }
+
+    static String replaceAgpVersion(String scriptText, String agpVersion = AGP_VERSION) {
         return scriptText.replaceAll(
             "(['\"]com.android.tools.build:gradle:).+(['\"])",
-            "${'$'}1$AGP_VERSION${'$'}2"
+            "${'$'}1$agpVersion${'$'}2"
         )
+    }
+
+    void withAgpNightly(String agpVersion = AGP_VERSION) {
+        withAgpNightly(buildFile, agpVersion)
+    }
+
+    void withAgpNightly(TestFile buildFile, String agpVersion = AGP_VERSION) {
+
+        println "> Using AGP nightly ${agpVersion}"
+
+        // Inject AGP nightly repository
+        def init = file("gradle/agp-nightly.init.gradle") << AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT
+        executer.beforeExecute {
+            withArgument("-I")
+            withArgument(init.path)
+        }
+
+        // Inject AGP nightly version
+        buildFile.text = replaceAgpVersion(buildFile.text, agpVersion)
+    }
+
+    void copyRemoteProject(String remoteProject) {
+        new TestFile(new File("build/$remoteProject")).copyTo(testDirectory)
     }
 }

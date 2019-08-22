@@ -16,23 +16,15 @@
 
 package org.gradle.instantexecution
 
-import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
-
-import static org.gradle.instantexecution.fixtures.InstantExecutionAndroidFixture.AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT
-import static org.gradle.instantexecution.fixtures.InstantExecutionAndroidFixture.AGP_VERSION
-import static org.gradle.instantexecution.fixtures.InstantExecutionAndroidFixture.replaceAgpVersion
 
 
 /**
  * Integration test Santa Tracker android app against AGP nightly.
  */
-class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     def setup() {
-        AndroidHome.assumeIsSet()
         executer.noDeprecationChecks()
         executer.withRepositoryMirrors()
     }
@@ -41,7 +33,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     def "assembleDebug --dry-run on Santa Tracker #flavor"() {
 
         given:
-        copyTemplate(template)
+        copyRemoteProject(remoteProject)
         withAgpNightly()
 
         when:
@@ -51,7 +43,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
 
         where:
-        flavor | template
+        flavor | remoteProject
         'Java' | "santaTrackerJava"
         // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Instant execution state could not be cached.
     }
@@ -59,7 +51,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     def "supported tasks up-to-date on Santa Tracker Java"() {
 
         given:
-        copyTemplate("santaTrackerJava")
+        copyRemoteProject("santaTrackerJava")
         withAgpNightly()
 
         and:
@@ -85,7 +77,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     def "supported tasks clean build on Santa Tracker Java"() {
 
         given:
-        copyTemplate("santaTrackerJava")
+        copyRemoteProject("santaTrackerJava")
         withAgpNightly()
 
         and:
@@ -126,27 +118,6 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
 
         then:
         instantRun(*tasks)
-    }
-
-    @CompileStatic
-    private void copyTemplate(String template) {
-        new TestFile(new File("build/$template")).copyTo(testDirectory)
-    }
-
-    @CompileStatic
-    private void withAgpNightly() {
-
-        println "> Using AGP nightly ${AGP_VERSION}"
-
-        // Inject AGP nightly repository
-        def init = file("gradle/agp-nightly.init.gradle") << AGP_NIGHTLY_REPOSITORY_INIT_SCRIPT
-        executer.beforeExecute {
-            withArgument("-I")
-            withArgument(init.path)
-        }
-
-        // Inject AGP nightly version
-        buildFile.text = replaceAgpVersion(buildFile.text)
     }
 
     static final List<String> TASKS_TO_ASSEMBLE_DEBUG_JAVA = [
