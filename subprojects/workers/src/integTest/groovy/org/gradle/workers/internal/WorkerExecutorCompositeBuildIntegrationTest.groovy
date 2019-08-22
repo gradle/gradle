@@ -24,21 +24,23 @@ import spock.lang.Unroll
 class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     WorkerExecutorFixture fixture = new WorkerExecutorFixture(temporaryFolder)
     def plugin = testDirectory.createDir("plugin")
-    def build1 = testDirectory.createDir("build1")
+    def lib = testDirectory.createDir("lib")
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/10317")
     def "can use worker api with composite builds using #pluginId"() {
         settingsFile << """
+            rootProject.name = "app"
+            
             includeBuild "plugin"
-            includeBuild "build1"
+            includeBuild "lib"
         """
 
         withFileHelperInPluginBuild()
         withLegacyWorkerPluginInPluginBuild()
         withTypedWorkerPluginInPluginBuild()
 
-        build1.file("build.gradle") << """
+        lib.file("build.gradle") << """
             buildscript {
                 repositories {
                     ${jcenterRepository()}
@@ -69,7 +71,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             }
        
             dependencies {
-                compile "org.gradle.test:build1:1.0"
+                compile "org.gradle.test:lib:1.0"
             }
 
             runWork.dependsOn compileJava
@@ -80,7 +82,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
         and:
         file("build/workOutput").text == "foo"
-        build1.file("build/workOutput").text == "foo"
+        lib.file("build/workOutput").text == "foo"
 
         where:
         pluginId << [ 'legacy-worker-plugin', 'typed-worker-plugin' ]
