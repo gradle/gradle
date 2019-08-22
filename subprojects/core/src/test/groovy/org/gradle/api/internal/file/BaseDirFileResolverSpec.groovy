@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
+
 import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile
@@ -230,7 +230,7 @@ The following types/formats are supported:
     }
 
     private BaseDirFileResolver resolver(File baseDir = tmpDir.testDirectory) {
-        new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory(), DefaultTaskDependencyFactory.withNoAssociatedProject())
+        new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
     }
 
     private File[] getFsRoots() {

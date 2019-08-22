@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -86,14 +87,14 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return DefaultTaskDependencyFactory.withNoAssociatedProject();
     }
 
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
                 instantiatorFactory.getManagedFactory(),
                 new ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
                 new RegularFileManagedFactory(),
                 new RegularFilePropertyManagedFactory(fileResolver),
-                new DirectoryManagedFactory(fileResolver),
-                new DirectoryPropertyManagedFactory(fileResolver),
+                new DirectoryManagedFactory(fileResolver, fileCollectionFactory),
+                new DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory),
                 new SetPropertyManagedFactory(),
                 new ListPropertyManagedFactory(),
                 new MapPropertyManagedFactory(),

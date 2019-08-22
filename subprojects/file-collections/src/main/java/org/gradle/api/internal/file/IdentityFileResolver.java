@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
@@ -29,8 +28,8 @@ public class IdentityFileResolver extends AbstractFileResolver {
     /**
      * Do not create instances of this type. Instead, use the {@link FileLookup} service.
      */
-    public IdentityFileResolver(Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory) {
-        super(patternSetFactory, taskDependencyFactory);
+    public IdentityFileResolver(Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
     }
 
     @Override

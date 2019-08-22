@@ -19,9 +19,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.file.WorkspaceTest
-import org.gradle.util.UsesNativeServices
 
-@UsesNativeServices
 class DefaultCompositeFileTreeTest extends WorkspaceTest {
 
     def "can be empty"() {
@@ -36,11 +34,11 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         given:
         def a1 = file("a/1.txt") << "a/1"
         def b1 = file("b/1.txt") << "b/1"
-        def fileResolver = TestFiles.resolver(testDirectory)
+        def fileResolver = TestFiles.fileCollectionFactory(testDirectory)
 
         when:
-        def a = fileResolver.resolveFilesAsTree("a")
-        def b = fileResolver.resolveFilesAsTree("b")
+        def a = fileResolver.resolving(["a"]).asFileTree
+        def b = fileResolver.resolving(["b"]).asFileTree
         def composite = new DefaultCompositeFileTree(Arrays.asList(a, b))
 
         then:
@@ -51,11 +49,11 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         given:
         def a1 = file("a/1.txt") << "a/1"
         def b1 = file("b/1.txt") << "b/1"
-        def fileResolver = TestFiles.resolver(testDirectory)
+        def fileResolver = TestFiles.fileCollectionFactory(testDirectory)
 
         when:
-        def a = fileResolver.resolveFilesAsTree("a")
-        def b = fileResolver.resolveFilesAsTree("b")
+        def a = fileResolver.resolving(["a"]).asFileTree
+        def b = fileResolver.resolving(["b"]).asFileTree
         def composite = new DefaultCompositeFileTree(Arrays.asList(a, b))
 
         and:

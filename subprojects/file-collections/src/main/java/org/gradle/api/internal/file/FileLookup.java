@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
@@ -39,11 +38,6 @@ public interface FileLookup {
      * Returns a file resolver with the given base directory.
      */
     FileResolver getFileResolver(File baseDirectory);
-
-    /**
-     * Returns a file resolver with the given base directory.
-     */
-    FileResolver getFileResolver(File baseDirectory, TaskDependencyFactory taskDependencyFactory);
 
     /**
      * Returns a file resolver with the given base directory.

@@ -53,6 +53,6 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
 
     @Override
     ManagedFactory managedFactory() {
-        new ManagedFactories.DirectoryPropertyManagedFactory(resolver)
+        new ManagedFactories.DirectoryPropertyManagedFactory(resolver, fileCollectionFactory)
     }
 }

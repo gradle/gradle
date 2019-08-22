@@ -31,8 +31,10 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.DefaultCompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
@@ -40,6 +42,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -535,7 +538,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public FileTree getSource() {
-            return fileResolver.resolveFilesAsTree(sourcePaths).matching(this.getPatternSet());
+            return fileCollectionFactory.resolving(sourcePaths).getAsFileTree().matching(this.getPatternSet());
         }
 
         @Override
@@ -543,7 +546,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
             walk(copySpecResolver -> builder.add(copySpecResolver.getSource()));
 
-            return fileResolver.compositeFileTree(builder.build());
+            return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, builder.build()));
         }
 
         @Override

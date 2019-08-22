@@ -19,7 +19,10 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -27,6 +30,8 @@ import org.gradle.api.internal.file.collections.UnpackingVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
@@ -39,18 +44,22 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     public static final String DEFAULT_DISPLAY_NAME = "file collection";
     private final PathToFileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final Factory<PatternSet> patternSetFactory;
 
-    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.patternSetFactory = patternSetFactory;
     }
 
     @Override
-    public FileCollectionFactory withBaseDir(PathToFileResolver fileResolver) {
+    public FileCollectionFactory withResolver(PathToFileResolver fileResolver) {
         if (fileResolver == this.fileResolver) {
             return this;
         }
-        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory);
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
     }
 
     @Override
@@ -61,6 +70,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Override
     public ConfigurableFileCollection configurableFiles(String displayName) {
         return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, Collections.emptyList());
+    }
+
+    @Override
+    public ConfigurableFileTree fileTree() {
+        return new DefaultConfigurableFileTree(fileResolver, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory);
     }
 
     @Override
