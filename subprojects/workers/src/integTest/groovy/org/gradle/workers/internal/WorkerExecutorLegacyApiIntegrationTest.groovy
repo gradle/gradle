@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.OptionsVerifier
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
@@ -216,6 +217,77 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/10323")
+    def "can use a Properties object as a parameter"() {
+        buildFile << """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.workers.IsolationMode
+            import org.gradle.workers.WorkerExecutor
+            
+            import javax.inject.Inject
+            
+            task myTask(type: MyTask) {
+                description 'My Task'
+                outputFile = file("\${buildDir}/workOutput")
+            }
+            
+            class MyTask extends DefaultTask {
+                final WorkerExecutor workerExecutor
+            
+                @OutputFile
+                File outputFile
+                
+                @Inject
+                MyTask(WorkerExecutor workerExecutor) {
+                    this.workerExecutor = workerExecutor
+                }
+            
+                @TaskAction
+                def run() {
+                    Properties myProps = new Properties()
+                    myProps.setProperty('key1', 'value1')
+                    myProps.setProperty('key2', 'value2')
+                    myProps.setProperty('key3', 'value3')
+            
+                    workerExecutor.submit(MyRunner.class) { config ->
+                        config.isolationMode = IsolationMode.NONE
+            
+                        config.params(myProps, outputFile)
+                    }
+            
+                    workerExecutor.await()
+                }
+            
+                private static class MyRunner implements Runnable {
+                    Properties myProps
+                    File outputFile
+            
+                    @Inject
+                    MyRunner(Properties myProps, File outputFile) {
+                        this.myProps = myProps
+                        this.outputFile = outputFile
+                    }
+            
+                    @Override
+                    void run() {
+                        Properties myProps = this.myProps;
+                        myProps.store(outputFile.newWriter(), null)
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds(":myTask")
+
+        and:
+        file("build/workOutput").text.readLines().containsAll([
+                "key1=value1",
+                "key2=value2",
+                "key3=value3"
+        ])
+    }
 
     String getLegacyWorkerTypeAndTask() {
         return """
