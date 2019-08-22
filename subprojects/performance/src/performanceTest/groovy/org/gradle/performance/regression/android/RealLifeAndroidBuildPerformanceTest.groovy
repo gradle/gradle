@@ -57,6 +57,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.runs = runs
         runner.minimumVersion = "5.1.1"
         runner.targetVersions = ["5.7-20190722220035+0000"]
+        if (testProject == SANTA_TRACKER) {
+            runner.targetVersions = ["5.6"]
+        }
 
         when:
         def result = runner.run()
