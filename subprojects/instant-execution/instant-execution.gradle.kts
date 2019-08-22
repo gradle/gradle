@@ -96,7 +96,7 @@ tasks {
         dependsOn(santaTrackerKotlin)
     }
 
-    register<Delete>("cleanTemplates") {
+    register<Delete>("cleanRemoteProjects") {
         delete(santaTrackerJava.get().outputDirectory)
         delete(santaTrackerKotlin.get().outputDirectory)
     }
