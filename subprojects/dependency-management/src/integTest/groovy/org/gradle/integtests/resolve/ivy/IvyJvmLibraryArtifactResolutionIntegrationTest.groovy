@@ -157,7 +157,7 @@ if (project.hasProperty('nocache')) {
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
 
@@ -166,7 +166,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
 
@@ -289,10 +289,10 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
 
@@ -301,10 +301,10 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-sources.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${sourceArtifact.uri}""")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
     }
@@ -322,7 +322,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
 
@@ -331,7 +331,7 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+        failure.assertHasCause("""Could not find some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0).
 Searched in the following locations:
     ${javadocArtifact.uri}""")
     }
@@ -356,10 +356,10 @@ Searched in the following locations:
 
         then:
         fails("verify")
-        failure.assertHasCause("Could not download some-artifact-broken-sources.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not download some-artifact-1.0-broken-sources.jar (some.group:some-artifact:1.0)")
         failure.assertHasCause("Could not get resource '${brokenSources.uri}'.")
         failure.assertHasCause("Could not GET '${brokenSources.uri}'. Received status code 500 from server: broken")
-        failure.assertHasCause("Could not download some-artifact-my-javadoc.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not download some-artifact-1.0-my-javadoc.jar (some.group:some-artifact:1.0)")
         failure.assertHasCause("Could not get resource '${brokenJavadoc.uri}'.")
         failure.assertHasCause("Could not GET '${brokenJavadoc.uri}'. Received status code 500 from server: broken")
 

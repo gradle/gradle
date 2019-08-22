@@ -21,8 +21,4 @@ class JavaProjectOutgoingVariantsPomMetadataIntegrationTest extends JavaProjectO
     protected boolean publishWithEcosystemKnowledge() {
         false
     }
-
-    protected String artifactsToStringImplementation(String name, String version, String type) {
-        "$name.$type"
-    }
 }

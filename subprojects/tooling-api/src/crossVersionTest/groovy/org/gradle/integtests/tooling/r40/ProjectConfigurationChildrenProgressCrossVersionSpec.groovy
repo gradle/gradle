@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.junit.Rule
 
@@ -36,6 +37,10 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
 
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
+
+    private static String expectedDisplayName(String name, String extension, String version) {
+        getTargetVersion() < GradleVersion.version("6.0") ? "$name.$extension" : "$name-$version.$extension"
+    }
 
     def "generates events for worker actions executed in-process and forked"() {
         given:
@@ -283,13 +288,13 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
 
         def resolveArtifacts = applyBuildScript.child("Resolve files of :compileClasspath")
 
-        resolveArtifacts.child("Resolve projectB.jar (group:projectB:1.0)")
+        resolveArtifacts.child("Resolve ${expectedDisplayName('projectB', 'jar', '1.0')} (group:projectB:1.0)")
             .child "Download http://localhost:${server.port}${projectB.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
+        resolveArtifacts.child("Resolve ${expectedDisplayName('projectC', 'jar', '1.5')} (group:projectC:1.5)")
             .child "Download http://localhost:${server.port}${projectC.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
+        resolveArtifacts.child("Resolve ${expectedDisplayName('projectD', 'jar', '2.0-SNAPSHOT')} (group:projectD:2.0-SNAPSHOT)", "Resolve ${expectedDisplayName('projectD', 'jar', '2.0-SNAPSHOT')} (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
     }
 

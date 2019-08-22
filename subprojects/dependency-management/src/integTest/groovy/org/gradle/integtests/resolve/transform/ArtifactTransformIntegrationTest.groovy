@@ -1432,7 +1432,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Could not download test-impl.jar (test:test:1.3)")
+        failure.assertHasCause("Could not download test-impl-1.3.jar (test:test:1.3)")
 
         and:
         outputContains("Transforming test-api-1.3.jar to test-api-1.3.jar.txt")
@@ -1858,8 +1858,8 @@ Found the following transforms:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform broken.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
-        failure.assertHasCause("Could not download a.jar (test:a:1.3)")
-        failure.assertHasCause("Failed to transform broken.jar (test:broken:2.0) to match attributes {artifactType=size, org.gradle.status=release}")
+        failure.assertHasCause("Could not download a-1.3.jar (test:a:1.3)")
+        failure.assertHasCause("Failed to transform broken-2.0.jar (test:broken:2.0) to match attributes {artifactType=size, org.gradle.status=release}")
         failure.assertHasCause("broken: broken-2.0.jar")
 
         and:

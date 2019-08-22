@@ -21,8 +21,4 @@ class JavaProjectOutgoingVariantsGradleMetadataIntegrationTest extends JavaProje
     protected boolean publishWithEcosystemKnowledge() {
         true
     }
-
-    protected String artifactsToStringImplementation(String name, String version, String type) {
-        "$name-$version.$type"
-    }
 }

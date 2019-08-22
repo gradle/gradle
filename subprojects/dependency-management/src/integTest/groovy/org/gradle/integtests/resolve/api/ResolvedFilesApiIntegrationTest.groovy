@@ -488,7 +488,7 @@ task show {
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Could not find test.jar (org:test:1.0).")
+        failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
 
         where:
         expression                                                                                         | _
@@ -581,8 +581,8 @@ task show {
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Could not find test.jar (org:test:1.0).")
-        failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
+        failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
+        failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
         failure.assertHasCause("More than one variant of project :a matches the consumer attributes")

@@ -109,7 +109,7 @@ repositories {
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
                .expectResolvedComponentResult()
                .expectNoMetadataFiles()
-               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find ivy.xml (some.group:some-artifact:1.0).")
+               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find ivy-1.0.xml (some.group:some-artifact:1.0).")
                .createVerifyTaskModuleComponentIdentifier()
 
         // TODO - should do single request

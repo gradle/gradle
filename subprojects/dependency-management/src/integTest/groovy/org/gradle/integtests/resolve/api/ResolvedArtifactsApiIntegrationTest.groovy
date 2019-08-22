@@ -107,9 +107,9 @@ task show {
 
         then:
         outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
-        outputContains("unique ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
-        outputContains("display-names: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
+        outputContains("ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
+        outputContains("unique ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
+        outputContains("display-names: [test-lib.jar, a.jar (project :a), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
         outputContains("components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
         outputContains("unique components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}]")
@@ -748,7 +748,7 @@ ${showFailuresTask(expression)}
 
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
-        failure.assertHasCause("Could not find test.jar (org:test:1.0).")
+        failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
 
         where:
         expression                                                    | _
@@ -819,8 +819,8 @@ ${showFailuresTask(expression)}
 
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
-        failure.assertHasCause("Could not find test.jar (org:test:1.0).")
-        failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
+        failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
+        failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
         failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
@@ -898,10 +898,10 @@ task resolveLenient {
         outputContains("failure 1: Could not find org:missing-module:1.0.")
         outputContains("failure 2: Could not resolve project :b.")
         outputContains("failure 3: broken")
-        outputContains("""failure 4: Could not find missing-artifact.jar (org:missing-artifact:1.0).
+        outputContains("""failure 4: Could not find missing-artifact-1.0.jar (org:missing-artifact:1.0).
 Searched in the following locations:
     ${m1.artifact.uri}""")
-        outputContains("failure 5: Could not download broken-artifact.jar (org:broken-artifact:1.0)")
+        outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
   - Configuration ':a:default' variant v1:
       - Unmatched attribute:
