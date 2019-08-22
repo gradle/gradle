@@ -112,7 +112,7 @@ task show {
         outputContains("display-names: [test-lib.jar, a.jar (project :a), a-lib.jar, test.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2.jar (org:test2:1.0)]")
         outputContains("components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
         outputContains("unique components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}]")
 
         where:
         expression                                                     | _
@@ -567,7 +567,7 @@ task show {
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project :a, project :b, org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
     }
 
     def "more than one local file can have a given base name"() {

@@ -101,7 +101,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         run "resolve"
 
         then:
-        outputContains("variants: [{artifactType=size}, {artifactType=size}]")
+        outputContains("variants: [{artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}]")
         // transformed outputs should belong to same component as original
         outputContains("ids: [test-1.3.jar.txt (test:test:1.3), test2-2.3.jar.txt (test:test2:2.3)]")
         outputContains("components: [test:test:1.3, test:test2:2.3]")
@@ -334,7 +334,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":common:jar", ":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
-        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}]")
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size, org.gradle.status=release}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size, org.gradle.status=release}]")
         // transformed outputs should belong to same component as original
         outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
         outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
@@ -871,7 +871,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         succeeds "resolve"
 
         then:
-        outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size}, {artifactType=size}]")
+        outputContains("variants: [{artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}]")
         outputContains("ids: [test-1.3.jar.A.txt (test:test:1.3), test-1.3.jar.B.txt (test:test:1.3), test2-2.3.jar.A.txt (test:test2:2.3), test2-2.3.jar.B.txt (test:test2:2.3)]")
         outputContains("components: [test:test:1.3, test:test:1.3, test:test2:2.3, test:test2:2.3]")
         file("build/libs").assertHasDescendants("test-1.3.jar.A.txt", "test-1.3.jar.B.txt", "test2-2.3.jar.A.txt", "test2-2.3.jar.B.txt")
@@ -1859,7 +1859,7 @@ Found the following transforms:
         failure.assertHasCause("Failed to transform broken.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
         failure.assertHasCause("Could not download a.jar (test:a:1.3)")
-        failure.assertHasCause("Failed to transform broken.jar (test:broken:2.0) to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform broken.jar (test:broken:2.0) to match attributes {artifactType=size, org.gradle.status=release}")
         failure.assertHasCause("broken: broken-2.0.jar")
 
         and:
