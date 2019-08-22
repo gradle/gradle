@@ -36,7 +36,7 @@ import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
 import org.gradle.api.internal.file.delete.DeleteSpecInternal;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.resources.DefaultResourceResolver;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
@@ -51,7 +51,6 @@ import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.util.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -59,9 +58,7 @@ import java.util.Map;
 
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
-    @Nullable
-    private final TaskResolver taskResolver;
-    @Nullable
+    private final TaskDependencyFactory taskDependencyFactory;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
     private final Deleter deleter;
@@ -75,21 +72,20 @@ public class DefaultFileOperations implements FileOperations {
 
     public DefaultFileOperations(
         FileResolver fileResolver,
-        @Nullable TaskResolver taskResolver,
-        @Nullable TemporaryFileProvider temporaryFileProvider,
+        TaskDependencyFactory taskDependencyFactory,
+        TemporaryFileProvider temporaryFileProvider,
         Instantiator instantiator,
-        FileLookup fileLookup,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         StreamHasher streamHasher,
         FileHasher fileHasher,
-        @Nullable TextResourceLoader textResourceLoader,
+        TextResourceLoader textResourceLoader,
         FileCollectionFactory fileCollectionFactory,
         FileSystem fileSystem,
         Deleter deleter
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
-        this.taskResolver = taskResolver;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -99,7 +95,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileCopier = new FileCopier(
             deleter,
             directoryFileTreeFactory,
-            fileLookup,
+            fileCollectionFactory,
             fileResolver,
             fileSystem,
             instantiator
@@ -135,12 +131,12 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskDependencyFactory, directoryFileTreeFactory);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(args, fileResolver, taskDependencyFactory, directoryFileTreeFactory);
     }
 
     @Override
@@ -193,7 +189,7 @@ public class DefaultFileOperations implements FileOperations {
     public WorkResult delete(Action<? super DeleteSpec> action) {
         DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
-        FileCollectionInternal roots = fileResolver.resolveFiles(deleteSpec.getPaths());
+        FileCollectionInternal roots = fileCollectionFactory.resolving(deleteSpec.getPaths());
         boolean didWork = false;
         for (File root : roots) {
             try {
@@ -223,7 +219,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        return instantiator.newInstance(DefaultCopySpec.class, fileResolver, fileCollectionFactory, instantiator);
     }
 
     @Override

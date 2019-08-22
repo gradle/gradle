@@ -23,8 +23,8 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -53,7 +53,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
 
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final RuntimeShadedJarFactory runtimeShadedJarFactory;
     private final CurrentGradleInstallation currentGradleInstallation;
     private final ConcurrentMap<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newConcurrentMap();
@@ -61,12 +61,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     public DependencyClassPathNotationConverter(
         Instantiator instantiator,
         ClassPathRegistry classPathRegistry,
-        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         CurrentGradleInstallation currentGradleInstallation) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
-        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.runtimeShadedJarFactory = runtimeShadedJarFactory;
         this.currentGradleInstallation = currentGradleInstallation;
     }
@@ -103,7 +103,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
                 }
             };
         } else {
-            fileCollectionInternal = fileResolver.resolveFiles((Collection<File>) getClassPath(notation));
+            fileCollectionInternal = fileCollectionFactory.resolving(getClassPath(notation));
         }
         SelfResolvingDependency dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileCollectionInternal);
         SelfResolvingDependency alreadyPresent = internCache.putIfAbsent(notation, dependency);
@@ -125,7 +125,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         removeKotlin(apiClasspath);
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
-            .plus(fileResolver.resolveFiles(groovyImpl, kotlinImpl, installationBeacon));
+            .plus(fileCollectionFactory.resolving(groovyImpl, kotlinImpl, installationBeacon));
     }
 
     private void removeKotlin(Collection<File> apiClasspath) {

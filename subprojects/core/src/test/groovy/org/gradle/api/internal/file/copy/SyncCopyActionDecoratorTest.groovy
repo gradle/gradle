@@ -17,12 +17,9 @@ package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 
-@UsesNativeServices
 class SyncCopyActionDecoratorTest extends WorkspaceTest {
 
     FileCopier copier
@@ -30,8 +27,8 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
     def setup() {
         copier = new FileCopier(
             TestFiles.deleter(),
-            new DefaultDirectoryFileTreeFactory(),
-            TestFiles.fileLookup(),
+            TestFiles.directoryFileTreeFactory(),
+            TestFiles.fileCollectionFactory(testDirectory),
             TestFiles.resolver(testDirectory),
             TestFiles.fileSystem(),
             TestUtil.instantiatorFactory().decorateLenient(),

@@ -28,6 +28,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -142,13 +143,19 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected CopySpecInternal createRootSpec() {
         Instantiator instantiator = getInstantiator();
         FileResolver fileResolver = getFileResolver();
-        return instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        FileCollectionFactory fileCollectionFactory = getFileCollectionFactory();
+        return instantiator.newInstance(DefaultCopySpec.class, fileResolver, fileCollectionFactory, instantiator);
     }
 
     protected abstract CopyAction createCopyAction();
 
     @Inject
     protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileCollectionFactory getFileCollectionFactory() {
         throw new UnsupportedOperationException();
     }
 

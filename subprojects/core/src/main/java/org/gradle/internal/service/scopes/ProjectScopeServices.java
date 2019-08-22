@@ -167,9 +167,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected DefaultFileOperations createFileOperations(
         FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
         TemporaryFileProvider temporaryFileProvider,
         Instantiator instantiator,
-        FileLookup fileLookup,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         StreamHasher streamHasher,
         FileHasher fileHasher,
@@ -180,10 +180,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     ) {
         return new DefaultFileOperations(
             fileResolver,
-            project.getTasks(),
+            taskDependencyFactory,
             temporaryFileProvider,
             instantiator,
-            fileLookup,
             directoryFileTreeFactory,
             streamHasher,
             fileHasher,

@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
@@ -172,7 +171,6 @@ public class LocalTaskNode extends TaskNode {
         final MutationInfo mutations = getMutationInfo();
         ProjectInternal project = (ProjectInternal) task.getProject();
         ServiceRegistry serviceRegistry = project.getServices();
-        final FileResolver resolver = serviceRegistry.get(FileResolver.class);
         final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
@@ -200,7 +198,7 @@ public class LocalTaskNode extends TaskNode {
                     withDeadlockHandling(
                         taskNode,
                         "a local state property", "local state properties",
-                        () -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value))));
+                        () -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
                     mutations.hasLocalState = true;
                 }
 
@@ -210,7 +208,7 @@ public class LocalTaskNode extends TaskNode {
                         taskNode,
                         "a destroyable",
                         "destroyables",
-                        () -> mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value))));
+                        () -> mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
                 }
 
                 @Override

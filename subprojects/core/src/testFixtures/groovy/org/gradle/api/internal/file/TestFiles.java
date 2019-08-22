@@ -109,10 +109,9 @@ public class TestFiles {
     public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
         return new DefaultFileOperations(
             resolver(basedDir),
-            null,
+            DefaultTaskDependencyFactory.withNoAssociatedProject(),
             temporaryFileProvider,
             TestUtil.instantiatorFactory().inject(),
-            fileLookup(),
             directoryFileTreeFactory(),
             streamHasher(),
             fileHasher(),
