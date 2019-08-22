@@ -22,8 +22,8 @@ import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.math.BigDecimal;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 // See more details in https://docs.google.com/document/d/1pghuxbCR5oYWhUrIK2e4bmABQt3NEIYOOIK4iHyjWyQ/edit#heading=h.is4fzcbmxxld
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
@@ -44,18 +44,19 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         AtomicInteger stableScenarioRegression = new AtomicInteger(0);
         AtomicInteger flakyScenarioSmallRegression = new AtomicInteger(0);
         AtomicInteger flakyScenarioBigRegression = new AtomicInteger(0);
+        AtomicBoolean hasFailures = new AtomicBoolean(false);
 
         executionDataProvider.getScenarioExecutionData()
-            .stream().collect(Collectors.groupingBy(ScenarioBuildResultData::getScenarioName))
-            .forEach((scenario, results) -> {
-                if (results.stream().anyMatch(ScenarioBuildResultData::isBuildFailed)) {
+            .forEach(scenario -> {
+                if (scenario.getRawData().stream().anyMatch(ScenarioBuildResultData::isBuildFailed)) {
+                    hasFailures.set(true);
                     buildFailure.getAndIncrement();
-                } else if (isStableScenario(flakinessDataProvider, scenario)) {
-                    if (results.stream().allMatch(ScenarioBuildResultData::isRegressed)) {
+                } else if (isStableScenario(flakinessDataProvider, scenario.getScenarioName())) {
+                    if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
                         stableScenarioRegression.getAndIncrement();
                     }
-                } else if (results.stream().noneMatch(ScenarioBuildResultData::isSuccessful)) {
-                    if (results.stream().anyMatch(scenarioResult -> isBigRegression(scenarioResult, flakinessDataProvider))) {
+                } else if (scenario.getRawData().stream().noneMatch(ScenarioBuildResultData::isSuccessful)) {
+                    if (scenario.getRawData().stream().anyMatch(scenarioResult -> isBigRegression(scenarioResult, flakinessDataProvider))) {
                         flakyScenarioBigRegression.getAndIncrement();
                     } else {
                         flakyScenarioSmallRegression.getAndIncrement();
@@ -65,8 +66,8 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         if (buildFailure.get() + stableScenarioRegression.get() + flakyScenarioBigRegression.get() != 0) {
             throw new GradleException(formatErrorString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get()));
         }
-        System.out.println(executionDataProvider.getScenarioExecutionData().stream().map(s -> s.getScenarioName() + s.getStatus()).collect(Collectors.joining("\n")));
-        if (!executionDataProvider.getScenarioExecutionData().stream().allMatch(ScenarioBuildResultData::isSuccessful)) {
+        if (hasFailures.get()) {
+            // flaky
             markBuildAsSuccessful();
         }
     }

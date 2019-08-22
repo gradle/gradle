@@ -25,6 +25,7 @@ import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
@@ -85,7 +86,9 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
 
     private ScenarioBuildResultData mergeScenarioWithSameName(List<ScenarioBuildResultData> scenariosWithSameName) {
         if (scenariosWithSameName.size() == 1) {
-            return scenariosWithSameName.get(0);
+            ScenarioBuildResultData result = scenariosWithSameName.get(0);
+            result.setRawData(Collections.singletonList(result));
+            return result;
         } else {
             ScenarioBuildResultData mergedScenario = new ScenarioBuildResultData();
             mergedScenario.setScenarioName(scenariosWithSameName.get(0).getScenarioName());
