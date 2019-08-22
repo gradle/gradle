@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-
+import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
 import spock.lang.Unroll
@@ -446,8 +446,12 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     // This test documents the existing behavior, not necessarily the best one
     def "import scope makes use of runtime classpath"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata()
+            .withVariant('api') { attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM) }
+            .withVariant('runtime') { attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM) }.publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata()
+            .withVariant('api') { attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM) }
+            .withVariant('runtime') { attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM) }.publish()
 
         given:
         createBuildScripts("""

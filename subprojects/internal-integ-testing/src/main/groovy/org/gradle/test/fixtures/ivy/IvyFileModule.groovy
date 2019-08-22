@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.ivy
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
+import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -47,8 +48,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
-    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR]),
-                                                        new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR])]
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]),
+                                                        new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY])]
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
@@ -131,7 +132,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     @Override
-    void withVariant(String name, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+    IvyModule withVariant(String name, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
         def variant = variants.find { it.name == name }
         if (variant == null) {
             variant = createVariant(name, [:])
@@ -139,6 +140,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         action.resolveStrategy = Closure.DELEGATE_FIRST
         action.delegate = variant
         action()
+        return this
     }
 
     IvyFileModule withXml(Closure action) {
