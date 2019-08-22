@@ -146,8 +146,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
-    @Override
-    public FileCollectionInternal resolveFiles(Object... paths) {
+    private FileCollectionInternal resolveFiles(Object... paths) {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
             return Cast.cast(FileCollectionInternal.class, paths[0]);
         }

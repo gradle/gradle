@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
-import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
@@ -41,10 +41,9 @@ class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock() {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
-    private final TaskResolver taskResolver = Mock()
+    private final TaskDependencyFactory taskDependencyFactory = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
     private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final FileLookup fileLookup = Mock()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
@@ -58,10 +57,9 @@ class DefaultFileOperationsTest extends Specification {
         instantiator.newInstance(
             DefaultFileOperations,
             resolver,
-            taskResolver,
+            taskDependencyFactory,
             temporaryFileProvider,
             instantiator,
-            fileLookup,
             directoryFileTreeFactory,
             streamHasher,
             fileHasher,
@@ -185,7 +183,7 @@ class DefaultFileOperationsTest extends Specification {
     def deletes() {
         def fileToBeDeleted = tmpDir.file("file")
         def fileCollection = Stub(FileCollectionInternal)
-        resolver.resolveFiles(["file"] as Object[]) >> fileCollection
+        fileCollectionFactory.resolving(["file"] as Object[]) >> fileCollection
         fileCollection.iterator() >> [fileToBeDeleted].iterator()
         fileToBeDeleted.touch()
 

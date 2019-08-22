@@ -28,7 +28,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -36,17 +35,17 @@ import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.hamcrest.CoreMatchers.equalTo
 
-@UsesNativeServices
 class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile testDir = tmpDir.testDirectory
     private FileResolver resolver = TestFiles.resolver(testDir)
+    private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir)
     private DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     private ObjectFactory objectFactory = TestUtil.objectFactory()
     private DefaultSourceDirectorySet set
 
     void setup() {
-        set = new DefaultSourceDirectorySet('files', '<display-name>', resolver, directoryFileTreeFactory, objectFactory)
+        set = new DefaultSourceDirectorySet('files', '<display-name>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
     }
 
     void hasUsefulToString() {
@@ -88,7 +87,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void addsContentsOfAnotherSourceDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -105,7 +104,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void addsSourceDirectoriesOfAnotherSourceDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -122,7 +121,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void settingSourceDirsReplacesExistingContent() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'ignore me'
         set.srcDir 'ignore me as well'
         set.source nested
@@ -189,7 +188,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void convertsNestedDirectorySetsToDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -203,7 +202,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     }
 
     void removesDuplicateDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -310,8 +309,8 @@ class DefaultSourceDirectorySetTest extends Specification {
 
     void setAndItsViewsHaveDependenciesOfAllSourceDirectorySets() {
         given:
-        def nested1 = new DefaultSourceDirectorySet('nested-1', '<nested-1>', resolver, directoryFileTreeFactory, objectFactory)
-        def nested2 = new DefaultSourceDirectorySet('nested-2', '<nested-2>', resolver, directoryFileTreeFactory, objectFactory)
+        def nested1 = new DefaultSourceDirectorySet('nested-1', '<nested-1>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
+        def nested2 = new DefaultSourceDirectorySet('nested-2', '<nested-2>', resolver.patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
         def task1 = Stub(Task)
         def task2 = Stub(Task)
         nested1.srcDir dir("dir1", task1)

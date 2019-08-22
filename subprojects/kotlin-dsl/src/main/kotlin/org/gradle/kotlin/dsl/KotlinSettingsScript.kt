@@ -30,7 +30,9 @@ import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -440,10 +442,9 @@ fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations
     val fileCollectionFactory = services.get<FileCollectionFactory>().withBaseDir(fileResolver)
     return DefaultFileOperations(
         fileResolver,
-        null,
-        null,
+        services.get<TaskDependencyFactory>(),
+        services.get<TemporaryFileProvider>(),
         services.get<Instantiator>(),
-        fileLookup,
         services.get<DirectoryFileTreeFactory>(),
         services.get<StreamHasher>(),
         services.get<FileHasher>(),

@@ -30,8 +30,6 @@ import java.util.List;
 public interface FileResolver extends RelativeFilePathResolver, PathToFileResolver {
     File resolve(Object path, PathValidation validation);
 
-    FileCollectionInternal resolveFiles(Object... paths);
-
     FileTreeInternal resolveFilesAsTree(Object... paths);
 
     FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees);

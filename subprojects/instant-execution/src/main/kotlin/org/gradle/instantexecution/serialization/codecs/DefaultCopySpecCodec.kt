@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.instantexecution.serialization.Codec
@@ -28,6 +29,7 @@ import java.io.File
 internal
 class DefaultCopySpecCodec(
     private val fileResolver: FileResolver,
+    private val fileCollectionFactory: FileCollectionFactory,
     private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
 
@@ -40,7 +42,7 @@ class DefaultCopySpecCodec(
     override suspend fun ReadContext.decode(): DefaultCopySpec {
         @Suppress("unchecked_cast")
         val sourceFiles = read() as List<File>
-        val copySpec = DefaultCopySpec(fileResolver, instantiator)
+        val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
         copySpec.from(sourceFiles)
         return copySpec
     }

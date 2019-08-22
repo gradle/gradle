@@ -31,6 +31,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
@@ -59,6 +60,7 @@ import java.util.regex.Pattern;
 public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final FileResolver fileResolver;
+    protected final FileCollectionFactory fileCollectionFactory;
     private final Set<Object> sourcePaths = new LinkedHashSet<>();
     private Object destDir;
     private final PatternSet patternSet;
@@ -77,8 +79,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     private String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
-    public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
+    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
         this.fileResolver = resolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.instantiator = instantiator;
         PatternSet patternSet = resolver.getPatternSetFactory().create();
         assert patternSet != null;
@@ -145,14 +148,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, instantiator, buildRootResolver());
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, fileCollectionFactory, instantiator, buildRootResolver());
         addChildSpec(position, child);
         return child;
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = new SingleParentCopySpec(fileResolver, instantiator, buildRootResolver());
+        DefaultCopySpec child = new SingleParentCopySpec(fileResolver, fileCollectionFactory, instantiator, buildRootResolver());
         addChildSpec(child);
         return child;
     }
@@ -483,7 +486,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     // TODO:instant-execution - remove this
     public Set<File> resolveSourceFiles() {
-        return fileResolver.resolveFiles(sourcePaths).getFiles();
+        return fileCollectionFactory.resolving(sourcePaths).getFiles();
     }
 
     @Override

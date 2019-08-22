@@ -421,6 +421,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                                           FileResolver fileResolver,
+                                                          FileCollectionFactory fileCollectionFactory,
                                                           RepositoryTransportFactory repositoryTransportFactory,
                                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
@@ -441,6 +442,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
+                fileCollectionFactory,
                 repositoryTransportFactory,
                 locallyAvailableResourceFinder,
                 artifactIdentifierFileStore,

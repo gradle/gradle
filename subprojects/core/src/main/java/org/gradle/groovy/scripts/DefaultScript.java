@@ -38,6 +38,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -100,10 +101,9 @@ public abstract class DefaultScript extends BasicScript {
                 FileCollectionFactory fileCollectionFactoryWithBase = fileCollectionFactory.withBaseDir(resolver);
                 fileOperations = new DefaultFileOperations(
                     resolver,
-                    null,
+                    services.get(TaskDependencyFactory.class),
                     null,
                     instantiator,
-                    fileLookup,
                     directoryFileTreeFactory,
                     streamHasher,
                     fileHasher,
@@ -116,10 +116,9 @@ public abstract class DefaultScript extends BasicScript {
             } else {
                 fileOperations = new DefaultFileOperations(
                     fileLookup.getFileResolver(),
-                    null,
+                    services.get(TaskDependencyFactory.class),
                     null,
                     instantiator,
-                    fileLookup,
                     directoryFileTreeFactory,
                     streamHasher,
                     fileHasher,
