@@ -18,13 +18,12 @@ package org.gradle.api.internal.file
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
-import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
@@ -41,7 +40,6 @@ class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock() {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
-    private final TaskDependencyFactory taskDependencyFactory = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
     private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
@@ -57,7 +55,6 @@ class DefaultFileOperationsTest extends Specification {
         instantiator.newInstance(
             DefaultFileOperations,
             resolver,
-            taskDependencyFactory,
             temporaryFileProvider,
             instantiator,
             directoryFileTreeFactory,
@@ -118,27 +115,27 @@ class DefaultFileOperationsTest extends Specification {
     }
 
     def createsFileTree() {
-        TestFile baseDir = expectPathResolved('base')
+        def tree = Mock(ConfigurableFileTree)
 
         when:
         def fileTree = fileOperations.fileTree('base')
 
         then:
-        fileTree instanceof FileTree
-        fileTree.dir == baseDir
-        fileTree.resolver.is(resolver)
+        fileTree.is(tree)
+        1 * fileCollectionFactory.fileTree() >> tree
+        1 * tree.from('base')
     }
 
     def createsFileTreeFromMap() {
-        TestFile baseDir = expectPathResolved('base')
+        def tree = Mock(ConfigurableFileTree)
 
         when:
         def fileTree = fileOperations.fileTree(dir: 'base')
 
         then:
-        fileTree instanceof FileTree
-        fileTree.dir == baseDir
-        fileTree.resolver.is(resolver)
+        fileTree.is(tree)
+        1 * fileCollectionFactory.fileTree() >> tree
+        1 * tree.setDir('base')
     }
 
     def createsZipFileTree() {
@@ -166,10 +163,8 @@ class DefaultFileOperationsTest extends Specification {
 
     def copiesFiles() {
         def fileTree = Mock(FileTreeInternal)
-        resolver.resolveFilesAsTree(_) >> fileTree
-        // todo we should make this work so that we can be more specific
-//        resolver.resolveFilesAsTree(['file'] as Object[]) >> fileTree
-//        resolver.resolveFilesAsTree(['file'] as Set) >> fileTree
+        fileCollectionFactory.resolving({ it.contains('file') }) >> fileTree
+        fileTree.asFileTree >> fileTree
         fileTree.matching(_) >> fileTree
         resolver.resolve('dir') >> tmpDir.getTestDirectory()
 

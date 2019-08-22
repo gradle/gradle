@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
@@ -29,8 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
-    public AbstractBaseDirFileResolver(Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory) {
-        super(patternSetFactory, taskDependencyFactory);
+    public AbstractBaseDirFileResolver(Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
     }
 
     protected abstract File getBaseDir();

@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
@@ -28,7 +29,6 @@ import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting
@@ -49,8 +49,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     }
 
     void setup() {
-        NativeServicesTestFixture.initialize()
-        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskDependencyFactory, directoryFileTreeFactory())
+        fileSet = new DefaultConfigurableFileTree(fileResolverStub, TestFiles.patternSetFactory, taskDependencyFactory, directoryFileTreeFactory())
+        fileSet.from(testDir)
     }
 
     def testFileSetConstructionWithBaseDir() {
@@ -58,29 +58,13 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         testDir == fileSet.dir
     }
 
-    def testFileSetConstructionFromMap() {
-        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskDependencyFactory, dir: testDir, includes: ['include'], builtBy: ['a'], directoryFileTreeFactory())
-
-        expect:
-        testDir == fileSet.dir
-        ['include'] as Set == fileSet.includes
-        ['a'] as Set == fileSet.builtBy
-    }
-
     def testFileSetConstructionWithNoBaseDirSpecified() {
-        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskDependencyFactory, directoryFileTreeFactory())
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, TestFiles.patternSetFactory, taskDependencyFactory, directoryFileTreeFactory())
 
         when:
         fileSet.contains(new File('unknown'))
         then:
         thrown(InvalidUserDataException)
-    }
-
-    def testFileSetConstructionWithBaseDirAsString() {
-        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskDependencyFactory, dir: 'dirname', directoryFileTreeFactory())
-
-        expect:
-        tmpDir.file("dirname") == fileSet.dir
     }
 
     def testResolveAddsADirectoryFileTree() {
@@ -289,7 +273,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         def dep = new DefaultTaskDependency()
         def taskDependencyFactory = Stub(TaskDependencyFactory)
         _ * taskDependencyFactory.configurableDependency() >> dep
-        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskDependencyFactory, directoryFileTreeFactory())
+        fileSet = new DefaultConfigurableFileTree(fileResolverStub, TestFiles.patternSetFactory, taskDependencyFactory, directoryFileTreeFactory())
 
         expect:
         fileSet.getBuiltBy().empty

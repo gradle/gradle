@@ -37,7 +37,7 @@ class DefaultProjectLayoutTest extends Specification {
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskDependencyFactory), Stub(FileCollectionFactory))
+        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskDependencyFactory), TestFiles.fileCollectionFactory(projectDir))
     }
 
     def "can query the project directory"() {

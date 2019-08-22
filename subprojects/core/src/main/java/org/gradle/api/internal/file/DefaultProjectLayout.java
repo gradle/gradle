@@ -41,11 +41,11 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
     private final FileCollectionFactory fileCollectionFactory;
 
     public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
-        super(resolver);
+        super(resolver, fileCollectionFactory);
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.projectDir = new FixedDirectory(projectDir, resolver);
-        this.buildDir = new DefaultDirectoryVar(resolver, Project.DEFAULT_BUILD_DIR_NAME);
+        this.projectDir = new FixedDirectory(projectDir, resolver, fileCollectionFactory);
+        this.buildDir = new DefaultDirectoryVar(resolver, fileCollectionFactory, Project.DEFAULT_BUILD_DIR_NAME);
     }
 
     @Override

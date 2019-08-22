@@ -78,9 +78,11 @@ public class ManagedFactories {
         public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         private final FileResolver fileResolver;
+        private final FileCollectionFactory fileCollectionFactory;
 
-        public DirectoryManagedFactory(FileResolver fileResolver) {
+        public DirectoryManagedFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
             this.fileResolver = fileResolver;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -88,7 +90,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new FixedDirectory((File) state, fileResolver));
+            return type.cast(new FixedDirectory((File) state, fileResolver, fileCollectionFactory));
         }
 
         @Override
@@ -103,9 +105,11 @@ public class ManagedFactories {
         public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
         private final FileResolver fileResolver;
+        private final FileCollectionFactory fileCollectionFactory;
 
-        public DirectoryPropertyManagedFactory(FileResolver fileResolver) {
+        public DirectoryPropertyManagedFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
             this.fileResolver = fileResolver;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -113,7 +117,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver).value((Directory) state));
+            return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver, fileCollectionFactory).value((Directory) state));
         }
 
         @Override

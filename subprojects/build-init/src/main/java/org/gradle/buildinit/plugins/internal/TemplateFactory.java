@@ -17,33 +17,32 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
-import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TemplateFactory {
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final TemplateOperationFactory templateOperationFactory;
     private final InitSettings initSettings;
     private final Language language;
 
-    public TemplateFactory(InitSettings initSettings, Language language, FileResolver fileResolver, TemplateOperationFactory templateOperationFactory) {
+    public TemplateFactory(InitSettings initSettings, Language language, FileCollectionFactory fileCollectionFactory, TemplateOperationFactory templateOperationFactory) {
         this.initSettings = initSettings;
         this.language = language;
-        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.templateOperationFactory = templateOperationFactory;
     }
 
     public TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
-        return new ConditionalTemplateOperation(new Factory<Boolean>() {
-            @Override
-            public Boolean create() {
-                return fileResolver.resolveFilesAsTree("src/main/" + language.getName()).isEmpty() || fileResolver.resolveFilesAsTree("src/test/" + language.getName()).isEmpty();
-            }
+        return new ConditionalTemplateOperation(() -> {
+            FileTree mainFiles = fileCollectionFactory.resolving("main files", "src/main/" + language.getName()).getAsFileTree();
+            FileTree testFiles = fileCollectionFactory.resolving("test files", "src/test/" + language.getName()).getAsFileTree();
+            return mainFiles.isEmpty() || testFiles.isEmpty();
         }, operations);
     }
 

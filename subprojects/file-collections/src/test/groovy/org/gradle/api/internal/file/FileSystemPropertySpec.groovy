@@ -26,7 +26,8 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
-    def factory = new DefaultFilePropertyFactory(resolver)
+    def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
+    def factory = new DefaultFilePropertyFactory(resolver, fileCollectionFactory)
     def baseDir = factory.newDirectoryProperty()
 
     def setup() {

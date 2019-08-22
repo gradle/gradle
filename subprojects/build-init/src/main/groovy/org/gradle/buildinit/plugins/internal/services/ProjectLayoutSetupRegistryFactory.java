@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal.services;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.BasicProjectGenerator;
 import org.gradle.buildinit.plugins.internal.BuildContentGenerator;
@@ -55,14 +56,16 @@ public class ProjectLayoutSetupRegistryFactory {
     private final DocumentationRegistry documentationRegistry;
     private final MavenSettingsProvider mavenSettingsProvider;
     private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationBuilder;
 
-    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
         this.fileResolver = fileResolver;
         scriptBuilderFactory = new BuildScriptBuilderFactory(fileResolver);
+        this.fileCollectionFactory = fileCollectionFactory;
         templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
     }
 
@@ -99,7 +102,7 @@ public class ProjectLayoutSetupRegistryFactory {
     }
 
     private BuildInitializer of(LanguageSpecificProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
-        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory, fileResolver, templateOperationBuilder), generators);
+        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory, fileCollectionFactory, templateOperationBuilder), generators);
     }
 
 }

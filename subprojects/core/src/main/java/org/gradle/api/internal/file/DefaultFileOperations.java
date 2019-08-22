@@ -27,7 +27,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
@@ -36,7 +35,6 @@ import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
 import org.gradle.api.internal.file.delete.DeleteSpecInternal;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.resources.DefaultResourceResolver;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
@@ -49,6 +47,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -58,7 +57,6 @@ import java.util.Map;
 
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
     private final Deleter deleter;
@@ -72,7 +70,6 @@ public class DefaultFileOperations implements FileOperations {
 
     public DefaultFileOperations(
         FileResolver fileResolver,
-        TaskDependencyFactory taskDependencyFactory,
         TemporaryFileProvider temporaryFileProvider,
         Instantiator instantiator,
         DirectoryFileTreeFactory directoryFileTreeFactory,
@@ -85,7 +82,6 @@ public class DefaultFileOperations implements FileOperations {
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
-        this.taskDependencyFactory = taskDependencyFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -131,12 +127,16 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskDependencyFactory, directoryFileTreeFactory);
+        ConfigurableFileTree fileTree = fileCollectionFactory.fileTree();
+        fileTree.from(baseDir);
+        return fileTree;
     }
 
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskDependencyFactory, directoryFileTreeFactory);
+        ConfigurableFileTree fileTree = fileCollectionFactory.fileTree();
+        ConfigureUtil.configureByMap(args, fileTree);
+        return fileTree;
     }
 
     @Override

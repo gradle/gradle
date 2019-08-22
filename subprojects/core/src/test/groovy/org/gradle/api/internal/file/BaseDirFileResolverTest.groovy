@@ -17,7 +17,6 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
 import org.junit.Before
@@ -44,7 +43,7 @@ class BaseDirFileResolverTest {
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
-        baseDirConverter = new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory(), DefaultTaskDependencyFactory.withNoAssociatedProject())
+        baseDirConverter = new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }

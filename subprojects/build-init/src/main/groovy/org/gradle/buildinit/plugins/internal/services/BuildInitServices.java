@@ -19,6 +19,8 @@ package org.gradle.buildinit.plugins.internal.services;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -33,8 +35,9 @@ public class BuildInitServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeBuildInitServices {
-        ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, GradleInternal gradle) {
-            return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, gradle.getRootProject().getFileResolver()).createProjectLayoutSetupRegistry();
+        ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileCollectionFactory fileCollectionFactory, GradleInternal gradle) {
+            FileResolver fileResolver = gradle.getRootProject().getFileResolver();
+            return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, fileResolver, fileCollectionFactory.withResolver(fileResolver)).createProjectLayoutSetupRegistry();
         }
     }
 }
