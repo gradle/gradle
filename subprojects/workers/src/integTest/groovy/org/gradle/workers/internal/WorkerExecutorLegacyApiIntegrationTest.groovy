@@ -272,7 +272,12 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                     @Override
                     void run() {
                         Properties myProps = this.myProps;
-                        myProps.store(outputFile.newWriter(), null)
+                        def writer = outputFile.newWriter()
+                        try {
+                            myProps.store(writer, null)
+                        } finally {
+                            writer.close()
+                        }
                     }
                 }
             }
