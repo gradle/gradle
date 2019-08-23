@@ -18,7 +18,6 @@ package org.gradle.internal.instantiation;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
@@ -63,12 +62,12 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public Instantiator inject(ServiceLookup services) {
+    public InstanceGenerator inject(ServiceLookup services) {
         return injectOnlyScheme.withServices(services).instantiator();
     }
 
     @Override
-    public Instantiator inject() {
+    public InstanceGenerator inject() {
         return injectOnlyScheme.instantiator();
     }
 
@@ -96,22 +95,22 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public Instantiator injectLenient() {
+    public InstanceGenerator injectLenient() {
         return injectOnlyLenientScheme.instantiator();
     }
 
     @Override
-    public Instantiator injectLenient(ServiceLookup services) {
+    public InstanceGenerator injectLenient(ServiceLookup services) {
         return injectOnlyLenientScheme.withServices(services).instantiator();
     }
 
     @Override
-    public Instantiator decorateLenient() {
+    public InstanceGenerator decorateLenient() {
         return decoratingLenientScheme.instantiator();
     }
 
     @Override
-    public Instantiator injectAndDecorateLenient(ServiceLookup services) {
+    public InstanceGenerator injectAndDecorateLenient(ServiceLookup services) {
         return decoratingLenientScheme.withServices(services).instantiator();
     }
 
@@ -121,7 +120,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public Instantiator injectAndDecorate(ServiceLookup services) {
+    public InstanceGenerator injectAndDecorate(ServiceLookup services) {
         return decoratingScheme.withServices(services).instantiator();
     }
 

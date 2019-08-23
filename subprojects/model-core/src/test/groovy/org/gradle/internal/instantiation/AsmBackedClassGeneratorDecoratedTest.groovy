@@ -24,14 +24,54 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
+import org.gradle.internal.Describables
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
+
+    def "mixes in toString() implementation for class"() {
+        given:
+        def bean = create(Bean, Describables.of("<display name>"))
+        def beanWithNoName = create(Bean)
+
+        expect:
+        bean.toString() == "<display name>"
+        bean.hasUsefulDisplayName()
+
+        beanWithNoName.toString().startsWith("${Bean.name}_Decorated@")
+        !beanWithNoName.hasUsefulDisplayName()
+    }
+
+    def "does not mixes in toString() implementation for class that defines an implementation"() {
+        given:
+        def bean = create(HasToString, Describables.of("<display name>"))
+        def beanWithNoName = create(HasToString)
+
+        expect:
+        bean.toString() == "<bean>"
+        bean.hasUsefulDisplayName()
+
+        beanWithNoName.toString() == "<bean>"
+        beanWithNoName.hasUsefulDisplayName()
+    }
+
+    def "mixes in toString() implementation for interface"() {
+        given:
+        def bean = create(InterfaceBean, Describables.of("<display name>"))
+        def beanWithNoName = create(InterfaceBean)
+
+        expect:
+        bean.toString() == "<display name>"
+        bean.hasUsefulDisplayName()
+        beanWithNoName.toString().startsWith("${InterfaceBean.name}_Decorated@")
+        !beanWithNoName.hasUsefulDisplayName()
+    }
 
     def "can attach nested extensions to object"() {
         given:
@@ -562,4 +602,11 @@ interface WithProperties {
 
 class ImplementsInterface implements WithProperties {
     String prop
+}
+
+class HasToString {
+    @Override
+    String toString() {
+        return "<bean>"
+    }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instantiation
 
-
+import org.gradle.api.Describable
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.util.TestUtil
@@ -28,15 +28,23 @@ abstract class AbstractClassGeneratorSpec extends Specification {
     Instantiator instantiator = Stub(Instantiator)
 
     protected <T> T create(Class<T> clazz, Object... args) {
-        return create(clazz, defaultServices(), args)
+        return doCreate(generator, clazz, defaultServices(), null, args)
+    }
+
+    protected <T> T create(Class<T> clazz, Describable displayName, Object... args) {
+        return doCreate(generator, clazz, defaultServices(), displayName, args)
     }
 
     protected <T> T create(Class<T> clazz, ServiceLookup services, Object... args) {
-        return create(generator, clazz, services, args)
+        return doCreate(generator, clazz, services, null, args)
     }
 
     protected <T> T create(ClassGenerator generator, Class<T> clazz, Object... args) {
-        return create(generator, clazz, defaultServices(), args)
+        return doCreate(generator, clazz, defaultServices(), null, args)
+    }
+
+    protected <T> T create(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Object ... args) {
+        return doCreate(generator, clazz, services, null, args)
     }
 
     ServiceLookup defaultServices() {
@@ -45,8 +53,8 @@ abstract class AbstractClassGeneratorSpec extends Specification {
         return services
     }
 
-    protected <T> T create(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Object... args) {
+    private <T> T doCreate(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Describable displayName, Object... args) {
         def type = generator.generate(clazz)
-        return type.constructors[0].newInstance(services, instantiator, args)
+        return type.constructors[0].newInstance(services, instantiator, displayName, args)
     }
 }

@@ -21,7 +21,6 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 import sun.reflect.ReflectionFactory;
 
@@ -63,7 +62,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     }
 
     @Override
-    public Instantiator instantiator() {
+    public InstanceGenerator instantiator() {
         return instantiator;
     }
 

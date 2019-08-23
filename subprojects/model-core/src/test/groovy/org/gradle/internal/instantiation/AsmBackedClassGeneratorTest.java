@@ -126,7 +126,7 @@ public class AsmBackedClassGeneratorTest {
                     }
                 }
                 if (i == args.length) {
-                    return (T) constructor.newInstance(services, DirectInstantiator.INSTANCE, args);
+                    return (T) constructor.newInstance(services, DirectInstantiator.INSTANCE, null, args);
                 }
             }
         }

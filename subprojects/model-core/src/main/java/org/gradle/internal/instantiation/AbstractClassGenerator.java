@@ -29,6 +29,7 @@ import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -239,7 +240,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
 
-    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
     private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> generationHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
@@ -391,8 +392,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-                return AbstractClassGenerator.this.newInstance(constructor, services, nested, params);
+            public Object newInstance(ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                return AbstractClassGenerator.this.newInstance(constructor, services, nested, displayName, params);
             }
 
             @Override
@@ -650,6 +651,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean providesOwnDynamicObject;
         private boolean needDynamicAware;
         private boolean needGroovyObject;
+        private boolean providesOwnToString;
         private final List<PropertyMetadata> mutableProperties = new ArrayList<PropertyMetadata>();
         private final MethodSet actionMethods = new MethodSet();
         private final SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
@@ -692,6 +694,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 actionMethods.add(method);
             } else if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Closure.class)) {
                 closureMethods.put(method.getName(), method);
+            } else if (method.getName().equals("toString") && parameterTypes.length == 0 && method.getDeclaringClass() != Object.class) {
+                providesOwnToString = true;
             }
         }
 
@@ -699,6 +703,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyTo(ClassInspectionVisitor visitor) {
             if (providesOwnDynamicObject) {
                 visitor.providesOwnDynamicObjectImplementation();
+            }
+            if (providesOwnToString) {
+                visitor.providesOwnToString();
             }
         }
 
@@ -1204,6 +1211,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void providesOwnDynamicObjectImplementation();
 
         void providesOwnServicesImplementation();
+
+        void providesOwnToString();
 
         void mixInManaged();
 

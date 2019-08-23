@@ -632,6 +632,36 @@ task print(type: MyTask) {
     def failsWhenGettingUnknownPropertyOnDecoratedObject() {
         buildFile << """
             class Thing {
+            }
+            def thing = objects.newInstance(Thing)
+            assert !thing.hasProperty("p1")
+            println thing.p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(6)
+        failure.assertHasCause("Could not get unknown property 'p1' for object of type Thing.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnExtensionObject() {
+        buildFile << """
+            class Thing {
+            }
+            extensions.add('thing', Thing)
+            assert !thing.hasProperty("p1")
+            println thing.p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(6)
+        failure.assertHasCause("Could not get unknown property 'p1' for extension 'thing' of type Thing.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnExtensionObjectWithToStringImplementation() {
+        buildFile << """
+            class Thing {
                 String toString() { "<thing>" }
             }
             extensions.add('thing', Thing)

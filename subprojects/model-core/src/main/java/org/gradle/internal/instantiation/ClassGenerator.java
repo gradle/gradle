@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.instantiation;
 
+import org.gradle.api.Describable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
@@ -46,7 +47,7 @@ interface ClassGenerator {
         /**
          * Creates a new instance, using the given services and parameters. Uses the given instantiator to create nested objects, if required.
          */
-        T newInstance(ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+        T newInstance(ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
         /**
          * Does this constructor use the given service type?

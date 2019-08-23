@@ -24,6 +24,7 @@ import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -131,6 +132,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
     // Used by generated code
     @SuppressWarnings("unused")
+    @Nullable
+    public static Describable getDisplayNameForNext() {
+        return SERVICES_FOR_NEXT_OBJECT.get().displayName;
+    }
+
+    // Used by generated code
+    @SuppressWarnings("unused")
     public static ServiceLookup getServicesForNext() {
         return SERVICES_FOR_NEXT_OBJECT.get().services;
     }
@@ -186,10 +194,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     @Override
-    protected <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    protected <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
         ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
-
-        SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services));
+        SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName));
         try {
             constructor.setAccessible(true);
             return constructor.newInstance(params);
@@ -220,6 +227,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean managed;
         private boolean providesOwnDynamicObjectImplementation;
         private boolean providesOwnServicesImplementation;
+        private boolean providesOwnToStringImplementation;
         private boolean instantiatesNestedObjects;
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
@@ -264,6 +272,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
+        public void providesOwnToString() {
+            providesOwnToStringImplementation = true;
+        }
+
+        @Override
         public void instantiatesNestedObjects() {
             instantiatesNestedObjects = true;
         }
@@ -289,7 +302,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 throw new ClassGenerationException(formatter.toString());
             }
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
-            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresServicesMethod, instantiatesNestedObjects);
+            boolean requiresToString = !providesOwnToStringImplementation;
+            ClassBuilderImpl builder = new ClassBuilderImpl(type, decorate, suffix, factoryId, extensible, conventionAware, managed, providesOwnDynamicObjectImplementation, requiresToString, requiresServicesMethod, instantiatesNestedObjects);
             builder.startClass();
             return builder;
         }
@@ -302,6 +316,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String MAPPING_FIELD = "_gr_map_";
         private static final String META_CLASS_FIELD = "_gr_mc_";
         private static final String SERVICES_FIELD = "_gr_svcs_";
+        private static final String DISPLAY_NAME_FIELD = "_gr_dn_";
         private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_ID_FIELD = "_gr_factory_";
         private static final String INSTANTIATOR_FIELD = "_gr_insttr_";
@@ -351,7 +366,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type SET_PROPERTY_TYPE = Type.getType(SetProperty.class);
         private static final Type MAP_PROPERTY = Type.getType(MapProperty.class);
         private static final Type EXTENSION_CONTAINER_TYPE = Type.getType(ExtensionContainer.class);
+        private static final Type DESCRIBABLE_TYPE = Type.getType(Describable.class);
 
+        private static final String RETURN_STRING = Type.getMethodDescriptor(STRING_TYPE);
+        private static final String RETURN_DESCRIBABLE = Type.getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, SERVICE_LOOKUP_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, Type.BOOLEAN_TYPE);
@@ -402,6 +420,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean mixInDsl;
         private final boolean extensible;
         private final boolean providesOwnDynamicObject;
+        private final boolean requiresToString;
         private final boolean requiresServicesMethod;
         private final boolean requiresInstantiator;
 
@@ -414,12 +433,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean conventionAware,
             boolean managed,
             boolean providesOwnDynamicObject,
+            boolean requiresToString,
             boolean requiresServicesMethod,
             boolean requiresInstantiator
         ) {
             this.type = type;
             this.factoryId = factoryId;
             this.managed = managed;
+            this.requiresToString = requiresToString;
             this.classGenerator = new AsmClassGenerator(type, suffix);
             this.visitor = classGenerator.getVisitor();
             this.generatedType = classGenerator.getGeneratedType();
@@ -466,13 +487,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
                 superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
+            if (requiresToString) {
+                generateToStringSupport();
+            }
             if (requiresServicesMethod) {
-                generateServiceRegistrySupportMethods();
+                generateServiceRegistrySupport();
             }
             if (requiresInstantiator) {
-                generateInstantiatorSupportMethods();
+                generateInstantiatorSupport();
             }
-            generatePublicTypeMethod();
+            generateGeneratedSubtypeMethods();
         }
 
         @Override
@@ -526,6 +550,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void initializeFields(MethodVisitor methodVisitor) {
+            if (requiresToString) {
+                // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getDisplayNameForNext", RETURN_DESCRIBABLE, false);
+                methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
+            }
             if (requiresServicesMethod) {
                 // this.services = AsmBackedClassGenerator.getServicesForNext()
                 methodVisitor.visitVarInsn(ALOAD, 0);
@@ -1092,11 +1122,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        private void generatePublicTypeMethod() {
+        private void generateGeneratedSubtypeMethods() {
             // Generate: Class publicType() { ... }
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "publicType", RETURN_CLASS, null, EMPTY_STRINGS);
             methodVisitor.visitLdcInsn(superclassType);
             methodVisitor.visitInsn(ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+
+            // Generate: Class hasUsefulDisplayName() { ... }
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "hasUsefulDisplayName", RETURN_BOOLEAN, null, EMPTY_STRINGS);
+            if (requiresToString) {
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
+                Label label = new Label();
+                methodVisitor.visitJumpInsn(IFNULL, label);
+                methodVisitor.visitLdcInsn(true);
+                methodVisitor.visitInsn(BOOLEAN_TYPE.getOpcode(IRETURN));
+                methodVisitor.visitLabel(label);
+                methodVisitor.visitLdcInsn(false);
+                methodVisitor.visitInsn(BOOLEAN_TYPE.getOpcode(IRETURN));
+            } else {
+                methodVisitor.visitLdcInsn(true);
+                methodVisitor.visitInsn(BOOLEAN_TYPE.getOpcode(IRETURN));
+            }
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
@@ -1431,12 +1480,33 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        private void generateServiceRegistrySupportMethods() {
+        private void generateToStringSupport() {
+            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor(), null, null);
+
+            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", RETURN_STRING, null, null);
+            methodVisitor.visitCode();
+            // Generate if (displayName != null) { return displayName.toString() } else { return super.toString() }
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
+            methodVisitor.visitInsn(DUP);
+            Label label = new Label();
+            methodVisitor.visitJumpInsn(IFNULL, label);
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, DESCRIBABLE_TYPE.getInternalName(), "getDisplayName", RETURN_STRING, true);
+            methodVisitor.visitInsn(ARETURN);
+            methodVisitor.visitLabel(label);
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKESPECIAL, OBJECT_TYPE.getInternalName(), "toString", RETURN_STRING, false);
+            methodVisitor.visitInsn(ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        private void generateServiceRegistrySupport() {
             generateServicesField();
             generateGetServices();
         }
 
-        private void generateInstantiatorSupportMethods() {
+        private void generateInstantiatorSupport() {
             generateInstantiatorField();
             generateGetInstantiator();
         }
@@ -1617,10 +1687,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static class ObjectCreationDetails {
         final Instantiator instantiator;
         final ServiceLookup services;
+        @Nullable
+        final Describable displayName;
 
-        ObjectCreationDetails(Instantiator instantiator, ServiceLookup services) {
+        ObjectCreationDetails(Instantiator instantiator, ServiceLookup services, @Nullable Describable displayName) {
             this.instantiator = instantiator;
             this.services = services;
+            this.displayName = displayName;
         }
     }
 

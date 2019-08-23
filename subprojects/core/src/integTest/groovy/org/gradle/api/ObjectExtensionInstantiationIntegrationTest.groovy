@@ -429,4 +429,38 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause("Could not create an instance of type Thing.")
         failure.assertHasCause("Too many parameters provided for constructor for interface Thing. Expected 0, received 1.")
     }
+
+    def "generates a display name for extension when it does not provide a toString() implementation"() {
+        buildFile << """
+            class NoDisplayName { }
+            class DisplayName {
+                String toString() { return "<display name>" }
+            }
+            
+            def noDisplayName = extensions.create("no-name", NoDisplayName)
+            def displayName = extensions.create("name", DisplayName)
+            
+            println("no display name = \${noDisplayName}")
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("no display name = extension 'no-name'")
+        outputContains("display name = <display name>")
+    }
+
+    def "generates a display name for extension interface"() {
+        buildFile << """
+            interface NoDisplayName { }
+            
+            def noDisplayName = extensions.create("no-name", NoDisplayName)
+            
+            println("display name = \${noDisplayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("display name = extension 'no-name'")
+    }
 }
