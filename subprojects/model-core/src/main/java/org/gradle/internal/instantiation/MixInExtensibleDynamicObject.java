@@ -20,7 +20,6 @@ import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
 import javax.annotation.Nullable;
@@ -34,7 +33,7 @@ public class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
         super(decoratedObject, wrap(decoratedObject, publicType, selfProvidedDynamicObject), instantiator(services));
     }
 
-    private static Instantiator instantiator(ServiceLookup services) {
+    private static InstanceGenerator instantiator(ServiceLookup services) {
         InstantiatorFactory instantiatorFactory = (InstantiatorFactory) services.get(InstantiatorFactory.class);
         return instantiatorFactory.injectAndDecorateLenient(services);
     }

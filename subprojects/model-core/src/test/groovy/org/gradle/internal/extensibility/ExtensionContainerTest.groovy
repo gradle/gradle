@@ -247,7 +247,7 @@ class ExtensionContainerTest extends Specification {
         container.create 'boo', Child
         container.add new TypeOf<List<String>>() {}, 'baz', []
         container.add "cat", new Thing("gizmo")
-        container.add "meo", container.instantiator.newInstance(Thing, "w")
+        container.add "meo", container.instanceGenerator.newInstance(Thing, "w")
 
         def schemaMap = container.extensionsSchema.collectEntries { [it.name, it.publicType] }
         expect:

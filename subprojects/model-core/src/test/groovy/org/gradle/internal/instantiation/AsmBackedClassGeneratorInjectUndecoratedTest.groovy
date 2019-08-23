@@ -53,6 +53,9 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         bean.a == "a"
 
         bean instanceof GeneratedSubclass
+        bean.publicType() == AbstractBean
+        !bean.hasUsefulDisplayName()
+
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
         !(bean instanceof HasConvention)
@@ -71,6 +74,9 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         bean.calculated == "[12]"
 
         bean instanceof GeneratedSubclass
+        bean.publicType() == BeanWithServiceGetters
+        !bean.hasUsefulDisplayName()
+
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
         !(bean instanceof HasConvention)

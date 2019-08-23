@@ -82,6 +82,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -90,7 +91,6 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -187,7 +187,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultJdkToolsInitializer(new DefaultClassLoaderFactory());
     }
 
-    Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
+    InstanceGenerator createInstantiator(InstantiatorFactory instantiatorFactory) {
         return instantiatorFactory.decorateLenient();
     }
 

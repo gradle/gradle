@@ -16,13 +16,16 @@
 
 package org.gradle.internal.instantiation;
 
+import org.gradle.api.Describable;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -30,7 +33,7 @@ import java.lang.reflect.Type;
 /**
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
  */
-class DependencyInjectingInstantiator implements Instantiator {
+class DependencyInjectingInstantiator implements InstanceGenerator {
     private static final DefaultServiceRegistry NO_SERVICES = new DefaultServiceRegistry();
     private final ServiceLookup services;
     private final ConstructorSelector constructorSelector;
@@ -41,12 +44,22 @@ class DependencyInjectingInstantiator implements Instantiator {
     }
 
     @Override
+    public <T> T newInstanceWithDisplayName(Class<? extends T> type, Describable displayName, Object... parameters) {
+        return doCreate(type, displayName, parameters);
+    }
+
+    @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
+        return doCreate(type, null, parameters);
+    }
+
+    @NotNull
+    private <T> T doCreate(Class<? extends T> type, @Nullable Describable displayName, Object[] parameters) {
         try {
             ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);
             Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
             try {
-                return constructor.newInstance(services, this, resolvedParameters);
+                return constructor.newInstance(services, this, displayName, resolvedParameters);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
@@ -73,7 +86,7 @@ class DependencyInjectingInstantiator implements Instantiator {
                 try {
                     Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
                     try {
-                        return constructor.newInstance(services, DependencyInjectingInstantiator.this, resolvedParameters);
+                        return constructor.newInstance(services, DependencyInjectingInstantiator.this, null, resolvedParameters);
                     } catch (InvocationTargetException e) {
                         throw e.getCause();
                     }
