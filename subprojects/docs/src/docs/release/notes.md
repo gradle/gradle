@@ -36,7 +36,8 @@ Include only their name, impactful features should be called out separately belo
 [Sandu Turcan](https://github.com/idlsoft),
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
 [Nikita Skvortsov](https://github.com/nskvortsov),
-and [Christian Fränkel](https://github.com/fraenkelc).
+[Christian Fränkel](https://github.com/fraenkelc),
+and [Christian Dietrich](https://github.com/cdietrich).
 
 ## Upgrade Instructions
 
