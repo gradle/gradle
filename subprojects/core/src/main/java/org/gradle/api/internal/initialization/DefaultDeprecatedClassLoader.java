@@ -23,6 +23,7 @@ import org.gradle.util.DeprecationLogger;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 
 public class DefaultDeprecatedClassLoader extends ClassLoader implements DeprecatedClassloader {
 
@@ -46,7 +47,7 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
     @Override
     public URL getResource(String name) {
         URL resource;
-        if(!deprecationFired) {
+        if (!deprecationFired) {
             resource = nonDeprecatedParent.getResource(name);
             if (resource != null) {
                 return resource;
@@ -61,8 +62,26 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
     }
 
     @Override
+    public Enumeration<URL> getResources(String name) throws IOException {
+        Enumeration<URL> resources;
+        if (!deprecationFired) {
+            resources = nonDeprecatedParent.getResources(name);
+            if (resources.hasMoreElements()) {
+                return resources;
+            }
+        }
+
+        resources = deprecatedUsageLoader.getResources(name);
+        if (resources.hasMoreElements()) {
+            maybeEmitDeprecationWarning();
+        }
+
+        return resources;
+    }
+
+    @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        if(!deprecationFired) {
+        if (!deprecationFired) {
             try {
                 return nonDeprecatedParent.loadClass(name);
             } catch (ClassNotFoundException e) {
@@ -74,16 +93,14 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
             maybeEmitDeprecationWarning();
             return deprecatedUsageClass;
         } catch (ClassNotFoundException e) {
-                // Expected
+            // Expected
         }
         throw new ClassNotFoundException(String.format("%s not found.", name));
     }
 
     private void maybeEmitDeprecationWarning() {
-        if (!deprecationFired) {
-            DeprecationLogger.nagUserOfDeprecated(BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING);
-            deprecationFired = true;
-        }
+        DeprecationLogger.nagUserOfDeprecated(BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING);
+        deprecationFired = true;
     }
 
     @Override
@@ -94,13 +111,13 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
 
     @Override
     public void close() throws IOException {
-        if(deprecatedUsageLoader instanceof Closeable){
+        if (deprecatedUsageLoader instanceof Closeable) {
             ((Closeable) deprecatedUsageLoader).close();
         }
 
         // not sure if this is required as its the parent of
         // deprecatedUsageLoader already
-        if(nonDeprecatedParent instanceof Closeable){
+        if (nonDeprecatedParent instanceof Closeable) {
             ((Closeable) nonDeprecatedParent).close();
         }
     }
