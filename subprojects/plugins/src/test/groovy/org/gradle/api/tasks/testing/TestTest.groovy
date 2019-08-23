@@ -85,7 +85,6 @@ class TestTest extends AbstractConventionTaskTest {
 
     def "test default settings"() {
         expect:
-        test.getTestFramework() instanceof JUnitTestFramework
         test.getTestClassesDirs() == null
         test.getClasspath() == null
         test.getReports().getJunitXml().getDestination() == null

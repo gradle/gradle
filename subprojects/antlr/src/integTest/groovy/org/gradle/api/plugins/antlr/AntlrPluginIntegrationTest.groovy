@@ -23,14 +23,19 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         return "build"
     }
 
+    def setup() {
+        buildFile << """
+            ${jcenterRepository()}
+        """
+    }
+
     def "can handle grammar in nested folders"(){
         given:
         buildFile << """
             apply plugin: "java"
             apply plugin: "antlr"
-
-            ${jcenterRepository()}
         """
+
         and:
 
         file("src/main/antlr/org/acme/TestGrammar.g") << """ class TestGrammar extends Parser;
@@ -56,7 +61,6 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/generated-src/antlr/main/TestGrammar.smap").exists()
         file("build/generated-src/antlr/main/TestGrammarTokenTypes.java").exists()
         file("build/generated-src/antlr/main/TestGrammarTokenTypes.txt").exists()
-
     }
 
 }

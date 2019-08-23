@@ -199,6 +199,10 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                 implementation gradleApi()
                 implementation localGroovy()
             }
+
+            test {
+                useJUnit()
+            }
         """
     }
 
