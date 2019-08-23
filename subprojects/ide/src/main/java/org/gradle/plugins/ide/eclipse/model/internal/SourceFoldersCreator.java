@@ -126,7 +126,7 @@ public class SourceFoldersCreator {
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
                     folder.setOutput(sourceSetOutputPaths.get(sourceSet));
                     addScopeAttributes(folder, sourceSet, sourceSetUsages);
-                    addSourceSetAttribute(folder);
+                    addSourceSetAttribute(sourceSet, folder);
                     entries.add(folder);
                 }
             }
@@ -217,10 +217,13 @@ public class SourceFoldersCreator {
         return true;
     }
 
-    private void addSourceSetAttribute(SourceFolder folder) {
+    private void addSourceSetAttribute(SourceSet sourceSet, SourceFolder folder) {
         // Using the test sources feature introduced in Eclipse Photon
-        if (folder.getPath().toLowerCase().contains("test")) {
-            folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
+        String name = sourceSet.getName();
+        if (!SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
+            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase().contains("test")) {
+                folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
+            }
         }
     }
 
