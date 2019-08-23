@@ -34,7 +34,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionGradleInterna
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.tasksToRun = ["clean", "assemble"]
-        runner.targetVersions = ["6.0-20190822220446+0000"]
+        runner.targetVersions = ["6.0-20190823180744+0000"]
         runner.minimumVersion = minimumVersion
 
         when:
