@@ -16,28 +16,30 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 
 
-class EnumCodec : EncodingProducer, Decoding {
-
-    private
-    object EnumEncoding : Encoding {
-        override suspend fun WriteContext.encode(value: Any) {
-            writeClass(value::class.java)
-            writeInt((value as Enum<*>).ordinal)
-        }
-    }
+object EnumCodec : EncodingProducer, Decoding {
 
     override fun encodingForType(type: Class<*>): Encoding? =
         EnumEncoding.takeIf { type.isEnum }
 
     override suspend fun ReadContext.decode(): Any? {
         val enumClass = readClass()
-        val enumOrdinal = readInt()
-        return enumClass.enumConstants.filterIsInstance(Enum::class.java).first {
+        val enumOrdinal = readSmallInt()
+        return enumClass.enumConstants.uncheckedCast<Array<Enum<*>>>().first {
             it.ordinal == enumOrdinal
         }
+    }
+}
+
+
+private
+object EnumEncoding : Encoding {
+    override suspend fun WriteContext.encode(value: Any) {
+        writeClass(value::class.java)
+        writeSmallInt((value as Enum<*>).ordinal)
     }
 }
