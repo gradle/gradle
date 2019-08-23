@@ -21,6 +21,14 @@ import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.test.fixtures.file.TestFile
 
 
+/**
+ * Base Android / Instant execution integration test.
+ *
+ * In order to iterate quickly on changes to AGP:
+ * - change `AGP_VERSION` to `3.6.0-dev`
+ * - change the repository url in `AGP_NIGHTLY_REPOSITORY_DECLARATION` to `file:///path/to/agp-src/out/repo`
+ * - run `./gradlew :publishAndroidGradleLocal` in `/path/to/agp-src/tools`
+ */
 @CompileStatic
 abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
