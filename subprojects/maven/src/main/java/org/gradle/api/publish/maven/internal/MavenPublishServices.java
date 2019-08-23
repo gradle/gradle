@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.publication.maven.internal.MavenFactory;
@@ -55,8 +54,8 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
             return new MavenVersionRangeMapper(versionSelectorScheme);
         }
 
-        public MavenPublishers createMavenPublishers(RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-            return new MavenPublishers(repositoryTransportFactory, timeProvider, mavenRepositoryLocator);
+        public MavenPublishers createMavenPublishers(BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+            return new MavenPublishers(timeProvider, mavenRepositoryLocator);
         }
 
         public MavenDuplicatePublicationTracker createDuplicatePublicationTracker(DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {

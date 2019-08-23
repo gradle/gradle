@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.connector;
 
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 
 import java.util.Collection;
 
@@ -25,5 +26,5 @@ public interface ResourceConnectorSpecification {
 
     Collection<Authentication> getAuthentications();
 
-    boolean allowInsecureProtocol();
+    HttpRedirectVerifier getRedirectVerifier();
 }

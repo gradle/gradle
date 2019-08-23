@@ -22,6 +22,7 @@ import com.google.common.base.Suppliers;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -36,8 +37,9 @@ public class DefaultHttpSettings implements HttpSettings {
     private final Collection<Authentication> authenticationSettings;
     private final SslContextFactory sslContextFactory;
     private final HostnameVerifier hostnameVerifier;
+    private final HttpRedirectVerifier redirectVerifier;
     private final boolean followRedirects;
-    private final boolean allowInsecureProtocol;
+
 
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
@@ -47,16 +49,17 @@ public class DefaultHttpSettings implements HttpSettings {
         return new Builder();
     }
 
-    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects, boolean allowInsecureProtocol) {
+    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, HttpRedirectVerifier redirectVerifier, boolean followRedirects) {
         this.followRedirects = followRedirects;
-        this.allowInsecureProtocol = allowInsecureProtocol;
         Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
         Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
         Preconditions.checkNotNull(hostnameVerifier, "hostnameVerifier");
+        Preconditions.checkNotNull(redirectVerifier, "redirectVerifier");
 
         this.authenticationSettings = authenticationSettings;
         this.sslContextFactory = sslContextFactory;
         this.hostnameVerifier = hostnameVerifier;
+        this.redirectVerifier = redirectVerifier;
     }
 
     @Override
@@ -89,8 +92,8 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     @Override
-    public boolean allowInsecureProtocol() {
-        return allowInsecureProtocol;
+    public HttpRedirectVerifier getRedirectVerifier() {
+        return redirectVerifier;
     }
 
     @Override
@@ -112,8 +115,8 @@ public class DefaultHttpSettings implements HttpSettings {
         private Collection<Authentication> authenticationSettings;
         private SslContextFactory sslContextFactory;
         private HostnameVerifier hostnameVerifier;
+        private HttpRedirectVerifier redirectVerifier;
         private boolean followRedirects = true;
-        private boolean allowInsecureProtocol = false;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
             this.authenticationSettings = authenticationSettings;
@@ -137,13 +140,13 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
-        public Builder allowInsecureProtocol(boolean allowInsecureProtocol) {
-            this.allowInsecureProtocol = allowInsecureProtocol;
+        public Builder redirectVerifier(HttpRedirectVerifier redirectVerifier) {
+            this.redirectVerifier = redirectVerifier;
             return this;
         }
 
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, followRedirects, allowInsecureProtocol);
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, followRedirects);
         }
     }
 

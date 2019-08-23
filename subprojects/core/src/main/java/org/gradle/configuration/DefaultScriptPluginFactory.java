@@ -30,6 +30,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.groovy.scripts.BasicScript;
@@ -53,7 +54,8 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
@@ -80,7 +82,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final ProviderFactory providerFactory;
-    private final TextResourceLoader textResourceLoader;
+    private final TextFileResourceLoader textFileResourceLoader;
+    private final TextUriResourceLoader.Factory textUriResourceLoaderFactory;
+    private final ApiTextResourceAdapter.Factory textResourceAdapterFactory;
     private final ExecFactory execFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
@@ -102,7 +106,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         DocumentationRegistry documentationRegistry,
         ModelRuleSourceDetector modelRuleSourceDetector,
         ProviderFactory providerFactory,
-        TextResourceLoader textResourceLoader,
+        TextFileResourceLoader textFileResourceLoader,
+        TextUriResourceLoader.Factory textUriResourceLoaderFactory,
+        ApiTextResourceAdapter.Factory textResourceAdapterFactory,
         StreamHasher streamHasher,
         FileHasher fileHasher,
         ExecFactory execFactory,
@@ -121,7 +127,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.providerFactory = providerFactory;
-        this.textResourceLoader = textResourceLoader;
+        this.textFileResourceLoader = textFileResourceLoader;
+        this.textUriResourceLoaderFactory = textUriResourceLoaderFactory;
+        this.textResourceAdapterFactory = textResourceAdapterFactory;
         this.execFactory = execFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptPluginFactory = this;
@@ -178,7 +186,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);
-            services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(TextFileResourceLoader.class, textFileResourceLoader);
+            services.add(TextUriResourceLoader.Factory.class, textUriResourceLoaderFactory);
+            services.add(ApiTextResourceAdapter.Factory.class, textResourceAdapterFactory);
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);

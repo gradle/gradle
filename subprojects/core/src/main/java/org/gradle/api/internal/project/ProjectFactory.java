@@ -26,26 +26,26 @@ import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.util.NameValidator;
 
 import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
-    private final TextResourceLoader textResourceLoader;
+    private final TextFileResourceLoader textFileResourceLoader;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public ProjectFactory(Instantiator instantiator, TextResourceLoader textResourceLoader, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public ProjectFactory(Instantiator instantiator, TextFileResourceLoader textFileResourceLoader, ProjectRegistry<ProjectInternal> projectRegistry) {
         this.instantiator = instantiator;
-        this.textResourceLoader = textResourceLoader;
+        this.textFileResourceLoader = textFileResourceLoader;
         this.projectRegistry = projectRegistry;
     }
 
     @Override
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
-        TextResource resource = textResourceLoader.loadFile("build file", buildFile);
+        TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
                 projectDescriptor.getName(),

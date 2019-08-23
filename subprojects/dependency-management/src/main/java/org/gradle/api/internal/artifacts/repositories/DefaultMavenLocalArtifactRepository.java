@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -54,12 +53,12 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                GradleModuleMetadataParser metadataParser,
                                                AuthenticationContainer authenticationContainer,
-                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
                                                MavenMutableModuleMetadataFactory metadataFactory,
                                                IsolatableFactory isolatableFactory,
-                                               ObjectFactory objectFactory) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory);
+                                               ObjectFactory objectFactory,
+                                               DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory);
     }
 
     @Override

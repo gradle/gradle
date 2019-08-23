@@ -17,6 +17,7 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
+import jdk.internal.jline.internal.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -25,10 +26,10 @@ import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextResourceLoader;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GUtil;
+import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -40,16 +41,14 @@ import java.nio.charset.Charset;
  */
 public class ApiTextResourceAdapter implements TextResourceInternal {
     private final URI uri;
-    private final TextResourceLoader textResourceLoader;
+    private final TextUriResourceLoader textUriResourceLoader;
     private final TemporaryFileProvider tempFileProvider;
-    private final boolean allowInsecureProtocol;
     private TextResource textResource;
 
-    public ApiTextResourceAdapter(TextResourceLoader textResourceLoader, TemporaryFileProvider tempFileProvider, URI uri, boolean allowInsecureProtocol) {
+    public ApiTextResourceAdapter(TextUriResourceLoader textUriResourceLoader, TemporaryFileProvider tempFileProvider, URI uri) {
         this.uri = uri;
-        this.textResourceLoader = textResourceLoader;
+        this.textUriResourceLoader = textUriResourceLoader;
         this.tempFileProvider = tempFileProvider;
-        this.allowInsecureProtocol = allowInsecureProtocol;
     }
 
     @Override
@@ -121,11 +120,24 @@ public class ApiTextResourceAdapter implements TextResourceInternal {
 
     private TextResource getWrappedTextResource() {
         if (textResource == null) {
-            if (!allowInsecureProtocol && !GUtil.isSecureUrl(uri)) {
-                DeprecationLogger.nagUserOfDeprecated("Resolving text resources from insecure URIs", "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.");
-            }
-            textResource = textResourceLoader.loadUri("textResource", uri);
+            textResource = textUriResourceLoader.loadUri("textResource", uri);
         }
         return textResource;
+    }
+
+    public static class Factory {
+        private final TextUriResourceLoader.Factory textUriResourceLoaderFactory;
+        private final TemporaryFileProvider tempFileProvider;
+
+        @Inject
+        public Factory(TextUriResourceLoader.Factory textUriResourceLoaderFactory, @Nullable TemporaryFileProvider tempFileProvider) {
+            this.textUriResourceLoaderFactory = textUriResourceLoaderFactory;
+            this.tempFileProvider = tempFileProvider;
+        }
+
+        ApiTextResourceAdapter create(URI uri, HttpRedirectVerifier httpRedirectVerifier) {
+            TextUriResourceLoader uriResourceLoader = textUriResourceLoaderFactory.create(httpRedirectVerifier);
+            return new ApiTextResourceAdapter(uriResourceLoader, tempFileProvider, uri);
+        }
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextUriResourceLoader
 import org.junit.Test
 import spock.lang.Specification
 
@@ -35,10 +35,14 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def scriptHandler = Mock(ScriptHandlerInternal)
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
-    def textResourceLoader = Mock(TextResourceLoader)
+    def textResourceLoaderFactory = Mock(TextUriResourceLoader.Factory)
     def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textResourceLoader, target)
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textResourceLoaderFactory, target)
+
+    def setup() {
+       textResourceLoaderFactory.create(_) >> Mock(TextUriResourceLoader)
+    }
 
     void doesNothingWhenNothingSpecified() {
         expect:

@@ -489,7 +489,13 @@ public class SingleMessageLogger {
 
     public static void nagUserOfDeprecated(String thing, String advice) {
         if (isEnabled()) {
-            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+            nagUserOfDeprecated(thing, advice, null);
+        }
+    }
+
+    public static void nagUserOfDeprecated(String thing, String advice, @Nullable String contextualAdvice) {
+        if (isEnabled()) {
+            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 

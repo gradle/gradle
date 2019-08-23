@@ -17,28 +17,25 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.Factory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 
 public class MavenPublishers {
-    private final RepositoryTransportFactory repositoryTransportFactory;
     private final BuildCommencedTimeProvider timeProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenPublishers(RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        this.repositoryTransportFactory = repositoryTransportFactory;
+    public MavenPublishers(BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.timeProvider = timeProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
     public MavenPublisher getRemotePublisher(Factory<File> temporaryDirFactory) {
-        return new MavenRemotePublisher(temporaryDirFactory, repositoryTransportFactory, timeProvider);
+        return new MavenRemotePublisher(temporaryDirFactory, timeProvider);
     }
 
     public MavenPublisher getLocalPublisher(Factory<File> temporaryDirFactory) {
-        return new MavenLocalPublisher(temporaryDirFactory, repositoryTransportFactory, mavenRepositoryLocator);
+        return new MavenLocalPublisher(temporaryDirFactory, mavenRepositoryLocator);
     }
 }

@@ -20,30 +20,22 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.internal.resource.DownloadedUriTextResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import javax.annotation.Nullable;
-import java.io.File;
 import java.net.URI;
 import java.util.Set;
 
-public class CachingTextResourceLoader implements TextResourceLoader {
+public class CachingTextUriResourceLoader implements TextUriResourceLoader {
 
     private final ExternalResourceAccessor externalResourceAccessor;
     private final Set<String> cachedSchemes;
-    private final TextResourceLoader delegate;
 
-    public CachingTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes, TextResourceLoader delegate) {
+    public CachingTextUriResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes) {
         this.externalResourceAccessor = externalResourceAccessor;
         this.cachedSchemes = cachedSchemes;
-        this.delegate = delegate;
-    }
-
-    @Override
-    public TextResource loadFile(String description, @Nullable File sourceFile) {
-        return delegate.loadFile(description, sourceFile);
     }
 
     @Override
@@ -59,7 +51,7 @@ public class CachingTextResourceLoader implements TextResourceLoader {
         }
 
         // fallback to old behavior of always loading the resource
-        return delegate.loadUri(description, source);
+        return new UriTextResource(description, source);
     }
 
     private boolean isCacheable(URI source) {

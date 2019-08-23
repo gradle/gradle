@@ -52,8 +52,9 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
     void optionallyExpectDeprecation() {
         if (shouldWarnAboutDeprecation()) {
-            outputContains("Insecure HTTP requests has been deprecated. This is scheduled to be removed in Gradle 6.0. The URL was '")
-            outputContains("Switch the protocol to HTTPS or allow insecure protocols.")
+            outputContains("Following insecure redirects has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+            outputContains("Switch "); outputContains(" repository ")
+            outputContains(" to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see ")
         }
     }
 
@@ -69,8 +70,9 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
         then:
         if (shouldWarnAboutDeprecation()) {
-            int warningCount = insecureServerCount() * 2
-            executer.expectDeprecationWarnings(warningCount)
+            int frontServerDeprecationCount = server.uri.scheme == "http" ? 1 : 0
+            int backServerDeprecationCount = backingServer.uri.scheme == "http" ? 2 : 0
+            executer.expectDeprecationWarnings(frontServerDeprecationCount + backServerDeprecationCount)
         }
         succeeds('listJars')
 

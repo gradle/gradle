@@ -18,6 +18,8 @@ package org.gradle.api.internal.file;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
+import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
@@ -29,8 +31,6 @@ import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.resource.DefaultTextResourceLoader;
-import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.snapshot.FileSystemMirror;
@@ -106,8 +106,18 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
+        FileResolver fileResolver = resolver(basedDir);
+        FileSystem fileSystem = fileSystem();
+
+        DefaultResourceHandler.Factory resourceHandlerFactory = new DefaultResourceHandler.Factory(
+            fileResolver,
+            fileSystem,
+            temporaryFileProvider,
+            textResourceAdapterFactory(temporaryFileProvider)
+        );
+
         return new DefaultFileOperations(
-            resolver(basedDir),
+            fileResolver,
             null,
             temporaryFileProvider,
             TestUtil.instantiatorFactory().inject(),
@@ -115,15 +125,20 @@ public class TestFiles {
             directoryFileTreeFactory(),
             streamHasher(),
             fileHasher(),
-            textResourceLoaderFactory(),
+            resourceHandlerFactory,
             fileCollectionFactory(basedDir),
-            fileSystem(),
+            fileSystem,
             deleter()
         );
     }
 
-    public static TextResourceLoader textResourceLoaderFactory() {
-        return new DefaultTextResourceLoader();
+    public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {
+        return new ApiTextResourceAdapter.Factory(
+            __ -> {
+                throw new IllegalStateException("Can't create TextUriResourceLoader");
+            },
+            temporaryFileProvider
+        );
     }
 
     public static DefaultStreamHasher streamHasher() {

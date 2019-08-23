@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
+import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.groovy.scripts.BasicScript
 import org.gradle.groovy.scripts.DefaultScript
@@ -46,7 +47,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.resource.TextFileResourceLoader
+import org.gradle.internal.resource.TextUriResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.DefaultPluginRequests
@@ -77,7 +79,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
     def providerFactory = Mock(ProviderFactory)
-    def textResourceLoader = Mock(TextResourceLoader)
+    def textResourceLoader = Mock(TextFileResourceLoader)
+    def textUriResourceLoaderFactory = Mock(TextUriResourceLoader.Factory)
+    def textResourceAdapterFactory = Mock(ApiTextResourceAdapter.Factory)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
     def execFactory = Mock(ExecFactory)
@@ -97,6 +101,8 @@ class DefaultScriptPluginFactoryTest extends Specification {
         new ModelRuleSourceDetector(),
         providerFactory,
         textResourceLoader,
+        textUriResourceLoaderFactory,
+        textResourceAdapterFactory,
         streamHasher,
         fileHasher,
         execFactory,

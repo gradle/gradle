@@ -29,8 +29,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +136,7 @@ public class HttpClientHelper implements Closeable {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), stripUserCredentials(request.getURI()));
-        validateUrl(request.getURI());
+
         try {
             CloseableHttpResponse response = getClient().execute(request, httpContext);
             return toHttpClientResponse(request, httpContext, response);
@@ -156,31 +154,12 @@ public class HttpClientHelper implements Closeable {
         return new HttpClientResponse(request.getMethod(), effectiveUri, response);
     }
 
-    private void validateUrl(URI url) {
-        /*
-         * For security purposes this intentionally requires a user to opt-in to http on case by case basis.
-         * We do not want to have a system/gradle property that allows a universal disable of this check.
-         */
-        if (settings.allowInsecureProtocol()) {
-            return;
-        }
-        if (!GUtil.isSecureUrl(url)) {
-            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
-                "Insecure HTTP requests",
-                "Switch the protocol to HTTPS or allow insecure protocols.",
-                "The URL was '" + stripUserCredentials(url) + "'."
-            );
-        }
-    }
-
     /**
      * Validates that no redirect used an insecure protocol.
      * Redirecting through an insecure protocol can allow for a MITM redirect to an attacker controlled HTTPS server.
      */
     private void validateRedirectChain(HttpContext httpContext) {
-        for (URI redirect : getRedirectLocations(httpContext)) {
-            validateUrl(redirect);
-        }
+        settings.getRedirectVerifier().validateRedirects(getRedirectLocations(httpContext));
     }
 
     @Nonnull

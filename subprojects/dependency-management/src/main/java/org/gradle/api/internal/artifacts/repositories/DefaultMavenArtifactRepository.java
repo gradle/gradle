@@ -19,14 +19,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
@@ -86,7 +84,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final GradleModuleMetadataParser metadataParser;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
     private final MavenMutableModuleMetadataFactory metadataFactory;
@@ -101,15 +98,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           GradleModuleMetadataParser metadataParser,
                                           AuthenticationContainer authenticationContainer,
-                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
-                                          ObjectFactory objectFactory) {
+                                          ObjectFactory objectFactory,
+                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
-            artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
-            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory);
+            artifactFileStore, pomParser, metadataParser, authenticationContainer,
+            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -120,22 +117,21 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           GradleModuleMetadataParser metadataParser,
                                           AuthenticationContainer authenticationContainer,
-                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           MavenMutableModuleMetadataFactory metadataFactory,
                                           IsolatableFactory isolatableFactory,
-                                          ObjectFactory objectFactory) {
+                                          ObjectFactory objectFactory,
+                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
-        this.urlArtifactRepository = new DefaultUrlArtifactRepository(fileResolver);
+        this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Maven", this::getDisplayName);
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.pomParser = pomParser;
         this.metadataParser = metadataParser;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
         this.metadataFactory = metadataFactory;
@@ -239,11 +235,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Nonnull
     protected URI validateUrl() {
-        URI rootUri = getUrl();
-        if (rootUri == null) {
-            throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
-        }
-        return rootUri;
+        return urlArtifactRepository.validateUrl();
     }
 
     protected MavenResolver createRealResolver() {
@@ -320,8 +312,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return resourcesFileStore;
     }
 
-    RepositoryTransport getTransport(String scheme) {
-        return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication(), isAllowInsecureProtocol());
+    public RepositoryTransport getTransport(String scheme) {
+        return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier());
     }
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {

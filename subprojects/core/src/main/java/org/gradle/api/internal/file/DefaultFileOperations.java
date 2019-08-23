@@ -34,8 +34,8 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
 import org.gradle.api.internal.file.delete.DeleteSpecInternal;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
-import org.gradle.api.internal.resources.DefaultResourceResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
@@ -47,7 +47,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.GFileUtils;
@@ -83,7 +82,7 @@ public class DefaultFileOperations implements FileOperations {
         DirectoryFileTreeFactory directoryFileTreeFactory,
         StreamHasher streamHasher,
         FileHasher fileHasher,
-        @Nullable TextResourceLoader textResourceLoader,
+        DefaultResourceHandler.Factory resourceHandlerFactory,
         FileCollectionFactory fileCollectionFactory,
         FileSystem fileSystem,
         Deleter deleter
@@ -94,7 +93,7 @@ public class DefaultFileOperations implements FileOperations {
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textResourceLoader);
+        this.resourceHandler = resourceHandlerFactory.create(this);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(
@@ -244,8 +243,16 @@ public class DefaultFileOperations implements FileOperations {
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         StreamHasher streamHasher = services.get(StreamHasher.class);
         FileHasher fileHasher = services.get(FileHasher.class);
-        TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
+        ApiTextResourceAdapter.Factory textResourceAdapterFactory = services.get(ApiTextResourceAdapter.Factory.class);
         Deleter deleter = services.get(Deleter.class);
+
+        DefaultResourceHandler.Factory resourceHandlerFactory = new DefaultResourceHandler.Factory(
+            fileResolver,
+            fileSystem,
+            null,
+            textResourceAdapterFactory
+        );
+
         return new DefaultFileOperations(
             fileResolver,
             null,
@@ -255,7 +262,7 @@ public class DefaultFileOperations implements FileOperations {
             directoryFileTreeFactory,
             streamHasher,
             fileHasher,
-                textResourceLoader,
+            resourceHandlerFactory,
             fileTreeFactory,
             fileSystem,
             deleter

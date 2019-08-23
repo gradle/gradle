@@ -16,19 +16,38 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
+import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
+import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.net.URI;
+import java.util.function.Supplier;
 
 public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
     private Object url;
     private boolean allowInsecureProtocol;
+    private final String repositoryType;
     private final FileResolver fileResolver;
+    private final DocumentationRegistry documentationRegistry;
+    private final Supplier<String> displayNameSupplier;
 
-    DefaultUrlArtifactRepository(final FileResolver fileResolver) {
+    DefaultUrlArtifactRepository(
+        final FileResolver fileResolver,
+        final DocumentationRegistry documentationRegistry,
+        final String repositoryType,
+        final Supplier<String> displayNameSupplier
+    ) {
         this.fileResolver = fileResolver;
+        this.documentationRegistry = documentationRegistry;
+        this.repositoryType = repositoryType;
+        this.displayNameSupplier = displayNameSupplier;
     }
 
     @Override
@@ -54,5 +73,78 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     @Override
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
+    }
+
+    @Nonnull
+    public URI validateUrl() {
+        URI rootUri = getUrl();
+        if (rootUri == null) {
+            throw new InvalidUserDataException(String.format(
+                "You must specify a URL for a %s repository.",
+                repositoryType
+            ));
+        }
+        return rootUri;
+    }
+
+    private String allowInsecureProtocolHelpLink() {
+        return documentationRegistry.getDslRefForProperty(UrlArtifactRepository.class, "allowInsecureProtocol");
+    }
+
+    private void nagUserOfInsecureProtocol() {
+        DeprecationLogger
+            .nagUserOfDeprecated(
+                "Using insecure protocols with repositories",
+                String.format(
+                    "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
+                    repositoryType,
+                    displayNameSupplier.get(),
+                    allowInsecureProtocolHelpLink()
+                )
+            );
+    }
+
+    private void nagUserOfInsecureRedirect(URI redirectFrom, URI redirectLocation) {
+        DeprecationLogger
+            .nagUserOfDeprecated(
+                "Following insecure redirects",
+                String.format(
+                    "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols, see %s.",
+                    repositoryType,
+                    displayNameSupplier.get(),
+                    allowInsecureProtocolHelpLink()
+                ),
+                String.format(
+                    "'%s' is redirecting to '%s'.",
+                    redirectFrom,
+                    redirectLocation
+                )
+            );
+    }
+
+    HttpRedirectVerifier createRedirectVerifier() {
+        URI uri = validateUrl();
+        return HttpRedirectVerifierFactory
+            .create(
+                uri,
+                allowInsecureProtocol,
+                this::nagUserOfInsecureProtocol,
+                redirection -> nagUserOfInsecureRedirect(uri, redirection)
+            );
+    }
+
+    public static class Factory {
+        private final FileResolver fileResolver;
+        private final DocumentationRegistry documentationRegistry;
+
+        @Inject
+        public Factory(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+            this.fileResolver = fileResolver;
+            this.documentationRegistry = documentationRegistry;
+        }
+
+        DefaultUrlArtifactRepository create(String repositoryType, Supplier<String> displayNameSupplier) {
+            return new DefaultUrlArtifactRepository(fileResolver, documentationRegistry, repositoryType, displayNameSupplier);
+        }
     }
 }

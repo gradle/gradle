@@ -112,10 +112,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         GradleModuleMetadataParser moduleMetadataParser,
                                         IvyMutableModuleMetadataFactory metadataFactory,
                                         IsolatableFactory isolatableFactory,
-                                        ObjectFactory objectFactory) {
+                                        ObjectFactory objectFactory,
+                                        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.fileResolver = fileResolver;
-        this.urlArtifactRepository = new DefaultUrlArtifactRepository(fileResolver);
+        this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Ivy", this::getDisplayName);
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -177,7 +178,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             m2Compatible = false;
         }
 
-        return new IvyRepositoryDescriptor.Builder(getName(), getUrl())
+        return new IvyRepositoryDescriptor.Builder(getName(), urlArtifactRepository.validateUrl())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
@@ -193,7 +194,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         validate(schemes);
 
         IvyResolver resolver = createResolver(schemes);
-        URI uri = getUrl();
+        URI uri = urlArtifactRepository.validateUrl();
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 
@@ -201,7 +202,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), isAllowInsecureProtocol()));
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier()));
     }
 
     private void validate(Set<String> schemes) {
