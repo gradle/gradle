@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation
+package org.gradle.internal.instantiation.generator
 
+import org.gradle.internal.instantiation.ManagedTypeFactory
 import spock.lang.Specification
 
 class ManagedTypeFactoryTest extends Specification {

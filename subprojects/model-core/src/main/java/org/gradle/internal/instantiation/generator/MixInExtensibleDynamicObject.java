@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation;
+package org.gradle.internal.instantiation.generator;
 
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;

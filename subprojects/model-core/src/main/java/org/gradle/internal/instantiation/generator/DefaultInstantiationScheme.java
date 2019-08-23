@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation;
+package org.gradle.internal.instantiation.generator;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instantiation.DeserializationInstantiator;
+import org.gradle.internal.instantiation.InstanceFactory;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.service.ServiceLookup;
 import sun.reflect.ReflectionFactory;
 

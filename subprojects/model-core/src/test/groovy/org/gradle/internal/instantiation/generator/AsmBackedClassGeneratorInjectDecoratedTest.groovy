@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation
+package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.instantiation.ClassGenerationException
+import org.gradle.internal.instantiation.InjectAnnotationHandler
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.TestUtil
@@ -30,12 +33,12 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassRealizingTwoTypeParameters
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonGetterInjectBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean
+import static AsmBackedClassGeneratorTest.AbstractClassRealizingTwoTypeParameters
+import static AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
+import static AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
+import static AsmBackedClassGeneratorTest.FinalInjectBean
+import static AsmBackedClassGeneratorTest.NonGetterInjectBean
+import static AsmBackedClassGeneratorTest.PrivateInjectBean
 
 class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)

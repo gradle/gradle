@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation;
+package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.ManagedTypeFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;

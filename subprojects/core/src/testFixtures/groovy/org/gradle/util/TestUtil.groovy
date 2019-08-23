@@ -31,7 +31,7 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry

@@ -22,7 +22,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
