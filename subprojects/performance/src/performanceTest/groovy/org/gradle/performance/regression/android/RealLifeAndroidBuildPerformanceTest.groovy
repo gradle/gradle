@@ -56,7 +56,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumVersion = "5.1.1"
-        runner.targetVersions = ["5.7-20190722220035+0000"]
+        runner.targetVersions = ["6.0-20190822220446+0000"]
         if (testProject == SANTA_TRACKER) {
             runner.targetVersions = ["5.6"]
         }
@@ -114,7 +114,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.tasksToRun = [SANTA_TRACKER_ASSEMBLE_DEBUG]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.7-20190722220035+0000"]
+        runner.targetVersions = ["6.0-20190822220446+0000"]
         runner.addBuildMutator { invocationSettings ->
             new ApplyAbiChangeToJavaSourceFileMutator(getSantaTrackerFileToChange(invocationSettings))
         }
@@ -136,7 +136,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.tasksToRun = [SANTA_TRACKER_ASSEMBLE_DEBUG]
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.7-20190722220035+0000"]
+        runner.targetVersions = ["6.0-20190822220446+0000"]
         runner.addBuildMutator { invocationSettings ->
             new ApplyNonAbiChangeToJavaSourceFileMutator(getSantaTrackerFileToChange(invocationSettings))
         }
