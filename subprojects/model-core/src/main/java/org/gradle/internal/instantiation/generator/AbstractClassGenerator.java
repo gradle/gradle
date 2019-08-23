@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeParameter;
@@ -856,7 +855,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private static class ManagedTypeHandler extends ClassGenerationHandler {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
-        private final List<PropertyMetadata> readOnlyNestedProperties = new ArrayList<>();
         private boolean hasFields;
 
         @Override
@@ -889,7 +887,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     return true;
                 } else if (property.getMainGetter().method.getAnnotation(Nested.class) != null) {
                     // Read-only nested property with managed type
-                    readOnlyNestedProperties.add(property);
+                    readOnlyProperties.add(property);
                     return true;
                 }
                 return false;
@@ -903,12 +901,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void applyTo(ClassInspectionVisitor visitor) {
             if (!hasFields) {
-                visitor.mixInManaged();
+                visitor.mixInFullyManagedState();
             }
-            if (!readOnlyProperties.isEmpty() || !readOnlyNestedProperties.isEmpty()) {
-                visitor.mixInServiceInjection();
-            }
-            if (!readOnlyNestedProperties.isEmpty()) {
+            if (!readOnlyProperties.isEmpty()) {
                 visitor.instantiatesNestedObjects();
             }
         }
@@ -930,17 +925,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     visitor.applyReadOnlyManagedStateToGetter(property, getter.method);
                 }
             }
-            for (PropertyMetadata property : readOnlyNestedProperties) {
-                visitor.applyManagedStateToProperty(property);
-                for (MethodMetadata getter : property.getters) {
-                    visitor.applyNestedManagedStateToGetter(property, getter.method);
-                }
-            }
             if (!hasFields) {
-                visitor.addManagedMethods(
-                    mutableProperties,
-                    Iterables.concat(readOnlyProperties, readOnlyNestedProperties)
-                );
+                visitor.addManagedMethods(mutableProperties, readOnlyProperties);
             }
         }
     }
@@ -1216,7 +1202,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void providesOwnToString();
 
-        void mixInManaged();
+        void mixInFullyManagedState();
 
         void mixInServiceInjection();
 
@@ -1251,8 +1237,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
 
         void applyManagedStateToProperty(PropertyMetadata property);
-
-        void applyNestedManagedStateToGetter(PropertyMetadata property, Method getter);
 
         void applyManagedStateToGetter(PropertyMetadata property, Method getter);
 
