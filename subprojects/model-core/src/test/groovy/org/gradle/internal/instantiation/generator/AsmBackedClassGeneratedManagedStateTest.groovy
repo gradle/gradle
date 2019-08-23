@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation
+package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
@@ -27,7 +27,7 @@ import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Unroll
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.*
+import static AsmBackedClassGeneratorTest.*
 
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
     @ClassRule

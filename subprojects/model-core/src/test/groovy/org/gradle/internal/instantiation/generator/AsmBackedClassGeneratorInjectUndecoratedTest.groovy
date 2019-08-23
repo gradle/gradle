@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation
+package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GeneratedSubclass
@@ -26,8 +26,8 @@ import org.gradle.internal.service.ServiceLookup
 
 import javax.inject.Inject
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.BeanWithServiceGetters
+import static AsmBackedClassGeneratorTest.AbstractBean
+import static AsmBackedClassGeneratorTest.BeanWithServiceGetters
 
 class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), 0)

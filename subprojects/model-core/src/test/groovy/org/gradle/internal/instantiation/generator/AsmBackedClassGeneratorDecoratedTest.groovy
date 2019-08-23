@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation
+package org.gradle.internal.instantiation.generator
 
 import com.google.common.base.Function
 import org.gradle.api.Action
@@ -29,8 +29,8 @@ import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InterfaceBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
+import static AsmBackedClassGeneratorTest.Bean
+import static AsmBackedClassGeneratorTest.InterfaceBean
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)

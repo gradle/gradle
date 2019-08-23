@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation;
+package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -49,6 +49,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
+import org.gradle.internal.instantiation.ClassGenerationException;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
