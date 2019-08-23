@@ -17,11 +17,10 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.android.AndroidHome
 import org.junit.Rule
 
 
-class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     @Rule
     TestResources resources = new TestResources(temporaryFolder, "builds")
@@ -29,12 +28,15 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
     def instantExecution
 
     def setup() {
-        AndroidHome.assumeIsSet()
         executer.noDeprecationChecks()
+        executer.withRepositoryMirrors()
+
+        def rootDir = file("android-3.6-mini")
         executer.beforeExecute {
-            withRepositoryMirrors()
-            inDirectory(file("android-3.6-mini"))
+            inDirectory(rootDir)
         }
+        withAgpNightly(rootDir.file("build.gradle"))
+
         instantExecution = newInstantExecutionFixture()
     }
 
