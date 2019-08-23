@@ -247,7 +247,8 @@ class ObjectInputStreamAdapter(
 
     override fun readBoolean(): Boolean = readContext.readBoolean()
 
-    override fun readNBytes(len: Int): ByteArray = inputStream.readNBytes(len)
+    // TODO:instant-execution override Java 11 API for compatibility with Java 11
+    // override fun readNBytes(len: Int): ByteArray = inputStream.readNBytes(len)
 
     override fun readNBytes(b: ByteArray, off: Int, len: Int): Int = inputStream.readNBytes(b, off, len)
 
