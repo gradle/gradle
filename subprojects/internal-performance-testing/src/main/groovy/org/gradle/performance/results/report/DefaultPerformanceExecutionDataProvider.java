@@ -41,6 +41,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     private static final int DEFAULT_RETRY_COUNT = 3;
     @VisibleForTesting
     static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
+        .thenComparing(comparing(ScenarioBuildResultData::isFlaky).reversed())
         .thenComparing(ScenarioBuildResultData::isSuccessful)
         .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())

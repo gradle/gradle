@@ -23,6 +23,7 @@ import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 // See more details in https://docs.google.com/document/d/1pghuxbCR5oYWhUrIK2e4bmABQt3NEIYOOIK4iHyjWyQ/edit#heading=h.is4fzcbmxxld
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
@@ -63,18 +64,15 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         if (buildFailure.get() + stableScenarioRegression.get() + flakyScenarioBigRegression.get() != 0) {
             throw new GradleException(formatErrorString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get()));
         }
-        if (isFlaky(executionDataProvider)) {
-            // flaky
-            markBuildAsSuccessful();
+
+        markBuildAsSuccessfulIfFlaky(executionDataProvider);
+    }
+
+    private void markBuildAsSuccessfulIfFlaky(PerformanceExecutionDataProvider executionDataProvider) {
+        long flakyCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isFlaky).collect(Collectors.counting());
+        if (flakyCount > 0) {
+            System.out.println("##teamcity[buildStatus status='SUCCESS' text='" + flakyCount + " scenarios are flaky.']");
         }
-    }
-
-    private boolean isFlaky(PerformanceExecutionDataProvider executionDataProvider) {
-        return executionDataProvider.getScenarioExecutionData().stream().anyMatch(ScenarioBuildResultData::isFlaky);
-    }
-
-    private void markBuildAsSuccessful() {
-        System.out.println("##teamcity[buildStatus status='SUCCESS' text='First run failed but the rerun succeeded.']");
     }
 
     private String formatErrorString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
