@@ -427,6 +427,56 @@ class DefaultValueSnapshotterTest extends Specification {
         snapshotter.snapshot([a: "1", b: "2"]) != snapshotter.snapshot(isolated2)
     }
 
+    Properties properties(Map<String, String> entries) {
+        def properties = new Properties()
+        entries.each { key, value -> properties.setProperty(key, value) }
+        return properties
+    }
+
+    def "creates snapshot for properties"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot(properties([:]))
+        snapshot1 instanceof MapValueSnapshot
+        snapshot1 == snapshotter.snapshot(properties([:]))
+        snapshot1 != snapshotter.snapshot("abc")
+        snapshot1 != snapshotter.snapshot(properties(["a": "123"]))
+
+        def snapshot2 = snapshotter.snapshot(properties(["a": "123"]))
+        snapshot2 instanceof MapValueSnapshot
+        snapshot2 == snapshotter.snapshot(properties([a: "123"]))
+        snapshot2 != snapshotter.snapshot(["123"])
+        snapshot2 != snapshotter.snapshot(properties([:]))
+        snapshot2 != snapshotter.snapshot(properties([a: "123", b: "abc"]))
+        snapshot2 != snapshot1
+    }
+
+    def "creates isolated properties"() {
+        expect:
+        def original1 = properties([:])
+        def isolated1 = snapshotter.isolate(original1)
+        isolated1 instanceof IsolatedProperties
+        def copy1 = isolated1.isolate()
+        copy1 == properties([:])
+        !copy1.is(original1)
+
+        def original2 = properties([a: "123"])
+        def isolated2 = snapshotter.isolate(original2)
+        isolated2 instanceof IsolatedProperties
+        def copy2 = isolated2.isolate()
+        copy2 == properties([a: "123"])
+        !copy2.is(isolated2)
+    }
+
+    def "creates snapshot for isolated properties"() {
+        expect:
+        def isolated1 = snapshotter.isolate(properties([:]))
+        snapshotter.snapshot(properties([:])) == snapshotter.snapshot(isolated1)
+
+        def isolated2 = snapshotter.isolate(properties([a: "123"]))
+        snapshotter.snapshot(properties([a: "123"])) == snapshotter.snapshot(isolated2)
+        snapshotter.snapshot(properties([a: "1", b: "2"])) != snapshotter.snapshot(isolated2)
+    }
+
     enum Type2 {
         TWO, THREE
     }
@@ -1037,6 +1087,27 @@ class DefaultValueSnapshotterTest extends Specification {
         snapshotter.snapshot(map2, snapshot4) == snapshotter.snapshot(map2)
         snapshotter.snapshot(map3, snapshot4) != snapshot4
         snapshotter.snapshot(map3, snapshot4) == snapshotter.snapshot(map3)
+    }
+
+    def "creates snapshot for properties from candidate"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot(properties([:]))
+        snapshotter.snapshot(properties([:]), snapshot1).is(snapshot1)
+
+        snapshotter.snapshot(properties(["12": "123"]), snapshot1) != snapshot1
+
+        snapshotter.snapshot("other", snapshot1) != snapshot1
+        snapshotter.snapshot("other", snapshot1) == snapshotter.snapshot("other")
+        snapshotter.snapshot(new Bean(), snapshot1) != snapshot1
+        snapshotter.snapshot(new Bean(), snapshot1) == snapshotter.snapshot(new Bean())
+
+        def snapshot2 = snapshotter.snapshot(properties(["12": "123"]))
+        snapshotter.snapshot(properties(["12": "123"]), snapshot2).is(snapshot2)
+
+        snapshotter.snapshot(properties(["12": "456"]), snapshot2) != snapshot2
+        snapshotter.snapshot(properties([:]), snapshot2) != snapshot2
+        snapshotter.snapshot(properties(["123": "123"]), snapshot2) != snapshot2
+        snapshotter.snapshot(properties(["12": "123", "10": "123"]), snapshot2) != snapshot2
     }
 
     def "creates snapshot for provider type from candidate"() {

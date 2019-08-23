@@ -20,17 +20,16 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Properties;
 
-public class IsolatedMap extends AbstractIsolatedMap<Map<Object, Object>> {
-    public IsolatedMap(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
+public class IsolatedProperties extends AbstractIsolatedMap<Properties> {
+    public IsolatedProperties(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
         super(entries);
     }
 
     @Nullable
     @Override
-    public Map<Object, Object> create() {
-        return new LinkedHashMap<>(getEntries().size());
+    public Properties create() {
+        return new Properties();
     }
 }
