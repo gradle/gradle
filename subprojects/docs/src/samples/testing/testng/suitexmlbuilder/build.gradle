@@ -9,7 +9,7 @@ dependencies {
 }
 
 test {
-	useTestNG() {
+	useTestNG {
         suiteXmlBuilder().suite(name: 'testing-testng') {
             test (name : 'testing-testng', annotations : 'JDK', verbose:'1') {
                 classes([:]) {

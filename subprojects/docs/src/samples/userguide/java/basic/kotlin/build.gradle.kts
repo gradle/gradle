@@ -27,8 +27,6 @@ dependencies {
 }
 
 tasks.test {
-    useJUnit()
-
     maxHeapSize = "1G"
 }
 // end::java-basic-test-config[]

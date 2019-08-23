@@ -9,7 +9,7 @@ dependencies {
 }
 
 test {
-   useTestNG(){
+   useTestNG {
        useDefaultListeners = true
    }
 }

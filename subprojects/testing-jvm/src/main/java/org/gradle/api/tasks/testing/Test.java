@@ -33,6 +33,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.TestFrameworkAutoDetection;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
@@ -71,6 +72,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -93,9 +95,11 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * apply plugin: 'java' // adds 'test' task
  *
  * test {
- *   // enable TestNG support (default is JUnit)
+ *   // enable JUnit support
+ *   useJUnit()
+ *   // Alternatively, enable TestNG support
  *   useTestNG()
- *   // enable JUnit Platform (a.k.a. JUnit 5) support
+ *   // Alternatively, enable JUnit Platform (a.k.a. JUnit 5) support
  *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
@@ -820,10 +824,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Internal
     public TestFramework getTestFramework() {
-        return testFramework(null);
+        if (testFramework == null) {
+            TestFrameworkAutoDetection.configure(this);
+        }
+        return testFramework;
     }
 
+    @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("testFramework", "Please call useJUnit(), useJUnitPlatform(), or useTestNG() instead.");
         if (testFramework == null) {
             useJUnit(testFrameworkConfigure);
         }

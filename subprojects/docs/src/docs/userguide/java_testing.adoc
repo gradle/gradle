@@ -289,9 +289,9 @@ Unlike its predecessor, JUnit 5 is modularized and composed of several modules:
 The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new http://junit.org/junit5/docs/current/user-guide/#writing-tests[programming model]
  and http://junit.org/junit5/docs/current/user-guide/#extensions[extension model] for writing tests and extensions in JUnit 5. JUnit Vintage provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
 
-The following code enables JUnit Platform support in `build.gradle`:
+Gradle detects whether the JUnit Platform is on the classpath of the `Test` task and automatically enables its built-in JUnit Platform support. If you don't want to rely on the autodetection or configure it explicitly, you can enable it in your buildscript:
 
-.Enabling JUnit Platform to run your tests
+.Explicitly enabling JUnit Platform to run your tests
 ====
 include::sample[dir="testing/junitplatform/jupiter/groovy",files="build.gradle[tags=enabling-junit-platform]"]
 include::sample[dir="testing/junitplatform/jupiter/kotlin",files="build.gradle.kts[tags=enabling-junit-platform]"]

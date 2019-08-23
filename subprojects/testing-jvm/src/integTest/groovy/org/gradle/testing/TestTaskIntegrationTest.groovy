@@ -235,6 +235,24 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("tasks")
     }
 
+    def "nags when discontinued testFramework() method is used"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            test.testFramework {}
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds("tasks")
+
+        then:
+        with(result.output) {
+            contains("The testFramework method has been deprecated")
+            contains("Please call useJUnit(), useJUnitPlatform(), or useTestNG() instead")
+        }
+    }
+
     private static String standaloneTestClass() {
         return testClass('MyTest')
     }

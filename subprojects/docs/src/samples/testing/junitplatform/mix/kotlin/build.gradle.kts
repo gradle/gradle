@@ -14,7 +14,3 @@ dependencies {
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.1.0")
 }
 // end::vintage-dependencies[]
-
-tasks.test {
-    useJUnitPlatform()
-}

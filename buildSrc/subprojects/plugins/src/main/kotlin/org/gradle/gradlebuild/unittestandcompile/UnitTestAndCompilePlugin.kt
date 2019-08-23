@@ -207,6 +207,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
 
+            useJUnit()
+
             configureJvmForTest()
 
             doFirst {
