@@ -18,7 +18,6 @@ package org.gradle.api.publish.internal.validation;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -47,7 +46,7 @@ public class DuplicatePublicationTracker {
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
         for (PublicationInternal previousPublication : published.get(repositoryKey)) {
             if (previousPublication.getCoordinates().equals(projectIdentity)) {
-                throw new GradleException("Cannot publish multiple publications with coordinates '" + projectIdentity + "' to repository '" + repositoryName + "'");
+                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications will overwrite each other!");
             }
         }
 
