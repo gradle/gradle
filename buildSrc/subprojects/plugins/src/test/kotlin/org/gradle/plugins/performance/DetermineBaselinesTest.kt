@@ -29,11 +29,9 @@ import org.gradle.process.ExecResult
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore
 class DetermineBaselinesTest {
     private
     val project = ProjectBuilder.builder().build()
