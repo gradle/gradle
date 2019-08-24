@@ -46,6 +46,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
     private final Set<ClassLoaderId> usedInThisBuild = Sets.newHashSet();
+    private final Set<CachedClassLoader> released = Sets.newHashSet();
     private final ClasspathHasher classpathHasher;
     private final HashingClassLoaderFactory classLoaderFactory;
 
@@ -75,6 +76,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
 
                 if (cachedLoader != null) {
                     LOGGER.debug("Releasing previous classloader for {}", id);
+                    released.add(cachedLoader);
                     cachedLoader.release(id);
                 }
                 return newLoader.classLoader;
@@ -138,6 +140,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
     public void stop() {
         synchronized (lock) {
             for (CachedClassLoader cachedClassLoader : byId.values()) {
+                ClassLoaderUtils.tryClose(cachedClassLoader.classLoader);
+            }
+            for (CachedClassLoader cachedClassLoader : released) {
                 ClassLoaderUtils.tryClose(cachedClassLoader.classLoader);
             }
             byId.clear();
