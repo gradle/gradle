@@ -19,11 +19,13 @@ package org.gradle.internal.instantiation.generator;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.OwnerAware;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.Describables;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
@@ -37,6 +39,12 @@ public class ManagedObjectFactory {
     public ManagedObjectFactory(ServiceLookup serviceLookup, Instantiator instantiator) {
         this.serviceLookup = serviceLookup;
         this.instantiator = instantiator;
+    }
+
+    public void attachOwner(Object instance, String propertyName) {
+        if (instance instanceof OwnerAware) {
+            ((OwnerAware) instance).attachDisplayName(Describables.withTypeAndName("property", propertyName));
+        }
     }
 
     public Object newInstance(Class<?> type) {

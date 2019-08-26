@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
@@ -55,6 +56,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<K>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<K, V>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
+    }
+
+    @Override
+    protected ValueSupplier getSupplier() {
+        return value;
     }
 
     @Nullable
@@ -94,7 +100,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     public Map<K, V> get() {
         beforeRead();
         Map<K, V> entries = new LinkedHashMap<K, V>();
-        value.collectInto(entryCollector, entries);
+        value.collectInto(getDisplayName(), entryCollector, entries);
         return ImmutableMap.copyOf(entries);
     }
 
@@ -301,7 +307,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
-    public String toString() {
+    protected String describeContents() {
         return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), value.toString());
     }
 
@@ -387,9 +393,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            left.collectInto(collector, dest);
-            right.collectInto(collector, dest);
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            left.collectInto(owner, collector, dest);
+            right.collectInto(owner, collector, dest);
         }
 
         @Override

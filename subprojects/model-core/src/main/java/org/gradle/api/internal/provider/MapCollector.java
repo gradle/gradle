@@ -16,17 +16,21 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.Describable;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public interface MapCollector<K, V> {
+/**
+ * A supplier of zero or more mappings from value of type {@link K} to value of type {@link V}.
+ */
+public interface MapCollector<K, V> extends ValueSupplier {
 
     boolean present();
 
-    void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
+    void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest);
 
     boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
 
@@ -35,10 +39,4 @@ public interface MapCollector<K, V> {
     boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
 
     void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
-
-    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
-
-    boolean isContentProducedByTask();
-
-    boolean isValueProducedByTask();
 }

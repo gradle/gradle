@@ -184,6 +184,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
             
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "file collection"
             assert thing.value.files.empty
             thing.value.from("a.txt")
             assert thing.value.files as List == [file("a.txt")]
@@ -193,7 +194,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
-    def "can create instance of interface with read-only Property property"() {
+    def "can create instance of interface with read-only Propert<T>y property"() {
         buildFile << """
             interface Thing {
                 Property<String> getValue()
@@ -201,6 +202,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             
             extensions.create("thing", Thing)
             assert thing.value.getOrNull() == null
+            assert thing.value.toString() == "property 'value'"
             thing {
                 value = "value"
             }
@@ -218,6 +220,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
             
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "property 'value'"
             assert thing.value.getOrNull() == null
             thing {
                 value = file("thing.txt")
@@ -236,6 +239,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
             
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "property 'value'"
             assert thing.value.getOrNull() == null
             thing {
                 value = file("thing.txt")
@@ -254,6 +258,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
             
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "property 'value'"
             assert thing.value.getOrNull() == []
             thing {
                 value = ["thing"]
@@ -272,6 +277,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
             
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "property 'value'"
             assert thing.value.getOrNull() == [] as Set
             thing {
                 value = ["thing"]
@@ -290,6 +296,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
             
             extensions.create("thing", Thing)
+            assert thing.value.toString() == "property 'value'"
             assert thing.value.getOrNull() == [:]
             thing {
                 value = [a: "b"]
