@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,21 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware {
+public interface ValueSupplier {
     /**
-     * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
+     * See {@link ProviderInternal#maybeVisitBuildDependencies(TaskDependencyResolveContext)}.
      */
-    void setFromAnyValue(Object object);
+    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 
     /**
-     * Associates this property with the task that produces its value.
+     * See {@link ProviderInternal#isContentProducedByTask()}.
      */
-    void attachProducer(Task producer);
+    boolean isContentProducedByTask();
+
+    /**
+     * See {@link ProviderInternal#isValueProducedByTask()}.
+     */
+    boolean isValueProducedByTask();
 }

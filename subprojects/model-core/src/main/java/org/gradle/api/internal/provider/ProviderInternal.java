@@ -55,5 +55,8 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
     @Override
     <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
 
-    ProviderInternal<T> withFinalValue();
+    /**
+     * Returns a view of this provider that can be used to supply a value to a {@link org.gradle.api.provider.Property} instance.
+     */
+    ScalarSupplier<T> asSupplier();
 }

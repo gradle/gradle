@@ -26,8 +26,6 @@ import spock.lang.Specification
 abstract class AbstractClassGeneratorSpec extends Specification {
     abstract ClassGenerator getGenerator()
 
-    Instantiator instantiator = Stub(Instantiator)
-
     protected <T> T create(Class<T> clazz, Object... args) {
         return doCreate(generator, clazz, defaultServices(), null, args)
     }
@@ -54,8 +52,13 @@ abstract class AbstractClassGeneratorSpec extends Specification {
         return services
     }
 
-    private <T> T doCreate(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Describable displayName, Object... args) {
+    protected <T> T doCreate(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Describable displayName, Object[] args) {
         def type = generator.generate(clazz)
+        def instantiator = Stub(Instantiator) {
+            _ * newInstance(_, _) >> { Class<Object> nested, Object[] nestedArgs ->
+                return doCreate(generator, nested, services, (Describable) null, nestedArgs)
+            }
+        }
         return type.constructors[0].newInstance(services, instantiator, displayName, args)
     }
 }

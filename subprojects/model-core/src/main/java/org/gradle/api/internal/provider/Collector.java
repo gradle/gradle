@@ -16,25 +16,23 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.Describable;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public interface Collector<T> {
+/**
+ * A supplier of zero or more values of type {@link T}.
+ */
+public interface Collector<T> extends ValueSupplier {
     boolean present();
 
-    void collectInto(ValueCollector<T> collector, Collection<T> dest);
+    void collectInto(@Nullable Describable owner,  ValueCollector<T> collector, Collection<T> dest);
 
     boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
 
     int size();
 
     void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources);
-
-    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
-
-    boolean isContentProducedByTask();
-
-    boolean isValueProducedByTask();
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
@@ -27,7 +28,7 @@ import javax.annotation.Nullable;
 /**
  * A partial {@link Provider} implementation.
  */
-public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
+public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, ScalarSupplier<T>, Managed {
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
         return new TransformBackedProvider<S, T>(transformer, this);
@@ -41,6 +42,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public boolean isPresent() {
         return getOrNull() != null;
+    }
+
+    @Override
+    public T get(@Nullable Describable owner) throws IllegalStateException {
+        return get();
     }
 
     @Override
@@ -84,9 +90,19 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ProviderInternal<T> withFinalValue() {
+    public ProviderInternal<T> asProvider() {
+        return this;
+    }
+
+    @Override
+    public ScalarSupplier<T> asSupplier() {
+        return this;
+    }
+
+    @Override
+    public ScalarSupplier<T> withFinalValue() {
         T value = getOrNull();
-        return Providers.ofNullable(value);
+        return Providers.nullableValue(value);
     }
 
     @Override
