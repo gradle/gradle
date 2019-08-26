@@ -18,12 +18,15 @@ package org.gradle.plugins.signing.signatory.internal.pgp;
 
 import groovy.lang.Closure;
 import org.bouncycastle.openpgp.PGPSecretKey;
+import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRing;
+import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
+import org.gradle.plugins.signing.signatory.pgp.PgpKeyId;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
 import org.gradle.util.ConfigureUtil;
@@ -45,10 +48,16 @@ public class InMemoryPgpSignatoryProvider implements SignatoryProvider<PgpSignat
 
     private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<>();
+    private final String defaultKeyId;
     private final String defaultSecretKey;
     private final String defaultPassword;
 
     public InMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
+        this(null, defaultSecretKey, defaultPassword);
+    }
+
+    public InMemoryPgpSignatoryProvider(String defaultKeyId, String defaultSecretKey, String defaultPassword) {
+        this.defaultKeyId = defaultKeyId;
         this.defaultSecretKey = defaultSecretKey;
         this.defaultPassword = defaultPassword;
     }
@@ -56,7 +65,7 @@ public class InMemoryPgpSignatoryProvider implements SignatoryProvider<PgpSignat
     @Override
     public PgpSignatory getDefaultSignatory(Project project) {
         if (defaultSecretKey != null && defaultPassword != null) {
-            return createSignatory("default", defaultSecretKey, defaultPassword);
+            return createSignatory("default", defaultKeyId, defaultSecretKey, defaultPassword);
         }
         return null;
     }
@@ -83,18 +92,42 @@ public class InMemoryPgpSignatoryProvider implements SignatoryProvider<PgpSignat
     }
 
     private void createSignatoryFor(String name, Object[] args) {
-        if (args.length != 2) {
-            throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
+        String keyId = null;
+        String secretKey = null;
+        String password = null;
+
+        switch (args.length) {
+            case 2:
+                secretKey = args[0].toString();
+                password = args[1].toString();
+                break;
+            case 3:
+                keyId = args[0].toString();
+                secretKey = args[1].toString();
+                password = args[2].toString();
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
         }
-        String secretKey = args[0].toString();
-        String password = args[1].toString();
-        signatories.put(name, createSignatory(name, secretKey, password));
+        signatories.put(name, createSignatory(name, keyId, secretKey, password));
     }
 
-    private PgpSignatory createSignatory(String name, String secretKey, String password) {
+    private PgpSignatory createSignatory(String name, String keyId, String secretKey, String password) {
         try (InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(secretKey.getBytes(UTF_8)))) {
-            PGPSecretKey key = new JcaPGPSecretKeyRing(in).getSecretKey();
-            return factory.createSignatory(name, key, password);
+            if (keyId == null) {
+                PGPSecretKey key = new JcaPGPSecretKeyRing(in).getSecretKey();
+                return factory.createSignatory(name, key, password);
+            } else {
+                PgpKeyId expectedKeyId = new PgpKeyId(keyId);
+                for (PGPSecretKeyRing keyring : new JcaPGPSecretKeyRingCollection(in)) {
+                    for (PGPSecretKey key : keyring) {
+                        if (expectedKeyId.equals(new PgpKeyId(key.getKeyID()))) {
+                            return factory.createSignatory(name, key, password);
+                        }
+                    }
+                }
+            }
+            return null;
         } catch (Exception e) {
             throw new InvalidUserDataException("Could not read PGP secret key", e);
         }
