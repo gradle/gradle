@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.DeprecatedClassloader;
 import org.gradle.util.DeprecationLogger;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -75,7 +75,6 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
         if (resources.hasMoreElements()) {
             maybeEmitDeprecationWarning();
         }
-
         return resources;
     }
 
@@ -99,8 +98,10 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
     }
 
     private void maybeEmitDeprecationWarning() {
-        DeprecationLogger.nagUserOfDeprecated(BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING);
-        deprecationFired = true;
+        if (!deprecationFired) {
+            DeprecationLogger.nagUserOfDeprecated(BUILDSRC_IN_SETTINGS_DEPRECATION_WARNING);
+            deprecationFired = true;
+        }
     }
 
     @Override
@@ -111,15 +112,11 @@ public class DefaultDeprecatedClassLoader extends ClassLoader implements Depreca
 
     @Override
     public void close() throws IOException {
-        if (deprecatedUsageLoader instanceof Closeable) {
-            ((Closeable) deprecatedUsageLoader).close();
-        }
+        ClassLoaderUtils.tryClose(deprecatedUsageLoader);
 
         // not sure if this is required as its the parent of
         // deprecatedUsageLoader already
-        if (nonDeprecatedParent instanceof Closeable) {
-            ((Closeable) nonDeprecatedParent).close();
-        }
+        ClassLoaderUtils.tryClose(nonDeprecatedParent);
     }
 
     @Override
