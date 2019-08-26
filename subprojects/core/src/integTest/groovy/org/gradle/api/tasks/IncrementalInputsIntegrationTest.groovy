@@ -150,7 +150,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
         expect:
         fails("withNonIncrementalInput")
-        failure.assertHasCause("Cannot query incremental changes: No property found for value property 'nonIncrementalInput'. Incremental properties: inputDir.")
+        failure.assertHasCause("Cannot query incremental changes: No property found for value task ':withNonIncrementalInput' property 'nonIncrementalInput'. Incremental properties: inputDir.")
     }
 
     def "changes to non-incremental input parameters cause a rebuild"() {
