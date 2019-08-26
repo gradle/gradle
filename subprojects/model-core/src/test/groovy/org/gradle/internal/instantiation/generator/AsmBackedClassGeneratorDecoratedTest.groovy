@@ -21,12 +21,15 @@ import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import static AsmBackedClassGeneratorTest.Bean
@@ -71,6 +74,18 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         bean.hasUsefulDisplayName()
         beanWithNoName.toString().startsWith("${InterfaceBean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
+    }
+
+    def "assigns display name to read only property of type Property<T> with final getter"() {
+        given:
+        def bean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def bean2 = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def bean3 = create(HasMutableProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+
+        expect:
+        bean.someValue.toString() == "<display name> property 'someValue'"
+        bean2.someValue.toString() == "property(class java.lang.String, undefined)"
+        bean3.someValue.toString() == "property(class java.lang.String, undefined)"
     }
 
     def "can attach nested extensions to object"() {
@@ -518,6 +533,7 @@ class ActionsTester {
 
 class ActionMethodWithSameNameAsProperty {
     String prop
+
     void prop(Action<String> action) {
         action.execute(prop)
         prop = "called"
@@ -602,6 +618,34 @@ interface WithProperties {
 
 class ImplementsInterface implements WithProperties {
     String prop
+}
+
+class HasReadOnlyFinalProperty {
+    final Property<String> someValue
+
+    HasReadOnlyFinalProperty(ObjectFactory objectFactory) {
+        someValue = objectFactory.property(String)
+    }
+}
+
+class HasReadOnlyProperty {
+    private final Property<String> prop
+
+    Property<String> getSomeValue() {
+        return prop
+    }
+
+    HasReadOnlyProperty(ObjectFactory objectFactory) {
+        prop = objectFactory.property(String)
+    }
+}
+
+class HasMutableProperty {
+    Property<String> someValue
+
+    HasMutableProperty(ObjectFactory objectFactory) {
+        someValue = objectFactory.property(String)
+    }
 }
 
 class HasToString {

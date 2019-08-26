@@ -49,7 +49,7 @@ public class Describables {
     }
 
     /**
-     * Returns a describable for an object that has a type and name. Quoates are added around the name.
+     * Returns a describable for an object that has a type and name. Quotes are added around the name.
      */
     public static DisplayName withTypeAndName(final Object type, final String name) {
         return new AbstractDescribable() {
