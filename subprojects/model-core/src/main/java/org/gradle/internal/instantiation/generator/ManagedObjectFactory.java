@@ -44,7 +44,7 @@ public class ManagedObjectFactory {
     }
 
     @SuppressWarnings("unused")
-    public void attachOwner(GeneratedSubclass owner, Object instance, String propertyName) {
+    public static void attachOwner(GeneratedSubclass owner, Object instance, String propertyName) {
         if (instance instanceof OwnerAware) {
             DisplayName property;
             if (owner.hasUsefulDisplayName()) {

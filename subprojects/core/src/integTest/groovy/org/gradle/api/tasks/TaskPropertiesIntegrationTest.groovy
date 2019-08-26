@@ -45,7 +45,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("count = 12")
     }
 
-    def "reports failure to query Property<T> with no value"() {
+    def "reports failure to query managed Property<T> with no value"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -65,6 +65,31 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails("thing")
 
         then:
+        failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
+    }
+
+    def "reports failure to query unmanaged Property<T> with no value"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                final Property<Integer> count = project.objects.property(Integer)
+                
+                @TaskAction
+                void go() {
+                    println("count = \${count.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                println("property = \$count")
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        outputContains("property = task ':thing' property 'count'")
         failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
     }
 
