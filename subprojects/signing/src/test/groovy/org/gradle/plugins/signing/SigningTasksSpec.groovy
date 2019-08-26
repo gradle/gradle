@@ -24,6 +24,7 @@ class SigningTasksSpec extends SigningProjectSpec {
     def "sign jar with defaults"() {
         given:
         useJavadocAndSourceJars()
+        createJarTaskOutputFile('jar', 'sourcesJar', 'javadocJar')
 
         when:
         signing {
@@ -68,16 +69,13 @@ class SigningTasksSpec extends SigningProjectSpec {
         useJavadocAndSourceJars()
         applyPlugin()
         addSigningProperties()
+        createJarTaskOutputFile('jar')
 
         when:
         Sign signTask = signing.sign(jar).first()
 
         then:
-        def jarFile = jar.outputs.files.singleFile
-        File libsDir = jarFile.parentFile
-        libsDir.mkdirs()
-        jarFile.createNewFile()
-        signTask.signatures.collect { it.file } == [new File(libsDir, "test.jar.asc")]
+        def libsDir = jar.outputs.files.singleFile.parentFile
         signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
     }
 
@@ -95,6 +93,23 @@ class SigningTasksSpec extends SigningProjectSpec {
         signTask.signaturesByKey == [:]
     }
 
+    def "files to sign are de-duplicated"() {
+        given:
+        useJavadocAndSourceJars()
+        applyPlugin()
+        addSigningProperties()
+        createJarTaskOutputFile('jar')
+
+        when:
+        Sign signTask = signing.sign(jar).first()
+        signTask.sign('', jar.outputs.files.singleFile) // add jar task output again, this time directly as File
+
+        then:
+        signTask.signatures.size() == 2
+        noExceptionThrown()
+        signTask.signaturesByKey == ["test.jar.asc:jar.asc:asc:": signTask.singleSignature]
+    }
+
     def "sign task has description"() {
         given:
         useJavadocAndSourceJars()
@@ -107,5 +122,15 @@ class SigningTasksSpec extends SigningProjectSpec {
         then:
         signJar.description == "Signs the archive produced by the 'jar' task."
         signSourcesJar.description == "Signs the archive produced by the 'sourcesJar' task."
+    }
+
+    private createJarTaskOutputFile(String... tasksToSimulate) {
+        for (def task : tasksToSimulate) {
+            def jarFile = tasks.getByName(task).outputs.files.singleFile
+            File libsDir = jarFile.parentFile
+            libsDir.mkdirs()
+            jarFile.createNewFile()
+        }
+
     }
 }

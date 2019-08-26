@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -25,16 +24,9 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.net.URI;
-import java.util.List;
 
 public interface FileResolver extends RelativeFilePathResolver, PathToFileResolver {
     File resolve(Object path, PathValidation validation);
-
-    FileCollectionInternal resolveFiles(Object... paths);
-
-    FileTreeInternal resolveFilesAsTree(Object... paths);
-
-    FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees);
 
     URI resolveUri(Object path);
 

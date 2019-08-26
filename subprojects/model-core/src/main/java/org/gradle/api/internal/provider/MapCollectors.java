@@ -17,9 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class MapCollectors {
@@ -50,8 +52,22 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
         }
     }
 
@@ -93,7 +109,22 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(Providers.of(ImmutableMap.of(key, value)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
 
@@ -166,8 +197,23 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(providerOfValue.map(v -> ImmutableMap.of(key, v)));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfValue.maybeVisitBuildDependencies(context);
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return providerOfValue.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return providerOfValue.isValueProducedByTask();
         }
     }
 
@@ -207,7 +253,22 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(Providers.of(entries));
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
             return false;
         }
     }
@@ -258,8 +319,23 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.add(providerOfEntries);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return providerOfEntries.maybeVisitBuildDependencies(context);
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return providerOfEntries.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return providerOfEntries.isValueProducedByTask();
         }
     }
 
@@ -291,8 +367,22 @@ public class MapCollectors {
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return true;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return false;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return false;
         }
     }
 }

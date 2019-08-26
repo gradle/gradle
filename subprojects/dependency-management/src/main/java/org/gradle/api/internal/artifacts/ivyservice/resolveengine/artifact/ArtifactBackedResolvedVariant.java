@@ -52,7 +52,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         if (artifacts.size() == 1) {
             return new ArtifactBackedResolvedVariant(displayName, attributes, new SingleArtifactSet(displayName, attributes, artifacts.iterator().next()));
         }
-        List<SingleArtifactSet> artifactSets = new ArrayList<SingleArtifactSet>();
+        List<SingleArtifactSet> artifactSets = new ArrayList<>(artifacts.size());
         for (ResolvableArtifact artifact : artifacts) {
             artifactSets.add(new SingleArtifactSet(displayName, attributes, artifact));
         }

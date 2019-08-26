@@ -401,20 +401,20 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     private void assertDependencyArtifactReadTimeout(MavenModule module) {
-        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
+        failure.assertHasCause("Could not download ${module.artifactFile.name} (${mavenModuleCoordinates(module)})")
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
         failure.assertHasCause("Read timed out")
     }
 
     private void assertDependencyArtifactInternalServerError(MavenModule module) {
-        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
+        failure.assertHasCause("Could not download ${module.artifactFile.name} (${mavenModuleCoordinates(module)})")
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'. Received status code 500 from server: broken")
     }
 
     private void assertDependencyArtifactUnauthorizedError(MavenModule module) {
-        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
+        failure.assertHasCause("Could not download ${module.artifactFile.name} (${mavenModuleCoordinates(module)})")
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'. Received status code 401 from server: unauthorized")
     }

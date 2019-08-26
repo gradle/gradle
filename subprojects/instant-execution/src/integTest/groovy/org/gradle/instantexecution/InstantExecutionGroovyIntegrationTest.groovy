@@ -30,9 +30,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         buildFile << """
             plugins { id 'groovy' }
         
-            repositories {
-                ${jcenterRepository()}
-            }
+            ${jcenterRepository()}
             
             dependencies {
                 implementation(localGroovy())

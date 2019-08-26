@@ -267,6 +267,21 @@ class IsolatableSerializerRegistryTest extends Specification {
         newIsolatables[0].isolate() == map
     }
 
+    def "can serialize/deserialize isolated Properties"() {
+        Properties properties = new Properties()
+        properties.setProperty("foo", "bar")
+        properties.setProperty("baz", "buzz")
+
+        when:
+        serialize(isolatableFactory.isolate(properties))
+
+        and:
+        Isolatable<?>[] newIsolatables = deserialize()
+
+        then:
+        newIsolatables[0].isolate() == properties
+    }
+
     def "can serialize/deserialize isolated Array"() {
         String[] array = ["foo", "bar"]
 

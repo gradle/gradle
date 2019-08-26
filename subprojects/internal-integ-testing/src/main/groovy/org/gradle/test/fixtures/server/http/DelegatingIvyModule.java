@@ -258,8 +258,9 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
-    public void withVariant(String name, Closure<?> action) {
+    public IvyModule withVariant(String name, Closure<?> action) {
         backingModule.withVariant(name, action);
+        return this;
     }
 
     @Override

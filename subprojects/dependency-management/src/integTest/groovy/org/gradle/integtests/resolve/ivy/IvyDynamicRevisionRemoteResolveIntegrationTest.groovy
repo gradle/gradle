@@ -1188,7 +1188,7 @@ dependencies {
 
         then:
         fails "checkDeps"
-        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.2)")
+        failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
         failure.assertHasCause("Could not GET '${projectA.jar.uri}'. Received status code 500 from server: broken")
 
         when:

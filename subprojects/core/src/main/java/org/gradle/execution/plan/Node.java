@@ -46,6 +46,7 @@ public abstract class Node implements Comparable<Node> {
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
+    private MutationInfo mutationInfo = new MutationInfo(this);
 
     public Node() {
         this.state = ExecutionState.UNKNOWN;
@@ -258,6 +259,12 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public abstract Set<Node> getFinalizers();
+
+    public MutationInfo getMutationInfo() {
+        return mutationInfo;
+    }
+
+    public abstract void resolveMutations();
 
     public abstract boolean isPublicNode();
 

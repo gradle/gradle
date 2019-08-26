@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.artifacts.transform.LegacyTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -46,6 +47,7 @@ class DefaultTransformerCodec(
     private val isolatableFactory: IsolatableFactory,
     private val valueSnapshotter: ValueSnapshotter,
     private val fileCollectionFactory: FileCollectionFactory,
+    private val fileLookup: FileLookup,
     private val fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val isolatableSerializerRegistry: IsolatableSerializerRegistry,
     private val parameterScheme: ArtifactTransformParameterScheme,
@@ -86,6 +88,7 @@ class DefaultTransformerCodec(
             isolatableFactory,
             valueSnapshotter,
             fileCollectionFactory,
+            fileLookup,
             parameterScheme.inspectionScheme.propertyWalker,
             actionScheme.instantiationScheme
         )

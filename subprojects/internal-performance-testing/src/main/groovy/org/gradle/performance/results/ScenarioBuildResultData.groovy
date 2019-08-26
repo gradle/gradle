@@ -101,6 +101,10 @@ class ScenarioBuildResultData {
         }
     }
 
+    boolean isFlaky() {
+        return rawData.size() > 1 && rawData.count { it.successful } == 1;
+    }
+
     static class ExecutionData {
         Date time
         String commitId

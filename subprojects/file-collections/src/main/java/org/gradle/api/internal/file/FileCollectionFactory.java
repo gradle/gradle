@@ -17,15 +17,22 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 public interface FileCollectionFactory {
+    /**
+     * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
+     */
+    FileCollectionFactory withResolver(PathToFileResolver fileResolver);
+
     /**
      * Creates a {@link FileCollection} with the given contents.
      *
@@ -102,4 +109,9 @@ public interface FileCollectionFactory {
      * Creates an empty {@link ConfigurableFileCollection} instance.
      */
     ConfigurableFileCollection configurableFiles();
+
+    /**
+     * Creates a {@link ConfigurableFileTree} instance with no base dir specified.
+     */
+    ConfigurableFileTree fileTree();
 }

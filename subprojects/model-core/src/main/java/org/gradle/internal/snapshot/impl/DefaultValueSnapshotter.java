@@ -36,6 +36,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFactory {
@@ -123,7 +124,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 builder.add(new MapEntrySnapshot<T>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
             }
-            return visitor.map(builder.build());
+            if (value instanceof Properties) {
+                return visitor.properties(builder.build());
+            } else {
+                return visitor.map(builder.build());
+            }
         }
         if (value.getClass().isArray()) {
             int length = Array.getLength(value);
@@ -210,6 +215,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         T set(ImmutableSet<T> elements);
 
         T map(ImmutableList<MapEntrySnapshot<T>> elements);
+
+        T properties(ImmutableList<MapEntrySnapshot<T>> elements);
 
         T serialized(Object value, byte[] serializedValue);
     }
@@ -318,6 +325,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public ValueSnapshot map(ImmutableList<MapEntrySnapshot<ValueSnapshot>> elements) {
+            return new MapValueSnapshot(elements);
+        }
+
+        @Override
+        public ValueSnapshot properties(ImmutableList<MapEntrySnapshot<ValueSnapshot>> elements) {
             return new MapValueSnapshot(elements);
         }
     }
@@ -429,6 +441,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         @Override
         public Isolatable<?> map(ImmutableList<MapEntrySnapshot<Isolatable<?>>> elements) {
             return new IsolatedMap(elements);
+        }
+
+        @Override
+        public Isolatable<?> properties(ImmutableList<MapEntrySnapshot<Isolatable<?>>> elements) {
+            return new IsolatedProperties(elements);
         }
     }
 }

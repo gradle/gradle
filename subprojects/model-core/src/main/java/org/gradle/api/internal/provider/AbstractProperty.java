@@ -39,6 +39,11 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     @Override
+    public boolean isContentProducedByTask() {
+        return producer != null;
+    }
+
+    @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         if (producer != null) {
             context.add(producer);

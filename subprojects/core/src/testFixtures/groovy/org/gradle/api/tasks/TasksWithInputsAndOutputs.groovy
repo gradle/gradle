@@ -120,6 +120,36 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
+    def taskTypeWithInputListProperty() {
+        buildFile << """
+            class InputTask extends DefaultTask {
+                @Input
+                final ListProperty<Integer> inValue = project.objects.listProperty(Integer)
+                @OutputFile
+                final RegularFileProperty outFile = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = inValue.get().collect { it + 10 }.join(",")
+                }
+            }
+        """
+    }
+
+    def taskTypeWithInputMapProperty() {
+        buildFile << """
+            class InputTask extends DefaultTask {
+                @Input
+                final MapProperty<String, Integer> inValue = project.objects.mapProperty(String, Integer)
+                @OutputFile
+                final RegularFileProperty outFile = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = inValue.get().collect { k, v -> "\$k=\${v + 10}" }.join(",")
+                }
+            }
+        """
+    }
+
     def taskTypeWithInputFileProperty() {
         buildFile << """
             class InputFileTask extends DefaultTask {

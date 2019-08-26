@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
@@ -64,6 +65,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final PropertyWalker parametersPropertyWalker;
     private final TypeMetadataStore actionMetadataStore;
     private final FileCollectionFactory fileCollectionFactory;
+    private final FileLookup fileLookup;
     private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
     private final DomainObjectContext owner;
     private final ProjectStateRegistry projectRegistry;
@@ -77,6 +79,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         TransformerInvocationFactory transformerInvocationFactory,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFactory fileCollectionFactory,
+        FileLookup fileLookup,
         FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
         DomainObjectContext owner,
         ProjectStateRegistry projectRegistry,
@@ -89,6 +92,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.transformerInvocationFactory = transformerInvocationFactory;
         this.valueSnapshotter = valueSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.fileLookup = fileLookup;
         this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
         this.owner = owner;
         this.projectRegistry = projectRegistry;
@@ -142,6 +146,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             isolatableFactory,
             valueSnapshotter,
             fileCollectionFactory,
+            fileLookup,
             parametersPropertyWalker,
             actionInstantiationScheme);
 

@@ -74,7 +74,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
-        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
 
         when:
         executer.withArguments("--refresh-dependencies")
@@ -92,7 +92,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
-        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps2[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
 
         where:
         chunked << [true, false]
@@ -169,7 +169,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
-        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
 
         when:
         executer.withArguments("--refresh-dependencies")
@@ -199,7 +199,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
-        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps2[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
     }
 
     def "emits events for dynamic dependency resolution"() {
@@ -257,7 +257,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
-        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
 
         when:
         executer.withArguments("--refresh-dependencies")
@@ -284,7 +284,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
-        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps2[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
     }
 
     def "emits events for an artifact once per build"() {
@@ -334,7 +334,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
-        artifactOps[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
 
         when:
         executer.withArguments("--refresh-dependencies")
@@ -356,7 +356,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
-        artifactOps2[0].details.artifactIdentifier == 'impl.jar (org.utils:impl:1.3)'
+        artifactOps2[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
 
         where:
         chunked << [true, false]

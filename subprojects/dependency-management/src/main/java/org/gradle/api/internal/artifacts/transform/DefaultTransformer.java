@@ -29,6 +29,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
@@ -90,6 +91,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionFactory fileCollectionFactory;
+    private final FileLookup fileLookup;
     private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
     private final boolean requiresInputChanges;
@@ -111,6 +113,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         IsolatableFactory isolatableFactory,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFactory fileCollectionFactory,
+        FileLookup fileLookup,
         PropertyWalker parameterPropertyWalker,
         InstantiationScheme actionInstantiationScheme
     ) {
@@ -124,6 +127,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.fileLookup = fileLookup;
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
@@ -180,7 +184,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     @Override
     public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         TransformAction transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
-        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir);
+        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
     }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.api.model.ObjectFactory
@@ -45,6 +46,7 @@ import spock.lang.Specification
 class DefaultBaseRepositoryFactoryTest extends Specification {
     final LocalMavenRepositoryLocator localMavenRepoLocator = Mock()
     final FileResolver fileResolver = Mock()
+    final FileCollectionFactory fileCollectionFactory = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
@@ -59,7 +61,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver, new DocumentationRegistry());
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-        localMavenRepoLocator, fileResolver, transportFactory, locallyAvailableResourceFinder,
+        localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
         TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter() as IsolatableFactory, Mock(ObjectFactory),
         CollectionCallbackActionDecorator.NOOP,

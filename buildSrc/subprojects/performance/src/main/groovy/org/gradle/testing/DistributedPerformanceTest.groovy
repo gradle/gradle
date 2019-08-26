@@ -491,6 +491,10 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void checkForErrors() {
+        if(isRerun()) {
+            // report generation will control the coordinator failure status
+            return
+        }
         def failedBuilds = finishedBuilds.values().findAll { it.buildResponse.status != "SUCCESS" }
         if (failedBuilds) {
             throw new GradleException("${failedBuilds.size()} performance tests failed. See $reportDir for details.")

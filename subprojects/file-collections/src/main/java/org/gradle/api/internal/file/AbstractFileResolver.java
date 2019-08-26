@@ -17,23 +17,17 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
-import java.util.List;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private final NotationParser<Object, Object> fileNotationParser;
@@ -140,24 +134,6 @@ public abstract class AbstractFileResolver implements FileResolver {
                 }
                 break;
         }
-    }
-
-    @Override
-    public FileCollectionInternal resolveFiles(Object... paths) {
-        if (paths.length == 1 && paths[0] instanceof FileCollection) {
-            return Cast.cast(FileCollectionInternal.class, paths[0]);
-        }
-        return new DefaultConfigurableFileCollection(this, null, paths);
-    }
-
-    @Override
-    public FileTreeInternal resolveFilesAsTree(Object... paths) {
-        return Cast.cast(FileTreeInternal.class, resolveFiles(paths).getAsFileTree());
-    }
-
-    @Override
-    public FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees) {
-        return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, fileTrees));
     }
 
     @Override

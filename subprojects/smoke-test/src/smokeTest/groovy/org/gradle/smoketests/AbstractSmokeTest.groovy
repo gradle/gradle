@@ -77,7 +77,7 @@ abstract class AbstractSmokeTest extends Specification {
         static androidTools = "28.0.3"
         // https://developer.android.com/studio/releases/gradle-plugin
         static androidGradle3x = "3.3.2"
-        static androidGradle = Versions.of("3.2.1", androidGradle3x, "3.4.1")
+        static androidGradle = Versions.of("3.2.1", androidGradle3x, "3.4.2", "3.5.0")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.31', '1.3.41')
@@ -159,7 +159,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
             .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters()) as DefaultGradleRunner
-        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=512m", "-XX:+HeapDumpOnOutOfMemoryError")
+        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError")
     }
 
     private static List<String> repoMirrorParameters() {

@@ -101,7 +101,8 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.status': defaultStatus(),
                             'org.gradle.usage': 'java-api',
-                            'org.gradle.libraryelements': 'jar'
+                            'org.gradle.libraryelements': 'jar',
+                            'org.gradle.category': 'library'
                     ])
                     module('org:transitive:1.0')
                 }

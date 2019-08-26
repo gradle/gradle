@@ -97,6 +97,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -189,9 +190,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public DependencyResolutionServices create(FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
+    public DependencyResolutionServices create(FileResolver resolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
         DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
-        services.add(FileResolver.class, fileResolver);
+        services.add(FileResolver.class, resolver);
+        services.add(FileCollectionFactory.class, fileCollectionFactory);
         services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
         services.add(ProjectFinder.class, projectFinder);
         services.add(DomainObjectContext.class, domainObjectContext);
@@ -396,7 +398,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ArtifactTransformParameterScheme parameterScheme,
             ArtifactTransformActionScheme actionScheme,
             FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup
         ) {
             return new DefaultTransformationRegistrationFactory(
                 buildOperationExecutor,
@@ -405,6 +408,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformerInvocationFactory,
                 valueSnapshotter,
                 fileCollectionFactory,
+                fileLookup,
                 fileCollectionFingerprinterRegistry,
                 domainObjectContext,
                 projectStateRegistry,
@@ -419,6 +423,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                                           FileResolver fileResolver,
+                                                          FileCollectionFactory fileCollectionFactory,
                                                           RepositoryTransportFactory repositoryTransportFactory,
                                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
@@ -440,6 +445,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
+                fileCollectionFactory,
                 repositoryTransportFactory,
                 locallyAvailableResourceFinder,
                 artifactIdentifierFileStore,

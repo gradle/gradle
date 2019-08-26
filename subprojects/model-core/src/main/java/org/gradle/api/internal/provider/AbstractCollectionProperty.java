@@ -111,12 +111,44 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return elementType;
     }
 
+    /**
+     * Unpacks this property into a list of element providers.
+     */
+    public List<ProviderInternal<? extends Iterable<? extends T>>> getProviders() {
+        List<ProviderInternal<? extends Iterable<? extends T>>> sources = new ArrayList<>();
+        value.visit(sources);
+        return sources;
+    }
+
+    /**
+     * Sets the value of this property the given list of element providers.
+     */
+    public void providers(List<ProviderInternal<? extends Iterable<? extends T>>> providers) {
+        if (!beforeMutate()) {
+            return;
+        }
+        value = defaultValue;
+        for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
+            value = new PlusCollector<>(value, new ElementsFromCollectionProvider<>(provider));
+        }
+    }
+
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         if (super.maybeVisitBuildDependencies(context)) {
             return true;
         }
         return value.maybeVisitBuildDependencies(context);
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return super.isContentProducedByTask() || value.isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return value.isValueProducedByTask();
     }
 
     @Override
@@ -295,11 +327,27 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            left.visit(sources);
+            right.visit(sources);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             if (left.maybeVisitBuildDependencies(context)) {
                 return right.maybeVisitBuildDependencies(context);
             }
             return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return left.isValueProducedByTask() || right.isValueProducedByTask();
         }
     }
 }

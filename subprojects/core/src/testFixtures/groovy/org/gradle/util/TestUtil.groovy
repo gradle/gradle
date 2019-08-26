@@ -82,11 +82,14 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
-        return objFactory(TestFiles.resolver(baseDir))
+        def fileResolver = TestFiles.resolver(baseDir)
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
     }
 
     private static ObjectFactory objFactory(FileResolver fileResolver) {
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
+        def fileCollectionFactory = TestFiles.fileCollectionFactory()
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
     }
 
     private static ServiceRegistry services() {

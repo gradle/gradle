@@ -17,6 +17,7 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
+import org.gradle.performance.results.report.FlakinessScenarioPageGenerator
 import spock.lang.Subject
 
 class FlakinessScenarioPageGeneratorTest extends ResultSpecification {

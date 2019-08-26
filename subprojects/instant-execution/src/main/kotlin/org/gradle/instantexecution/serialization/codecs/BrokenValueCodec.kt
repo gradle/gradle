@@ -19,14 +19,20 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.internal.serialize.Message
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 
 object BrokenValueCodec : Codec<BrokenValue> {
     override suspend fun WriteContext.encode(value: BrokenValue) {
-        writeString(value.message)
+        val outstream = ByteArrayOutputStream()
+        Message.send(value.failure, outstream)
+        writeBinary(outstream.toByteArray())
     }
 
     override suspend fun ReadContext.decode(): BrokenValue? {
-        return BrokenValue(readString())
+        val exception = Message.receive(ByteArrayInputStream(readBinary()), classLoader) as Throwable
+        return BrokenValue(exception)
     }
 }

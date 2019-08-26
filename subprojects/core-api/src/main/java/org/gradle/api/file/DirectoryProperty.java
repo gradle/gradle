@@ -20,6 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 /**
  * Represents some configurable directory location, whose value is mutable.
  *
@@ -49,6 +52,18 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      */
     @Override
     DirectoryProperty value(Provider<? extends Directory> provider);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DirectoryProperty fileValue(@Nullable File file);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DirectoryProperty fileProvider(Provider<File> provider);
 
     /**
      * {@inheritDoc}

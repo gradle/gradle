@@ -28,7 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
@@ -468,8 +468,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void validate() {
             List<String> messages = new ArrayList<>();
-            FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
-            TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, reservedFileSystemLocationRegistry, messages);
+            FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
+            TaskValidationContext validationContext = new DefaultTaskValidationContext(fileOperations, reservedFileSystemLocationRegistry, messages);
 
             context.getTaskProperties().validate(validationContext);
             if (!messages.isEmpty()) {

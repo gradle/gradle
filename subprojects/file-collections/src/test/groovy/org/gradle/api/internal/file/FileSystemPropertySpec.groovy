@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.provider.PropertySpec
+import org.gradle.api.internal.provider.Providers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -25,14 +26,15 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
-    def factory = new DefaultFilePropertyFactory(resolver)
+    def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
+    def factory = new DefaultFilePropertyFactory(resolver, fileCollectionFactory)
     def baseDir = factory.newDirectoryProperty()
 
     def setup() {
         baseDir.set(tmpDir.testDirectory)
     }
 
-    def "can set value using file"() {
+    def "can set value using absolute file"() {
         given:
         def file = tmpDir.file("thing")
         def prop = providerWithNoValue()
@@ -40,6 +42,36 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
 
         expect:
         prop.get().asFile == file
+    }
+
+    def "can set value using relative file"() {
+        given:
+        def file = new File("thing")
+        def prop = providerWithNoValue()
+        prop.set(file)
+
+        expect:
+        prop.get().asFile == tmpDir.file("thing")
+    }
+
+    def "can set value using absolute file provider"() {
+        given:
+        def file = tmpDir.file("thing")
+        def prop = providerWithNoValue()
+        prop.fileProvider(Providers.of(file))
+
+        expect:
+        prop.get().asFile == file
+    }
+
+    def "can set value using relative file provider"() {
+        given:
+        def file = new File("thing")
+        def prop = providerWithNoValue()
+        prop.fileProvider(Providers.of(file))
+
+        expect:
+        prop.get().asFile == tmpDir.file("thing")
     }
 
     def "cannot set value using file when finalized"() {

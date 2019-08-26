@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -26,10 +25,9 @@ import java.io.File;
  * can be known.
  */
 public class IdentityFileResolver extends AbstractFileResolver {
-    public IdentityFileResolver() {
-        this(PatternSets.getNonCachingPatternSetFactory());
-    }
-
+    /**
+     * Do not create instances of this type. Instead, use the {@link FileLookup} service.
+     */
     public IdentityFileResolver(Factory<PatternSet> patternSetFactory) {
         super(patternSetFactory);
     }

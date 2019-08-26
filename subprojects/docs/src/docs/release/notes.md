@@ -96,6 +96,12 @@ To avoid these errors, Gradle has been employing workarounds in some but not all
 From now on Gradle uses these workarounds every time it removes file hierarchies.
 The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
 
+## Features for plugin authors
+
+### File and directory property methods
+
+TBD - Added `fileValue()` and `fileProvider()` methods.
+
 ## Improving integrity of builds
 
 Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.

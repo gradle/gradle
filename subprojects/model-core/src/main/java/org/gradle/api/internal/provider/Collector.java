@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface Collector<T> {
     boolean present();
@@ -29,5 +30,11 @@ public interface Collector<T> {
 
     int size();
 
+    void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources);
+
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
+
+    boolean isContentProducedByTask();
+
+    boolean isValueProducedByTask();
 }

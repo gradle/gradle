@@ -390,7 +390,7 @@ task showBroken { doLast { println configurations.broken.files } }
             .assertHasDescription('Execution failed for task \':showBroken\'.')
             .assertResolutionFailure(':broken')
             .assertHasCause("Could not resolve all files for configuration ':broken'.")
-            .assertHasCause('Could not find projectA.jar (group:projectA:1.3).')
+            .assertHasCause('Could not find projectA-1.3.jar (group:projectA:1.3).')
 
         where:
         retries << (1..3)
@@ -423,7 +423,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.2)")
+        failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
         failure.assertHasCause("Could not GET '${module.artifact.uri}'. Received status code 500 from server: broken")
 
         when:

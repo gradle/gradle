@@ -43,24 +43,14 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public String getFileName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(name.getName());
-        builder.append('-');
-        builder.append(componentIdentifier.getVersion());
-        if (GUtil.isTrue(name.getClassifier())) {
-            builder.append('-');
-            builder.append(name.getClassifier());
-        }
-        if (GUtil.isTrue(name.getExtension())) {
-            builder.append('.');
-            builder.append(name.getExtension());
-        }
-        return builder.toString();
+        String classifier = GUtil.isTrue(name.getClassifier()) ? "-" + name.getClassifier() : "";
+        String extension = GUtil.isTrue(name.getExtension()) ? "." + name.getExtension() : "";
+        return name.getName() + "-" + componentIdentifier.getVersion() + classifier + extension;
     }
 
     @Override
     public String getDisplayName() {
-        String name = this.name.toString();
+        String name = this.getFileName();
         String componentIdentifier = this.componentIdentifier.toString();
         return name + " (" + componentIdentifier + ")";
     }

@@ -17,63 +17,94 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.android.AndroidHome
 import org.junit.Rule
 
 
-class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     @Rule
     TestResources resources = new TestResources(temporaryFolder, "builds")
 
+    def instantExecution
+
     def setup() {
-        AndroidHome.assumeIsSet()
         executer.noDeprecationChecks()
+        executer.withRepositoryMirrors()
+
+        def rootDir = file("android-3.6-mini")
+        executer.beforeExecute {
+            inDirectory(rootDir)
+        }
+        withAgpNightly(rootDir.file("build.gradle"))
+
+        instantExecution = newInstantExecutionFixture()
     }
 
-    def "android 3.5 minimal build assembleDebug"() {
+    def "android 3.6 minimal build assembleDebug --dry-run"() {
 
-        executer.beforeExecute {
-            inDirectory(file("android-3.5-mini"))
-        }
-        def instantExecution = newInstantExecutionFixture()
+        when:
+        instantRun("assembleDebug", "--dry-run")
+
+        then:
+        instantExecution.assertStateStored()
+
+        when:
+        instantRun("assembleDebug", "--dry-run")
+
+        then:
+        instantExecution.assertStateLoaded()
+    }
+
+    def tasksToAssembleDebug = [
+        ":app:preBuild",
+        ":app:preDebugBuild",
+        ":app:compileDebugAidl",
+        ":app:compileDebugRenderscript",
+        ":app:checkDebugManifest",
+        ":app:generateDebugBuildConfig",
+        ":app:javaPreCompileDebug",
+        ":app:mainApkListPersistenceDebug",
+        ":app:generateDebugResValues",
+        ":app:generateDebugResources",
+        ":app:mergeDebugResources",
+        ":app:createDebugCompatibleScreenManifests",
+        ":app:extractDeepLinksDebug",
+        ":app:processDebugManifest",
+        ":app:processDebugResources",
+        ":app:compileDebugJavaWithJavac",
+        ":app:compileDebugSources",
+        ":app:mergeDebugShaders",
+        ":app:compileDebugShaders",
+        ":app:generateDebugAssets",
+        ":app:mergeDebugAssets",
+        ":app:processDebugJavaRes",
+        ":app:mergeDebugJavaResource",
+        ":app:checkDebugDuplicateClasses",
+        ":app:mergeExtDexDebug",
+        ":app:mergeLibDexDebug",
+        ":app:dexBuilderDebug",
+        ":app:mergeProjectDexDebug",
+        ":app:validateSigningDebug",
+        ":app:signingConfigWriterDebug",
+        ":app:mergeDebugJniLibFolders",
+        ":app:mergeDebugNativeLibs",
+        ":app:stripDebugDebugSymbols",
+        ":app:packageDebug",
+        ":app:assembleDebug"
+    ]
+
+    def "android 3.6 minimal build supported tasks up-to-date"() {
 
         given:
-        def tasks = [
-            ":app:preBuild",
-            ":app:preDebugBuild",
-            // ":app:compileDebugAidl",
-            ":app:compileDebugRenderscript",
-            ":app:checkDebugManifest",
-            ":app:generateDebugBuildConfig",
-            ":app:mainApkListPersistenceDebug",
-            ":app:generateDebugResValues",
-            ":app:generateDebugResources",
-            // ":app:createDebugCompatibleScreenManifests",
-            // ":app:processDebugManifest",
-            // ":app:mergeDebugShaders",
-            // ":app:compileDebugShaders",
-            // ":app:generateDebugAssets",
-            // ":app:mergeDebugAssets",
-            ":app:processDebugJavaRes",
-            // ":app:checkDebugDuplicateClasses",
-            ":app:validateSigningDebug",
-            // ":app:signingConfigWriterDebug",
-            // ":app:mergeDebugJniLibFolders",
-            // ":app:javaPreCompileDebug",
-            // ":app:mergeDebugResources",
-            // ":app:processDebugResources",
-            // ":app:compileDebugJavaWithJavac",
-            // ":app:compileDebugSources",
-            // ":app:mergeDebugNativeLibs",
-            // ":app:transformClassesWithDexBuilderForDebug",
-            // ":app:mergeLibDexDebug",
-            // ":app:stripDebugDebugSymbols",
-            // ":app:mergeDebugJavaResource",
-            // ":app:mergeExtDexDebug",
-            // ":app:mergeProjectDexDebug",
-            // ":app:packageDebug",
-            // ":app:assembleDebug",
+        def tasks = tasksToAssembleDebug - [
+            // unsupported tasks
+            ":app:processDebugResources",
+            ":app:compileDebugJavaWithJavac",
+            ":app:compileDebugSources",
+            ":app:dexBuilderDebug",
+            ":app:mergeProjectDexDebug",
+            ":app:packageDebug",
+            ":app:assembleDebug",
         ]
 
         when:
@@ -83,6 +114,34 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         instantExecution.assertStateStored()
 
         when:
+        instantRun(*tasks)
+
+        then:
+        instantExecution.assertStateLoaded()
+    }
+
+    def "android 3.6 minimal build supported tasks clean build"() {
+
+        given:
+        def tasks = tasksToAssembleDebug - [
+            // unsupported tasks
+            ":app:processDebugResources",
+            ":app:compileDebugJavaWithJavac",
+            ":app:compileDebugSources",
+            ":app:dexBuilderDebug",
+            ":app:mergeProjectDexDebug",
+            ":app:packageDebug",
+            ":app:assembleDebug"
+        ]
+
+        when:
+        instantRun(*tasks)
+
+        then:
+        instantExecution.assertStateStored()
+
+        when:
+        run 'clean'
         instantRun(*tasks)
 
         then:

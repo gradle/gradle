@@ -26,8 +26,8 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
@@ -430,10 +430,10 @@ internal
 fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
     val fileLookup = services.get<FileLookup>()
     val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
-
+    val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
     return DefaultFileOperations.createSimple(
         fileResolver,
-        DefaultFileCollectionFactory(fileResolver, null),
+        fileCollectionFactory,
         services
     )
 }

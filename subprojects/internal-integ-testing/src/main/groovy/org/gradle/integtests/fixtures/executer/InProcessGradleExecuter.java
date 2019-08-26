@@ -28,8 +28,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.DefaultFileCollectionFactory;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.specs.Spec;
@@ -332,7 +331,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
-        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(new IdentityFileResolver(), null);
+        FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
         ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory, fileCollectionFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter, fileCollectionFactory);

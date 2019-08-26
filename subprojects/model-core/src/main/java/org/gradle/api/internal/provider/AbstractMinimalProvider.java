@@ -69,6 +69,16 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public boolean isValueProducedByTask() {
+        return false;
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return false;
+    }
+
+    @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         return false;
     }
@@ -76,10 +86,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public ProviderInternal<T> withFinalValue() {
         T value = getOrNull();
-        if (value == null) {
-            return Providers.notDefined();
-        }
-        return Providers.of(value);
+        return Providers.ofNullable(value);
     }
 
     @Override
