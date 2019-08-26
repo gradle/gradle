@@ -61,6 +61,13 @@ public class VariantMetadataRules {
         this.variantDerivationStrategy = variantDerivationStrategy;
     }
 
+    public boolean willApplyVariantAttributeRules(String potentialVariantNam) {
+        if (variantAttributesRules != null) {
+            return variantAttributesRules.willExecuteFor(potentialVariantNam);
+        }
+        return false;
+    }
+
     public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal source) {
         if (variantAttributesRules != null) {
             return variantAttributesRules.execute(variant, source);
@@ -127,23 +134,27 @@ public class VariantMetadataRules {
      * @param <T> the type of the action subject
      */
     public static class VariantAction<T> {
-        private final Spec<? super VariantResolveMetadata> spec;
+        private final Spec<String> spec;
         private final Action<? super T> delegate;
 
-        public VariantAction(Spec<? super VariantResolveMetadata> spec, Action<? super T> delegate) {
+        public VariantAction(Spec<String> spec, Action<? super T> delegate) {
             this.spec = spec;
             this.delegate = delegate;
         }
 
         /**
          * Executes the underlying action if the supplied variant matches the predicate
-         * @param variant the variant metadata, used to check if the rule applies
+         * @param variantName the name of the variant used to check if the rule applies
          * @param subject the subject of the rule
          */
-        public void maybeExecute(VariantResolveMetadata variant, T subject) {
-            if (spec.isSatisfiedBy(variant)) {
+        public void maybeExecute(String variantName, T subject) {
+            if (spec.isSatisfiedBy(variantName)) {
                 delegate.execute(subject);
             }
+        }
+
+        public boolean willExecuteFor(String variantName) {
+            return spec.isSatisfiedBy(variantName);
         }
     }
 

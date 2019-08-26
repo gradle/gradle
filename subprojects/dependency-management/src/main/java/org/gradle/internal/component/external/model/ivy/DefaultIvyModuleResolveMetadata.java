@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -30,6 +31,7 @@ import org.gradle.internal.component.external.model.DefaultConfigurationMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -53,6 +55,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     private final String branch;
     // Since a single `Artifact` is shared between configurations, share the metadata type as well.
     private Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> derivedVariants;
 
     DefaultIvyModuleResolveMetadata(DefaultMutableIvyModuleResolveMetadata metadata) {
         super(metadata);
@@ -86,6 +89,30 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         this.extraAttributes = metadata.extraAttributes;
 
         // Cached state is not copied, since dependency inputs are different.
+    }
+
+    @Override
+    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+        if (derivedVariants == null) {
+            for (String potentialVariantName : getConfigurationNames()) {
+                if (getVariantMetadataRules().willApplyVariantAttributeRules(potentialVariantName)) {
+                    derivedVariants = Optional.of(allConfigurationsWithAttributes());
+                    return derivedVariants;
+                }
+            }
+            derivedVariants = Optional.absent();
+        }
+        return derivedVariants;
+    }
+
+    private ImmutableList<? extends ConfigurationMetadata> allConfigurationsWithAttributes() {
+        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        for (String potentialVariantName : getConfigurationNames()) {
+            if (getVariantMetadataRules().willApplyVariantAttributeRules(potentialVariantName)) {
+                builder.add(getConfiguration(potentialVariantName));
+            }
+        }
+        return builder.build();
     }
 
     @Override

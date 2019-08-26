@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -55,6 +56,8 @@ import java.util.Set;
  * @see DefaultIvyModuleResolveMetadata
  */
 public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> derivedVariants;
 
     public static RealisedIvyModuleResolveMetadata transform(DefaultIvyModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
@@ -129,6 +132,30 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.excludes = metadata.getExcludes();
         this.extraAttributes = metadata.getExtraAttributes();
         this.metadata = metadata;
+    }
+
+    @Override
+    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+        if (derivedVariants == null) {
+            for (String potentialVariantName : getConfigurationNames()) {
+                if (!getConfiguration(potentialVariantName).getAttributes().isEmpty()) {
+                    derivedVariants = Optional.of(allConfigurationsWithAttributes());
+                    return derivedVariants;
+                }
+            }
+            derivedVariants = Optional.absent();
+        }
+        return derivedVariants;
+    }
+
+    private ImmutableList<? extends ConfigurationMetadata> allConfigurationsWithAttributes() {
+        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        for (String potentialVariantName : getConfigurationNames()) {
+            if (!getConfiguration(potentialVariantName).getAttributes().isEmpty()) {
+                builder.add(getConfiguration(potentialVariantName));
+            }
+        }
+        return builder.build();
     }
 
     private static RealisedConfigurationMetadata createConfiguration(IvyConfigurationHelper configurationHelper, VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes componentLevelAttributes, ImmutableCapabilities capabilities) {

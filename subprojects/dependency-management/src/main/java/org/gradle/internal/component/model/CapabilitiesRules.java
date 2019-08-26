@@ -38,7 +38,7 @@ public class CapabilitiesRules {
 
     public CapabilitiesMetadata execute(VariantResolveMetadata variant, MutableCapabilitiesMetadata capabilities) {
         for (VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata> action : actions) {
-            action.maybeExecute(variant, capabilities);
+            action.maybeExecute(variant.getName(), capabilities);
         }
         return capabilities.asImmutable();
     }
