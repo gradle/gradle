@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
+import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.util.Git;
 
 import java.util.List;

@@ -14,90 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
-import org.gradle.performance.util.Git;
+import org.gradle.performance.results.FormatSupport;
+import org.gradle.performance.results.PerformanceTestHistory;
+import org.gradle.performance.results.ResultsStore;
+import org.gradle.performance.results.ScenarioBuildResultData;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
-import static org.gradle.performance.results.Tag.FixedTag;
+import static org.gradle.performance.results.report.Tag.FixedTag;
 
 public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<ResultsStore> {
-    protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
-    protected final Set<ScenarioBuildResultData> scenarios;
-    protected final ResultsStore resultsStore;
     protected final PerformanceFlakinessDataProvider flakinessDataProvider;
-    protected final String commitId = Git.current().getCommitId();
+    protected final PerformanceExecutionDataProvider executionDataProvider;
 
-    public AbstractTablePageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, ResultsStore resultsStore, File resultJson) {
-        this.resultsStore = resultsStore;
+    public AbstractTablePageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
         this.flakinessDataProvider = flakinessDataProvider;
-        this.scenarios = readBuildResultData(resultJson);
-    }
-
-    protected abstract Set<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList);
-
-    protected Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
-        try {
-            // @formatter:off
-            List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() { });
-            // @formatter:on
-            return queryExecutionData(list);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    protected Collector<ScenarioBuildResultData, ?, TreeSet<ScenarioBuildResultData>> treeSetCollector(Comparator<ScenarioBuildResultData> scenarioComparator) {
-        return toCollection(() -> new TreeSet<>(scenarioComparator));
-    }
-
-    protected List<ScenarioBuildResultData.ExecutionData> removeEmptyExecution(List<? extends PerformanceTestExecution> executions) {
-        return executions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList());
-    }
-
-    protected boolean sameCommit(ScenarioBuildResultData.ExecutionData execution) {
-        return commitId.equals(execution.getCommitId());
-    }
-
-    private ScenarioBuildResultData.ExecutionData extractExecutionData(PerformanceTestExecution performanceTestExecution) {
-        List<MeasuredOperationList> nonEmptyExecutions = performanceTestExecution
-            .getScenarios()
-            .stream()
-            .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
-            .collect(toList());
-        if (nonEmptyExecutions.size() > 1) {
-            int size = nonEmptyExecutions.size();
-            return new ScenarioBuildResultData.ExecutionData(performanceTestExecution.getStartTime(), getCommit(performanceTestExecution), nonEmptyExecutions.get(size - 2), nonEmptyExecutions.get(size - 1));
-        } else {
-            return null;
-        }
-    }
-
-    private String getCommit(PerformanceTestExecution execution) {
-        if (execution.getVcsCommits().isEmpty()) {
-            return "";
-        } else {
-            return execution.getVcsCommits().get(0);
-        }
+        this.executionDataProvider = executionDataProvider;
     }
 
     protected abstract class TableHtml extends MetricsHtml {
@@ -148,7 +89,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     end();
                     div().classAttr("col-6 p-0");
                         text(getTableTitle());
-                        a().target("_blank").href("https://github.com/gradle/gradle/commits/" + commitId).small().classAttr("text-muted").text(commitId).end().end();
+                        a().target("_blank").href("https://github.com/gradle/gradle/commits/" + executionDataProvider.getCommitId()).small().classAttr("text-muted").text(executionDataProvider.getCommitId()).end().end();
                     end();
                     div().classAttr("col-2 p-0");
                         if(renderFailureSelectButton()) {

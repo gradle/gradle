@@ -14,42 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
-import com.google.common.collect.Sets;
-import org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
+import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceTestHistory;
+import org.gradle.performance.results.ResultsStore;
+import org.gradle.performance.results.ResultsStoreHelper;
+import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.performance.results.ScenarioBuildResultData.FLAKINESS_DETECTION_THRESHOLD;
-import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
 
-public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
+class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     public static final int MOST_RECENT_EXECUTIONS = 9;
     private static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR =
         comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
-            .thenComparing(comparing(FlakinessIndexPageGenerator::isFlaky).reversed())
+            .thenComparing(comparing(org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-
-    public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson) {
-        super(EmptyPerformanceFlakinessDataProvider.INSTANCE, resultsStore, resultJson);
+    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, File resultsJson) {
+        super(resultsStore, resultsJson);
     }
 
     @Override
-    protected Set<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
+    protected TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
         Set<ScenarioBuildResultData> distinctScenarios = scenarioList
             .stream()
             .collect(treeSetCollector(comparing(ScenarioBuildResultData::getScenarioName)));
@@ -66,52 +64,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
         return scenario;
     }
 
-    @Override
-    public void render(final ResultsStore store, Writer writer) throws IOException {
-        new TableHtml(writer) {
-            @Override
-            protected String getPageTitle() {
-                return "Flakiness report for commit " + commitId;
-            }
-
-            @Override
-            protected String getTableTitle() {
-                int total = scenarios.size();
-                long flakyCount = scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).count();
-                return "Scenarios ( total: " + total + ", flaky: " + flakyCount + ")";
-            }
-
-            @Override
-            protected boolean renderFailureSelectButton() {
-                return false;
-            }
-
-            @Override
-            protected List<ScenarioBuildResultData> getCrossVersionScenarios() {
-                return new ArrayList<>(scenarios);
-            }
-
-            @Override
-            protected List<ScenarioBuildResultData> getCrossBuildScenarios() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            protected String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
-                return isFlaky(scenario) ? "alert-warning" : "alert-info";
-            }
-
-            @Override
-            protected Set<Tag> determineTags(ScenarioBuildResultData scenario) {
-                return isFlaky(scenario) ? Sets.newHashSet(FLAKY) : Collections.emptySet();
-            }
-
-            @Override
-            protected void renderScenarioButtons(int index, ScenarioBuildResultData scenario) {
-            }
-        };
-    }
-    private static boolean isFlaky(ScenarioBuildResultData scenario) {
+    public static boolean isFlaky(ScenarioBuildResultData scenario) {
         return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }
 }

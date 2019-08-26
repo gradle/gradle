@@ -96,6 +96,7 @@ class PerformanceTestBuildTypeTest {
                         expectedRunnerParams +
                         "-PteamCityBuildId=%teamcity.build.id%" +
                         "-PonlyPreviousFailedTestClasses=true" +
+                        "-PignoreTagging=true" +
                         "-Dscan.tag.RERUN_TESTS"
                         ).joinToString(" "),
                 performanceTest.getGradleStep("GRADLE_RERUNNER").gradleParams

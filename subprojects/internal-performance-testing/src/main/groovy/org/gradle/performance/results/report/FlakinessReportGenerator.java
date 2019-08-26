@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
+
+import org.gradle.performance.results.CrossVersionResultsStore;
+import org.gradle.performance.results.FileRenderer;
+import org.gradle.performance.results.ResultsStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,13 +29,12 @@ public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersi
     }
 
     @Override
-    protected void renderIndexPage(ResultsStore store, File resultJson, File outputDirectory) throws IOException {
-        FlakinessIndexPageGenerator reporter = new FlakinessIndexPageGenerator(store, resultJson);
-        new FileRenderer().render(store, reporter, new File(outputDirectory, "index.html"));
+    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, File resultJson) {
+        return new FlakinessDetectionPerformanceExecutionDataProvider(store, resultJson);
     }
 
     @Override
-    protected void renderScenarioPage(String projectName, File outputDirectory, PerformanceTestHistory testResults) throws IOException {
-        new FileRenderer().render(testResults, new FlakinessScenarioPageGenerator(), new File(outputDirectory, "tests/" + testResults.getId() + ".html"));
+    protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File output) throws IOException {
+        new FileRenderer().render(null, new FlakinessIndexPageGenerator(flakinessDataProvider, executionDataProvider), output);
     }
 }

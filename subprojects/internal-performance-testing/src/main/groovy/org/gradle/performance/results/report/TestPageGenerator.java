@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.results.report;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -22,6 +22,11 @@ import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
 import groovy.json.JsonOutput;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.performance.results.CrossVersionPerformanceTestHistory;
+import org.gradle.performance.results.FormatSupport;
+import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceTestHistory;
+import org.gradle.performance.results.ScenarioDefinition;
 import org.gradle.performance.util.Git;
 
 import javax.annotation.Nullable;
