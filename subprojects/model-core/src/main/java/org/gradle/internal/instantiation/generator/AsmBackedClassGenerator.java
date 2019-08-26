@@ -375,7 +375,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
-        private static final String RETURN_VOID_FROM_OBJECT_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, STRING_TYPE);
+        private static final String RETURN_VOID_FROM_GENERATED_OBJECT_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, GENERATED_SUBCLASS_TYPE, OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_DYNAMIC_OBJECT = Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE);
         private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(BOOLEAN_TYPE, STRING_TYPE);
@@ -1013,6 +1013,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, false);
                 methodVisitor.visitInsn(DUP);
+                methodVisitor.visitVarInsn(ASTORE, 1);
 
                 // GENERATE instance = factory.newInstance(...)
                 if (property.getType().equals(Property.class) || property.getType().equals(ListProperty.class) || property.getType().equals(SetProperty.class)) {
@@ -1034,14 +1035,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     methodVisitor.visitLdcInsn(propType);
                     methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_CLASS, false);
                 }
-                methodVisitor.visitInsn(DUP);
-                methodVisitor.visitVarInsn(ASTORE, 1);
+                methodVisitor.visitVarInsn(ASTORE, 2);
 
-                // GENERATE factory.attachOwner(instance, propertyName)
-                methodVisitor.visitLdcInsn(property.getName());
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_VOID_FROM_OBJECT_STRING, false);
-
+                // GENERATE factory.attachOwner(this, instance, propertyName)
                 methodVisitor.visitVarInsn(ALOAD, 1);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitVarInsn(ALOAD, 2);
+                methodVisitor.visitLdcInsn(property.getName());
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_VOID_FROM_GENERATED_OBJECT_STRING, false);
+
+                methodVisitor.visitVarInsn(ALOAD, 2);
                 methodVisitor.visitTypeInsn(CHECKCAST, propType.getInternalName());
             });
         }

@@ -19,6 +19,7 @@ package org.gradle.internal.instantiation.generator;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.provider.OwnerAware;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -26,6 +27,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
@@ -41,9 +43,16 @@ public class ManagedObjectFactory {
         this.instantiator = instantiator;
     }
 
-    public void attachOwner(Object instance, String propertyName) {
+    @SuppressWarnings("unused")
+    public void attachOwner(GeneratedSubclass owner, Object instance, String propertyName) {
         if (instance instanceof OwnerAware) {
-            ((OwnerAware) instance).attachDisplayName(Describables.withTypeAndName("property", propertyName));
+            DisplayName property;
+            if (owner.hasUsefulDisplayName()) {
+                property = Describables.withTypeAndName(Describables.of(owner, "property"), propertyName);
+            } else {
+                property = Describables.withTypeAndName("property", propertyName);
+            }
+            ((OwnerAware) instance).attachDisplayName(property);
         }
     }
 

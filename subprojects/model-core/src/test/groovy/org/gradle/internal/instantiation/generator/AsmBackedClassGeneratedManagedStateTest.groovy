@@ -17,14 +17,12 @@
 package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.Describables
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.ClassRule
-import spock.lang.Shared
 import spock.lang.Unroll
 
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
@@ -47,9 +45,6 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Param
 
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
-    @ClassRule
-    @Shared
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     ManagedFactory generatorFactory = TestUtil.instantiatorFactory().managedFactory
     final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
     final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
@@ -151,7 +146,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
     def canConstructInstanceOfInterfaceWithFileCollectionGetter() {
         def projectDir = tmpDir.testDirectory
-        def bean = create(InterfaceFileCollectionBean, TestUtil.createRootProject(projectDir).services)
+        def bean = create(InterfaceFileCollectionBean)
 
         expect:
         bean.prop.toString() == "file collection"
@@ -162,8 +157,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
     def canConstructInstanceOfInterfaceWithNestedGetter() {
         def projectDir = tmpDir.testDirectory
-        def services = TestUtil.createRootProject(projectDir).services
-        def bean = create(InterfaceNestedBean, services)
+        def bean = create(InterfaceNestedBean)
 
         expect:
         bean.prop.prop.toString() == "file collection"
@@ -175,7 +169,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     @Unroll
     def "canConstructInstanceOfInterfaceWithGetterOfFilePropertyType #type.simpleName"() {
         def projectDir = tmpDir.testDirectory
-        def bean = create(type, TestUtil.createRootProject(projectDir).services)
+        def bean = create(type)
 
         expect:
         bean.prop.toString() == "property 'prop'"
@@ -189,14 +183,16 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
     @Unroll
     def "canConstructInstanceOfInterfaceWithGetterOfMutableType #type.simpleName"() {
-        def projectDir = tmpDir.testDirectory
-        def bean = create(type, TestUtil.createRootProject(projectDir).services)
+        def bean = create(type)
+        def beanWithDisplayName = create(type, Describables.of("<display-name>"))
 
         expect:
         bean.prop.toString() == "property 'prop'"
         bean.prop.getOrNull() == defaultValue
         bean.prop.set(newValue)
         bean.prop.get() == newValue
+
+        beanWithDisplayName.prop.toString() == "<display-name> property 'prop'"
 
         where:
         type                               | defaultValue | newValue
@@ -211,7 +207,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     @Unroll
     def "canUnpackAndRecreateInterfaceWithGetterOfMutableType #type.simpleName"() {
         def projectDir = tmpDir.testDirectory
-        def bean = create(type, TestUtil.createRootProject(projectDir).services)
+        def bean = create(type)
 
         expect:
         bean instanceof Managed

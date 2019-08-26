@@ -17,13 +17,21 @@
 package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.Describable
+import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.ClassRule
+import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractClassGeneratorSpec extends Specification {
+    @ClassRule
+    @Shared
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
     abstract ClassGenerator getGenerator()
 
     protected <T> T create(Class<T> clazz, Object... args) {
@@ -49,6 +57,7 @@ abstract class AbstractClassGeneratorSpec extends Specification {
     ServiceLookup defaultServices() {
         ServiceLookup services = Mock(ServiceLookup)
         _ * services.get(InstantiatorFactory.class) >> { TestUtil.instantiatorFactory() }
+        _ * services.get(ObjectFactory.class) >> { TestUtil.objectFactory(tmpDir.testDirectory) }
         return services
     }
 

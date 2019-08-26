@@ -41,7 +41,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
 
         then:
-        outputContains("property = property 'count'")
+        outputContains("property = task ':thing' property 'count'")
         outputContains("count = 12")
     }
 
@@ -65,7 +65,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails("thing")
 
         then:
-        failure.assertHasCause("No value has been specified for property 'count'")
+        failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
     }
 
     def "can define task with abstract read-only ConfigurableFileCollection property"() {
