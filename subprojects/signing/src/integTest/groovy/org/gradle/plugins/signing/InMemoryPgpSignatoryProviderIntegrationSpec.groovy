@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.signing
 
+import spock.lang.Issue
+
 class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec {
 
     def "signs with default signatory"() {
@@ -82,6 +84,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
+    @Issue("gradle/gradle#10363")
     def "supports signing subkeys"() {
         given:
         buildFile << """
