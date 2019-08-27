@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.tasks;
+package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -105,6 +105,8 @@ public class UnexportMainSymbol extends DefaultTask {
                 final SymbolHider symbolHider = new SymbolHider(object);
                 symbolHider.hideSymbol("main");     // 64 bit
                 symbolHider.hideSymbol("_main");    // 32 bit
+                symbolHider.hideSymbol("wmain");    // 64 bit
+                symbolHider.hideSymbol("_wmain");   // 32 bit
                 symbolHider.saveTo(relocatedObject);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
