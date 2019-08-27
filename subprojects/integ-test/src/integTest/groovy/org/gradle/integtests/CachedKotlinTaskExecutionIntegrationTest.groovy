@@ -40,7 +40,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
         file("buildSrc/settings.gradle.kts") << """
             buildCache {
-                local(DirectoryBuildCache::class.java) {
+                local {
                     directory = "${cacheDir.absoluteFile.toURI()}"
                     isPush = true
                 }
