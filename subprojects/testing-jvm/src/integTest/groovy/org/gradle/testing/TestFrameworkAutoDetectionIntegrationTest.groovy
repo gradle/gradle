@@ -38,28 +38,54 @@ class TestFrameworkAutoDetectionIntegrationTest extends AbstractIntegrationSpec 
         given:
         buildFile << """
             dependencies {
-                testImplementation('junit:junit:${JUnitCoverage.JUNIT_4_LATEST}')
                 testImplementation('org.testng:testng:${TestNGCoverage.NEWEST}')
                 testImplementation('org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}')
             }
         """
-        file('src/test/java/JupiterTestClass.java') << '''
-            class JupiterTestClass {
-                @org.junit.jupiter.api.Test
-                void test() {}
-            }
-        '''
+        withTestClass('JupiterTestClass', 'org.junit.jupiter.api.Test')
 
         when:
         succeeds("test")
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('JupiterTestClass')
-        result.testClass('JupiterTestClass').assertTestPassed('test')
+        assertTestPassed('JupiterTestClass')
     }
 
-    def "uses TestNG if its jar is on the classpath"() {
+    def "uses JUnit Platform if JUnit 4 and junit-vintage-engine are on the classpath"() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation('junit:junit:${JUnitCoverage.JUNIT_4_LATEST}')
+                testImplementation('org.testng:testng:${TestNGCoverage.NEWEST}')
+                testImplementation('org.junit.vintage:junit-vintage-engine:${JUnitCoverage.LATEST_VINTAGE_VERSION}')
+            }
+        """
+        withTestClass('VintageTestClass', 'org.junit.Test')
+
+        when:
+        succeeds("test")
+
+        then:
+        assertTestPassed('VintageTestClass')
+    }
+
+    def "uses TestNG if its jar is on the classpath but JUnit 4 is not"() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation('org.testng:testng:${TestNGCoverage.NEWEST}')
+            }
+        """
+        withTestClass('TestNGTestClass', 'org.testng.annotations.Test')
+
+        when:
+        succeeds("test")
+
+        then:
+        assertTestPassed('TestNGTestClass')
+    }
+
+    def "uses JUnit 4 if its jar and testng are on the classpath "() {
         given:
         buildFile << """
             dependencies {
@@ -67,42 +93,44 @@ class TestFrameworkAutoDetectionIntegrationTest extends AbstractIntegrationSpec 
                 testImplementation('org.testng:testng:${TestNGCoverage.NEWEST}')
             }
         """
-        file('src/test/java/TestNGTestClass.java') << '''
-            public class TestNGTestClass {
-                @org.testng.annotations.Test
-                public void test() {}
-            }
-        '''
+        withTestClass('JUnit4TestClass', 'org.junit.Test')
 
         when:
         succeeds("test")
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('TestNGTestClass')
-        result.testClass('TestNGTestClass').assertTestPassed('test')
+        assertTestPassed('JUnit4TestClass')
     }
 
-    def "uses JUnit 4 if neither JUnit Platform nor TestNG are on the classpath"() {
+    def "uses JUnit 4 if junit but not junit-vintage-engine is not on the classpath"() {
         given:
         buildFile << """
             dependencies {
                 testImplementation('junit:junit:${JUnitCoverage.JUNIT_4_LATEST}')
+                testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:${JUnitCoverage.LATEST_JUPITER_VERSION}')
             }
         """
-        file('src/test/java/JUnit4TestClass.java') << '''
-            public class JUnit4TestClass {
-                @org.junit.Test
-                public void test() {}
-            }
-        '''
+        withTestClass('JUnit4TestClass', 'org.junit.Test')
 
         when:
         succeeds("test")
 
         then:
+        assertTestPassed('JUnit4TestClass')
+    }
+
+    private void assertTestPassed(String className) {
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('JUnit4TestClass')
-        result.testClass('JUnit4TestClass').assertTestPassed('test')
+        result.assertTestClassesExecuted(className)
+        result.testClass(className).assertTestPassed('test')
+    }
+
+    private void withTestClass(String className, String annotation) {
+        file("src/test/java/${className}.java") << """
+            public class $className {
+                @$annotation
+                public void test() {}
+            }
+        """
     }
 }

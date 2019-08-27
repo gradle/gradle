@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.tasks.testing.Test;
 
 import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,33 +33,29 @@ public class TestFrameworkAutoDetection {
     private static final Pattern VERSIONED_JAR_PATTERN = Pattern.compile("([a-z-]+)-\\d.*\\.jar");
 
     public static void configure(Test task) {
-        Class<? extends TestFramework> testFrameworkClass = detectTestFrameworkFromClasspath(task);
-        if (JUnitTestFramework.class.equals(testFrameworkClass)) {
-            task.useJUnit();
-        } else if (TestNGTestFramework.class.equals(testFrameworkClass)) {
-            task.useTestNG();
-        } else if (JUnitPlatformTestFramework.class.equals(testFrameworkClass)) {
+        Set<String> artifacts = getArtifactNames(task.getClasspath());
+        if (artifacts.contains("junit-platform-engine")
+                && (!artifacts.contains("junit") || artifacts.contains("junit-vintage-engine"))) {
             task.useJUnitPlatform();
+        } else if (artifacts.contains("testng") && !artifacts.contains("junit")) {
+            task.useTestNG();
+        } else {
+            task.useJUnit();
         }
     }
 
-    private static Class<? extends TestFramework> detectTestFrameworkFromClasspath(Test task) {
-        Class<? extends TestFramework> testFramework = JUnitTestFramework.class;
-        for (File file : task.getClasspath().getFiles()) {
+    private static Set<String> getArtifactNames(FileCollection classpath) {
+        Set<String> result = new LinkedHashSet<String>();
+        for (File file : classpath.getFiles()) {
             if (file.isFile()) {
                 Matcher matcher = VERSIONED_JAR_PATTERN.matcher(file.getName());
                 if (matcher.matches()) {
                     String artifactName = matcher.group(1);
-                    if ("junit-platform-engine".equals(artifactName)) {
-                        testFramework = JUnitPlatformTestFramework.class;
-                        break;
-                    } else if ("testng".equals(artifactName)) {
-                        testFramework = TestNGTestFramework.class;
-                    }
+                    result.add(artifactName);
                 }
             }
         }
-        return testFramework;
+        return result;
     }
 
 }
