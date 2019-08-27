@@ -32,7 +32,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir))
+        factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
     }
 
     def "can create directory property"() {
