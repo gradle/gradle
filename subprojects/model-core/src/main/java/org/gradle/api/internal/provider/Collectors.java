@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
@@ -43,11 +44,11 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<Object> collector, Collection<Object> collection) {
+        public void collectInto(@Nullable Describable owner, ValueCollector<Object> collector, Collection<Object> dest) {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends Object>>> sources) {
+        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
         }
 
         @Override
@@ -84,7 +85,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
             collector.add(element, collection);
         }
 
@@ -150,7 +151,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
             T value = providerOfElement.get();
             collector.add(value, collection);
         }
@@ -226,7 +227,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
             collector.addAll(value, collection);
         }
 
@@ -292,7 +293,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
             Iterable<? extends T> value = provider.get();
             collector.addAll(value, collection);
         }
@@ -366,8 +367,8 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<Object> collector, Collection<Object> collection) {
-            throw new IllegalStateException(Providers.NULL_VALUE);
+        public void collectInto(@Nullable Describable owner, ValueCollector<Object> collector, Collection<Object> dest) {
+            throw Providers.nullValue(owner);
         }
 
         @Override
@@ -413,7 +414,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> dest) {
             for (T t : value) {
                 collector.add(t, dest);
             }
@@ -421,7 +422,7 @@ public class Collectors {
 
         @Override
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collectInto(collector, dest);
+            collectInto(null, collector, dest);
             return true;
         }
 
@@ -473,12 +474,12 @@ public class Collectors {
         }
 
         public void collectInto(Collection<T> collection) {
-            delegate.collectInto(valueCollector, collection);
+            delegate.collectInto(null, valueCollector, collection);
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            delegate.collectInto(collector, dest);
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> dest) {
+            delegate.collectInto(owner, collector, dest);
         }
 
         @Override

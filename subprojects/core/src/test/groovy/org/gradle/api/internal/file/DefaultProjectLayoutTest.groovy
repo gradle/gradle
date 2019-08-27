@@ -19,6 +19,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ScalarSupplier
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
@@ -286,12 +287,14 @@ class DefaultProjectLayoutTest extends Specification {
 
     def "can resolve directory relative to calculated directory"() {
         def dirProvider = Stub(ProviderInternal)
+        def dirSupplier = Stub(ScalarSupplier)
         def pathProvider = Stub(ProviderInternal)
         def dir1 = projectDir.file("dir1")
 
         _ * dirProvider.type >> Directory
-        _ * dirProvider.get() >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
-        _ * dirProvider.present >> true
+        _ * dirProvider.asSupplier() >> dirSupplier
+        _ * dirSupplier.get(_) >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
+        _ * dirSupplier.present >> true
         _ * pathProvider.get() >>> ["c1", "c2"]
         _ * pathProvider.present >> true
 
@@ -327,12 +330,14 @@ class DefaultProjectLayoutTest extends Specification {
 
     def "can resolve regular file relative to calculated directory"() {
         def dirProvider = Stub(ProviderInternal)
+        def dirSupplier = Stub(ScalarSupplier)
         def pathProvider = Stub(Provider)
         def dir1 = projectDir.file("dir1")
 
         _ * dirProvider.type >> Directory
-        _ * dirProvider.get() >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
-        _ * dirProvider.present >> true
+        _ * dirProvider.asSupplier() >> dirSupplier
+        _ * dirSupplier.get(_) >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
+        _ * dirSupplier.present >> true
         _ * pathProvider.get() >>> ["c1", "c2"]
         _ * pathProvider.present >> true
 

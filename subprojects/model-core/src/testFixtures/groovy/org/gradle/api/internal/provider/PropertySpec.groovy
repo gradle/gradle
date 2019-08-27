@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
+import org.gradle.internal.Describables
 import org.gradle.internal.state.Managed
 import spock.lang.Specification
 
@@ -66,6 +67,14 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         t.message == "No value has been specified for this provider."
 
         when:
+        property.attachDisplayName(Describables.of("<display-name>"))
+        property.get()
+
+        then:
+        def t2 = thrown(IllegalStateException)
+        t2.message == "No value has been specified for <display-name>."
+
+        when:
         property.set(someValue())
         property.get()
 
@@ -96,45 +105,18 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can set value using provider"() {
-        def provider = Mock(ProviderInternal)
+        def provider = provider(someValue(), someValue(), someOtherValue(), someValue())
 
         given:
-        provider.type >> type()
-
         def property = propertyWithNoValue()
         property.set(provider)
 
-        when:
-        def r = property.present
-
-        then:
-        r
-        1 * provider.present >> true
-        0 * Specification._
-
-        when:
-        def r2 = property.get()
-
-        then:
-        r2 == someValue()
-        1 * provider.get() >> someValue()
-        0 * Specification._
-
-        when:
-        def r3 = property.getOrNull()
-
-        then:
-        r3 == someOtherValue()
-        1 * provider.getOrNull() >> someOtherValue()
-        0 * Specification._
-
-        when:
-        def r4 = property.getOrElse(someOtherValue())
-
-        then:
-        r4 == someValue()
-        1 * provider.getOrNull() >> someValue()
-        0 * Specification._
+        expect:
+        property.present
+        property.get() == someValue()
+        property.getOrNull() == someOtherValue()
+        property.getOrElse(someOtherValue()) == someValue()
+        property.getOrNull() == null
     }
 
     def "can set value using provider and chaining method"() {
@@ -194,23 +176,15 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can set untyped using provider"() {
-        def provider = Stub(ProviderInternal)
+        def provider = provider(someValue(), someValue())
 
         given:
-        provider.type >> type()
-        provider.get() >> someValue()
-        provider.present >> true
-
         def property = propertyWithNoValue()
         property.setFromAnyValue(provider)
 
-        when:
-        def r = property.present
-        def r2 = property.get()
-
-        then:
-        r
-        r2 == someValue()
+        expect:
+        property.present
+        property.get() == someValue()
     }
 
     def "convention value is used before value has been set"() {
@@ -228,34 +202,27 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "convention provider is used before value has been set"() {
-        def provider = Mock(ProviderInternal)
+        def provider = provider(someValue(), someOtherValue(), someValue())
         def property = propertyWithDefaultValue()
 
         when:
         property.convention(provider)
-        def r = property.present
-        def r2 = property.get()
 
         then:
-        r
-        r2 == someValue()
-
-        and:
-        1 * provider.present >> true
-        1 * provider.get() >> someValue()
-        0 * provider._
+        property.present
+        property.get() == someOtherValue()
+        property.get() == someValue()
 
         when:
         property.set(someOtherValue())
-        property.present
-        property.get()
 
         then:
-        0 * provider._
+        property.present
+        property.get() == someOtherValue()
     }
 
     def "can replace convention value before value has been set"() {
-        def provider = Mock(ProviderInternal)
+        def provider = provider(someOtherValue())
         def property = propertyWithDefaultValue()
 
         when:
@@ -266,29 +233,21 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         when:
         property.convention(provider)
-        def r = property.get()
 
         then:
-        r == someOtherValue()
-
-        and:
-        1 * provider.get() >> someOtherValue()
-        0 * provider._
+        property.get() == someOtherValue()
 
         when:
         property.convention(someValue())
 
         then:
         property.get() == someValue()
-        0 * provider._
 
         when:
         property.set(someOtherValue())
-        def r2 = property.get()
 
         then:
-        r2 == someOtherValue()
-        0 * provider._
+        property.get() == someOtherValue()
     }
 
     def "convention value ignored after value has been set"() {
@@ -301,8 +260,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "convention provider ignored after value has been set"() {
-        def provider = Mock(PropertyInternal)
-        0 * provider._
+        def provider = broken()
 
         def property = propertyWithDefaultValue()
         property.set(someValue())
@@ -328,24 +286,16 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "convention provider is used after value has been set to null"() {
-        def provider = Mock(PropertyInternal)
+        def provider = provider(someOtherValue(), someOtherValue())
 
         def property = propertyWithDefaultValue()
         property.convention(provider)
+        property.set(someValue())
         setToNull(property)
 
-        when:
-        def r = property.present
-        def r2 = property.get()
-
-        then:
-        r
-        r2 == someOtherValue()
-
-        and:
-        1 * provider.isPresent() >> true
-        1 * provider.get() >> someOtherValue()
-        0 * provider._
+        expect:
+        property.present
+        property.get() == someOtherValue()
     }
 
     def "convention value ignored after value has been set using provider with no value"() {
@@ -359,8 +309,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "convention provider ignored after value has been set using provider with no value"() {
-        def provider = Mock(PropertyInternal)
-        0 * provider._
+        def provider = broken()
 
         def property = propertyWithDefaultValue()
         property.set(Providers.notDefined())
@@ -1139,8 +1088,8 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "has build dependencies when value is provider with producer task"() {
-        def provider = Mock(ProviderInternal)
-        _ * provider.type >> type()
+        def producer = "some task"
+        def provider = withProducer(producer)
         def context = Mock(TaskDependencyResolveContext)
         def property = propertyWithNoValue()
         property.set(provider)
@@ -1150,7 +1099,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         known
-        1 * provider.maybeVisitBuildDependencies(context) >> true
+        1 * context.add(producer)
         0 * context._
     }
 
@@ -1169,9 +1118,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "has content producer when value is provider with content producer"() {
-        def provider = Mock(ProviderInternal)
-        _ * provider.type >> type()
-        _ * provider.contentProducedByTask >> true
+        def provider = contentProducedByTask()
 
         def property = propertyWithNoValue()
         property.set(provider)
@@ -1197,9 +1144,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
-        def provider = Mock(ProviderInternal)
-        _ * provider.type >> type()
-        _ * provider.contentProducedByTask >> true
+        def provider = contentProducedByTask()
 
         def property = propertyWithNoValue()
         property.set(provider)
@@ -1234,6 +1179,64 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set(someOtherValue())
         copy.getOrNull() == null
         copy2.get() == someValue()
+    }
+
+    ProviderInternal<T> broken() {
+        return new AbstractReadOnlyProvider<T>() {
+            @Override
+            Class<T> getType() {
+                return type()
+            }
+
+            @Override
+            T getOrNull() {
+                throw new RuntimeException("broken!")
+            }
+        }
+    }
+
+    /**
+     * A provider that provides one of given values each time it is queried, in the order given.
+     */
+    ProviderInternal<T> provider(T... values) {
+        return new TestProvider<T>(type(), values as List<T>, null, false)
+    }
+
+    ProviderInternal<T> withProducer(Object value) {
+        return new TestProvider<T>(type(), [], value, true)
+    }
+
+    ProviderInternal<T> contentProducedByTask() {
+        return new TestProvider<T>(type(), [], null, true)
+    }
+
+    class TestProvider<T> extends AbstractReadOnlyProvider<T> {
+        final Class<T> type
+        final Iterator<T> values
+        final Object producer
+        final boolean contentProducedByTask
+
+        TestProvider(Class<T> type, List<T> values, Object producer, boolean contentProducedByTask) {
+            this.contentProducedByTask = contentProducedByTask
+            this.producer = producer
+            this.values = values.iterator()
+            this.type = type
+        }
+
+        @Override
+        boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            if (producer != null) {
+                context.add(producer)
+                return true
+            } else {
+                return false
+            }
+        }
+
+        @Override
+        T getOrNull() {
+            return values.hasNext() ? values.next() : null
+        }
     }
 
     static class Thing {}

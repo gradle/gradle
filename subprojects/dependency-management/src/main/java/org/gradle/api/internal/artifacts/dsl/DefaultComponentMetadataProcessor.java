@@ -215,7 +215,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         for (MetadataRuleWrapper wrapper : metadataRuleContainer) {
             if (wrapper.isClassBased()) {
                 Collection<SpecConfigurableRule> rules = wrapper.getClassRules();
-                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(rules, id, instantiator);
+                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(rules, id, metadataResolutionContext.getInjectingInstantiator());
                 processClassRule(action, metadata, details);
             } else {
                 processRule(wrapper.getRule(), metadata, details);

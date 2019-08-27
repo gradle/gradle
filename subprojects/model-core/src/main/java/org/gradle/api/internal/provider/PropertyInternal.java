@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal {
+public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware {
     /**
      * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
      */

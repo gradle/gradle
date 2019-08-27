@@ -18,8 +18,10 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,7 @@ public class MapCollectors {
         }
 
         @Override
-        public void collectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
         }
 
         @Override
@@ -87,13 +89,13 @@ public class MapCollectors {
         }
 
         @Override
-        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, value, dest);
         }
 
         @Override
         public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collectInto(collector, dest);
+            collectInto(null, collector, dest);
             return true;
         }
 
@@ -162,7 +164,7 @@ public class MapCollectors {
         }
 
         @Override
-        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, providerOfValue.get(), dest);
         }
 
@@ -231,13 +233,13 @@ public class MapCollectors {
         }
 
         @Override
-        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
         }
 
         @Override
         public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collectInto(collector, dest);
+            collectInto(null, collector, dest);
             return true;
         }
 
@@ -287,7 +289,7 @@ public class MapCollectors {
         }
 
         @Override
-        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(providerOfEntries.get().entrySet(), dest);
         }
 
@@ -347,8 +349,8 @@ public class MapCollectors {
         }
 
         @Override
-        public void collectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            throw new IllegalStateException(Providers.NULL_VALUE);
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
+            throw Providers.nullValue(owner);
         }
 
         @Override

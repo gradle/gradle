@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.provider.Property
 import org.gradle.internal.state.ManagedFactory
 
 class DefaultPropertyTest extends PropertySpec<String> {
@@ -143,62 +142,70 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "can set value to a provider whose type is not known"() {
+        def supplier = Mock(ScalarSupplier)
         def provider = Mock(ProviderInternal)
 
         given:
-        provider.get() >>> ["a", "b", "c"]
-        provider.map(_) >> provider
+        provider.type >> null
+        1 * provider.map(_) >> provider
+        provider.asSupplier() >> supplier
+        supplier.get(_) >>> ["a", "b", "c"]
 
-        def propertyState = new DefaultProperty<String>(String)
+        def property = new DefaultProperty<String>(String)
 
         when:
-        propertyState.set(provider)
+        property.set(provider)
 
         then:
-        propertyState.get() == "a"
-        propertyState.get() == "b"
-        propertyState.get() == "c"
+        property.get() == "a"
+        property.get() == "b"
+        property.get() == "c"
     }
 
     def "can set value to a provider whose type is compatible"() {
+        def supplier = Mock(ScalarSupplier)
         def provider = Mock(ProviderInternal)
 
         given:
         provider.getType() >> Integer
-        provider.get() >>> [1, 2, 3]
+        provider.asSupplier() >> supplier
+        supplier.get(_) >>> [1, 2, 3]
 
-        def propertyState = new DefaultProperty<Number>(Number)
+        def property = new DefaultProperty<Number>(Number)
 
         when:
-        propertyState.set(provider)
+        property.set(provider)
 
         then:
-        propertyState.get() == 1
-        propertyState.get() == 2
-        propertyState.get() == 3
+        property.get() == 1
+        property.get() == 2
+        property.get() == 3
     }
 
     def "fails when provider produces an incompatible value"() {
+        def supplier = Mock(ScalarSupplier)
         def provider = Mock(ProviderInternal)
         def transform = null
 
         given:
-        provider.map(_) >> { transform = it[0]; provider }
-        provider.get() >> { transform.transform(12) }
-        provider.getOrNull() >> { transform.transform(12) }
+        provider.type >> null
+        1 * provider.map(_) >> { transform = it[0]; provider }
+        provider.asSupplier() >> supplier
+        supplier.get(_) >> { transform.transform(12) }
+        supplier.getOrNull() >> { transform.transform(12) }
 
-        def propertyState = new DefaultProperty<Boolean>(Boolean)
-        propertyState.set(provider)
+        def property = new DefaultProperty<Boolean>(Boolean)
+        property.set(provider)
 
         when:
-        propertyState.get()
+        property.get()
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
 
         when:
-        propertyState.getOrNull()
+        property.getOrNull()
 
         then:
         def e2 = thrown(IllegalArgumentException)
@@ -207,7 +214,8 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def provider = Mock(ProviderInternal)
+        def supplier = Mock(ScalarSupplier)
+        def provider = provider("abc")
 
         def property = new DefaultProperty<String>(String)
 
@@ -237,7 +245,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.set(provider)
 
         then:
-        _ * provider.type >> String
         0 * _
 
         when:
@@ -245,14 +252,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         then:
         r2 == "cba"
-        1 * provider.get() >> "abc"
         1 * transformer.transform("abc") >> "cba"
         0 * _
-    }
-
-    private Property<Boolean> createBooleanPropertyState(Boolean value) {
-        def propertyState = new DefaultProperty<Boolean>(Boolean)
-        propertyState.set(value)
-        propertyState
     }
 }

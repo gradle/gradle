@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -48,6 +49,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         this.collectionType = collectionType;
         this.elementType = elementType;
         valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
+    }
+
+    @Override
+    protected ValueSupplier getSupplier() {
+        return value;
     }
 
     /**
@@ -134,24 +140,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (super.maybeVisitBuildDependencies(context)) {
-            return true;
-        }
-        return value.maybeVisitBuildDependencies(context);
-    }
-
-    @Override
-    public boolean isContentProducedByTask() {
-        return super.isContentProducedByTask() || value.isContentProducedByTask();
-    }
-
-    @Override
-    public boolean isValueProducedByTask() {
-        return value.isValueProducedByTask();
-    }
-
-    @Override
     public boolean isPresent() {
         beforeRead();
         return value.present();
@@ -161,7 +149,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     public C get() {
         beforeRead();
         List<T> values = new ArrayList<T>();
-        value.collectInto(valueCollector, values);
+        value.collectInto(getDisplayName(), valueCollector, values);
         return fromValue(values);
     }
 
@@ -289,7 +277,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public String toString() {
+    protected String describeContents() {
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, value.toString());
     }
 
@@ -313,9 +301,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            left.collectInto(collector, dest);
-            right.collectInto(collector, dest);
+        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> dest) {
+            left.collectInto(owner, collector, dest);
+            right.collectInto(owner, collector, dest);
         }
 
         @Override

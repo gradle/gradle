@@ -55,6 +55,15 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
 
+    implementation(futureKotlin("scripting-common")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm-host-embeddable")) {
+        isTransitive = false
+    }
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
@@ -101,7 +110,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.9" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.11" // TODO:kotlin-dsl
 
 tasks {
 
