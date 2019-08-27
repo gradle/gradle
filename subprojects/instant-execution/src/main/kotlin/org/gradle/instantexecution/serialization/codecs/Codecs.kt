@@ -174,6 +174,8 @@ class Codecs(
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
 
+        bind(EnumCodec)
+
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
 
