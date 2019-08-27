@@ -112,25 +112,28 @@ public class JavaCompile extends AbstractCompile {
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
+        DefaultJavaCompileSpec spec;
+        Compiler<JavaCompileSpec> compiler;
         if (!compileOptions.isIncremental()) {
-            compile();
-            return;
+            spec = createSpec();
+            spec.setSourceFiles(getSource());
+            compiler = createCompiler(spec);
+        } else {
+            spec = createSpec();
+            compiler = getIncrementalCompilerFactory().makeIncremental(
+                createCompiler(spec),
+                getPath(),
+                getSource(),
+                new JavaRecompilationSpecProvider(
+                    getDeleter(),
+                    ((ProjectInternal) getProject()).getFileOperations(),
+                    (FileTreeInternal) getSource(),
+                    inputs,
+                    new CompilationSourceDirs(spec.getSourceRoots())
+                )
+            );
         }
-
-        DefaultJavaCompileSpec spec = createSpec();
-        Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
-            createCompiler(spec),
-            getPath(),
-            getSource(),
-            new JavaRecompilationSpecProvider(
-                getDeleter(),
-                ((ProjectInternal) getProject()).getFileOperations(),
-                (FileTreeInternal) getSource(),
-                inputs,
-                new CompilationSourceDirs(spec.getSourceRoots())
-            )
-        );
-        performCompilation(spec, incrementalCompiler);
+        performCompilation(spec, compiler);
     }
 
     @Inject
@@ -146,13 +149,6 @@ public class JavaCompile extends AbstractCompile {
     @Inject
     protected Deleter getDeleter() {
         throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
-
-    @Override
-    protected void compile() {
-        DefaultJavaCompileSpec spec = createSpec();
-        spec.setSourceFiles(getSource());
-        performCompilation(spec, createCompiler(spec));
     }
 
 

@@ -45,6 +45,14 @@
             "changes": [
                 "Class is now abstract"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.compile()",
+            "acceptation": "method shouldn't be used",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
