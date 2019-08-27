@@ -73,7 +73,7 @@ class DefaultSwiftApplicationTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "No value has been specified for Swift application 'main' property 'developmentBinary'."
     }
 
     private NativeVariantIdentity getIdentity() {

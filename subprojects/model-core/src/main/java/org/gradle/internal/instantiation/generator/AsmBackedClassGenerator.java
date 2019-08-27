@@ -1244,7 +1244,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void applyConventionMappingToGetter(PropertyMetadata property, Method getter) {
+        public void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner) {
             if (!conventionAware) {
                 return;
             }
@@ -1258,6 +1258,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, getterName, methodDescriptor, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
 
+            Label finish = new Label();
+
             if (hasMappingField) {
                 // if (conventionMapping == null) { return super.<getter>; }
                 methodVisitor.visitVarInsn(ALOAD, 0);
@@ -1266,8 +1268,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitJumpInsn(IFNONNULL, useConvention);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), getterName, methodDescriptor, type.isInterface());
-                methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
-
+                methodVisitor.visitJumpInsn(GOTO, finish);
                 methodVisitor.visitLabel(useConvention);
             }
             // else { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__);  }
@@ -1288,6 +1289,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "getConventionValue", RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN, true);
 
             unboxOrCast(methodVisitor, getter.getReturnType(), returnType);
+
+            methodVisitor.visitLabel(finish);
+
+            if (attachOwner) {
+                // ManagedObjectFactory.attachOwner(this, <value>, <property-name>)
+                methodVisitor.visitVarInsn(ASTORE, 1);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitVarInsn(ALOAD, 1);
+                methodVisitor.visitLdcInsn(property.getName());
+                methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_VOID_FROM_GENERATED_OBJECT_STRING, false);
+                methodVisitor.visitVarInsn(ALOAD, 1);
+            }
 
             methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
             methodVisitor.visitMaxs(0, 0);
@@ -1760,7 +1773,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void applyConventionMappingToGetter(PropertyMetadata property, Method getter) {
+        public void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner) {
         }
 
         @Override

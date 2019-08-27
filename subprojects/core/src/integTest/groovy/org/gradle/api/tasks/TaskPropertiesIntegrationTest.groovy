@@ -68,7 +68,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
     }
 
-    def "reports failure to query unmanaged Property<T> with no value"() {
+    def "reports failure to query read-only unmanaged Property<T> with final getter"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -80,6 +80,41 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
+            tasks.create("thing", MyTask) {
+                println("property = \$count")
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        outputContains("property = task ':thing' property 'count'")
+        failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
+    }
+
+    def "reports failure to query read-only unmanaged Property<T>"() {
+        given:
+        file("buildSrc/src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+
+            public abstract class MyTask extends DefaultTask {
+                private final Property<Integer> count = getProject().getObjects().property(Integer.class);
+                
+                public Property<Integer> getCount() {
+                    return count;
+                }
+
+                @TaskAction
+                void go() {
+                    System.out.println("count = " + count.get());
+                }
+            }
+        """
+
+        buildFile << """            
             tasks.create("thing", MyTask) {
                 println("property = \$count")
             }

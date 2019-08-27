@@ -103,7 +103,7 @@ class DefaultSwiftLibraryTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "No value has been specified for Swift library 'main' property 'developmentBinary'."
     }
 
     private NativeVariantIdentity getIdentity() {
