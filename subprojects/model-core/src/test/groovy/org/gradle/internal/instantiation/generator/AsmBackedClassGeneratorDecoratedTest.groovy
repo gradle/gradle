@@ -76,16 +76,23 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         !beanWithNoName.hasUsefulDisplayName()
     }
 
-    def "assigns display name to read only property of type Property<T> with final getter"() {
+    def "assigns display name to read only property of type Property<T>"() {
         given:
-        def bean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"), TestUtil.objectFactory())
-        def bean2 = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
-        def bean3 = create(HasMutableProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def finalReadOnlyBean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def readOnlyBean = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def readOnlyBeanWithMapping = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        readOnlyBeanWithMapping.conventionMapping.map("other") { "ignore" }
+        def finalBeanWithOverloads = create(HasReadOnlyFinalBooleanPropertyWithOverloads, Describables.of("<display name>"), TestUtil.objectFactory())
+        def beanWithOverloads = create(HasReadOnlyBooleanPropertyWithOverloads, Describables.of("<display name>"), TestUtil.objectFactory())
+        def mutableBean = create(HasMutableProperty, Describables.of("<display name>"), TestUtil.objectFactory())
 
         expect:
-        bean.someValue.toString() == "<display name> property 'someValue'"
-        bean2.someValue.toString() == "property(class java.lang.String, undefined)"
-        bean3.someValue.toString() == "property(class java.lang.String, undefined)"
+        finalReadOnlyBean.someValue.toString() == "<display name> property 'someValue'"
+        readOnlyBean.someValue.toString() == "<display name> property 'someValue'"
+        readOnlyBeanWithMapping.someValue.toString() == "<display name> property 'someValue'"
+        finalBeanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
+        beanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
+        mutableBean.someValue.toString() == "property(class java.lang.String, undefined)"
     }
 
     def "can attach nested extensions to object"() {
@@ -629,6 +636,7 @@ class HasReadOnlyFinalProperty {
 }
 
 class HasReadOnlyProperty {
+    String other
     private final Property<String> prop
 
     Property<String> getSomeValue() {
@@ -637,6 +645,34 @@ class HasReadOnlyProperty {
 
     HasReadOnlyProperty(ObjectFactory objectFactory) {
         prop = objectFactory.property(String)
+    }
+}
+
+class HasReadOnlyFinalBooleanPropertyWithOverloads {
+    final Property<Boolean> someValue
+
+    boolean isSomeValue() {
+        return someValue.getOrElse(false)
+    }
+
+    HasReadOnlyFinalBooleanPropertyWithOverloads(ObjectFactory objectFactory) {
+        someValue = objectFactory.property(Boolean)
+    }
+}
+
+class HasReadOnlyBooleanPropertyWithOverloads {
+    private final Property<Boolean> prop
+
+    boolean isSomeValue() {
+        return prop.getOrElse(false)
+    }
+
+    Property<Boolean> getSomeValue() {
+        return prop
+    }
+
+    HasReadOnlyBooleanPropertyWithOverloads(ObjectFactory objectFactory) {
+        prop = objectFactory.property(Boolean)
     }
 }
 

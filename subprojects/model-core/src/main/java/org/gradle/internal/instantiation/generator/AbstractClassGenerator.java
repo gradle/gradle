@@ -93,7 +93,7 @@ import java.util.stream.Collectors;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
-    private static final ImmutableSet<Class<?>> LAZY_PROPERTY_TYPES = ImmutableSet.of(
+    private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
         ConfigurableFileCollection.class,
         ListProperty.class,
         SetProperty.class,
@@ -157,7 +157,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
-        ManagedTypeHandler managedTypeHandler = new ManagedTypeHandler();
+        ManagedPropertiesHandler managedPropertiesHandler = new ManagedPropertiesHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
 
@@ -167,7 +167,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(dslMixInHandler);
         handlers.add(propertyTypedHandler);
         handlers.add(servicesHandler);
-        handlers.add(managedTypeHandler);
+        handlers.add(managedPropertiesHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
             customAnnotationPropertyHandlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
         }
@@ -341,6 +341,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new IllegalArgumentException(formatter.toString());
         }
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
+    }
+
+    private static boolean isPropertyProperty(Class<?> type) {
+        return Property.class.isAssignableFrom(type) ||
+            HasMultipleValues.class.isAssignableFrom(type) ||
+            MapProperty.class.isAssignableFrom(type);
     }
 
     protected class GeneratedClassImpl implements GeneratedClass<Object> {
@@ -565,6 +571,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (mainGetter == null) {
                 mainGetter = metadata;
             } else if (!mainGetter.shouldImplement() && metadata.shouldImplement()) {
+                // Prefer a real method over synthetic
+                mainGetter = metadata;
+            } else if (mainGetter.getReturnType().equals(Boolean.TYPE) && !metadata.getReturnType().equals(Boolean.TYPE)) {
+                // Prefer non-boolean over boolean
                 mainGetter = metadata;
             }
         }
@@ -838,7 +848,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : conventionProperties) {
                 visitor.applyConventionMappingToProperty(property);
                 for (MethodMetadata getter : property.getOverridableGetters()) {
-                    visitor.applyConventionMappingToGetter(property, getter.method);
+                    boolean isPropertyType = property.setters.isEmpty() && isPropertyProperty(getter.getReturnType());
+                    visitor.applyConventionMappingToGetter(property, getter, isPropertyType);
                 }
                 for (Method setter : property.getOverridableSetters()) {
                     visitor.applyConventionMappingToSetter(property, setter);
@@ -847,7 +858,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class ManagedTypeHandler extends ClassGenerationHandler {
+    private static class ManagedPropertiesHandler extends ClassGenerationHandler {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
         private boolean hasFields;
@@ -876,7 +887,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             // Property is readable and all getters and setters are abstract
             if (property.setters.isEmpty()) {
-                if (LAZY_PROPERTY_TYPES.contains(property.getType())) {
+                if (MANAGED_PROPERTY_TYPES.contains(property.getType())) {
                     // Read-only property with managed type
                     readOnlyProperties.add(property);
                     return true;
@@ -931,7 +942,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.isReadable() && isModelProperty(property)) {
+            if (property.isReadable() && isPropertyProperty(property.getType())) {
                 propertyTyped.add(property);
             }
         }
@@ -939,8 +950,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void applyTo(ClassInspectionVisitor visitor) {
             for (PropertyMetadata property : propertyTyped) {
-                if (property.overridableGetters.isEmpty() && property.setters.isEmpty()) {
-                    // Property is read-only and all getters are final
+                if (!property.mainGetter.shouldOverride() && property.setters.isEmpty()) {
+                    // Property is read-only and main getter is final, so attach in constructor
                     visitor.attachDuringConstruction(property);
                 }
             }
@@ -951,12 +962,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : propertyTyped) {
                 visitor.addPropertySetterOverloads(property, property.mainGetter);
             }
-        }
-
-        private boolean isModelProperty(PropertyMetadata property) {
-            return Property.class.isAssignableFrom(property.getType()) ||
-                HasMultipleValues.class.isAssignableFrom(property.getType()) ||
-                MapProperty.class.isAssignableFrom(property.getType());
         }
     }
 
@@ -1255,7 +1260,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyConventionMappingToProperty(PropertyMetadata property);
 
-        void applyConventionMappingToGetter(PropertyMetadata property, Method getter);
+        void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner);
 
         void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
 
