@@ -49,7 +49,7 @@ object ProgramParser {
 
             val pluginsFragment =
                 topLevelBlocks
-                    .takeIf { target == ProgramTarget.Project && kind == ProgramKind.TopLevel }
+                    .takeIf { (target == ProgramTarget.Project || target == ProgramTarget.Settings) && kind == ProgramKind.TopLevel }
                     ?.singleSectionOf("plugins")
                     ?.let { sourceWithoutComments.fragment(it) }
 
@@ -90,7 +90,7 @@ object ProgramParser {
     private
     fun topLevelBlockIdsFor(target: ProgramTarget): Array<String> = when (target) {
         ProgramTarget.Project -> arrayOf("buildscript", "plugins")
-        ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement")
+        ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement", "plugins")
         ProgramTarget.Gradle -> arrayOf("initscript")
     }
 
