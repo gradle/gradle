@@ -35,7 +35,7 @@ import java.util.function.Function
 @VisibleForTesting
 sealed class GradleInstallation {
 
-    data class Local(val dir: java.io.File) : GradleInstallation()
+    data class Local(val dir: File) : GradleInstallation()
 
     data class Remote(val uri: java.net.URI) : GradleInstallation()
 
@@ -67,15 +67,10 @@ internal
 typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() -> Unit
 
 
-@VisibleForTesting
-fun fetchKotlinBuildScriptModelFor(
-    request: KotlinBuildScriptModelRequest,
-    modelBuilderCustomization: ModelBuilderCustomization = {}
-): KotlinBuildScriptModel =
-
+internal
+fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel =
     fetchKotlinBuildScriptModelFor(request.toFetchParametersWith {
         setJavaHome(request.javaHome)
-        modelBuilderCustomization()
     })
 
 
@@ -195,7 +190,7 @@ fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
     }
 
 
-private
+internal
 val modelSpecificJvmOptions =
     listOf("-D${KotlinDslProviderMode.systemPropertyName}=${KotlinDslProviderMode.classPathMode}")
 

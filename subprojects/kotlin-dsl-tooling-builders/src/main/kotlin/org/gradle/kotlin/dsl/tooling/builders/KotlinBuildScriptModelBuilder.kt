@@ -74,9 +74,9 @@ import java.io.StringWriter
 import java.util.EnumSet
 
 
-private
+internal
 data class KotlinBuildScriptModelParameter(
-    val scriptPath: String?,
+    val scriptFile: File?,
     val correlationId: String?
 )
 
@@ -113,7 +113,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         }
     }
 
-    private
+    internal
     fun kotlinBuildScriptModelFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter).buildModel()
 
@@ -152,7 +152,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
-            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String,
+            (modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String)?.let(::canonicalFile),
             modelRequestProject.findProperty(kotlinBuildScriptModelCorrelationId) as? String
         )
 
@@ -446,11 +446,6 @@ data class KotlinScriptTargetModelBuilder(
 
 
 private
-val KotlinBuildScriptModelParameter.scriptFile
-    get() = scriptPath?.let { canonicalFile(it) }
-
-
-private
 val Settings.scriptCompilationClassPath
     get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, false) {
         (this as SettingsInternal).gradle
@@ -516,6 +511,6 @@ val Project.isLocationAwareEditorHintsEnabled: Boolean
     get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 
 
-private
+internal
 fun canonicalFile(path: String): File =
     File(path).canonicalFile

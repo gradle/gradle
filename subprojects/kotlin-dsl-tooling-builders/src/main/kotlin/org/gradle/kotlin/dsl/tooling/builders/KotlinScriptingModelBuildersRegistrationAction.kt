@@ -30,6 +30,7 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
     override fun execute(project: ProjectInternal) {
         project.serviceOf<ToolingModelBuilderRegistry>().apply {
             register(KotlinBuildScriptModelBuilder)
+            register(KotlinDslScriptsModelBuilder)
             register(KotlinBuildScriptTemplateModelBuilder)
         }
         project.tasks.apply {
