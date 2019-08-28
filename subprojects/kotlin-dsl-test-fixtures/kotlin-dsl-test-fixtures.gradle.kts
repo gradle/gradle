@@ -28,7 +28,7 @@ gradlebuildJava {
 
 dependencies {
     api(project(":kotlinDsl"))
-    
+
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
