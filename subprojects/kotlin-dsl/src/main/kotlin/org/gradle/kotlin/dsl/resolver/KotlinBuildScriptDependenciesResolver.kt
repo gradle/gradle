@@ -182,6 +182,7 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
             javaHome = environment.gradleJavaHome,
             options = environment.gradleOptions,
             jvmOptions = environment.gradleJvmOptions,
+            environmentVariables = environment.gradleEnvironmentVariables,
             correlationId = correlationId
         )
 
