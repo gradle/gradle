@@ -134,12 +134,12 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         previousDependencies: KotlinScriptExternalDependencies?
     ): KotlinScriptExternalDependencies? {
 
-        val scriptModelRequest = scriptModelRequestFrom(scriptFile, environment, cid)
-        log(SubmittedModelRequest(cid, scriptFile, scriptModelRequest))
+        val request = scriptModelRequestFrom(scriptFile, environment, cid)
+        log(SubmittedModelRequest(cid, scriptFile, request))
 
-        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(scriptModelRequest)
+        val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(request)
         if (response == null) {
-            log(RequestCancelled(cid, scriptFile, scriptModelRequest))
+            log(RequestCancelled(cid, scriptFile, request))
             return null
         }
         log(ReceivedModelResponse(cid, scriptFile, response))
@@ -150,7 +150,7 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
 
         return when {
             response.exceptions.isEmpty() ->
-                dependenciesFrom(response).also {
+                dependenciesFrom(request, response).also {
                     log(ResolvedDependencies(cid, scriptFile, it))
                 }
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
@@ -158,7 +158,7 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
                     log(ResolvedToPreviousWithErrors(cid, scriptFile, previousDependencies, response.exceptions))
                 }
             else ->
-                dependenciesFrom(response).also {
+                dependenciesFrom(request, response).also {
                     log(ResolvedDependenciesWithErrors(cid, scriptFile, it, response.exceptions))
                 }
         }
@@ -193,11 +193,12 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
             ?: GradleInstallation.Wrapper
 
     private
-    fun dependenciesFrom(response: KotlinBuildScriptModel) =
+    fun dependenciesFrom(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel) =
         KotlinBuildScriptDependencies(
             response.classPath,
             response.sourcePath,
-            response.implicitImports
+            response.implicitImports,
+            request.javaHome?.path
         )
 }
 
@@ -206,7 +207,8 @@ internal
 class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
     override val sources: Iterable<File>,
-    override val imports: Iterable<String>
+    override val imports: Iterable<String>,
+    override val javaHome: String? = null
 ) : KotlinScriptExternalDependencies
 
 
