@@ -452,7 +452,7 @@ val KotlinBuildScriptModelParameter.scriptFile
 
 private
 val Settings.scriptCompilationClassPath
-    get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) {
+    get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, false) {
         this as SettingsInternal
     }
 
@@ -474,19 +474,20 @@ val Project.scriptCompilationClassPath
 
 private
 fun Project.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
-    serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) { settings }
+    serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, true) { settings }
 
 
 private
 inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
     classLoaderScope: ClassLoaderScope,
+    projectScript: Boolean,
     getSettings: () -> SettingsInternal
 ): ClassPath = try {
     compilationClassPathOf(classLoaderScope)
 } catch (error: Exception) {
     getSettings().run {
         serviceOf<ClassPathModeExceptionCollector>().collect(error)
-        compilationClassPathOf(baseClassLoaderScope)
+        compilationClassPathOf(if (projectScript) baseProjectClassLoaderScope() else baseClassLoaderScope)
     }
 }
 
