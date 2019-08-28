@@ -486,7 +486,7 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
 } catch (error: Exception) {
     getSettings().run {
         serviceOf<ClassPathModeExceptionCollector>().collect(error)
-        compilationClassPathOf(baseProjectClassLoaderScope())
+        compilationClassPathOf(baseClassLoaderScope)
     }
 }
 
