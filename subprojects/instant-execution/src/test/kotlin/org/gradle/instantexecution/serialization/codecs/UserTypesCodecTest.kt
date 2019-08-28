@@ -289,6 +289,7 @@ class UserTypesCodecTest {
         projectFinder = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
+        attributesFactory = mock(),
         transformListener = mock()
     )
 

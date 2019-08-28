@@ -241,6 +241,7 @@ class DefaultInstantExecution internal constructor(
             actionScheme = service(),
             parameterScheme = service(),
             classLoaderHierarchyHasher = service(),
+            attributesFactory = service(),
             transformListener = service()
         )
     }

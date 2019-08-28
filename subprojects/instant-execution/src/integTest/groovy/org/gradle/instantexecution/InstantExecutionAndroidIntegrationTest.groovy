@@ -55,94 +55,30 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution.assertStateLoaded()
     }
 
-    def tasksToAssembleDebug = [
-        ":app:preBuild",
-        ":app:preDebugBuild",
-        ":app:compileDebugAidl",
-        ":app:compileDebugRenderscript",
-        ":app:checkDebugManifest",
-        ":app:generateDebugBuildConfig",
-        ":app:javaPreCompileDebug",
-        ":app:mainApkListPersistenceDebug",
-        ":app:generateDebugResValues",
-        ":app:generateDebugResources",
-        ":app:mergeDebugResources",
-        ":app:createDebugCompatibleScreenManifests",
-        ":app:extractDeepLinksDebug",
-        ":app:processDebugManifest",
-        ":app:processDebugResources",
-        ":app:compileDebugJavaWithJavac",
-        ":app:compileDebugSources",
-        ":app:mergeDebugShaders",
-        ":app:compileDebugShaders",
-        ":app:generateDebugAssets",
-        ":app:mergeDebugAssets",
-        ":app:processDebugJavaRes",
-        ":app:mergeDebugJavaResource",
-        ":app:checkDebugDuplicateClasses",
-        ":app:mergeExtDexDebug",
-        ":app:mergeLibDexDebug",
-        ":app:dexBuilderDebug",
-        ":app:mergeProjectDexDebug",
-        ":app:validateSigningDebug",
-        ":app:signingConfigWriterDebug",
-        ":app:mergeDebugJniLibFolders",
-        ":app:mergeDebugNativeLibs",
-        ":app:stripDebugDebugSymbols",
-        ":app:packageDebug",
-        ":app:assembleDebug"
-    ]
-
-    def "android 3.6 minimal build supported tasks up-to-date"() {
-
-        given:
-        def tasks = tasksToAssembleDebug - [
-            // unsupported tasks
-            ":app:processDebugResources",
-            ":app:compileDebugJavaWithJavac",
-            ":app:compileDebugSources",
-            ":app:dexBuilderDebug",
-            ":app:mergeProjectDexDebug",
-            ":app:packageDebug",
-            ":app:assembleDebug",
-        ]
-
+    def "android 3.6 minimal build assembleDebug up-to-date"() {
         when:
-        instantRun(*tasks)
+        instantRun("assembleDebug")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        instantRun(*tasks)
+        instantRun("assembleDebug")
 
         then:
         instantExecution.assertStateLoaded()
     }
 
-    def "android 3.6 minimal build supported tasks clean build"() {
-
-        given:
-        def tasks = tasksToAssembleDebug - [
-            // unsupported tasks
-            ":app:processDebugResources",
-            ":app:compileDebugJavaWithJavac",
-            ":app:compileDebugSources",
-            ":app:dexBuilderDebug",
-            ":app:mergeProjectDexDebug",
-            ":app:packageDebug",
-            ":app:assembleDebug"
-        ]
-
+    def "android 3.6 minimal build clean assembleDebug"() {
         when:
-        instantRun(*tasks)
+        instantRun("assembleDebug")
 
         then:
         instantExecution.assertStateStored()
 
         when:
         run 'clean'
-        instantRun(*tasks)
+        instantRun("assembleDebug")
 
         then:
         instantExecution.assertStateLoaded()
