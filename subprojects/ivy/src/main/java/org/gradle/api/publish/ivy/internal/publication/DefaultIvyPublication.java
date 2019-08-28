@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -45,6 +45,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.IvyPublishingAwareContext;
+import org.gradle.api.internal.component.MavenPublishingAwareContext;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -84,10 +85,14 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.component.MavenPublishingAwareContext.ScopeMapping.compile;
+import static org.gradle.api.internal.component.MavenPublishingAwareContext.ScopeMapping.compile_optional;
+import static org.gradle.api.internal.component.MavenPublishingAwareContext.ScopeMapping.runtime;
+import static org.gradle.api.internal.component.MavenPublishingAwareContext.ScopeMapping.runtime_optional;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
@@ -97,16 +102,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private static final String API_ELEMENTS_VARIANT = "apiElements";
     private static final String RUNTIME_VARIANT = "runtime";
     private static final String RUNTIME_ELEMENTS_VARIANT = "runtimeElements";
-    private static final Comparator<String> VARIANT_ORDERING = (left, right) -> {
-        // API first
-        if (API_VARIANT.equals(left) || API_ELEMENTS_VARIANT.equals(left)) {
-            return -1;
-        }
-        if (API_VARIANT.equals(right) || API_ELEMENTS_VARIANT.equals(right)) {
-            return 1;
-        }
-        return left.compareTo(right);
-    };
+
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
 
@@ -123,7 +119,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final PlatformSupport platformSupport;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
-    private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
@@ -147,7 +142,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
-        this.featurePreviews = featurePreviews;
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -248,12 +242,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             return;
         }
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "");
-        configurations.maybeCreate("default");
 
-        Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
-        Set<ModuleDependency> seenDependencies = Sets.newHashSet();
-        for (UsageContext usageContext : getSortedUsageContexts()) {
-            String conf = mapUsage(usageContext.getName());
+        populateConfigurations();
+        populateArtifacts();
+        populateDependencies(publicationWarningsCollector);
+        populateGlobalExcludes();
+        warnForUnsupportedFeatures(publicationWarningsCollector);
+
+        publicationWarningsCollector.complete(getDisplayName());
+    }
+
+    private void populateConfigurations() {
+        configurations.maybeCreate("default");
+        for (UsageContext usageContext : component.getUsages()) {
+            String conf = mapUsageToIvyConfiguration(usageContext);
             configurations.maybeCreate(conf);
             if (usageContext instanceof IvyPublishingAwareContext) {
                 if (!((IvyPublishingAwareContext) usageContext).isOptional()) {
@@ -262,34 +264,86 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             } else {
                 configurations.getByName("default").extend(conf);
             }
+        }
+    }
 
+    private void populateArtifacts() {
+        if (artifactsOverridden) {
+            return;
+        }
+        Map<PublishArtifact, IvyArtifact> seenArtifacts = Maps.newHashMap();
+        for (UsageContext usageContext : component.getUsages()) {
+            String conf = mapUsageToIvyConfiguration(usageContext);
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                if (!artifactsOverridden && seenArtifacts.add(publishArtifact)) {
-                    artifact(publishArtifact).setConf(conf);
+                IvyArtifact ivyArtifact = seenArtifacts.get(publishArtifact);
+                if (ivyArtifact == null) {
+                    ivyArtifact = artifact(publishArtifact);
+                    ivyArtifact.setConf(conf);
+                    seenArtifacts.put(publishArtifact, ivyArtifact);
+                } else {
+                    ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
                 }
             }
+        }
+    }
 
+    private void populateDependencies(PublicationWarningsCollector publicationWarningsCollector) {
+        for (UsageContext usageContext : component.getUsages()) {
             for (ModuleDependency dependency : usageContext.getDependencies()) {
-                if (seenDependencies.add(dependency)) {
-                // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
-                    String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
-                    if (!dependency.getAttributes().isEmpty()) {
-                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                String confMapping = confMappingFor(usageContext, dependency);
+                if (!dependency.getAttributes().isEmpty()) {
+                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                }
+                if (dependency instanceof ProjectDependency) {
+                    addProjectDependency((ProjectDependency) dependency, confMapping);
+                } else {
+                    ExternalDependency externalDependency = (ExternalDependency) dependency;
+                    if (platformSupport.isTargettingPlatform(dependency)) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                     }
-                    if (dependency instanceof ProjectDependency) {
-                        addProjectDependency((ProjectDependency) dependency, confMapping);
-                    } else {
-                        ExternalDependency externalDependency = (ExternalDependency) dependency;
-                        if (platformSupport.isTargettingPlatform(dependency)) {
-                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                        }
-                        if (!versionMappingInUse && externalDependency.getVersion() == null) {
-                            publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
-                        }
-                        addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
+                    if (!versionMappingInUse && externalDependency.getVersion() == null) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
                     }
+                    addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
                 }
             }
+        }
+    }
+
+    private void populateGlobalExcludes() {
+        for (UsageContext usageContext : component.getUsages()) {
+            String conf = mapUsageToIvyConfiguration(usageContext);
+            for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
+                globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
+            }
+        }
+    }
+
+    private String confMappingFor(UsageContext usageContext, ModuleDependency dependency) {
+        String conf = mapUsageToIvyConfiguration(usageContext);
+
+        String confMappingTarget = null;
+        if (usageContext instanceof MavenPublishingAwareContext) {
+            MavenPublishingAwareContext.ScopeMapping mapping = ((MavenPublishingAwareContext) usageContext).getScopeMapping();
+            if (mapping == runtime || mapping == runtime_optional) {
+                confMappingTarget = "runtime";
+            }
+            if (mapping == compile || mapping == compile_optional) {
+                confMappingTarget = "compile";
+            }
+        }
+        if (confMappingTarget == null) {
+            confMappingTarget = dependency.getTargetConfiguration();
+        }
+        if (confMappingTarget == null) {
+            confMappingTarget = Dependency.DEFAULT_CONFIGURATION;
+        }
+
+        return conf + "->" + confMappingTarget;
+    }
+
+    private void warnForUnsupportedFeatures(PublicationWarningsCollector publicationWarningsCollector) {
+        for (UsageContext usageContext : component.getUsages()) {
             if (!usageContext.getDependencyConstraints().isEmpty()) {
                 for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
                     publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
@@ -300,28 +354,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
-
-            for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
-                globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
-            }
         }
-        publicationWarningsCollector.complete(getDisplayName());
     }
 
-    private List<UsageContext> getSortedUsageContexts() {
-        List<UsageContext> usageContexts = Lists.newArrayList(component.getUsages());
-        Collections.sort(usageContexts, (u1, u2) -> VARIANT_ORDERING.compare(u1.getName(), u2.getName()));
-        return usageContexts;
-    }
-
-    private String mapUsage(String name) {
-        if (API_VARIANT.equals(name) || API_ELEMENTS_VARIANT.equals(name)) {
+    private String mapUsageToIvyConfiguration(UsageContext usageContext) {
+        if (API_VARIANT.equals(usageContext.getName()) || API_ELEMENTS_VARIANT.equals(usageContext.getName())) {
             return "compile";
         }
-        if (RUNTIME_VARIANT.equals(name) || RUNTIME_ELEMENTS_VARIANT.equals(name)) {
+        if (RUNTIME_VARIANT.equals(usageContext.getName()) || RUNTIME_ELEMENTS_VARIANT.equals(usageContext.getName())) {
             return "runtime";
         }
-        return name;
+        return usageContext.getName();
     }
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
