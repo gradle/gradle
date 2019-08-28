@@ -64,10 +64,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveAppendix = objectFactory.property(String.class);
         archiveVersion = objectFactory.property(String.class);
         archiveExtension = objectFactory.property(String.class);
-        archiveClassifier = objectFactory.property(String.class).value("");
+        archiveClassifier = objectFactory.property(String.class).convention("");
 
         archiveName = objectFactory.property(String.class);
-        archiveName.set(getProject().provider(() -> {
+        archiveName.convention(getProject().provider(() -> {
             // [baseName]-[appendix]-[version]-[classifier].[extension]
             String name = GUtil.elvis(archiveBaseName.getOrNull(), "");
             name += maybe(name, archiveAppendix.getOrNull());
@@ -80,10 +80,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         }));
 
         archiveFile = objectFactory.fileProperty();
-        archiveFile.set(archiveDestinationDirectory.file(archiveName));
+        archiveFile.convention(archiveDestinationDirectory.file(archiveName));
 
-        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).value(true);
-        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).value(false);
+        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
+        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
 
         getRootSpec().setDuplicatesStrategy(DuplicatesStrategy.FAIL);
     }
@@ -120,6 +120,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setArchiveName(String name) {
+        archiveName.convention(name);
         archiveName.set(name);
     }
 
@@ -221,7 +222,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setBaseName(@Nullable String baseName) {
-        this.archiveBaseName.set(baseName);
+        archiveBaseName.convention(baseName);
+        archiveBaseName.set(baseName);
     }
 
     /**
@@ -255,7 +257,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setAppendix(@Nullable String appendix) {
-        this.archiveAppendix.set(appendix);
+        archiveAppendix.convention(appendix);
+        archiveAppendix.set(appendix);
     }
 
     /**
@@ -289,7 +292,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setVersion(@Nullable String version) {
-        this.archiveVersion.set(version);
+        archiveVersion.convention(version);
+        archiveVersion.set(version);
     }
 
     /**
@@ -300,7 +304,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Internal("Represented as part of archiveFile")
     public Property<String> getArchiveVersion() {
-        return this.archiveVersion;
+        return archiveVersion;
     }
 
     /**
@@ -321,7 +325,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setExtension(@Nullable String extension) {
-        this.archiveExtension.set(extension);
+        archiveExtension.convention(extension);
+        archiveExtension.set(extension);
     }
 
     /**
@@ -353,7 +358,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setClassifier(@Nullable String classifier) {
-        this.archiveClassifier.set(classifier);
+        archiveClassifier.convention(classifier);
+        archiveClassifier.set(classifier);
     }
 
     /**
@@ -437,7 +443,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
-        this.archivePreserveFileTimestamps.set(preserveFileTimestamps);
+        archivePreserveFileTimestamps.set(preserveFileTimestamps);
     }
 
     /**
@@ -467,7 +473,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
-        this.archiveReproducibleFileOrder.set(reproducibleFileOrder);
+        archiveReproducibleFileOrder.set(reproducibleFileOrder);
     }
 
     @Override

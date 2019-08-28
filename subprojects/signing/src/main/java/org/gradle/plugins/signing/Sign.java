@@ -207,7 +207,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
         }
 
-        for (Signature signature : signaturesForExsitingFiles()) {
+        for (Signature signature : sanitizedSignatures().values()) {
             signature.generate();
         }
     }
@@ -227,11 +227,14 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Nested
     @Incubating
     public Map<String, Signature> getSignaturesByKey() {
-        return signaturesForExsitingFiles().stream().collect(toMap(Signature::toKey, identity()));
+        return sanitizedSignatures();
     }
 
-    private DomainObjectSet<Signature> signaturesForExsitingFiles() {
-        return signatures.matching(signature -> signature.getToSign().exists());
+    /**
+     * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
+     */
+    private Map<String, Signature> sanitizedSignatures() {
+        return signatures.matching(signature -> signature.getToSign().exists()).stream().collect(toMap(Signature::toKey, identity(), (signature, duplicate) -> signature));
     }
 
     /**
@@ -242,10 +245,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     @Internal
     public Signature getSingleSignature() {
-        if (signatures.size() == 1) {
-            return signatures.iterator().next();
+        Map<String, Signature> sanitizedSignatures = sanitizedSignatures();
+        if (sanitizedSignatures.size() == 1) {
+            return sanitizedSignatures.values().iterator().next();
         }
-        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + signatures.size() + " signatures.");
+        throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + sanitizedSignatures.size() + " signatures.");
     }
 
     @Inject

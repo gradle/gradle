@@ -24,14 +24,14 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.instantiation.DeserializationInstantiator
+import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiationScheme
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def instantiationScheme = Mock(InstantiationScheme)
-    def instantiator = Mock(Instantiator)
+    def instantiator = Mock(InstanceGenerator)
     def deserializeInstantiator = Mock(DeserializationInstantiator)
     ITaskFactory taskFactory
 

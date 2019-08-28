@@ -187,7 +187,7 @@ NOTE: The code for this example can be found at **`samples/userguide/tasks/incre
 If for some reason the task is executed non-incrementally, for example by running with `--rerun-tasks`, all files are reported as `ADDED`, irrespective of the previous state.
 In this case, Gradle automatically removes the previous outputs, so the incremental task only needs to process the given files.
 
-For a simple transformer task like the above exmaple, the task action simply needs to generate output files for any out-of-date inputs and delete output files for any removed inputs.
+For a simple transformer task like the above example, the task action simply needs to generate output files for any out-of-date inputs and delete output files for any removed inputs.
 
 [IMPORTANT]
 ====

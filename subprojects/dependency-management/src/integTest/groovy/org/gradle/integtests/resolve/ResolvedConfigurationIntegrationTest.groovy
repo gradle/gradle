@@ -38,8 +38,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves strictly for dependency resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
@@ -85,8 +85,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish();
-        def m3 = mavenHttpRepo.module('org.foo', 'broken').publish();
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish()
+        def m3 = mavenHttpRepo.module('org.foo', 'broken').publish()
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
@@ -122,8 +122,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
-        failure.assertHasCause("Could not find unknown.jar (org.foo:unknown:1.0).")
-        failure.assertHasCause("Could not download broken.jar (org.foo:broken:1.0)")
+        failure.assertHasCause("Could not find unknown-1.0.jar (org.foo:unknown:1.0).")
+        failure.assertHasCause("Could not download broken-1.0.jar (org.foo:broken:1.0)")
 
         where:
         expression                                 | _
@@ -134,8 +134,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves leniently for dependency resolve failures"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
@@ -273,8 +273,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "lenient for both dependency and artifact resolve and download failures"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         buildFile << """
@@ -336,7 +336,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     def "resolves leniently from mixed confs"() {
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
 
         buildFile << """
             configurations {

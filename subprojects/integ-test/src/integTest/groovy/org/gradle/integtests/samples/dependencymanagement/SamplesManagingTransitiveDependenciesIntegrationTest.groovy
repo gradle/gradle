@@ -67,13 +67,13 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
-        failure.assertHasCause("""Could not find jms.jar (javax.jms:jms:1.1).
+        failure.assertHasCause("""Could not find jms-1.1.jar (javax.jms:jms:1.1).
 Searched in the following locations:
     ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}javax/jms/jms/1.1/jms-1.1.jar""")
-        failure.assertHasCause("""Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
+        failure.assertHasCause("""Could not find jmxtools-1.2.1.jar (com.sun.jdmk:jmxtools:1.2.1).
 Searched in the following locations:
     ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar""")
-        failure.assertHasCause("""Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
+        failure.assertHasCause("""Could not find jmxri-1.2.1.jar (com.sun.jmx:jmxri:1.2.1).
 Searched in the following locations:
     ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
 

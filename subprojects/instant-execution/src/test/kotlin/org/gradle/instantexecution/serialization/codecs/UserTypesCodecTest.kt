@@ -272,6 +272,7 @@ class UserTypesCodecTest {
     fun codecs() = Codecs(
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
+        fileLookup = mock(),
         filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),

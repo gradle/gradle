@@ -215,7 +215,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceReporter() =
         objects.newInstance(DefaultPerformanceReporter::class).also {
             it.projectName = name
-            it.reportGeneratorClass = "org.gradle.performance.results.DefaultReportGenerator"
+            it.reportGeneratorClass = "org.gradle.performance.results.report.DefaultReportGenerator"
             it.githubToken = stringPropertyOrEmpty("githubToken")
         }
 
@@ -276,7 +276,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             rerunable = false
-            distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
+            distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.report.FlakinessReportGenerator"
             repeat = 3
             checks = "none"
             channel = "flakiness-detection"

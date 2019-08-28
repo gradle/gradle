@@ -150,7 +150,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
         expect:
         fails("withNonIncrementalInput")
-        failure.assertHasCause("Cannot query incremental changes: No property found for value property(interface org.gradle.api.file.RegularFile, fixed(class org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile, ${file( "nonIncremental").absolutePath})). Incremental properties: inputDir.")
+        failure.assertHasCause("Cannot query incremental changes: No property found for value task ':withNonIncrementalInput' property 'nonIncrementalInput'. Incremental properties: inputDir.")
     }
 
     def "changes to non-incremental input parameters cause a rebuild"() {

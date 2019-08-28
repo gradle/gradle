@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file
 
+
 import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile

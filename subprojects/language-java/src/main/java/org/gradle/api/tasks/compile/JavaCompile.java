@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilatio
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -50,9 +49,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.util.SingleMessageLogger;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -112,25 +109,28 @@ public class JavaCompile extends AbstractCompile {
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
+        DefaultJavaCompileSpec spec;
+        Compiler<JavaCompileSpec> compiler;
         if (!compileOptions.isIncremental()) {
-            compile();
-            return;
+            spec = createSpec();
+            spec.setSourceFiles(getSource());
+            compiler = createCompiler(spec);
+        } else {
+            spec = createSpec();
+            compiler = getIncrementalCompilerFactory().makeIncremental(
+                createCompiler(spec),
+                getPath(),
+                getSource(),
+                new JavaRecompilationSpecProvider(
+                    getDeleter(),
+                    ((ProjectInternal) getProject()).getFileOperations(),
+                    (FileTreeInternal) getSource(),
+                    inputs,
+                    new CompilationSourceDirs(spec.getSourceRoots())
+                )
+            );
         }
-
-        DefaultJavaCompileSpec spec = createSpec();
-        Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
-            createCompiler(spec),
-            getPath(),
-            getSource(),
-            new JavaRecompilationSpecProvider(
-                getDeleter(),
-                ((ProjectInternal) getProject()).getFileOperations(),
-                (FileTreeInternal) getSource(),
-                inputs,
-                new CompilationSourceDirs(spec.getSourceRoots())
-            )
-        );
-        performCompilation(spec, incrementalCompiler);
+        performCompilation(spec, compiler);
     }
 
     @Inject
@@ -146,13 +146,6 @@ public class JavaCompile extends AbstractCompile {
     @Inject
     protected Deleter getDeleter() {
         throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
-
-    @Override
-    protected void compile() {
-        DefaultJavaCompileSpec spec = createSpec();
-        spec.setSourceFiles(getSource());
-        performCompilation(spec, createCompiler(spec));
     }
 
 
@@ -199,23 +192,5 @@ public class JavaCompile extends AbstractCompile {
     @CompileClasspath
     public FileCollection getClasspath() {
         return super.getClasspath();
-    }
-
-    /**
-     * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
-     *
-     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)}.
-     *
-     * <p>This path is always empty when annotation processing is disabled.</p>
-     *
-     * @since 3.4
-     * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
-     */
-    @Deprecated
-    @Internal
-    @Nullable
-    public FileCollection getEffectiveAnnotationProcessorPath() {
-        SingleMessageLogger.nagUserOfReplacedProperty("JavaCompile.effectiveAnnotationProcessorPath", "JavaCompile.options.annotationProcessorPath");
-        return compileOptions.getAnnotationProcessorPath();
     }
 }

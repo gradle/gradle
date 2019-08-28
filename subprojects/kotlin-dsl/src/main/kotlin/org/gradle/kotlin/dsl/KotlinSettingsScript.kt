@@ -26,10 +26,11 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -38,7 +39,6 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
@@ -46,7 +46,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
-
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
@@ -54,14 +53,11 @@ import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
-
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
 import java.net.URI
-
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -442,17 +438,16 @@ internal
 fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
     val fileLookup = services.get<FileLookup>()
     val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
+    val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
     return DefaultFileOperations(
         fileResolver,
-        null,
-        null,
+        services.get<TemporaryFileProvider>(),
         services.get<Instantiator>(),
-        fileLookup,
         services.get<DirectoryFileTreeFactory>(),
         services.get<StreamHasher>(),
         services.get<FileHasher>(),
         services.get<TextResourceLoader>(),
-        DefaultFileCollectionFactory(fileResolver, null),
+        fileCollectionFactory,
         services.get<FileSystem>(),
         services.get<Deleter>())
 }

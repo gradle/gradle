@@ -263,6 +263,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
+            import java.util.concurrent.*
+
             class SomeBean {
                 ${type} value 
             }
@@ -299,41 +301,42 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${output}")
 
         where:
-        type                             | reference                                                     | output
-        String.name                      | "'value'"                                                     | "value"
-        String.name                      | "null"                                                        | "null"
-        Boolean.name                     | "true"                                                        | "true"
-        boolean.name                     | "true"                                                        | "true"
-        Character.name                   | "'a'"                                                         | "a"
-        char.name                        | "'a'"                                                         | "a"
-        Byte.name                        | "12"                                                          | "12"
-        byte.name                        | "12"                                                          | "12"
-        Short.name                       | "12"                                                          | "12"
-        short.name                       | "12"                                                          | "12"
-        Integer.name                     | "12"                                                          | "12"
-        int.name                         | "12"                                                          | "12"
-        Long.name                        | "12"                                                          | "12"
-        long.name                        | "12"                                                          | "12"
-        Float.name                       | "12.1"                                                        | "12.1"
-        float.name                       | "12.1"                                                        | "12.1"
-        Double.name                      | "12.1"                                                        | "12.1"
-        double.name                      | "12.1"                                                        | "12.1"
-        Class.name                       | "SomeBean"                                                    | "class SomeBean"
-        "SomeEnum"                       | "SomeEnum.Two"                                                | "Two"
-        "SomeEnum[]"                     | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
-        "List<String>"                   | "['a', 'b', 'c']"                                             | "[a, b, c]"
-        "ArrayList<String>"              | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
-        "LinkedList<String>"             | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
-        "Set<String>"                    | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
-        "HashSet<String>"                | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
-        "LinkedHashSet<String>"          | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
-        "TreeSet<String>"                | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
-        "EnumSet<SomeEnum>"              | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
-        "Map<String, Integer>"           | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
-        "HashMap<String, Integer>"       | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "LinkedHashMap<String, Integer>" | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
-        "TreeMap<String, Integer>"       | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "EnumMap<SomeEnum, String>"      | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
+        type                                 | reference                                                     | output
+        String.name                          | "'value'"                                                     | "value"
+        String.name                          | "null"                                                        | "null"
+        Boolean.name                         | "true"                                                        | "true"
+        boolean.name                         | "true"                                                        | "true"
+        Character.name                       | "'a'"                                                         | "a"
+        char.name                            | "'a'"                                                         | "a"
+        Byte.name                            | "12"                                                          | "12"
+        byte.name                            | "12"                                                          | "12"
+        Short.name                           | "12"                                                          | "12"
+        short.name                           | "12"                                                          | "12"
+        Integer.name                         | "12"                                                          | "12"
+        int.name                             | "12"                                                          | "12"
+        Long.name                            | "12"                                                          | "12"
+        long.name                            | "12"                                                          | "12"
+        Float.name                           | "12.1"                                                        | "12.1"
+        float.name                           | "12.1"                                                        | "12.1"
+        Double.name                          | "12.1"                                                        | "12.1"
+        double.name                          | "12.1"                                                        | "12.1"
+        Class.name                           | "SomeBean"                                                    | "class SomeBean"
+        "SomeEnum"                           | "SomeEnum.Two"                                                | "Two"
+        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
+        "List<String>"                       | "['a', 'b', 'c']"                                             | "[a, b, c]"
+        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
+        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
+        "Set<String>"                        | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
+        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
+        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
+        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
+        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
+        "Map<String, Integer>"               | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
+        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                         | "[a:1, b:2]"
+        "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
     }
 
     @Unroll
@@ -342,9 +345,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             import ${type.name}
 
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
                 dependencies {
                     classpath 'com.google.guava:guava:28.0-jre' 
                 }
@@ -610,6 +611,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
     }

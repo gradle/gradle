@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.DeprecationLogger;
+
+import javax.annotation.Nullable;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
@@ -29,6 +32,17 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     private boolean finalizeOnNextGet;
     private boolean disallowChanges;
     private Task producer;
+    private Describable displayName;
+
+    @Override
+    public void attachDisplayName(Describable displayName) {
+        this.displayName = displayName;
+    }
+
+    @Nullable
+    protected Describable getDisplayName() {
+        return displayName;
+    }
 
     @Override
     public void attachProducer(Task task) {
@@ -38,13 +52,37 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         this.producer = task;
     }
 
+    protected abstract ValueSupplier getSupplier();
+
+    protected abstract String describeContents();
+
+    // Final - implement describeContents() instead
+    @Override
+    public final String toString() {
+        if (displayName != null) {
+            return displayName.toString();
+        } else {
+            return describeContents();
+        }
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return producer != null || getSupplier().isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return getSupplier().isValueProducedByTask();
+    }
+
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         if (producer != null) {
             context.add(producer);
             return true;
         }
-        return false;
+        return getSupplier().maybeVisitBuildDependencies(context);
     }
 
     @Override

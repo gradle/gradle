@@ -786,7 +786,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
+        failure.assertHasCause("""Could not find projectA-1.0-SNAPSHOT.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -797,7 +797,7 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
+        failure.assertHasCause("""Could not find projectA-1.0-SNAPSHOT.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
     }

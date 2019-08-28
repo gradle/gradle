@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.instantiation.InstanceGenerator;
 
 /**
  * Compatibility class since the type is used at least by IntelliJ IDEA Gradle integration
@@ -24,7 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
  */
 @Deprecated
 public class DefaultConvention extends org.gradle.internal.extensibility.DefaultConvention {
-    public DefaultConvention(Instantiator instantiator) {
-        super(instantiator);
+    public DefaultConvention(InstanceGenerator instanceGenerator) {
+        super(instanceGenerator);
     }
 }

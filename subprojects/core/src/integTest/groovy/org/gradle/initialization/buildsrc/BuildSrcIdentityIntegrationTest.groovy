@@ -112,7 +112,7 @@ Required by:
         then:
         failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
-        failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
+        failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
 
         where:
         settings                     | display

@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
@@ -67,6 +68,7 @@ import org.gradle.workers.internal.IsolatableSerializerRegistry
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
+    fileLookup: FileLookup,
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
@@ -106,7 +108,6 @@ class Codecs(
         bind(BYTE_SERIALIZER)
         bind(FLOAT_SERIALIZER)
         bind(DOUBLE_SERIALIZER)
-        bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
         bind(FILE_SERIALIZER)
         bind(PATH_SERIALIZER)
         bind(ClassCodec)
@@ -127,12 +128,14 @@ class Codecs(
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
+        bind(concurrentHashMapCodec)
         bind(ImmutableMapCodec)
 
         bind(arrayCodec)
         bind(BrokenValueCodec)
 
         bind(ListPropertyCodec)
+        bind(SetPropertyCodec)
         bind(MapPropertyCodec)
         bind(DirectoryPropertyCodec(filePropertyFactory))
         bind(RegularFilePropertyCodec(filePropertyFactory))
@@ -142,6 +145,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
+        bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
 
@@ -152,7 +156,7 @@ class Codecs(
         bind(ArtifactCollectionCodec)
         bind(TransformationNodeReferenceCodec)
 
-        bind(DefaultCopySpecCodec(fileResolver, instantiator))
+        bind(DefaultCopySpecCodec(fileResolver, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
@@ -169,6 +173,8 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
+
+        bind(EnumCodec)
 
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
@@ -188,7 +194,7 @@ class Codecs(
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ResolvableArtifactCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
-        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))
+        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(classLoaderHierarchyHasher, isolatableFactory, actionScheme))
         bind(ExecutionGraphDependenciesResolverCodec)
     }

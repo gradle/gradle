@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.reflect.ParameterValidationContext;
 
 import java.io.File;
 
 public interface TaskValidationContext extends ParameterValidationContext {
-    FileResolver getResolver();
+    FileOperations getFileOperations();
 
     boolean isInReservedFileSystemLocation(File location);
 }

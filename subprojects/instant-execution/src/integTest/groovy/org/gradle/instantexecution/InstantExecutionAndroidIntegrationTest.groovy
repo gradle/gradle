@@ -17,11 +17,10 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.android.AndroidHome
 import org.junit.Rule
 
 
-class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     @Rule
     TestResources resources = new TestResources(temporaryFolder, "builds")
@@ -29,11 +28,15 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
     def instantExecution
 
     def setup() {
-        AndroidHome.assumeIsSet()
         executer.noDeprecationChecks()
+        executer.withRepositoryMirrors()
+
+        def rootDir = file("android-3.6-mini")
         executer.beforeExecute {
-            inDirectory(file("android-3.6-mini"))
+            inDirectory(rootDir)
         }
+        withAgpNightly(rootDir.file("build.gradle"))
+
         instantExecution = newInstantExecutionFixture()
     }
 
@@ -95,8 +98,6 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         given:
         def tasks = tasksToAssembleDebug - [
             // unsupported tasks
-            ":app:createDebugCompatibleScreenManifests",
-            ":app:processDebugManifest",
             ":app:processDebugResources",
             ":app:compileDebugJavaWithJavac",
             ":app:compileDebugSources",
@@ -124,20 +125,11 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionInt
         given:
         def tasks = tasksToAssembleDebug - [
             // unsupported tasks
-            ":app:createDebugCompatibleScreenManifests",
-            ":app:processDebugManifest",
             ":app:processDebugResources",
             ":app:compileDebugJavaWithJavac",
             ":app:compileDebugSources",
-            ":app:mergeDebugShaders",
-            ":app:compileDebugShaders",
-            ":app:generateDebugAssets",
-            ":app:mergeDebugAssets",
             ":app:dexBuilderDebug",
             ":app:mergeProjectDexDebug",
-            ":app:mergeDebugJniLibFolders",
-            ":app:mergeDebugNativeLibs",
-            ":app:stripDebugDebugSymbols",
             ":app:packageDebug",
             ":app:assembleDebug"
         ]

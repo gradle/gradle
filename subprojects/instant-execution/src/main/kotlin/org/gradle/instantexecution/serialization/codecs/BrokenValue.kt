@@ -17,8 +17,8 @@
 package org.gradle.instantexecution.serialization.codecs
 
 
-class BrokenValue(val message: String) {
+class BrokenValue(val failure: Throwable) {
     fun rethrow(): Nothing {
-        throw RuntimeException(message)
+        throw failure
     }
 }

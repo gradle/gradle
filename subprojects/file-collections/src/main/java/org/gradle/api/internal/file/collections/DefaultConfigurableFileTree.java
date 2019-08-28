@@ -20,19 +20,15 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.ConfigureUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
@@ -42,16 +38,11 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final DefaultTaskDependency buildDependency;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, @Nullable TaskResolver taskResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this(Collections.singletonMap("dir", dir), resolver, taskResolver, directoryFileTreeFactory);
-    }
-
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, @Nullable TaskResolver taskResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultConfigurableFileTree(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.resolver = resolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        patternSet = resolver.getPatternSetFactory().create();
-        buildDependency = new DefaultTaskDependency(taskResolver);
-        ConfigureUtil.configureByMap(args, this);
+        patternSet = patternSetFactory.create();
+        buildDependency = taskDependencyFactory.configurableDependency();
     }
 
     @Override

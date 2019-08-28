@@ -38,8 +38,6 @@ public abstract class AbstractCompile extends SourceTask {
         this.destinationDir = getProject().getObjects().property(File.class);
     }
 
-    protected abstract void compile();
-
     /**
      * Returns the classpath to use to compile the source files.
      *

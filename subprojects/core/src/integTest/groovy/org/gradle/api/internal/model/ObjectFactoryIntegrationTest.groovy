@@ -93,9 +93,27 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
             
             def t = objects.newInstance(Thing)
+            assert t.files.toString() == "file collection"
             assert t.files.files.empty
             t.files.from('a.txt')
             assert t.files as List == [file('a.txt')]
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create instance of interface with read-only Property<T> property"() {
+        buildFile << """
+            interface Thing {
+                Property<String> getValue()
+            }
+            
+            def t = objects.newInstance(Thing)
+            assert t.value.toString() == "property 'value'"
+            assert !t.value.present
+            t.value = 'abc'
+            assert t.value.get() == 'abc'
 """
 
         expect:

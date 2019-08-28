@@ -255,7 +255,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
         buildFile << """
             plugins { id 'java' }
-            repositories { jcenter() }
+            ${jcenterRepository()}
             dependencies { testImplementation "junit:junit:4.12" }
         """
         file("src/main/java/Thing.java") << """

@@ -141,9 +141,16 @@ Additionally, the following deprecated functionality now results in an error:
 - Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
 - Replacing a task that has never been registered.
 
+==== `AbstractCompile.compile()` is gone
+
+The abstrace method `compile()` is no longer declared by `AbstractCompile`.
+Tasks extending `AbstractCompile` can implement their own `@TaskAction` method with the name of their choosing.
+They are also free to add a `@TaskAction` method with an `InputChanges` parameter without having to implement a parameter-less one as well.
+
 ==== Updates to bundled Gradle dependencies
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
 
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
@@ -176,6 +183,7 @@ Miscellaneous::
   Use the methods on the <<declaring_dependency_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+* The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier

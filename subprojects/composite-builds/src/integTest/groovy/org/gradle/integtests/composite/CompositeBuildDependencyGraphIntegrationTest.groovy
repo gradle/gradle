@@ -768,7 +768,7 @@ Required by:
         then:
         failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
-        failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
+        failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }
 
     private void withArgs(List<String> args) {

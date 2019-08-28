@@ -9,8 +9,8 @@ We would like to thank the following community contributors to this release of G
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Andrey Mischenko](https://github.com/gildor),
 [Alex Saveau](https://github.com/SUPERCILEX),
-and [Mike Kobit](https://github.com/mkobit).
-
+[Mike Kobit](https://github.com/mkobit),
+and [Nigel Banks](https://github.com/nigelgbanks).
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -95,6 +95,12 @@ Deleting complex file hierarchies on Windows can sometimes be tricky, and errors
 To avoid these errors, Gradle has been employing workarounds in some but not all cases when it had to remove files.
 From now on Gradle uses these workarounds every time it removes file hierarchies.
 The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
+
+## Features for plugin authors
+
+### File and directory property methods
+
+TBD - Added `fileValue()` and `fileProvider()` methods.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

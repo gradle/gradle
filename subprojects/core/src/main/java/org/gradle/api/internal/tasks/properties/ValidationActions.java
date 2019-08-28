@@ -139,7 +139,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static File toFile(TaskValidationContext context, Object value) {
-        return context.getResolver().resolve(value);
+        return context.getFileOperations().file(value);
     }
 
     private static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
@@ -148,7 +148,7 @@ public enum ValidationActions implements ValidationAction {
         } else if (value instanceof FileCollection) {
             return (FileCollection) value;
         } else {
-            return context.getResolver().resolveFiles(value);
+            return context.getFileOperations().immutableFiles(value);
         }
     }
 }

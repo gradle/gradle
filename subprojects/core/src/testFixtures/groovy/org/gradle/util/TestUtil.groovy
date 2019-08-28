@@ -31,7 +31,7 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.instantiation.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -82,11 +82,14 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
-        return objFactory(TestFiles.resolver(baseDir))
+        def fileResolver = TestFiles.resolver(baseDir)
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
     }
 
     private static ObjectFactory objFactory(FileResolver fileResolver) {
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory(), domainObjectCollectionFactory())
+        def fileCollectionFactory = TestFiles.fileCollectionFactory()
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
     }
 
     private static ServiceRegistry services() {

@@ -45,7 +45,7 @@ class FileCollectionCodec(
                 write(elements)
             }
             onFailure { ex ->
-                write(BrokenValue(ex.message ?: "(no message)"))
+                write(BrokenValue(ex))
             }
         }
     }

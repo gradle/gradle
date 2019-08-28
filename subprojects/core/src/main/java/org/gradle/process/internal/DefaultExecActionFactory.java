@@ -21,12 +21,17 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -59,9 +64,11 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     // Do not use this. It's here because some of the services this type needs are not easily accessed in certain cases and will be removed ay some point. Use one of the other methods instead
+    @Deprecated
     public static DefaultExecActionFactory root() {
-        IdentityFileResolver resolver = new IdentityFileResolver();
-        return of(resolver, new DefaultFileCollectionFactory(resolver, null), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+        FileResolver resolver = new DefaultFileLookup(patternSetFactory).getFileResolver();
+        return of(resolver, new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
     public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {

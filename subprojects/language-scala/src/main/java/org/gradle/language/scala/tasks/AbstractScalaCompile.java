@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -48,9 +47,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.SingleMessageLogger;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -97,9 +94,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
 
     abstract protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
 
-    @Override
     @TaskAction
-    protected void compile() {
+    public void compile() {
         ScalaJavaJointCompileSpec spec = createSpec();
         configureIncrementalCompilation(spec);
         Compiler<ScalaJavaJointCompileSpec> compiler = getCompiler(spec);
@@ -129,7 +125,9 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(scalaCompileOptions);
-        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.<File>of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
+            ? ImmutableList.of()
+            : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         return spec;
     }
 
@@ -157,7 +155,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<File, File> resolveAnalysisMappingsForOtherProjects() {
         Map<File, File> analysisMap = Maps.newHashMap();
         for (File mapping : analysisFiles.getFiles()) {
@@ -172,24 +169,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
             }
         }
         return analysisMap;
-    }
-
-    /**
-     * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
-     *
-     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)}.
-     *
-     * <p>This path is always empty when annotation processing is disabled.</p>
-     *
-     * @since 4.1
-     * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
-     */
-    @Deprecated
-    @Internal
-    @Nullable
-    public FileCollection getEffectiveAnnotationProcessorPath() {
-        SingleMessageLogger.nagUserOfReplacedProperty("AbstractScalaCompile.effectiveAnnotationProcessorPath", "AbstractScalaCompile.options.annotationProcessorPath");
-        return compileOptions.getAnnotationProcessorPath();
     }
 
     /**
