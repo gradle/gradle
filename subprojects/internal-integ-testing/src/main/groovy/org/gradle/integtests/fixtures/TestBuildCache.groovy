@@ -30,7 +30,7 @@ class TestBuildCache {
     def localCacheConfiguration(boolean push = true) {
         """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = '${cacheDir.absoluteFile.toURI()}'
                     push = $push
                 }
