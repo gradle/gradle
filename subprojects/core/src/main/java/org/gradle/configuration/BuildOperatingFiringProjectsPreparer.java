@@ -37,22 +37,22 @@ public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
     }
 
     @Override
-    public void prepareProjects(GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
-        buildOperationExecutor.run(new ConfigureBuild(gradle, projectClassLoaderScope));
+    public void prepareProjects(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
+        buildOperationExecutor.run(new ConfigureBuild(gradle, baseProjectClassLoaderScope));
     }
 
     private class ConfigureBuild implements RunnableBuildOperation {
         private final GradleInternal gradle;
-        private final ClassLoaderScope projectClassLoaderScope;
+        private final ClassLoaderScope baseProjectClassLoaderScope;
 
-        public ConfigureBuild(GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
+        public ConfigureBuild(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
             this.gradle = gradle;
-            this.projectClassLoaderScope = projectClassLoaderScope;
+            this.baseProjectClassLoaderScope = baseProjectClassLoaderScope;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            delegate.prepareProjects(gradle, projectClassLoaderScope);
+            delegate.prepareProjects(gradle, baseProjectClassLoaderScope);
             context.setResult(CONFIGURE_BUILD_RESULT);
         }
 

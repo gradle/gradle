@@ -46,8 +46,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     }
 
     @Override
-    public void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
-        buildLoader.load(settings, gradle, projectClassLoaderScope);
+    public void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
+        buildLoader.load(settings, gradle, baseProjectClassLoaderScope);
         setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
     }
 

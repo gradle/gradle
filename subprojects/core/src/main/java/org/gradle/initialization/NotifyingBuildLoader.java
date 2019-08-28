@@ -45,7 +45,7 @@ public class NotifyingBuildLoader implements BuildLoader {
     }
 
     @Override
-    public void load(final SettingsInternal settings, final GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
+    public void load(final SettingsInternal settings, final GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
         final String buildPath = gradle.getIdentityPath().toString();
         buildOperationExecutor.call(new CallableBuildOperation<Void>() {
             @Override
@@ -61,7 +61,7 @@ public class NotifyingBuildLoader implements BuildLoader {
 
             @Override
             public Void call(BuildOperationContext context) {
-                buildLoader.load(settings, gradle, projectClassLoaderScope);
+                buildLoader.load(settings, gradle, baseProjectClassLoaderScope);
                 context.setResult(createOperationResult(gradle, buildPath));
                 return null;
             }

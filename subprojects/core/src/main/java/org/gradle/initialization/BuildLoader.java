@@ -24,5 +24,5 @@ public interface BuildLoader {
      * Creates prepares the {@link org.gradle.api.internal.project.ProjectInternal} instances for the given settings,
      * ready for the projects to be configured.
      */
-    void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope projectClassLoaderScope);
+    void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope);
 }

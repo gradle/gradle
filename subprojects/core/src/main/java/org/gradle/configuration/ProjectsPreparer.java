@@ -24,5 +24,5 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
  * <p>This stage includes running the build script for each project.</p>
  */
 public interface ProjectsPreparer {
-    void prepareProjects(GradleInternal gradle, ClassLoaderScope projectClassLoaderScope);
+    void prepareProjects(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope);
 }

@@ -48,12 +48,12 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     }
 
     @Override
-    public void prepareProjects(GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
+    public void prepareProjects(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
         maybeInformAboutIncubatingMode(gradle);
 
 
 
-        buildLoader.load(gradle.getSettings(), gradle, projectClassLoaderScope);
+        buildLoader.load(gradle.getSettings(), gradle, baseProjectClassLoaderScope);
 
         if (gradle.getParent() == null) {
             buildRegistry.beforeConfigureRootBuild();

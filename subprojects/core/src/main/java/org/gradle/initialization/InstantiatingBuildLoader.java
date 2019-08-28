@@ -35,8 +35,8 @@ public class InstantiatingBuildLoader implements BuildLoader {
      * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project, ready for the projects to be configured.
      */
     @Override
-    public void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope projectClassLoaderScope) {
-        createProjects(settings.getRootProject(), gradle, projectClassLoaderScope);
+    public void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
+        createProjects(settings.getRootProject(), gradle, baseProjectClassLoaderScope);
         attachDefaultProject(settings.getDefaultProject(), gradle);
     }
 
