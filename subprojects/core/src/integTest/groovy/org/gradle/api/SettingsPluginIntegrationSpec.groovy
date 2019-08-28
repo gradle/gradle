@@ -18,8 +18,16 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 
 class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
+
+    @org.junit.Rule
+    MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
+
+    @org.junit.Rule
+    MavenHttpPluginRepository mavenHttpRepo = new MavenHttpPluginRepository(mavenRepo)
 
     def setup(){
         executer.usingSettingsFile(settingsFile)
@@ -52,6 +60,57 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds(':moduleA:dependencies')
+    }
+
+    def "can use plugins block"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        def message = "hello from settings plugin"
+        pluginBuilder.addSettingsPlugin("println '$message'")
+        pluginBuilder.publishAs("g", "a", "1.0", pluginPortal, createExecuter()).allowAll()
+
+        when:
+        settingsFile.text = """
+            plugins {
+                id "test-settings-plugin" version "1.0"   
+            }
+            
+            $settingsFile.text
+        """
+
+        then:
+        succeeds("help")
+
+        and:
+        outputContains(message)
+    }
+
+    def "can use plugins block with plugin management block"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        def message = "hello from settings plugin"
+        pluginBuilder.addSettingsPlugin("println '$message'")
+        pluginBuilder.publishAs("g", "a", "1.0", mavenHttpRepo, createExecuter()).allowAll()
+
+        when:
+        settingsFile.text = """
+            pluginManagement {
+                repositories {
+                    maven { url "$mavenHttpRepo.uri" }
+                }
+            }   
+            plugins {
+                id "test-settings-plugin" version "1.0"   
+            }
+            
+            $settingsFile.text
+        """
+
+        then:
+        succeeds("help")
+
+        and:
+        outputContains(message)
     }
 
     protected TestFile getSettingsFile() {

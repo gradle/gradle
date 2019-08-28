@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
-import static org.gradle.test.fixtures.plugin.PluginBuilder.packageName
-
 @SuppressWarnings("GrMethodMayBeStatic")
 class BuildScanPluginFixture {
 
