@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 
@@ -29,9 +28,7 @@ object EnumCodec : EncodingProducer, Decoding {
     override suspend fun ReadContext.decode(): Any? {
         val enumClass = readClass()
         val enumOrdinal = readSmallInt()
-        return enumClass.enumConstants.uncheckedCast<Array<Enum<*>>>().first {
-            it.ordinal == enumOrdinal
-        }
+        return enumClass.enumConstants[enumOrdinal]
     }
 }
 
