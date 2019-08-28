@@ -29,7 +29,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -64,6 +63,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequestCollector;
+import org.gradle.plugin.use.internal.PluginsAwareScript;
 import org.gradle.process.internal.ExecFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -277,8 +277,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
         if (initialRunner.getRunDoesSomething()) {
             BasicScript script = initialRunner.getScript();
-            if (script instanceof ProjectScript) {
-                PluginRequestCollector pluginRequestCollector = ((ProjectScript) script).pluginRequestCollector;
+            if (script instanceof PluginsAwareScript) {
+                PluginRequestCollector pluginRequestCollector = ((PluginsAwareScript) script).pluginRequestCollector;
                 if (pluginRequestCollector != null) {
                     return pluginRequestCollector.getPluginRequests();
                 }

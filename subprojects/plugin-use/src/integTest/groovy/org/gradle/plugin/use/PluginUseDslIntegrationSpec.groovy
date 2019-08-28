@@ -109,15 +109,14 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "settings scripts cannot plugin blocks"() {
         when:
-        settingsFile << "plugins {}"
+        settingsFile.text = """
+          plugins {
+            id "noop" version "1.0"
+          }
+        """
 
         then:
-        fails "help"
-
-        failure.assertHasLineNumber 1
-        failure.assertHasFileName("Settings file '$settingsFile.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
-        includesLinkToUserguide()
+        succeeds "help"
     }
 
     def "init scripts cannot have plugin blocks"() {
@@ -132,7 +131,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Initialization script '$initScript.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        failure.assertThatCause(containsString("Only Project and Settings build scripts can contain plugins {} blocks"))
         includesLinkToUserguide()
     }
 
@@ -148,7 +147,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        failure.assertThatCause(containsString("Only Project and Settings build scripts can contain plugins {} blocks"))
         includesLinkToUserguide()
     }
 
@@ -164,7 +163,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
+        failure.assertThatCause(containsString("Only Project and Settings build scripts can contain plugins {} blocks"))
         includesLinkToUserguide()
     }
 
@@ -260,7 +259,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "id 'foo' version ''"                  | EMPTY_VALUE
     }
 
-    def "can interpolate properties in plugins block"() {
+    def "can interpolate properties in project plugins block"() {
         when:
         file("gradle.properties") << """
     foo = 333
@@ -281,7 +280,30 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    def "fails to interpolate unknown property in plugins block"() {
+    def "can interpolate properties in settings plugins block"() {
+        when:
+        file("gradle.properties") << """
+    foo = 333
+    bar = 444
+    foo.bar = 555
+"""
+        settingsFile.text = """
+            plugins {\n$code\n}
+        """
+
+        then:
+        succeeds "help"
+
+        where:
+        code << [
+            'id("noop").version("${foo}")',
+            'id("noop").version("0.${foo}")',
+            'id("noop").version("${foo}.0")',
+            'id("noop").version("0.${foo}.1")',
+        ]
+    }
+
+    def "fails to interpolate unknown property in project plugins block"() {
         when:
         buildScript("""plugins {\n$code\n}""")
 
@@ -295,6 +317,24 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         lineNumber | code                                         | msg
         2          | 'id("noop").version("${unknown}")'           | "Could not get unknown property 'unknown'"
         2          | 'id("noop").version("part-${unknown}-part")' | "Could not get unknown property 'unknown'"
+    }
+
+    def "fails to interpolate unknown property in settings plugins block"() {
+        when:
+        settingsFile.text = """
+            plugins {\n$code\n}
+        """
+
+        then:
+        fails "help"
+        failure.assertHasLineNumber lineNumber
+        failure.assertHasFileName("Settings file '${settingsFile}'")
+        failure.assertThatCause(containsString(msg))
+
+        where:
+        lineNumber | code                                         | msg
+        3          | 'id("noop").version("${unknown}")'           | "Could not get unknown property 'unknown'"
+        3          | 'id("noop").version("part-${unknown}-part")' | "Could not get unknown property 'unknown'"
     }
 
 
