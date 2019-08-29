@@ -129,7 +129,6 @@ fun compileKotlinScriptModuleTo(
         withCompilationExceptionHandler(messageCollector) {
 
             val configuration = compilerConfigurationFor(messageCollector).apply {
-                put(JVM_TARGET, JVM_1_8)
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
@@ -300,6 +299,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVMConfigurationKeys.USE_FAST_CLASS_FILES_READING, true)
+        put(JVM_TARGET, JVM_1_8)
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
