@@ -71,9 +71,6 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
                 buildscript { dependencies { classpath(files('${staticDataLib.toURI()}')) } }
 
                 task ok(type: StaticData) {
-                    // TODO:instant-execution ordering only matters because of the single CachingClassLoader currently used, see note below
-                    //   always run :foo:foo:ok first
-                    ${projectDir != 'foo/foo' ? "dependsOn ':foo:foo:ok'" : ""}
                 }
             """
         }
@@ -90,15 +87,7 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
 
         then:
         outputContains("foo.value = 2")
-        // TODO:instant-execution currently, when loading from the instant execution cache,
-        //  a single CachingClassLoader is used to serve all the classes,
-        // see `DefaultInstantExecution.classLoaderFor(List<ClassLoaderScopeSpec>): ClassLoader` for details,
-        // and because of that, :bar:bar:ok ends up using the same class as :foo:foo:ok and the final value is
-        // `3` instead of `2` as it would be the case with classic execution.
-        // Once the original ClassLoader structure is honoured the expection should be:
-        // outputContains("bar.value = 2")
-        // In the meantime:
-        outputContains("bar.value = 3")
+        outputContains("bar.value = 2")
     }
 
     private void instantRun(String... args) {

@@ -17,11 +17,9 @@ package org.gradle.groovy.scripts;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.CompileOperation;
+import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 
@@ -48,8 +46,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
 
         @Override
         public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, CompileOperation<M> extractingTransformer, ClassLoaderScope targetScope, Action<? super ClassNode> verifier) {
-            ClassLoaderId classLoaderId = ClassLoaderIds.buildScript(source.getFileName(), extractingTransformer.getId());
-            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(source, targetScope, classLoaderId, extractingTransformer, scriptType, verifier);
+            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(source, targetScope, extractingTransformer, scriptType, verifier);
             return scriptRunnerFactory.create(compiledScript, source, targetScope.getExportClassLoader());
         }
     }
