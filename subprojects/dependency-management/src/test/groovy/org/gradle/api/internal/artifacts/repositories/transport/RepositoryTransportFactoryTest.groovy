@@ -36,7 +36,7 @@ class RepositoryTransportFactoryTest extends Specification {
     def connectorFactory1 = Mock(ResourceConnectorFactory)
     def connectorFactory2 = Mock(ResourceConnectorFactory)
     def producerGuard = Mock(ProducerGuard)
-    def repositoryTransportFactory
+    RepositoryTransportFactory repositoryTransportFactory
 
     def setup() {
         connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
@@ -141,7 +141,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "should accept no credentials for auth"() {
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new AuthenticationWithoutCredentials('good')], _)
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new AuthenticationWithoutCredentials('good')], Mock(HttpRedirectVerifier))
 
         then:
         transport.class == ResourceConnectorRepositoryTransport

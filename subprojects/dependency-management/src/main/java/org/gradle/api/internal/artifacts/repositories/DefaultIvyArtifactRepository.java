@@ -72,6 +72,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -178,7 +179,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             m2Compatible = false;
         }
 
-        return new IvyRepositoryDescriptor.Builder(getName(), urlArtifactRepository.validateUrl())
+        return new IvyRepositoryDescriptor.Builder(getName(), urlArtifactRepository.getUrl())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
@@ -194,7 +195,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         validate(schemes);
 
         IvyResolver resolver = createResolver(schemes);
-        URI uri = urlArtifactRepository.validateUrl();
+        @Nullable
+        URI uri = urlArtifactRepository.getUrl();
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 

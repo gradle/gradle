@@ -18,6 +18,7 @@ package org.gradle.internal.verifier;
 
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -37,7 +38,7 @@ public class HttpRedirectVerifierFactory {
      * @param insecureRedirect Callback when the server returns an 30x redirect to an insecure server.
      */
     public static HttpRedirectVerifier create(
-        URI baseHost,
+        @Nullable URI baseHost,
         boolean allowInsecureProtocol,
         Runnable insecureBaseHost,
         Consumer<URI> insecureRedirect
@@ -46,7 +47,7 @@ public class HttpRedirectVerifierFactory {
             return NoopHttpRedirectVerifier.instance;
         } else {
             // Verify that the base URL is secure now.
-            if (!GUtil.isSecureUrl(baseHost)) {
+            if (baseHost != null && !GUtil.isSecureUrl(baseHost)) {
                 insecureBaseHost.run();
             }
 

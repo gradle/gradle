@@ -421,6 +421,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformationRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 
+        DefaultUrlArtifactRepository.Factory createDefaultUrlArtifactRepositoryFactory(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+            return new DefaultUrlArtifactRepository.Factory(fileResolver, documentationRegistry);
+        }
+
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                                           FileResolver fileResolver,
                                                           FileCollectionFactory fileCollectionFactory,

@@ -25,6 +25,7 @@ import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.function.Supplier;
@@ -104,7 +105,15 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
             );
     }
 
-    private void nagUserOfInsecureRedirect(URI redirectFrom, URI redirectLocation) {
+    private void nagUserOfInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) {
+        String contextualAdvice = null;
+        if(redirectFrom != null) {
+            contextualAdvice = String.format(
+                "'%s' is redirecting to '%s'.",
+                redirectFrom,
+                redirectLocation
+            );
+        }
         DeprecationLogger
             .nagUserOfDeprecated(
                 "Following insecure redirects",
@@ -114,16 +123,13 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
                     displayNameSupplier.get(),
                     allowInsecureProtocolHelpLink()
                 ),
-                String.format(
-                    "'%s' is redirecting to '%s'.",
-                    redirectFrom,
-                    redirectLocation
-                )
+                contextualAdvice
             );
     }
 
     HttpRedirectVerifier createRedirectVerifier() {
-        URI uri = validateUrl();
+        @Nullable
+        URI uri = getUrl();
         return HttpRedirectVerifierFactory
             .create(
                 uri,

@@ -25,6 +25,7 @@ import static org.gradle.util.GUtil.collectionize
 import static org.gradle.util.GUtil.endsWith
 import static org.gradle.util.GUtil.flatten
 import static org.gradle.util.GUtil.flattenElements
+import static org.gradle.util.GUtil.isSecureUrl
 import static org.gradle.util.GUtil.toCamelCase
 import static org.gradle.util.GUtil.toConstant
 import static org.gradle.util.GUtil.toEnum

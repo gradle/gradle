@@ -22,8 +22,8 @@ import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -38,10 +38,12 @@ import java.net.URI;
 public class MavenLocalPublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenLocalPublisher.class);
 
+    private final RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenLocalPublisher(Factory<File> temporaryDirFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public MavenLocalPublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(temporaryDirFactory);
+        this.repositoryTransportFactory = repositoryTransportFactory;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
@@ -50,9 +52,7 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
         LOGGER.info("Publishing to maven local repository");
 
         URI rootUri = mavenRepositoryLocator.getLocalMavenRepository().toURI();
-        String protocol = rootUri.getScheme().toLowerCase();
-        DefaultMavenArtifactRepository realRepository = (DefaultMavenArtifactRepository) artifactRepository;
-        RepositoryTransport transport = realRepository.getTransport(protocol);
+        RepositoryTransport transport = repositoryTransportFactory.createFileTransport("mavenLocal");
         ExternalResourceRepository repository = transport.getRepository();
 
         publish(publication, repository, rootUri, true);

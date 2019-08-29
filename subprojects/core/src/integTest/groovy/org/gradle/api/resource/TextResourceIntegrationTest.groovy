@@ -127,7 +127,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksExecuted(":uriText")
         file("output.txt").text == "my config\n"
-        outputContains("Resolving text resources from insecure URIs")
+        outputContains("Loading a TextResource from an insecure URI has been deprecated.")
         outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
 
         when:
