@@ -44,7 +44,7 @@ dependencies {
     implementation(futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
-    
+
     implementation(library("slf4j_api"))
 
     testImplementation(project(":kotlinDslTestFixtures"))

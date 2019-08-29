@@ -51,7 +51,6 @@ dependencies {
     crossVersionTestImplementation(library("ant"))
     crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
-
 }
 
 tasks {

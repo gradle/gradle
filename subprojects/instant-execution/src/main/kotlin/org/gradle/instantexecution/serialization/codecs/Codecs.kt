@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
@@ -85,6 +86,7 @@ class Codecs(
     isolatableSerializerRegistry: IsolatableSerializerRegistry,
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
+    attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener
 ) {
 
@@ -154,6 +156,7 @@ class Codecs(
 
         // Dependency management types
         bind(ArtifactCollectionCodec)
+        bind(AttributeContainerCodec(attributesFactory))
         bind(TransformationNodeReferenceCodec)
 
         bind(DefaultCopySpecCodec(fileResolver, fileCollectionFactory, instantiator))

@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -41,11 +42,13 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
     private final Class<? extends PROTOCOL> workerImplementation;
     private final DefaultWorkerProcessBuilder builder;
     private final RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
+    private final OutputEventListener outputEventListener;
 
-    public DefaultSingleRequestWorkerProcessBuilder(Class<PROTOCOL> protocolType, Class<? extends PROTOCOL> workerImplementation, DefaultWorkerProcessBuilder builder) {
+    public DefaultSingleRequestWorkerProcessBuilder(Class<PROTOCOL> protocolType, Class<? extends PROTOCOL> workerImplementation, DefaultWorkerProcessBuilder builder, OutputEventListener outputEventListener) {
         this.protocolType = protocolType;
         this.workerImplementation = workerImplementation;
         this.builder = builder;
+        this.outputEventListener = outputEventListener;
         builder.worker(new WorkerAction(workerImplementation));
         builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()).getAsURLs());
     }
@@ -115,7 +118,7 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
         return protocolType.cast(Proxy.newProxyInstance(protocolType.getClassLoader(), new Class[]{protocolType}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                Receiver receiver = new Receiver(getBaseName());
+                Receiver receiver = new Receiver(getBaseName(), outputEventListener);
                 try {
                     WorkerProcess workerProcess = builder.build();
                     workerProcess.start();

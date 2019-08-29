@@ -54,6 +54,7 @@ data class KotlinBuildScriptModelRequest(
     val javaHome: File? = null,
     val options: List<String> = emptyList(),
     val jvmOptions: List<String> = emptyList(),
+    val environmentVariables: Map<String, String> = emptyMap(),
     val correlationId: String = newCorrelationId()
 )
 
@@ -95,6 +96,7 @@ data class FetchParameters(
     val connectorForProject: Function<File, GradleConnector>,
     val options: List<String> = emptyList(),
     val jvmOptions: List<String> = emptyList(),
+    val environmentVariables: Map<String, String> = emptyMap(),
     val correlationId: String = newCorrelationId(),
     val modelBuilderCustomization: ModelBuilderCustomization = {}
 )
@@ -108,6 +110,7 @@ fun KotlinBuildScriptModelRequest.toFetchParametersWith(modelBuilderCustomizatio
         Function { projectDir -> connectorFor(this).forProjectDirectory(projectDir) },
         options,
         jvmOptions,
+        environmentVariables,
         correlationId,
         modelBuilderCustomization
     )
@@ -177,6 +180,7 @@ fun connectionForProjectDir(projectDir: File, parameters: FetchParameters): Proj
 private
 fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
     model(KotlinBuildScriptModel::class.java).apply {
+        setEnvironmentVariables(parameters.environmentVariables.takeIf { it.isNotEmpty() })
         setJvmArguments(parameters.jvmOptions + modelSpecificJvmOptions)
         forTasks(kotlinBuildScriptModelTask)
 

@@ -20,7 +20,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0"
+                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1"
             }
 
             $repositoriesBlock
@@ -41,8 +41,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         build("generateScriptPluginAdapters")
 
-        executer.expectDeprecationWarning()
-        build("ktlintC")
+        build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
     }
 
     @Test
@@ -57,7 +56,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettingsIn(firstLocation).appendText("""
             rootProject.name = "test"
             buildCache {
-                local<DirectoryBuildCache> {
+                local {
                     directory = file("${cacheDir.normalisedPath}")
                 }
             }

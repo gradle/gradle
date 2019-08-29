@@ -55,6 +55,44 @@
             ]
         },
         {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Class org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getObjects()",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getOutputDirectory()",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getRelocatedObjects()",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.unexport(org.gradle.work.InputChanges)",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Constructor org.gradle.language.nativeplatform.tasks.UnexportMainSymbol()",
+            "acceptation": "The class is incubating and was simply move",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
             "acceptation": "Common methods extracted to UrlArtifactRepository",

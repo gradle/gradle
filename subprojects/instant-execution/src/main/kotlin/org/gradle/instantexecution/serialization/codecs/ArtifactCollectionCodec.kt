@@ -19,35 +19,45 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readCollectionInto
+import org.gradle.instantexecution.serialization.writeCollection
 
 
 internal
 object ArtifactCollectionCodec : Codec<ArtifactCollection> {
 
-    override suspend fun WriteContext.encode(value: ArtifactCollection) = Unit
+    override suspend fun WriteContext.encode(value: ArtifactCollection) {
+        write(value.artifactFiles)
+        writeCollection(value.artifacts)
+        writeCollection(value.failures)
+    }
 
-    override suspend fun ReadContext.decode(): ArtifactCollection? =
-        EmptyArtifactCollection(ImmutableFileCollection.of())
+    override suspend fun ReadContext.decode(): ArtifactCollection {
+        val files = read() as FileCollection
+        val artifacts = readCollectionInto { LinkedHashSet<Any?>(it) } as MutableSet<ResolvedArtifactResult>
+        val failures = readCollectionInto { ArrayList<Any?>(it) } as List<Throwable>
+        return FixedArtifactCollection(files, artifacts, failures)
+    }
 }
 
 
-class EmptyArtifactCollection(
-    private val fileCollection: FileCollection
+class FixedArtifactCollection(
+    private val fileCollection: FileCollection,
+    private val artifacts: MutableSet<ResolvedArtifactResult>,
+    private val failures: List<Throwable>
 ) : ArtifactCollection {
 
-    override fun getFailures(): Collection<Throwable> =
-        emptyList()
+    override fun getFailures() = failures
 
     override fun iterator(): MutableIterator<ResolvedArtifactResult> =
-        mutableListOf<ResolvedArtifactResult>().iterator()
+        artifacts.iterator()
 
     override fun getArtifactFiles(): FileCollection =
         fileCollection
 
     override fun getArtifacts(): Set<ResolvedArtifactResult> =
-        emptySet()
+        artifacts
 }
