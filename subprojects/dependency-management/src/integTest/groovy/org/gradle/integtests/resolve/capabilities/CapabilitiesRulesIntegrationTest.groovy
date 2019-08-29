@@ -67,14 +67,10 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         fails ':checkDeps'
 
         then:
-        def variant = 'runtime'
-        if (!isGradleMetadataPublished() && useIvy()) {
-            variant = 'default'
-        }
         failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5($variant)]""")
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5(runtime)]""")
         failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5(runtime)]""")
     }
 
     @Unroll

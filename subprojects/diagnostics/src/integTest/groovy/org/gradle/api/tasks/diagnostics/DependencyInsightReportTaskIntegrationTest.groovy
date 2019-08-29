@@ -705,7 +705,7 @@ org:leaf:[1,2] -> 2
         then:
         outputContains """
 org:leaf:1.0
-   variant "default" [
+   variant "runtime" [
       org.gradle.status = integration (not requested)
    ]
 
@@ -1069,7 +1069,7 @@ org:foo:1.0 -> 2.0
         then:
         outputContains """
 org:leaf:1.6
-   variant "default" [
+   variant "runtime" [
       org.gradle.status = integration (not requested)
    ]
 

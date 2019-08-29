@@ -28,13 +28,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     @Override
     String getTestConfiguration() { variantToTest }
 
-    /**
-     * Does the published metadata provide variants with attributes? Eventually all metadata should do that.
-     * For Ivy and Maven POM metadata, the variants and attributes should be derived from configurations and scopes.
-     */
     boolean getPublishedModulesHaveAttributes() { gradleMetadataPublished }
 
     String getVariantToTest() {
+        // in plain ivy or maven we can not publish custom attributes, but we can still do configuration selection
+        // in the case of maven, we can only select one of the pre-defined "variants" (e.g. compile)
         if (gradleMetadataPublished || useIvy()) {
             'customVariant'
         } else {

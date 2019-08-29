@@ -39,7 +39,7 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
 """
     }
 
-    def "when no target configuration is specified then a dependency on maven module includes the default configuration of required ivy module"() {
+    def "when no target configuration is specified then a dependency on a maven module is resolved by variant matching"() {
         def inDefault = ivyRepo.module("org.test", "in-default", "1.0").publish()
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
@@ -78,8 +78,8 @@ dependencies {
             root(':', ':testproject:') {
                 module('org.test:maven:1.0:runtime') {
                     module('org.test:ivy:1.0') {
-                        artifact(name: 'in-default')
-                        module('org.test:in-default:1.0')
+                        artifact(name: 'runtime')
+                        module('org.test:m2:1.0')
                     }
                 }
             }
@@ -162,8 +162,8 @@ dependencies {
             root(':', ':testproject:') {
                 module('org.test:maven:1.0:runtime') {
                     module('org.test:ivy:1.0') {
-                        module('org.test:in-default:1.0')
-                        artifact(name: 'in-default')
+                        artifact(name: 'runtime')
+                        module('org.test:m2:1.0')
                     }
                 }
             }
@@ -196,7 +196,7 @@ dependencies {
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module('org.test:ivy:1.0') {
+                module('org.test:ivy:1.0:runtime') {
                     module('org.test:maven:1.0') {
                         module('org.test:m1:1.0')
                         module('org.test:m2:1.0')

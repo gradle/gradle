@@ -41,10 +41,6 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         GradleMetadataResolveRunner.isGradleMetadataPublished()
     }
 
-    boolean usesJavaLibraryVariants() {
-        GradleMetadataResolveRunner.isGradleMetadataPublished() || useMaven()
-    }
-
     String getTestConfiguration() { 'conf' }
 
     String getRootProjectName() { 'test' }
@@ -146,7 +142,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     def setup() {
         resolve = new ResolveTestFixture(buildFile, testConfiguration)
-        resolve.expectDefaultConfiguration(usesJavaLibraryVariants() ? "runtime" : "default")
+        resolve.expectDefaultConfiguration("runtime")
         settingsFile << "rootProject.name = '$rootProjectName'"
         resolve.prepare()
         buildFile << """

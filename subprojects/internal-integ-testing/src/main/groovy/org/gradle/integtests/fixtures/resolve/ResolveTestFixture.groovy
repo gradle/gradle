@@ -858,6 +858,39 @@ allprojects {
             }
         """
     }
+
+    void addIvyJavaEcosystemDerivationRules(boolean asCacheableRule = false) {
+        buildFile << """
+            ${asCacheableRule ? '@CacheableRule' : ''}
+            class IvyVariantDerivationRule implements ComponentMetadataRule {
+                @javax.inject.Inject
+                ObjectFactory getObjects() { }
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('compile') {
+                        attributes { 
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR)) 
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY)) 
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API)) 
+                        }
+                    }
+                    context.details.withVariant('runtime') {
+                        attributes { 
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR)) 
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY)) 
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        }
+                    }
+                }
+            }
+            allprojects {
+                dependencies {
+                    components {
+                        all(IvyVariantDerivationRule)
+                    }
+                }
+            }
+        """
+    }
 }
 
 class GenerateGraphTask extends DefaultTask {

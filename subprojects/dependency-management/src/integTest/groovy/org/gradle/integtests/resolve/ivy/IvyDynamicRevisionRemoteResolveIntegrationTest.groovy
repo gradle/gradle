@@ -32,6 +32,7 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
         resolve = new ResolveTestFixture(buildFile, "compile")
         resolve.prepare()
         resolve.addDefaultVariantDerivationStrategy()
+        resolve.expectDefaultConfiguration("runtime")
     }
 
     @Issue("GRADLE-3264")
@@ -145,6 +146,7 @@ dependencies {
 
     def "determines latest version with jar only if artifact metadata source is configured"() {
         given:
+        resolve.expectDefaultConfiguration("default")
         useRepository ivyHttpRepo
         buildFile << """
 repositories.all {

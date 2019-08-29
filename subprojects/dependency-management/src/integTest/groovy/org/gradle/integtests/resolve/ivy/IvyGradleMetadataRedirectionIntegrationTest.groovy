@@ -174,6 +174,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
 
     private void prepareResolution() {
         resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+        resolve.expectDefaultConfiguration("compile")
         resolve.prepare()
     }
 

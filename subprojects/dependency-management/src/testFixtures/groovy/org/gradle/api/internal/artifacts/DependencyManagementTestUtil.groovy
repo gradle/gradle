@@ -29,7 +29,7 @@ class DependencyManagementTestUtil {
     }
 
     static IvyMutableModuleMetadataFactory ivyMetadataFactory() {
-        return new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), defaultSchema())
+        return new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), defaultSchema())
     }
 
     static PreferJavaRuntimeVariant defaultSchema() {

@@ -61,10 +61,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             configurations["default"].extend == ["runtime", "compile"] as Set
             configurations["runtime"].extend == null
 
-            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile"])
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile", "runtime"])
         }
         javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
-        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
+        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:1.4')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -268,10 +268,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         dep.exclusions[0].org == 'commons-logging'
         dep.exclusions[0].module == 'commons-logging'
 
-        javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
+        javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->compile")
         javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
         !javaLibrary.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
-        javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("compile->default")
+        javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("compile->compile")
         javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
 
         and:
@@ -1134,6 +1134,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if ($optional) it.mapToOptional()
+                it.mapToMavenScope('runtime')
             }
 
             publishing {
@@ -1162,9 +1163,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             configurations["runtime"].extend == null
             configurations["optionalFeatureRuntimeElements"].extend == null
 
-            expectArtifact("publishTest", "jar").hasConf(["compile"])
+            expectArtifact("publishTest", "jar").hasConf(["compile", "runtime"])
             expectArtifact("publishTest", "jar", "optional-feature").hasConf(["optionalFeatureRuntimeElements"])
-            assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org.slf4j:slf4j-api:1.7.26")
+            assertConfigurationDependsOn("optionalFeatureRuntimeElements->runtime", "org.slf4j:slf4j-api:1.7.26")
         }
 
         where:

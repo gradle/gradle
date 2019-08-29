@@ -123,7 +123,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds(':publishDeps')
 
         then:
-        executed ":number-utils:uploadArchives", ":string-utils:uploadArchives"
+        executed ":number-utils:publish", ":string-utils:publish"
 
         and:
         multiRepoAppDir.file('../local-repo/org.sample/number-utils/1.0')

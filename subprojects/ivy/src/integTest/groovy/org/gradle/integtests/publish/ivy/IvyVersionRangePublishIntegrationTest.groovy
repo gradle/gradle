@@ -59,11 +59,11 @@ uploadArchives {
         then:
         ivyModule.assertPublished()
         ivyModule.parsedIvy.assertDependsOn(
-                "group:projectA:latest.release@compile",
-                "group:projectB:latest.integration@compile",
-                "group:projectC:1.+@compile",
-                "group:projectD:[1.0,2.0)@compile",
-                "group:projectE:1.0@compile"
+                "group:projectA:latest.release@compile->default",
+                "group:projectB:latest.integration@compile->default",
+                "group:projectC:1.+@compile->default",
+                "group:projectD:[1.0,2.0)@compile->default",
+                "group:projectE:1.0@compile->default"
         )
     }
 
@@ -95,6 +95,6 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        ivyModule.parsedIvy.assertDependsOn("group:projectA:@compile", "group:projectB:@compile")
+        ivyModule.parsedIvy.assertDependsOn("group:projectA:@compile->default", "group:projectB:@compile->default")
     }
 }

@@ -189,13 +189,12 @@ dependencies {
         def version = "1.0"
         def module = repo.module("some", "module", version)
 
-        module.configuration("default")
         module.configuration("sources")
         module.configuration("javadoc")
-        module.artifact(name: "foo", type: "jar", ext: "jar", conf: "default")
+        module.artifact(name: "foo", type: "jar", ext: "jar", conf: "compile,runtime")
         module.artifact(name: "foo-sources", type: "jar", ext: "jar", conf: "sources")
         module.artifact(name: "foo-javadoc", type: "jar", ext: "jar", conf: "javadoc")
-        module.artifact(name: "foo-api", type: "jar", ext: "jar", conf: "default")
+        module.artifact(name: "foo-api", type: "jar", ext: "jar", conf: "compile,runtime")
         module.artifact(name: "foo-api-sources", type: "jar", ext: "jar", conf: "sources")
         module.artifact(name: "foo-api-javadoc", type: "jar", ext: "jar", conf: "javadoc")
         module.publish()
@@ -255,8 +254,7 @@ dependencies {
     def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
-        module.configuration("default")
-        module.artifact(conf: "default")
+        module.artifact(conf: "compile,runtime")
         module.undeclaredArtifact(classifier: "sources", ext: "jar")
         module.undeclaredArtifact(classifier: "javadoc", ext: "jar")
         module.publish()
@@ -297,7 +295,7 @@ dependencies {
         module.configuration("default")
         module.configuration("sources")
         module.configuration("javadoc")
-        module.artifact(conf: "default")
+        module.artifact(conf: "compile,runtime")
         // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
         module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
         module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")

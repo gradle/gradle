@@ -85,7 +85,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching ${variantTerm()} of org.test:module:1.0:")
+            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
             failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
         }
 
@@ -466,26 +466,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     static String testedVariant() {
-        def variant
-        if (GradleMetadataResolveRunner.gradleMetadataPublished) {
-            variant = 'api'
-        } else {
-            if (GradleMetadataResolveRunner.useIvy()) {
-                variant = 'default'
-            } else {
-                variant = 'compile'
-            }
-        }
-        variant
-    }
-
-    static String variantTerm() {
-        if (GradleMetadataResolveRunner.gradleMetadataPublished) {
-            return "variant"
-        }
-        if (!GradleMetadataResolveRunner.useIvy()) {
-            return "variant"
-        }
-        return "configuration"
+        GradleMetadataResolveRunner.gradleMetadataPublished ? 'api' : 'compile'
     }
 }

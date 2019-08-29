@@ -99,8 +99,6 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         then:
         succeeds ":checkDeps"
 
-        // We are resolving with "legacy" metadata: always gives default configuration, unless we derive Java library variants for maven repositories
-        resolve.expectDefaultConfiguration(useMaven() ? "runtime" : "default")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:1.+", "org.test:projectA:1.2")

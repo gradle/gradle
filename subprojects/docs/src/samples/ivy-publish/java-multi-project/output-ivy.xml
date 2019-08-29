@@ -16,10 +16,10 @@
   </configurations>
   <publications>
     <artifact name="project1" type="sources" ext="jar" conf="compile" m:classifier="sources"/>
-    <artifact name="project1" type="jar" ext="jar" conf="compile"/>
+    <artifact name="project1" type="jar" ext="jar" conf="compile,runtime"/>
   </publications>
   <dependencies>
-    <dependency org="junit" name="junit" rev="4.12" conf="runtime-&gt;default"/>
-    <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtime-&gt;default"/>
+    <dependency org="junit" name="junit" rev="4.12" conf="runtime-&gt;runtime"/>
+    <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtime-&gt;runtime"/>
   </dependencies>
 </ivy-module>

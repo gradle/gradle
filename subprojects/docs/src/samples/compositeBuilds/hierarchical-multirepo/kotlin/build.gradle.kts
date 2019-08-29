@@ -1,7 +1,6 @@
 plugins {
     java
     application
-    idea
 }
 
 group = "org.sample"
@@ -25,6 +24,6 @@ repositories {
 
 // tag::publishDeps[]
 tasks.register("publishDeps") {
-    dependsOn(gradle.includedBuilds.map { it.task(":uploadArchives") })
+    dependsOn(gradle.includedBuilds.map { it.task(":publish") })
 }
 // end::publishDeps[]

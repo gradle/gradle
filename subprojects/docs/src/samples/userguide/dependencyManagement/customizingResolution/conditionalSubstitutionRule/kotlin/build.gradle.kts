@@ -44,6 +44,6 @@ dependencies {
 
 tasks.register("showJarFiles") {
     doLast {
-        configurations["compileClasspath"].forEach { println(it.path.removePrefix(rootDir.path)) }
+        configurations["runtimeClasspath"].forEach { println(it.path.removePrefix(rootDir.path)) }
     }
 }

@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'idea'
+    id 'ivy-publish'
 }
 
 group "org.sample"
@@ -11,15 +11,19 @@ dependencies {
 }
 
 repositories {
-    ivy {
-        name 'localrepo'
-        url file("../../../local-repo")
-    }
     jcenter()
 }
 
-uploadArchives {
+publishing {
     repositories {
-        add project.repositories.localrepo
+        ivy {
+            name 'localrepo'
+            url file("../../../local-repo")
+        }
+    }
+    publications {
+        ivy(IvyPublication) {
+            from components.java
+        }
     }
 }

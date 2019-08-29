@@ -1,20 +1,21 @@
 plugins {
     java
-    idea
+    `ivy-publish`
 }
 
 group = "org.sample"
 version = "1.0"
 
-repositories {
-    ivy {
-        name = "localrepo"
-        url = uri(file("../../../local-repo"))
-    }
-}
-
-tasks.named<Upload>("uploadArchives") {
+publishing {
     repositories {
-        add(project.repositories["localrepo"])
+        ivy {
+            name = "localrepo"
+            url = uri(file("../../../local-repo"))
+        }
+    }
+    publications {
+        create<IvyPublication>("ivy") {
+            from(components["java"])
+        }
     }
 }

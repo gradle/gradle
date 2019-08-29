@@ -45,10 +45,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
             // the runtime variant is supposed to include everything
             return true
         }
-        if (testVariant == 'api' && repoType == 'ivy') {
-            // classic ivy metadata interpretation does not honor api/runtime separation
-            return true
-        }
         return false
     }
 
@@ -59,15 +55,12 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
             }
             return 'runtime'
         }
-        if (repoType == 'maven') {
-            switch (testVariant) {
-                case 'api':
-                    return 'compile'
-                default:
-                    return 'runtime'
-            }
+        switch (testVariant) {
+            case 'api':
+                return 'compile'
+            default:
+                return 'runtime'
         }
-        return 'default'
     }
 
     private ResolveTestFixture resolve
@@ -148,7 +141,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
     }
 
-    def expectChainInteractions(repoTypes, chain, testVariant = 'api', configuration = null) {
+    def expectChainInteractions(repoTypes, chain, testVariant = 'api', configuration = null, noRuntimeFor = null) {
         String prevRepoType = null
         chain.each { repoType ->
             repositoryInteractions(repoType) {
@@ -160,7 +153,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                if (leaksRuntime(testVariant, repoType, prevRepoType) || (prevRepoType==null && configuration in ['test', 'runtime'])) {
+                if (repoType != noRuntimeFor && leaksRuntime(testVariant, repoType, prevRepoType) || (prevRepoType==null && configuration in ['test', 'runtime'])) {
                     "org:$repoType-runtime-dependency:1.0" {
                         expectGetMetadata()
                         expectGetArtifact()
@@ -358,7 +351,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         repository('ivy') {
             "org:ivy:1.0" {
                 withModule(IvyModule) {
-                    dependsOn([organisation: 'org', module: targetRepoName, revision: '1.0', conf: 'compile->compile'])
+                    dependsOn([organisation: 'org', module: targetRepoName, revision: '1.0', conf: 'runtime->compile'])
                 }
             }
         }
@@ -369,13 +362,13 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                 conf 'org:ivy:1.0'
             }
         """
-        expectChainInteractions([targetRepoName, 'ivy'], ['ivy', targetRepoName], supported? 'api' : 'runtime')
+        expectChainInteractions([targetRepoName, 'ivy'], ['ivy', targetRepoName], 'runtime', null, supported? targetRepoName : null)
 
         then:
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org:ivy:1.0") {
+                module("org:ivy:1.0:runtime") {
                     module "org:ivy-api-dependency:1.0"
                     module "org:ivy-runtime-dependency:1.0"
                     module("org:$targetRepoName:1.0") {
