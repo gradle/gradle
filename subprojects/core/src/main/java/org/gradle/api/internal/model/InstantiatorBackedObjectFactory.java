@@ -20,6 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
@@ -52,6 +53,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     @Override
     public ConfigurableFileCollection fileCollection() {
         throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing file collections");
+    }
+
+    @Override
+    public ConfigurableFileTree fileTree() {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing file trees");
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
@@ -101,6 +102,13 @@ public interface ObjectFactory {
     ConfigurableFileCollection fileCollection();
 
     /**
+     * Creates a new {@link ConfigurableFileTree}. The tree has no base dir specified.
+     *
+     * @since 6.0
+     */
+    ConfigurableFileTree fileTree();
+
+    /**
      * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
@@ -116,7 +124,6 @@ public interface ObjectFactory {
      * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The given factory is used to create object instances.</p>
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
-     *
      *
      * @param elementType The type of objects for the container to contain.
      * @param factory The factory to use to create object instances.
@@ -182,6 +189,7 @@ public interface ObjectFactory {
      * Creates a {@link MapProperty} implementation to hold a {@link Map} of the given key type {@code K} and value type {@code V}. The property has an empty map as its initial value.
      *
      * <p>The implementation will return immutable {@link Map} values from its query methods.</p>
+     *
      * @param keyType the type of key.
      * @param valueType the type of value.
      * @param <K> the type of key.
