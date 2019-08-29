@@ -31,7 +31,7 @@ import java.util.List;
 
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final MavenImmutableAttributesFactory attributesFactory;
+    private final LegacyMetadataImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final PreferJavaRuntimeVariant schema;
 
@@ -41,7 +41,7 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
                                              PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.schema = schema;
-        this.attributesFactory = new DefaultMavenImmutableAttributesFactory(attributesFactory, objectInstantiator);
+        this.attributesFactory = new DefaultLegacyMetadataImmutableAttributesFactory(attributesFactory, objectInstantiator);
         this.objectInstantiator = objectInstantiator;
     }
 

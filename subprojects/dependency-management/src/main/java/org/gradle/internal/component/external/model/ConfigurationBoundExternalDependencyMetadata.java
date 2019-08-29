@@ -25,6 +25,8 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -101,6 +103,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     private boolean hasVariants(ComponentResolveMetadata targetComponent) {
+        if (dependencyDescriptor instanceof IvyDependencyDescriptor && targetComponent instanceof IvyModuleResolveMetadata) {
+            if (((IvyModuleResolveMetadata) targetComponent).getVariants().isEmpty()) {
+                return false; //plain ivy -> plain ivy
+            }
+        }
         return targetComponent.getVariantsForGraphTraversal().isPresent();
     }
     @Override

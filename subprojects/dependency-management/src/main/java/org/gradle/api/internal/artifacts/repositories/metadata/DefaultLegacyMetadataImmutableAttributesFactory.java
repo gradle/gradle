@@ -30,12 +30,12 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.util.Map;
 
-public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAttributesFactory {
+public class DefaultLegacyMetadataImmutableAttributesFactory implements LegacyMetadataImmutableAttributesFactory {
     private final ImmutableAttributesFactory delegate;
     private final NamedObjectInstantiator objectInstantiator;
     private final Map<ComponentTypeEntry, ImmutableAttributes> concatCache = Maps.newConcurrentMap();
 
-    public DefaultMavenImmutableAttributesFactory(ImmutableAttributesFactory delegate, NamedObjectInstantiator objectInstantiator) {
+    public DefaultLegacyMetadataImmutableAttributesFactory(ImmutableAttributesFactory delegate, NamedObjectInstantiator objectInstantiator) {
         this.delegate = delegate;
         this.objectInstantiator = objectInstantiator;
     }

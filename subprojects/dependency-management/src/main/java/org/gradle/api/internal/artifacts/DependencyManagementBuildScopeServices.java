@@ -181,8 +181,11 @@ class DependencyManagementBuildScopeServices {
         return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, instantiator, schema);
     }
 
-    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
-        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, schema);
+    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                    ImmutableAttributesFactory attributesFactory,
+                                                                    NamedObjectInstantiator instantiator,
+                                                                    PreferJavaRuntimeVariant schema) {
+        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, instantiator, schema);
     }
 
     AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {

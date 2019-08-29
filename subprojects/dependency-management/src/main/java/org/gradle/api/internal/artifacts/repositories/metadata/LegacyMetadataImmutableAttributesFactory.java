@@ -28,7 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
  * attributes, and the same mutations to make on them, so it's more efficient to map them, than
  * recomputing each time.
  */
-public interface MavenImmutableAttributesFactory extends ImmutableAttributesFactory {
+public interface LegacyMetadataImmutableAttributesFactory extends ImmutableAttributesFactory {
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
     Attribute<String> FORMAT_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);

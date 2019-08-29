@@ -19,9 +19,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.LegacyMetadataImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Collections;
@@ -35,10 +34,10 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
 
     @Override
     public ImmutableList<? extends ConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
-        if (metadata instanceof DefaultMavenModuleResolveMetadata) {
-            DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
+        if (metadata instanceof AbstractLazyModuleComponentResolveMetadata) {
+            AbstractLazyModuleComponentResolveMetadata md = (AbstractLazyModuleComponentResolveMetadata) metadata;
             ImmutableAttributes attributes = md.getAttributes();
-            MavenImmutableAttributesFactory attributesFactory = (MavenImmutableAttributesFactory) md.getAttributesFactory();
+            LegacyMetadataImmutableAttributesFactory attributesFactory = (LegacyMetadataImmutableAttributesFactory) md.getAttributesFactory();
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
             ModuleComponentIdentifier componentId = md.getId();
@@ -70,7 +69,7 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
         );
     }
 
-    private static ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage) {
+    private static ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, LegacyMetadataImmutableAttributesFactory attributesFactory, String usage) {
         ImmutableAttributes attributes = attributesFactory.libraryWithUsage(originAttributes, usage);
         return conf.mutate()
                 .withAttributes(attributes)
@@ -78,7 +77,7 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
                 .build();
     }
 
-    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, List<Capability> shadowedPlatformCapability) {
+    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, LegacyMetadataImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, List<Capability> shadowedPlatformCapability) {
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata.Builder builder = conf.mutate()

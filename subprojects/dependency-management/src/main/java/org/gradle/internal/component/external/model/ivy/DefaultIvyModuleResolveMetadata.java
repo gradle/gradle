@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -29,7 +30,9 @@ import org.gradle.internal.component.external.model.AbstractLazyModuleComponentR
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -38,6 +41,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link AbstractLazyModuleComponentResolveMetadata Lazy version} of a {@link IvyModuleResolveMetadata}.
@@ -53,6 +57,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     private final String branch;
     // Since a single `Artifact` is shared between configurations, share the metadata type as well.
     private Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
+
+    private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
     DefaultIvyModuleResolveMetadata(DefaultMutableIvyModuleResolveMetadata metadata) {
         super(metadata);
@@ -100,6 +106,28 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, getAttributes().asImmutable());
         configuration.setDependencies(configurationHelper.filterDependencies(configuration));
         return configuration;
+    }
+
+    @Override
+    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+        if (isJavaLibrary()) {
+            return Optional.fromNullable(getDerivedVariants());
+        } else {
+            return Optional.absent();
+        }
+    }
+
+    private boolean isJavaLibrary() {
+        Set<String> configurationNames = getConfigurationNames();
+        return configurationNames.contains("compile") && configurationNames.contains("runtime");
+    }
+
+    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+        VariantDerivationStrategy strategy = getVariantMetadataRules().getVariantDerivationStrategy();
+        if (derivedVariants == null && strategy.derivesVariants()) {
+            derivedVariants = strategy.derive(this);
+        }
+        return derivedVariants;
     }
 
     @Override

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.LegacyMetadataImmutableAttributesFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -67,7 +67,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         }
         if (configuration.getArtifacts().isEmpty()) {
             // checks if it's a derived platform
-            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
+            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(LegacyMetadataImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
             if (componentTypeEntry.isPresent()) {
                 String value = componentTypeEntry.get();
                 if (Category.REGULAR_PLATFORM.equals(value) || Category.ENFORCED_PLATFORM.equals(value)) {

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
@@ -43,9 +44,10 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
     private final ImmutableAttributesFactory attributesFactory;
     private final PreferJavaRuntimeVariant schema;
 
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
+    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory,
+                                           NamedObjectInstantiator objectInstantiator, PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.attributesFactory = attributesFactory;
+        this.attributesFactory = new DefaultLegacyMetadataImmutableAttributesFactory(attributesFactory, objectInstantiator);
         this.schema = schema;
     }
 
