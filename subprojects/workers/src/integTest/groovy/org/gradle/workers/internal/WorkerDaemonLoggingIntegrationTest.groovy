@@ -17,14 +17,18 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.TextUtil
+import org.junit.Rule
 import spock.lang.Issue
 
 class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
-    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
 
-    @Issue("https://github.com/gradle/gradle/issues/10122")
-    def "can log many messages from action in a worker daemon"() {
-        def workActionThatProducesLotsOfOutput = fixture.getWorkActionThatCreatesFiles("LotsOfOutputWorkAction")
+    def workActionThatProducesLotsOfOutput = fixture.getWorkActionThatCreatesFiles("LotsOfOutputWorkAction")
+
+    def setup() {
         workActionThatProducesLotsOfOutput.with {
             action += """
                 1000.times {
@@ -34,13 +38,19 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         }
 
         fixture.withWorkActionClassInBuildScript()
-        workActionThatProducesLotsOfOutput.writeToBuildFile()
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
                 workActionClass = ${workActionThatProducesLotsOfOutput.name}.class
             }
         """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10122")
+    def "can log many messages from action in a worker daemon"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        workActionThatProducesLotsOfOutput.writeToBuildFile()
 
         expect:
         succeeds("runInWorker")
@@ -55,5 +65,62 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
 
         and:
         operation.progress.size() == 1000
+    }
+
+    def "log messages are still delivered to the build process after a worker action runs"() {
+        def lastOutput = ""
+        def startFile = file("start")
+        def stopFile = file("stop")
+
+        server.start()
+
+        workActionThatProducesLotsOfOutput.action += """
+            new Thread({
+                while (true) {
+                    sleep 1000
+                    if (new File("${TextUtil.normaliseFileSeparators(startFile.absolutePath)}").exists()) {
+                        println "beep..."
+                    }
+                    if (new File("${TextUtil.normaliseFileSeparators(stopFile.absolutePath)}").exists()) {
+                        break
+                    }
+                }
+            }).start()
+        """
+        workActionThatProducesLotsOfOutput.writeToBuildFile()
+
+        buildFile << """
+            task block {
+                dependsOn runInWorker
+                doLast {
+                    ${server.callFromTaskAction("block")}
+                }
+            }
+        """
+
+        when:
+        def handler = server.expectAndBlock("block")
+        def gradle = executer.withTasks("block").start()
+
+        then:
+        handler.waitForAllPendingCalls()
+
+        when:
+        lastOutput = gradle.standardOutput
+        startFile.createFile()
+
+        then:
+        ConcurrentTestUtil.poll {
+            def newOutput = gradle.standardOutput - lastOutput
+            lastOutput = gradle.standardOutput
+            assert newOutput.contains("beep...")
+        }
+
+        then:
+        stopFile.createFile()
+        handler.releaseAll()
+
+        then:
+        gradle.waitForFinish()
     }
 }
