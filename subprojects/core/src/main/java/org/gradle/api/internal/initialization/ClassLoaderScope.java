@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.classpath.ClassPath;
 
 /**
@@ -97,6 +98,11 @@ public interface ClassLoaderScope {
      * @return this
      */
     ClassLoaderScope lock();
+
+    /**
+     * Locks this scope, using the given factory to create the local ClassLoader.
+     */
+    ClassLoaderScope lock(Transformer<ClassLoader, ClassLoader> localClassLoaderFactory);
 
     boolean isLocked();
 

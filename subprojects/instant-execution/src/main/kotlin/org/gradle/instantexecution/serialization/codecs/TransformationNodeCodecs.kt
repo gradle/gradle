@@ -24,30 +24,23 @@ import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
 abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T> {
     override suspend fun WriteContext.encode(value: T) {
-        val id = sharedIdentities.getId(value)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            writeSmallInt(sharedIdentities.putInstance(value))
-            doEncode(value)
-        }
+        encodePreservingIdentityOf(sharedIdentities, value) { doEncode(value) }
     }
 
     override suspend fun ReadContext.decode(): T {
-        val id = readSmallInt()
-        val instance = sharedIdentities.getInstance(id)
-        if (instance != null) {
-            return instance as T
+        return decodePreservingIdentity(sharedIdentities) { id ->
+            val node = doDecode()
+            sharedIdentities.putInstance(id, node)
+            node
         }
-        val node = doDecode()
-        sharedIdentities.putInstance(id, node)
-        return node
     }
 
     protected
