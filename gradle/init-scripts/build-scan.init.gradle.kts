@@ -12,7 +12,7 @@ if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")
                 } else {
                     "publishAlways"()
                 }
-                setProperty("server", "https://cache-node-hetzner.grdev.net")
+                setProperty("server", "https://e.grdev.net")
 
                 if (metaClass.hasProperty(delegate, "captureTaskInputFiles") != null) {
                     if (!System.getProperty("slow.internet.connection", "false").toBoolean()) {
