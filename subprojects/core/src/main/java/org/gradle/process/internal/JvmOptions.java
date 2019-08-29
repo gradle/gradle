@@ -322,7 +322,7 @@ public class JvmOptions {
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
-        target.setBootstrapClasspath(getBootstrapClasspath());
+        target.bootstrapClasspath(getBootstrapClasspath().getFiles());
         target.setEnableAssertions(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());
         target.systemProperties(immutableSystemProperties);
@@ -335,7 +335,7 @@ public class JvmOptions {
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
         if (bootstrapClasspath != null) {
-            target.setBootstrapClasspath(getBootstrapClasspath());
+            target.setBootstrapClasspath(getBootstrapClasspath().getFiles());
         }
         target.setEnableAssertions(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());

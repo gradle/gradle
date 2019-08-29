@@ -124,7 +124,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Override
     public WorkQueue processIsolation(Action<ProcessWorkerSpec> action) {
-        DefaultProcessWorkerSpec spec = instantiator.newInstance(DefaultProcessWorkerSpec.class);
+        DefaultProcessWorkerSpec spec = instantiator.newInstance(DefaultProcessWorkerSpec.class, forkOptionsFactory.newDecoratedJavaForkOptions());
         File defaultWorkingDir = spec.getForkOptions().getWorkingDir();
         File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         action.execute(spec);
@@ -140,7 +140,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Override
     public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
-        DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
+        DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory.newDecoratedJavaForkOptions());
         configAction.execute(configuration);
 
         Action<AdapterWorkParameters> parametersAction = new Action<AdapterWorkParameters>() {

@@ -31,9 +31,9 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
     protected final JavaForkOptions forkOptions;
 
     @Inject
-    public DefaultProcessWorkerSpec(JavaForkOptionsFactory javaForkOptionsFactory, ObjectFactory objectFactory) {
+    public DefaultProcessWorkerSpec(JavaForkOptions forkOptions, ObjectFactory objectFactory) {
         super(IsolationMode.PROCESS, objectFactory);
-        this.forkOptions = javaForkOptionsFactory.newJavaForkOptions();
+        this.forkOptions = forkOptions;
         getForkOptions().setEnvironment(Maps.<String, Object>newHashMap());
     }
 
