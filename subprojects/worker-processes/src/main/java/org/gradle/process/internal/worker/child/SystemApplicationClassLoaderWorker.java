@@ -103,9 +103,10 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
         basicWorkerServices.addProvider(new MessagingServices());
         final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
+        WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener();
+        workerServices.add(WorkerLogEventListener.class, workerLogEventListener);
 
         ObjectConnection connection = null;
-        WorkerLogEventListener workerLogEventListener = null;
         PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(workerServices.get(WorkerDirectoryProvider.class));
         try {
             // Read serialized worker
@@ -122,7 +123,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
             connection = basicWorkerServices.get(MessagingClient.class).getConnection(serverAddress);
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
-            workerLogEventListener = configureLogging(loggingManager, connection);
+            configureLogging(loggingManager, connection, workerLogEventListener);
             // start logging now that the logging manager is connected
             loggingManager.start();
             if (shouldPublishJvmMemoryInfo) {
@@ -190,12 +191,11 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
     }
 
-    private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
+    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection, WorkerLogEventListener workerLogEventListener) {
         connection.useParameterSerializers(WorkerLoggingSerializer.create());
         WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
-        WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener(workerLoggingProtocol);
+        workerLogEventListener.setWorkerLoggingProtocol(workerLoggingProtocol);
         loggingManager.addOutputEventListener(workerLogEventListener);
-        return workerLogEventListener;
     }
 
     private void configureWorkerJvmMemoryInfoEvents(WorkerServices services, ObjectConnection connection) {
