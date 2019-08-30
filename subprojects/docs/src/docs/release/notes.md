@@ -48,7 +48,7 @@ Java 6 and 7 are also supported for forked test execution.
 Java 14 and later versions are not supported.
 * This version of Gradle is tested with Android Gradle Plugin versions 3.4 and 3.5, support for version 3.6 is experimental.
 Earlier versions are not supported.
-* Kotlin versions between 1.3.20 and 1.3.50 are tested, earlier versions are not supported.
+* Kotlin versions between 1.3.21 and 1.3.50 are tested, earlier versions are not supported.
 
 ## Introducing subgraph constraints for dependency versions
 
