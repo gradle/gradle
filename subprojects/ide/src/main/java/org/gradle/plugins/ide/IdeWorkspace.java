@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 
@@ -26,7 +25,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 4.7
  */
-@Incubating
 public interface IdeWorkspace extends Describable {
     /**
      * Returns the location of the generated workspace.

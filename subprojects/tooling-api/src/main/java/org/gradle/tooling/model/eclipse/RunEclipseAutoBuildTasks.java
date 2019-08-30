@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * A tooling model that instructs Gradle to run tasks from the Eclipse plugin configuration.
  *
@@ -27,6 +25,5 @@ import org.gradle.api.Incubating;
  *
  * @since 5.4
  */
-@Incubating
 public interface RunEclipseAutoBuildTasks {
 }
