@@ -101,16 +101,12 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                     effectiveExportClassLoader = loader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
                     effectiveLocalClassLoader = localLoader(id.localId(), effectiveExportClassLoader, local);
                 } else if (hasLocals) {
-                    classLoaderCache.remove(id.exportId());
                     effectiveExportClassLoader = parent.getExportClassLoader();
                     effectiveLocalClassLoader = localLoader(id.localId(), effectiveExportClassLoader, local);
                 } else if (hasExports) {
-                    classLoaderCache.remove(id.localId());
                     effectiveExportClassLoader = loader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
                     effectiveLocalClassLoader = effectiveExportClassLoader;
                 } else {
-                    classLoaderCache.remove(id.localId());
-                    classLoaderCache.remove(id.exportId());
                     effectiveLocalClassLoader = parent.getExportClassLoader();
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 }
