@@ -51,6 +51,10 @@ These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
 === Potential breaking changes
 
+==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+
+Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
+
 ==== Local build cache is always a directory cache
 
 In the past it was possible to use any build cache implementation as the `local` cache.
