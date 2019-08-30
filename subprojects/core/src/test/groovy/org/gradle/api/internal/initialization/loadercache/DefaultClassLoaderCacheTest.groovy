@@ -67,7 +67,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, null, classpathHasher.hash(classPath("c1"))) == cache.get(id1, classPath("c1"), root, null, null)
     }
 
-    def "class loaders with different ids are reused"() {
+    def "class loaders with different ids and same spec are reused"() {
         expect:
         def root = classLoader(classPath("root"))
         cache.get(id1, classPath("c1"), root, null).is cache.get(id2, classPath("c1"), root, null)
@@ -96,7 +96,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
         cache.size() == 2
         !cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f2))
-        cache.size() == 2
+        cache.size() == 3
     }
 
     def "non filtered classloaders are reused"() {
@@ -106,7 +106,8 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, f1)
         cache.size() == 2
         cache.get(id1, classPath("c1"), root, null)
-        cache.size() == 1
+        cache.get(id1, classPath("c1"), root, null).is(cache.get(id1, classPath("c1"), root, f1).parent)
+        cache.size() == 2
     }
 
     def "filtered classloaders are reused if they have multiple ids"() {
@@ -120,65 +121,48 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.size() == 2
     }
 
-    def "unfiltered base is released when there are no more references to it"() {
+    def "retains soft reference to unused classloaders at the end of the build"() {
         expect:
         def root = classLoader(classPath("root"))
-        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
-        def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [], [])
-        def cp1 = classPath("c1")
-        def cp2 = classPath("c2")
+        def c1 = cache.get(id1, classPath("c1"), root, null)
+        def c2 = cache.get(id2, classPath("c2"), root, null)
 
-        cache.get(id1, cp1, root, f1)
-        cache.get(id2, cp1, root, f2)
-        cache.size() == 3
-        cache.get(id1, cp2, root, f1)
-        cache.size() == 4
-        cache.get(id1, cp1, root, null)
+        cache.beforeComplete()
         cache.size() == 2
-        cache.get(id1, cp2, root, null)
-        cache.get(id2, cp2, root, null)
+        cache.retained() == 0
+
+        cache.get(id1, classPath("c1"), root, null).is(c1)
+
+        cache.beforeComplete()
         cache.size() == 1
+        cache.retained() == 1
+
+        cache.get(id1, classPath("c1"), root, null).is(c1)
+        // Reuse from soft reference
+        cache.get(id2, classPath("c2"), root, null).is(c2)
+
+        cache.size() == 2
+        cache.retained() == 0
     }
 
-    def "removes stale classloader"() {
-        def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c1"), root, null)
-        def c2 = cache.get(id1, classPath("c2"), root, null)
+    def "recreates unused classloaders if soft reference is cleared"() {
         expect:
+        def root = classLoader(classPath("root"))
+        def c1 = cache.get(id1, classPath("c1"), root, null)
+
+        cache.beforeComplete()
         cache.size() == 1
-        c2.is cache.get(id1, classPath("c2"), root, null)
-    }
+        cache.retained() == 0
 
-    def "can remove loaders"() {
-        expect:
+        cache.beforeComplete()
         cache.size() == 0
+        cache.retained() == 1
+        cache.releaseReferences()
 
-        when:
-        cache.remove(id1)
+        !cache.get(id1, classPath("c1"), root, null).is(c1)
 
-        then:
-        noExceptionThrown()
-        cache.size() == 0
-
-        when:
-        def root = classLoader(classPath("root"))
-        cache.get(id1, classPath("c2"), root, null)
-        cache.get(id2, classPath("c2"), root, null)
-
-        then:
-        cache.size() == 1 // both are the same
-
-        when:
-        cache.remove(id1)
-
-        then:
-        cache.size() == 1 // still used by id2
-
-        when:
-        cache.remove(id2)
-
-        then:
-        cache.size() == 0
+        cache.size() == 1
+        cache.retained() == 0
     }
 
     def "can put loaders"() {
@@ -189,12 +173,6 @@ class DefaultClassLoaderCacheTest extends Specification {
 
         then:
         cache.size() == 1
-
-        when:
-        cache.remove(id1)
-
-        then:
-        cache.size() == 0
     }
 
     def "can replace specialized loader"() {
@@ -220,12 +198,12 @@ class DefaultClassLoaderCacheTest extends Specification {
         then:
         cl != loader1
         cl != loader2
-        cache.size() == 1
+        cache.size() == 2
 
         when:
         cache.put(id1, loader1)
 
         then:
-        cache.size() == 1
+        cache.size() == 2
     }
 }
