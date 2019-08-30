@@ -178,6 +178,7 @@ public interface LongRunningOperation {
      * @param arguments Gradle command line arguments
      * @return this
      * @since 1.0
+     * @deprecated Use {@link #setArguments(String...)}
      */
     LongRunningOperation withArguments(@Nullable String... arguments);
 
@@ -191,8 +192,59 @@ public interface LongRunningOperation {
      * @param arguments Gradle command line arguments
      * @return this
      * @since 2.6
+     * @deprecated Use {@link #setArguments(Iterable)}
      */
     LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
+
+    /**
+     * Specify the command line build arguments. Useful mostly for running tasks via {@link BuildLauncher}.
+     * <p>
+     * Be aware that not all of the Gradle command line options are supported!
+     * Only the build arguments that configure the build execution are supported.
+     * They are modelled in the Gradle API via {@link org.gradle.StartParameter}.
+     * Examples of supported build arguments: '--info', '-p'.
+     * The command line instructions that are actually separate commands (like '-?' and '-v') are not supported.
+     * Some other instructions like '--daemon' are also not supported - the tooling API always runs with the daemon.
+     * <p>
+     * If an unknown or unsupported command line option is specified, {@link org.gradle.tooling.exceptions.UnsupportedBuildArgumentException}
+     * will be thrown at the time the operation is executed via {@link BuildLauncher#run()} or {@link ModelBuilder#get()}.
+     * <p>
+     * For the list of all Gradle command line options please refer to the User Manual
+     * or take a look at the output of the 'gradle -?' command. Majority of arguments modeled by
+     * {@link org.gradle.StartParameter} are supported.
+     * <p>
+     * The arguments can potentially override some other settings you have configured.
+     * For example, the project directory or Gradle user home directory that are configured
+     * in the {@link GradleConnector}.
+     * Also, the task names configured by {@link BuildLauncher#forTasks(String...)} can be overridden
+     * if you happen to specify other tasks via the build arguments.
+     * <p>
+     * See the example in the docs for {@link BuildLauncher}
+     *
+     * If not configured, null, or an empty array is passed, then the reasonable default will be used.
+     *
+     * <p>Requires Gradle 1.0 or later.</p>
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 6.0
+     */
+    @Incubating
+    LongRunningOperation setArguments(@Nullable String... arguments);
+
+    /**
+     * Specify the command line build arguments. Useful mostly for running tasks via {@link BuildLauncher}.
+     * <p>
+     * If not configured, null, or an empty list is passed, then the reasonable default will be used.
+     *
+     * <p>Requires Gradle 1.0 or later.</p>
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 6.0
+     */
+    @Incubating
+    LongRunningOperation setArguments(@Nullable Iterable<String> arguments);
 
     /**
      * Appends new command line arguments to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.

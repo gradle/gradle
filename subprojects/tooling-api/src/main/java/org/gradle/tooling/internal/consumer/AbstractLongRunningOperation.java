@@ -73,6 +73,18 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     @Override
+    public T setArguments(String... arguments) {
+        operationParamsBuilder.setArguments(rationalizeInput(arguments));
+        return getThis();
+    }
+
+    @Override
+    public T setArguments(Iterable<String> arguments) {
+        operationParamsBuilder.setArguments(rationalizeInput(arguments));
+        return getThis();
+    }
+
+    @Override
     public T addArguments(String... arguments) {
         operationParamsBuilder.addArguments(CollectionUtils.toList(Preconditions.checkNotNull(arguments)));
         return getThis();
