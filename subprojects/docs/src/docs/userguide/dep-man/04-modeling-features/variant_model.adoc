@@ -49,7 +49,7 @@ In this case, _variant aware resolution is bypassed_.
 ====
 
 Attributes are used on both _resolvable configurations_ (also known as a _consumer_) and _consumable configurations_ (on the _producer_).
-Adding attributes to other kinds of configurations doesn't have sense.
+Adding attributes to other kinds of configurations simply has no effect, as attributes are not inherited between configurations.
 
 The role of the dependency resolution engine is to find a suitable _variant_ of a _producer_ given the constraints expressed by a _consumer_.
 
@@ -133,7 +133,94 @@ This is because Gradle recognizes that the consumer wants a Java 7 compatible li
 If, on the other hand, the consumer needs _11_, then Gradle knows both the _8_ and _9_ variant would work, but it will select _9_ because it's the highest compatible version.
 ====
 
-Details about understanding variant selection errors can be found <<viewing_debugging_dependencies.adoc#sec:resolving-variant-aware-errors,here>>.
+[[sec:variant-select-errors]]
+== Variant selection errors
+
+In the process of identifying the right variant of a component, two situations will result in a resolution error:
+
+* More than one variant from the producer match the consumer attributes, there is variant ambiguity
+* No variant from the producer match the consumer attributes
+
+[[sub:variant-ambiguity]]
+=== Dealing with ambiguous variant selection errors
+
+An ambiguous variant selection looks somewhat like the following:
+
+[listing]
+----
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not resolve project :lib.
+     Required by:
+         project :ui
+      > Cannot choose between the following variants of project :lib:
+          - feature1ApiElements
+          - feature2ApiElements
+        All of them match the consumer attributes:
+          - Variant 'feature1ApiElements' capability org.test:test-capability:1.0:
+              - Unmatched attribute:
+                  - Found org.gradle.category 'library' but wasn't required.
+              - Compatible attributes:
+                  - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+                  - Required org.gradle.jvm.version '11' and found compatible value '11'.
+                  - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
+                  - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Variant 'feature2ApiElements' capability org.test:test-capability:1.0:
+              - Unmatched attribute:
+                  - Found org.gradle.category 'library' but wasn't required.
+              - Compatible attributes:
+                  - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+                  - Required org.gradle.jvm.version '11' and found compatible value '11'.
+                  - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
+                  - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+----
+
+As can be seen, all _compatible_ candidate variants are displayed, with their attributes.
+These are then grouped into two sections:
+
+* Unmatched attributes are presented first, as they might be the missing piece in selecting the proper variant.
+* Compatible attributes are presented second as they simply indicate what the consumer wanted and how these variants do match that request.
+
+There cannot be any mismatched attributes as the variant would not be a candidate then.
+Similarly, the set of displayed variant also excludes ones that have been disambiguated.
+
+In the example above, the fix does not lie in attribute matching but in <<controlling_transitive_dependencies.adoc#sub:capabilities,capability matching>>, which are shown next to the variant name.
+Because these two variants effectively provide the same attributes and capabilities, they cannot be disambiguated.
+So in this case, the fix is most likely to properly provide different capabilities and have the consume express his choice of capability.
+
+[[sub:variant-no-match]]
+=== Dealing with no matching variant errors
+
+A no matching variant error looks somewhat like the following:
+
+[listing]
+----
+> No variants of project :lib match the consumer attributes:
+  - Configuration ':lib:compile':
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Other attribute:
+          - Required usage 'api' and found compatible value 'api'.
+  - Configuration ':lib:compile' variant debug:
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Other attributes:
+          - Found buildType 'debug' but wasn't required.
+          - Required usage 'api' and found compatible value 'api'.
+  - Configuration ':lib:compile' variant release:
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Other attributes:
+          - Found buildType 'release' but wasn't required.
+          - Required usage 'api' and found compatible value 'api'.
+----
+
+As can be seen, _all_ candidate variants are displayed, with their attributes.
+These are then grouped into two sections:
+
+* Incompatible attributes are presented first, as they usually are the key in understanding why a variant could not be selected.
+* Other attributes are presented second, this includes _required_ and _compatible_ ones as well as all extra _producer_ attributes that are not requested by the consumer.
+
+Similarly with the ambiguous variant error, the goal is then to understand which variant is to be selected and see which attribute or capability can be tweaked on the consumer for this to happen.
 
 [[sec:mapping-maven-ivy-to-variants]]
 == Mapping from Maven/Ivy to variants

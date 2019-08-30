@@ -97,8 +97,5 @@ If the selected version does not match your expectation, Gradle offers a series 
 [[sec:resolving-variant-aware-errors]]
 == Resolving variant selection errors
 
-[[sub:ambiguous-variant-selection]]
-=== Ambiguous variant selection errors
-
-[[sub:no-matching-variant-errors]]
-=== No matching variants
+Sometimes a selection error will happen at the <<variant_model.adoc#,variant selection level>>.
+Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated section>> to understand these errors and how to resolve them.
