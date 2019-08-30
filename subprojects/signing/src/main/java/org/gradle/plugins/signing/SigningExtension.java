@@ -268,7 +268,7 @@ public class SigningExtension {
      * }
      * </code></pre>
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
