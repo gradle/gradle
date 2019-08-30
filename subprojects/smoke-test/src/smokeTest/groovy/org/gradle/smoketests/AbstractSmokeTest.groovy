@@ -159,7 +159,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
             .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters()) as DefaultGradleRunner
-        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError")
+        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError")
     }
 
     private static List<String> repoMirrorParameters() {
