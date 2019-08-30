@@ -129,6 +129,11 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
+        public Builder withRedirectVerifier(HttpRedirectVerifier redirectVerifier) {
+            this.redirectVerifier = redirectVerifier;
+            return this;
+        }
+
         public Builder allowUntrustedConnections() {
             this.sslContextFactory = ALL_TRUSTING_SSL_CONTEXT_FACTORY;
             this.hostnameVerifier = ALL_TRUSTING_HOSTNAME_VERIFIER;
@@ -137,11 +142,6 @@ public class DefaultHttpSettings implements HttpSettings {
 
         public Builder followRedirects(boolean followRedirects) {
             this.followRedirects = followRedirects;
-            return this;
-        }
-
-        public Builder redirectVerifier(HttpRedirectVerifier redirectVerifier) {
-            this.redirectVerifier = redirectVerifier;
             return this;
         }
 

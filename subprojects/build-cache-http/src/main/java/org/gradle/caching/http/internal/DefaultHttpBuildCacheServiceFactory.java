@@ -85,7 +85,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
             .withAuthenticationSettings(authentications)
             .followRedirects(false)
-            .redirectVerifier(redirectVerifier);
+            .withRedirectVerifier(redirectVerifier);
         if (allowUntrustedServer) {
             builder.allowUntrustedConnections();
         } else {

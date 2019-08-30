@@ -131,10 +131,13 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
 
         when:
+        executer.expectDeprecationWarning()
         run("uriText")
 
         then:
         result.assertTasksSkipped(":uriText")
+        outputContains("Loading a TextResource from an insecure URI has been deprecated.")
+        outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
     }
 
     def "uri backed text resource over https"() {
