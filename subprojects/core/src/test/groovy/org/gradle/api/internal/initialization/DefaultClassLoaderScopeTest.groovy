@@ -157,7 +157,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.exportClassLoader instanceof URLClassLoader
         scope.exportClassLoader.parent == root.exportClassLoader
 
-        scope.localClassLoader instanceof CachingClassLoader
+        scope.localClassLoader instanceof URLClassLoader
+        scope.localClassLoader.parent == scope.exportClassLoader
         scope.localClassLoader.getResource("export").text == "bar"
         scope.localClassLoader.getResource("local").text == "bar"
     }
@@ -315,7 +316,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         root.createChild("c").local(c1).lock().exportClassLoader
 
         then:
-        classLoaderCache.size() == 2
+        classLoaderCache.size() == 3 // c has a local, d has export and local
 
         when:
         root.createChild("d").lock().exportClassLoader

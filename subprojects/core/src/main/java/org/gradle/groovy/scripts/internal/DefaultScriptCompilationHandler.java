@@ -35,8 +35,6 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -77,12 +75,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final int EMPTY_FLAG = 1;
     private static final int HAS_METHODS_FLAG = 2;
 
-    private final ClassLoaderCache classLoaderCache;
     private final Deleter deleter;
     private final Map<String, List<String>> simpleNameToFQN;
 
-    public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, Deleter deleter, ImportsReader importsReader) {
-        this.classLoaderCache = classLoaderCache;
+    public DefaultScriptCompilationHandler(Deleter deleter, ImportsReader importsReader) {
         this.deleter = deleter;
         this.simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
     }
@@ -211,8 +207,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir,
-                                                                  File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass,
-                                                                  ClassLoaderId classLoaderId) {
+                                                                  File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try {
             KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
@@ -220,16 +215,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 byte flags = decoder.readByte();
                 boolean isEmpty = (flags & EMPTY_FLAG) != 0;
                 boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
-                if (isEmpty) {
-                    classLoaderCache.remove(classLoaderId);
-                }
                 M data;
                 if (transformer != null && transformer.getDataSerializer() != null) {
                     data = transformer.getDataSerializer().read(decoder);
                 } else {
                     data = null;
                 }
-                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
+                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
             } finally {
                 decoder.close();
             }
@@ -301,10 +293,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
-    private class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
+    private static class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
         private final boolean isEmpty;
         private final boolean hasMethods;
-        private final ClassLoaderId classLoaderId;
         private final Class<T> scriptBaseClass;
         private final File scriptCacheDir;
         private final ClassLoaderScope targetScope;
@@ -313,10 +304,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final M metadata;
         private Class<? extends T> scriptClass;
 
-        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
+        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
             this.isEmpty = isEmpty;
             this.hasMethods = hasMethods;
-            this.classLoaderId = classLoaderId;
             this.scriptBaseClass = scriptBaseClass;
             this.scriptCacheDir = scriptCacheDir;
             this.targetScope = targetScope;
@@ -348,13 +338,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
                 try {
                     ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
-                    // Create scope for recording purpose only
-                    // TODO:instant-execution use the scope to create the script classes loader
-                    targetScope.createChild("groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName())
+                    ClassLoaderScope scriptScope = targetScope.createChild("groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName())
                         .local(scriptClassPath)
-                        .lock();
-                    // Classloader will be handled by the cache, class will be released when the classloader is.
-                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, targetScope.getExportClassLoader(), scriptClassPath, sourceHashCode));
+                        .lock(parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
+                    ClassLoader loader = scriptScope.getLocalClassLoader();
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");

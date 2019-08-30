@@ -19,7 +19,6 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -35,7 +34,6 @@ public class CrossBuildInMemoryCachingScriptClassCache {
 
     public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source,
                                                                    ClassLoaderScope targetScope,
-                                                                   ClassLoaderId classLoaderId,
                                                                    CompileOperation<M> operation,
                                                                    Class<T> scriptBaseClass,
                                                                    Action<? super ClassNode> verifier,
@@ -48,7 +46,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                 return Cast.uncheckedCast(cached.compiledScript);
             }
         }
-        CompiledScript<T, M> compiledScript = delegate.compile(source, targetScope, classLoaderId, operation, scriptBaseClass, verifier);
+        CompiledScript<T, M> compiledScript = delegate.compile(source, targetScope, operation, scriptBaseClass, verifier);
         cachedCompiledScripts.put(key, new CachedCompiledScript(hash, compiledScript));
         return compiledScript;
     }

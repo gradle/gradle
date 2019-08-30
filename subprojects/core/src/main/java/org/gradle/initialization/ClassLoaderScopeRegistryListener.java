@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classpath.ClassPath;
 
 
@@ -38,6 +39,8 @@ public interface ClassLoaderScopeRegistryListener {
 
     void exportClasspathAdded(ClassLoaderScopeId scopeId, ClassPath exportClassPath);
 
+    void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader);
+
     ClassLoaderScopeRegistryListener NULL = new ClassLoaderScopeRegistryListener() {
         @Override
         public void rootScopeCreated(ClassLoaderScopeId rootScopeId) {
@@ -53,6 +56,10 @@ public interface ClassLoaderScopeRegistryListener {
 
         @Override
         public void exportClasspathAdded(ClassLoaderScopeId scopeId, ClassPath exportClassPath) {
+        }
+
+        @Override
+        public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader) {
         }
     };
 }

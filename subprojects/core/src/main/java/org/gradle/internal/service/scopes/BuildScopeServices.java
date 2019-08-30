@@ -297,7 +297,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(
-                new DefaultScriptCompilationHandler(classLoaderCache, deleter, importsReader), buildOperationExecutor),
+                new DefaultScriptCompilationHandler(deleter, importsReader), buildOperationExecutor),
             progressLoggerFactory,
             classLoaderCache,
             classLoaderHierarchyHasher);

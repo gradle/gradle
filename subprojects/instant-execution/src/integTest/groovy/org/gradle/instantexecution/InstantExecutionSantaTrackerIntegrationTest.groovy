@@ -100,7 +100,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         instantRun(*tasks)
 
         and:
-        instantRun 'clean'
+        run 'clean'
 
         then:
         instantRun(*tasks)
