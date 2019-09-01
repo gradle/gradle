@@ -52,7 +52,9 @@ public interface CrossBuildInMemoryCacheFactory {
 
     /**
      * Creates a new map instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or other references depending on their usage.
-     * This allows the classes to be collected. A map differs from a cache in that entries are not discarded based on memory pressure, but are discarded only when the key is collected.
+     * This allows the classes to be collected.
+     *
+     * <p>A map differs from a cache in that entries are not discarded based on memory pressure, but are discarded only when the key is collected.
      * You should prefer using a cache instead of a map where possible, and use a map only when generating other classes based on the key.
      *
      * <p>Note: this should be used to create _only_ global scoped instances.
