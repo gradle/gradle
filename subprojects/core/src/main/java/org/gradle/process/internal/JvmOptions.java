@@ -251,10 +251,10 @@ public class JvmOptions {
     }
 
     public FileCollection getBootstrapClasspath() {
-        return internalGetBootstrapCLasspath();
+        return internalGetBootstrapClasspath();
     }
 
-    private ConfigurableFileCollection internalGetBootstrapCLasspath() {
+    private ConfigurableFileCollection internalGetBootstrapClasspath() {
         if (bootstrapClasspath == null) {
             bootstrapClasspath = fileCollectionFactory.configurableFiles("bootstrap classpath");
         }
@@ -262,15 +262,15 @@ public class JvmOptions {
     }
 
     public void setBootstrapClasspath(FileCollection classpath) {
-        internalGetBootstrapCLasspath().setFrom(classpath);
+        internalGetBootstrapClasspath().setFrom(classpath);
     }
 
     public void setBootstrapClasspath(Object... classpath) {
-        internalGetBootstrapCLasspath().setFrom(classpath);
+        internalGetBootstrapClasspath().setFrom(classpath);
     }
 
     public void bootstrapClasspath(Object... classpath) {
-        internalGetBootstrapCLasspath().from(classpath);
+        internalGetBootstrapClasspath().from(classpath);
     }
 
     public String getMinHeapSize() {
