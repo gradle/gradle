@@ -195,7 +195,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         fixture.withWorkActionClassInBuildSrc()
 
         buildFile << """
-            ext.memoryHog = new byte[1024*1024*150] // ~100MB
+            ext.memoryHog = new byte[1024*1024*150] // ~150MB
             
             tasks.withType(WorkerTask) { task ->
                 isolationMode = IsolationMode.PROCESS
