@@ -20,7 +20,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.ProcessWorkerSpec;

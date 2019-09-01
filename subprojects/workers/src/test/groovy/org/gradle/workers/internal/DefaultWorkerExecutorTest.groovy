@@ -72,7 +72,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(AdapterWorkParameters) >> parameters
         _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
-        _ * instantiator.newInstance(DefaultProcessWorkerSpec) >> { args -> new DefaultProcessWorkerSpec(forkOptionsFactory.newJavaForkOptions(), objectFactory) }
+        _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1]) }
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
@@ -111,7 +111,7 @@ class DefaultWorkerExecutorTest extends Specification {
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
-        WorkerSpec configuration = new DefaultProcessWorkerSpec(forkOptionsFactory, objectFactory)
+        WorkerSpec configuration = new DefaultProcessWorkerSpec(forkOptionsFactory.newJavaForkOptions(), objectFactory)
 
         given:
         configuration.forkOptions { options ->
