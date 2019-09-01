@@ -19,20 +19,40 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.internal.serialize.Message
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 
 
 object BrokenValueCodec : Codec<BrokenValue> {
     override suspend fun WriteContext.encode(value: BrokenValue) {
-        val outstream = ByteArrayOutputStream()
-        Message.send(value.failure, outstream)
-        writeBinary(outstream.toByteArray())
+        maybeEncode(value.failure.cause)
+        writeNullableString(value.failure.message)
     }
 
-    override suspend fun ReadContext.decode(): BrokenValue? {
-        val exception = Message.receive(ByteArrayInputStream(readBinary()), classLoader) as Throwable
+    private
+    fun WriteContext.maybeEncode(failure: Throwable?) {
+        if (failure == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            maybeEncode(failure.cause)
+            writeNullableString(failure.message)
+        }
+    }
+
+    override suspend fun ReadContext.decode(): BrokenValue {
+        val cause = maybeDecode()
+        val message = readNullableString()
+        val exception = RuntimeException(message, cause)
         return BrokenValue(exception)
+    }
+
+    private
+    fun ReadContext.maybeDecode(): Throwable? {
+        if (readBoolean()) {
+            val cause = maybeDecode()
+            val message = readNullableString()
+            return RuntimeException(message, cause)
+        } else {
+            return null
+        }
     }
 }
