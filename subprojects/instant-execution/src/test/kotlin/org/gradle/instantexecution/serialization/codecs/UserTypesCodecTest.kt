@@ -19,6 +19,7 @@ package org.gradle.instantexecution.serialization.codecs
 import com.nhaarman.mockitokotlin2.mock
 
 import org.gradle.api.Project
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
@@ -27,6 +28,7 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.PropertyProblem
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.withIsolate
 
 import org.gradle.internal.io.NullOutputStream
@@ -266,6 +268,7 @@ class UserTypesCodecTest {
         DefaultReadContext(
             codec = codecs().userTypesCodec,
             decoder = KryoBackedDecoder(inputStream),
+            constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
             logger = mock()
         )
 

@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.instantexecution.ClassLoaderScopeSpec
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
@@ -142,6 +143,9 @@ class DefaultReadContext(
     private
     val decoder: Decoder,
 
+    private
+    val constructors: BeanConstructors,
+
     override val logger: Logger
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
 
@@ -181,7 +185,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type) }
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors) }
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()
