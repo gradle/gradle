@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.GroovyObjectSupport
 import org.gradle.api.GradleException
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
@@ -26,16 +25,15 @@ import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.reflect.JavaReflectionUtil
-import sun.reflect.ReflectionFactory
 import java.io.IOException
-import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
 
 class BeanPropertyReader(
-    private val beanType: Class<*>
+    private val beanType: Class<*>,
+    private val constructors: BeanConstructors
 ) : BeanStateReader {
 
     private
@@ -46,23 +44,7 @@ class BeanPropertyReader(
 
     private
     val constructorForSerialization by lazy {
-        // Initialize the super types of the bean type, as this does not seem to happen via the generated constructors
-        maybeInit(beanType)
-        if (GroovyObjectSupport::class.java.isAssignableFrom(beanType)) {
-            // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
-            newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
-        } else {
-            newConstructorForSerialization(beanType, Object::class.java.getConstructor())
-        }
-    }
-
-    private
-    fun maybeInit(beanType: Class<*>) {
-        val superclass = beanType.superclass
-        if (superclass?.classLoader != null) {
-            Class.forName(superclass.name, true, superclass.classLoader)
-            maybeInit(superclass)
-        }
+        constructors.constructorForSerialization(beanType)
     }
 
     override suspend fun ReadContext.newBean() =
@@ -108,10 +90,6 @@ class BeanPropertyReader(
         type.isInstance(value) ||
             type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
 
-    // TODO: What about the runtime decorations a serialized bean might have had at configuration time?
-    private
-    fun newConstructorForSerialization(beanType: Class<*>, constructor: Constructor<*>): Constructor<out Any> =
-        ReflectionFactory.getReflectionFactory().newConstructorForSerialization(beanType, constructor)
 }
 
 
