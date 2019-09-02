@@ -17,7 +17,6 @@ package org.gradle.configuration;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
@@ -48,10 +47,8 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     }
 
     @Override
-    public void prepareProjects(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
+    public void prepareProjects(GradleInternal gradle) {
         maybeInformAboutIncubatingMode(gradle);
-
-
 
         buildLoader.load(gradle.getSettings(), gradle);
 

@@ -17,7 +17,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.ConfigureBuildBuildOperationType;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -37,22 +36,20 @@ public class BuildOperatingFiringProjectsPreparer implements ProjectsPreparer {
     }
 
     @Override
-    public void prepareProjects(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
-        buildOperationExecutor.run(new ConfigureBuild(gradle, baseProjectClassLoaderScope));
+    public void prepareProjects(GradleInternal gradle) {
+        buildOperationExecutor.run(new ConfigureBuild(gradle));
     }
 
     private class ConfigureBuild implements RunnableBuildOperation {
         private final GradleInternal gradle;
-        private final ClassLoaderScope baseProjectClassLoaderScope;
 
-        public ConfigureBuild(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
+        public ConfigureBuild(GradleInternal gradle) {
             this.gradle = gradle;
-            this.baseProjectClassLoaderScope = baseProjectClassLoaderScope;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            delegate.prepareProjects(gradle, baseProjectClassLoaderScope);
+            delegate.prepareProjects(gradle);
             context.setResult(CONFIGURE_BUILD_RESULT);
         }
 

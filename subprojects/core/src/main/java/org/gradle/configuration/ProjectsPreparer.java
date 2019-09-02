@@ -16,7 +16,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 /**
  * Responsible for creating and configuring the projects of a `Gradle` instance. The result is passed to a {@link org.gradle.initialization.TaskExecutionPreparer} to prepare for task execution. Prior to project preparation, the `Gradle` instance has its settings object configured by a {@link org.gradle.initialization.SettingsPreparer}.
@@ -24,5 +23,5 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
  * <p>This stage includes running the build script for each project.</p>
  */
 public interface ProjectsPreparer {
-    void prepareProjects(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope);
+    void prepareProjects(GradleInternal gradle);
 }

@@ -17,7 +17,6 @@ package org.gradle.configuration
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildLoader
@@ -44,7 +43,7 @@ class DefaultProjectsPreparerTest extends Specification {
 
     def "configures build for standard mode"() {
         when:
-        configurer.prepareProjects(gradle, Mock(ClassLoaderScope))
+        configurer.prepareProjects(gradle)
 
         then:
         1 * projectConfigurer.configureHierarchy(rootProject)
@@ -52,7 +51,7 @@ class DefaultProjectsPreparerTest extends Specification {
 
     def "configures build for on demand mode"() {
         when:
-        configurer.prepareProjects(gradle, Mock(ClassLoaderScope))
+        configurer.prepareProjects(gradle)
 
         then:
         startParameter.isConfigureOnDemand() >> true

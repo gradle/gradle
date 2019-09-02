@@ -109,7 +109,7 @@ class DefaultGradleLauncherSpec extends Specification {
         and:
         def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
         1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> buildSrcClassLoaderScope
-        1 * buildConfigurerMock.prepareProjects(gradleMock, buildSrcClassLoaderScope)
+        1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
         def result = gradleLauncher.getConfiguredBuild()
@@ -127,7 +127,7 @@ class DefaultGradleLauncherSpec extends Specification {
         and:
         def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
         1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> buildSrcClassLoaderScope
-        1 * buildConfigurerMock.prepareProjects(gradleMock, buildSrcClassLoaderScope)
+        1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
