@@ -348,24 +348,36 @@ inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, blo
 
 internal
 inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) {
-    val id = isolate.identities.getId(reference)
+    encodePreservingIdentityOf(isolate.identities, reference, encode)
+}
+
+
+internal
+inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
+    val id = identities.getId(reference)
     if (id != null) {
         writeSmallInt(id)
     } else {
-        writeSmallInt(isolate.identities.putInstance(reference))
+        writeSmallInt(identities.putInstance(reference))
         encode(reference)
     }
 }
 
 
 internal
-inline fun ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> Any): Any {
+inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T {
+    return decodePreservingIdentity(isolate.identities, decode)
+}
+
+
+internal
+inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, decode: ReadContext.(Int) -> T): T {
     val id = readSmallInt()
-    val previousValue = isolate.identities.getInstance(id)
+    val previousValue = identities.getInstance(id)
     return when {
-        previousValue != null -> previousValue
+        previousValue != null -> previousValue as T
         else -> decode(id).also {
-            require(isolate.identities.getInstance(id) === it) {
+            require(identities.getInstance(id) === it) {
                 "`decode(id)` should register the decoded instance"
             }
         }

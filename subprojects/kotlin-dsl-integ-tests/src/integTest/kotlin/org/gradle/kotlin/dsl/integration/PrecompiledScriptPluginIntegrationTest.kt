@@ -56,7 +56,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettingsIn(firstLocation).appendText("""
             rootProject.name = "test"
             buildCache {
-                local<DirectoryBuildCache> {
+                local {
                     directory = file("${cacheDir.normalisedPath}")
                 }
             }

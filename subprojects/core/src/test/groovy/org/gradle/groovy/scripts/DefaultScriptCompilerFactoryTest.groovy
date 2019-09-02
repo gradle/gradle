@@ -16,15 +16,14 @@
 package org.gradle.groovy.scripts
 
 import org.gradle.api.Action
-import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.internal.CompileOperation
 import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
+import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.logging.StandardOutputCapture
 import spock.lang.Specification
 
 class DefaultScriptCompilerFactoryTest extends Specification {
@@ -57,7 +56,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
         then:
         result == runner
 
-        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, targetScope, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
+        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, targetScope, operation, Script, verifier) >> compiledScript
         1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._

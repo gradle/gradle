@@ -28,7 +28,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     enabled = true 
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                     push = true 
@@ -118,7 +118,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
 
-                local(DirectoryBuildCache) {
+                local {
                     enabled = true 
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                 }
@@ -146,7 +146,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     enabled = false
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                     push = true 

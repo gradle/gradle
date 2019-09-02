@@ -134,7 +134,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     fun withLocalBuildCacheSettings(buildCacheDir: File): File =
         withSettings("""
             buildCache {
-                local(DirectoryBuildCache::class.java) {
+                local {
                     directory = file("${buildCacheDir.normalisedPath}")
                     isEnabled = true
                     isPush = true

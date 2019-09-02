@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.ProjectModel;
 
 import javax.annotation.Nullable;
@@ -26,7 +25,6 @@ import javax.annotation.Nullable;
  *
  * @since 4.10
  */
-@Incubating
 public interface CppProject extends ProjectModel {
     /**
      * Returns the main C++ component of this project, if any.

@@ -16,8 +16,12 @@
 
 package org.gradle.instantexecution.serialization
 
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.instantexecution.ClassLoaderScopeSpec
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
@@ -33,6 +37,9 @@ class DefaultWriteContext(
     private
     val encoder: Encoder,
 
+    private
+    val scopeLookup: ScopeLookup,
+
     override val logger: Logger,
 
     private
@@ -45,7 +52,10 @@ class DefaultWriteContext(
     val beanPropertyWriters = hashMapOf<Class<*>, BeanStateWriter>()
 
     private
-    val classes = hashMapOf<Class<*>, Int>()
+    val classes = WriteIdentities()
+
+    private
+    val scopes = WriteIdentities()
 
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
@@ -61,14 +71,41 @@ class DefaultWriteContext(
     }
 
     override fun writeClass(type: Class<*>) {
-        val id = classes[type]
+        val id = classes.getId(type)
         if (id != null) {
             writeSmallInt(id)
         } else {
-            val newId = classes.size
-            classes[type] = newId
+            val scope = scopeLookup.scopeFor(type.classLoader)
+            val newId = classes.putInstance(type)
             writeSmallInt(newId)
             writeString(type.name)
+            if (scope == null) {
+                writeBoolean(false)
+            } else {
+                writeBoolean(true)
+                writeScope(scope.first)
+                writeBoolean(scope.second.local)
+            }
+        }
+    }
+
+    private
+    fun writeScope(scope: ClassLoaderScopeSpec) {
+        val id = scopes.getId(scope)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val newId = scopes.putInstance(scope)
+            writeSmallInt(newId)
+            if (scope.parent != null) {
+                writeBoolean(true)
+                writeScope(scope.parent)
+                writeString(scope.name)
+                writeClassPath(scope.localClassPath)
+                writeClassPath(scope.exportClassPath)
+            } else {
+                writeBoolean(false)
+            }
         }
     }
 
@@ -90,12 +127,24 @@ interface EncodingProvider<T> {
 }
 
 
+inline class ClassLoaderRole(val local: Boolean)
+
+
+internal
+interface ScopeLookup {
+    fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
+}
+
+
 internal
 class DefaultReadContext(
     codec: Codec<Any?>,
 
     private
     val decoder: Decoder,
+
+    private
+    val constructors: BeanConstructors,
 
     override val logger: Logger
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
@@ -106,7 +155,10 @@ class DefaultReadContext(
     val beanStateReaders = hashMapOf<Class<*>, BeanStateReader>()
 
     private
-    val classes = hashMapOf<Int, Class<*>>()
+    val classes = ReadIdentities()
+
+    private
+    val scopes = ReadIdentities()
 
     private
     lateinit var projectProvider: ProjectProvider
@@ -133,17 +185,52 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type) }
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors) }
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()
-        val type = classes[id]
+        val type = classes.getInstance(id)
         if (type != null) {
-            return type
+            return type as Class<*>
         }
-        val newType = Class.forName(readString(), false, classLoader)
-        classes[id] = newType
+        val name = readString()
+        val classLoader = if (readBoolean()) {
+            val scope = readScope()
+            if (readBoolean()) {
+                scope.localClassLoader
+            } else {
+                scope.exportClassLoader
+            }
+        } else {
+            this.classLoader
+        }
+        val newType = Class.forName(name, false, classLoader)
+        classes.putInstance(id, newType)
         return newType
+    }
+
+    private
+    fun readScope(): ClassLoaderScope {
+        val id = readSmallInt()
+        val scope = scopes.getInstance(id)
+        if (scope != null) {
+            return scope as ClassLoaderScope
+        }
+        val newScope = if (readBoolean()) {
+            val parent = readScope()
+            val name = readString()
+            val localClassPath = readClassPath()
+            val exportClassPath = readClassPath()
+            parent
+                .createChild(name)
+                .local(localClassPath)
+                .export(exportClassPath)
+                .lock()
+        } else {
+            isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
+        }
+        scopes.putInstance(id, newScope)
+        return newScope
     }
 
     override fun getProject(path: String): ProjectInternal =

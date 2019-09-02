@@ -96,9 +96,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
         """)
 
         withDefaultSettings().appendText("""
-            buildCache {
-                local(DirectoryBuildCache::class)
-            }
             sourceControl {
                 vcsMappings {
                     withModule("some:thing") {

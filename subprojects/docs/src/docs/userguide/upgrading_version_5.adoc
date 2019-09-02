@@ -60,7 +60,8 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 In the past it was possible to use any build cache implementation as the `local` cache.
 This is not allowed anymore as the local cache is always a `DirectoryBuildCache`.
 Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build.
-Use `getLocal()` and `local(Action)` instead.
+Calling these methods with the `DirectoryBuildCache` type will produce a deprecation warning.
+Use `getLocal()` and `local(Action)` instead, respectively.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
 ==== Failing to pack or unpack cached results will now fail the build

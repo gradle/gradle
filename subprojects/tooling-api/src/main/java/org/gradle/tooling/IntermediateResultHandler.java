@@ -15,15 +15,12 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * A handler for an intermediate result obtained by a {@link BuildActionExecuter}.
  *
  * @param <T> The result type.
  * @since 4.8
  */
-@Incubating
 public interface IntermediateResultHandler<T> {
 
     /**

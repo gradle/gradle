@@ -341,4 +341,4 @@ fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
 
 
 inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
-    readSmallInt().let { ordinal -> enumValues<E>().first { it.ordinal == ordinal } }
+    readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }

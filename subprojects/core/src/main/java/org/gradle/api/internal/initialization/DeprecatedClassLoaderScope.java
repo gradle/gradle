@@ -48,7 +48,7 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     public ClassLoader getExportClassLoader() {
         if (deprecatedExportClassloader == null) {
             ClassLoaderId id = this.id.child("deprecated-only").exportId();
-            deprecatedExportClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id, deprecatedClasspath), super.getExportClassLoader());
+            deprecatedExportClassloader = new DefaultDeprecatedClassLoader(loader(id, super.getExportClassLoader(), deprecatedClasspath), super.getExportClassLoader());
         }
         return deprecatedExportClassloader;
     }
@@ -57,7 +57,7 @@ public class DeprecatedClassLoaderScope extends DefaultClassLoaderScope {
     public ClassLoader getLocalClassLoader() {
         if (deprecatedLocalClassloader == null) {
             ClassLoaderId id = this.id.child("deprecated-only").localId();
-            deprecatedLocalClassloader = new DefaultDeprecatedClassLoader(buildLockedLoader(id, deprecatedClasspath), super.getLocalClassLoader());
+            deprecatedLocalClassloader = new DefaultDeprecatedClassLoader(loader(id, super.getExportClassLoader(), deprecatedClasspath), super.getLocalClassLoader());
         }
         return deprecatedLocalClassloader;
     }

@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
@@ -72,7 +71,6 @@ public class Project extends XmlPersistableConfigurationObject {
      *
      * @since 4.0
      */
-    @Incubating
     public void addModulePath(File moduleFile) {
         modulePaths.add(pathFactory.relativePath("PROJECT_DIR", moduleFile));
     }

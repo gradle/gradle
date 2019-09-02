@@ -36,18 +36,16 @@ class BeanPropertyWriter(
 ) : BeanStateWriter {
 
     private
-    val relevantFields = relevantStateOf(beanType).toList()
+    val relevantFields = relevantStateOf(beanType)
 
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
-        writingProperties {
-            for (field in relevantFields) {
-                val fieldName = field.name
-                val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
-                writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
-            }
+        for (field in relevantFields) {
+            val fieldName = field.name
+            val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
+            writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }
 
@@ -85,7 +83,6 @@ class BeanPropertyWriter(
  */
 suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
     withPropertyTrace(kind, name) {
-        writeString(name)
         try {
             write(value)
         } catch (passThrough: IOException) {
@@ -107,13 +104,3 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 
 private
 fun unpackedTypeNameOf(value: Any) = GeneratedSubclasses.unpackType(value).name
-
-
-/**
- * Ensures a sequence of [writeNextProperty] calls is properly terminated
- * by the end marker (empty String) so that it can be read by [readEachProperty].
- */
-inline fun WriteContext.writingProperties(block: () -> Unit) {
-    block()
-    writeString("")
-}

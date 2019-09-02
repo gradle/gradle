@@ -22,6 +22,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -50,6 +51,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     private Action<WorkerProcess> onFailure = Actions.doNothing();
     private RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
     private final ClassPath implementationClasspath;
+    private final OutputEventListener outputEventListener;
 
     static {
         try {
@@ -60,11 +62,12 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         }
     }
 
-    public DefaultMultiRequestWorkerProcessBuilder(Class<WORKER> workerType, Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder) {
+    public DefaultMultiRequestWorkerProcessBuilder(Class<WORKER> workerType, Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder, OutputEventListener outputEventListener) {
         this.workerType = workerType;
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
         this.implementationClasspath = ClasspathUtil.getClasspath(workerImplementation.getClassLoader());
+        this.outputEventListener = outputEventListener;
         workerProcessBuilder.worker(new WorkerAction(workerImplementation));
         workerProcessBuilder.setImplementationClasspath(implementationClasspath.getAsURLs());
     }
@@ -148,7 +151,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         final Action<WorkerProcess> failureHandler = onFailure;
 
         return workerType.cast(Proxy.newProxyInstance(workerType.getClassLoader(), new Class[]{workerType}, new InvocationHandler() {
-            private Receiver receiver = new Receiver(getBaseName());
+            private Receiver receiver = new Receiver(getBaseName(), outputEventListener);
             private RequestProtocol requestProtocol;
 
             @Override

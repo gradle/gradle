@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -25,7 +23,6 @@ import javax.annotation.Nullable;
  *
  * @since 5.1
  */
-@Incubating
 public interface BinaryPluginIdentifier extends PluginIdentifier {
 
     /**

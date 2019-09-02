@@ -16,11 +16,17 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
 
 class InstantExecutionServices : AbstractPluginServiceRegistry() {
+    override fun registerGlobalServices(registration: ServiceRegistration) {
+        registration.run {
+            add(BeanConstructors::class.java)
+        }
+    }
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {

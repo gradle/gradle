@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.task.java;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.task.TaskOperationResult;
 
 import javax.annotation.Nullable;
@@ -30,7 +29,6 @@ import java.util.List;
  *
  * @since 5.1
  */
-@Incubating
 public interface JavaCompileTaskOperationResult extends TaskOperationResult {
 
     /**
@@ -48,7 +46,6 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
      *
      * @since 5.1
      */
-    @Incubating
     interface AnnotationProcessorResult {
 
         /**
@@ -73,7 +70,6 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
          *
          * @since 5.1
          */
-        @Incubating
         enum Type {
             ISOLATING,
             AGGREGATING,
