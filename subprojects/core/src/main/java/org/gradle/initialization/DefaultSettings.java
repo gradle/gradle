@@ -70,8 +70,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
 
-    private ClassLoaderScope baseProjectClassLoaderScope;
-
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope classLoaderScope, ClassLoaderScope baseClassLoaderScope, ScriptHandler settingsScriptHandler,
                            File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
@@ -243,30 +241,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             getFileResolver(),
             getScriptPluginFactory(),
             getScriptHandlerFactory(),
-            baseProjectClassLoaderScope(),
+            baseClassLoaderScope,
             getResourceLoader(),
             this);
     }
 
-    @Override
-    public ClassLoaderScope baseProjectClassLoaderScope() {
-        if (baseProjectClassLoaderScope == null) {
-            throw new IllegalStateException("baseProjectClassLoaderScope not yet set");
-        }
-        return baseProjectClassLoaderScope;
-    }
-
-    @Override
-    public void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope) {
-        if (classLoaderScope == null) {
-            throw new IllegalArgumentException("classLoaderScope must not be null");
-        }
-        if (baseProjectClassLoaderScope != null) {
-            throw new IllegalStateException("baseProjectClassLoaderScope is already set");
-        }
-
-        this.baseProjectClassLoaderScope = classLoaderScope;
-    }
 
     @Override
     public ClassLoaderScope getBaseClassLoaderScope() {

@@ -78,7 +78,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         settingsInternal.getDefaultProject() >> rootDescriptor
 
         when:
-        buildLoader.load(settingsInternal, build, baseClassLoaderScope)
+        buildLoader.load(settingsInternal, build)
 
         then:
         projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
@@ -93,7 +93,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         settingsInternal.getDefaultProject() >> childDescriptor
 
         when:
-        buildLoader.load(settingsInternal, build, baseClassLoaderScope)
+        buildLoader.load(settingsInternal, build)
 
         then:
         1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject

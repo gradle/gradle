@@ -110,7 +110,6 @@ class InstantExecutionHost internal constructor(
         init {
             gradle.run {
                 settings = createSettings()
-
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
                 val settingsPreparer = BuildOperatingFiringSettingsPreparer(
                     SettingsPreparer {
@@ -122,6 +121,7 @@ class InstantExecutionHost internal constructor(
                 )
                 settingsPreparer.prepareSettings(this)
 
+                setBaseProjectClassLoaderScope(coreScope)
                 rootProject = createProject(null, rootProjectName)
                 defaultProject = rootProject
             }
@@ -171,8 +171,8 @@ class InstantExecutionHost internal constructor(
             settingsProcessor.process(gradle, settingsLocation, coreAndPluginsScope, startParameter)
 
             // Fire build operation required by build scans to determine the build's project structure (and build load time)
-            val buildLoader = NotifyingBuildLoader(BuildLoader { _, _, _ -> }, buildOperationExecutor)
-            buildLoader.load(gradle.settings, gradle, gradle.settings.baseProjectClassLoaderScope())
+            val buildLoader = NotifyingBuildLoader(BuildLoader { _, _ -> }, buildOperationExecutor)
+            buildLoader.load(gradle.settings, gradle)
 
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {
@@ -245,10 +245,7 @@ class InstantExecutionHost internal constructor(
                     rootDir,
                     settingsSource,
                     startParameter
-                ).also {
-                    // In “classic” mode, this is different in that it includes buildSrc
-                    it.setBaseProjectClassLoaderScope(coreScope)
-                }
+                )
             }
     }
 

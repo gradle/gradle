@@ -35,8 +35,8 @@ public class InstantiatingBuildLoader implements BuildLoader {
      * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project, ready for the projects to be configured.
      */
     @Override
-    public void load(SettingsInternal settings, GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
-        createProjects(settings.getRootProject(), gradle, baseProjectClassLoaderScope);
+    public void load(SettingsInternal settings, GradleInternal gradle) {
+        createProjects(settings.getRootProject(), gradle);
         attachDefaultProject(settings.getDefaultProject(), gradle);
     }
 
@@ -52,10 +52,11 @@ public class InstantiatingBuildLoader implements BuildLoader {
         gradle.setDefaultProject(defaultProject);
     }
 
-    private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope buildRootClassLoaderScope) {
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, buildRootClassLoaderScope.createChild("root-project"), buildRootClassLoaderScope);
+    private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {
+        ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, baseProjectClassLoaderScope.createChild("root-project"), baseProjectClassLoaderScope);
         gradle.setRootProject(rootProject);
-        addProjects(rootProject, rootProjectDescriptor, gradle, buildRootClassLoaderScope);
+        addProjects(rootProject, rootProjectDescriptor, gradle, baseProjectClassLoaderScope);
     }
 
     private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope buildRootClassLoaderScope) {
