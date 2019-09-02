@@ -143,7 +143,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    def "fails when multiple publications share the same coordinates"() {
+    def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
         buildFile << """
@@ -179,21 +179,22 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         module.assertPublishedAsJavaModule()
+        result.assertNotOutput("Multiple publications with coordinates 'org.example:duplicate-duplicate:1.0' are published to repository 'maven'. The publications will overwrite each other!")
 
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'maven'")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'maven'. The publications will overwrite each other!")
 
         when:
-        fails 'publishToMavenLocal'
+        succeeds 'publishToMavenLocal'
 
         then:
-        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'mavenLocal'")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'mavenLocal'. The publications will overwrite each other!")
     }
 
-    def "fails when publications in different projects share the same coordinates"() {
+    def "warns when publications in different projects share the same coordinates"() {
         given:
         settingsFile << """
 include 'projectA'
@@ -222,10 +223,10 @@ include 'projectB'
         """
 
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate:1.0' to repository 'maven'")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'maven'. The publications will overwrite each other!")
     }
 
     def "does not fail for publication with duplicate repositories"() {

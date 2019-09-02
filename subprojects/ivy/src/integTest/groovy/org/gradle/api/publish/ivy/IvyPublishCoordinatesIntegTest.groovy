@@ -144,7 +144,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    def "fails when multiple publications share the same coordinates"() {
+    def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
         buildFile << """
@@ -182,13 +182,13 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         module.assertPublished()
 
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate-publications:1.0' to repository 'ivy'")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
     }
 
-    def "fails when publications in different projects share the same coordinates"() {
+    def "warns when publications in different projects share the same coordinates"() {
         given:
         settingsFile << """
 include 'projectA'
@@ -217,10 +217,10 @@ include 'projectB'
         """
 
         when:
-        fails 'publish'
+        succeeds 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish multiple publications with coordinates 'org.example:duplicate:1.0' to repository 'ivy'")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
     }
 
     def "does not fail for publication with duplicate repositories"() {

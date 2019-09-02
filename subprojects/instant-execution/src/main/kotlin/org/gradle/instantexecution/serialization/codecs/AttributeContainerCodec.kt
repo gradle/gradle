@@ -16,27 +16,22 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 
 
-object EnumCodec : EncodingProducer, Decoding {
-
-    override fun encodingForType(type: Class<*>): Encoding? =
-        EnumEncoding.takeIf { type.isEnum }
-
-    override suspend fun ReadContext.decode(): Any? {
-        val enumClass = readClass()
-        val enumOrdinal = readSmallInt()
-        return enumClass.enumConstants[enumOrdinal]
+internal
+class AttributeContainerCodec(
+    private val attributesFactory: ImmutableAttributesFactory
+) : Codec<AttributeContainer> {
+    override suspend fun WriteContext.encode(value: AttributeContainer) {
+        // TODO - actually write the attributes
     }
-}
 
-
-private
-object EnumEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        writeClass(value::class.java)
-        writeSmallInt((value as Enum<*>).ordinal)
+    override suspend fun ReadContext.decode(): AttributeContainer? {
+        return attributesFactory.mutable()
     }
 }

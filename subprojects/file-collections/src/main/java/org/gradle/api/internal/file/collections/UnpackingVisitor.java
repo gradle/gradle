@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -40,6 +41,10 @@ public class UnpackingVisitor {
     public void add(@Nullable Object element) {
         if (element instanceof FileCollection) {
             // FileCollection is-a Iterable, Buildable and TaskDependencyContainer, so check before checking for these things
+            context.add(element);
+            return;
+        }
+        if (element instanceof DirectoryTree) {
             context.add(element);
             return;
         }

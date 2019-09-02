@@ -34,7 +34,7 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
-    
+
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 

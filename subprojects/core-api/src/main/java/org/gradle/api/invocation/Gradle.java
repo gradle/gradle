@@ -191,6 +191,24 @@ public interface Gradle extends PluginAware {
     void buildStarted(Action<? super Gradle> action);
 
     /**
+     * Adds an action to be called before the build settings have been loaded and evaluated.
+     *
+     * @param closure The action to execute.
+     * @since 6.0
+     */
+    @Incubating
+    void beforeSettings(Closure<?> closure);
+
+    /**
+     * Adds an action to be called before the build settings have been loaded and evaluated.
+     *
+     * @param action The action to execute.
+     * @since 6.0
+     */
+    @Incubating
+    void beforeSettings(Action<? super Settings> action);
+
+    /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.
      *
      * The settings object is fully configured and is ready to use to load the build projects. The

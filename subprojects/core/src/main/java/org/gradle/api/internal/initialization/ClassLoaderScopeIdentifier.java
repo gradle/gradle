@@ -25,7 +25,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
 
-class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
+public class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
 
     @Nullable
     private final ClassLoaderScopeIdentifier parent;
@@ -45,7 +45,7 @@ class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
         return name;
     }
 
-    ClassLoaderId localId() {
+    public ClassLoaderId localId() {
         return new Id(this, false);
     }
 

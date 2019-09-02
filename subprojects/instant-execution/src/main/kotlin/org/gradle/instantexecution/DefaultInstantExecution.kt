@@ -19,7 +19,6 @@ package org.gradle.instantexecution
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.execution.plan.Node
-import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -27,16 +26,9 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
-import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
-import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.withIsolate
-import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
-import org.gradle.internal.classloader.CachingClassLoader
-import org.gradle.internal.classloader.MultiParentClassLoader
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -49,7 +41,6 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
-import java.util.ArrayDeque
 import java.util.ArrayList
 import java.util.SortedSet
 import java.util.TreeSet
@@ -78,8 +69,6 @@ class DefaultInstantExecution internal constructor(
         val rootDir: File
 
         val requestedTaskNames: List<String>
-
-        fun classLoaderFor(classPath: ClassPath): ClassLoader
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
@@ -154,8 +143,6 @@ class DefaultInstantExecution internal constructor(
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
-        writeClassLoaderScopeSpecs(collectClassLoaderScopeSpecs())
-
         writeGradleState(build.gradle)
 
         val scheduledNodes = build.scheduledWork
@@ -171,8 +158,7 @@ class DefaultInstantExecution internal constructor(
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
 
-        val loader = classLoaderFor(readClassLoaderScopeSpecs())
-        initClassLoader(loader)
+        this.classLoader = javaClass.classLoader
 
         readGradleState(build.gradle)
 
@@ -208,6 +194,7 @@ class DefaultInstantExecution internal constructor(
     ) = DefaultWriteContext(
         codecs.userTypesCodec,
         encoder,
+        scopeRegistryListener,
         logger,
         report::add
     )
@@ -241,6 +228,7 @@ class DefaultInstantExecution internal constructor(
             actionScheme = service(),
             parameterScheme = service(),
             classLoaderHierarchyHasher = service(),
+            attributesFactory = service(),
             transformListener = service()
         )
     }
@@ -266,25 +254,6 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
-    private
-    fun DefaultWriteContext.writeClassLoaderScopeSpecs(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>) {
-        writeCollection(classLoaderScopeSpecs) { spec ->
-            writeString(spec.name)
-            writeClassPath(spec.localClassPath.toClassPath())
-            writeClassPath(spec.exportClassPath.toClassPath())
-            writeClassLoaderScopeSpecs(spec.children)
-        }
-    }
-
-    private
-    fun DefaultReadContext.readClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
-        readList {
-            ClassLoaderScopeSpec(readString()).apply {
-                localClassPath.add(readClassPath())
-                exportClassPath.add(readClassPath())
-                children.addAll(readClassLoaderScopeSpecs())
-            }
-        }
 
     private
     fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
@@ -317,42 +286,6 @@ class DefaultInstantExecution internal constructor(
     private
     inline fun <reified T> service() =
         host.service<T>()
-
-    private
-    fun classLoaderFor(classLoaderScopeSpecs: List<ClassLoaderScopeSpec>): ClassLoader =
-        CachingClassLoader(
-            MultiParentClassLoader(
-                classLoadersFrom(classLoaderScopeSpecs)
-            )
-        )
-
-    private
-    fun classLoadersFrom(specs: List<ClassLoaderScopeSpec>) = mutableListOf<ClassLoader>().apply {
-
-        val coreAndPluginsScope = service<ClassLoaderScopeRegistry>().coreAndPluginsScope
-
-        val stack = specs.mapTo(ArrayDeque()) { spec -> spec to coreAndPluginsScope }
-        while (stack.isNotEmpty()) {
-
-            val (spec, parent) = stack.pop()
-            val scope = parent
-                .createChild(spec.name)
-                .local(spec.localClassPath.toClassPath())
-                .export(spec.exportClassPath.toClassPath())
-                .lock()
-
-            add(scope.localClassLoader)
-            add(scope.exportClassLoader)
-
-            stack.addAll(
-                spec.children.map { child -> child to scope }
-            )
-        }
-    }
-
-    private
-    fun collectClassLoaderScopeSpecs(): List<ClassLoaderScopeSpec> =
-        scopeRegistryListener.coreAndPluginsSpec!!.children
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
@@ -449,18 +382,4 @@ fun <R> runToCompletion(block: suspend () -> R): R {
         }
         it.getOrThrow()
     }
-}
-
-
-private
-fun List<ClassPath>.toClassPath() = when (size) {
-    0 -> ClassPath.EMPTY
-    1 -> this[0]
-    else -> DefaultClassPath.of(
-        mutableSetOf<File>().also { files ->
-            forEach { classPath ->
-                files.addAll(classPath.asFiles)
-            }
-        }
-    )
 }

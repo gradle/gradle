@@ -19,10 +19,8 @@ package org.gradle.instantexecution
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -43,7 +41,6 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
@@ -89,14 +86,6 @@ class InstantExecutionHost internal constructor(
     override val requestedTaskNames: List<String> = startParameter.taskNames
 
     override val rootDir: File = startParameter.currentDir
-
-    override fun classLoaderFor(classPath: ClassPath): ClassLoader =
-        service<ClassLoaderCache>().get(
-            ClassLoaderIds.buildScript("instant-execution", "run"),
-            classPath,
-            coreAndPluginsScope.exportClassLoader,
-            null
-        )
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val buildSrc: Boolean

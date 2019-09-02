@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -35,6 +36,26 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
 
         where:
         type << ["Object", "Object[]", "Set", "LinkedHashSet", "List", "LinkedList", "Collection", "FileCollection"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10322")
+    def "can construct file collection from the elements of a source directory set"() {
+        buildFile << """
+            def fileCollection = objects.fileCollection()
+            def sourceDirs = objects.sourceDirectorySet('main', 'main files')
+            sourceDirs.srcDirs("dir1", "dir2")
+            fileCollection.from(sourceDirs.srcDirTrees)
+            println("files = \${fileCollection.files.name.sort()}")
+        """
+
+        given:
+        file("dir1/file1").createFile()
+        file("dir1/file2").createFile()
+        file("dir2/sub/file3").createFile()
+
+        expect:
+        succeeds()
+        outputContains("files = [file1, file2, file3]")
     }
 
     def "finalized file collection resolves locations and ignores later changes to source paths"() {

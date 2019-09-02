@@ -69,7 +69,7 @@ class DefaultTransformerCodec(
         val secondaryInputsHash = HashCode.fromBytes(readBinary())
         // TODO - should not need to do anything with the context classloader
         val previousContextClassLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = classLoader
+        Thread.currentThread().contextClassLoader = implementationClass.classLoader
         val isolatedParameters = try {
             isolatableSerializerRegistry.readIsolatable(this) as Isolatable<out TransformParameters>
         } finally {

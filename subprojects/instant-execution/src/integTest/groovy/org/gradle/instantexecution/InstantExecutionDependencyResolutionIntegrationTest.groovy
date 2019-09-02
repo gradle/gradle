@@ -24,6 +24,47 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         requireOwnGradleUserHomeDir()
     }
 
+    def "task can have a field with type ArtifactCollection"() {
+        taskTypeWithOutputFileProperty()
+        mavenRepo.module("group", "lib1", "6500").publish()
+        settingsFile << """
+            include 'a', 'b'"""
+        buildFile << """
+            subprojects {
+                configurations { create("default") }
+                task producer(type: FileProducer) {
+                    output = layout.buildDirectory.file("\${project.name}.out")
+                }
+                configurations.default.outgoing.artifact(producer.output)
+            }
+            repositories {
+                maven { url = uri('${mavenRepo.uri}') }
+            }
+            configurations {
+                implementation
+            }
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+                implementation "group:lib1:6500"
+            }
+            task resolve {
+                def collection = configurations.implementation.incoming.artifacts
+                inputs.files(collection.artifactFiles)
+                doLast {
+                    println("files = \${collection.artifactFiles.files.name}")
+                    println("artifacts = \${collection.artifacts.id.displayName}")
+                }
+            }
+        """
+
+        expect:
+        instantRun(":resolve")
+        instantRun(":resolve")
+        outputContains("files = [a.out, b.out, lib1-6500.jar]")
+        outputContains("artifacts = [a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+    }
+
     def "task input files can include the output of artifact transform of project dependencies"() {
         settingsFile << """
             include 'a', 'b'

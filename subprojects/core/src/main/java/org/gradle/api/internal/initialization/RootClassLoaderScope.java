@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
@@ -74,6 +75,11 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public ClassLoaderScope lock() {
         return this;
+    }
+
+    @Override
+    public ClassLoaderScope lock(Transformer<ClassLoader, ClassLoader> localClassLoaderFactory) {
+        throw new UnsupportedOperationException("Root scope has already been created");
     }
 
     @Override

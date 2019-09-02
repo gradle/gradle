@@ -23,7 +23,6 @@ import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 // See more details in https://docs.google.com/document/d/1pghuxbCR5oYWhUrIK2e4bmABQt3NEIYOOIK4iHyjWyQ/edit#heading=h.is4fzcbmxxld
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
@@ -69,14 +68,14 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     }
 
     private void markBuildAsSuccessfulIfFlaky(PerformanceExecutionDataProvider executionDataProvider) {
-        long flakyCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isFlaky).collect(Collectors.counting());
+        long flakyCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isFlaky).count();
         if (flakyCount > 0) {
             System.out.println("##teamcity[buildStatus status='SUCCESS' text='" + flakyCount + " scenarios are flaky.']");
         }
     }
 
     private String formatErrorString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("Performance test failed");
         if (buildFailure != 0) {
             sb.append(", ").append(buildFailure).append(" scenario(s) failed");
         }

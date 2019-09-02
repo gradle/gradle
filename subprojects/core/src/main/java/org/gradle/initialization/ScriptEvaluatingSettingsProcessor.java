@@ -59,6 +59,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, properties, startParameter, buildRootClassLoaderScope);
+        gradle.getBuildListenerBroadcaster().beforeSettings(settings);
         applySettingsScript(settingsScript, settings);
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());
         return settings;

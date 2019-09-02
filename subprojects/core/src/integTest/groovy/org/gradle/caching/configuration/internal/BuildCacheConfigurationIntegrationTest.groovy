@@ -18,6 +18,7 @@ package org.gradle.caching.configuration.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
+import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
@@ -26,7 +27,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "can configure with settings.gradle"() {
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = '$cacheDir'
                 }
             }
@@ -44,7 +45,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             gradle.startParameter.buildCacheEnabled = true
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = '$cacheDir'
                 }
             }
@@ -61,7 +62,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("initBuildCache.gradle") << """
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
-                    local(DirectoryBuildCache) {
+                    local {
                         directory = '$cacheDir'
                     }
                 }
@@ -80,7 +81,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.startParameter.buildCacheEnabled = true
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
-                    local(DirectoryBuildCache) {
+                    local {
                         directory = '$cacheDir'
                     }
                 }
@@ -98,7 +99,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("initBuildCache.gradle") << """
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
-                    local(DirectoryBuildCache) {
+                    local {
                         directory = '$cacheDir'
                     }
                 }
@@ -106,7 +107,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = "wrong"
                 }
             }
@@ -227,7 +228,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         // Disable the local build cache
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = '$cacheDir'
                     enabled = false
                 }
@@ -249,7 +250,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         // Disable pushing to the local build cache
         settingsFile << """
             buildCache {
-                local(DirectoryBuildCache) {
+                local {
                     directory = file("local-cache")
                     push = false
                 }
@@ -281,11 +282,34 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDeprecationWarning()
+
         expect:
         fails "help"
 
         and:
         failureHasCause("Using a local build cache type other than DirectoryBuildCache is not allowed")
+    }
+
+    @Unroll
+    def "shows deprecation warning when specifying local cache type using #method"() {
+        settingsFile << """
+            buildCache {
+                $config
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        when:
+        run "help"
+
+        then:
+        output.contains(message)
+
+        where:
+        method                 | config                                           | message
+        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Use getLocal() instead."
+        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Use local(Action) instead."
     }
 
     private static String customTaskCode() {

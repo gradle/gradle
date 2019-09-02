@@ -25,11 +25,11 @@ import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -66,29 +66,32 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     private ScenarioBuildResultData queryAndSortExecutionData(List<ScenarioBuildResultData> scenarios) {
         ScenarioBuildResultData mergedScenario = mergeScenarioWithSameName(scenarios);
 
-        List<String> teamCityBuildIds = scenarios.stream().map(ScenarioBuildResultData::getTeamCityBuildId).collect(toList());
-
         PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-        List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream()
-            .filter(execution -> teamCityBuildIds.contains(execution.getTeamCityBuildId()))
-            .collect(toList());
 
-        if (currentBuildExecutions.isEmpty()) {
-            mergedScenario.setRecentExecutions(determineRecentExecutions(removeEmptyExecution(recentExecutions)));
-        } else {
-            mergedScenario.setCurrentBuildExecutions(removeEmptyExecution(currentBuildExecutions));
-        }
+        scenarios.forEach(scenario -> setExecutions(scenario, singletonList(scenario.getTeamCityBuildId()), recentExecutions));
+        setExecutions(mergedScenario,  scenarios.stream().map(ScenarioBuildResultData::getTeamCityBuildId).collect(toList()), recentExecutions);
 
         mergedScenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
 
         return mergedScenario;
     }
 
+    private void setExecutions(ScenarioBuildResultData scenarioBuildResultData, List<String> teamCityBuildIds, List<? extends PerformanceTestExecution> recentExecutions) {
+        List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream()
+            .filter(execution -> teamCityBuildIds.contains(execution.getTeamCityBuildId()))
+            .collect(toList());
+        if (currentBuildExecutions.isEmpty()) {
+            scenarioBuildResultData.setRecentExecutions(determineRecentExecutions(removeEmptyExecution(recentExecutions)));
+        } else {
+            scenarioBuildResultData.setCurrentBuildExecutions(removeEmptyExecution(currentBuildExecutions));
+        }
+    }
+
     private ScenarioBuildResultData mergeScenarioWithSameName(List<ScenarioBuildResultData> scenariosWithSameName) {
         if (scenariosWithSameName.size() == 1) {
             ScenarioBuildResultData result = scenariosWithSameName.get(0);
-            result.setRawData(Collections.singletonList(result));
+            result.setRawData(singletonList(result));
             return result;
         } else {
             ScenarioBuildResultData mergedScenario = new ScenarioBuildResultData();

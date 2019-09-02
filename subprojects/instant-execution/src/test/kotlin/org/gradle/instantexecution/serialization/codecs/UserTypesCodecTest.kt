@@ -256,6 +256,7 @@ class UserTypesCodecTest {
         DefaultWriteContext(
             codec = codecs().userTypesCodec,
             encoder = encoder,
+            scopeLookup = mock(),
             logger = mock(),
             problemHandler = problemHandler
         )
@@ -289,6 +290,7 @@ class UserTypesCodecTest {
         projectFinder = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
+        attributesFactory = mock(),
         transformListener = mock()
     )
 

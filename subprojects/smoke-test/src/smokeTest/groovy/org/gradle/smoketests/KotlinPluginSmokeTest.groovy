@@ -41,12 +41,12 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    def 'kotlin android #androidPluginVersion plugin'() {
+    def 'kotlin #kotlinPluginVersion android #androidPluginVersion plugins'() {
         given:
         AndroidHome.assertIsSet()
         useSample("android-kotlin-example")
         replaceVariablesInBuildFile(
-            kotlinVersion: TestedVersions.kotlin.latest(),
+            kotlinVersion: kotlinPluginVersion,
             androidPluginVersion: androidPluginVersion,
             androidBuildToolsVersion: TestedVersions.androidTools)
 
@@ -57,7 +57,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         build.task(':testDebugUnitTestCoverage').outcome == SUCCESS
 
         where:
-        androidPluginVersion << TestedVersions.androidGradle
+        androidPluginVersion << TestedVersions.androidGradle * TestedVersions.kotlin.size()
+        kotlinPluginVersion << TestedVersions.kotlin * TestedVersions.androidGradle.size()
     }
 
     @Unroll

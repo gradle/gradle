@@ -48,33 +48,19 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Instant execution state could not be cached.
     }
 
-    def "supported tasks up-to-date on Santa Tracker Java"() {
-
+    def "assembleDebug up-to-date on Santa Tracker Java"() {
         given:
         copyRemoteProject("santaTrackerJava")
         withAgpNightly()
 
-        and:
-        def tasks = TASKS_TO_ASSEMBLE_DEBUG_JAVA + ['--no-build-cache'] - [
-            // unsupported tasks
-            ":santa-tracker:processDevelopmentDebugResources",
-            ":santa-tracker:compileDevelopmentDebugJavaWithJavac",
-            ":santa-tracker:compileDevelopmentDebugSources",
-            ":santa-tracker:dexBuilderDevelopmentDebug",
-            ":santa-tracker:mergeProjectDexDevelopmentDebug",
-            ":santa-tracker:packageDevelopmentDebug",
-            ":santa-tracker:assembleDevelopmentDebug",
-            ":santa-tracker:assembleDebug",
-        ]
-
         when:
-        instantRun(*tasks)
+        instantRun("assembleDebug", "--no-build-cache")
 
         then:
-        instantRun(*tasks)
+        instantRun("assembleDebug", "--no-build-cache")
     }
 
-    def "supported tasks clean build on Santa Tracker Java"() {
+    def "supported tasks clean assembleDebug on Santa Tracker Java"() {
 
         given:
         copyRemoteProject("santaTrackerJava")
@@ -114,7 +100,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         instantRun(*tasks)
 
         and:
-        instantRun 'clean'
+        run 'clean'
 
         then:
         instantRun(*tasks)
