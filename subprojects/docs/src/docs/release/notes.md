@@ -41,6 +41,16 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+### Compatibility Notes
+
+* Java version between 8 and 13 is required to execute Gradle.
+Java 6 and 7 are also supported for forked test execution.
+Java 14 and later versions are not supported.
+* This version of Gradle is tested with Android Gradle Plugin versions 3.4, 3.5 and 3.6.
+Earlier AGP versions are not supported.
+* Kotlin versions between 1.3.21 and 1.3.50 are tested.
+Earlier Kotlin versions are not supported.
+
 ## Introducing subgraph constraints for dependency versions
 
 When you declare a dependency to a module that is already on your dependency graph, due to a transitive dependency, you sometimes need to change the version of that module according to your needs.

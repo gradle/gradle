@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":persistentCache"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
 

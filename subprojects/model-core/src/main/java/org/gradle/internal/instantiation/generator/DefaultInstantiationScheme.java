@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instantiation.generator;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -88,14 +87,11 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         public <T> T newInstance(Class<T> implType, Class<? super T> baseClass) {
             //TODO:instant-execution - use the class generator instead
             try {
-                Constructor<?> constructor = constructorCache.get(implType, new Transformer<Constructor<?>, Class<?>>() {
-                    @Override
-                    public Constructor<?> transform(Class<?> aClass) {
-                        try {
-                            return ReflectionFactory.getReflectionFactory().newConstructorForSerialization(constructorSelector.forType(implType).getGeneratedClass(), baseClass.getDeclaredConstructor());
-                        } catch (NoSuchMethodException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
+                Constructor<?> constructor = constructorCache.get(implType, type -> {
+                    try {
+                        return ReflectionFactory.getReflectionFactory().newConstructorForSerialization(constructorSelector.forType(type).getGeneratedClass(), baseClass.getDeclaredConstructor());
+                    } catch (NoSuchMethodException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 });
                 return implType.cast(constructor.newInstance());

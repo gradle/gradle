@@ -198,7 +198,7 @@ class Codecs(
         bind(ResolvableArtifactCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
         bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))
-        bind(LegacyTransformerCodec(classLoaderHierarchyHasher, isolatableFactory, actionScheme))
+        bind(LegacyTransformerCodec(actionScheme))
         bind(ExecutionGraphDependenciesResolverCodec)
     }
 }

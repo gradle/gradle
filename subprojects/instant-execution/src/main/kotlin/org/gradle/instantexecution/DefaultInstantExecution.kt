@@ -23,6 +23,7 @@ import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
@@ -51,7 +52,8 @@ import kotlin.coroutines.startCoroutine
 
 class DefaultInstantExecution internal constructor(
     private val host: Host,
-    private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener
+    private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+    private val beanConstructors: BeanConstructors
 ) : InstantExecution {
 
     interface Host {
@@ -203,6 +205,7 @@ class DefaultInstantExecution internal constructor(
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
         codecs.userTypesCodec,
         decoder,
+        beanConstructors,
         logger
     )
 
