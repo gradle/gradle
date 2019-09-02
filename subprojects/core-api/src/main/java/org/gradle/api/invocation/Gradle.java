@@ -194,7 +194,7 @@ public interface Gradle extends PluginAware {
      * Adds an action to be called before the build settings have been loaded and evaluated.
      *
      * @param closure The action to execute.
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void beforeSettings(Closure<?> closure);
@@ -203,7 +203,7 @@ public interface Gradle extends PluginAware {
      * Adds an action to be called before the build settings have been loaded and evaluated.
      *
      * @param action The action to execute.
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     void beforeSettings(Action<? super Settings> action);

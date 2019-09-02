@@ -36,7 +36,7 @@ public interface BuildListener {
      * Called when the build settings are about to be loaded and evaluated.
      *
      * @param settings The settings. Never null.
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     default void beforeSettings(Settings settings) {}
