@@ -85,7 +85,7 @@ You can opt into the previous behavior for selected repositories by adding the `
 
 ==== buildSrc classes are no longer visible from settings scripts
 
-Previously, the buildSrc project was built before applying the project's settings script and its classes where visible within the script.
+Previously, the buildSrc project was built before applying the project's settings script and its classes were visible within the script.
 Now, buildSrc is built after the settings script and its classes are not visible to it.
 The buildSrc classes remain visible to project build scripts and script plugins.
 
