@@ -54,15 +54,17 @@ public class InstantiatingBuildLoader implements BuildLoader {
 
     private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, baseProjectClassLoaderScope.createChild("root-project"), baseProjectClassLoaderScope);
+        ClassLoaderScope classLoaderScope = baseProjectClassLoaderScope.createChild("root-project");
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, classLoaderScope, baseProjectClassLoaderScope);
         gradle.setRootProject(rootProject);
-        addProjects(rootProject, rootProjectDescriptor, gradle, baseProjectClassLoaderScope);
+        addProjects(rootProject, rootProjectDescriptor, gradle, classLoaderScope);
     }
 
-    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope buildRootClassLoaderScope) {
+    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope rootProjectClassLoaderScope) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, parent.getClassLoaderScope().createChild("project-" + childProjectDescriptor.getName()), buildRootClassLoaderScope);
-            addProjects(childProject, childProjectDescriptor, gradle, buildRootClassLoaderScope);
+            ClassLoaderScope classLoaderScope = rootProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName());
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, classLoaderScope, rootProjectClassLoaderScope);
+            addProjects(childProject, childProjectDescriptor, gradle, rootProjectClassLoaderScope);
         }
     }
 }

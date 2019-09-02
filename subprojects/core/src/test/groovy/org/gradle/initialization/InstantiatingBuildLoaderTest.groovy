@@ -45,13 +45,15 @@ class InstantiatingBuildLoaderTest extends Specification {
     GradleInternal build
     SettingsInternal settingsInternal
 
-    def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
-    def baseClassLoaderScope = Mock(ClassLoaderScope) {
+    def rootProjectClassLoaderScope = Mock(ClassLoaderScope) {
+        createChild(_) >> Mock(ClassLoaderScope)
+    }
+    def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
         1 * createChild("root-project") >> rootProjectClassLoaderScope
     }
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def setup() {
         projectFactory = Mock(IProjectFactory)
@@ -67,6 +69,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         build = Mock(GradleInternal) {
             getStartParameter() >> startParameter
             getRootProject() >> rootProject
+            baseProjectClassLoaderScope() >> baseProjectClassLoaderScope
         }
         settingsInternal = Mock(SettingsInternal) {
             getRootProject() >> rootDescriptor
@@ -81,7 +84,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         buildLoader.load(settingsInternal, build)
 
         then:
-        projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
+        projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
 
         and:
         1 * build.setRootProject(rootProject)
@@ -96,8 +99,8 @@ class InstantiatingBuildLoaderTest extends Specification {
         buildLoader.load(settingsInternal, build)
 
         then:
-        1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
-        1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope, baseClassLoaderScope) >> childProject
+        1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
+        1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope, rootProjectClassLoaderScope) >> childProject
 
         and:
         1 * build.setRootProject(rootProject)
