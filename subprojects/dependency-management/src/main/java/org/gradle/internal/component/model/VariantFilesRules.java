@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.VariantFileMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultMutableVariantFilesMetadata;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 
@@ -43,10 +44,23 @@ public class VariantFilesRules {
             return artifacts;
         }
         ImmutableList.Builder<T> builder = new ImmutableList.Builder<>();
-        builder.addAll(artifacts);
+        for (T existingArtifact : artifacts) {
+            if (isFilePathUnambiguous(existingArtifact)) {
+                builder.add(existingArtifact);
+            }
+        }
         for (VariantFileMetadata file : filesMetadata.getFiles()) {
             builder.add(Cast.<T>uncheckedNonnullCast(new UrlBackedArtifactMetadata(componentIdentifier, file.getName(), file.getUrl())));
         }
         return builder.build();
+    }
+
+    /**
+     * If the artifact was sourced from pom metadata using the 'packaging' attribute in the pom,
+     * we don't know if the extension of the artifact is the one indicated by the packaging or 'jar'.
+     * So we remove the artifact such that the user can explicitly add it in the rule.
+     */
+    private <T extends ComponentArtifactMetadata> boolean isFilePathUnambiguous(T existingArtifact) {
+        return !(existingArtifact instanceof DefaultModuleComponentArtifactMetadata) || "jar".equals(existingArtifact.getName().getExtension());
     }
 }

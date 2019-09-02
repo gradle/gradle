@@ -391,4 +391,71 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         'java-api'     | 'compile'
         'java-runtime' | 'runtime'
     }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    ])
+    @Unroll
+    def "do #not opt-out of maven artifact discovery when #not adding files to a variant (#extension artifact)"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                withModule {
+                    undeclaredArtifact(classifier: 'extraFeature')
+                    undeclaredArtifact(type: extension)
+                    hasPackaging(extension)
+                }
+            }
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                conf 'org.test:moduleA:1.0'
+                components {
+                    ${applyFileRule ? "withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '') }" : ''}
+                    ${applyFileRule && extension != 'jar' ?
+                        // it is not clear if the existing artifact is 'moduleA-1.0.jar' or 'moduleA-1.0.notJar',
+                        // because the packaging can indicate to the file extension or not. Since we do not know,
+                        // Gradle removes the 'default' artifact as soon as a file rule is applied.
+                        // We now have to explicitly add the artifact we expect.
+                        "withModule('org.test:moduleA', MissingFileRule) { params('', 'notJar', '') }" : ''
+                    }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                if (!applyFileRule && extension != 'jar' ) {
+                    expectHeadArtifact(type: extension) // testing for the file indicated by the packaging in the pom
+                }
+                if (applyFileRule) {
+                    expectGetArtifact(classifier: 'extraFeature')
+                }
+                expectGetArtifact(type: extension)
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org.test:moduleA:1.0') {
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: extension)
+                    if (applyFileRule) {
+                        artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
+                    }
+                }
+            }
+        }
+
+        where:
+        applyFileRule | extension | not
+        true          | 'jar'     | ''
+        false         | 'jar'     | 'not'
+        true          | 'notJar'  | ''
+        false         | 'notJar'  | 'not'
+    }
 }

@@ -136,7 +136,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getId(), new DefaultIvyArtifactName(getId().getModule(), "jar", "jar")));
+            String type = isKnownJarPackaging() ? "jar" : packaging;
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getId(), new DefaultIvyArtifactName(getId().getModule(), type, type)));
         } else {
             artifacts = ImmutableList.of();
         }
