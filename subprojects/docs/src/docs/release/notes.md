@@ -108,6 +108,7 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+IDE integration types and APIs. We promoted all API elements in `ide` and `tooling-api` sub-projects that were introduced before Gradle 5.5.
 <!--
 ### Example promoted
 -->
