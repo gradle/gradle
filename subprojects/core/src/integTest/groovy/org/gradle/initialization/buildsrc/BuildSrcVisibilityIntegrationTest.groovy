@@ -57,7 +57,6 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << """
             def localClassName = "org.acme.build.SomeBuildSrcClass"
-            def dependencyClassName = "org.apache.commons.math3.util.FastMath"
             
             gradle.ext.tryClass = { String from, String name, ClassLoader classLoader ->
                 try {
