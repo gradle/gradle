@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
-    def "Using buildSrc classes in settings is deprecated"() {
+    def "buildSrc classes are not visible in settings"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
             
