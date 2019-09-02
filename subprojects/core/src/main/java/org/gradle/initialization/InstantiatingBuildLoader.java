@@ -60,10 +60,10 @@ public class InstantiatingBuildLoader implements BuildLoader {
         addProjects(rootProject, rootProjectDescriptor, gradle, classLoaderScope);
     }
 
-    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope parentClassLoaderScope) {
+    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ClassLoaderScope classLoaderScope = parentClassLoaderScope.createChild("project-" + childProjectDescriptor.getName());
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, classLoaderScope, parentClassLoaderScope);
+            ClassLoaderScope classLoaderScope = parent.getClassLoaderScope().createChild("project-" + childProjectDescriptor.getName());
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, classLoaderScope, baseProjectClassLoaderScope);
             addProjects(childProject, childProjectDescriptor, gradle, classLoaderScope);
         }
     }
