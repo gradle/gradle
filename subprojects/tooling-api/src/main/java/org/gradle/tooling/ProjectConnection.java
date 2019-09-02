@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import java.io.Closeable;
 
 /**
@@ -154,7 +153,6 @@ public interface ProjectConnection extends Closeable {
      * @return The builder.
      * @since 4.8
      */
-    @Incubating
     BuildActionExecuter.Builder action();
 
     /**
