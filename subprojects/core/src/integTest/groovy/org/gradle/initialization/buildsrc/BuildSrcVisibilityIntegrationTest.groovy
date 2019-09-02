@@ -25,7 +25,7 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'groovy'
             
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()}
             }
 
             dependencies {  
