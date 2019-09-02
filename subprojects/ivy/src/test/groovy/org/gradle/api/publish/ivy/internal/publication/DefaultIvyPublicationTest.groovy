@@ -57,7 +57,6 @@ class DefaultIvyPublicationTest extends Specification {
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def featurePreviews = TestUtil.featurePreviews()
 
     File ivyDescriptorFile
     File moduleDescriptorFile
@@ -289,7 +288,6 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            featurePreviews,
             CollectionCallbackActionDecorator.NOOP,
             Mock(VersionMappingStrategyInternal),
             Mock(PlatformSupport)
@@ -368,7 +366,6 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            featurePreviews,
             CollectionCallbackActionDecorator.NOOP,
             Mock(VersionMappingStrategyInternal),
             Mock(PlatformSupport)
