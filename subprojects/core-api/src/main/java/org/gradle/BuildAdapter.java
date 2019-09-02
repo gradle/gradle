@@ -28,6 +28,10 @@ public class BuildAdapter implements BuildListener {
     }
 
     @Override
+    public void beforeSettings(Settings settings) {
+    }
+
+    @Override
     public void settingsEvaluated(Settings settings) {
     }
 

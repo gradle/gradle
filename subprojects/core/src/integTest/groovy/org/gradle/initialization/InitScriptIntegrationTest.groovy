@@ -17,15 +17,18 @@
 package org.gradle.initialization
 
 import groovy.transform.NotYetImplemented
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 
 @LeaksFileHandles
 class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
+    private void createProject() {
         buildScript """
             task hello() {
                 doLast {
@@ -49,6 +52,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     @Issue(['GRADLE-1457', 'GRADLE-3197'])
     def 'init scripts passed on the command line are applied to buildSrc'() {
         given:
+        createProject()
         file("init.gradle") << initScript()
 
         executer.usingInitScript(file('init.gradle'))
@@ -63,6 +67,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def 'init scripts passed in the Gradle user home are applied to buildSrc'() {
         given:
+        createProject()
         executer.requireOwnGradleUserHomeDir()
         new TestFile(executer.gradleUserHomeDir, "init.gradle") << initScript()
 
@@ -72,6 +77,94 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains("Task hello executed")
         output.contains("Task helloFromBuildSrc executed")
+    }
+
+    def 'init script can contribute to settings - before and after'() {
+        given:
+        file("init.gradle") << """
+            beforeSettings {
+                it.ext.addedInInit = ["beforeSettings"]
+                it.include "sub1"
+            }
+            settingsEvaluated {
+                it.ext.addedInInit << "settingsEvaluated"
+                println "order: " + it.ext.addedInInit.join(" - ")
+            } 
+        """
+
+        file("settings.gradle") << """
+            ext.addedInInit += "settings.gradle"
+            include "sub2"
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+
+        buildFile << """
+            task info {
+                doLast {
+                    println "subprojects: " + subprojects.path.join(" - ")
+                }
+            }
+        """
+        when:
+        succeeds 'info'
+
+        then:
+        output.contains("order: beforeSettings - settings.gradle - settingsEvaluated")
+        output.contains("subprojects: :sub1 - :sub2")
+    }
+
+    def "can apply settings plugin from init script"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addPluginSource("settings-test", "test.SettingsPlugin", """
+            package test
+
+            class SettingsPlugin implements $Plugin.name<$Settings.name> {
+                void apply($Settings.name settings) {
+                    settings.ext.addedInPlugin = ["plugin"]
+                    settings.include "sub1"
+                }
+            }
+        """)
+        def pluginJar = file("plugin.jar")
+        pluginBuilder.publishTo(executer, pluginJar)
+
+        file("init.gradle") << """
+            initscript {
+                dependencies {
+                    classpath files("${pluginJar.name}")
+                }
+            }
+            beforeSettings {
+                it.plugins.apply(test.SettingsPlugin)
+            }
+            settingsEvaluated {
+                it.ext.addedInPlugin << "settingsEvaluated"
+                println "order: " + it.ext.addedInPlugin.join(" - ")
+            } 
+        """
+
+        file("settings.gradle") << """
+            ext.addedInPlugin += "settings.gradle"
+            include "sub2"
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+
+        buildFile << """
+            task info {
+                doLast {
+                    println "subprojects: " + subprojects.path.join(" - ")
+                }
+            }
+        """
+        when:
+        succeeds 'info'
+
+        then:
+        output.contains("order: plugin - settings.gradle - settingsEvaluated")
+        output.contains("subprojects: :sub1 - :sub2")
     }
 
     private String initScript() {
