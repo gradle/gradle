@@ -25,6 +25,131 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
 
     abstract void recompiledWithFailure(String expectedFailure, String... recompiledClasses)
 
+    def "abc recompilation"() {
+        source """class A {
+            private B b;
+        }"""
+        source """class B {
+            private C c;
+        }"""
+        source """class C {
+        }"""
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source """class C {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'B', 'C'
+    }
+
+    def "complex recompilation"() {
+        source """class AccessedFromPackagePrivateField {
+        }"""
+        source """class AccessedFromPrivateMethod {
+        }"""
+        source """class AccessedFromPrivateMethodBody {
+        }"""
+        source """class AccessedFromPrivateField {
+        }"""
+        source """class AccessedFromPrivateClass {
+        }"""
+        source """class AccessedFromPrivateClassPublicField {
+        }"""
+        source """class SomeClass {
+            java.util.List<Integer> field = new java.util.LinkedList<Integer>();
+        
+            private AccessedFromPrivateField accessedFromPrivateField;
+        
+            AccessedFromPackagePrivateField someField;
+        
+            private AccessedFromPrivateMethod accessedFromPrivateMethod() {
+                return null;
+            }
+        
+            public String accessedFromPrivateMethodBody() {
+                return new AccessedFromPrivateMethodBody().toString();
+            }
+        
+            private java.util.Set<String> stuff(java.util.HashMap<String, String> map) {
+                System.out.println(new Foo());
+                return new java.util.HashSet<String>();
+            }
+        
+            private class Foo {
+                // Hint: this field won't appear in the ClassAnalysis for SomeClass
+                public AccessedFromPrivateClassPublicField anotherField;
+        
+                public String toString() {
+                    return "" + new AccessedFromPrivateClass();
+                }
+            }
+        }"""
+        source """class UsingSomeClass {
+            SomeClass someClassField;
+        }"""
+
+        when:
+        outputs.snapshot { run language.compileTaskName }
+        source """class AccessedFromPrivateMethod {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateMethod', 'SomeClass', 'SomeClass$Foo'
+
+        when:
+        outputs.snapshot { run language.compileTaskName }
+        source """class AccessedFromPrivateMethodBody {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateMethodBody', 'SomeClass', 'SomeClass$Foo'
+
+        when:
+        outputs.snapshot { run language.compileTaskName }
+        source """class AccessedFromPackagePrivateField {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+        then:
+        outputs.recompiledClasses 'AccessedFromPackagePrivateField', 'SomeClass', 'SomeClass$Foo', 'UsingSomeClass'
+
+        when:
+        outputs.snapshot { run language.compileTaskName }
+        source """class AccessedFromPrivateField {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateField', 'SomeClass', 'SomeClass$Foo'
+
+        // changing the inner class' dependencies
+
+        when:
+        outputs.snapshot { run language.compileTaskName }
+        source """class AccessedFromPrivateClassPublicField {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateClassPublicField', 'SomeClass', 'SomeClass$Foo'
+
+        when:
+        outputs.snapshot { run language.compileTaskName }
+        source """class AccessedFromPrivateClass {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateClass', 'SomeClass', 'SomeClass$Foo'
+    }
+
     def "detects deletion of an isolated source class with an inner class"() {
         def a = source """class A {
             class InnerA {}
@@ -253,7 +378,15 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter", "OnField")
+        if ("groovy" == language.name) {
+            // Groovy doesn't propagate annotations on fields to the generated getter+setter methods.
+            // The field itself is made 'private' by Groovy.
+            // Therefore, the field-annotation is no longer "accessible" but instead "private".
+            outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter")
+        }
+        else {
+            outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter", "OnField")
+        }
     }
 
     def "change to value in nested annotation recompiles annotated types"() {
