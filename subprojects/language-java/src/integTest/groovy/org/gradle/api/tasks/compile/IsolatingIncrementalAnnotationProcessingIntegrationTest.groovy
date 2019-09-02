@@ -93,7 +93,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledFiles("A", "AHelper", "Dependent", "AHelperResource.txt")
+        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
     def "source file is recompiled when dependency of generated file changes"() {
