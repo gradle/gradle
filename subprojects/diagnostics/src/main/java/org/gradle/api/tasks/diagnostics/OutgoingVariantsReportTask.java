@@ -25,7 +25,9 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -37,6 +39,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -108,7 +111,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
             tree.value("Description", description);
             tree.println();
         }
-        if (formatAttributes(cnf.getAttributes(), tree)) {
+        if (formatAttributesAndCapabilities(cnf, tree)) {
             tree.println();
         }
         if (formatArtifacts(cnf.getAllArtifacts(), tree)) {
@@ -176,6 +179,28 @@ public class OutgoingVariantsReportTask extends DefaultTask {
                     tree.value(StringUtils.rightPad(attr.getName(), max), String.valueOf(attributes.getAttribute(attr)));
                 });
             });
+            return true;
+        }
+        return false;
+    }
+
+    private void formatCapabilities(Collection<? extends Capability> capabilities, Formatter tree) {
+        tree.section("Capabilities", () -> {
+            if (capabilities.isEmpty()) {
+                tree.text("[default capability]");
+            } else {
+                capabilities.forEach(cap -> tree.println(String.format("%s:%s:%s", cap.getGroup(), cap.getName(), cap.getVersion())));
+            }
+        });
+    }
+
+    private boolean formatAttributesAndCapabilities(ConfigurationInternal configuration, Formatter tree) {
+        AttributeContainerInternal attributes = configuration.getAttributes();
+        if (!attributes.isEmpty()) {
+            Collection<? extends Capability> capabilities = configuration.getOutgoing().getCapabilities();
+            formatCapabilities(capabilities, tree);
+            tree.println();
+            formatAttributes(attributes, tree);
             return true;
         }
         return false;

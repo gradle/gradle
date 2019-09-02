@@ -83,6 +83,8 @@ Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -109,6 +111,8 @@ Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external

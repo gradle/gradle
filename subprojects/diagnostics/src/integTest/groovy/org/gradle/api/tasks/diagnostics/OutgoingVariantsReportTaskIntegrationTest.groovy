@@ -41,6 +41,8 @@ Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -67,6 +69,8 @@ Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -117,6 +121,8 @@ Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -188,6 +194,8 @@ Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -248,6 +256,8 @@ Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -324,6 +334,32 @@ Description = Dependencies for source set 'main' (deprecated, use 'implementatio
         doesNotHaveSecondaryVariantsLegend()
     }
 
+    def "prints explicit capabilities"() {
+        buildFile << """
+            plugins { id 'java-library' }
+            
+            configurations.runtimeElements.outgoing {
+                capability("org.test:extra:1.0")
+                capability("org.test:other:3.0")
+            }
+"""
+
+        when:
+        run ':outgoingVariants', '--variant', 'runtimeElements'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Description = Elements of runtime for main.
+
+Capabilities
+    - org.test:extra:1.0
+    - org.test:other:3.0
+"""
+    }
+
     def "reports artifacts without explicit type"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -345,6 +381,8 @@ Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
 
+Capabilities
+    - [default capability]
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
