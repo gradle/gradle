@@ -37,6 +37,7 @@ import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.snapshot.impl.IsolatedArray
 import org.gradle.workers.internal.IsolatableSerializerRegistry
 
 
@@ -98,24 +99,23 @@ class DefaultTransformerCodec(
 
 internal
 class LegacyTransformerCodec(
-    private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-    private val isolatableFactory: IsolatableFactory,
     private val actionScheme: ArtifactTransformActionScheme
 ) : Codec<LegacyTransformer> {
     override suspend fun WriteContext.encode(value: LegacyTransformer) {
         writeClass(value.implementationClass)
-        // TODO - write more state
+        writeBinary(value.secondaryInputsHash.toByteArray())
+        // TODO - write more state, eg parameters
     }
 
     override suspend fun ReadContext.decode(): LegacyTransformer? {
         val implementationClass = readClass().asSubclass(ArtifactTransform::class.java)
+        val secondaryInputsHash = HashCode.fromBytes(readBinary())
         return LegacyTransformer(
             implementationClass,
-            arrayOf(),
+            IsolatedArray.EMPTY,
+            secondaryInputsHash,
             actionScheme.instantiationScheme,
-            ImmutableAttributes.EMPTY,
-            classLoaderHierarchyHasher,
-            isolatableFactory
+            ImmutableAttributes.EMPTY
         )
     }
 }

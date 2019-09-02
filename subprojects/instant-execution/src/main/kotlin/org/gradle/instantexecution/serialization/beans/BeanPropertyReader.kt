@@ -37,10 +37,7 @@ class BeanPropertyReader(
 ) : BeanStateReader {
 
     private
-    val setterByFieldName = relevantStateOf(beanType).associateBy(
-        { it.name },
-        { setterFor(it) }
-    )
+    val fieldSetters = relevantStateOf(beanType).map { Pair(it.name, setterFor(it)) }
 
     private
     val constructorForSerialization by lazy {
@@ -51,9 +48,12 @@ class BeanPropertyReader(
         constructorForSerialization.newInstance()
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
-        readEachProperty(PropertyKind.Field) { fieldName, fieldValue ->
-            val setter = setterByFieldName.getValue(fieldName)
-            setter(bean, fieldValue)
+        for (field in fieldSetters) {
+            val fieldName = field.first
+            val setter = field.second
+            readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
+                setter(bean, fieldValue)
+            }
         }
     }
 
@@ -89,36 +89,27 @@ class BeanPropertyReader(
     fun isAssignableTo(type: Class<*>, value: Any?) =
         type.isInstance(value) ||
             type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
-
 }
 
 
 /**
  * Reads a sequence of properties written with [writingProperties].
  */
-suspend fun ReadContext.readEachProperty(kind: PropertyKind, action: (String, Any?) -> Unit) {
-    while (true) {
-
-        val name = readString()
-        if (name.isEmpty()) {
-            break
-        }
-
-        withPropertyTrace(kind, name) {
-            val value =
-                try {
-                    read().also {
-                        logPropertyInfo("deserialize", it)
-                    }
-                } catch (passThrough: IOException) {
-                    throw passThrough
-                } catch (passThrough: GradleException) {
-                    throw passThrough
-                } catch (e: Exception) {
-                    throw GradleException("Could not load the value of $trace.", e)
+suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, action: (Any?) -> Unit) {
+    withPropertyTrace(kind, name) {
+        val value =
+            try {
+                read().also {
+                    logPropertyInfo("deserialize", it)
                 }
-            action(name, value)
-        }
+            } catch (passThrough: IOException) {
+                throw passThrough
+            } catch (passThrough: GradleException) {
+                throw passThrough
+            } catch (e: Exception) {
+                throw GradleException("Could not load the value of $trace.", e)
+            }
+        action(value)
     }
 }
 
