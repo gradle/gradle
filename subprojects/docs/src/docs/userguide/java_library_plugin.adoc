@@ -229,10 +229,23 @@ The role of each configuration is described in the following tables:
 | This configuration contains the test runtime classpath of this library
 |===
 
+[[sec:java_library_classes_usage]]
+=== Using classes instead of jar for compilation
+
+A feature enabled by the `java-library` plugin is the ability for projects consuming the library to only require the classes output instead of the full JAR to be built.
+This enables a lighter inter-project dependency as resources processing and archive construction is not strictly needed.
+
+[NOTE]
+====
+The usage or not of the classes output instead of the JAR is a _consumer_ decision.
+For example, Groovy consumers will request classes _and_ processed resources as these may be needed for compilation.
+====
+
 [[sec:java_library_known_issues_memory]]
 === Increased memory usage for consumers
 
-When a project uses the Java Library plugin, consumers will use the output classes directory of this project directly on their compile classpath, instead of the jar file if the project uses the Java plugin. An indirect consequence is that up-to-date checking will require more memory, because Gradle will snapshot individual class files instead of a single jar. This may lead to increased memory consumption for large projects.
+An indirect consequence is that up-to-date checking will require more memory, because Gradle will snapshot individual class files instead of a single jar.
+This may lead to increased memory consumption for large projects.
 
 [[sec:java_library_known_issues_windows_performance]]
 === Significant build performance drop on Windows for huge multi-projects

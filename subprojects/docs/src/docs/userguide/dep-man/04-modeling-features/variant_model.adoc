@@ -64,6 +64,91 @@ This means that an external component provide _variants_, which also have attrib
 However, sometimes the term _configuration_ may leak into the DSL for historical reasons, or because you use Ivy which also has this concept of _configuration_.
 ====
 
+[[sec:variant-visual]]
+== Visualizing variant information
+
+Gradle offers a report task that can display the variants of a project, with their attributes and artifacts.
+It is conceptually similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
+
+This can be invoked by running the `outgoingVariants` task on a project, optionally specifying a specific variant to display with `--variant <variantName>`.
+It also accepts the `-all` flag to display information including the legacy and deprecated configurations.
+
+Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
+
+[listing]
+----
+> Task :outgoingVariants
+--------------------------------------------------
+Variant apiElements
+--------------------------------------------------
+Description = API elements for main.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 8
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+
+Artifacts
+    - build/libs/variant-report.jar (artifactType = jar)
+
+Secondary variants (*)
+    - Variant : classes
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = 8
+          - org.gradle.libraryelements     = classes
+          - org.gradle.usage               = java-api
+       - Artifacts
+          - build/classes/java/main (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Description = Elements of runtime for main.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 8
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+Artifacts
+    - build/libs/variant-report.jar (artifactType = jar)
+
+Secondary variants (*)
+    - Variant : classes
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = 8
+          - org.gradle.libraryelements     = classes
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build/classes/java/main (artifactType = java-classes-directory)
+    - Variant : resources
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = 8
+          - org.gradle.libraryelements     = resources
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build/resources/main (artifactType = java-resources-directory)
+
+
+(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.
+----
+
+From this you can see the two main variants that are exposed by a java library, `apiElements` and `runtimeElements`.
+Notice that the main difference is on the `org.gradle.usage` attribute, with values `java-api` and `java-runtime`.
+As they indicate, this is where the difference is made between what needs to be on the _compile_ classpath of consumers, versus what's needed on the _runtime_ classpath.
+
+It also shows _secondary_ variants, which are exclusive to Gradle projects and not published.
+For example, the secondary variant `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
 
 [[sec:variant-aware-matching]]
 == Variant aware matching
