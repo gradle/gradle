@@ -50,8 +50,8 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String COMPONENTS_TASK = "components";
     /**
      * The name of the outgoing variants report task.
-     * 
-     * @since 5.7
+     *
+     * @since 6.0
      */
     @Incubating
     public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";

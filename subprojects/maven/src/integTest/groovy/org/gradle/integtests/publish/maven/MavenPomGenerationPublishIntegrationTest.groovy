@@ -25,6 +25,8 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 

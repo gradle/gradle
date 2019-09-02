@@ -33,7 +33,21 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
     Class<T> getType();
 
     /**
+     * Returns true when the <em>value</em> of this provider is produced by a task.
+     *
+     * <p>Note that a task producing the value of this provider is not the same as a task producing the <em>content</em> of
+     * the value of this provider.
+     */
+    boolean isValueProducedByTask();
+
+    /**
+     * Returns true when the <em>content</em> of the value of this provider is produced by a task.
+     */
+    boolean isContentProducedByTask();
+
+    /**
      * Visits the build dependencies of this provider, if possible.
+     *
      * @return true if the dependencies have been added (possibly none), false if the build dependencies are unknown.
      */
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
@@ -41,5 +55,8 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
     @Override
     <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
 
-    ProviderInternal<T> withFinalValue();
+    /**
+     * Returns a view of this provider that can be used to supply a value to a {@link org.gradle.api.provider.Property} instance.
+     */
+    ScalarSupplier<T> asSupplier();
 }

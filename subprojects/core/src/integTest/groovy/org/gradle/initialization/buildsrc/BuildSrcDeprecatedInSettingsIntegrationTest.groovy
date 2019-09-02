@@ -17,19 +17,37 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpec {
+
+    @Issue("https://github.com/gradle/gradle/issues/10347")
+    def "can use JsonSlurper from settings"() {
+        file('buildSrc/build.gradle') << """
+            apply plugin: 'groovy'
+        """
+        settingsFile << """
+            apply from: "other.gradle"
+        """
+        file("other.gradle") << """
+            def slurped = new groovy.json.JsonSlurper().parseText("{}")
+            println "Slurped " + slurped
+        """
+        expect:
+        succeeds("help")
+
+    }
 
     def "Using buildSrc classes in settings is deprecated"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
             
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()}
             }
 
             dependencies {  
-                compile 'org.apache.commons:commons-math3:3.6.1'                
+                implementation 'org.apache.commons:commons-math3:3.6.1'                
             }
         """
 
@@ -85,11 +103,11 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
             apply plugin: 'groovy'
             
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()}
             }
 
             dependencies {  
-                compile 'org.apache.commons:commons-math3:3.6.1'                
+                implementation 'org.apache.commons:commons-math3:3.6.1'                
             }
         """
 
@@ -154,11 +172,11 @@ class BuildSrcDeprecatedInSettingsIntegrationTest extends AbstractIntegrationSpe
             apply plugin: 'groovy'
             
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()}
             }
 
             dependencies {  
-                compile 'org.apache.commons:commons-math3:3.6.1'                
+                implementation 'org.apache.commons:commons-math3:3.6.1'                
             }
         """
 

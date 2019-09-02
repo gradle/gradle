@@ -20,7 +20,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 
 import javax.inject.Inject;
 import java.io.File;

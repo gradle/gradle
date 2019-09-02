@@ -24,9 +24,6 @@ import spock.lang.Unroll
 
 import static org.gradle.util.GUtil.toCamelCase
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
-)
 class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override
     String getTestConfiguration() { variantToTest }
@@ -35,10 +32,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
      * Does the published metadata provide variants with attributes? Eventually all metadata should do that.
      * For Ivy and Maven POM metadata, the variants and attributes should be derived from configurations and scopes.
      */
-    boolean getPublishedModulesHaveAttributes() { gradleMetadataEnabled }
+    boolean getPublishedModulesHaveAttributes() { gradleMetadataPublished }
 
     String getVariantToTest() {
-        if (gradleMetadataEnabled || useIvy()) {
+        if (gradleMetadataPublished || useIvy()) {
             'customVariant'
         } else {
             'runtime'
@@ -778,7 +775,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         """
-        if (defineAsConstraint && !gradleMetadataEnabled) {
+        if (defineAsConstraint && !gradleMetadataPublished) {
             //in plain ivy, we do not have the constraint published. But we can add still add it.
             buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB:1.0')")
         }
@@ -844,7 +841,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         """
-        if (defineAsConstraint && !gradleMetadataEnabled) {
+        if (defineAsConstraint && !gradleMetadataPublished) {
             //in plain ivy, we do not have the constraint published. But we can add still add it.
             buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB') { version { require '1.+'; reject '1.1', '1.2' }}")
         }
@@ -969,7 +966,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         """
-        boolean constraintsUnsupported = !gradleMetadataEnabled
+        boolean constraintsUnsupported = !gradleMetadataPublished
 
         repositoryInteractions {
             'org.test:moduleA:1.0' {

@@ -1,5 +1,8 @@
 import build.futureKotlin
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 plugins {
     `kotlin-library`
@@ -23,6 +26,7 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":persistentCache"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
 
@@ -42,6 +46,7 @@ dependencies {
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
     integTestImplementation(testFixtures(project(":dependencyManagement")))
+    integTestImplementation(testFixtures(project(":jacoco")))
 
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
@@ -57,3 +62,43 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
+
+tasks {
+
+    /**
+     * Santa Tracker git URI.
+     *
+     * Note that you can change it to `file:///path/to/your/santa-tracker-clone/.git`
+     * if you need to iterate quickly on changes to Santa Tracker.
+     */
+    val gitUri = "https://github.com/gradle/santa-tracker-android.git"
+
+    val javaBranch = "agp-3.6.0-java"
+    val kotlinBranch = "agp-3.6.0"
+
+    val santaTrackerJava by registering(RemoteProject::class) {
+        remoteUri.set(gitUri)
+        branch.set(javaBranch)
+    }
+
+    val santaTrackerKotlin by registering(RemoteProject::class) {
+        remoteUri.set(gitUri)
+        branch.set(kotlinBranch)
+    }
+
+    if (BuildEnvironment.isCiServer) {
+        withType<RemoteProject>().configureEach {
+            outputs.upToDateWhen { false }
+        }
+    }
+
+    withType<IntegrationTest>().configureEach {
+        dependsOn(santaTrackerJava)
+        dependsOn(santaTrackerKotlin)
+    }
+
+    register<Delete>("cleanRemoteProjects") {
+        delete(santaTrackerJava.get().outputDirectory)
+        delete(santaTrackerKotlin.get().outputDirectory)
+    }
+}

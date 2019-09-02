@@ -29,6 +29,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.snapshot.impl.AbstractIsolatedMap;
 import org.gradle.internal.snapshot.impl.AttributeDefinitionSnapshot;
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot;
 import org.gradle.internal.snapshot.impl.FileValueSnapshot;
@@ -39,6 +40,7 @@ import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue;
 import org.gradle.internal.snapshot.impl.IsolatedList;
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
 import org.gradle.internal.snapshot.impl.IsolatedMap;
+import org.gradle.internal.snapshot.impl.IsolatedProperties;
 import org.gradle.internal.snapshot.impl.IsolatedSerializedValueSnapshot;
 import org.gradle.internal.snapshot.impl.IsolatedSet;
 import org.gradle.internal.snapshot.impl.LongValueSnapshot;
@@ -74,6 +76,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte ISOLATED_ARRAY = (byte) 13;
     private static final byte ISOLATED_LIST = (byte) 14;
     private static final byte ISOLATED_SET = (byte) 15;
+    private static final byte ISOLATED_PROPERTIES = (byte) 16;
 
     private static final byte ISOLATABLE_TYPE = (byte) 0;
     private static final byte ARRAY_TYPE = (byte) 1;
@@ -104,6 +107,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         isolatableSerializers.put(ISOLATED_ARRAY, new IsolatedArraySerializer());
         isolatableSerializers.put(ISOLATED_LIST, new IsolatedListSerializer());
         isolatableSerializers.put(ISOLATED_SET, new IsolatedSetSerializer());
+        isolatableSerializers.put(ISOLATED_PROPERTIES, new IsolatedPropertiesSerializer());
 
         for (IsolatableSerializer<?> serializer : isolatableSerializers.values()) {
             register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
@@ -442,10 +446,14 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    private class IsolatedMapSerializer implements IsolatableSerializer<IsolatedMap> {
+    private abstract class AbstractIsolatedMapSerializer<T extends AbstractIsolatedMap<?>> implements IsolatableSerializer<T> {
+        protected abstract T getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries);
+
+        protected abstract byte getTypeByte();
+
         @Override
-        public void write(Encoder encoder, IsolatedMap value) throws Exception {
-            encoder.writeByte(ISOLATED_MAP);
+        public void write(Encoder encoder, T value) throws Exception {
+            encoder.writeByte(getTypeByte());
             List<MapEntrySnapshot<Isolatable<?>>> entrySnapshots = value.getEntries();
             encoder.writeInt(entrySnapshots.size());
             for (MapEntrySnapshot<Isolatable<?>> entrySnapshot : entrySnapshots) {
@@ -455,7 +463,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
 
         @Override
-        public IsolatedMap read(Decoder decoder) throws Exception {
+        public T read(Decoder decoder) throws Exception {
             int size = decoder.readInt();
             ImmutableList.Builder<MapEntrySnapshot<Isolatable<?>>> builder = ImmutableList.builder();
             for (int i = 0; i < size; i++) {
@@ -464,12 +472,41 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
                 MapEntrySnapshot<Isolatable<?>> entry = new MapEntrySnapshot<>(key, value);
                 builder.add(entry);
             }
-            return new IsolatedMap(builder.build());
+            return getIsolatedObject(builder.build());
         }
+    }
 
+    private class IsolatedMapSerializer extends AbstractIsolatedMapSerializer<IsolatedMap> {
         @Override
         public Class<IsolatedMap> getIsolatableClass() {
             return IsolatedMap.class;
+        }
+
+        @Override
+        protected IsolatedMap getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
+            return new IsolatedMap(entries);
+        }
+
+        @Override
+        protected byte getTypeByte() {
+            return ISOLATED_MAP;
+        }
+    }
+
+    private class IsolatedPropertiesSerializer extends AbstractIsolatedMapSerializer<IsolatedProperties> {
+        @Override
+        protected IsolatedProperties getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries) {
+            return new IsolatedProperties(entries);
+        }
+
+        @Override
+        protected byte getTypeByte() {
+            return ISOLATED_PROPERTIES;
+        }
+
+        @Override
+        public Class<IsolatedProperties> getIsolatableClass() {
+            return IsolatedProperties.class;
         }
     }
 

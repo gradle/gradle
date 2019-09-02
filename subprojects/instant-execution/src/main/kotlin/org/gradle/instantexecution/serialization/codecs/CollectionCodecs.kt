@@ -27,6 +27,7 @@ import org.gradle.instantexecution.serialization.writeMap
 import java.util.LinkedList
 import java.util.TreeMap
 import java.util.TreeSet
+import java.util.concurrent.ConcurrentHashMap
 
 
 internal
@@ -71,6 +72,10 @@ val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { HashMap<Any?, Any?>(it
 
 internal
 val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+
+
+internal
+val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { ConcurrentHashMap<Any?, Any?>(it) }
 
 
 internal

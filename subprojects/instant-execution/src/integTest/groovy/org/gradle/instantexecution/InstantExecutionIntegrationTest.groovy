@@ -39,7 +39,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.junit.Rule
 import org.slf4j.Logger
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -264,6 +263,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
+            import java.util.concurrent.*
+
             class SomeBean {
                 ${type} value 
             }
@@ -300,41 +301,42 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${output}")
 
         where:
-        type                             | reference                                                     | output
-        String.name                      | "'value'"                                                     | "value"
-        String.name                      | "null"                                                        | "null"
-        Boolean.name                     | "true"                                                        | "true"
-        boolean.name                     | "true"                                                        | "true"
-        Character.name                   | "'a'"                                                         | "a"
-        char.name                        | "'a'"                                                         | "a"
-        Byte.name                        | "12"                                                          | "12"
-        byte.name                        | "12"                                                          | "12"
-        Short.name                       | "12"                                                          | "12"
-        short.name                       | "12"                                                          | "12"
-        Integer.name                     | "12"                                                          | "12"
-        int.name                         | "12"                                                          | "12"
-        Long.name                        | "12"                                                          | "12"
-        long.name                        | "12"                                                          | "12"
-        Float.name                       | "12.1"                                                        | "12.1"
-        float.name                       | "12.1"                                                        | "12.1"
-        Double.name                      | "12.1"                                                        | "12.1"
-        double.name                      | "12.1"                                                        | "12.1"
-        Class.name                       | "SomeBean"                                                    | "class SomeBean"
-        "SomeEnum"                       | "SomeEnum.Two"                                                | "Two"
-        "SomeEnum[]"                     | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
-        "List<String>"                   | "['a', 'b', 'c']"                                             | "[a, b, c]"
-        "ArrayList<String>"              | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
-        "LinkedList<String>"             | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
-        "Set<String>"                    | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
-        "HashSet<String>"                | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
-        "LinkedHashSet<String>"          | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
-        "TreeSet<String>"                | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
-        "EnumSet<SomeEnum>"              | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
-        "Map<String, Integer>"           | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
-        "HashMap<String, Integer>"       | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "LinkedHashMap<String, Integer>" | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
-        "TreeMap<String, Integer>"       | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "EnumMap<SomeEnum, String>"      | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
+        type                                 | reference                                                     | output
+        String.name                          | "'value'"                                                     | "value"
+        String.name                          | "null"                                                        | "null"
+        Boolean.name                         | "true"                                                        | "true"
+        boolean.name                         | "true"                                                        | "true"
+        Character.name                       | "'a'"                                                         | "a"
+        char.name                            | "'a'"                                                         | "a"
+        Byte.name                            | "12"                                                          | "12"
+        byte.name                            | "12"                                                          | "12"
+        Short.name                           | "12"                                                          | "12"
+        short.name                           | "12"                                                          | "12"
+        Integer.name                         | "12"                                                          | "12"
+        int.name                             | "12"                                                          | "12"
+        Long.name                            | "12"                                                          | "12"
+        long.name                            | "12"                                                          | "12"
+        Float.name                           | "12.1"                                                        | "12.1"
+        float.name                           | "12.1"                                                        | "12.1"
+        Double.name                          | "12.1"                                                        | "12.1"
+        double.name                          | "12.1"                                                        | "12.1"
+        Class.name                           | "SomeBean"                                                    | "class SomeBean"
+        "SomeEnum"                           | "SomeEnum.Two"                                                | "Two"
+        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
+        "List<String>"                       | "['a', 'b', 'c']"                                             | "[a, b, c]"
+        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
+        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
+        "Set<String>"                        | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
+        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
+        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
+        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
+        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
+        "Map<String, Integer>"               | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
+        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                         | "[a:1, b:2]"
+        "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
     }
 
     @Unroll
@@ -343,9 +345,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             import ${type.name}
 
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
                 dependencies {
                     classpath 'com.google.guava:guava:28.0-jre' 
                 }
@@ -611,6 +611,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
     }
@@ -783,83 +785,4 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
     }
-
-    @Ignore("wip")
-    def "reuses cached ClassLoaders"() {
-
-        given: 'a Task that holds some static data'
-        def staticDataLib = file("lib/StaticData.jar").tap {
-            parentFile.mkdirs()
-        }
-        jarWithClasses(
-            staticDataLib,
-            StaticData: """
-                import org.gradle.api.*;
-                import org.gradle.api.tasks.*;
-                import java.util.concurrent.atomic.AtomicInteger;
-
-                public class StaticData extends DefaultTask {
-
-                    private static final AtomicInteger value = new AtomicInteger(0);
-
-                    @TaskAction
-                    void printValue() {
-                        // When ClassLoaders are reused
-                        // the 1st run should print `<project name>.value = 1`
-                        // the 2nd run should print `<project name>.value = 2`
-                        // and so on.
-                        System.out.println(getProject().getName() + ".value = " + value.incrementAndGet());
-                    }
-                }
-            """
-        )
-
-        and: "multiple sub-projects"
-        settingsFile << """
-            include 'foo:foo'
-            include 'bar:bar'
-        """
-
-        // Make the classpath of :foo differ from :bar's
-        // thus causing :foo:foo and :bar:bar to have separate ClassLoaders.
-        def someLib = file('lib/someLib.jar')
-        jarWithClasses(someLib, SomeClass: 'class SomeClass {}')
-
-        file("foo/build.gradle") << """
-            buildscript { dependencies { classpath(files('${someLib.toURI()}')) } }
-        """
-
-        // Load the StaticData class in the different sub-sub-projects
-        // for a more interesting ClassLoader hierarchy.
-        for (projectDir in ['foo/foo', 'bar/bar']) {
-            file("$projectDir/build.gradle") << """
-                buildscript { dependencies { classpath(files('${staticDataLib.toURI()}')) } }
-
-                task ok(type: StaticData)
-            """
-        }
-
-        when:
-        instantRun ":foo:foo:ok", ":bar:bar:ok"
-
-        then:
-        outputContains("foo.value = 1")
-        outputContains("bar.value = 1")
-
-        when:
-        instantRun ":foo:foo:ok", ":bar:bar:ok"
-
-        then:
-        outputContains("foo.value = 2")
-        // TODO:instant-execution currently, when loading from the instant execution cache,
-        //  a single CachingClassLoader is used to serve all the classes,
-        // see `DefaultInstantExecution.classLoaderFor(List<ClassLoaderScopeSpec>): ClassLoader` for details,
-        // and because of that, :bar:bar:ok ends up using the same class as :foo:foo:ok and the final value is
-        // `3` instead of `2` as it would be the case with classic execution.
-        // Once the original ClassLoader structure is honoured the expection should be:
-        // outputContains("bar.value = 2")
-        // In the meantime:
-        outputContains("bar.value = 3")
-    }
-
 }

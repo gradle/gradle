@@ -672,6 +672,10 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://github.com/mapstruct/mapstruct/issues/1420[Open issue]
 | N/A
 
+| link:https://github.com/square/AssistedInject[Assisted Inject]
+| link:https://github.com/square/AssistedInject/blob/master/CHANGELOG.md#version-050-2019-08-08[0.5.0]
+| N/A
+
 | Realm
 | link:https://github.com/realm/realm-java/issues/5906[Open issue]
 | N/A

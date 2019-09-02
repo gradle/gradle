@@ -17,11 +17,8 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -35,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.lang.ref.SoftReference;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,9 +40,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassLoaderCache.class);
 
     private final Object lock = new Object();
-    private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
-    private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
-    private final Set<ClassLoaderId> usedInThisBuild = Sets.newHashSet();
+    private final Map<ClassLoaderSpec, ClassLoader> bySpec = Maps.newHashMap();
+    private final Map<ClassLoaderSpec, SoftReference<ClassLoader>> previousBySpec = Maps.newHashMap();
+    private final Set<ClassLoaderSpec> usedInThisBuild = Sets.newHashSet();
     private final ClasspathHasher classpathHasher;
     private final HashingClassLoaderFactory classLoaderFactory;
 
@@ -66,64 +64,39 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
         ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(id.toString(), parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
-            usedInThisBuild.add(id);
-            CachedClassLoader cachedLoader = byId.get(id);
-            if (cachedLoader == null || !cachedLoader.is(spec)) {
-                CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);
-                byId.put(id, newLoader);
-
-                if (cachedLoader != null) {
-                    LOGGER.debug("Releasing previous classloader for {}", id);
-                    cachedLoader.release(id);
-                }
-                return newLoader.classLoader;
-            } else {
-                return cachedLoader.classLoader;
-            }
+            return getAndRetainLoader(classPath, spec);
         }
     }
 
     @Override
     public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
         synchronized (lock) {
-            remove(id);
-            ClassLoaderSpec spec = new UnmanagedClassLoaderSpec(classLoader);
-            CachedClassLoader cachedClassLoader = new CachedClassLoader(classLoader, spec, null);
-            cachedClassLoader.retain(id);
-            byId.put(id, cachedClassLoader);
-            bySpec.put(spec, cachedClassLoader);
-            usedInThisBuild.add(id);
+            ClassLoaderSpec spec = new UnmanagedClassLoaderSpec(id);
+            bySpec.put(spec, classLoader);
+            usedInThisBuild.add(spec);
         }
         return classLoader;
     }
 
-    @Override
-    public void remove(ClassLoaderId id) {
-        synchronized (lock) {
-            CachedClassLoader cachedClassLoader = byId.remove(id);
-            if (cachedClassLoader != null) {
-                cachedClassLoader.release(id);
+    private ClassLoader getAndRetainLoader(ClassPath classPath, ManagedClassLoaderSpec spec) {
+        ClassLoader classLoader = bySpec.get(spec);
+        if (classLoader == null) {
+            SoftReference<ClassLoader> reference = previousBySpec.remove(spec);
+            if (reference != null) {
+                classLoader = reference.get();
             }
-            usedInThisBuild.remove(id);
-        }
-    }
-
-    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ManagedClassLoaderSpec spec, ClassLoaderId id) {
-        CachedClassLoader cachedLoader = bySpec.get(spec);
-        if (cachedLoader == null) {
-            ClassLoader classLoader;
-            CachedClassLoader parentCachedLoader = null;
-            if (spec.isFiltered()) {
-                parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
-                classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
-            } else {
-                classLoader = classLoaderFactory.createChildClassLoader(spec.name, spec.parent, classPath, spec.implementationHash);
+            if (classLoader == null) {
+                if (spec.isFiltered()) {
+                    ClassLoader parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered());
+                    classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader, spec.filterSpec);
+                } else {
+                    classLoader = classLoaderFactory.createChildClassLoader(spec.name, spec.parent, classPath, spec.implementationHash);
+                }
             }
-            cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
-            bySpec.put(spec, cachedLoader);
+            bySpec.put(spec, classLoader);
         }
-
-        return cachedLoader.retain(id);
+        usedInThisBuild.add(spec);
+        return classLoader;
     }
 
     @VisibleForTesting
@@ -133,44 +106,85 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
         }
     }
 
+    @VisibleForTesting
+    public int retained() {
+        synchronized (lock) {
+            return previousBySpec.size();
+        }
+    }
+
+    @VisibleForTesting
+    public void releaseReferences() {
+        synchronized (lock) {
+            for (SoftReference<ClassLoader> value : previousBySpec.values()) {
+                value.clear();
+            }
+        }
+    }
+
     @Override
     public void stop() {
         synchronized (lock) {
-            for (CachedClassLoader cachedClassLoader : byId.values()) {
-                ClassLoaderUtils.tryClose(cachedClassLoader.classLoader);
+            for (Map.Entry<ClassLoaderSpec, ClassLoader> entry : bySpec.entrySet()) {
+                discard(entry.getKey(), entry.getValue());
             }
-            byId.clear();
             bySpec.clear();
             usedInThisBuild.clear();
         }
     }
 
+    private void discard(ClassLoaderSpec spec, ClassLoader classLoader) {
+        ClassLoaderUtils.tryClose(classLoader);
+    }
+
     @Override
     public void afterStart() {
-
     }
 
     @Override
     public void beforeComplete() {
         synchronized (lock) {
-            Set<ClassLoaderId> unused = Sets.newHashSet(byId.keySet());
+            Set<ClassLoaderSpec> unused = Sets.newHashSet(bySpec.keySet());
             unused.removeAll(usedInThisBuild);
-            for (ClassLoaderId id : unused) {
-                remove(id);
+            for (ClassLoaderSpec spec : unused) {
+                ClassLoader classLoader = bySpec.remove(spec);
+                previousBySpec.put(spec, new SoftReference<>(classLoader));
             }
             usedInThisBuild.clear();
+            previousBySpec.values().removeIf(entry -> entry.get() == null);
         }
-        assertInternalIntegrity();
     }
 
     private static abstract class ClassLoaderSpec {
     }
 
     private static class UnmanagedClassLoaderSpec extends ClassLoaderSpec {
-        private final ClassLoader loader;
+        private final ClassLoaderId id;
 
-        public UnmanagedClassLoaderSpec(ClassLoader loader) {
-            this.loader = loader;
+        public UnmanagedClassLoaderSpec(ClassLoaderId id) {
+            this.id = id;
+        }
+
+        @Override
+        public String toString() {
+            return id.toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            UnmanagedClassLoaderSpec other = (UnmanagedClassLoaderSpec) obj;
+            return other.id.equals(id);
+        }
+
+        @Override
+        public int hashCode() {
+            return id.hashCode();
         }
     }
 
@@ -191,6 +205,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
 
         public ManagedClassLoaderSpec unfiltered() {
             return new ManagedClassLoaderSpec(name, parent, classPath, implementationHash, null);
+        }
+
+        @Override
+        public String toString() {
+            return name + "," + System.identityHashCode(parent) + "," + (filterSpec == null ? "-" : "filtered");
         }
 
         public boolean isFiltered() {
@@ -219,60 +238,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
             return result;
-        }
-    }
-
-    private class CachedClassLoader {
-        private final ClassLoader classLoader;
-        private final ClassLoaderSpec spec;
-        private final CachedClassLoader parent;
-        private final Multiset<ClassLoaderId> usedBy = HashMultiset.create();
-
-        private CachedClassLoader(ClassLoader classLoader, ClassLoaderSpec spec, @Nullable CachedClassLoader parent) {
-            this.classLoader = classLoader;
-            this.spec = spec;
-            this.parent = parent;
-        }
-
-        public boolean is(ClassLoaderSpec spec) {
-            return this.spec.equals(spec);
-        }
-
-        public CachedClassLoader retain(ClassLoaderId loaderId) {
-            usedBy.add(loaderId);
-            return this;
-        }
-
-        public void release(ClassLoaderId loaderId) {
-            if (usedBy.isEmpty()) {
-                throw new IllegalStateException("Cannot release already released classloader: " + classLoader);
-            }
-
-            if (usedBy.remove(loaderId)) {
-                if (usedBy.isEmpty()) {
-                    if (parent != null) {
-                        parent.release(loaderId);
-                    }
-                    bySpec.remove(spec);
-                }
-            } else {
-                throw new IllegalStateException("Classloader '" + this + "' not used by '" + loaderId + "'");
-            }
-        }
-    }
-
-    private void assertInternalIntegrity() {
-        synchronized (lock) {
-            Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
-            for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
-                if (!bySpec.containsKey(entry.getValue().spec)) {
-                    orphaned.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            if (!orphaned.isEmpty()) {
-                throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
-            }
         }
     }
 }

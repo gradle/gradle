@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -169,7 +168,6 @@ public abstract class JavaPluginConvention {
      *
      * @since 5.3
      */
-    @Incubating
     public abstract void disableAutoTargetJvm();
 
     /**
@@ -179,6 +177,5 @@ public abstract class JavaPluginConvention {
      *
      * @since 5.3
      */
-    @Incubating
     public abstract boolean getAutoTargetJvmDisabled();
 }

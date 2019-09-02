@@ -272,6 +272,20 @@ class DefaultGradleSpec extends Specification {
         1 * action.execute(_)
     }
 
+    def "broadcasts before settings events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.beforeSettings(action)
+
+        and:
+        gradle.buildListenerBroadcaster.beforeSettings(null)
+
+        then:
+        1 * action.execute(_)
+    }
+
     def "broadcasts projects loaded events to actions"() {
         given:
         def action = Mock(Action)

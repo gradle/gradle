@@ -18,7 +18,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -75,6 +74,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
     void "maps dependencies in the correct Ivy configuration"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
+
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest' 
@@ -124,17 +127,17 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         where:
-        plugin         | gradleConfiguration | ivyConfiguration
-        'java'         | 'compile'           | 'compile'
-        'java'         | 'runtime'           | 'compile'
-        'java'         | 'implementation'    | 'runtime'
-        'java'         | 'runtimeOnly'       | 'runtime'
+        plugin         | gradleConfiguration | ivyConfiguration | deprecatedConfiguration
+        'java'         | 'compile'           | 'compile'        | true
+        'java'         | 'runtime'           | 'compile'        | true
+        'java'         | 'implementation'    | 'runtime'        | false
+        'java'         | 'runtimeOnly'       | 'runtime'        | false
 
-        'java-library' | 'api'               | 'compile'
-        'java-library' | 'compile'           | 'compile'
-        'java-library' | 'runtime'           | 'compile'
-        'java-library' | 'runtimeOnly'       | 'runtime'
-        'java-library' | 'implementation'    | 'runtime'
+        'java-library' | 'api'               | 'compile'        | false
+        'java-library' | 'compile'           | 'compile'        | true
+        'java-library' | 'runtime'           | 'compile'        | true
+        'java-library' | 'runtimeOnly'       | 'runtime'        | false
+        'java-library' | 'implementation'    | 'runtime'        | false
 
     }
 
@@ -1064,9 +1067,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll
-    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
-        publishModuleMetadata = enableFeaturePreview
-
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
             publishing {
@@ -1083,9 +1084,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             generateMetadataFileForIvyPublication.enabled = $enabled
         """)
         settingsFile.text = "rootProject.name = 'publishTest' "
-        if (enableFeaturePreview) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
 
         when:
         succeeds 'publish'
@@ -1095,11 +1093,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         module.hasGradleMetadataRedirectionMarker() == hasMarker
 
         where:
-        enableFeaturePreview | enabled | hasMarker
-        false                | false   | false
-        false                | true    | false
-        true                 | false   | false
-        true                 | true    | true
+        enabled | hasMarker
+        false   | false
+        true    | true
     }
 
     @Unroll

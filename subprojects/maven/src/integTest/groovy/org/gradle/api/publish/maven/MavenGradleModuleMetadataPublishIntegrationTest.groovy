@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Unroll
 
@@ -91,16 +90,11 @@ class TestCapability implements Capability {
     }
 
     @Unroll
-    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
-        publishModuleMetadata = enableFeaturePreview
-
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         settingsFile.text = """
             rootProject.name = 'root'
         """
-        if (enableFeaturePreview) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
         buildFile << """
             apply plugin: 'maven-publish'
 
@@ -133,11 +127,9 @@ class TestCapability implements Capability {
         module.hasGradleMetadataRedirectionMarker() == hasMarker
 
         where:
-        enableFeaturePreview | enabled | hasMarker
-        false                | false   | false
-        false                | true    | true       // component with variants is published independently of feature preview
-        true                 | false   | false
-        true                 | true    | true
+        enabled | hasMarker
+        false   | false
+        true    | true
     }
 
     def "maps project dependencies"() {

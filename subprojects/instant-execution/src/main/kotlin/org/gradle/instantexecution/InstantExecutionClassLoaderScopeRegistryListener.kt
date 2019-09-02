@@ -16,23 +16,29 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
-import org.gradle.initialization.DefaultClassLoaderScopeRegistry
+import org.gradle.instantexecution.serialization.ClassLoaderRole
+import org.gradle.instantexecution.serialization.ScopeLookup
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 
 
 internal
-class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener {
-
-    var coreAndPluginsSpec: ClassLoaderScopeSpec? = null
+class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup {
+    private
+    val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
-    val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
+    val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
     private
     var manager: ListenerManager? = null
+
+    val scopes: Collection<ClassLoaderScopeSpec>
+        get() = scopeSpecs.values
 
     fun attach(manager: ListenerManager) {
         require(this.manager == null)
@@ -49,8 +55,8 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
         //  from DefaultInstantExecutionHost so a decision based on the configured
         //  instant execution strategy (none, store or load) can be taken early on.
         //  The listener only needs to be attached in the `store` state.
-        coreAndPluginsSpec = null
         scopeSpecs.clear()
+        loaders.clear()
         detach()
     }
 
@@ -60,37 +66,46 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
         manager = null
     }
 
+    override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
+        return loaders[classLoader]
+    }
+
     override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
-        if (rootScopeId.name === DefaultClassLoaderScopeRegistry.CORE_AND_PLUGINS_NAME) {
-            ClassLoaderScopeSpec(rootScopeId.name).let { root ->
-                coreAndPluginsSpec = root
-                scopeSpecs[rootScopeId] = root
-            }
+        val root = ClassLoaderScopeSpec(null, rootScopeId.name)
+        if (scopeSpecs.containsKey(rootScopeId)) {
+            throw IllegalStateException("Duplicate scope $rootScopeId")
         }
+        scopeSpecs[rootScopeId] = root
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
-        scopeSpecs[parentId]?.let { scopeSpec ->
-            ClassLoaderScopeSpec(childId.name).let { child ->
-                scopeSpec.children.add(child)
-                scopeSpecs[childId] = child
-            }
+        val parent = scopeSpecs.getValue(parentId)
+        val child = ClassLoaderScopeSpec(parent, childId.name)
+        if (!scopeSpecs.containsKey(childId)) {
+            scopeSpecs[childId] = child
         }
     }
 
     override fun localClasspathAdded(scopeId: ClassLoaderScopeId, localClassPath: ClassPath) {
-        scopeSpecs[scopeId]?.localClassPath?.add(localClassPath)
+        scopeSpecs.getValue(scopeId).localClassPath += localClassPath
     }
 
     override fun exportClasspathAdded(scopeId: ClassLoaderScopeId, exportClassPath: ClassPath) {
-        scopeSpecs[scopeId]?.exportClassPath?.add(exportClassPath)
+        scopeSpecs.getValue(scopeId).exportClassPath += exportClassPath
+    }
+
+    override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader) {
+        val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
+        loaders[classLoader] = Pair(scopeSpecs.getValue(scopeId), ClassLoaderRole(local))
     }
 }
 
 
 internal
-class ClassLoaderScopeSpec(val name: String) {
-    val localClassPath = mutableListOf<ClassPath>()
-    val exportClassPath = mutableListOf<ClassPath>()
-    val children = mutableListOf<ClassLoaderScopeSpec>()
+class ClassLoaderScopeSpec(
+    val parent: ClassLoaderScopeSpec?,
+    val name: String
+) {
+    var localClassPath = ClassPath.EMPTY
+    var exportClassPath = ClassPath.EMPTY
 }

@@ -51,6 +51,16 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
  */
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
+    private static final String FLAKINESS_RATE_SQL =
+        "SELECT TESTID, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.99, 1, 0), DECIMAL)) AS FAILURE_RATE\n" +
+            "FROM TESTEXECUTION\n" +
+            "WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release')\n" +
+            "GROUP BY TESTID";
+    private static final String FAILURE_THRESOLD_SQL =
+        "SELECT TESTID, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
+            "FROM TESTEXECUTION\n" +
+            "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND DIFFCONFIDENCE > 0.99\n" +
+            "GROUP BY TESTID";
     private final long ignoreV17Before;
     private final PerformanceDatabase db;
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
@@ -376,6 +386,32 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     private void closeResultSet(ResultSet resultSet) throws SQLException {
         if (resultSet != null) {
             resultSet.close();
+        }
+    }
+
+    public Map<String, BigDecimal> getFlakinessRates() {
+        return queryFlakinessData(FLAKINESS_RATE_SQL);
+    }
+
+    public Map<String, BigDecimal> getFailureThresholds() {
+        return queryFlakinessData(FAILURE_THRESOLD_SQL);
+    }
+
+    private Map<String, BigDecimal> queryFlakinessData(String sql) {
+        try {
+            return db.withConnection(connection -> {
+                Map<String, BigDecimal> results = Maps.newHashMap();
+                try (PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String scenario = resultSet.getString(1);
+                        BigDecimal value = resultSet.getBigDecimal(2);
+                        results.put(scenario, value);
+                    }
+                }
+                return results;
+            });
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }

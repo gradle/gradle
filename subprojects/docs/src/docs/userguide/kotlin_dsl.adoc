@@ -615,13 +615,13 @@ Kotlin DSL allows you to access extra properties and create new ones via delegat
 [source,kotlin]
 ----
 val myNewProperty by extra("initial value")  // <1>
-val myOtherNewProperty by extra { "lazy initial value" }  // <2>
+val myOtherNewProperty by extra { "calculated initial value" }  // <2>
 
 val myProperty: String by extra  // <3>
 val myNullableProperty: String? by extra  // <4>
 ----
 <1> Creates a new extra property called `myNewProperty` in the current context (the project in this case) and initializes it with the value `"initial value"`, which also determines the property's _type_
-<2> Create a new extra property whose initial value is calculated when the property is accessed
+<2> Create a new extra property whose initial value is calculated by the provided lambda
 <3> Binds an existing extra property from the current context (the project in this case) to a `myProperty` reference
 <4> Does the same as the previous line but allows the property to have a null value
 

@@ -57,7 +57,6 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
                 .variant("runtimeElementsIndy", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'indy']) {
                     artifact("lib-1.0-indy.jar")
                 }
-                .withGradleMetadataRedirection()
                 .withModuleMetadata()
                 .publish()
         def mavenConsumer = mavenHttpRepo.module("org", "maven-consumer", "1.0")
@@ -113,7 +112,6 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
                 .variant("runtimeElementsIndy", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'indy']) {
                     artifact("lib-1.0-indy.jar")
                 }
-                .withGradleMetadataRedirection()
                 .withModuleMetadata()
                 .publish()
 

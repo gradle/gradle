@@ -27,6 +27,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.work.FileChange;
+import org.gradle.internal.file.Deleter;
 
 import java.io.File;
 import java.util.Collection;
@@ -40,8 +41,14 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     private final boolean incremental;
     private final Iterable<FileChange> sourceFileChanges;
 
-    public JavaRecompilationSpecProvider(FileOperations fileOperations, FileTree sourceTree, boolean incremental, Iterable<FileChange> sourceFileChanges) {
-        super(fileOperations, sourceTree);
+    public JavaRecompilationSpecProvider(
+        Deleter deleter,
+        FileOperations fileOperations,
+        FileTree sourceTree,
+        boolean incremental,
+        Iterable<FileChange> sourceFileChanges
+    ) {
+        super(deleter, fileOperations, sourceTree);
         this.incremental = incremental;
         this.sourceFileChanges = sourceFileChanges;
     }

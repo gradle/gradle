@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -591,6 +590,9 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
+        if (deprecatedConfiguration) {
+            executer.expectDeprecationWarning()
+        }
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest' 
@@ -639,17 +641,17 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         where:
-        plugin         | gradleConfiguration | mavenScope
-        'java'         | 'compile'           | 'compile'
-        'java'         | 'runtime'           | 'compile'
-        'java'         | 'implementation'    | 'runtime'
-        'java'         | 'runtimeOnly'       | 'runtime'
+        plugin         | gradleConfiguration | mavenScope | deprecatedConfiguration
+        'java'         | 'compile'           | 'compile'  | true
+        'java'         | 'runtime'           | 'compile'  | true
+        'java'         | 'implementation'    | 'runtime'  | false
+        'java'         | 'runtimeOnly'       | 'runtime'  | false
 
-        'java-library' | 'api'               | 'compile'
-        'java-library' | 'compile'           | 'compile'
-        'java-library' | 'runtime'           | 'compile'
-        'java-library' | 'runtimeOnly'       | 'runtime'
-        'java-library' | 'implementation'    | 'runtime'
+        'java-library' | 'api'               | 'compile'  | false
+        'java-library' | 'compile'           | 'compile'  | true
+        'java-library' | 'runtime'           | 'compile'  | true
+        'java-library' | 'runtimeOnly'       | 'runtime'  | false
+        'java-library' | 'implementation'    | 'runtime'  | false
 
     }
 
@@ -1137,9 +1139,7 @@ include(':platform')
     }
 
     @Unroll
-    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
-        publishModuleMetadata = enableFeaturePreview
-
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
             publishing {
@@ -1156,9 +1156,6 @@ include(':platform')
             generateMetadataFileForMavenPublication.enabled = $enabled
         """)
         settingsFile.text = "rootProject.name = 'publishTest' "
-        if (enableFeaturePreview) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
 
         when:
         succeeds 'publish'
@@ -1168,11 +1165,9 @@ include(':platform')
         module.hasGradleMetadataRedirectionMarker() == hasMarker
 
         where:
-        enableFeaturePreview | enabled | hasMarker
-        false                | false   | false
-        false                | true    | false
-        true                 | false   | false
-        true                 | true    | true
+        enabled | hasMarker
+        false   | false
+        true    | true
     }
 
 }

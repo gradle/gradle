@@ -38,6 +38,12 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
+==== Dependencies should no longer be declared using the compile and runtime configurations
+
+The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged for some time now.
+These configurations, and their counterparts in other sources sets (e.g. `testCompile` and `testRuntime`), should not be utilised anymore.
+Instead, use the `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
+
 ==== Local build cache type shouldn't be specified
 
 When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
@@ -50,7 +56,8 @@ These methods now assume the local build cache type to be `DirectoryBuildCache`.
 In the past it was possible to use any build cache implementation as the `local` cache.
 This is not allowed anymore as the local cache is always a `DirectoryBuildCache`.
 Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build.
-Use `getLocal()` and `local(Action)` instead.
+Calling these methods with the `DirectoryBuildCache` type will produce a deprecation warning.
+Use `getLocal()` and `local(Action)` instead, respectively.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
 ==== Failing to pack or unpack cached results will now fail the build
@@ -61,6 +68,21 @@ Similarly, having encountered a corrupt cached artifact during unpacking Gradle 
 While this behavior could be helpful to maintain executing build no matter what, hiding the problems this way can lead to reduced cache performance.
 In Gradle 6.0 we are switching to failing fast, and both pack and unpack errors will result the build to fail.
 Doing so allows these problems to be surfaced more easily.
+
+==== Gradle Module Metadata is always published
+
+[Gradle Module Metadata](https://blog.gradle.org/gradle-metadata-1.0), officially introduced in Gradle 5.3, was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
+With Gradle 6.0, Gradle Module Metadata is enabled by default.
+This means, if you are publishing libraries with Gradle, using the <<publishing_maven.adoc#,maven-publish>> or <<publishing_ivy.adoc#,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to the traditional metadata.
+The traditional metadata file will contain a marker so that Gradle knows that there is additional metadata to consume.
+
+==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
+
+If Gradle fails to locate the metadata file (`.pom` or `ivy.xml`) of a module in a repository defined in the `repositories { }` section, it now assumes that the module does not exist in that repository.
+Previously, Gradle was also looking for a default artifact (`.jar`) which usually also does not exist.
+This often caused large number of unnecessary requests when using multiple repositories.
+This change speeds up builds with many dependencies using multiple repositories.
+You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:repository-content-filtering,repository content filter>>.
 
 ==== `@Nullable` annotation is gone
 
@@ -94,9 +116,39 @@ The deprecated announce and build-announcements plugins have been removed.  Ther
 The deprecated Compare Gradle Builds plugin has been removed.
 Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
 
+==== Changes to the task container
+
+The following deprecated methods on the task container now result in errors:
+
+- `TaskContainer.add()`
+- `TaskContainer.addAll()`
+- `TaskContainer.remove()`
+- `TaskContainer.removeAll()`
+- `TaskContainer.retainAll()`
+- `TaskContainer.clear()`
+- `TaskContainer.iterator().remove()`
+
+Additionally, the following deprecated functionality now results in an error:
+
+- Replacing a task that has already been realized.
+- Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
+- Replacing a task that has never been registered.
+
+==== `AbstractCompile.compile()` is gone
+
+The abstrace method `compile()` is no longer declared by `AbstractCompile`.
+Tasks extending `AbstractCompile` can implement their own `@TaskAction` method with the name of their choosing.
+They are also free to add a `@TaskAction` method with an `InputChanges` parameter without having to implement a parameter-less one as well.
+
+==== Kotlin DSL IDE support now requires Kotlin IntelliJ Plugin >= 1.3.50
+
+With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
+Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kotlin DSL script highlighting behavior.
+
 ==== Updates to bundled Gradle dependencies
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
 
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
@@ -129,6 +181,7 @@ Miscellaneous::
   Use the methods on the <<declaring_dependency_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+* The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
@@ -235,7 +288,7 @@ configurations.all {
 }
 ```
 
-See <<controlling_transitive_dependencies.adoc#sec:capabilities, the capabilities section of the documentation>> for more options.
+See <<controlling_transitive_dependencies.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
 
 === Disabled debug argument parsing in JavaExec
 

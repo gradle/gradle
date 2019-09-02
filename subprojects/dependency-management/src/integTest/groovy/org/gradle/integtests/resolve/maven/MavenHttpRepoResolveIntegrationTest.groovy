@@ -211,11 +211,9 @@ task listJars {
 """
 
         when:
-        projectA.pom.expectGetMissing()
-        projectA.artifact.expectHead()
+        projectA.pom.expectGet()
         projectA.artifact.expectGet()
-        projectB.pom.expectGetMissing()
-        projectB.artifact(classifier: 'classy').expectHead()
+        projectB.pom.expectGet()
         projectB.artifact(classifier: 'classy').expectGet()
 
         then:
@@ -261,9 +259,7 @@ task listJars {
         when:
         projectA.pom.expectGet()
 
-        // Looks for POM and JAR in repo1 before looking in repo2 (jar is an attempt to handle publication without module descriptor)
         missingProjectB.pom.expectGetMissing()
-        missingProjectB.artifact.expectHeadMissing()
         projectB.pom.expectGet()
 
         projectA.artifact.expectGet()

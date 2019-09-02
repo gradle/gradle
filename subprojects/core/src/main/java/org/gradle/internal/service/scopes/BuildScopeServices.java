@@ -149,7 +149,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.file.impl.Deleter;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -283,14 +283,18 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-        CacheRepository cacheRepository, final StartParameter startParameter,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
+        BuildOperationExecutor buildOperationExecutor,
+        CacheRepository cacheRepository,
+        ClassLoaderCache classLoaderCache,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        BuildOperationExecutor buildOperationExecutor) {
+        Deleter deleter,
+        ImportsReader importsReader,
+        ProgressLoggerFactory progressLoggerFactory
+    ) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(
-                new DefaultScriptCompilationHandler(classLoaderCache, importsReader), buildOperationExecutor),
+                new DefaultScriptCompilationHandler(deleter, importsReader), buildOperationExecutor),
             progressLoggerFactory,
             classLoaderCache,
             classLoaderHierarchyHasher);
@@ -393,10 +397,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptClassPathResolver(initializers);
     }
 
-    protected ScriptHandlerFactory createScriptHandlerFactory(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver classPathResolver, NamedObjectInstantiator instantiator) {
+    protected ScriptHandlerFactory createScriptHandlerFactory(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver classPathResolver, NamedObjectInstantiator instantiator) {
         return new DefaultScriptHandlerFactory(
             dependencyManagementServices,
             fileResolver,
+            fileCollectionFactory,
             dependencyMetaDataProvider,
             classPathResolver,
             instantiator);

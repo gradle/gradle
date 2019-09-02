@@ -93,6 +93,9 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
     override suspend fun ReadContext.decode(): T? =
         when {
+            immediateMode -> {
+                codec.run { decode() }
+            }
             decodeStack.isEmpty() -> {
                 decodeStack.push(DecodeFrame(null))
                 decodeLoop(coroutineContext)
@@ -125,9 +128,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
         var result: T? = null
         do {
             suspend {
-                codec.run {
-                    decode()
-                }
+                codec.run { decode() }
             }.startCoroutine(
                 Continuation(coroutineContext) {
                     when (val k = decodeStack.pop().k) {
@@ -340,4 +341,4 @@ fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
 
 
 inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
-    readSmallInt().let { ordinal -> enumValues<E>().first { it.ordinal == ordinal } }
+    readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }

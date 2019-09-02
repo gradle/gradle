@@ -28,6 +28,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
@@ -90,13 +91,18 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     @Override
     public void render(Configuration configuration) throws IOException {
-        if (configuration.isCanBeResolved()) {
+        if (canBeResolved(configuration)) {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
             renderNow(root);
         } else {
             renderNow(new UnresolvableConfigurationResult(configuration));
         }
+    }
+
+    private boolean canBeResolved(Configuration configuration) {
+        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+        return configuration.isCanBeResolved() && !isDeprecatedForResolving;
     }
 
     void renderNow(RenderableDependency root) {
@@ -130,7 +136,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         public void execute(StyledTextOutput styledTextOutput) {
             getTextOutput().withStyle(Identifier).text(configuration.getName());
             getTextOutput().withStyle(Description).text(getDescription(configuration));
-            if (!configuration.isCanBeResolved()) {
+            if (!canBeResolved(configuration)) {
                 getTextOutput().withStyle(Info).text(" (n)");
             }
         }

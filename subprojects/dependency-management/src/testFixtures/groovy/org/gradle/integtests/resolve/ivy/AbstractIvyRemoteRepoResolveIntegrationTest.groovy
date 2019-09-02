@@ -213,7 +213,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
 
         // Handles missing in repo1
         missingModuleB.ivy.expectDownloadMissing()
-        missingModuleB.jar.expectMetadataRetrieveMissing()
 
         moduleB.ivy.expectDownload()
         moduleB.jar.expectDownload()
@@ -270,7 +269,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds 'listJars'
     }
 
-    public void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
+    void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -323,6 +322,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                 ivy {
                     url "${server.remoteIvyRepo.uri}"
                     $server.validCredentials
+                    metadataSources { artifact() }
                 }
             }
             configurations {
@@ -340,7 +340,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
 
 
         when:
-        module.ivy.expectDownloadMissing()
         module.jar.expectMetadataRetrieve()
         module.jar.expectDownload()
 

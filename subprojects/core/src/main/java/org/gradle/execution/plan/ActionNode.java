@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
-public class ActionNode extends Node {
+public class ActionNode extends Node implements SelfExecutingNode {
     private final WorkNodeAction action;
 
     public ActionNode(WorkNodeAction action) {
@@ -53,6 +53,11 @@ public class ActionNode extends Node {
     @Override
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public void resolveMutations() {
+        // Assume has no outputs that can be destroyed or that overlap with another node
     }
 
     @Override
@@ -87,7 +92,8 @@ public class ActionNode extends Node {
         return action.getProject();
     }
 
-    public void run(NodeExecutionContext context) {
+    @Override
+    public void execute(NodeExecutionContext context) {
         action.run(context);
     }
 }

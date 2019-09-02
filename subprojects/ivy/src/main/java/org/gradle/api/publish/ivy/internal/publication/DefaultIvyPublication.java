@@ -33,12 +33,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -90,8 +88,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
-
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final static Logger LOG = Logging.getLogger(DefaultIvyPublication.class);
@@ -126,7 +122,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final PlatformSupport platformSupport;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
-    private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
@@ -141,7 +136,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public DefaultIvyPublication(
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews,
+        ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
@@ -150,7 +145,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
-        this.featurePreviews = featurePreviews;
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -480,15 +474,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private boolean canPublishModuleMetadata() {
-        if (getComponent() == null) {
-            // Cannot yet publish module metadata without component
-            return false;
-        }
-        if (getComponent() instanceof ComponentWithVariants) {
-            // Always publish `ComponentWithVariants`
-            return true;
-        }
-        return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
+        // Cannot yet publish module metadata without component
+        return getComponent() != null;
     }
 
     private File getIvyDescriptorFile() {

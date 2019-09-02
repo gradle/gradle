@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -101,7 +100,6 @@ public interface DependencySubstitutions {
          *
          * @return the substitution
          */
-        @Incubating
         Substitution because(String reason);
 
         /**

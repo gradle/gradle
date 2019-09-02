@@ -17,12 +17,13 @@ package org.gradle.internal.jacoco;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import javax.inject.Inject;
 
 /**
  * Helper to resolve the {@code jacocoagent.jar} from inside of the {@code org.jacoco.agent.jar}.
@@ -32,17 +33,16 @@ public class JacocoAgentJar {
     private static final VersionNumber V_0_6_2_0 = VersionNumber.parse("0.6.2.0");
     private static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
 
-    private final Project project;
+    private final FileOperations fileOperations;
     private FileCollection agentConf;
     private File agentJar;
 
     /**
      * Constructs a new agent JAR wrapper.
-     *
-     * @param project a project that can be used to resolve files
      */
-    public JacocoAgentJar(Project project) {
-        this.project = project;
+    @Inject
+    public JacocoAgentJar(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
     }
 
     /**
@@ -63,7 +63,7 @@ public class JacocoAgentJar {
      */
     public File getJar() {
         if (agentJar == null) {
-            agentJar = project.zipTree(getAgentConf().getSingleFile()).filter(new Spec<File>() {
+            agentJar = fileOperations.zipTree(getAgentConf().getSingleFile()).filter(new Spec<File>() {
                 @Override
                 public boolean isSatisfiedBy(File file) {
                     return file.getName().equals("jacocoagent.jar");

@@ -732,7 +732,6 @@ task retrieve(type: Sync) {
         when:
         projectA.metaData.expectGetMissing()
         projectA.pom.expectGetMissing()
-        projectA.artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
@@ -742,7 +741,6 @@ task retrieve(type: Sync) {
 Searched in the following locations:
   - ${projectA.metaData.uri}
   - ${projectA.pom.uri}
-  - ${projectA.artifact.uri}
 Required by:
 """)
 
@@ -788,7 +786,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
+        failure.assertHasCause("""Could not find projectA-1.0-SNAPSHOT.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -799,7 +797,7 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
+        failure.assertHasCause("""Could not find projectA-1.0-SNAPSHOT.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
@@ -1036,7 +1034,6 @@ task retrieve(type: Sync) {
         failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
 Searched in the following locations:
   - ${projectA.pom.uri}
-  - ${projectA.artifact.uri}
 Required by:
 """)
     }
@@ -1086,6 +1083,5 @@ Required by:
     private expectModuleMissing(MavenHttpModule module) {
         module.metaData.expectGetMissing()
         module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
     }
 }

@@ -25,13 +25,11 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 @CompileStatic
 class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
     public final static String GRADLE_METADATA = "org.gradle.internal.resolution.testWithGradleMetadata"
-    public final static String EXPERIMENTAL_RESOLVE_BEHAVIOR = "org.gradle.internal.resolution.testWithExperimentalResolveBehavior"
     public final static String REPOSITORY_TYPE = "org.gradle.internal.resolution.testRepositoryType"
 
     GradleMetadataResolveRunner(Class<?> target) {
         super(target, [
                 (GRADLE_METADATA): booleanFeature("Gradle metadata"),
-                (EXPERIMENTAL_RESOLVE_BEHAVIOR): booleanFeature("Experimental"),
                 (REPOSITORY_TYPE): new Feature(ivy: 'Ivy repository', maven: 'Maven repository')
             ],
             doNotExecuteAllPermutationsForNoDaemonExecuter())
@@ -42,15 +40,11 @@ class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
     }
 
     def isInvalidCombination(Map<String, String> values) {
-        (values[(GRADLE_METADATA)] == 'true' && values[(EXPERIMENTAL_RESOLVE_BEHAVIOR)] == 'false')
+        false
     }
 
-    static boolean isGradleMetadataEnabled() {
+    static boolean isGradleMetadataPublished() {
         System.getProperty(GRADLE_METADATA) == "true"
-    }
-
-    static boolean isExperimentalResolveBehaviorEnabled() {
-        System.getProperty(EXPERIMENTAL_RESOLVE_BEHAVIOR) == "true"
     }
 
     static boolean useIvy() {

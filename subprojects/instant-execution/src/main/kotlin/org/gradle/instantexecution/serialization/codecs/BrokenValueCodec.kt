@@ -23,10 +23,36 @@ import org.gradle.instantexecution.serialization.WriteContext
 
 object BrokenValueCodec : Codec<BrokenValue> {
     override suspend fun WriteContext.encode(value: BrokenValue) {
-        writeString(value.message)
+        maybeEncode(value.failure.cause)
+        writeNullableString(value.failure.message)
     }
 
-    override suspend fun ReadContext.decode(): BrokenValue? {
-        return BrokenValue(readString())
+    private
+    fun WriteContext.maybeEncode(failure: Throwable?) {
+        if (failure == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            maybeEncode(failure.cause)
+            writeNullableString(failure.message)
+        }
+    }
+
+    override suspend fun ReadContext.decode(): BrokenValue {
+        val cause = maybeDecode()
+        val message = readNullableString()
+        val exception = RuntimeException(message, cause)
+        return BrokenValue(exception)
+    }
+
+    private
+    fun ReadContext.maybeDecode(): Throwable? {
+        if (readBoolean()) {
+            val cause = maybeDecode()
+            val message = readNullableString()
+            return RuntimeException(message, cause)
+        } else {
+            return null
+        }
     }
 }

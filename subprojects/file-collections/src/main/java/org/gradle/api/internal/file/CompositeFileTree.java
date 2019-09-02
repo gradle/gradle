@@ -36,7 +36,7 @@ import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
     @Override
     protected List<? extends FileTreeInternal> getSourceCollections() {
-        return Cast.uncheckedCast(super.getSourceCollections());
+        return Cast.uncheckedNonnullCast(super.getSourceCollections());
     }
 
     @Override

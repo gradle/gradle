@@ -3,9 +3,14 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Nathan Strong](https://github.com/NathanStrong-Tripwire)
-[Roberto Perez Alcolea](https://github.com/rpalcolea)
-
+[Nathan Strong](https://github.com/NathanStrong-Tripwire),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Tetsuya Ikenaga](https://github.com/ikngtty),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Andrey Mischenko](https://github.com/gildor),
+[Alex Saveau](https://github.com/SUPERCILEX),
+[Mike Kobit](https://github.com/mkobit),
+and [Nigel Banks](https://github.com/nigelgbanks).
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -35,6 +40,16 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+
+### Compatibility Notes
+
+* Java version between 8 and 13 is required to execute Gradle.
+Java 6 and 7 are also supported for forked test execution.
+Java 14 and later versions are not supported.
+* This version of Gradle is tested with Android Gradle Plugin versions 3.4, 3.5 and 3.6.
+Earlier AGP versions are not supported.
+* Kotlin versions between 1.3.21 and 1.3.50 are tested.
+Earlier Kotlin versions are not supported.
 
 ## Introducing subgraph constraints for dependency versions
 
@@ -80,29 +95,22 @@ dependencies {
 }
 ```
 
-## Debug support for forked Java processes
+## Support for Java 13 EA
 
-Gradle has now a new DSL element to configure debugging for Java processes.  
- 
-```groovy
-project.javaexec {
+Gradle now supports running with Java 13 EA (tested with OpenJDK build 13-ea+32).
 
-  debugOptions {
-     enabled = true
-     port = 4455
-     server = true
-     suspend = true
-   }
-}
-```
+## More robust file deletion on Windows
 
-This configuration appends the following JVM argument to the process: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4455` 
- 
-The `debugOptions` configuration is available for `project.javaExec` and for tasks using the `JavaExec` type, including the `test` task.
- 
-## Debug tests via the Tooling API
- 
-In addition to the new DSL element above, the Tooling API is capable of launching tests in debug mode. Clients can  invoke `TestLauncher.debugTestsOn(port)` to launch a test in debug mode. This feature will be used in the upcoming Buildship release.
+Deleting complex file hierarchies on Windows can sometimes be tricky, and errors like `Unable to delete directory ...` can happen at times.
+To avoid these errors, Gradle has been employing workarounds in some but not all cases when it had to remove files.
+From now on Gradle uses these workarounds every time it removes file hierarchies.
+The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
+
+## Features for plugin authors
+
+### File and directory property methods
+
+TBD - Added `fileValue()` and `fileProvider()` methods.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -79,4 +79,30 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
     }
+
+    def "duplicated inputs are handled"() {
+        given:
+        buildFile << """
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            artifacts {
+                // depend directly on 'jar' task in addition to dependency through 'archives'
+                archives jar  
+            }
+        """
+
+        when:
+        run "buildSignatures"
+
+        then:
+        executedAndNotSkipped ":signArchives"
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
+    }
 }

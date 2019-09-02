@@ -21,6 +21,11 @@ import spock.lang.Issue
 
 class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
     @Issue("GRADLE-3513")
     def "can publish jar and meta-data to maven repository"() {
         given:

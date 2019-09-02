@@ -33,7 +33,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -79,7 +78,6 @@ import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
@@ -98,6 +96,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -148,6 +147,7 @@ import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -189,9 +189,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public DependencyResolutionServices create(FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
+    public DependencyResolutionServices create(FileResolver resolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
         DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
-        services.add(FileResolver.class, fileResolver);
+        services.add(FileResolver.class, resolver);
+        services.add(FileCollectionFactory.class, fileCollectionFactory);
         services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
         services.add(ProjectFinder.class, projectFinder);
         services.add(DomainObjectContext.class, domainObjectContext);
@@ -245,6 +246,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
             BuildOperationExecutor buildOperationExecutor,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            Deleter deleter,
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
             OverlappingOutputDetector overlappingOutputDetector,
@@ -269,7 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new CatchExceptionStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
-                new CleanupOutputsStep<>(
+                new CleanupOutputsStep<>(deleter,
                 new ExecuteStep<>(
             ))))))))))))))));
             // @formatter:on
@@ -392,11 +394,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ValueSnapshotter valueSnapshotter,
             ProjectStateRegistry projectStateRegistry,
             DomainObjectContext domainObjectContext,
-            ProjectFinder projectFinder,
             ArtifactTransformParameterScheme parameterScheme,
             ArtifactTransformActionScheme actionScheme,
             FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup
         ) {
             return new DefaultTransformationRegistrationFactory(
                 buildOperationExecutor,
@@ -405,8 +407,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformerInvocationFactory,
                 valueSnapshotter,
                 fileCollectionFactory,
+                fileLookup,
                 fileCollectionFingerprinterRegistry,
-                new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder),
+                domainObjectContext,
+                projectStateRegistry,
                 parameterScheme,
                 actionScheme
             );
@@ -418,6 +422,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                                           FileResolver fileResolver,
+                                                          FileCollectionFactory fileCollectionFactory,
                                                           RepositoryTransportFactory repositoryTransportFactory,
                                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
@@ -429,7 +434,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                           InstantiatorFactory instantiatorFactory,
                                                           FileResourceRepository fileResourceRepository,
-                                                          FeaturePreviews featurePreviews,
                                                           MavenMutableModuleMetadataFactory metadataFactory,
                                                           IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                                           IsolatableFactory isolatableFactory,
@@ -439,6 +443,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
+                fileCollectionFactory,
                 repositoryTransportFactory,
                 locallyAvailableResourceFinder,
                 artifactIdentifierFileStore,
@@ -450,7 +455,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 moduleIdentifierFactory,
                 instantiatorFactory,
                 fileResourceRepository,
-                featurePreviews,
                 metadataFactory,
                 ivyMetadataFactory,
                 isolatableFactory,

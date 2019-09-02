@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class NativeCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
         runner.minimumVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["5.7-20190722220035+0000"]
+        runner.targetVersions = ["6.0-20190823180744+0000"]
     }
 
     @Unroll

@@ -59,6 +59,18 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `returns given Java home`() {
+
+        val javaHome = System.getProperty("java.home")
+        val env = arrayOf("gradleJavaHome" to javaHome)
+        assertThat(
+            resolvedScriptDependencies(env = *env)?.javaHome,
+            equalTo(javaHome)
+        )
+    }
+
+
+    @Test
     fun `succeeds on init script`() {
 
         assertSucceeds(withFile("my.init.gradle.kts", """
@@ -132,6 +144,21 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             require(this is Project)
         """))
+    }
+
+    @Test
+    fun `pass environment`() {
+        assertSucceeds(
+            withBuildScript("""
+                require(System.getProperty("myJvmSysProp") == "systemValue") { "gradleJvmOptions" }
+                require(System.getProperty("myGradleSysProp") == "systemValue") { "gradleOptions system property" }
+                require(findProperty("myGradleProp") == "gradleValue") { "gradleOptions Gradle property" }
+                require(System.getenv("myEnvVar") == "envValue") { "gradleEnvironmentVariables" }
+            """),
+            "gradleJvmOptions" to listOf("-DmyJvmSysProp=systemValue"),
+            "gradleOptions" to listOf("-DmyGradleSysProp=systemValue", "-PmyGradleProp=gradleValue"),
+            "gradleEnvironmentVariables" to mapOf("myEnvVar" to "envValue")
+        )
     }
 
     @Test
@@ -344,9 +371,9 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         ).get()
 
     private
-    fun assertSucceeds(editedScript: File? = null) {
+    fun assertSucceeds(editedScript: File? = null, vararg env: Pair<String, Any?>) {
 
-        resolvedScriptDependencies(editedScript).apply {
+        resolvedScriptDependencies(editedScript, null, *env).apply {
             assertThat(this, notNullValue())
             this!!.assertContainsBasicDependencies()
         }

@@ -68,7 +68,7 @@ public abstract class AttributeConfigurationSelector {
                 // so we perform another round of selection on the remaining candidates
                 strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, consumerAttributes, fallbackConfiguration);
                 if (strictlyMatchingCapabilities.size() == 1) {
-                    return singleVariant(variantsForGraphTraversal, matches);
+                    return singleVariant(variantsForGraphTraversal, strictlyMatchingCapabilities);
                 }
             }
             if (requestedArtifacts.size() == 1) {

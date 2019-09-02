@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -36,13 +35,14 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.file.Deleter;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +59,7 @@ public class AntlrTask extends SourceTask {
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
-    private List<String> arguments = new ArrayList<String>();
+    private List<String> arguments = new ArrayList<>();
 
     private FileCollection antlrClasspath;
 
@@ -189,33 +189,31 @@ public class AntlrTask extends SourceTask {
 
     @TaskAction
     public void execute(IncrementalTaskInputs inputs) {
-        final Set<File> grammarFiles = new HashSet<File>();
+        final Set<File> grammarFiles = new HashSet<>();
         final Set<File> sourceFiles = getSource().getFiles();
         final MutableBoolean cleanRebuild = new MutableBoolean();
         inputs.outOfDate(
-            new Action<InputFileDetails>() {
-                @Override
-                public void execute(InputFileDetails details) {
-                    File input = details.getFile();
-                    if (sourceFiles.contains(input)) {
-                        grammarFiles.add(input);
-                    } else {
-                        // classpath change?
-                        cleanRebuild.set(true);
-                    }
-                }
-            }
-        );
-        inputs.removed(new Action<InputFileDetails>() {
-            @Override
-            public void execute(InputFileDetails details) {
-                if (details.isRemoved()) {
+            details -> {
+                File input = details.getFile();
+                if (sourceFiles.contains(input)) {
+                    grammarFiles.add(input);
+                } else {
+                    // classpath change?
                     cleanRebuild.set(true);
                 }
             }
+        );
+        inputs.removed(details -> {
+            if (details.isRemoved()) {
+                cleanRebuild.set(true);
+            }
         });
         if (cleanRebuild.get()) {
-            GFileUtils.cleanDirectory(outputDirectory);
+            try {
+                getDeleter().ensureEmptyDirectory(outputDirectory, true);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
             grammarFiles.addAll(sourceFiles);
         }
 
@@ -281,5 +279,10 @@ public class AntlrTask extends SourceTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 }

@@ -19,7 +19,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
@@ -98,9 +97,7 @@ baz:1.0 requested
                 .dependsOn(leaf2, reason: 'second reason')
                 .withModuleMetadata()
                 .publish()
-
         }
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         when:
         file("build.gradle") << """
@@ -158,7 +155,6 @@ baz:1.0 requested
 
         }
         settingsFile << """rootProject.name='test'"""
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         file("build.gradle") << """
             configurations {
                 conf {

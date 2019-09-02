@@ -55,9 +55,4 @@ public interface ClassLoaderCache {
      * @return the classloader.
      */
     <T extends ClassLoader> T put(ClassLoaderId id, T classLoader);
-
-    /**
-     * Discards the given classloader.
-     */
-    void remove(ClassLoaderId id);
 }

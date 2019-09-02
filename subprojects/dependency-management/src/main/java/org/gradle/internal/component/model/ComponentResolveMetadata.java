@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -95,4 +96,6 @@ public interface ComponentResolveMetadata extends HasAttributes {
 
     ImmutableList<? extends ComponentIdentifier> getPlatformOwners();
 
+    @Override
+    ImmutableAttributes getAttributes();
 }

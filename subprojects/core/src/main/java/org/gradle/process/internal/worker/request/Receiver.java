@@ -18,20 +18,23 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
+import org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol;
 import org.gradle.process.internal.worker.WorkerProcessException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
+public class Receiver extends DefaultWorkerLoggingProtocol implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(10);
     private final String baseName;
     private Object next;
 
-    public Receiver(String baseName) {
+    public Receiver(String baseName, OutputEventListener outputEventListener) {
+        super(outputEventListener);
         this.baseName = baseName;
     }
 

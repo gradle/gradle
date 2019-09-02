@@ -242,6 +242,30 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
+    def "can provide a Properties object with isolation mode #isolationMode"() {
+        buildFile << """
+            ${parameterWorkAction('Properties', 'println parameters.testParam.collect { it.key + ":" + it.value }.join(",")', true) }
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                parameters {
+                    testParam = new Properties()
+                    testParam.setProperty("foo", "bar")
+                    testParam.setProperty("bar", "baz")
+                }
+            } 
+        """
+
+        when:
+        succeeds("runWork")
+
+        then:
+        outputContains("bar:baz,foo:bar")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
     def "can provide file property parameters with isolation mode #isolationMode"() {
         buildFile << """
             ${parameterWorkAction('RegularFileProperty', 'println parameters.testParam.get().getAsFile().name')}

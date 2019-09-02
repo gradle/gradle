@@ -71,12 +71,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     /**
-     * Not enabled with module metadata.
+     * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
     def "can modify artifacts added from component"() {
-        disableModuleMetadataPublishing()
-
         given:
         createBuildScripts("""
             publications {
@@ -89,7 +87,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                     it.classifier = 'classified'
                 }
             }
-""")
+""", 'generateMetadataFileForMavenPublication.enabled = false')
 
         when:
         run "publish"
@@ -115,12 +113,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     /**
-     * Not enabled with module metadata.
+     * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
     def "can override artifacts added from component"() {
-        disableModuleMetadataPublishing()
-
         given:
         createBuildScripts("""
             publications {
@@ -129,8 +125,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                     artifacts = ["customFile.txt", customJar]
                 }
             }
-
-""")
+""", 'generateMetadataFileForMavenCustomPublication.enabled = false')
         when:
         succeeds 'publish'
 

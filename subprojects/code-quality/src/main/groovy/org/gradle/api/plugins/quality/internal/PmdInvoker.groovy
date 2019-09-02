@@ -159,7 +159,7 @@ abstract class PmdInvoker {
                     pmdVersion = antLoader.loadClass("net.sourceforge.pmd.PMD")
                 }
                 Field versionField = pmdVersion.getDeclaredField("VERSION")
-                return VersionNumber.parse(Cast.cast(String.class, versionField.get(null)))
+                return VersionNumber.parse(Cast.castNullable(String.class, versionField.get(null)))
             }
 
             private void assertUnsupportedIncrementalAnalysis() {

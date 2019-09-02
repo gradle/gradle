@@ -33,7 +33,9 @@ import static org.hamcrest.core.StringContains.containsString
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    def setup(){
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
         using m2
     }
 

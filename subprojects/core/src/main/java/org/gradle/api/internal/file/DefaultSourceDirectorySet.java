@@ -35,7 +35,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.Factory;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -50,23 +50,20 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final List<Object> source = new ArrayList<Object>();
     private final String name;
     private final String displayName;
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final PatternSet patterns;
     private final PatternSet filter;
     private final FileCollection dirs;
     private final Property<File> outputDir;
 
-    // Note: don't actually remove this in 6.0, the deprecation is here to encourage people to use ObjectFactory instead. Just remove the overload and the nag and leave the method here
-    @Deprecated
-    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
-        DeprecationLogger.nagUserOfDeprecated("The DefaultSourceDirectorySet constructor", "Please use the ObjectFactory service to create instances of SourceDirectorySet instead.");
+    public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
         this.displayName = displayName;
-        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.patterns = fileResolver.getPatternSetFactory().create();
-        this.filter = fileResolver.getPatternSetFactory().create();
+        this.patterns = patternSetFactory.create();
+        this.filter = patternSetFactory.create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
         this.outputDir = objectFactory.property(File.class);
     }
@@ -199,7 +196,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
                 SourceDirectorySet nested = (SourceDirectorySet) path;
                 result.addAll(nested.getSrcDirTrees());
             } else {
-                for (File srcDir : fileResolver.resolveFiles(path)) {
+                for (File srcDir : fileCollectionFactory.resolving(path)) {
                     if (srcDir.exists() && !srcDir.isDirectory()) {
                         throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                     }
@@ -216,7 +213,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
             if (path instanceof SourceDirectorySet) {
                 context.add(((SourceDirectorySet) path).getBuildDependencies());
             } else {
-                context.add(fileResolver.resolveFiles(path));
+                context.add(fileCollectionFactory.resolving(path));
             }
         }
     }

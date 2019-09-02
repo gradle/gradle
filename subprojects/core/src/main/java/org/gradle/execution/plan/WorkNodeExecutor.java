@@ -21,10 +21,10 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 public class WorkNodeExecutor implements NodeExecutor {
     @Override
     public boolean execute(Node node, NodeExecutionContext context) {
-        if (!(node instanceof ActionNode)) {
+        if (!(node instanceof SelfExecutingNode)) {
             return false;
         }
-        ((ActionNode) node).run(context);
+        ((SelfExecutingNode) node).execute(context);
         return true;
     }
 }

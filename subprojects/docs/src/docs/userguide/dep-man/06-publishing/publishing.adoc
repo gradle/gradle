@@ -136,7 +136,7 @@ In particular, Gradle Module Metadata supports:
 - <<rich_versions.adoc#rich-version-constraints,rich version constraints>>
 - <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
 - <<modeling_features.adoc#declaring-component-capabilities,component capabilities>>
-- <<modeling_features.adoc#understanding-variant-selection,variant-aware resolution>>
+- <<variant_model.adoc#understanding-variant-selection,variant-aware resolution>>
 
 Publication of Gradle Module Metadata will enable better dependency management for your consumers:
 
@@ -206,7 +206,7 @@ It doesn't mean that consumption from Maven or Ivy would be broken either, only 
 
 [NOTE]
 ====
-This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2d request if the module was actually published with Gradle Module Metadata.
+This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
 ====
 
 If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls configuring the metadata sources for a repository:
@@ -267,7 +267,7 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 
 The `AdhocComponentWithVariants` component declares a method called `addVariantsFromConfiguration` which accepts two parameters:
 
-- the <<declaring_dependencies.adoc#sub:resolvable-consumable-configs,outgoing configuration>> that is going to be used as a variant source
+- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is going to be used as a variant source
 - a configuration which allows you to _filter out_ what variants are going to be published
 
 In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.

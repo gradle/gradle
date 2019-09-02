@@ -253,7 +253,7 @@ The task is an instance of Delete and you can change what directory it deletes b
 == Building {cpp} libraries
 
 The unique aspect of library projects is that they are used (or "consumed") by other {cpp} projects.
-That means the dependency metadata published with the binaries and headers - in the form of a Gradle Metadata - is crucial.
+That means the dependency metadata published with the binaries and headers - in the form of Gradle Module Metadata - is crucial.
 In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
 Gradle manages this distinction via the <<cpp_library_plugin.adoc#,{cpp} Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.

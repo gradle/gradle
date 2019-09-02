@@ -24,6 +24,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 import org.gradle.workers.internal.DefaultWorkResult;
 
@@ -38,12 +39,15 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     private final Iterable<FileChange> sourceChanges;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
-    public GroovyRecompilationSpecProvider(FileOperations fileOperations,
-                                           FileTree sources,
-                                           boolean incremental,
-                                           Iterable<FileChange> sourceChanges,
-                                           GroovySourceFileClassNameConverter sourceFileClassNameConverter) {
-        super(fileOperations, sources);
+    public GroovyRecompilationSpecProvider(
+        Deleter deleter,
+        FileOperations fileOperations,
+        FileTree sources,
+        boolean incremental,
+        Iterable<FileChange> sourceChanges,
+        GroovySourceFileClassNameConverter sourceFileClassNameConverter
+    ) {
+        super(deleter, fileOperations, sources);
         this.incremental = incremental;
         this.sourceChanges = sourceChanges;
         this.sourceFileClassNameConverter = sourceFileClassNameConverter;

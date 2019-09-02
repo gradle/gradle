@@ -35,3 +35,5 @@ testLibraries.littleproxy = 'org.gradle.org.littleshoot:littleproxy:1.1.3' // be
 testLibraries.mockito_kotlin = 'com.nhaarman:mockito-kotlin:1.6.0'
 testLibraries.mockito_kotlin2 = 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0'
 testLibraries.jackson_kotlin = 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2'
+testLibraries.archunit = "com.tngtech.archunit:archunit:0.11.0"
+testLibraries.archunit_junit4 = "com.tngtech.archunit:archunit-junit4:0.11.0"

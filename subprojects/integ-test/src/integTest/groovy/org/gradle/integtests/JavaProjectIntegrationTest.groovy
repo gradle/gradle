@@ -261,6 +261,9 @@ interface Person { }
 
     @Test
     void "can add additional jars to published runtime classpath"() {
+        // this is legacy behavior of the deprecated runtime configuration
+        executer.expectDeprecationWarning()
+
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
 allprojects {

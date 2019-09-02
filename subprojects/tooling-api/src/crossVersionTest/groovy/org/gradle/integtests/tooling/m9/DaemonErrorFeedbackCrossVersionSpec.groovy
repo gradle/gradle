@@ -24,7 +24,7 @@ import spock.lang.Timeout
 class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("GRADLE-1799")
-    @Timeout(25)
+    @Timeout(60)
     def "promptly discovers rubbish jvm arguments"() {
         //jvm arguments cannot be set for an existing process
         //so we must not run in embedded mode

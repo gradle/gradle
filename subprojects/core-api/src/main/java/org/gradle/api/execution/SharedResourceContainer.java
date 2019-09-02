@@ -22,7 +22,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 /**
  * A container of {@link SharedResource}s.
  *
- * @since 5.7
+ * @since 6.0
  */
 @Incubating
 public interface SharedResourceContainer extends NamedDomainObjectContainer<SharedResource> {

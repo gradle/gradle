@@ -29,7 +29,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -90,7 +89,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
         DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(moduleVersionId, componentIdentifier, status, attributesSchema);
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
-            copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.canBeResolved, configuration.capabilities);
+            copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.consumptionAlternatives, configuration.canBeResolved, configuration.capabilities);
         }
 
         // Artifacts
@@ -160,9 +159,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
         addToConfigurations(name, conf);
         return conf;
     }
@@ -257,7 +256,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public AttributeContainer getAttributes() {
+    public ImmutableAttributes getAttributes() {
         // a local component cannot have attributes (for now). However, variants of the component
         // itself may.
         return ImmutableAttributes.EMPTY;
@@ -272,6 +271,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final Set<String> extendsFrom;
         private final ImmutableAttributes attributes;
         private final boolean canBeConsumed;
+        private final List<String> consumptionAlternatives;
         private final boolean canBeResolved;
         private final ImmutableCapabilities capabilities;
 
@@ -296,6 +296,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                     ImmutableSet<String> hierarchy,
                                                     ImmutableAttributes attributes,
                                                     boolean canBeConsumed,
+                                                    List<String> consumptionAlternatives,
                                                     boolean canBeResolved,
                                                     ImmutableCapabilities capabilities) {
             this.name = name;
@@ -306,6 +307,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.extendsFrom = extendsFrom;
             this.attributes = attributes;
             this.canBeConsumed = canBeConsumed;
+            this.consumptionAlternatives = consumptionAlternatives;
             this.canBeResolved = canBeResolved;
             this.capabilities = capabilities;
         }
@@ -392,6 +394,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         @Override
         public boolean isCanBeConsumed() {
             return canBeConsumed;
+        }
+
+        @Override
+        public List<String> getConsumptionAlternatives() {
+            return consumptionAlternatives;
         }
 
         @Override

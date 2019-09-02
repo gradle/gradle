@@ -66,6 +66,7 @@ dependencies {
     testFixturesApi(project(":coreApi")) {
         because("Test fixtures export the RepositoryHandler class")
     }
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":dependencyManagement"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))

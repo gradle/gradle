@@ -40,7 +40,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     @Unroll
     def "disallow mutating from named actions using #mutatingMethods.key"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         String methodUnderTest = mutatingMethods.key
         Closure method = bind(mutatingMethods.value)
 
@@ -105,7 +105,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     @Unroll
     def "allow query methods from named using #queryMethods.key"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         String methodUnderTest = queryMethods.key
         Closure method = bind(queryMethods.value)
 
@@ -161,7 +161,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     @Unroll
     def "allow common querying and mutating methods when #methods.key within getByName configuration action"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(methods.value)
 
         when:
@@ -176,7 +176,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     @Unroll
     def "allow common querying and mutating methods when #methods.key within getByName configuration action on filtered container by type"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(methods.value)
 
         when:
@@ -191,7 +191,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     @Unroll
     def "allow common querying and mutating methods when #methods.key within getByName configuration action on filtered container by spec"() {
         setupContainerDefaults()
-        container.add(a)
+        addToContainer(a)
         Closure method = bind(methods.value)
 
         when:

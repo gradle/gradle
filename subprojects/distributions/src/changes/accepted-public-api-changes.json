@@ -37,6 +37,60 @@
             "changes": [
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.SignOperation",
+            "member": "Class org.gradle.plugins.signing.SignOperation",
+            "acceptation": "Public type turned internal to forbid direct instantiation",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.compile()",
+            "acceptation": "method shouldn't be used",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Class org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getObjects()",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getOutputDirectory()",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getRelocatedObjects()",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.unexport(org.gradle.work.InputChanges)",
+            "acceptation": "The class is incubating and was simply moved",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Constructor org.gradle.language.nativeplatform.tasks.UnexportMainSymbol()",
+            "acceptation": "The class is incubating and was simply move",
+            "changes": []
         }
     ]
 }

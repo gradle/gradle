@@ -25,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.6
  */
 @UsedByScanPlugin
-@Incubating
 public enum ComponentSelectionCause {
     /**
      * This component was selected because it's the root component.
@@ -70,7 +69,7 @@ public enum ComponentSelectionCause {
     /**
      * This component was selected because it was requested by a parent with {@link org.gradle.api.artifacts.MutableVersionConstraint#forSubgraph()}.
      *
-     * @since 5.7
+     * @since 6.0
      */
     @Incubating
     BY_ANCESTOR("by ancestor");

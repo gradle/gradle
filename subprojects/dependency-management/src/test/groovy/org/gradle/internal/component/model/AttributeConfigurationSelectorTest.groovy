@@ -319,6 +319,28 @@ All of them match the consumer attributes:
         selected.name == 'second'
     }
 
+    def "should select the variant with the most exact match in case of ambiguity between attributes and capabilities"() {
+        given:
+        attributesSchema.attribute(Attribute.of('other', String)) {
+            it.compatibilityRules.add(AllCompatibilityRule)
+        }
+        component(
+            variant('A', attributes('org.gradle.usage': 'java-api', 'other': 'a'), capability('first'), capability('second')),
+            variant('B', attributes('org.gradle.usage': 'java-api', 'other': 'b'), capability('first')),
+            variant('C', attributes('org.gradle.usage': 'java-api'), capability('first'))
+        )
+
+        and:
+        consumerAttributes('org.gradle.usage': 'java-api', 'other': 'c')
+        requestCapability capability('first')
+
+        when:
+        performSelection()
+
+        then:
+        selected.name == 'B' // B matches best: capabilities match exactly, attribute 'other' was requested and a compatible value is provided (variant C does not provide any value for 'other')
+    }
+
     private void performSelection() {
         selected = AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(
                 consumerAttributes,
@@ -405,6 +427,14 @@ All of them match the consumer attributes:
             if (details.consumerValue == 'java-api' && details.producerValue == 'java-runtime') {
                 details.compatible()
             }
+        }
+    }
+
+    private static class AllCompatibilityRule implements AttributeCompatibilityRule<String> {
+
+        @Override
+        void execute(CompatibilityCheckDetails<String> details) {
+            details.compatible()
         }
     }
 }

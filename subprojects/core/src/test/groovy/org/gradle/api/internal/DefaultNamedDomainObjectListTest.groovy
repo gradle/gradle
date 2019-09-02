@@ -34,6 +34,8 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     final StringBuffer c = new StringBuffer("c")
     final StringBuilder d = new StringBuilder("d")
     final boolean externalProviderAllowed = true
+    boolean directElementAdditionAllowed = true
+    boolean elementRemovalAllowed = true
     final boolean supportsBuildOperations = true
 
     def "can add element at given index"() {

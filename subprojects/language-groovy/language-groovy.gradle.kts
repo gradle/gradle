@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":platformJvm"))
     implementation(project(":languageJvm"))
     implementation(project(":languageJava"))
+    implementation(project(":files"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -34,7 +35,7 @@ dependencies {
     testImplementation(testFixtures(project(":launcher")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-    
+
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalTesting"))

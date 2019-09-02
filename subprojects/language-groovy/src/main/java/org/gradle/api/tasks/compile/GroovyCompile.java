@@ -56,6 +56,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.Deleter;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.DeprecationLogger;
@@ -133,11 +134,6 @@ public class GroovyCompile extends AbstractCompile {
         return getFeaturePreviews().isFeatureEnabled(GROOVY_COMPILATION_AVOIDANCE);
     }
 
-    @Override
-    protected void compile() {
-        throw new UnsupportedOperationException("This method has been superseded by compile(InputChanges inputChanges)!");
-    }
-
     @TaskAction
     protected void compile(InputChanges inputChanges) {
         checkGroovyClasspathIsNonEmpty();
@@ -209,7 +205,7 @@ public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec, InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         GroovyCompilerFactory groovyCompilerFactory = getGroovyCompilerFactory();
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
-        CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
+        CleaningGroovyCompiler cleaningGroovyCompiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs(), getDeleter());
         if (spec.incrementalCompilationEnabled()) {
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
@@ -230,6 +226,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
         return new GroovyRecompilationSpecProvider(
+            getDeleter(),
             ((ProjectInternal) getProject()).getFileOperations(),
             getStableSources().getAsFileTree(),
             inputChanges.isIncremental(),
@@ -258,6 +255,11 @@ public class GroovyCompile extends AbstractCompile {
     @Inject
     protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
     private FileCollection determineGroovyCompileClasspath() {

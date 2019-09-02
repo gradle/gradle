@@ -168,8 +168,15 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
         }
 
         // override to make the Groovy compiler happy
+        @Override
         PluginManagerInternal getPluginManager() {
             (PluginManagerInternal) delegate.pluginManager
+        }
+
+        // override to make the Groovy compiler happy
+        @Override
+        ProjectInternal getProject() {
+            (ProjectInternal) delegate.project
         }
 
         @Override

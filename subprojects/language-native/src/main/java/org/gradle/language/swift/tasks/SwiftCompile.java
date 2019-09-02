@@ -40,6 +40,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -90,10 +91,15 @@ public class SwiftCompile extends DefaultTask {
     private final Property<NativeToolChain> toolChain;
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
+    private final Deleter deleter;
 
     @Inject
-    public SwiftCompile(CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory) {
+    public SwiftCompile(
+        CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory,
+        Deleter deleter
+    ) {
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
+        this.deleter = deleter;
 
         ObjectFactory objectFactory = getProject().getObjects();
         this.moduleName = objectFactory.property(String.class);
@@ -295,7 +301,12 @@ public class SwiftCompile extends DefaultTask {
 
         NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
         SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, changedFiles, removedFiles, targetPlatform);
-        Compiler<SwiftCompileSpec> baseCompiler = new IncrementalSwiftCompiler(createCompiler(), getOutputs(), compilerOutputFileNamingSchemeFactory);
+        Compiler<SwiftCompileSpec> baseCompiler = new IncrementalSwiftCompiler(
+            createCompiler(),
+            getOutputs(),
+            compilerOutputFileNamingSchemeFactory,
+            deleter
+        );
         Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
         WorkResult result = loggingCompiler.execute(spec);
         setDidWork(result.getDidWork());
@@ -321,7 +332,7 @@ public class SwiftCompile extends DefaultTask {
         spec.setChangedFiles(changedFiles);
 
         // Convert Swift-like macros to a Map like NativeCompileSpec expects
-        Map<String, String> macros = new LinkedHashMap<String, String>();
+        Map<String, String> macros = new LinkedHashMap<>();
         for (String macro : getMacros().get()) {
             macros.put(macro, null);
         }

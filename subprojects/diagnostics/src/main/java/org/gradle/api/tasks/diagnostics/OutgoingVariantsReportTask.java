@@ -49,7 +49,7 @@ import java.util.stream.Stream;
  * Variants, in this context, must be understood as "things produced by a project
  * which can safely be consumed by another project".
  *
- * @since 5.7
+ * @since 6.0
  */
 @Incubating
 public class OutgoingVariantsReportTask extends DefaultTask {

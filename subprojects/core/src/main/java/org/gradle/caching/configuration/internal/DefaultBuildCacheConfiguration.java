@@ -26,6 +26,7 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +56,17 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends DirectoryBuildCache> T local(Class<T> type) {
-        return local(type, Actions.doNothing());
+        DeprecationLogger.nagUserOfDiscontinuedMethod("BuildCacheConfiguration.local(Class)", "Use getLocal() instead.");
+        return localInternal(type, Actions.doNothing());
     }
 
     @Override
     public <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("BuildCacheConfiguration.local(Class, Action)", "Use local(Action) instead.");
+        return localInternal(type, configuration);
+    }
+
+    private <T extends DirectoryBuildCache> T localInternal(Class<T> type, Action<? super T> configuration) {
         if (!type.equals(DirectoryBuildCache.class)) {
             throw new IllegalArgumentException("Using a local build cache type other than " + DirectoryBuildCache.class.getSimpleName() + " is not allowed");
         }

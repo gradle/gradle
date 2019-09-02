@@ -25,11 +25,12 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.Describables;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
@@ -46,13 +47,13 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
-    private final Instantiator instantiator;
+    private final InstanceGenerator instanceGenerator;
 
     private Map<String, Object> plugins;
     private Map<Object, BeanDynamicObject> dynamicObjects;
 
-    public DefaultConvention(Instantiator instantiator) {
-        this.instantiator = instantiator;
+    public DefaultConvention(InstanceGenerator instanceGenerator) {
+        this.instanceGenerator = instanceGenerator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
@@ -121,7 +122,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
-        T instance = instantiate(instanceType, constructionArguments);
+        T instance = instantiate(instanceType, name, constructionArguments);
         addWithDefaultPublicType(name, instance);
         return instance;
     }
@@ -133,7 +134,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
-        T instance = instantiate(instanceType, constructionArguments);
+        T instance = instantiate(instanceType, name, constructionArguments);
         add(publicType, name, instance);
         return instance;
     }
@@ -211,8 +212,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(new DslObject(extension).getPublicType(), name, extension);
     }
 
-    private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
-        return instantiator.newInstance(instanceType, constructionArguments);
+    private <T> T instantiate(Class<? extends T> instanceType, String name, Object[] constructionArguments) {
+        return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {

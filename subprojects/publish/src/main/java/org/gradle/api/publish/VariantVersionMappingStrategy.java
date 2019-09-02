@@ -15,7 +15,6 @@
  */
 package org.gradle.api.publish;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -24,7 +23,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 5.2
  */
-@Incubating
 @HasInternalProtocol
 public interface VariantVersionMappingStrategy {
     /**

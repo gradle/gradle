@@ -33,6 +33,9 @@ class Repositories {
             maven {
                 name = "gradle-js"
                 url = "https://repo.gradle.org/gradle/javascript-public"
+                metadataSources {
+                    artifact()
+                }
             }
         }
     """

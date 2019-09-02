@@ -15,5 +15,3 @@
  */
 
 rootProject.name = "my-library"
-
-enableFeaturePreview("GRADLE_METADATA")

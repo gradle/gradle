@@ -335,7 +335,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         if (language == CompiledLanguage.GROOVY) {
             buildFile << """
                 dependencies {
-                    integTestCompile localGroovy()
+                    integTestImplementation localGroovy()
                 }
 """
         }
@@ -417,7 +417,7 @@ sourceSets {
         if (language == CompiledLanguage.GROOVY) {
             buildFile << """
         dependencies {
-            otherCompile localGroovy()
+            otherImplementation localGroovy()
         }
 """
         }

@@ -19,15 +19,18 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.GroovyPlugin;
+import org.gradle.api.plugins.JavaLibraryPlugin;
+import org.gradle.api.plugins.JavaPlugin;
 
 public class GroovyBuildSrcProjectConfigurationAction implements BuildSrcProjectConfigurationAction {
 
     @Override
     public void execute(ProjectInternal project) {
+        project.getPluginManager().apply(JavaLibraryPlugin.class);
         project.getPluginManager().apply(GroovyPlugin.class);
 
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add("compile", dependencies.gradleApi());
-        dependencies.add("compile", dependencies.localGroovy());
+        dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi());
+        dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.localGroovy());
     }
 }

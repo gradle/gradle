@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -54,6 +52,5 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      *
      * @since 4.5
      */
-    @Incubating
     void replacedBy(Object moduleNotation, @Nullable String reason);
 }

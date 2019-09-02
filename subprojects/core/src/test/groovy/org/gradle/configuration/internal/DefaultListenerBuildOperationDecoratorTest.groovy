@@ -291,6 +291,15 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyNoOp()
 
         when:
+        decoratedListener.beforeSettings(settingsEvaluatedArg)
+
+        then:
+        1 * listener.beforeSettings(settingsEvaluatedArg)
+
+        and:
+        verifyNoOp()
+
+        when:
         decoratedListener.projectsLoaded(projectsLoadedArg)
 
         then:

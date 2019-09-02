@@ -15,4 +15,3 @@
  */
 
 rootProject.name = "requiring-features"
-enableFeaturePreview("GRADLE_METADATA")

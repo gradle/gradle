@@ -16,13 +16,11 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
 
 /**
  * A set of dependency constraint definitions that are associated with a configuration.
  *
  * @since 4.6
  */
-@Incubating
 public interface DependencyConstraintSet extends DomainObjectSet<DependencyConstraint> {
 }

@@ -34,6 +34,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
@@ -75,6 +76,11 @@ public class JavaScriptMinify extends SourceTask {
     @Inject
     public PlayToolChain getToolChain() {
         throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
     /**
@@ -134,7 +140,7 @@ public class JavaScriptMinify extends SourceTask {
 
     @TaskAction
     void compileJavaScriptSources() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
         cleaner.addDirToClean(getDestinationDir());
         cleaner.execute();
 

@@ -60,9 +60,9 @@ import org.jetbrains.kotlin.name.NameUtils
 
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
-import org.jetbrains.kotlin.scripting.definitions.KotlinScriptDefinition
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
+import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -79,7 +79,7 @@ fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     moduleName: String,
     scriptFiles: Collection<String>,
-    scriptDef: KotlinScriptDefinition,
+    scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     logger: Logger,
     pathTranslation: (String) -> String
@@ -97,7 +97,7 @@ internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     scriptFile: File,
-    scriptDef: KotlinScriptDefinition,
+    scriptDef: ScriptDefinition,
     classPath: List<File>,
     messageCollector: LoggingMessageCollector
 ): String {
@@ -120,7 +120,7 @@ fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     moduleName: String,
     scriptFiles: Collection<String>,
-    scriptDef: KotlinScriptDefinition,
+    scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     messageCollector: LoggingMessageCollector
 ) {
@@ -129,7 +129,6 @@ fun compileKotlinScriptModuleTo(
         withCompilationExceptionHandler(messageCollector) {
 
             val configuration = compilerConfigurationFor(messageCollector).apply {
-                put(JVM_TARGET, JVM_1_8)
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
@@ -300,6 +299,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVMConfigurationKeys.USE_FAST_CLASS_FILES_READING, true)
+        put(JVM_TARGET, JVM_1_8)
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
@@ -335,7 +335,7 @@ fun CompilerConfiguration.addScriptingCompilerComponents() {
 
 
 private
-fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
+fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
     add(SCRIPT_DEFINITIONS, scriptDef)
 }
 

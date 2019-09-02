@@ -130,12 +130,20 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
-    def "falls back to directory listing when maven-metadata.xml is missing"() {
+    def "falls back to directory listing when maven-metadata.xml is missing and artifact metadata source is defined"() {
         given:
         mavenHttpRepo.module('group', 'projectA', '1.0').publish()
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.5').publish()
 
         buildFile << createBuildFile(mavenHttpRepo.uri)
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            } 
+        """
 
         when:
         mavenHttpRepo.getModuleMetaData("group", "projectA").expectGetMissing()
@@ -165,6 +173,14 @@ task retrieve(type: Sync) {
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.5').publish()
 
         buildFile << createBuildFile(mavenHttpRepo.uri)
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            } 
+        """
 
         when:
         def metaData = mavenHttpRepo.getModuleMetaData("group", "projectA")
@@ -234,7 +250,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         then:
-        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.1)")
+        failure.assertHasCause("Could not download projectA-1.1.jar (group:projectA:1.1)")
         failure.assertHasCause("Could not GET '${projectA.artifact.uri}'. Received status code 500 from server: broken")
 
         when:
@@ -258,7 +274,6 @@ task retrieve(type: Sync) {
         when:
         repo.getModuleMetaData("group", "projectA").expectGet()
         projectA.pom.expectGetMissing()
-        projectA.artifact.expectHeadMissing()
 
         and:
         fails 'retrieve'
@@ -269,7 +284,6 @@ task retrieve(type: Sync) {
 Searched in the following locations:
   - ${repo.getModuleMetaData("group", "projectA").uri}
   - ${projectA.pom.uri}
-  - ${projectA.artifact.uri}
 Required by:
 """)
 
@@ -282,7 +296,7 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.1).
+        failure.assertHasCause("""Could not find projectA-1.1.jar (group:projectA:1.1).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -311,7 +325,6 @@ Searched in the following locations:
 
         when:
         repo1.getModuleMetaData("group", "projectA").expectGetMissing()
-        repo1.directory("group", "projectA").expectGetMissing()
 
         repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGet()
@@ -445,8 +458,8 @@ Searched in the following locations:
              compile 'group:projectA:1.+'
          }
  
-        task retrieve(type: Sync) {
-            into 'libs'
+         task retrieve(type: Sync) {
+             into 'libs'
              from configurations.compile
          }
          """

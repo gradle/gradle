@@ -56,8 +56,8 @@ link:https://scans.gradle.com/[Gradle build scans] help you understand build res
 == Getting help
 
  * **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org[Gradle Forum, title="Gradle help and discussion forums"]. Community members and core contributors answer your questions.
- * **Training** — Free, web-based Gradle training from Gradle developers happens every month. Head over to the link:{website}/training/[training page, title="Gradle training schedule"] to sign up.
- * **Enterprise Services** — Support and training can be purchased alongside a link:https://gradle.com/enterprise[Gradle Enterprise] subscription.
+ * **Training** — Free, web-based Gradle training from Gradle developers happens every month. Head over to the link:https://gradle.com/training/[training page, title="Gradle training schedule"] to sign up.
+ * **Enterprise Services** — Support and training can be purchased alongside a link:https://gradle.com[Gradle Enterprise] subscription.
 
 == Licenses
 

@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -52,6 +51,5 @@ public interface ArtifactRepository {
      *
      * @since 5.1
      */
-    @Incubating
     void content(Action<? super RepositoryContentDescriptor> configureAction);
 }

@@ -70,7 +70,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.child('Snapshot task inputs for :custom')
     }
 
-    @TargetGradleVersion(">=5.7")
+    @TargetGradleVersion(">=6.0")
     def "snapshot task inputs and outputs operations have an informative names"() {
         given:
         file("input.txt").createFile()

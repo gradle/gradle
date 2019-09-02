@@ -15,15 +15,12 @@
  */
 package org.gradle.api.capabilities;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a capability. Capabilities are versioned. Only one component for a specific capability
  * can be found on a dependency graph.
  *
  * @since 4.7
  */
-@Incubating
 public interface Capability {
     String getGroup();
     String getName();

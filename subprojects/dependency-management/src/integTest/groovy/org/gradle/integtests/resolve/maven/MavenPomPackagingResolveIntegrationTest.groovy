@@ -61,7 +61,6 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
         and:
         // First attempts to resolve in repo1
         projectARepo1.pom.expectGetMissing()
-        projectARepo1.artifact.expectHeadMissing()
 
         projectARepo2.pom.expectGet()
         projectARepo2.artifact.expectHead()
@@ -236,7 +235,7 @@ if (project.hasProperty('skipCache')) {
 
         and:
         // TODO - should report both locations as missing
-        failure.assertHasCause("Could not find projectA.jar (group:projectA:1.0).")
+        failure.assertHasCause("Could not find projectA-1.0.jar (group:projectA:1.0).")
     }
 
     def "will use non-jar dependency type to determine jar artifact location"() {

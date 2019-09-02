@@ -24,6 +24,9 @@ import java.io.File;
 public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
     private final File baseDir;
 
+    /**
+     * Do not create instances of this type. Use {@link FileLookup} instead.
+     */
     public BaseDirFileResolver(File baseDir, Factory<PatternSet> patternSetFactory) {
         super(patternSetFactory);
         assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);

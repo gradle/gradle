@@ -19,14 +19,17 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -53,6 +56,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<K>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<K, V>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
+    }
+
+    @Override
+    protected ValueSupplier getSupplier() {
+        return value;
     }
 
     @Nullable
@@ -92,7 +100,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     public Map<K, V> get() {
         beforeRead();
         Map<K, V> entries = new LinkedHashMap<K, V>();
-        value.collectInto(entryCollector, entries);
+        value.collectInto(getDisplayName(), entryCollector, entries);
         return ImmutableMap.copyOf(entries);
     }
 
@@ -277,13 +285,29 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         this.convention = collector;
     }
 
+    public List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> getProviders() {
+        List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
+        value.visit(providers);
+        return providers;
+    }
+
+    public void providers(List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> providers) {
+        if (!beforeMutate()) {
+            return;
+        }
+        value = defaultValue;
+        for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
+            value = new PlusCollector<K, V>(value, new MapCollectors.EntriesFromMapProvider<K, V>(provider));
+        }
+    }
+
     @Override
     public Provider<Set<K>> keySet() {
         return new KeySetProvider();
     }
 
     @Override
-    public String toString() {
+    protected String describeContents() {
         return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), value.toString());
     }
 
@@ -305,6 +329,24 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         } else {
             set((MapCollector<K, V>) NO_VALUE);
         }
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        if (super.maybeVisitBuildDependencies(context)) {
+            return true;
+        }
+        return value.maybeVisitBuildDependencies(context);
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return super.isContentProducedByTask() || value.isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return value.isValueProducedByTask();
     }
 
     private class KeySetProvider extends AbstractReadOnlyProvider<Set<K>> {
@@ -351,9 +393,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public void collectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            left.collectInto(collector, dest);
-            right.collectInto(collector, dest);
+        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            left.collectInto(owner, collector, dest);
+            right.collectInto(owner, collector, dest);
         }
 
         @Override
@@ -379,11 +421,27 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+            left.visit(sources);
+            right.visit(sources);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             if (left.maybeVisitBuildDependencies(context)) {
                 return right.maybeVisitBuildDependencies(context);
             }
             return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return left.isValueProducedByTask() || right.isContentProducedByTask();
         }
     }
 }

@@ -56,7 +56,6 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         authenticationContainer,
         moduleIdentifierFactory,
         Mock(FileResourceRepository),
-        TestUtil.featurePreviews(),
         mavenMetadataFactory,
         SnapshotTestUtil.valueSnapshotter(),
         Mock(ObjectFactory)

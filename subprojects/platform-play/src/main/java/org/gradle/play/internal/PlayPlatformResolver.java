@@ -36,7 +36,7 @@ public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
     public static final Map<String, String> LATEST_SCALA_VERSIONS =
         ImmutableMap.of("2.10", "2.10.7",
             "2.11", "2.11.12",
-            "2.12", "2.12.6");
+            "2.12", "2.12.9");
 
     @Override
     public Class<PlayPlatform> getType() {

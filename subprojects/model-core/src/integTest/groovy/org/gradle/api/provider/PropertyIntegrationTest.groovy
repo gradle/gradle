@@ -521,11 +521,7 @@ class SomeExtension {
 
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
-        prop1 = objects.property(List)
-        prop2 = objects.property(Set)
-        prop3 = objects.property(Directory)
-        prop4 = objects.property(RegularFile)
-        prop5 = objects.property(Map)
+        $prop = objects.property($type)
     }
 }
  
@@ -533,15 +529,18 @@ project.extensions.create("some", SomeExtension)
         """
 
         when:
-        executer.expectDeprecationWarnings(5)
-        succeeds()
+        fails()
 
         then:
-        outputContains("Using method ObjectFactory.property() to create a property of type List<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.listProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type Set<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.setProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type Directory has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.directoryProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type RegularFile has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.fileProperty() method instead.")
-        outputContains("Using method ObjectFactory.property() method to create a property of type Map<K, V> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.mapProperty() method instead.")
+        failure.assertHasCause("Please use the ObjectFactory.$method method to create a property of type $type$typeParam.")
+
+        where:
+        prop    | method                | type          | typeParam
+        'prop1' | 'listProperty()'      | 'List'        | '<T>'
+        'prop2' | 'setProperty()'       | 'Set'         | '<T>'
+        'prop3' | 'mapProperty()'       | 'Map'         | '<K, V>'
+        'prop4' | 'directoryProperty()' | 'Directory'   | ''
+        'prop5' | 'fileProperty()'      | 'RegularFile' | ''
     }
 
     def taskTypeWritesPropertyValueToFile() {

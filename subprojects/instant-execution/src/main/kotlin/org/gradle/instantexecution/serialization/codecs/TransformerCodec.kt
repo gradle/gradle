@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.artifacts.transform.LegacyTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -36,6 +37,7 @@ import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.snapshot.impl.IsolatedArray
 import org.gradle.workers.internal.IsolatableSerializerRegistry
 
 
@@ -46,6 +48,7 @@ class DefaultTransformerCodec(
     private val isolatableFactory: IsolatableFactory,
     private val valueSnapshotter: ValueSnapshotter,
     private val fileCollectionFactory: FileCollectionFactory,
+    private val fileLookup: FileLookup,
     private val fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val isolatableSerializerRegistry: IsolatableSerializerRegistry,
     private val parameterScheme: ArtifactTransformParameterScheme,
@@ -67,7 +70,7 @@ class DefaultTransformerCodec(
         val secondaryInputsHash = HashCode.fromBytes(readBinary())
         // TODO - should not need to do anything with the context classloader
         val previousContextClassLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = classLoader
+        Thread.currentThread().contextClassLoader = implementationClass.classLoader
         val isolatedParameters = try {
             isolatableSerializerRegistry.readIsolatable(this) as Isolatable<out TransformParameters>
         } finally {
@@ -86,6 +89,7 @@ class DefaultTransformerCodec(
             isolatableFactory,
             valueSnapshotter,
             fileCollectionFactory,
+            fileLookup,
             parameterScheme.inspectionScheme.propertyWalker,
             actionScheme.instantiationScheme
         )
@@ -95,24 +99,23 @@ class DefaultTransformerCodec(
 
 internal
 class LegacyTransformerCodec(
-    private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-    private val isolatableFactory: IsolatableFactory,
     private val actionScheme: ArtifactTransformActionScheme
 ) : Codec<LegacyTransformer> {
     override suspend fun WriteContext.encode(value: LegacyTransformer) {
         writeClass(value.implementationClass)
-        // TODO - write more state
+        writeBinary(value.secondaryInputsHash.toByteArray())
+        // TODO - write more state, eg parameters
     }
 
     override suspend fun ReadContext.decode(): LegacyTransformer? {
         val implementationClass = readClass().asSubclass(ArtifactTransform::class.java)
+        val secondaryInputsHash = HashCode.fromBytes(readBinary())
         return LegacyTransformer(
             implementationClass,
-            arrayOf(),
+            IsolatedArray.EMPTY,
+            secondaryInputsHash,
             actionScheme.instantiationScheme,
-            ImmutableAttributes.EMPTY,
-            classLoaderHierarchyHasher,
-            isolatableFactory
+            ImmutableAttributes.EMPTY
         )
     }
 }

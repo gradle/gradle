@@ -55,6 +55,15 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
 
+    implementation(futureKotlin("scripting-common")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm-host-embeddable")) {
+        isTransitive = false
+    }
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
@@ -80,7 +89,7 @@ dependencies {
     testImplementation(testLibrary("mockito_kotlin"))
     testImplementation(testLibrary("jackson_kotlin"))
 
-    testImplementation("com.tngtech.archunit:archunit:0.8.3")
+    testImplementation(testLibrary("archunit"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
     testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 
@@ -101,7 +110,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.9" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.11" // TODO:kotlin-dsl
 
 tasks {
 

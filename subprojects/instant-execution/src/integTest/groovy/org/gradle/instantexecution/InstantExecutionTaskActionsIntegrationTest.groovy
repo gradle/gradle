@@ -16,9 +16,6 @@
 
 package org.gradle.instantexecution
 
-import spock.lang.Ignore
-
-
 class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "task can have doFirst/doLast groovy script closures"() {
@@ -144,7 +141,6 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         outputContains("B")
     }
 
-    @Ignore("fails because all script enclosing class have the same name")
     def "name conflicts of types declared in kotlin scripts"() {
 
         given:

@@ -22,6 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -52,6 +54,7 @@ import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerSpec;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.lang.reflect.ParameterizedType;
@@ -203,11 +206,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private AsyncWorkCompletion submitWork(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
+        WorkerFactory workerFactory = getWorkerFactory(isolationMode);
         WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), currentWorkerWorkerLease, new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
-                    WorkerFactory workerFactory = getWorkerFactory(isolationMode);
                     BuildOperationAwareWorker worker = workerFactory.getWorker(daemonForkOptions);
                     return worker.execute(spec, currentBuildOperation);
                 } catch (Throwable t) {
@@ -247,7 +250,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             case CLASSLOADER:
                 return isolatedClassloaderWorkerFactory;
             case NONE:
-                return noIsolationWorkerFactory;
+                return new ContextClassLoaderWorkerFactory(noIsolationWorkerFactory);
             case PROCESS:
                 return daemonWorkerFactory;
             default:
@@ -441,5 +444,36 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         public void await() throws WorkerExecutionException {
             workerExecutor.await(workItems);
          }
+    }
+
+    /**
+     * This is a delegating WorkerFactory that captures the context classloader at the moment it is created
+     * and then ensures that the worker is created with the same context classloader when
+     * getWorker() is called later.
+     */
+    private static class ContextClassLoaderWorkerFactory implements WorkerFactory {
+        private final ClassLoader contextClassLoader;
+        private final WorkerFactory delegate;
+
+        public ContextClassLoaderWorkerFactory(WorkerFactory delegate) {
+            this.delegate = delegate;
+            this.contextClassLoader = Thread.currentThread().getContextClassLoader();
+        }
+
+        @Override
+        public BuildOperationAwareWorker getWorker(DaemonForkOptions forkOptions) {
+            return ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<BuildOperationAwareWorker>() {
+                @Nullable
+                @Override
+                public BuildOperationAwareWorker create() {
+                    return delegate.getWorker(forkOptions);
+                }
+            });
+        }
+
+        @Override
+        public IsolationMode getIsolationMode() {
+            return delegate.getIsolationMode();
+        }
     }
 }
