@@ -31,18 +31,16 @@ public class InstantiatingBuildLoader implements BuildLoader {
         this.projectFactory = projectFactory;
     }
 
-    /**
-     * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project, ready for the projects to be configured.
-     */
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
-        createProjects(settings.getRootProject(), gradle);
-        attachDefaultProject(settings.getDefaultProject(), gradle);
+        createProjects(gradle, settings.getRootProject());
+        attachDefaultProject(gradle, settings.getDefaultProject());
     }
 
-    private void attachDefaultProject(ProjectDescriptor defaultProjectDescriptor, GradleInternal gradle) {
+    private void attachDefaultProject(GradleInternal gradle, ProjectDescriptor defaultProjectDescriptor) {
         ProjectInternal rootProject = gradle.getRootProject();
         ProjectRegistry<ProjectInternal> projectRegistry = rootProject.getProjectRegistry();
+
         String defaultProjectPath = defaultProjectDescriptor.getPath();
         ProjectInternal defaultProject = projectRegistry.getProject(defaultProjectPath);
         if (defaultProject == null) {
@@ -52,24 +50,22 @@ public class InstantiatingBuildLoader implements BuildLoader {
         gradle.setDefaultProject(defaultProject);
     }
 
-    private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {
+    private void createProjects(GradleInternal gradle, ProjectDescriptor rootProjectDescriptor) {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
         ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project");
 
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
+        ProjectInternal rootProject = projectFactory.createProject(gradle, rootProjectDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
         gradle.setRootProject(rootProject);
 
-        addProjects(rootProject, rootProjectDescriptor, gradle, baseProjectClassLoaderScope);
+        createChildProjectsRecursively(gradle, rootProject, rootProjectDescriptor, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
     }
 
-    private void addProjects(ProjectInternal parentProject, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
-        ClassLoaderScope parentProjectClassLoaderScope = parentProject.getClassLoaderScope();
-
+    private void createChildProjectsRecursively(GradleInternal gradle, ProjectInternal parentProject, ProjectDescriptor parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
             ClassLoaderScope childProjectClassLoaderScope = parentProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName());
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parentProject, gradle, childProjectClassLoaderScope, baseProjectClassLoaderScope);
+            ProjectInternal childProject = projectFactory.createProject(gradle, childProjectDescriptor, parentProject, childProjectClassLoaderScope, baseProjectClassLoaderScope);
 
-            addProjects(childProject, childProjectDescriptor, gradle, baseProjectClassLoaderScope);
+            createChildProjectsRecursively(gradle, childProject, childProjectDescriptor, childProjectClassLoaderScope, baseProjectClassLoaderScope);
         }
     }
 }

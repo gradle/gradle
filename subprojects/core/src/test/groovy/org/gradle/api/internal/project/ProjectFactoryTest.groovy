@@ -54,7 +54,7 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -72,7 +72,7 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -91,7 +91,7 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, parent, gradle, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, parent, rootProjectScope, baseScope)
 
         then:
         result == project

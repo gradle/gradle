@@ -130,7 +130,7 @@ public class ProjectBuilderImpl {
             buildServices.get(FileResolver.class));
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
-        ProjectInternal project = buildServices.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
+        ProjectInternal project = buildServices.get(IProjectFactory.class).createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope);
 
         project.getServices().get(BuildStateRegistry.class).attachRootBuild(build);
         ProjectState projectState = project.getServices().get(ProjectStateRegistry.class).register(build, project);

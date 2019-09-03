@@ -42,12 +42,10 @@ class InstantiatingBuildLoaderTest extends Specification {
     ProjectInternal rootProject
     ProjectDescriptor childDescriptor
     ProjectInternal childProject
-    GradleInternal build
+    GradleInternal gradle
     SettingsInternal settingsInternal
 
-    def rootProjectClassLoaderScope = Mock(ClassLoaderScope) {
-        createChild(_) >> Mock(ClassLoaderScope)
-    }
+    def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
     def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
         1 * createChild("root-project") >> rootProjectClassLoaderScope
     }
@@ -66,7 +64,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         rootProject = project(rootDescriptor, null)
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
         childProject = project(childDescriptor, rootProject)
-        build = Mock(GradleInternal) {
+        gradle = Mock(GradleInternal) {
             getStartParameter() >> startParameter
             getRootProject() >> rootProject
             baseProjectClassLoaderScope() >> baseProjectClassLoaderScope
@@ -81,30 +79,32 @@ class InstantiatingBuildLoaderTest extends Specification {
         settingsInternal.getDefaultProject() >> rootDescriptor
 
         when:
-        buildLoader.load(settingsInternal, build)
+        buildLoader.load(settingsInternal, gradle)
 
         then:
-        projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
+        projectFactory.createProject(gradle, rootDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
 
         and:
-        1 * build.setRootProject(rootProject)
-        1 * build.setDefaultProject(rootProject)
+        1 * gradle.setRootProject(rootProject)
+        1 * gradle.setDefaultProject(rootProject)
     }
 
     def createsBuildWithMultipleProjectsAndNotRootDefaultProject() {
         given:
+        def childProjectClassLoaderScope = Mock(ClassLoaderScope)
         settingsInternal.getDefaultProject() >> childDescriptor
+        1 * rootProjectClassLoaderScope.createChild(_) >> childProjectClassLoaderScope
 
         when:
-        buildLoader.load(settingsInternal, build)
+        buildLoader.load(settingsInternal, gradle)
 
         then:
-        1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
-        1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope, rootProjectClassLoaderScope) >> childProject
+        1 * projectFactory.createProject(gradle, rootDescriptor, null, rootProjectClassLoaderScope, baseProjectClassLoaderScope) >> rootProject
+        1 * projectFactory.createProject(gradle, childDescriptor, rootProject, childProjectClassLoaderScope, baseProjectClassLoaderScope) >> childProject
 
         and:
-        1 * build.setRootProject(rootProject)
-        1 * build.setDefaultProject(childProject)
+        1 * gradle.setRootProject(rootProject)
+        1 * gradle.setDefaultProject(childProject)
 
         and:
         rootProject.childProjects['child'].is childProject

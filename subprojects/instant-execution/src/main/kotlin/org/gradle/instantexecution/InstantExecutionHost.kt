@@ -146,9 +146,9 @@ class InstantExecutionHost internal constructor(
                 fileResolver
             )
             return projectFactory.createProject(
+                gradle,
                 projectDescriptor,
                 getProject(parentPath),
-                gradle,
                 coreAndPluginsScope.createChild(projectDescriptor.path),
                 coreAndPluginsScope
             )

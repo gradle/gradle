@@ -25,5 +25,5 @@ import javax.annotation.Nullable;
  * Creates a {@link ProjectInternal} implementation.
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(ProjectDescriptor projectDescriptor, @Nullable ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
+    ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, @Nullable ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
 }
