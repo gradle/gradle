@@ -339,7 +339,7 @@ public class PropertyValidationAccess {
         @Override
         public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
             if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
-                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
+                validationContext.visitErrorStrict(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
         }
     }
