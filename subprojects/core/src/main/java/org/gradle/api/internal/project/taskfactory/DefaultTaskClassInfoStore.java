@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -34,7 +35,10 @@ import org.gradle.work.InputChanges;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
@@ -57,30 +61,118 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
-        boolean incremental = false;
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
+        AbstractIncrementalTaskActionFactory foundIncrementalTaskActionFactory = null;
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
-                TaskActionFactory taskActionFactory = createTaskAction(type, method, processedMethods);
+                TaskActionFactory taskActionFactory = createTaskAction(type, method);
                 if (taskActionFactory == null) {
                     continue;
                 }
+                Class<?> declaringClass = method.getDeclaringClass();
+                Class<?> previousDeclaringClass = processedMethods.put(method.getName(), declaringClass);
+                if (taskActionFactory instanceof AbstractIncrementalTaskActionFactory
+                    && foundIncrementalTaskActionFactory != null
+                    && method.getName().equals(foundIncrementalTaskActionFactory.getMethod().getName())
+                ) {
+                    // Let's try if we can decide on one
+                    AbstractIncrementalTaskActionFactory selectedTaskAction = selectIncrementalTaskAction(type, foundIncrementalTaskActionFactory, taskActionFactory, current, method);
+                    if (selectedTaskAction != null) {
+                        foundIncrementalTaskActionFactory = selectedTaskAction;
+                        continue;
+                    }
+                }
+                if (previousDeclaringClass == declaringClass) {
+                    throw new GradleException(String.format(
+                        "Cannot use @TaskAction annotation on multiple overloads of method %s.%s()",
+                        declaringClass.getSimpleName(), method.getName()
+                    ));
+                } else if (previousDeclaringClass != null) {
+                    continue;
+                }
                 if (taskActionFactory instanceof AbstractIncrementalTaskActionFactory) {
-                    if (incremental) {
+                    if (foundIncrementalTaskActionFactory != null) {
                         throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s or %s parameter.", InputChanges.class.getSimpleName(), IncrementalTaskInputs.class.getSimpleName()));
                     }
-                    incremental = true;
+                    foundIncrementalTaskActionFactory = (AbstractIncrementalTaskActionFactory) taskActionFactory;
+                    continue;
                 }
                 taskActionFactoriesBuilder.add(taskActionFactory);
             }
+        }
+        if (foundIncrementalTaskActionFactory != null) {
+            taskActionFactoriesBuilder.add(foundIncrementalTaskActionFactory);
         }
 
         return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable);
     }
 
+    /**
+     * Select between two incremental task action factories.
+     *
+     * The selection works like this:
+     * - If both task actions are of the same type (InputChanges or IncrementalTaskInputs), we select the one we already found.
+     *   This happens when a subclass overrides the task action method in the subclass, while both have TaskAction annotations.
+     * - If the InputChanges is not deprecated and the IncrementalTaskInputs method is, then we try to select one:
+     *   - If a subclass overrides the IncrementalTaskInputs method, we create a {@link BridgingIncrementalInputsTaskActionFactory} which passes the {@link InputChanges} object into the IncrementalTaskInputs method
+     *   - If no subclass overrides the IncrementalTaskInputs method, we use the InputChanges method directly.
+     *
+     *   All this is only required to support the Android Gradle plugin &lt; 3.6.
+     *   As soon as 3.6 is out we should drop the support for 3.5 and simplify the code here again.
+     */
     @Nullable
-    private static TaskActionFactory createTaskAction(Class<? extends Task> taskType, final Method method, Map<String, Class<?>> processedMethods) {
+    private AbstractIncrementalTaskActionFactory selectIncrementalTaskAction(Class<? extends Task> taskClass, AbstractIncrementalTaskActionFactory foundTaskActionFactory, TaskActionFactory currentTaskActionFactory, Class currentClass, Method currentMethod) {
+        if (currentTaskActionFactory.getClass() == foundTaskActionFactory.getClass()) {
+            return foundTaskActionFactory;
+        }
+        AbstractIncrementalTaskActionFactory currentIncrementalTaskActionFactory = (AbstractIncrementalTaskActionFactory) currentTaskActionFactory;
+        Map<Boolean, List<AbstractIncrementalTaskActionFactory>> partitionedActions = Stream.of(foundTaskActionFactory, currentIncrementalTaskActionFactory)
+            .collect(Collectors.partitioningBy(IncrementalInputsTaskActionFactory.class::isInstance));
+        List<AbstractIncrementalTaskActionFactory> incrementalInputsFactories = partitionedActions.get(true);
+        List<AbstractIncrementalTaskActionFactory> incrementalTaskInputFactories = partitionedActions.get(false);
+
+        if (incrementalInputsFactories.size() == 1 && incrementalTaskInputFactories.size() == 1) {
+            IncrementalInputsTaskActionFactory incrementalInputsTaskActionFactory = (IncrementalInputsTaskActionFactory) Iterables.getOnlyElement(incrementalInputsFactories);
+            IncrementalTaskInputsTaskActionFactory incrementalTaskInputsTaskActionFactory = (IncrementalTaskInputsTaskActionFactory) Iterables.getOnlyElement(incrementalTaskInputFactories);
+
+            if (isDeprecated(incrementalTaskInputsTaskActionFactory) && !isDeprecated(incrementalInputsTaskActionFactory)) {
+                Class<?> declaringClassForIncrementalTaskInputsMethod = getDeclaringClassForIncrementalTaskInputsMethod(taskClass, currentMethod.getName());
+                if (declaringClassForIncrementalTaskInputsMethod != currentClass) {
+                    return new BridgingIncrementalInputsTaskActionFactory(taskClass, currentMethod);
+                } else {
+                    return incrementalInputsTaskActionFactory;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Class<?> getDeclaringClassForIncrementalTaskInputsMethod(Class<? extends Task> type, String methodName) {
+        Method incrementalTaskInputsMethod = null;
+        Class<?> current = type;
+        while (incrementalTaskInputsMethod == null) {
+            incrementalTaskInputsMethod = getIncrementalTaskInputsMethod(current, methodName);
+            current = current.getSuperclass();
+        }
+        return incrementalTaskInputsMethod.getDeclaringClass();
+    }
+
+    @Nullable
+    private Method getIncrementalTaskInputsMethod(Class<?> type, String methodName) {
+        try {
+            return type.getDeclaredMethod(methodName, IncrementalTaskInputs.class);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private boolean isDeprecated(AbstractIncrementalTaskActionFactory foundIncrementalTaskActionFactory) {
+        return foundIncrementalTaskActionFactory.getMethod().getAnnotation(Deprecated.class) != null;
+    }
+
+    @Nullable
+    private static TaskActionFactory createTaskAction(Class<? extends Task> taskType, final Method method) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return null;
         }
@@ -112,15 +204,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             taskActionFactory = new StandardTaskActionFactory(taskType, method);
         }
 
-        Class<?> previousDeclaringClass = processedMethods.put(method.getName(), declaringClass);
-        if (previousDeclaringClass == declaringClass) {
-            throw new GradleException(String.format(
-                "Cannot use @TaskAction annotation on multiple overloads of method %s.%s()",
-                declaringClass.getSimpleName(), method.getName()
-            ));
-        } else if (previousDeclaringClass != null) {
-            return null;
-        }
         return taskActionFactory;
     }
 
@@ -161,6 +244,18 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
     }
 
+    private static class BridgingIncrementalInputsTaskActionFactory extends AbstractIncrementalTaskActionFactory {
+
+        public BridgingIncrementalInputsTaskActionFactory(Class<? extends Task> taskType, Method method) {
+            super(taskType, method);
+        }
+
+        @Override
+        protected Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method) {
+            return new BridgingIncrementalInputsTaskAction(taskType, method);
+        }
+    }
+
     private static abstract class AbstractIncrementalTaskActionFactory implements TaskActionFactory {
         private final Class<? extends Task> taskType;
         private final Method method;
@@ -168,6 +263,10 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         public AbstractIncrementalTaskActionFactory(Class<? extends Task> taskType, Method method) {
             this.taskType = taskType;
             this.method = method;
+        }
+
+        public Method getMethod() {
+            return method;
         }
 
         protected abstract Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method);

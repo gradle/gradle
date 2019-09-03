@@ -62,11 +62,11 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
 
         where:
         scenario                                    | initialSet            | firstChange                   | firstBuildMessage                                        | secondChange                  | secondBuildMessage
-        'Add Java files to Groovy file set'         | ['G']                 | ['G', 'J']                    | 'changes to non-Groovy files'                            | ['G', 'J']                    | 'UP-TO-DATE'
-        'Add Groovy files to Java file set'         | ['J']                 | ['G', 'J']                    | 'unable to get source-classes mapping'                   | ['G', 'J.changed']            | 'changes to non-Groovy files'
-        'Change Java files in joint compilation'    | ['G', 'J']            | ['G', 'J.changed']            | 'changes to non-Groovy files'                            | ['G', 'J.changed']            | 'UP-TO-DATE'
+        'Add Java files to Groovy file set'         | ['G']                 | ['G', 'J']                    | 'non-Groovy file'                                        | ['G', 'J']                    | 'UP-TO-DATE'
+        'Add Groovy files to Java file set'         | ['J']                 | ['G', 'J']                    | 'unable to get source-classes mapping'                   | ['G', 'J.changed']            | 'non-Groovy file'
+        'Change Java files in joint compilation'    | ['G', 'J']            | ['G', 'J.changed']            | 'non-Groovy file'                                        | ['G', 'J.changed']            | 'UP-TO-DATE'
         'Change Groovy files which Java depends on' | ['G', 'J_G']          | ['G.changed', 'J_G']          | 'unable to find source file of class J_G'                | ['G.changed', 'J_G']          | 'UP-TO-DATE'
-        'Remove Java files in joint compilation'    | ['G', 'J']            | ['G']                         | 'changes to non-Groovy files'                            | ['G', 'G_G']                  | 'Incremental compilation of '
+        'Remove Java files in joint compilation'    | ['G', 'J']            | ['G']                         | 'non-Groovy file'                                        | ['G', 'G_G']                  | 'Incremental compilation of '
         'Remove Groovy files in joint compilation'  | ['G', 'J']            | ['J']                         | 'UP-TO-DATE'/*None of the classes needs to be compiled*/ | ['J', 'G']                    | 'unable to get source-classes mapping'
         'Add Groovy files to joint file set'        | ['G', 'J']            | ['G', 'J', 'G_G']             | 'Incremental compilation of'                             | ['G', 'J', 'G_G']             | 'UP-TO-DATE'
         'Change root Groovy files '                 | ['G', 'G_G', 'J_G_G'] | ['G.changed', 'G_G', 'J_G_G'] | 'unable to find source file of class J_G_G'              | ['G.changed', 'G_G', 'J_G_G'] | 'UP-TO-DATE'

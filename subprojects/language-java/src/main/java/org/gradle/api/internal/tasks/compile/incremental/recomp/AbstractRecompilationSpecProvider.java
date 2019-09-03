@@ -30,9 +30,11 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.work.FileChange;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
@@ -106,5 +108,9 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         File destinationDir = spec.getDestinationDir();
         classpath.add(destinationDir);
         spec.setCompileClasspath(classpath);
+    }
+
+    protected String rebuildClauseForChangedNonSourceFile(String description, FileChange fileChange) {
+        return String.format("%s '%s' has been %s", description, fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
 }
