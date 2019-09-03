@@ -80,7 +80,7 @@ fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
         findProperty(kotlinBuildScriptModelCorrelationId) as? String,
         (findProperty(kotlinDslScriptsModelTargets) as? String)
-            ?.split(":")
+            ?.split("|")
             ?.map(::canonicalFile)
             ?.takeIf { it.isNotEmpty() }
             ?: throw IllegalArgumentException("$kotlinDslScriptsModelTargets property must be set and non empty")

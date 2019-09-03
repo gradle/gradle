@@ -120,7 +120,7 @@ fun ProjectConnection.newKotlinDslScriptsModelBuilder(request: KotlinDslScriptsM
         val arguments = request.options.toMutableList()
         arguments += "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}"
         if (request.scripts.isNotEmpty()) {
-            arguments += "-P$kotlinDslScriptsModelTargets=${request.scripts.joinToString(":") { it.canonicalPath }}"
+            arguments += "-P$kotlinDslScriptsModelTargets=${request.scripts.joinToString("|") { it.canonicalPath }}"
         }
         withArguments(arguments)
     }

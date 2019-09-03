@@ -22,6 +22,8 @@ import org.gradle.kotlin.dsl.resolver.KotlinDslScriptsModelRequest
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 
+import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
+
 
 @TargetGradleVersion(">=6.0")
 class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -41,33 +43,31 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         def root = withBuildScript("""
             buildscript {
                 dependencies {
-                    classpath(files("$rootJar"))
+                    classpath(files("${escapeString(rootJar)}"))
                 }
             }
         """)
         def a = withBuildScriptIn("a", """
             buildscript {
                 dependencies {
-                    classpath(files("$aJar"))
+                    classpath(files("${escapeString(aJar)}"))
                 }
             }
         """)
         def b = withBuildScriptIn("b", """
             buildscript {
                 dependencies {
-                    classpath(files("$bJar"))
+                    classpath(files("${escapeString(bJar)}"))
                 }
             }
         """)
+        def scriptFiles = [settings, root, a, b]
 
         when:
-        def model = kotlinDslScriptsModelFor(settings, root, a, b)
+        def model = kotlinDslScriptsModelFor(*scriptFiles)
 
         then:
         model.scriptModels.size() == 4
-        model.scriptModels.values().each { script ->
-            println(script)
-        }
 
         and:
         def settingsClassPath = model.scriptModels[settings].classPath.collect { it.name }
