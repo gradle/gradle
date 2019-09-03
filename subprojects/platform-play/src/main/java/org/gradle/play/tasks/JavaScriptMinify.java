@@ -20,13 +20,11 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
@@ -64,7 +62,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     @Inject
-    protected FileResolver getFileResolver() {
+    protected FileSystemOperations getFileSystemOperations() {
         throw new UnsupportedOperationException();
     }
 
@@ -167,8 +165,7 @@ public class JavaScriptMinify extends SourceTask {
             final File outputFileDir = new File(destinationDir, fileDetails.getRelativePath().getParent().getPathString());
 
             // Copy the raw form
-            FileOperations fileOperations = ((ProjectInternal) getProject()).getFileOperations();
-            fileOperations.copy(new Action<CopySpec>() {
+            getFileSystemOperations().copy(new Action<CopySpec>() {
                 @Override
                 public void execute(CopySpec copySpec) {
                     copySpec.from(fileDetails.getFile()).into(outputFileDir);
