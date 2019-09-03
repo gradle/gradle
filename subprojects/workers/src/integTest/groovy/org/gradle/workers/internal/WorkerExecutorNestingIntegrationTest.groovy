@@ -26,7 +26,7 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 @IntegrationTestTimeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     def nestingParameterType = fixture.workParameterClass("NestingParameter", "org.gradle.test").withFields([
-        "greeting": "String",
+        "greeting": "Property<String>",
         "childSubmissions": "int"
     ])
 
@@ -205,7 +205,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
             def theGreeting = parameters.greeting
             parameters.childSubmissions.times {
                 executor."\${getWorkerMethod($nestedIsolationMode)}"().submit(SecondLevelExecution) {
-                    greeting = theGreeting
+                    greeting.set(theGreeting)
                 }
             }
         """
@@ -215,7 +215,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
     WorkerExecutorFixture.WorkActionClass getSecondLevelExecution() {
         def workerClass = fixture.workActionClass("SecondLevelExecution", "org.gradle.test", nestingParameterType)
         workerClass.action = """
-            System.out.println(parameters.greeting)
+            System.out.println(parameters.greeting.get())
         """
         return workerClass
     }
