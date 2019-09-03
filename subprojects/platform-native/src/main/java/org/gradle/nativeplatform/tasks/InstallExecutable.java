@@ -21,9 +21,9 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -191,7 +191,7 @@ public class InstallExecutable extends DefaultTask {
     }
 
     @Inject
-    protected FileOperations getFileOperations() {
+    protected FileSystemOperations getFileSystemOperations() {
         throw new UnsupportedOperationException();
     }
 
@@ -260,7 +260,7 @@ public class InstallExecutable extends DefaultTask {
     }
 
     private void installToDir(final File binaryDir, final File executableFile, final Collection<File> libs) {
-        getFileOperations().sync(copySpec -> {
+        getFileSystemOperations().sync(copySpec -> {
             copySpec.into(binaryDir);
             copySpec.from(executableFile);
             copySpec.from(libs);
