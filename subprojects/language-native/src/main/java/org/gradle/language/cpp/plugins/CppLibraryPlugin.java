@@ -69,6 +69,8 @@ public class CppLibraryPlugin implements Plugin<Project> {
     private final TargetMachineFactory targetMachineFactory;
 
     /**
+     * CppLibraryPlugin.
+     *
      * @since 4.2
      */
     @Inject

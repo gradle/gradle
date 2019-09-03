@@ -56,6 +56,8 @@ public class SwiftApplicationPlugin implements Plugin<Project> {
     private final TargetMachineFactory targetMachineFactory;
 
     /**
+     * SwiftApplicationPlugin.
+     *
      * @since 4.2
      */
     @Inject
