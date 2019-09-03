@@ -80,14 +80,13 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         outputContains("value: [" + testDirectory.file("out.dir") + "]")
     }
 
-    @Unroll
-    def "can wire the output file of multiple tasks as input to another task using property created by #outputFileMethod"() {
+    def "can wire the output file of multiple tasks as input to another task using property"() {
         buildFile << """
             class FileOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
-                final RegularFileProperty outputFile = ${outputFileMethod}
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void go() {
@@ -127,7 +126,6 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 """
         file("file1-source.txt").text = "file1"
         file("file2-source.txt").text = "file2"
-        expectDeprecated(deprecated)
 
         when:
         run("merge")
@@ -149,12 +147,6 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksNotSkipped(":createFile1", ":merge")
         file("output/merged.txt").text == 'new-file1,file2'
-
-        where:
-        outputFileMethod                 | deprecated
-        "newOutputFile()"                | 1
-        "project.layout.fileProperty()"  | 1
-        "project.objects.fileProperty()" | 0
     }
 
     def "can wire the output files of a task as input to another task"() {
@@ -224,15 +216,14 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         file("output/merged.txt").text == 'new-file1,new-file1'
     }
 
-    @Unroll
-    def "can wire the output directory of multiple tasks as input to another task using property created by #outputDirMethod"() {
+    def "can wire the output directory of multiple tasks as input to another task using property"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
 
                 @OutputDirectory
-                final DirectoryProperty outputDir = ${outputDirMethod}
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
 
                 @TaskAction
                 void go() {
@@ -274,7 +265,6 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         file("dir2-source.txt").text = "dir2"
 
         when:
-        expectDeprecated(deprecated)
         run("merge")
 
         then:
@@ -294,12 +284,6 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksNotSkipped(":createDir1", ":merge")
         file("output/merged.txt").text == 'new-dir1,dir2'
-
-        where:
-        outputDirMethod                       | deprecated
-        "newOutputDirectory()"                | 1
-        "project.layout.directoryProperty()"  | 1
-        "project.objects.directoryProperty()" | 0
     }
 
     def "can wire the output directories of a task as input to another task"() {
@@ -517,13 +501,5 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksNotSkipped(":createDir1", ":merge")
         file("output/merged.txt").text == 'new-dir1,dir2'
-    }
-
-    def expectDeprecated(int count) {
-        if (count > 0) {
-            executer.beforeExecute {
-                expectDeprecationWarnings(count)
-            }
-        }
     }
 }

@@ -23,21 +23,25 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Santa Tracker Android application"() {
         def testRepoUri = "https://github.com/gradle/android-relocation-test"
-        def testRepoBranch = "master"
+        def testRepoTarget = "63c4e4c25db4a21e6694fe3e31f20f77da403b6a"
 
         def projectDir = testProjectDir.root
 
-        println "> Cloning $testRepoUri branch $testRepoBranch..."
+        println "> Cloning $testRepoUri"
 
-        def clone = Git.cloneRepository()
-        clone.URI = testRepoUri
-        clone.branch = testRepoBranch
-        clone.directory = projectDir
-        clone.cloneSubmodules = true
-        def git = clone.call()
+        def git = Git.cloneRepository()
+            .setURI(testRepoUri)
+            .setDirectory(projectDir)
+            .setCloneSubmodules(true)
+            .call()
+
+        println "> Checking out $testRepoTarget"
+        git.checkout()
+            .setName(testRepoTarget)
+            .call()
 
         def commitId = git.repository.findRef("HEAD").objectId.name()
-        println "> Building commit $commitId..."
+        println "> Building commit $commitId"
 
         expect:
         runner(

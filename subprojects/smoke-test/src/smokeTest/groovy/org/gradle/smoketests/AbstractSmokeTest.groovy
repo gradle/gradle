@@ -76,7 +76,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "28.0.3"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of("3.2.1", "3.3.2", "3.4.2", "3.5.0", "3.6.0-alpha09")
+        static androidGradle = Versions.of("3.4.2", "3.5.0", "3.6.0-alpha09")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50')

@@ -91,6 +91,534 @@
             "member": "Constructor org.gradle.language.nativeplatform.tasks.UnexportMainSymbol()",
             "acceptation": "The class is incubating and was simply move",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "member": "Class org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Class org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Class org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Class org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Class org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Class org.gradle.api.reporting.components.ComponentReport",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Class org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Class org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Class org.gradle.api.reporting.GenerateBuildDashboard",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Class org.gradle.api.reporting.model.ModelReport",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Class org.gradle.api.tasks.AbstractCopyTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Class org.gradle.api.tasks.AbstractExecTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ant.AntTarget",
+            "member": "Class org.gradle.api.tasks.ant.AntTarget",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Class org.gradle.api.tasks.Delete",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Class org.gradle.api.tasks.GradleBuild",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Class org.gradle.api.tasks.JavaExec",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Class org.gradle.api.tasks.SourceTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Class org.gradle.api.tasks.testing.AbstractTestTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Class org.gradle.api.tasks.testing.TestReport",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Class org.gradle.api.tasks.Upload",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.wrapper.Wrapper",
+            "member": "Class org.gradle.api.tasks.wrapper.Wrapper",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Class org.gradle.api.tasks.WriteProperties",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Class org.gradle.buildinit.tasks.InitBuild",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Class org.gradle.jvm.application.tasks.CreateStartScripts",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.language.assembler.tasks.Assemble",
+            "member": "Class org.gradle.language.assembler.tasks.Assemble",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.language.rc.tasks.WindowsResourceCompile",
+            "member": "Class org.gradle.language.rc.tasks.WindowsResourceCompile",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Class org.gradle.language.swift.tasks.SwiftCompile",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Class org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Class org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Class org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Class org.gradle.nativeplatform.tasks.InstallExecutable",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask",
+            "member": "Class org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Class org.gradle.nativeplatform.tasks.StripSymbols",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Class org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Class org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.play.tasks.PlayRun",
+            "member": "Class org.gradle.play.tasks.PlayRun",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.GeneratePluginDescriptors",
+            "member": "Class org.gradle.plugin.devel.tasks.GeneratePluginDescriptors",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "member": "Class org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Class org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.GeneratorTask",
+            "member": "Class org.gradle.plugins.ide.api.GeneratorTask",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate",
+            "member": "Class org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Class org.gradle.plugins.signing.Sign",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "member": "Class org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoBase",
+            "member": "Class org.gradle.testing.jacoco.tasks.JacocoBase",
+            "acceptation": "Methods removed",
+            "changes": [
+                "org.gradle.api.DefaultTask.newInputDirectory()",
+                "org.gradle.api.DefaultTask.newInputFile()",
+                "org.gradle.api.DefaultTask.newOutputDirectory()",
+                "org.gradle.api.DefaultTask.newOutputFile()"
+            ]
         }
     ]
 }

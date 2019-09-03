@@ -33,6 +33,7 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
@@ -357,6 +358,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
+    }
+
+    FilePropertyFactory createProjectFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
     }
 
     protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
