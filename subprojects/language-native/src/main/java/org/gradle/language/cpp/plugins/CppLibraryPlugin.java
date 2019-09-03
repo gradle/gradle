@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -70,8 +69,6 @@ public class CppLibraryPlugin implements Plugin<Project> {
     private final TargetMachineFactory targetMachineFactory;
 
     /**
-     * Injects a {@link FileOperations} instance.
-     *
      * @since 4.2
      */
     @Inject
