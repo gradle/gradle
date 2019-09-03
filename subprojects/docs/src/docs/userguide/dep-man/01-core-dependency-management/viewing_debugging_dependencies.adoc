@@ -34,7 +34,7 @@ You can declare dependencies for any external tooling with the help of a <<decla
 
 Every Gradle project provides the task `dependencies` to render the so-called _dependency report_ from the command line.
 By default the dependency report renders dependencies for all configurations.
-To pair down on the information provide the optional parameter `--configuration`.
+To focus on the information about one configuration, provide the optional parameter `--configuration`.
 
 .Declaring the JGit dependency with a custom configuration
 ====
