@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.ExecResult;
+import org.gradle.process.JavaForkOptions;
 
 import java.util.concurrent.Executor;
 
@@ -27,8 +28,8 @@ import java.util.concurrent.Executor;
  * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
  */
 public class DefaultJavaExecAction extends JavaExecHandleBuilder implements JavaExecAction {
-    public DefaultJavaExecAction(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptionsFactory javaForkOptionsFactory) {
-        super(fileResolver, fileCollectionFactory, executor, buildCancellationToken, javaForkOptionsFactory);
+    public DefaultJavaExecAction(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptions javaOptions) {
+        super(fileResolver, fileCollectionFactory, executor, buildCancellationToken, javaOptions);
     }
 
     @Override

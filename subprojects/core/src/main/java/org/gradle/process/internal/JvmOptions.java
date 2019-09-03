@@ -251,10 +251,10 @@ public class JvmOptions {
     }
 
     public FileCollection getBootstrapClasspath() {
-        return internalGetBootstrapCLasspath();
+        return internalGetBootstrapClasspath();
     }
 
-    private ConfigurableFileCollection internalGetBootstrapCLasspath() {
+    private ConfigurableFileCollection internalGetBootstrapClasspath() {
         if (bootstrapClasspath == null) {
             bootstrapClasspath = fileCollectionFactory.configurableFiles("bootstrap classpath");
         }
@@ -262,15 +262,15 @@ public class JvmOptions {
     }
 
     public void setBootstrapClasspath(FileCollection classpath) {
-        internalGetBootstrapCLasspath().setFrom(classpath);
+        internalGetBootstrapClasspath().setFrom(classpath);
     }
 
     public void setBootstrapClasspath(Object... classpath) {
-        internalGetBootstrapCLasspath().setFrom(classpath);
+        internalGetBootstrapClasspath().setFrom(classpath);
     }
 
     public void bootstrapClasspath(Object... classpath) {
-        internalGetBootstrapCLasspath().from(classpath);
+        internalGetBootstrapClasspath().from(classpath);
     }
 
     public String getMinHeapSize() {
@@ -322,7 +322,7 @@ public class JvmOptions {
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
-        target.setBootstrapClasspath(getBootstrapClasspath());
+        target.bootstrapClasspath(getBootstrapClasspath().getFiles());
         target.setEnableAssertions(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());
         target.systemProperties(immutableSystemProperties);
@@ -335,7 +335,7 @@ public class JvmOptions {
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
         if (bootstrapClasspath != null) {
-            target.setBootstrapClasspath(getBootstrapClasspath());
+            target.setBootstrapClasspath(getBootstrapClasspath().getFiles());
         }
         target.setEnableAssertions(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());

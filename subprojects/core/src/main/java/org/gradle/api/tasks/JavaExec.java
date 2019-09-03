@@ -29,6 +29,7 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.DslExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
@@ -100,11 +101,16 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
-        javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
+        javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
     }
 
     @Inject
     protected ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DslExecActionFactory getDslExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 
