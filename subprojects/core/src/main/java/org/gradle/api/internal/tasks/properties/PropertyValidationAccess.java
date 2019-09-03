@@ -130,7 +130,7 @@ public class PropertyValidationAccess {
         boolean cacheable;
         boolean mapErrorsToWarnings;
         if (Task.class.isAssignableFrom(topLevelBean)) {
-            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedNonnullCast(topLevelBean)).isCacheable();
+            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.uncheckedNonnullCast(topLevelBean)).isCacheable();
             // Treat all errors as warnings, for backwards compatibility
             mapErrorsToWarnings = true;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
@@ -141,7 +141,7 @@ public class PropertyValidationAccess {
             mapErrorsToWarnings = false;
         }
 
-        Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
+        Queue<BeanTypeNode<?>> queue = new ArrayDeque<>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
         boolean stricterValidation = enableStricterValidation || cacheable;
@@ -188,10 +188,10 @@ public class PropertyValidationAccess {
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedNonnullCast(beanType), typeMetadata);
+                    return new MapBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedNonnullCast(beanType), typeMetadata);
+                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);

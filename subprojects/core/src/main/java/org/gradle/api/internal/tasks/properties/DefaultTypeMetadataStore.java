@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -56,12 +55,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final String displayName;
-    private final Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
-        @Override
-        public TypeMetadata transform(Class<?> type) {
-            return createTypeMetadata(type);
-        }
-    };
+    private final Transformer<TypeMetadata, Class<?>> typeMetadataFactory = this::createTypeMetadata;
 
     public DefaultTypeMetadataStore(
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
@@ -71,13 +65,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);
-        this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
-                return handler.getAnnotationType();
-            }
-        });
+        this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, PropertyAnnotationHandler::getAnnotationType);
         this.allowedPropertyModifiers = ImmutableSet.copyOf(allowedPropertyModifiers);
         this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
         this.displayName = calculateDisplayName(propertyAnnotationHandlers);
@@ -177,42 +165,22 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public void visitError(@Nullable String ownerPath, final String propertyName, final String message) {
-            builder.add(new ValidationProblem() {
-                @Override
-                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
-                    validationContext.visitError(ownerPropertyPath, propertyName, message);
-                }
-            });
+            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitError(ownerPropertyPath, propertyName, message));
         }
 
         @Override
         public void visitError(final String message) {
-            builder.add(new ValidationProblem() {
-                @Override
-                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
-                    validationContext.visitError(message);
-                }
-            });
+            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitError(message));
         }
 
         @Override
         public void visitErrorStrict(@Nullable final String ownerPath, final String propertyName, final String message) {
-            builder.add(new ValidationProblem() {
-                @Override
-                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
-                    validationContext.visitErrorStrict(ownerPath, propertyName, message);
-                }
-            });
+            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitErrorStrict(ownerPath, propertyName, message));
         }
 
         @Override
         public void visitErrorStrict(final String message) {
-            builder.add(new ValidationProblem() {
-                @Override
-                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
-                    validationContext.visitErrorStrict(message);
-                }
-            });
+            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitErrorStrict(message));
         }
     }
 
