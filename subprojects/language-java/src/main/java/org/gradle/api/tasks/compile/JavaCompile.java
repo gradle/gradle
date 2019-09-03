@@ -194,9 +194,9 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
-    private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
+    private CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getOutputs(), getDeleter());
+        return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
     }
 
     @Nested

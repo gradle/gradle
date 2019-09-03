@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilation;
@@ -36,18 +36,18 @@ import java.util.Collection;
 class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
     private static final Logger LOG = LoggerFactory.getLogger(SelectiveCompiler.class);
     private final PreviousCompilation previousCompilation;
-    private final CleaningJavaCompilerSupport<T> cleaningCompiler;
+    private final CleaningJavaCompiler<T> cleaningCompiler;
     private final Compiler<T> rebuildAllCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
 
     public SelectiveCompiler(PreviousCompilation previousCompilation,
-                             CleaningJavaCompilerSupport<T> cleaningCompiler,
+                             CleaningJavaCompiler<T> cleaningJavaCompiler,
                              Compiler<T> rebuildAllCompiler,
                              RecompilationSpecProvider recompilationSpecProvider,
                              ClasspathSnapshotProvider classpathSnapshotProvider) {
         this.previousCompilation = previousCompilation;
-        this.cleaningCompiler = cleaningCompiler;
+        this.cleaningCompiler = cleaningJavaCompiler;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
         this.classpathSnapshotProvider = classpathSnapshotProvider;
