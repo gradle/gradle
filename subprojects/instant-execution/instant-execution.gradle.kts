@@ -95,6 +95,7 @@ tasks {
     withType<IntegrationTest>().configureEach {
         dependsOn(santaTrackerJava)
         dependsOn(santaTrackerKotlin)
+        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
     }
 
     register<Delete>("cleanRemoteProjects") {
