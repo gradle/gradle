@@ -533,8 +533,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // this.super(p0 .. pn)
             methodVisitor.visitVarInsn(ALOAD, 0);
-            for (int i = 0; i < constructor.getParameterTypes().length; i++) {
-                methodVisitor.visitVarInsn(Type.getType(constructor.getParameterTypes()[i]).getOpcode(ILOAD), i + 1);
+            for (int typeVar = 0, stackVar = 1; typeVar < paramTypes.size(); ++typeVar) {
+                Type argType = paramTypes.get(typeVar);
+                methodVisitor.visitVarInsn(argType.getOpcode(ILOAD), stackVar);
+                stackVar += argType.getSize();
             }
             methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), "<init>", methodDescriptor, false);
 
@@ -1459,12 +1461,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE <method>(…, ConfigureUtil.configureUsing(v));
             methodVisitor.visitVarInsn(ALOAD, 0);
 
-            for (int stackVar = 1; stackVar < numParams; ++stackVar) {
-                methodVisitor.visitVarInsn(closurisedParameterTypes[stackVar - 1].getOpcode(ILOAD), stackVar);
+            int stackVar = 1;
+            for (int typeVar = 0; typeVar < numParams - 1; ++typeVar) {
+                Type argType = closurisedParameterTypes[typeVar];
+                methodVisitor.visitVarInsn(argType.getOpcode(ILOAD), stackVar);
+                stackVar += argType.getSize();
             }
 
             // GENERATE ConfigureUtil.configureUsing(v);
-            methodVisitor.visitVarInsn(ALOAD, numParams);
+            methodVisitor.visitVarInsn(ALOAD, stackVar);
             methodDescriptor = Type.getMethodDescriptor(ACTION_TYPE, CLOSURE_TYPE);
             methodVisitor.visitMethodInsn(INVOKESTATIC, CONFIGURE_UTIL_TYPE.getInternalName(), "configureUsing", methodDescriptor, false);
 
