@@ -29,6 +29,7 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import java.io.File
+import java.util.concurrent.Callable
 
 
 internal
@@ -54,16 +55,14 @@ class FileCollectionCodec(
     override suspend fun ReadContext.decode(): FileCollectionInternal {
         val contents = read()
         return if (contents is Collection<*>) {
-            val configurableFiles = fileCollectionFactory.configurableFiles()
-            contents.forEach { element ->
+            fileCollectionFactory.resolving(contents.map { element ->
                 when (element) {
-                    is File -> configurableFiles.from(element)
-                    is TransformationNode -> configurableFiles.from({ element.transformedSubject.get().files })
-                    is FileTree -> configurableFiles.from(element)
+                    is File -> element
+                    is TransformationNode -> Callable { element.transformedSubject.get().files }
+                    is FileTree -> element
                     else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                 }
-            }
-            configurableFiles as FileCollectionInternal
+            })
         } else {
             fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
         }
