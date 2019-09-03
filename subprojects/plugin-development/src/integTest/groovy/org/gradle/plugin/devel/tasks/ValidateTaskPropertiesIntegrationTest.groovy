@@ -54,10 +54,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation gradleApi()
             }
-
-            validateTaskProperties {
-                failOnWarning = true
-            }
         """
     }
 

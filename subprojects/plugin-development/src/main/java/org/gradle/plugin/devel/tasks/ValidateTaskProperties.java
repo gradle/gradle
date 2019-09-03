@@ -111,7 +111,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private final RegularFileProperty outputFile;
     private boolean enableStricterValidation;
     private boolean ignoreFailures;
-    private boolean failOnWarning;
+    private boolean failOnWarning = true;
 
     @Inject
     public ValidateTaskProperties(ObjectFactory objects) {
@@ -175,7 +175,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         });
         List<String> problemMessages = toProblemMessages(taskValidationProblems);
         storeResults(problemMessages);
-        communicateResult(problemMessages, taskValidationProblems.values().contains(Boolean.TRUE));
+        communicateResult(problemMessages, taskValidationProblems.containsValue(Boolean.TRUE));
     }
 
     private void storeResults(List<String> problemMessages) throws IOException {
@@ -309,7 +309,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     /**
      * Specifies whether the build should break when the verifications performed by this task detects a warning.
      *
-     * @param failOnWarning {@code true} to break the build on warning, {@code false} to ignore warnings. The default is {@code false}.
+     * @param failOnWarning {@code true} to break the build on warning, {@code false} to ignore warnings. The default is {@code true}.
      */
     @SuppressWarnings("unused")
     public void setFailOnWarning(boolean failOnWarning) {
