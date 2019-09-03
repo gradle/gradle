@@ -10,7 +10,8 @@ We would like to thank the following community contributors to this release of G
 [Andrey Mischenko](https://github.com/gildor),
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
-and [Nigel Banks](https://github.com/nigelgbanks).
+[Nigel Banks](https://github.com/nigelgbanks),
+and [Dan Sănduleac](https://github.com/dansanduleac),
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
