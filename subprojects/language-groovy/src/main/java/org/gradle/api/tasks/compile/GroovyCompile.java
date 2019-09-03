@@ -225,12 +225,13 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges, Multimap<String, String> sourceClassesMapping) {
+        FileCollection stableSources = getStableSources();
         return new GroovyRecompilationSpecProvider(
             getDeleter(),
             ((ProjectInternal) getProject()).getFileOperations(),
-            getStableSources().getAsFileTree(),
+            stableSources.getAsFileTree(),
             inputChanges.isIncremental(),
-            () -> inputChanges.getFileChanges(getStableSources()).iterator(),
+            () -> inputChanges.getFileChanges(stableSources).iterator(),
             new GroovySourceFileClassNameConverter(sourceClassesMapping));
     }
 
@@ -283,10 +284,11 @@ public class GroovyCompile extends AbstractCompile {
     private GroovyJavaJointCompileSpec createSpec() {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions).create();
 
-        List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
+        FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
+        List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(stableSourcesAsFileTree);
 
         spec.setSourcesRoots(sourceRoots);
-        spec.setSourceFiles(getStableSources().getAsFileTree());
+        spec.setSourceFiles(stableSourcesAsFileTree);
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());

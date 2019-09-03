@@ -111,6 +111,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     protected String rebuildClauseForChangedNonSourceFile(String description, FileChange fileChange) {
-        return description + " '" + fileChange.getFile().getName() + "' has been " + fileChange.getChangeType().name().toLowerCase(Locale.US);
+        return String.format("%s '%s' has been %s", description, fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
 }

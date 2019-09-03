@@ -22,6 +22,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -108,7 +109,7 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @Internal
     protected FileCollection getSources() {
-        return getProject().files().getAsFileTree();
+        return ImmutableFileCollection.of();
     }
 
     /**
