@@ -330,26 +330,29 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(Deleter.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(buildLayoutFactory),
             settingsProcessor,
-            new BuildSourceBuilder(
-                currentBuild,
-                classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                fileLockManager,
-                buildOperationExecutor,
-                cachedClasspathTransformer,
-                new BuildSrcBuildListenerFactory(
-                    PluginsProjectConfigureActions.of(
-                        BuildSrcProjectConfigurationAction.class,
-                        cachingServiceLocator)),
-                buildRegistry,
-                publicBuildPath),
             buildRegistry,
             projectRegistry,
             publicBuildPath
         );
+    }
+
+    protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+        return new BuildSourceBuilder(
+            currentBuild,
+            classLoaderScopeRegistry.getCoreAndPluginsScope(),
+            fileLockManager,
+            buildOperationExecutor,
+            cachedClasspathTransformer,
+            new BuildSrcBuildListenerFactory(
+                PluginsProjectConfigureActions.of(
+                    BuildSrcProjectConfigurationAction.class,
+                    cachingServiceLocator)),
+            buildRegistry,
+            publicBuildPath);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {

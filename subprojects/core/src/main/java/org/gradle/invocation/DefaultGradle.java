@@ -83,6 +83,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ClassLoaderScope classLoaderScope;
     private BuildType buildType = BuildType.NONE;
     private SharedResourceContainer sharedResourceContainer;
+    private ClassLoaderScope baseProjectClassLoaderScope;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -205,6 +206,26 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public StartParameter getStartParameter() {
         return startParameter;
+    }
+
+    @Override
+    public ClassLoaderScope baseProjectClassLoaderScope() {
+        if (baseProjectClassLoaderScope == null) {
+            throw new IllegalStateException("baseProjectClassLoaderScope not yet set");
+        }
+        return baseProjectClassLoaderScope;
+    }
+
+    @Override
+    public void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope) {
+        if (classLoaderScope == null) {
+            throw new IllegalArgumentException("classLoaderScope must not be null");
+        }
+        if (baseProjectClassLoaderScope != null) {
+            throw new IllegalStateException("baseProjectClassLoaderScope is already set");
+        }
+
+        this.baseProjectClassLoaderScope = classLoaderScope;
     }
 
     @Override

@@ -29,15 +29,6 @@ import org.gradle.initialization.IncludedBuildSpec;
 import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal {
-    /**
-     * Returns the scope containing classes that should be visible to all settings scripts and build scripts invoked by this build.
-     */
-    ClassLoaderScope getRootClassLoaderScope();
-
-    /**
-     * Returns the scope into which the main settings script should define classes, and from which plugins applied to this settings object should be resolved.
-     */
-    ClassLoaderScope getClassLoaderScope();
 
     @Override
     StartParameter getStartParameter();
@@ -54,5 +45,19 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     GradleInternal getGradle();
 
     List<IncludedBuildSpec> getIncludedBuilds();
+
+    /**
+     * The parent scope for this and all settings objects.
+     *
+     * Gradle runtime.
+     */
+    ClassLoaderScope getBaseClassLoaderScope();
+
+    /**
+     * The scope for this settings object.
+     *
+     * Gradle runtime + this object's script's additions.
+     */
+    ClassLoaderScope getClassLoaderScope();
 
 }

@@ -106,11 +106,4 @@ public interface ClassLoaderScope {
 
     boolean isLocked();
 
-    /**
-     * A copy of ClassLoaderScope that's usage is deprecated and produces a deprecating classloader as necessary.
-     *
-     * @return a deprecated ClassLoaderScope
-     */
-    ClassLoaderScope deprecated();
-
 }

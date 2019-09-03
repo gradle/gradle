@@ -63,23 +63,23 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private GradleInternal gradle;
 
-    private final ClassLoaderScope settingsClassLoaderScope;
-    private final ClassLoaderScope buildRootClassLoaderScope;
+    private final ClassLoaderScope classLoaderScope;
+    private final ClassLoaderScope baseClassLoaderScope;
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                           ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, ScriptHandler settingsScriptHandler,
+                           ClassLoaderScope classLoaderScope, ClassLoaderScope baseClassLoaderScope, ScriptHandler settingsScriptHandler,
                            File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
         this.gradle = gradle;
-        this.buildRootClassLoaderScope = buildRootClassLoaderScope;
+        this.classLoaderScope = classLoaderScope;
+        this.baseClassLoaderScope = baseClassLoaderScope;
         this.scriptHandler = settingsScriptHandler;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
@@ -241,19 +241,20 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             getFileResolver(),
             getScriptPluginFactory(),
             getScriptHandlerFactory(),
-            getRootClassLoaderScope(),
+            baseClassLoaderScope,
             getResourceLoader(),
             this);
     }
 
+
     @Override
-    public ClassLoaderScope getRootClassLoaderScope() {
-        return buildRootClassLoaderScope;
+    public ClassLoaderScope getBaseClassLoaderScope() {
+        return baseClassLoaderScope;
     }
 
     @Override
     public ClassLoaderScope getClassLoaderScope() {
-        return settingsClassLoaderScope;
+        return classLoaderScope;
     }
 
     protected ServiceRegistry getServices() {

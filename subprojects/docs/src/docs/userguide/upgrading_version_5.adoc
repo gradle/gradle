@@ -84,6 +84,14 @@ This often caused large number of unnecessary requests when using multiple repos
 This change speeds up builds with many dependencies using multiple repositories.
 You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:repository-content-filtering,repository content filter>>.
 
+==== buildSrc classes are no longer visible from settings scripts
+
+Previously, the buildSrc project was built before applying the project's settings script and its classes were visible within the script.
+Now, buildSrc is built after the settings script and its classes are not visible to it.
+The buildSrc classes remain visible to project build scripts and script plugins.
+
+Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declaring external dependencies>>.
+
 ==== `@Nullable` annotation is gone
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
@@ -187,13 +195,6 @@ Miscellaneous::
 == Upgrading from 5.5 and earlier
 
 === Deprecations
-
-==== BuildSrc usage in Gradle settings
-
-Access to the buildSrc project and its dependencies in gradle settings scripts is now deprecated.
-This is due to plans to make initialization of gradle builds more efficient.
-
-This will become an error in Gradle 6.0.
 
 ==== Changing the contents of `ConfigurableFileCollection` task properties after task starts execution
 

@@ -53,12 +53,12 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     @Override
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
-                                    ClassLoaderScope buildRootClassLoaderScope,
+                                    ClassLoaderScope baseClassLoaderScope,
                                     StartParameter startParameter) {
         Timer settingsProcessingClock = Time.startTimer();
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
-        SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, properties, startParameter, buildRootClassLoaderScope);
+        SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, properties, startParameter, baseClassLoaderScope);
         gradle.getBuildListenerBroadcaster().beforeSettings(settings);
         applySettingsScript(settingsScript, settings);
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());
@@ -66,8 +66,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     }
 
     private void applySettingsScript(TextResourceScriptSource settingsScript, final SettingsInternal settings) {
-        ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ScriptPlugin configurer = configurerFactory.create(settingsScript, settings.getBuildscript(), settingsClassLoaderScope, settings.getRootClassLoaderScope().deprecated(), true);
+        ScriptPlugin configurer = configurerFactory.create(settingsScript, settings.getBuildscript(), settings.getClassLoaderScope(), settings.getBaseClassLoaderScope(), true);
         configurer.apply(settings);
     }
 

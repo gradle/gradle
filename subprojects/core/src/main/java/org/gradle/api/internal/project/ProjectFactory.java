@@ -42,7 +42,7 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     @Override
-    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+    public DefaultProject createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
         TextResource resource = resourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);

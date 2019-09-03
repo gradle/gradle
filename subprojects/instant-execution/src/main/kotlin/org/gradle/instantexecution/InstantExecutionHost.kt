@@ -110,7 +110,6 @@ class InstantExecutionHost internal constructor(
         init {
             gradle.run {
                 settings = createSettings()
-
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
                 val settingsPreparer = BuildOperatingFiringSettingsPreparer(
                     SettingsPreparer {
@@ -122,6 +121,7 @@ class InstantExecutionHost internal constructor(
                 )
                 settingsPreparer.prepareSettings(this)
 
+                setBaseProjectClassLoaderScope(coreScope)
                 rootProject = createProject(null, rootProjectName)
                 defaultProject = rootProject
             }
@@ -146,9 +146,9 @@ class InstantExecutionHost internal constructor(
                 fileResolver
             )
             return projectFactory.createProject(
+                gradle,
                 projectDescriptor,
                 getProject(parentPath),
-                gradle,
                 coreAndPluginsScope.createChild(projectDescriptor.path),
                 coreAndPluginsScope
             )

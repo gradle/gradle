@@ -445,38 +445,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `can apply buildSrc plugin to Settings`() {
-
-        withBuildSrc()
-
-        withFile("buildSrc/src/main/groovy/my/SettingsPlugin.groovy", """
-            package my
-
-            import org.gradle.api.*
-            import org.gradle.api.initialization.Settings
-
-            class SettingsPlugin implements Plugin<Settings> {
-                void apply(Settings settings) {
-                    println("Settings plugin applied!")
-                }
-            }
-        """)
-
-        withSettings("""
-            apply<my.SettingsPlugin>()
-        """)
-
-        executer.expectDeprecationWarnings(1)
-        val output = build("help").output
-        assertThat(
-            output,
-            containsString("Settings plugin applied!"))
-        assertThat(
-            output,
-            containsString("Access to the buildSrc project and its dependencies in settings scripts has been deprecated."))
-    }
-
-    @Test
     fun `scripts can use the gradle script api`() {
 
         fun usageFor(target: String) = """

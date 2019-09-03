@@ -109,7 +109,7 @@ buildscript {
     dependencies { classpath files('repo/test-1.3.jar') }
 }
 new org.gradle.test.BuildClass()
-new BuildSrcClass();
+
 println 'quiet message'
 logging.captureStandardOutput(LogLevel.ERROR)
 println 'error message'
@@ -128,16 +128,21 @@ try {
         buildscript.classLoader.close()
     }
 }
+
+try {
+    buildscript.classLoader.loadClass('BuildSrcClass')
+    assert false: 'should fail'
+} catch (ClassNotFoundException e) {
+    // expected
+}
 """
         buildFile << 'task doStuff'
 
         when:
-        executer.expectDeprecationWarning()
         run('doStuff')
 
         then:
         output.contains('quiet message')
-        output.contains("Access to the buildSrc project and its dependencies in settings scripts has been deprecated.")
         errorOutput.contains('error message')
     }
 
