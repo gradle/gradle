@@ -91,6 +91,30 @@
             "member": "Constructor org.gradle.language.nativeplatform.tasks.UnexportMainSymbol()",
             "acceptation": "The class is incubating and was simply move",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.FileSystemOperations",
+            "member": "Class org.gradle.api.file.FileSystemOperations",
+            "acceptation": "New public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.FileSystemOperations",
+            "member": "Method org.gradle.api.file.FileSystemOperations.copy(org.gradle.api.Action)",
+            "acceptation": "New public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.FileSystemOperations",
+            "member": "Method org.gradle.api.file.FileSystemOperations.delete(org.gradle.api.Action)",
+            "acceptation": "New public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.file.FileSystemOperations",
+            "member": "Method org.gradle.api.file.FileSystemOperations.sync(org.gradle.api.Action)",
+            "acceptation": "New public API",
+            "changes": []
         }
     ]
 }
