@@ -193,6 +193,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     @Issue("https://github.com/gradle/gradle/issues/10411")
     def "does not leak project state across multiple builds"() {
         fixture.withWorkActionClassInBuildSrc()
+        executer.withBuildJvmOpts('-Xms256m', '-Xmx512m').requireIsolatedDaemons().requireDaemon()
 
         buildFile << """
             ext.memoryHog = new byte[1024*1024*150] // ~150MB

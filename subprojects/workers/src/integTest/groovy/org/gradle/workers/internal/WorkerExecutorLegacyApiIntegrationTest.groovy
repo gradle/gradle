@@ -219,6 +219,8 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/10411")
     def "does not leak project state across multiple builds"() {
+        executer.withBuildJvmOpts('-Xms256m', '-Xmx512m').requireIsolatedDaemons().requireDaemon()
+
         buildFile << """
             ${legacyWorkerTypeAndTask}
 
