@@ -184,6 +184,11 @@ class A2{}
     }
 
     def "does recompile when a resource changes"() {
+        // TODO wolfs:
+        //  Currently, a change to any non-Groovy file causes a full recompile.
+        //  Later, changes to Java files should be handled incrementally.
+        //  Changes to the registration file for global transforms needs to cause a full recompile.
+        //  Other resources can probably be used by AST transformations, so they probably should cause a full recompile as well.
         given:
         buildFile << """
             ${language.compileTaskName}.source 'src/main/resources'
