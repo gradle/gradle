@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -30,6 +29,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -88,12 +89,7 @@ public class TaskPropertyUtils {
                 Collections.sort(problems);
                 message = String.format("Some problems were found with the configuration of %s.", task);
             }
-            throw new TaskValidationException(message, CollectionUtils.collect(problems, new Transformer<InvalidUserDataException, String>() {
-                @Override
-                public InvalidUserDataException transform(String message) {
-                    return new InvalidUserDataException(message);
-                }
-            }));
+            throw new TaskValidationException(message, CollectionUtils.collect(problems, InvalidUserDataException::new));
         }
 
         @Override
@@ -109,14 +105,14 @@ public class TaskPropertyUtils {
         @Override
         public void visitErrorStrict(String message) {
             if (problems == null) {
-                problems = new ArrayList<String>();
+                problems = new ArrayList<>();
             }
             problems.add(message);
         }
 
         @Override
         public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-            visitErrorStrict(message);
+            visitErrorStrict(decorateMessage(ownerPath, propertyName, message));
         }
     }
 }

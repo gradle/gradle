@@ -21,21 +21,13 @@ import org.gradle.internal.reflect.ParameterValidationContext;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
+import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
+
 public class DefaultParameterValidationContext implements ParameterValidationContext {
     private final Collection<String> messages;
 
     public DefaultParameterValidationContext(Collection<String> messages) {
         this.messages = messages;
-    }
-
-    private static String decorateMessage(@Nullable String ownerPath, String propertyName, String message) {
-        String decoratedMessage;
-        if (ownerPath == null) {
-            decoratedMessage = "Property '" + propertyName + "' " + message + ".";
-        } else {
-            decoratedMessage = "Property '" + ownerPath + '.' + propertyName + "' " + message + ".";
-        }
-        return decoratedMessage;
     }
 
     @Override

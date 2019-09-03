@@ -58,4 +58,14 @@ public interface ParameterValidationContext {
      * Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
      */
     void visitErrorStrict(String message);
+
+    static String decorateMessage(@Nullable String ownerPath, String propertyName, String message) {
+        String decoratedMessage;
+        if (ownerPath == null) {
+            decoratedMessage = "Property '" + propertyName + "' " + message + ".";
+        } else {
+            decoratedMessage = "Property '" + ownerPath + '.' + propertyName + "' " + message + ".";
+        }
+        return decoratedMessage;
+    }
 }
