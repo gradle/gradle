@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.models
+package org.gradle.kotlin.dsl.tooling.models;
 
-import java.io.File
+import javax.annotation.Nullable;
+import java.io.File;
+import java.util.List;
 
 
-interface KotlinDslScriptsModel {
+public interface KotlinBuildScriptModel {
 
-    val scriptModels: Map<File, KotlinBuildScriptModel>
+    List<File> getClassPath();
+
+    List<File> getSourcePath();
+
+    List<String> getImplicitImports();
+
+    List<EditorReport> getEditorReports();
+
+    List<String> getExceptions();
+
+    /**
+     * The directory of the project in which the script was found.
+     */
+    @Nullable
+    File getEnclosingScriptProjectDir();
 }

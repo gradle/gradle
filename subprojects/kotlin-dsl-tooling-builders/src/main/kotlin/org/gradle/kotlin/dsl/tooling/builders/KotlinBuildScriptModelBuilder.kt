@@ -83,13 +83,26 @@ data class KotlinBuildScriptModelParameter(
 
 private
 data class StandardKotlinBuildScriptModel(
-    override val classPath: List<File>,
-    override val sourcePath: List<File>,
-    override val implicitImports: List<String>,
-    override val editorReports: List<EditorReport>,
-    override val exceptions: List<String>,
-    override val enclosingScriptProjectDir: File?
-) : KotlinBuildScriptModel, Serializable
+    private val classPath: List<File>,
+    private val sourcePath: List<File>,
+    private val implicitImports: List<String>,
+    private val editorReports: List<EditorReport>,
+    private val exceptions: List<String>,
+    private val enclosingScriptProjectDir: File?
+) : KotlinBuildScriptModel, Serializable {
+
+    override fun getClassPath() = classPath
+
+    override fun getSourcePath() = sourcePath
+
+    override fun getImplicitImports() = implicitImports
+
+    override fun getEditorReports() = editorReports
+
+    override fun getExceptions() = exceptions
+
+    override fun getEnclosingScriptProjectDir() = enclosingScriptProjectDir
+}
 
 
 internal

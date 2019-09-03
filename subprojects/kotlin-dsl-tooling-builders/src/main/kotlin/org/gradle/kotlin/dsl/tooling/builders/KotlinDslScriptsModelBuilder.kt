@@ -29,8 +29,11 @@ import java.io.Serializable
 
 private
 data class StandardKotlinDslScriptsModel(
-    override val scriptModels: Map<File, KotlinBuildScriptModel>
-) : KotlinDslScriptsModel, Serializable
+    private val scriptModels: Map<File, KotlinBuildScriptModel>
+) : KotlinDslScriptsModel, Serializable {
+
+    override fun getScriptModels() = scriptModels
+}
 
 
 internal

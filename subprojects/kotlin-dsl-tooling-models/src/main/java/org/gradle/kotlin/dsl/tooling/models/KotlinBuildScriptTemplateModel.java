@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-plugins {
-    `java-library`
-    gradlebuild.classycle
-    gradlebuild.`strict-compile`
-}
+package org.gradle.kotlin.dsl.tooling.models;
 
-description = "Kotlin DSL Tooling Models for IDEs"
+import java.io.File;
+import java.util.List;
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
 
-dependencies {
-    api(library("jsr305"))
+/**
+ * Kotlin build script template model.
+ */
+public interface KotlinBuildScriptTemplateModel {
+
+    /**
+     * Classpath required to load Kotlin build script template class.
+     */
+    List<File> getClassPath();
 }
