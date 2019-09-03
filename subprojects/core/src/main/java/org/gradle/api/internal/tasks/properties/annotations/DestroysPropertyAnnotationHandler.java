@@ -27,6 +27,8 @@ import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+
 public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
@@ -35,7 +37,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
 
     @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of();
+        return ImmutableSet.of(OPTIONAL);
     }
 
     @Override
