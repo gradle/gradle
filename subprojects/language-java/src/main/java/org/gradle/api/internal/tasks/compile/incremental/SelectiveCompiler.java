@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilat
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -70,7 +71,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             return rebuildAllCompiler.execute(spec);
         }
 
-        recompilationSpecProvider.initializeCompilation(spec, recompilationSpec);
+        boolean cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, recompilationSpec);
 
         if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
@@ -78,7 +79,11 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
         }
 
         try {
-            return recompilationSpecProvider.decorateResult(recompilationSpec, cleaningCompiler.getCompiler().execute(spec));
+            WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, cleaningCompiler.getCompiler().execute(spec));
+            if (!result.getDidWork() && cleanedOutput) {
+                return WorkResults.didWork(true);
+            }
+            return result;
         } finally {
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
             LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());

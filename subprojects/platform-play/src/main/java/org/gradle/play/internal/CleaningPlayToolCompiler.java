@@ -18,6 +18,7 @@ package org.gradle.play.internal;
 
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
@@ -36,7 +37,8 @@ public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Comp
 
     @Override
     public WorkResult execute(T spec) {
-        StaleOutputCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), spec.getDestinationDir());
-        return delegate.execute(spec);
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), spec.getDestinationDir());
+        return delegate.execute(spec)
+            .or(WorkResults.didWork(cleanedOutputs));
     }
 }

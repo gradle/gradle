@@ -21,6 +21,7 @@ import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 
+import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -36,6 +37,7 @@ public abstract class StaleOutputCleaner {
      *
      * Returns {code true} if any file or directory was deleted, {@code false} otherwise.
      */
+    @CheckReturnValue
     public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, File directoryToClean) {
         return cleanOutputs(deleter, filesToDelete, ImmutableSet.of(directoryToClean));
     }
@@ -48,6 +50,7 @@ public abstract class StaleOutputCleaner {
      *
      * Returns {code true} if any file or directory was deleted, {@code false} otherwise.
      */
+    @CheckReturnValue
     public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, ImmutableSet<File> directoriesToClean) {
         Set<String> prefixes = directoriesToClean.stream()
             .map(directoryToClean -> directoryToClean.getAbsolutePath() + File.separator)

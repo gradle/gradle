@@ -91,7 +91,7 @@ public class Assemble extends DefaultTask {
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
 
-        StaleOutputCleaner.cleanOutputs(
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
             getDeleter(),
             getOutputs().getPreviousOutputFiles(),
             getObjectFileDir()
@@ -110,7 +110,7 @@ public class Assemble extends DefaultTask {
         NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
         Compiler<AssembleSpec> compiler = nativeToolChain.select(nativePlatform).newCompiler(AssembleSpec.class);
         WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
-        setDidWork(result.getDidWork());
+        setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)

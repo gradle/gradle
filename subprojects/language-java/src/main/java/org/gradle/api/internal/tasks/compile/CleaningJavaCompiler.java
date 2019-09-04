@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
@@ -47,10 +48,11 @@ public class CleaningJavaCompiler<T extends JavaCompileSpec> implements Compiler
         addDirectoryIfNotNull(outputDirs, spec.getDestinationDir());
         addDirectoryIfNotNull(outputDirs, compileOptions.getAnnotationProcessorGeneratedSourcesDirectory());
         addDirectoryIfNotNull(outputDirs, compileOptions.getHeaderOutputDirectory());
-        StaleOutputCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), outputDirs.build());
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), outputDirs.build());
 
         Compiler<? super T> compiler = getCompiler();
-        return compiler.execute(spec);
+        return compiler.execute(spec)
+            .or(WorkResults.didWork(cleanedOutputs));
     }
 
     private void addDirectoryIfNotNull(ImmutableSet.Builder<File> outputDirs, @Nullable File dir) {

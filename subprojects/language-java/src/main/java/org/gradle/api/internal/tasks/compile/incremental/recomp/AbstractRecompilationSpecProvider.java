@@ -52,12 +52,12 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         this.sourceTree = sourceTree;
     }
 
-    protected void deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {
+    protected boolean deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {
         if (filesToDelete == null || filesToDelete.isEmpty() || destinationDir == null) {
-            return;
+            return false;
         }
         Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
-        StaleOutputCleaner.cleanOutputs(deleter, toDelete, destinationDir);
+        return StaleOutputCleaner.cleanOutputs(deleter, toDelete, destinationDir);
     }
 
     protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {

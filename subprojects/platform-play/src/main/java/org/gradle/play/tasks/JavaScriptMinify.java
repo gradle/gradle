@@ -33,6 +33,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -139,13 +140,14 @@ public class JavaScriptMinify extends SourceTask {
 
     @TaskAction
     void compileJavaScriptSources() {
-        StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir());
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir());
 
         MinifyFileVisitor visitor = new MinifyFileVisitor();
         getSource().visit(visitor);
 
         JavaScriptCompileSpec spec = new DefaultJavaScriptCompileSpec(visitor.relativeFiles, getDestinationDir(), getForkOptions());
-        getCompiler().execute(spec);
+        WorkResult result = getCompiler().execute(spec);
+        setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
     /**
