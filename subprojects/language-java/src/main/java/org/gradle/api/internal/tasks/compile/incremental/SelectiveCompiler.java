@@ -80,10 +80,8 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         try {
             WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, cleaningCompiler.getCompiler().execute(spec));
-            if (!result.getDidWork() && cleanedOutput) {
-                return WorkResults.didWork(true);
-            }
-            return result;
+            return result
+                .or(WorkResults.didWork(cleanedOutput));
         } finally {
             Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
             LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
