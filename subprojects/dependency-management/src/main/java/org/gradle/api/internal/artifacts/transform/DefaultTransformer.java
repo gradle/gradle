@@ -347,7 +347,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 }));
             }
             if (artifactTransformDependencies != null) {
-                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles()));
+                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, artifactTransformDependencies::getFiles));
             }
             if (inputChanges != null) {
                 builder.add(InjectionPoint.injectedByType(InputChanges.class, () -> inputChanges));
