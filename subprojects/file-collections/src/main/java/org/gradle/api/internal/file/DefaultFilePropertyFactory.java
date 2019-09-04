@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.file.FileTree;
@@ -111,6 +112,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public Provider<RegularFile> file(Provider<? extends CharSequence> path) {
             return new ResolvingRegularFileProvider(fileResolver, Providers.internal(path));
+        }
+
+        @Override
+        public FileCollection files(Object... paths) {
+            return fileCollectionFactory.withResolver(fileResolver).resolving(paths);
         }
     }
 
@@ -364,6 +370,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
                     return b.file(v.toString());
                 }
             };
+        }
+
+        @Override
+        public FileCollection files(Object... paths) {
+            return fileCollectionFactory.withResolver(resolver).resolving(paths);
         }
     }
 
