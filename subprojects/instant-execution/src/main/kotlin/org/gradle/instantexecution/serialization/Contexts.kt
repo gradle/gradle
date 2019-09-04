@@ -229,6 +229,7 @@ class DefaultReadContext(
         } else {
             isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
         }
+        Workarounds.maybeSetDefaultStaticStateIn(newScope)
         scopes.putInstance(id, newScope)
         return newScope
     }
