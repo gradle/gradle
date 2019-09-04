@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.publish.ivy
 
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Unroll
 
@@ -546,5 +547,39 @@ $append
             dependency("com.acme", "lib", "1.45")
             noMoreDependencies()
         }
+    }
+
+    def "can publish different resolved versions for the same module"() {
+        given:
+        javaLibrary(ivyRepo.module("org", "foo", "1.0")).publish()
+        javaLibrary(ivyRepo.module("org", "foo", "1.1")).publish()
+        createBuildScripts """
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        versionMapping {
+                            usage('java-api') {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                api 'org:foo:1.0'
+                compileOnly 'org:foo:1.1'
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.assertApiDependencies("org:foo:1.1")
+        javaLibrary.assertRuntimeDependencies("org:foo:1.0")
     }
 }

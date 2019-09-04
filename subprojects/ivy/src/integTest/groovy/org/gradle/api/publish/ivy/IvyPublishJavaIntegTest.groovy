@@ -1137,6 +1137,36 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         optional << [true, false]
     }
 
+    def "an optional feature variant can repeat a dependency from a main variant"() {
+        given:
+        createBuildScripts("""
+            ${optionalFeatureSetup()}
+            dependencies {
+                implementation 'org:foo:1.0'
+                optionalFeatureImplementation 'org:foo:1.0'
+            }
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
+                it.mapToOptional()
+            }
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        succeeds "publish"
+
+        then:
+        with(javaLibrary.parsedIvy) {
+            assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org:foo:1.0")
+            assertConfigurationDependsOn('runtime', "org:foo:1.0")
+        }
+    }
+
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 
