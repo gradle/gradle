@@ -56,7 +56,7 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
 
     @Override
     public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
-        problems.forEach(problem -> validationContext.visitError(problem));
+        problems.forEach(problem -> validationContext.visitWarning(problem));
         properties.forEach(property -> property.visitValidationFailures(ownerPath, validationContext));
     }
 }

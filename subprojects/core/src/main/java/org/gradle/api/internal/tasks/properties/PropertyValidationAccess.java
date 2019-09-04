@@ -272,22 +272,22 @@ public class PropertyValidationAccess {
             }
 
             @Override
+            public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+                visitWarning(decorateMessage(propertyName, message));
+            }
+
+            @Override
+            public void visitWarning(String message) {
+                problems.error(message, false);
+            }
+
+            @Override
             public void visitError(@Nullable String ownerPath, String propertyName, String message) {
                 visitError(decorateMessage(propertyName, message));
             }
 
             @Override
             public void visitError(String message) {
-                problems.error(message, false);
-            }
-
-            @Override
-            public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-                visitErrorStrict(decorateMessage(propertyName, message));
-            }
-
-            @Override
-            public void visitErrorStrict(String message) {
                 problems.error(message, true);
             }
         }
@@ -339,7 +339,7 @@ public class PropertyValidationAccess {
         @Override
         public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
             if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
-                validationContext.visitErrorStrict(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
+                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
         }
     }

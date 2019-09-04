@@ -93,17 +93,17 @@ public class TaskPropertyUtils {
         }
 
         @Override
-        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+            // Ignore for now
+        }
+
+        @Override
+        public void visitWarning(String message) {
             // Ignore for now
         }
 
         @Override
         public void visitError(String message) {
-            // Ignore for now
-        }
-
-        @Override
-        public void visitErrorStrict(String message) {
             if (problems == null) {
                 problems = new ArrayList<>();
             }
@@ -111,8 +111,8 @@ public class TaskPropertyUtils {
         }
 
         @Override
-        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-            visitErrorStrict(decorateMessage(ownerPath, propertyName, message));
+        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+            visitError(decorateMessage(ownerPath, propertyName, message));
         }
     }
 }

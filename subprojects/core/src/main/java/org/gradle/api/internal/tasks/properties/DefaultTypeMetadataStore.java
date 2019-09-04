@@ -105,14 +105,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Annotation normalizationAnnotation = propertyAnnotations.get(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
-                validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(),
+                validationContext.visitWarning(type.getName(), propertyAnnotationMetadata.getPropertyName(),
                     String.format("is not annotated with %s", displayName));
                 continue;
             }
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitErrorStrict(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with invalid property type @%s",
+                validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with invalid property type @%s",
                     propertyType.getSimpleName()));
                 continue;
             }
@@ -125,10 +125,10 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
-                    validationContext.visitErrorStrict(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
+                    validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
                         annotationType.getSimpleName(), propertyType.getSimpleName()));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitErrorStrict(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("has invalid annotation @%s",
+                    validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("has invalid annotation @%s",
                         annotationType.getSimpleName()));
                 }
             }
@@ -164,6 +164,16 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
+        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitWarning(ownerPropertyPath, propertyName, message));
+        }
+
+        @Override
+        public void visitWarning(String message) {
+            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitWarning(message));
+        }
+
+        @Override
         public void visitError(@Nullable String ownerPath, String propertyName, String message) {
             builder.add((ownerPropertyPath, validationContext) -> validationContext.visitError(ownerPropertyPath, propertyName, message));
         }
@@ -171,16 +181,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public void visitError(String message) {
             builder.add((ownerPropertyPath, validationContext) -> validationContext.visitError(message));
-        }
-
-        @Override
-        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitErrorStrict(ownerPropertyPath, propertyName, message));
-        }
-
-        @Override
-        public void visitErrorStrict(String message) {
-            builder.add((ownerPropertyPath, validationContext) -> validationContext.visitErrorStrict(message));
         }
     }
 

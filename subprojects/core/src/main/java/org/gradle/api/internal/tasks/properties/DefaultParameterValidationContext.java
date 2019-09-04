@@ -31,22 +31,22 @@ public class DefaultParameterValidationContext implements ParameterValidationCon
     }
 
     @Override
+    public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+        visitWarning(decorateMessage(ownerPath, propertyName, message));
+    }
+
+    @Override
+    public void visitWarning(String message) {
+        messages.add(message);
+    }
+
+    @Override
     public void visitError(@Nullable String ownerPath, String propertyName, String message) {
         visitError(decorateMessage(ownerPath, propertyName, message));
     }
 
     @Override
     public void visitError(String message) {
-        messages.add(message);
-    }
-
-    @Override
-    public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-        visitErrorStrict(decorateMessage(ownerPath, propertyName, message));
-    }
-
-    @Override
-    public void visitErrorStrict(String message) {
-        visitError(message);
+        visitWarning(message);
     }
 }

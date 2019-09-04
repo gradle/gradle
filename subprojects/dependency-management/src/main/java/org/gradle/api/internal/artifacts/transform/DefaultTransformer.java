@@ -138,10 +138,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                parameterValidationContext.visitError(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
+                parameterValidationContext.visitWarning(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
             }
             if (normalizer == null) {
-                parameterValidationContext.visitError(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
+                parameterValidationContext.visitWarning(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
             }
         }
     }
@@ -266,7 +266,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.visitError(null, propertyName, "does not have a value specified");
+                        validationContext.visitWarning(null, propertyName, "does not have a value specified");
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
@@ -281,7 +281,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.visitError(null, propertyName, "is annotated with an output annotation");
+                validationContext.visitWarning(null, propertyName, "is annotated with an output annotation");
             }
 
             @Override

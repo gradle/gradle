@@ -73,7 +73,7 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
 
     @Override
     public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
-        validationProblems.forEach(validationProblem -> validationContext.visitError(ownerPath, getPropertyName(), validationProblem));
+        validationProblems.forEach(validationProblem -> validationContext.visitWarning(ownerPath, getPropertyName(), validationProblem));
     }
 
     @Override
