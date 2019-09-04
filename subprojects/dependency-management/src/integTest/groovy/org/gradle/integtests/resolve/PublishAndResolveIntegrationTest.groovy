@@ -91,6 +91,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds ":child:${resolveTask}"
         versionIsCopiedAndExists("root", "1.9", "child/")
     }
