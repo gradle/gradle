@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
 public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Compiler<T> {
@@ -36,9 +36,7 @@ public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Comp
 
     @Override
     public WorkResult execute(T spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, taskOutputs);
-        cleaner.addDirToClean(spec.getDestinationDir());
-        cleaner.execute();
+        StaleClassCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), spec.getDestinationDir());
         return delegate.execute(spec);
     }
 }

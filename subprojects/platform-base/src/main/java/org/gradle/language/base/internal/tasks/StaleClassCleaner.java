@@ -15,10 +15,24 @@
  */
 package org.gradle.language.base.internal.tasks;
 
+import org.gradle.internal.file.Deleter;
+
 import java.io.File;
+import java.util.Collections;
 
 public abstract class StaleClassCleaner {
     public abstract void execute();
 
     public abstract void addDirToClean(File toClean);
+
+    public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, File directory) {
+        return cleanOutputs(deleter, filesToDelete, Collections.singleton(directory));
+    }
+
+    public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, Iterable<File> directories) {
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, filesToDelete);
+        directories.forEach(cleaner::addDirToClean);
+        cleaner.execute();
+        return cleaner.getDidWork();
+    }
 }

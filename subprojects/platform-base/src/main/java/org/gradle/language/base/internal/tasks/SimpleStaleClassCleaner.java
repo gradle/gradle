@@ -28,7 +28,7 @@ import java.util.Set;
 
 public class SimpleStaleClassCleaner extends StaleClassCleaner {
     private final Deleter deleter;
-    private final Set<File> filesToDelete;
+    private final Iterable<File> filesToDelete;
     private final Set<File> toClean = Sets.newHashSet();
     private final Set<String> prefixes = Sets.newHashSet();
     private boolean didWork;
@@ -37,7 +37,7 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
         this(deleter, taskOutputs.getPreviousOutputFiles());
     }
 
-    public SimpleStaleClassCleaner(Deleter deleter, Set<File> filesToDelete) {
+    public SimpleStaleClassCleaner(Deleter deleter, Iterable<File> filesToDelete) {
         this.deleter = deleter;
         this.filesToDelete = filesToDelete;
     }

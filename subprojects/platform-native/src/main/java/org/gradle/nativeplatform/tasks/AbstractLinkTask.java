@@ -45,7 +45,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -226,12 +226,14 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     @TaskAction
     public void link() {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
-        cleaner.addDirToClean(getDestinationDirectory().get().getAsFile());
-        cleaner.execute();
+        boolean cleanerDidWork = StaleClassCleaner.cleanOutputs(
+            getDeleter(),
+            getOutputs().getPreviousOutputFiles(),
+            getDestinationDirectory().get().getAsFile()
+        );
 
         if (getSource().isEmpty()) {
-            setDidWork(cleaner.getDidWork());
+            setDidWork(cleanerDidWork);
             return;
         }
 

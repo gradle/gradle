@@ -19,11 +19,12 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Deletes stale classes before invoking the actual compiler.
@@ -41,21 +42,21 @@ public class CleaningJavaCompiler<T extends JavaCompileSpec> implements Compiler
 
     @Override
     public WorkResult execute(T spec) {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, taskOutputs);
 
-        addDirectory(cleaner, spec.getDestinationDir());
+        List<File> outputDirs = new ArrayList<>(3);
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
-        addDirectory(cleaner, compileOptions.getAnnotationProcessorGeneratedSourcesDirectory());
-        addDirectory(cleaner, compileOptions.getHeaderOutputDirectory());
-        cleaner.execute();
+        addDirectory(outputDirs, spec.getDestinationDir());
+        addDirectory(outputDirs, compileOptions.getAnnotationProcessorGeneratedSourcesDirectory());
+        addDirectory(outputDirs, compileOptions.getHeaderOutputDirectory());
+        StaleClassCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), outputDirs);
 
         Compiler<? super T> compiler = getCompiler();
         return compiler.execute(spec);
     }
 
-    private void addDirectory(@Nullable StaleClassCleaner cleaner, File dir) {
+    private void addDirectory(List<File> outputDirs, @Nullable File dir) {
         if (dir != null) {
-            cleaner.addDirToClean(dir);
+            outputDirs.add(dir);
         }
     }
 
