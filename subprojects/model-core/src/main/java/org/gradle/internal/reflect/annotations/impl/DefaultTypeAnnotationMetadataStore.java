@@ -356,19 +356,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 simpleAnnotationNames(annotations.keySet().stream())));
         }
 
-        annotations.keySet().stream()
-            .filter(ignoredMethodAnnotations::contains)
-            .findFirst()
-            .ifPresent(ignoredMethodAnnotation -> {
-                if (annotations.size() != 1) {
-                    metadataBuilder.recordError(String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
+        if (annotations.size() > 1) {
+            annotations.keySet().stream()
+                .filter(ignoredMethodAnnotations::contains)
+                .findFirst()
+                .ifPresent(ignoredMethodAnnotation -> metadataBuilder.recordError(
+                    String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
                         method.getName(),
                         ignoredMethodAnnotation.getSimpleName(),
                         simpleAnnotationNames(annotations.keySet().stream()
                             .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
-                    ));
-                }
-            });
+                    )
+                ));
+        }
 
         for (Annotation annotation : annotations.values()) {
             metadataBuilder.declareAnnotation(annotation);
