@@ -115,6 +115,14 @@
             "member": "Method org.gradle.api.file.FileSystemOperations.sync(org.gradle.api.Action)",
             "acceptation": "New public API",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.execute(org.gradle.api.tasks.incremental.IncrementalTaskInputs)",
+            "acceptation": "Migrated to use InputChanges",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
