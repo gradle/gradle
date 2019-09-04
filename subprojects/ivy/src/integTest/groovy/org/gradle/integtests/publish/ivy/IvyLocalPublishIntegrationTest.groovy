@@ -41,6 +41,7 @@ uploadArchives {
 }
 """
         when:
+        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:
@@ -74,6 +75,7 @@ uploadArchives {
 }
 """
         when:
+        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:
@@ -192,6 +194,7 @@ task ivyXml(type: Upload) {
         """
 
         when:
+        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:
