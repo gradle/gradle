@@ -40,7 +40,7 @@ class InspectionSchemeFactoryTest extends Specification {
         [Object, GroovyObject],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
-        IgnoredThing,
+        [IgnoredThing],
         { false },
         cacheFactory
     )

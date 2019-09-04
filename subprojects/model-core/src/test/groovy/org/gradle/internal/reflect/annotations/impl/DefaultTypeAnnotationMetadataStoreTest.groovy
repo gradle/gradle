@@ -44,7 +44,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         [Object, GroovyObject],
         [Object, GroovyObject],
         [MutableType, MutableSubType],
-        Ignored,
+        [Ignored, Ignored2],
         { Method method -> method.isAnnotationPresent(Generated) },
         new TestCrossBuildInMemoryCacheFactory())
 
@@ -252,6 +252,21 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         interface TypeWithIgnoredPropertyWithOtherAnnotations {
             @Ignored @Color
             String getIgnoredProperty()
+        }
+
+    def "warns when ignored property has other ignore annotations"() {
+        expect:
+        assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
+            twiceIgnoredProperty: [(TYPE): Ignored]
+        ], [
+            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2"
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations {
+            @Ignored @Ignored2
+            String getTwiceIgnoredProperty()
         }
 
     def "superclass properties are present in subclass"() {
@@ -710,4 +725,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface Ignored {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface Ignored2 {
 }

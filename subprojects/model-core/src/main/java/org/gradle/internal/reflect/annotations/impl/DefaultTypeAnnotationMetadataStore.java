@@ -83,13 +83,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     };
 
-    private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
+    private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
-    private final Set<String> potentiallyIgnoredMethodNames;
-    private final Set<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
-    private final Set<Class<?>> mutableNonFinalClasses;
-    private final Class<? extends Annotation> ignoredMethodAnnotation;
+    private final ImmutableSet<String> potentiallyIgnoredMethodNames;
+    private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
+    private final ImmutableSet<Class<?>> mutableNonFinalClasses;
+    private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotations;
     private final Predicate<? super Method> generatedMethodDetector;
 
     /**
@@ -98,8 +98,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
      * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoreMethodAnnotation} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
-     * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overriden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
-     * @param ignoredMethodAnnotation Annotation to use to explicitly ignore a method/property.
+     * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
+     * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param mutableNonFinalClasses Mutable classes that shouldn't need explicit setters
      * @param cacheFactory A factory to create cross-build in-memory caches.
@@ -110,26 +110,31 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
-        Class<? extends Annotation> ignoredMethodAnnotation,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotations,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
-        this.propertyAnnotationCategories = getBuild(propertyAnnotationCategories, ignoredMethodAnnotation);
+        this.propertyAnnotationCategories = allAnnotationCategories(propertyAnnotationCategories, ignoredMethodAnnotations);
         this.cache = initCache(ignoredSuperTypes, cacheFactory);
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
-        this.ignoredMethodAnnotation = ignoredMethodAnnotation;
+        this.ignoredMethodAnnotations = ImmutableSet.copyOf(ignoredMethodAnnotations);
         this.generatedMethodDetector = generatedMethodDetector;
     }
 
-    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> getBuild(Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories, Class<? extends Annotation> ignoredMethodAnnotation) {
-        return ImmutableMap.<Class<? extends Annotation>, AnnotationCategory>builder()
-            .putAll(propertyAnnotationCategories)
-            .put(Inject.class, TYPE)
-            .put(ignoredMethodAnnotation, TYPE)
-            .build();
+    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> allAnnotationCategories(
+        Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotations
+    ) {
+        ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
+        builder.putAll(propertyAnnotationCategories);
+        builder.put(Inject.class, TYPE);
+        for (Class<? extends Annotation> ignoredMethodAnnotation : ignoredMethodAnnotations) {
+            builder.put(ignoredMethodAnnotation, TYPE);
+        }
+        return builder.build();
     }
 
     private static CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> initCache(Collection<Class<?>> ignoredSuperTypes, CrossBuildInMemoryCacheFactory cacheFactory) {
@@ -208,7 +213,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, ValidationErrorsBuilder errorsBuilder) {
         Method[] methods = type.getDeclaredMethods();
         // Make sure getters end up before the setters
-        Arrays.sort(methods, (a, b) -> a.getName().compareTo(b.getName()));
+        Arrays.sort(methods, Comparator.comparing(Method::getName));
         for (Method method : methods) {
             processMethodAnnotations(method, methodBuilders, errorsBuilder);
         }
@@ -233,11 +238,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     continue;
                 }
                 // The 'is'-getter is ignored, we can skip it in favor of the 'get'-getter
-                if (metadataBuilder.hasAnnotation(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.stream()
+                    .anyMatch(metadataBuilder::hasAnnotation)) {
                     continue;
                 }
                 // The 'get'-getter was ignored, we can override it with the 'is'`-getter
-                if (previouslySeenBuilder.hasAnnotation(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.stream()
+                    .anyMatch(previouslySeenBuilder::hasAnnotation)) {
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
@@ -349,17 +356,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 simpleAnnotationNames(annotations.keySet().stream())));
         }
 
-        Annotation ignoredAnnotation = annotations.get(ignoredMethodAnnotation);
-        if (ignoredAnnotation != null) {
-            if (annotations.size() != 1) {
-                metadataBuilder.recordError(String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
-                    method.getName(),
-                    ignoredMethodAnnotation.getSimpleName(),
-                    simpleAnnotationNames(annotations.keySet().stream()
-                        .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
-                ));
-            }
-        }
+        annotations.keySet().stream()
+            .filter(ignoredMethodAnnotations::contains)
+            .findFirst()
+            .ifPresent(ignoredMethodAnnotation -> {
+                if (annotations.size() != 1) {
+                    metadataBuilder.recordError(String.format("getter '%s()' annotated with @%s should not be also annotated with %s",
+                        method.getName(),
+                        ignoredMethodAnnotation.getSimpleName(),
+                        simpleAnnotationNames(annotations.keySet().stream()
+                            .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+                    ));
+                }
+            });
 
         for (Annotation annotation : annotations.values()) {
             metadataBuilder.declareAnnotation(annotation);
@@ -381,7 +390,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {
         Arrays.stream(type.getInterfaces())
-            .map(iface -> getTypeAnnotationMetadata(iface))
+            .map(this::getTypeAnnotationMetadata)
             .forEach(visitor);
         Class<?> superclass = type.getSuperclass();
         if (superclass != null) {
@@ -411,8 +420,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap.Builder<Class<? extends Annotation>, Annotation> relevantAnnotations = ImmutableMap.builderWithExpectedSize(annotations.length);
         for (Annotation annotation : annotations) {
             Class<? extends Annotation> annotationType = annotation.annotationType();
-            if (propertyAnnotationCategories.containsKey(annotationType)
-                || ignoredMethodAnnotation.equals(annotationType)) {
+            if (propertyAnnotationCategories.containsKey(annotationType)) {
                 relevantAnnotations.put(annotationType, annotation);
             }
         }
@@ -449,7 +457,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public void inheritAnnotations(PropertyAnnotationMetadata superProperty) {
-            superProperty.getAnnotations().forEach((category, annotation) -> inheritedAnnotations.put(category, annotation));
+            superProperty.getAnnotations()
+                .forEach(inheritedAnnotations::put);
         }
 
         public void recordError(String problem) {
@@ -463,7 +472,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         private ImmutableMap<AnnotationCategory, Annotation> mergeAnnotations() {
             List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
             for (Annotation declaredType : declaredTypes) {
-                if (declaredType.annotationType().equals(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.contains(declaredType.annotationType())) {
                     return ImmutableMap.of(TYPE, declaredType);
                 }
             }

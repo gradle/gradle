@@ -24,5 +24,10 @@ public interface AnnotationCategory extends Describable {
         public String getDisplayName() {
             return "type";
         }
+
+        @Override
+        public String toString() {
+            return "TYPE";
+        }
     };
 }
