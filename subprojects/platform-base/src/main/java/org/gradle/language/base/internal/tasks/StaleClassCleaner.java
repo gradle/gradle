@@ -15,24 +15,51 @@
  */
 package org.gradle.language.base.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.FileType;
 
 import java.io.File;
-import java.util.Collections;
+import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class StaleClassCleaner {
-    public abstract void execute();
-
-    public abstract void addDirToClean(File toClean);
-
-    public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, File directory) {
-        return cleanOutputs(deleter, filesToDelete, Collections.singleton(directory));
+    public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, File directoryToClean) {
+        return cleanOutputs(deleter, filesToDelete, ImmutableSet.of(directoryToClean));
     }
 
-    public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, Iterable<File> directories) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, filesToDelete);
-        directories.forEach(cleaner::addDirToClean);
-        cleaner.execute();
-        return cleaner.getDidWork();
+    public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, ImmutableSet<File> directoriesToClean) {
+        Set<String> prefixes = directoriesToClean.stream()
+            .map(directoryToClean -> directoryToClean.getAbsolutePath() + File.separator)
+            .collect(Collectors.toSet());
+
+        OutputsCleaner outputsCleaner = new OutputsCleaner(
+            deleter,
+            file -> {
+                for (String prefix : prefixes) {
+                    if (file.getAbsolutePath().startsWith(prefix)) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            dir -> !directoriesToClean.contains(dir)
+        );
+
+        try {
+            for (File f : filesToDelete) {
+                if (f.isFile()) {
+                    outputsCleaner.cleanupOutput(f, FileType.RegularFile);
+                }
+            }
+            outputsCleaner.cleanupDirectories();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to clean up stale outputs", e);
+        }
+
+        return outputsCleaner.getDidWork();
     }
 }
