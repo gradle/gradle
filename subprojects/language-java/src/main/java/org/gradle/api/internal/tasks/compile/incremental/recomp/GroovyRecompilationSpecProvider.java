@@ -74,11 +74,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     @Override
-    public void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+    public boolean initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(Collections.emptySet());
             spec.setClasses(Collections.emptySet());
-            return;
+            return false;
         }
 
         Factory<PatternSet> patternSetFactory = fileOperations.getFileResolver().getPatternSetFactory();
@@ -91,7 +91,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
 
-        deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
+        return deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
     @Override

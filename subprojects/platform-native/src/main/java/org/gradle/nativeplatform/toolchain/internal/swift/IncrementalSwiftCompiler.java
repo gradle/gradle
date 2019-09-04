@@ -21,7 +21,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
@@ -88,9 +88,6 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
     }
 
     private boolean cleanPreviousOutputs(SwiftCompileSpec spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(deleter, outputs);
-        cleaner.addDirToClean(spec.getObjectFileDir());
-        cleaner.execute();
-        return cleaner.getDidWork();
+        return StaleOutputCleaner.cleanOutputs(deleter, outputs.getPreviousOutputFiles(), spec.getObjectFileDir());
     }
 }

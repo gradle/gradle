@@ -25,8 +25,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
-import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
@@ -100,7 +100,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         configureIncrementalCompilation(spec);
         Compiler<ScalaJavaJointCompileSpec> compiler = getCompiler(spec);
         if (isNonIncrementalCompilation()) {
-            compiler = new CleaningScalaCompiler(compiler, getOutputs(), getDeleter());
+            compiler = new CleaningJavaCompiler<>(compiler, getOutputs(), getDeleter());
         }
         compiler.execute(spec);
     }

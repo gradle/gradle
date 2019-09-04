@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.AbstractCompileTest
 import org.gradle.language.base.internal.compile.Compiler
@@ -60,7 +61,7 @@ class ScalaCompileTest extends AbstractCompileTest {
         execute(scalaCompile)
 
         then:
-        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec)
+        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> WorkResults.didWork(true)
     }
 
     def "moans if scalaClasspath is empty"() {
@@ -78,7 +79,7 @@ class ScalaCompileTest extends AbstractCompileTest {
     }
 
     def "sets annotation processor path"() {
-        ScalaJavaJointCompileSpec compileSpec
+        ScalaJavaJointCompileSpec compileSpec = null
         def file = new File('foo.jar')
 
         given:
@@ -89,7 +90,10 @@ class ScalaCompileTest extends AbstractCompileTest {
         execute(scalaCompile)
 
         then:
-        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> { args -> compileSpec = args[0]; null }
+        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> { ScalaJavaJointCompileSpec compilerSpecArg ->
+            compileSpec = compilerSpecArg
+            return WorkResults.didWork(true)
+        }
         compileSpec.getAnnotationProcessorPath() == [file]
     }
 
