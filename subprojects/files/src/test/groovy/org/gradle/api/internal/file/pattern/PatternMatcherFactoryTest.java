@@ -22,12 +22,51 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class PatternMatcherFactoryTest {
     private PatternMatcher matcher;
+
+    @Test public void testNoStackOverflowForManyPatterns() {
+        // The only reason for this unit test is to verify that no StackOverflowException is being thrown when
+        // many patterns are passed to getPatternsMatcher. See https://github.com/gradle/gradle/issues/10329
+        Set<String> manyPatterns =  new LinkedHashSet<String>();
+        for (int i = 0; i < 5000; i++) {
+            manyPatterns.add("some/package/Some" + i + "ClassName.class");
+            manyPatterns.add("some/package/Some" + i + "ClassName.java");
+            manyPatterns.add("some/package/Some" + i + "ClassName.h");
+            manyPatterns.add("some/package/Some" + i + "ClassName$*.class");
+            manyPatterns.add("some/package/Some" + i + "ClassName$*.java");
+            manyPatterns.add("some/package/Some" + i + "ClassName$*.h");
+        }
+        matcher = PatternMatcherFactory.getPatternsMatcher(true, true, manyPatterns);
+        assertThat(matcher, not(matchesFile("some", "package", "SomeClassName.java")));
+        assertThat(matcher, matchesFile("some", "package", "Some123ClassName.java"));
+    }
+
+    @Test public void testManyOr() {
+        Set<String> manyPatterns =  new LinkedHashSet<String>();
+        manyPatterns.add("some/package/SomeClassName.class");
+        manyPatterns.add("some/package/SomeClassName.java");
+        manyPatterns.add("some/package/SomeClassName.h");
+        manyPatterns.add("some/package/SomeClassName$*.class");
+        manyPatterns.add("some/package/SomeClassName$*.java");
+        manyPatterns.add("some/package/SomeClassName$*.h");
+        matcher = PatternMatcherFactory.getPatternsMatcher(true, true, manyPatterns);
+        assertThat(matcher, not(matchesFile()));
+        assertThat(matcher, matchesFile("some", "package", "SomeClassName.java"));
+        assertThat(matcher, matchesFile("some", "package", "SomeClassName.class"));
+        assertThat(matcher, matchesFile("some", "package", "SomeClassName.h"));
+        assertThat(matcher, matchesFile("some", "package", "SomeClassName$*.java"));
+        assertThat(matcher, matchesFile("some", "package", "SomeClassName$*.class"));
+        assertThat(matcher, matchesFile("some", "package", "SomeClassName$*.h"));
+        assertThat(matcher, not(matchesFile("a")));
+    }
 
     @Test public void testEmpty() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "");
