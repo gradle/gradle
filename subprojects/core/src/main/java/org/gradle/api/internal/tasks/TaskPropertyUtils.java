@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -83,11 +84,12 @@ public class TaskPropertyUtils {
                 return;
             }
             String message;
+            Class<?> taskType = task instanceof GeneratedSubclass ? ((GeneratedSubclass) task).publicType() : task.getClass();
             if (problems.size() == 1) {
-                message = String.format("A problem was found with the configuration of %s.", task);
+                message = String.format("A problem was found with the configuration of %s of type '%s'.", task, taskType.getName());
             } else {
                 Collections.sort(problems);
-                message = String.format("Some problems were found with the configuration of %s.", task);
+                message = String.format("Some problems were found with the configuration of %s of type '%s'.", task, taskType.getName());
             }
             throw new TaskValidationException(message, CollectionUtils.collect(problems, InvalidUserDataException::new));
         }
