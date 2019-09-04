@@ -399,7 +399,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         values == ["bar"]
     }
 
-    def "action methods with wide parameters are compiles"() {
+    def "action methods with wide parameters are generated properly"() {
         given:
         def tester = create(ActionsTester)
 
@@ -422,7 +422,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         tester.lastArgs.last() instanceof Action
     }
 
-    def "class with wide constructor are compiles"() {
+    def "class with wide constructor are generated properly"() {
         given:
         def reference = new Object()
 
