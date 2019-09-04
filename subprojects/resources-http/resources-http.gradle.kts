@@ -44,13 +44,6 @@ dependencies {
     testImplementation(testLibrary("jetty"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
-
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {

@@ -28,12 +28,6 @@ dependencies {
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
-
-    integTestImplementation(project(":coreApi"))
-    integTestImplementation(project(":modelCore"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(testLibrary("jetty"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {

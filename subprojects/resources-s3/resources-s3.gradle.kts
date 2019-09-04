@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
-    
+
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("nativePlatform"))
@@ -32,12 +32,6 @@ dependencies {
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
-
-    integTestImplementation(project(":logging"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(testLibrary("littleproxy"))
-    integTestImplementation(testLibrary("jetty"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {

@@ -38,12 +38,6 @@ dependencies {
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
-
-    integTestImplementation(project(":logging"))
-    integTestImplementation(testLibrary("jetty"))
-    testLibraries("sshd").forEach { integTestImplementation(it) }
-
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
