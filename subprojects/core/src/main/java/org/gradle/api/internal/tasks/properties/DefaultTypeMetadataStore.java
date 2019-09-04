@@ -125,7 +125,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
-                    validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
+                    validationContext.visitWarning(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
                         annotationType.getSimpleName(), propertyType.getSimpleName()));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("has invalid annotation @%s",
