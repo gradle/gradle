@@ -56,12 +56,9 @@ public abstract class StaleOutputCleaner {
         OutputsCleaner outputsCleaner = new OutputsCleaner(
             deleter,
             file -> {
-                for (String prefix : prefixes) {
-                    if (file.getAbsolutePath().startsWith(prefix)) {
-                        return true;
-                    }
-                }
-                return false;
+                String absolutePath = file.getAbsolutePath();
+                return prefixes.stream()
+                    .anyMatch(absolutePath::startsWith);
             },
             dir -> !directoriesToClean.contains(dir)
         );
