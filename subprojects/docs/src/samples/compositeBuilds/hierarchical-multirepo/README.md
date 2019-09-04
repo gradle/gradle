@@ -53,7 +53,7 @@ The `publishDeps` creates and uploads the artifacts for each included build. It 
 
 ```
 task publishDeps {
-    dependsOn gradle.includedBuilds*.task(':uploadArchives')
+    dependsOn gradle.includedBuilds*.task(':publishIvyPublicationToIvyRepository')
 }
 ```
 
