@@ -42,7 +42,6 @@ public class CleaningJavaCompiler<T extends JavaCompileSpec> implements Compiler
 
     @Override
     public WorkResult execute(T spec) {
-
         ImmutableSet.Builder<File> outputDirs = ImmutableSet.builderWithExpectedSize(3);
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         addDirectoryIfNotNull(outputDirs, spec.getDestinationDir());

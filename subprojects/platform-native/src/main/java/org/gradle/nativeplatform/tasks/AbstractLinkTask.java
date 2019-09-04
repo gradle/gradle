@@ -220,14 +220,14 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     @TaskAction
     public void link() {
-        boolean cleanerOutputs = StaleOutputCleaner.cleanOutputs(
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
             getDeleter(),
             getOutputs().getPreviousOutputFiles(),
             getDestinationDirectory().get().getAsFile()
         );
 
         if (getSource().isEmpty()) {
-            setDidWork(cleanerOutputs);
+            setDidWork(cleanedOutputs);
             return;
         }
 
@@ -247,7 +247,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         Compiler<LinkerSpec> compiler = createCompiler();
         compiler = BuildOperationLoggingCompilerDecorator.wrap(compiler);
         WorkResult result = compiler.execute(spec);
-        setDidWork(result.getDidWork() || cleanerOutputs);
+        setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
     @SuppressWarnings("unchecked")

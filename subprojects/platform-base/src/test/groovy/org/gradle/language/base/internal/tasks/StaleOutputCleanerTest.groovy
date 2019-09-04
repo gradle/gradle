@@ -42,7 +42,6 @@ class StaleOutputCleanerTest extends Specification {
         tmpDir.file('foo/baz/file2').createFile()
 
         expect:
-
         StaleOutputCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
         !tmpDir.file('foo/bar').exists()
         tmpDir.file('foo/baz').exists()
