@@ -477,7 +477,18 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         builder.publications {
             artifacts.each { art ->
                 if (!art.undeclared) {
-                    def attrs = [name: art.name, type: art.type, ext: art.ext, conf: art.conf]
+                    Set<String> confs = []
+                    if (art.conf) {
+                        confs = [art.conf]
+                    } else {
+                        variants.each {
+                            confs += it.name == 'api' ? 'compile' : it.name
+                        }
+                        configurations.keySet().each {
+                            confs += it
+                        }
+                    }
+                    def attrs = [name: art.name, type: art.type, ext: art.ext, conf: confs.join(',')]
                     if (art.classifier) {
                         attrs["m:classifier"] = art.classifier
                     }
