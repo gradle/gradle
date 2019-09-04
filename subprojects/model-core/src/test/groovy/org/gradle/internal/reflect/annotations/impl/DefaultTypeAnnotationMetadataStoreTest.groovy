@@ -278,13 +278,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     }
 
         @SuppressWarnings("unused")
-        interface BaseTypeWithSuperClassProperites {
+        interface BaseTypeWithSuperClassProperties {
             @Small
             String getBaseProperty()
         }
 
         @SuppressWarnings("unused")
-        interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperites {
+        interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperties {
             @Large
             String getSubclassProperty()
         }
