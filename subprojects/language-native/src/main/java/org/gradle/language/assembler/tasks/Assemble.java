@@ -35,7 +35,7 @@ import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -91,7 +91,7 @@ public class Assemble extends DefaultTask {
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
 
-        StaleClassCleaner.cleanOutputs(
+        StaleOutputCleaner.cleanOutputs(
             getDeleter(),
             getOutputs().getPreviousOutputFiles(),
             getObjectFileDir()

@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class StaleClassCleanerTest extends Specification {
+class StaleOutputCleanerTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Deleter deleter = TestFiles.deleter()
@@ -32,7 +32,7 @@ class StaleClassCleanerTest extends Specification {
         def file2 = tmpDir.file('file2').createFile()
 
         expect:
-        StaleClassCleaner.cleanOutputs(deleter, files(file1, file2), tmpDir.testDirectory)
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1, file2), tmpDir.testDirectory)
         !file1.exists()
         !file2.exists()
     }
@@ -43,7 +43,7 @@ class StaleClassCleanerTest extends Specification {
 
         expect:
 
-        StaleClassCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
         !tmpDir.file('foo/bar').exists()
         tmpDir.file('foo/baz').exists()
     }
@@ -53,7 +53,7 @@ class StaleClassCleanerTest extends Specification {
         def file2 = tmpDir.file('foo/bar/file2').createFile()
 
         expect:
-        StaleClassCleaner.cleanOutputs(deleter, files(file1, file2), tmpDir.testDirectory)
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1, file2), tmpDir.testDirectory)
         !tmpDir.file('foo').exists()
     }
 
@@ -61,7 +61,7 @@ class StaleClassCleanerTest extends Specification {
         def file1 = tmpDir.file('foo/bar/file1').createFile()
 
         expect:
-        StaleClassCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
         !tmpDir.file('foo').exists()
         tmpDir.testDirectory.exists()
     }
@@ -72,14 +72,14 @@ class StaleClassCleanerTest extends Specification {
         def file2 = tmpDir.file('file2').createFile()
 
         expect:
-        StaleClassCleaner.cleanOutputs(deleter, files(file1, file2), destDir)
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1, file2), destDir)
         !file1.exists()
         file2.exists()
     }
 
     def "reports when no work was done"() {
         expect:
-        !StaleClassCleaner.cleanOutputs(deleter, files(), tmpDir.file('dir'))
+        !StaleOutputCleaner.cleanOutputs(deleter, files(), tmpDir.file('dir'))
     }
 
     Set<File> files(File... args) {

@@ -29,7 +29,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
-import org.gradle.language.base.internal.tasks.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.work.FileChange;
 
 import java.io.File;
@@ -57,7 +57,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             return;
         }
         Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
-        StaleClassCleaner.cleanOutputs(deleter, toDelete, destinationDir);
+        StaleOutputCleaner.cleanOutputs(deleter, toDelete, destinationDir);
     }
 
     protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {

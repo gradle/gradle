@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -47,7 +47,7 @@ public class CleaningJavaCompiler<T extends JavaCompileSpec> implements Compiler
         addDirectoryIfNotNull(outputDirs, spec.getDestinationDir());
         addDirectoryIfNotNull(outputDirs, compileOptions.getAnnotationProcessorGeneratedSourcesDirectory());
         addDirectoryIfNotNull(outputDirs, compileOptions.getHeaderOutputDirectory());
-        StaleClassCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), outputDirs.build());
+        StaleOutputCleaner.cleanOutputs(deleter, taskOutputs.getPreviousOutputFiles(), outputDirs.build());
 
         Compiler<? super T> compiler = getCompiler();
         return compiler.execute(spec);

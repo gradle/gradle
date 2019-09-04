@@ -26,11 +26,28 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class StaleClassCleaner {
+public abstract class StaleOutputCleaner {
+
+    /**
+     * Clean up the given stale output files under the given directory.
+     *
+     * Any files and directories are removed that are descendants of {@code directoryToClean}.
+     * Files and directories outside {@code directoryToClean} and {@code directoryToClean} itself is not deleted.
+     *
+     * Returns {code true} if any file or directory was deleted, {@code false} otherwise.
+     */
     public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, File directoryToClean) {
         return cleanOutputs(deleter, filesToDelete, ImmutableSet.of(directoryToClean));
     }
 
+    /**
+     * Clean up the given stale output files under the given directories.
+     *
+     * Any files and directories are removed that are descendants of any of the {@code directoriesToClean}.
+     * Files and directories outside {@code directoriesToClean} and {@code directoriesToClean} themselves are not deleted.
+     *
+     * Returns {code true} if any file or directory was deleted, {@code false} otherwise.
+     */
     public static boolean cleanOutputs(Deleter deleter, Iterable<File> filesToDelete, ImmutableSet<File> directoriesToClean) {
         Set<String> prefixes = directoriesToClean.stream()
             .map(directoryToClean -> directoryToClean.getAbsolutePath() + File.separator)
