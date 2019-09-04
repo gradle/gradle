@@ -240,6 +240,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
                 text = "foo"
                 arrayOfThings = ["foo", "bar", "baz"]
                 listOfThings = ["foo", "bar", "baz"]
+                outputFile = file("${OUTPUT_FILE_NAME}")
 
                 // Force a new daemon to be used
                 workerConfiguration = {
