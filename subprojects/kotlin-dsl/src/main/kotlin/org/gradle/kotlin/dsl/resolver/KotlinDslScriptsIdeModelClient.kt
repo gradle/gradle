@@ -112,15 +112,14 @@ fun ProjectConnection.newKotlinDslScriptsModelBuilder(request: KotlinDslScriptsM
             setJavaHome(request.javaHome)
         }
 
-        if (request.lenient) setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
-        else setJvmArguments(request.jvmOptions)
+        addJvmArguments(request.jvmOptions)
+        if (request.lenient) addJvmArguments(modelSpecificJvmOptions)
 
         forTasks(kotlinBuildScriptModelTask)
 
-        val arguments = request.options.toMutableList()
-        arguments += "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}"
-        if (request.scripts.isNotEmpty()) {
-            arguments += "-P$kotlinDslScriptsModelTargets=${request.scripts.joinToString("|") { it.canonicalPath }}"
-        }
-        withArguments(arguments)
+        addArguments(request.options)
+        addArguments(
+            "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}",
+            "-P$kotlinDslScriptsModelTargets=${request.scripts.joinToString("|") { it.canonicalPath }}"
+        )
     }
