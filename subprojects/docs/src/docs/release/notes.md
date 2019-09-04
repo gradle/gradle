@@ -11,7 +11,8 @@ We would like to thank the following community contributors to this release of G
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
 [Nigel Banks](https://github.com/nigelgbanks),
-and [Dan Sănduleac](https://github.com/dansanduleac),
+[Sergey Shatunov](https://github.com/Prototik),
+and [Dan Sănduleac](https://github.com/dansanduleac).
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
