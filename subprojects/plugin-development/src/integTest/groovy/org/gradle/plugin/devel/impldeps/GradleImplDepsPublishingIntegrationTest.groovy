@@ -40,6 +40,7 @@ class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrat
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
         when:
+        executer.expectDeprecationWarnings(2)
         succeeds 'uploadArchives'
 
         then:
@@ -70,6 +71,7 @@ class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrat
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
         when:
+        executer.expectDeprecationWarning()
         succeeds 'uploadArchives'
 
         then:
