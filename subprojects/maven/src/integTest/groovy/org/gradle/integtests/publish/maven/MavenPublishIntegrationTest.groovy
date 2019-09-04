@@ -781,6 +781,8 @@ uploadArchives {
         when:
         succeeds 'uploadArchives', '-Pversion=1'
 
+        executer.expectDeprecationWarnings(2)
+
         then:
         module1.rootMetaData.verifyChecksums()
         module1.rootMetaData.versions == ["1"]

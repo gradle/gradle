@@ -44,6 +44,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         def pomProjectDir = sample.dir.file(dsl)
 
         when:
+        executer.expectDeprecationWarnings(2)
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
         then:
@@ -67,6 +68,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         module.moduleDir.deleteDir()
 
         when:
+        executer.expectDeprecationWarning()
         executer.inDirectory(pomProjectDir).withTasks('install').run()
 
         then:

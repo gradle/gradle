@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 class MavenWagonPublishIntegrationTest extends AbstractMavenPublishIntegTest {
 
     def "uses provided wagon type to perform publication"() {
+        executer.expectDeprecationWarnings(2)
+
         given:
         buildFile << """
             apply plugin: 'java'
