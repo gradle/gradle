@@ -58,13 +58,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         with(javaLibrary.parsedIvy) {
             configurations.keySet() == ["default", "compile", "runtime"] as Set
-            configurations["default"].extend == ["runtime", "compile"] as Set
+            configurations["default"].extend == ["runtime"] as Set
             configurations["runtime"].extend == null
 
-            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile"])
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile", "runtime"])
         }
         javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
-        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
+        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:1.4')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -122,9 +122,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
         if (ivyConfiguration == 'compile') {
             javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
-        } else {
-            javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
         }
+        javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
 
         where:
         plugin         | gradleConfiguration | ivyConfiguration | deprecatedConfiguration
@@ -1155,14 +1154,14 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         with(javaLibrary.parsedIvy) {
             configurations.keySet() == ["default", "compile", "runtime", "optionalFeatureRuntimeElements"] as Set
             if (optional) {
-                configurations["default"].extend == ["runtime", "compile"] as Set
+                configurations["default"].extend == ["runtime"] as Set
             } else {
-                configurations["default"].extend == ["runtime", "compile", "optionalFeatureRuntimeElements"] as Set
+                configurations["default"].extend == ["runtime", "optionalFeatureRuntimeElements"] as Set
             }
             configurations["runtime"].extend == null
             configurations["optionalFeatureRuntimeElements"].extend == null
 
-            expectArtifact("publishTest", "jar").hasConf(["compile"])
+            expectArtifact("publishTest", "jar").hasConf(["compile", "runtime"])
             expectArtifact("publishTest", "jar", "optional-feature").hasConf(["optionalFeatureRuntimeElements"])
             assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org.slf4j:slf4j-api:1.7.26")
         }

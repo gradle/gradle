@@ -122,6 +122,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "can override attributes"() {
         given:
         withDefaultVariantToTest()
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
         buildFile << """
             class AttributeRule implements ComponentMetadataRule {
                 Attribute attribute
@@ -132,7 +133,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 }
 
                 void execute(ComponentMetadataContext context) {
-                    context.details.withVariant("$variantToTest") { 
+                    context.details.withVariant("$transitiveSelectedVariant") { 
                         attributes {
                             attribute(attribute, "custom")
                         }
@@ -195,7 +196,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                         } else {
                             if (GradleMetadataResolveRunner.useIvy()) {
                                 // Ivy doesn't derive any variant
-                                expectedTargetVariant = 'customVariant'
+                                expectedTargetVariant = 'default'
                                 expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                             } else {
                                 // for Maven, we derive variants for compile/runtime. Variants are then used during selection, and are subject
