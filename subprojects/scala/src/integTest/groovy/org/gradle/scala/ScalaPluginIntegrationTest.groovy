@@ -208,6 +208,7 @@ task someTask
             class Foo
         """
         expect:
+        executer.expectDeprecationWarning()
         succeeds("install")
     }
 }
