@@ -43,6 +43,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         inDirectory(sample.dir.file(dsl))
 
         when:
+        executer.expectDeprecationWarnings(2)
         run "uploadArchives"
 
         then:
@@ -61,6 +62,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         inDirectory(sample.dir.file(dsl))
 
         when:
+        executer.expectDeprecationWarnings(2)
         run "uploadArchives"
 
         then:
