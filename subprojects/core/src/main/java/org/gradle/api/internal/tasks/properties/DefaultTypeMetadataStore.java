@@ -82,7 +82,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     @Override
-    public <T> TypeMetadata getTypeMetadata(final Class<T> type) {
+    public <T> TypeMetadata getTypeMetadata(Class<T> type) {
         return cache.get(type, typeMetadataFactory);
     }
 
@@ -164,22 +164,22 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public void visitError(@Nullable String ownerPath, final String propertyName, final String message) {
+        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
             builder.add((ownerPropertyPath, validationContext) -> validationContext.visitError(ownerPropertyPath, propertyName, message));
         }
 
         @Override
-        public void visitError(final String message) {
+        public void visitError(String message) {
             builder.add((ownerPropertyPath, validationContext) -> validationContext.visitError(message));
         }
 
         @Override
-        public void visitErrorStrict(@Nullable final String ownerPath, final String propertyName, final String message) {
+        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
             builder.add((ownerPropertyPath, validationContext) -> validationContext.visitErrorStrict(ownerPropertyPath, propertyName, message));
         }
 
         @Override
-        public void visitErrorStrict(final String message) {
+        public void visitErrorStrict(String message) {
             builder.add((ownerPropertyPath, validationContext) -> validationContext.visitErrorStrict(message));
         }
     }
