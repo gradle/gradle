@@ -35,7 +35,7 @@ dependencies {
     implementation(library("groovy"))
     implementation(library("guava"))
 
-    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":resources")))
 
     integTestImplementation(project(":baseServicesGroovy"))
 

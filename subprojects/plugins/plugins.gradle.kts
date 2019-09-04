@@ -61,7 +61,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":launcher")))
     testImplementation(testFixtures(project(":dependencyManagement")))
-    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":resources")))
     testImplementation(testFixtures(project(":platformNative")))
     testImplementation(testFixtures(project(":languageJvm")))
     testImplementation(testFixtures(project(":languageJava")))
