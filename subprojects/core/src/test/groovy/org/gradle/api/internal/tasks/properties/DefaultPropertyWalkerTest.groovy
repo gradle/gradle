@@ -43,6 +43,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS
+import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERTY_TYPE_ANNOTATIONS
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
@@ -236,7 +237,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
-            ModifierAnnotationCategory.asMap(IGNORED_METHOD_ANNOTATIONS),
+            ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             [Object, GroovyObject],
             [Object, GroovyObject],
             [ConfigurableFileCollection, Property],
