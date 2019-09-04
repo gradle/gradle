@@ -152,7 +152,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
-        forkOptions = getForkOptionsFactory().newJavaForkOptions();
+        forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
     }
 

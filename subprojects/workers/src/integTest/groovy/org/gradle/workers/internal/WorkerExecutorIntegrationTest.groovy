@@ -190,6 +190,37 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertDifferentDaemonsWereUsed("runInDaemon", "startNewDaemon")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/10411")
+    def "does not leak project state across multiple builds"() {
+        fixture.withWorkActionClassInBuildSrc()
+        executer.withBuildJvmOpts('-Xms256m', '-Xmx512m').requireIsolatedDaemons().requireDaemon()
+
+        buildFile << """
+            ext.memoryHog = new byte[1024*1024*150] // ~150MB
+            
+            tasks.withType(WorkerTask) { task ->
+                isolationMode = IsolationMode.PROCESS
+                // Force a new daemon to be used
+                additionalForkOptions = {
+                    it.systemProperty("foobar", task.name)
+                }
+            }
+            task startDaemon1(type: WorkerTask)
+            task startDaemon2(type: WorkerTask)
+            task startDaemon3(type: WorkerTask)
+        """
+
+        when:
+        succeeds("startDaemon1")
+        succeeds("startDaemon2")
+        succeeds("startDaemon3")
+
+        then:
+        assertDifferentDaemonsWereUsed("startDaemon1", "startDaemon2")
+        assertDifferentDaemonsWereUsed("startDaemon2", "startDaemon3")
+        assertDifferentDaemonsWereUsed("startDaemon1", "startDaemon3")
+    }
+
     def "starts a new worker daemon when there are no idle compatible worker daemons available"() {
         blockingServer.start()
         blockingServer.expectConcurrent("runInDaemon", "startNewDaemon")
