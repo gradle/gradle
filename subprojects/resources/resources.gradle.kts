@@ -53,6 +53,7 @@ dependencies {
     testFixturesImplementation(project(":resourcesHttp"))
     testFixturesImplementation(library("slf4j_api"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":resourcesSftp"))
 }
 
 gradlebuildJava {
