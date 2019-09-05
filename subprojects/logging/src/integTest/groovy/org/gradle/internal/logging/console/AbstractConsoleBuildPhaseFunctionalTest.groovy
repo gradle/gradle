@@ -436,6 +436,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     String regexFor(String message) {
-        /<.*> $message \[\d+s]/
+        /<.*> $message \[[\dms ]+]/
     }
 }
