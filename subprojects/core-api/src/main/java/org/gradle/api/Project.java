@@ -1741,7 +1741,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.8
      */
-    @Incubating
     void dependencyLocking(Action<? super DependencyLockingHandler> configuration);
 
     /**
@@ -1749,6 +1748,5 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.8
      */
-    @Incubating
     DependencyLockingHandler getDependencyLocking();
 }
