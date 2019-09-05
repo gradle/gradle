@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -32,12 +33,19 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public class WorkerDaemonServer implements WorkerProtocol {
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceRegistry workServices;
+    private final LegacyTypesSupport legacyTypesSupport;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final InstantiatorFactory instantiatorFactory;
     private Worker isolatedClassloaderWorker;
 
     @Inject
-    public WorkerDaemonServer(ServiceRegistry parent, RequestArgumentSerializers argumentSerializers) {
-        this.serviceRegistry = createWorkerDaemonServices(parent);
+    public WorkerDaemonServer(ServiceRegistry parentServices, RequestArgumentSerializers argumentSerializers) {
+        ServiceRegistry internalServices = createWorkerDaemonServices(parentServices);
+        this.workServices = new WorkServicesBuilder(internalServices).build();
+        this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
+        this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
+        this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
         argumentSerializers.add(WorkerDaemonMessageSerializer.create());
     }
 
@@ -62,9 +70,9 @@ public class WorkerDaemonServer implements WorkerProtocol {
     private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
         if (isolatedClassloaderWorker == null) {
             if (classLoaderStructure instanceof FlatClassLoaderStructure) {
-                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), serviceRegistry);
+                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
             } else {
-                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, this.getClass().getClassLoader(), serviceRegistry, true);
+                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, this.getClass().getClassLoader(), workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory, true);
             }
         }
         return isolatedClassloaderWorker;

@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -41,9 +42,9 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     // Attaches the owning WorkerExecutor to this factory
     public void setWorkerExecutor(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
-        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
+        DefaultServiceRegistry serviceRegistry = new WorkServicesBuilder(parent).build();
         serviceRegistry.add(WorkerExecutor.class, workerExecutor);
-        this.workerServer = new DefaultWorkerServer(serviceRegistry);
+        this.workerServer = new DefaultWorkerServer(serviceRegistry, parent.get(InstantiatorFactory.class));
     }
 
     @Override

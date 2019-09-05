@@ -17,6 +17,8 @@
 package org.gradle.workers.internal;
 
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.ServiceRegistry;
@@ -24,13 +26,19 @@ import org.gradle.workers.IsolationMode;
 
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceRegistry workServices;
     private final ClassLoaderRegistry classLoaderRegistry;
+    private final LegacyTypesSupport legacyTypesSupport;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final InstantiatorFactory instantiatorFactory;
 
-    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent, ClassLoaderRegistry classLoaderRegistry) {
+    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.serviceRegistry = parent;
+        this.workServices = new WorkServicesBuilder(internalServices).build();
         this.classLoaderRegistry = classLoaderRegistry;
+        this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
+        this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
+        this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
     }
 
     @Override
@@ -42,7 +50,8 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                     @Override
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
-                        return new IsolatedClassloaderWorker(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, serviceRegistry).execute(spec);
+                        Worker worker = new IsolatedClassloaderWorker(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory);
+                        return worker.execute(spec);
                     }
                 });
             }

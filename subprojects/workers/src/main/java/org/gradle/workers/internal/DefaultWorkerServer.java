@@ -23,26 +23,29 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.WorkAction;
 
-import javax.inject.Inject;
-
 public class DefaultWorkerServer implements WorkerProtocol {
-    private final ServiceRegistry parent;
+    private final ServiceRegistry workServices;
+    private final InstantiatorFactory instantiatorFactory;
 
-    @Inject
-    public DefaultWorkerServer(ServiceRegistry parent) {
-        this.parent = parent;
+    public DefaultWorkerServer(ServiceRegistry workServices, InstantiatorFactory instantiatorFactory) {
+        this.workServices = workServices;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             Class<? extends WorkAction> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
-            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
-            Instantiator instantiator = parent.get(InstantiatorFactory.class).inject(serviceRegistry);
+            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(workServices);
+            Instantiator instantiator = instantiatorFactory.inject(serviceRegistry);
             if (spec.getParameters() != null) {
                 serviceRegistry.add(spec.getParameters().getClass(), Cast.uncheckedCast(spec.getParameters()));
             }
+
+            // TODO This is only necessary for AdapterWorkAction so that legacy work runnables can inject a WorkerExecutor.
+            // This can be removed once the legacy api is retired.
             serviceRegistry.add(Instantiator.class, instantiator);
+
             WorkAction execution = instantiator.newInstance(implementationClass);
             execution.execute();
             if (execution instanceof ProvidesWorkResult) {

@@ -61,14 +61,6 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     }
 
     private static class BuildSessionScopeServices {
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
-        }
-
-        IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry, ClassLoaderRegistry classLoaderRegistry) {
-            return new IsolatedClassloaderWorkerFactory(buildOperationExecutor, serviceRegistry, classLoaderRegistry);
-        }
-
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
@@ -123,6 +115,14 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory.injectAndDecorateLenient(serviceRegistry));
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
+        }
+
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
+        }
+
+        IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry, ClassLoaderRegistry classLoaderRegistry) {
+            return new IsolatedClassloaderWorkerFactory(buildOperationExecutor, serviceRegistry, classLoaderRegistry);
         }
     }
 }

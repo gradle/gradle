@@ -24,25 +24,26 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
     private final ClassLoaderStructure classLoaderStructure;
     private final ClassLoader workerInfrastructureClassloader;
-    private final ServiceRegistry serviceRegistry;
+    private final LegacyTypesSupport legacyTypesSupport;
     private ClassLoader workerClassLoader;
     private boolean reuseClassloader;
 
-    public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry serviceRegistry) {
-        super(serviceRegistry);
+    public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry workServices, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+        super(workServices, actionExecutionSpecFactory, instantiatorFactory);
         this.classLoaderStructure = classLoaderStructure;
         this.workerInfrastructureClassloader = workerInfrastructureClassloader;
-        this.serviceRegistry = serviceRegistry;
+        this.legacyTypesSupport = legacyTypesSupport;
     }
 
-    public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry serviceRegistry, boolean reuseClassloader) {
-        this(classLoaderStructure, workerInfrastructureClassloader, serviceRegistry);
+    public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry workServices, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory, boolean reuseClassloader) {
+        this(classLoaderStructure, workerInfrastructureClassloader, workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory);
         this.reuseClassloader = reuseClassloader;
     }
 
@@ -94,7 +95,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
             if (mixinSpec.getClasspath().isEmpty()) {
                 return parent;
             }
-            return new MixInLegacyTypesClassLoader(parent, mixinSpec.getClasspath(), serviceRegistry.get(LegacyTypesSupport.class));
+            return new MixInLegacyTypesClassLoader(parent, mixinSpec.getClasspath(), legacyTypesSupport);
         } else if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec visitableSpec = (VisitableURLClassLoader.Spec)spec;
             if (visitableSpec.getClasspath().isEmpty()) {

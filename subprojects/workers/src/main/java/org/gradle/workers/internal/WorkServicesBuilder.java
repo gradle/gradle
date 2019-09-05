@@ -16,19 +16,22 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.instantiation.InstantiatorFactory;
+//import org.gradle.api.file.FileSystemOperations;
+//import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class FlatClassLoaderWorker extends AbstractClassLoaderWorker {
-    private final ClassLoader workerClassLoader;
+public class WorkServicesBuilder {
+    private final ServiceRegistry internalServices;
 
-    public FlatClassLoaderWorker(ClassLoader workerClassLoader, ServiceRegistry serviceRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
-        super(serviceRegistry, actionExecutionSpecFactory, instantiatorFactory);
-        this.workerClassLoader = workerClassLoader;
+    WorkServicesBuilder(ServiceRegistry internalServices) {
+        this.internalServices = internalServices;
     }
 
-    @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
-        return executeInClassLoader(spec, workerClassLoader);
+    DefaultServiceRegistry build() {
+        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        //services.add(ObjectFactory.class, internalServices.get(ObjectFactory.class));
+        //services.add(FileSystemOperations.class, internalServices.get(FileSystemOperations.class));
+        return services;
     }
 }
