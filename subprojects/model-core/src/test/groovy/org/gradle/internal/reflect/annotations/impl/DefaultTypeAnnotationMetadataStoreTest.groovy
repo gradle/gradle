@@ -437,7 +437,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         expect:
         assertProperties TypeHidingPropertyFromSuperType, [
             baseProperty: [(TYPE): Ignored],
-            propertyIgnoredInBase: [(TYPE): Small]
         ]
     }
 
@@ -445,8 +444,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         interface BaseTypeWithPropertyToHide {
             @Color
             String getBaseProperty()
-            @Ignored
-            String getPropertyIgnoredInBase()
         }
 
         @SuppressWarnings("unused")
@@ -454,7 +451,23 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Ignored
             @Override
             String getBaseProperty()
+        }
 
+    def "can redefine ignored supertype property"() {
+        expect:
+        assertProperties TypeRedefiningIgnoredPropertyFromSuperType, [
+            propertyIgnoredInBase: [(TYPE): Small]
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface BaseTypeWithIgnoredProperty {
+            @Ignored
+            String getPropertyIgnoredInBase()
+        }
+
+        @SuppressWarnings("unused")
+        interface TypeRedefiningIgnoredPropertyFromSuperType extends BaseTypeWithIgnoredProperty {
             @Override
             @Small
             String getPropertyIgnoredInBase()
