@@ -86,8 +86,8 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
 
     /**
      * Add a rule for adding a new variant to the component. The new variant will be based on an existing variant
-     * or configurations of the component and initialized with the same attributes, capabilities and dependencies.
-     * These can the be modified in the given configuration action.
+     * or configurations of the component and initialized with the same attributes, capabilities, dependencies and artifacts.
+     * These can then be modified in the given configuration action.
      * Whether the 'base' is already a variant (with attributes) or a plain configuration (without attributes) depends on the
      * metadata source:
      *

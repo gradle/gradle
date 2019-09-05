@@ -26,6 +26,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -133,18 +134,21 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
             ImmutableAttributes attributes;
             ImmutableCapabilities capabilities;
             List<? extends ModuleDependencyMetadata> dependencies;
+            ImmutableList<? extends ComponentArtifactMetadata> artifacts;
             if (base instanceof ModuleConfigurationMetadata) {
                 attributes = base.getAttributes();
                 capabilities = (ImmutableCapabilities) base.getCapabilities();
                 dependencies = ((ModuleConfigurationMetadata) base).getDependencies();
+                artifacts = base.getArtifacts();
             } else {
                 attributes = getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
                 dependencies = ImmutableList.of();
+                artifacts = ImmutableList.of();
             }
 
             ComponentVariant variant = new AbstractMutableModuleComponentResolveMetadata.ImmutableVariantImpl(getId(), variantName.getKey(), attributes, ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), capabilities);
-            ConfigurationMetadata configurationMetadata = new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules, dependencies);
+            ConfigurationMetadata configurationMetadata = new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules, dependencies, artifacts);
             builder.add(configurationMetadata);
         }
         return Optional.of(builder.build());

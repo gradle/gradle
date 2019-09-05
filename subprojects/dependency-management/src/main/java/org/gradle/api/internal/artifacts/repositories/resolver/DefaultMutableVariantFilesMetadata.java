@@ -26,7 +26,14 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMetadata {
 
+    private boolean clearExistingFiles = false;
     private List<VariantFileMetadata> files = newArrayList();
+
+    @Override
+    public void removeAllFiles() {
+        clearExistingFiles = true;
+        files.clear();
+    }
 
     @Override
     public void addFile(String name) {
@@ -41,6 +48,10 @@ public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMe
             }
         }
         files.add(new DefaultVariantFileMetadata(name, url));
+    }
+
+    public boolean isClearExistingFiles() {
+        return clearExistingFiles;
     }
 
     public List<VariantFileMetadata> getFiles() {

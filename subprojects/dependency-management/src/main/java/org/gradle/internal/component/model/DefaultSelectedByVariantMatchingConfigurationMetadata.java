@@ -59,7 +59,7 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
-    public List<? extends ComponentArtifactMetadata> getArtifacts() {
+    public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         return delegate.getArtifacts();
     }
 

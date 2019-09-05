@@ -285,7 +285,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private ImmutableSet<LocalFileDependencyMetadata> configurationFileDependencies;
         private ImmutableList<ExcludeMetadata> configurationExcludes;
 
-        private List<LocalComponentArtifactMetadata> configurationArtifacts;
+        private ImmutableList<LocalComponentArtifactMetadata> configurationArtifacts;
 
         protected DefaultLocalConfigurationMetadata(String name,
                                                     String description,
@@ -477,7 +477,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public List<? extends LocalComponentArtifactMetadata> getArtifacts() {
+        public ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts() {
             if (configurationArtifacts == null) {
                 if (allArtifacts.isEmpty()) {
                     configurationArtifacts = ImmutableList.of();

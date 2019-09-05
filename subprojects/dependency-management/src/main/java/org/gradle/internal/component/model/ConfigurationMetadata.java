@@ -58,7 +58,7 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
-    List<? extends ComponentArtifactMetadata> getArtifacts();
+    ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.

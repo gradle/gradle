@@ -44,9 +44,11 @@ public class VariantFilesRules {
             return artifacts;
         }
         ImmutableList.Builder<T> builder = new ImmutableList.Builder<>();
-        for (T existingArtifact : artifacts) {
-            if (isFilePathUnambiguous(existingArtifact)) {
-                builder.add(existingArtifact);
+        if (!filesMetadata.isClearExistingFiles()) {
+            for (T existingArtifact : artifacts) {
+                if (isFilePathUnambiguous(existingArtifact)) {
+                    builder.add(existingArtifact);
+                }
             }
         }
         for (VariantFileMetadata file : filesMetadata.getFiles()) {

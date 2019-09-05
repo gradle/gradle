@@ -46,6 +46,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                     context.details.addVariant('jdk8Runtime', base) {
                         attributes { attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8) }
                         withFiles {
+                            removeAllFiles()
                             addFile("\${context.details.id.name}-\${context.details.id.version}-jdk8.jar")
                         }
                     }
@@ -271,7 +272,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                     attribute('howspecial', 'notso')
                     capability('special-feature')
                     capability('crazy-feature')
-                    artifact('special-crazy')
+                    artifact('special-data')
                 }
             }
         }
@@ -303,6 +304,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
+                expectGetArtifact(classifier: 'special-data')
             }
         }
 
@@ -313,7 +315,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
                     variant('very-special-variant', expectedVariantAttributes)
-                    noArtifacts()
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'special-data')
                 }
             }
         }
@@ -381,9 +383,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
                         }
-                        withFiles {
-                            addFile("\${context.details.id.name}-\${context.details.id.version}.jar")
-                        }
                     }
                     context.details.addVariant('compile', 'compile') {
                         attributes { 
@@ -391,9 +390,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
-                        }
-                        withFiles {
-                            addFile("\${context.details.id.name}-\${context.details.id.version}.jar")
                         }
                     }
                 }

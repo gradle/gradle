@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -25,6 +26,13 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface MutableVariantFilesMetadata {
+
+    /**
+     * Remove all files already defined for the variant.
+     * Useful when files where initialized from a base variant or configuration using
+     * {@link ComponentMetadataDetails#addVariant(String, String, Action)} .
+     */
+    void removeAllFiles();
 
     /**
      * Add a file, if the file location is the same as the file name.

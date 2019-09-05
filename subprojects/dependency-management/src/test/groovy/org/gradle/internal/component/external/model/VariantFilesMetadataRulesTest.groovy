@@ -160,7 +160,8 @@ class VariantFilesMetadataRulesTest extends Specification {
         variants.last().attributes == baseVariant.attributes
         variants.last().capabilities == baseVariant.capabilities
         variants.last().dependencies == baseVariant.dependencies
-        variants.last().artifacts.empty
+        variants.last().artifacts.size() == 1
+        variants.last().artifacts[0].id.displayName == 'producer-1.0.jar (org.test:producer:1.0)'
 
         where:
         metadataType | metadata                       | initialVariantCount
@@ -234,6 +235,34 @@ class VariantFilesMetadataRulesTest extends Specification {
         metadataType == "gradle" ? artifacts[0] instanceof UrlBackedArtifactMetadata : artifacts[0] instanceof DefaultModuleComponentArtifactMetadata
         artifacts[1] instanceof UrlBackedArtifactMetadata
         artifacts[2] instanceof UrlBackedArtifactMetadata
+
+        where:
+        metadataType | metadata
+        "maven"      | mavenComponentMetadata()
+        "ivy"        | ivyComponentMetadata()
+        "gradle"     | gradleComponentMetadata()
+    }
+
+    @Unroll
+    def "variant file metadata rules can remove files from #metadataType metadata"() {
+        given:
+        def rule = { MutableVariantFilesMetadata files ->
+            files.removeAllFiles() // remove original file
+            files.addFile("added1.zip")
+            files.removeAllFiles() // remove just added file
+            files.addFile("added2", "../path.jar")
+        }
+
+        when:
+        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        def artifacts = selectTargetConfigurationMetadata(metadata).artifacts
+
+        then:
+        println(artifacts)
+        artifacts.size() == 1
+        artifacts[0].id.toString() == 'added2 (org.test:producer:1.0)'
+        artifacts[0].relativeUrl == '../path.jar'
+        artifacts[0] instanceof UrlBackedArtifactMetadata
 
         where:
         metadataType | metadata
