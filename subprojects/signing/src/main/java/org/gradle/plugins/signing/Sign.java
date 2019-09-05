@@ -152,7 +152,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
      *
      * @since 4.8
      */
-    @Incubating
     public void sign(Publication... publications) {
         for (Publication publication : publications) {
             PublicationInternal<?> publicationInternal = (PublicationInternal<?>) publication;
