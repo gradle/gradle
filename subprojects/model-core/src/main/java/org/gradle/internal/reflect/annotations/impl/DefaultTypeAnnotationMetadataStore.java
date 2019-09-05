@@ -248,7 +248,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
-                previouslySeenBuilder.recordError(String.format("has redundant getters: '%s()' and '%s()'",
+                previouslySeenBuilder.recordWarning(String.format("has redundant getters: '%s()' and '%s()'",
                     previouslySeenBuilder.method.getName(),
                     metadataBuilder.method.getName()));
             }
@@ -352,7 +352,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         if (privateGetter) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.recordError(String.format("is private and annotated with %s",
+            metadataBuilder.recordWarning(String.format("is private and annotated with %s",
                 simpleAnnotationNames(annotations.keySet().stream())));
         }
 
@@ -432,7 +432,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         private Method method;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
         private final SetMultimap<AnnotationCategory, Annotation> inheritedAnnotations = HashMultimap.create();
-        private final ImmutableList.Builder<String> problems = ImmutableList.builder();
+        private final ImmutableMap.Builder<String, Boolean> problems = ImmutableMap.builder();
 
         public PropertyAnnotationMetadataBuilder(String propertyName, Method method) {
             this.propertyName = propertyName;
@@ -461,8 +461,16 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(inheritedAnnotations::put);
         }
 
+        public void recordWarning(String problem) {
+            recordProblem(problem, false);
+        }
+
         public void recordError(String problem) {
-            problems.add(problem);
+            recordProblem(problem, true);
+        }
+
+        private void recordProblem(String problem, boolean isError) {
+            problems.put(problem, isError);
         }
 
         public PropertyAnnotationMetadata build() {
@@ -496,7 +504,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Ignore all but the first recorded annotation
             Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
             if (iDeclaredAnnotationForCategory.hasNext()) {
-                recordError(String.format("has conflicting %s annotations %s: %s; assuming @%s",
+                recordWarning(String.format("has conflicting %s annotations %s: %s; assuming @%s",
                     category.getDisplayName(),
                     source,
                     simpleAnnotationNames(annotationsForCategory.stream()

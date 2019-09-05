@@ -933,7 +933,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Type 'MyTask': property 'oldProperty' has conflicting type annotations declared: @Input, @ReplacedBy; assuming @Input.
+            Error: Type 'MyTask': property 'oldProperty' getter 'getOldProperty()' annotated with @ReplacedBy should not be also annotated with @Input.
             """.stripIndent().trim()
     }
 }

@@ -244,7 +244,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
             ignoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredProperty' getter 'getIgnoredProperty()' annotated with @Ignored should not be also annotated with @Color"
+            "Property 'ignoredProperty' getter 'getIgnoredProperty()' annotated with @Ignored should not be also annotated with @Color [STRICT]"
         ]
     }
 
@@ -259,7 +259,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
             twiceIgnoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2"
+            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2 [STRICT]"
         ]
     }
 
