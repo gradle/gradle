@@ -32,19 +32,17 @@ import java.io.ByteArrayOutputStream;
 public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFactory {
     private final IsolatableFactory isolatableFactory;
     private final IsolatableSerializerRegistry serializerRegistry;
-    private final InstantiatorFactory instantiatorFactory;
 
-    public DefaultActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry, InstantiatorFactory instantiatorFactory) {
+    public DefaultActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
         this.isolatableFactory = isolatableFactory;
         this.serializerRegistry = serializerRegistry;
-        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec) {
         if (spec instanceof IsolatedParametersActionExecutionSpec) {
             IsolatedParametersActionExecutionSpec isolatedSpec = (IsolatedParametersActionExecutionSpec) spec;
-            return new TransportableActionExecutionSpec<T>(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure());
+            return new TransportableActionExecutionSpec<T>(isolatedSpec.getDisplayName(), isolatedSpec.getImplementationClass().getName(), serialize(isolatedSpec.getIsolatedParams()), isolatedSpec.getClassLoaderStructure(), isolatedSpec.isUsesInternalServices());
         } else if (spec instanceof TransportableActionExecutionSpec) {
             return (TransportableActionExecutionSpec<T>) spec;
         } else {
@@ -53,8 +51,8 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure) {
-        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, isolatableFactory.isolate(params), classLoaderStructure);
+    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure, boolean usesInternalServices) {
+        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, isolatableFactory.isolate(params), classLoaderStructure, usesInternalServices);
     }
 
     @Override
@@ -62,11 +60,11 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
         if (spec instanceof TransportableActionExecutionSpec) {
             TransportableActionExecutionSpec<T> transportableSpec = (TransportableActionExecutionSpec<T>) spec;
             T params = Cast.uncheckedCast(deserialize(transportableSpec.getSerializedParameters()).isolate());
-            return new SimpleActionExecutionSpec<T>(Cast.uncheckedCast(fromClassName(transportableSpec.getImplementationClassName())), transportableSpec.getDisplayName(), params, transportableSpec.getClassLoaderStructure());
+            return new SimpleActionExecutionSpec<T>(Cast.uncheckedCast(fromClassName(transportableSpec.getImplementationClassName())), transportableSpec.getDisplayName(), params, transportableSpec.getClassLoaderStructure(), transportableSpec.isUsesInternalServices());
         } else if (spec instanceof IsolatedParametersActionExecutionSpec) {
             IsolatedParametersActionExecutionSpec<T> isolatedSpec = (IsolatedParametersActionExecutionSpec<T>) spec;
             T params = Cast.uncheckedCast(isolatedSpec.getIsolatedParams().isolate());
-            return new SimpleActionExecutionSpec<T>(isolatedSpec.getImplementationClass(), isolatedSpec.getDisplayName(), params, isolatedSpec.getClassLoaderStructure());
+            return new SimpleActionExecutionSpec<T>(isolatedSpec.getImplementationClass(), isolatedSpec.getDisplayName(), params, isolatedSpec.getClassLoaderStructure(), isolatedSpec.isUsesInternalServices());
         } else {
             throw new IllegalArgumentException("Can't create a SimpleActionExecutionSpec from spec with type: " + spec.getClass().getSimpleName());
         }

@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public class WorkerDaemonServer implements WorkerProtocol {
-    private final ServiceRegistry workServices;
+    private final ServiceRegistry internalServices;
     private final LegacyTypesSupport legacyTypesSupport;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final InstantiatorFactory instantiatorFactory;
@@ -41,8 +41,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     @Inject
     public WorkerDaemonServer(ServiceRegistry parentServices, RequestArgumentSerializers argumentSerializers) {
-        ServiceRegistry internalServices = createWorkerDaemonServices(parentServices);
-        this.workServices = new WorkServicesBuilder(internalServices).build();
+        this.internalServices = createWorkerDaemonServices(parentServices);
         this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
         this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
         this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
@@ -60,14 +59,15 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure());
+            ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isUsesInternalServices()).build();
+            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
             return worker.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
     }
 
-    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
+    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
         if (isolatedClassloaderWorker == null) {
             if (classLoaderStructure instanceof FlatClassLoaderStructure) {
                 isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
@@ -88,8 +88,8 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
-        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry, InstantiatorFactory instantiatorFactory) {
-            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry, instantiatorFactory);
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
         }
 
         DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {

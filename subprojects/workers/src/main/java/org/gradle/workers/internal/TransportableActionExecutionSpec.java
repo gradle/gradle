@@ -24,12 +24,14 @@ public class TransportableActionExecutionSpec<T extends WorkParameters> implemen
     private final String implementationClassName;
     private final byte[] serializedParameters;
     private final ClassLoaderStructure classLoaderStructure;
+    private final boolean usesInternalServices;
 
-    public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure) {
+    public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, boolean usesInternalServices) {
         this.displayName = displayName;
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
         this.classLoaderStructure = classLoaderStructure;
+        this.usesInternalServices = usesInternalServices;
     }
 
     @Override
@@ -50,6 +52,11 @@ public class TransportableActionExecutionSpec<T extends WorkParameters> implemen
     @Override
     public T getParameters() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isUsesInternalServices() {
+        return usesInternalServices;
     }
 
     public String getImplementationClassName() {

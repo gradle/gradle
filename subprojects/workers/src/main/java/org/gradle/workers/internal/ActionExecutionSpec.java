@@ -31,4 +31,6 @@ public interface ActionExecutionSpec<T extends WorkParameters> extends Serializa
     T getParameters();
 
     ClassLoaderStructure getClassLoaderStructure();
+
+    boolean isUsesInternalServices();
 }

@@ -26,7 +26,7 @@ import org.gradle.workers.IsolationMode;
 
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ServiceRegistry workServices;
+    private final ServiceRegistry internalServices;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final LegacyTypesSupport legacyTypesSupport;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
@@ -34,7 +34,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.workServices = new WorkServicesBuilder(internalServices).build();
+        this.internalServices = internalServices;
         this.classLoaderRegistry = classLoaderRegistry;
         this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
         this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
@@ -49,6 +49,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
                     @Override
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
+                        ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isUsesInternalServices()).build();
                         ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
                         Worker worker = new IsolatedClassloaderWorker(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory);
                         return worker.execute(spec);

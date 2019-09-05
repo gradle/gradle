@@ -25,12 +25,14 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> imp
     private final Class<? extends WorkAction<T>> implementationClass;
     private final Isolatable<T> isolatedParams;
     private final ClassLoaderStructure classLoaderStructure;
+    private final boolean usesInternalServices;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, boolean usesInternalServices) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.isolatedParams = isolatedParams;
         this.classLoaderStructure = classLoaderStructure;
+        this.usesInternalServices = usesInternalServices;
     }
 
     @Override
@@ -51,6 +53,11 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> imp
     @Override
     public ClassLoaderStructure getClassLoaderStructure() {
         return classLoaderStructure;
+    }
+
+    @Override
+    public boolean isUsesInternalServices() {
+        return usesInternalServices;
     }
 
     public Isolatable<T> getIsolatedParams() {

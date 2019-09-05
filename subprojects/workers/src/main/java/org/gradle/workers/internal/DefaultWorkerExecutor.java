@@ -195,7 +195,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         DaemonForkOptions forkOptions = getDaemonForkOptions(workActionClass, workerSpec, parameters);
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, forkOptions.getClassLoaderStructure());
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, forkOptions.getClassLoaderStructure(), false);
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }

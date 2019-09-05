@@ -66,7 +66,7 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def spec() {
-        return new SimpleActionExecutionSpec(TestWorkAction, "test", null, null)
+        return new SimpleActionExecutionSpec(TestWorkAction, "test", null, null, usesInternalServices)
     }
 
     static abstract class TestWorkAction implements WorkAction<WorkParameters.None> {

@@ -24,12 +24,14 @@ public class SimpleActionExecutionSpec<T extends WorkParameters> implements Acti
     private final String displayName;
     private final T params;
     private final ClassLoaderStructure classLoaderStructure;
+    private final boolean usesInternalServices;
 
-    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, T params, ClassLoaderStructure classLoaderStructure) {
+    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, T params, ClassLoaderStructure classLoaderStructure, boolean usesInternalServices) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.params = params;
         this.classLoaderStructure = classLoaderStructure;
+        this.usesInternalServices = usesInternalServices;
     }
 
     @Override
@@ -50,5 +52,10 @@ public class SimpleActionExecutionSpec<T extends WorkParameters> implements Acti
     @Override
     public ClassLoaderStructure getClassLoaderStructure() {
         return classLoaderStructure;
+    }
+
+    @Override
+    public boolean isUsesInternalServices() {
+        return usesInternalServices;
     }
 }

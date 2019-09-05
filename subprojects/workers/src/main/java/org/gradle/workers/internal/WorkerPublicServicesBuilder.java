@@ -16,22 +16,32 @@
 
 package org.gradle.workers.internal;
 
-//import org.gradle.api.file.FileSystemOperations;
-//import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class WorkServicesBuilder {
+public class WorkerPublicServicesBuilder {
     private final ServiceRegistry internalServices;
+    private boolean canUseInternalServices;
 
-    WorkServicesBuilder(ServiceRegistry internalServices) {
+    WorkerPublicServicesBuilder(ServiceRegistry internalServices) {
         this.internalServices = internalServices;
     }
 
+    WorkerPublicServicesBuilder withInternalServicesVisible(boolean canUseInternalServices) {
+        this.canUseInternalServices = canUseInternalServices;
+        return this;
+    }
+
     DefaultServiceRegistry build() {
-        DefaultServiceRegistry services = new DefaultServiceRegistry();
-        //services.add(ObjectFactory.class, internalServices.get(ObjectFactory.class));
-        //services.add(FileSystemOperations.class, internalServices.get(FileSystemOperations.class));
-        return services;
+        if (canUseInternalServices) {
+            return new DefaultServiceRegistry(internalServices);
+        } else {
+            DefaultServiceRegistry services = new DefaultServiceRegistry();
+            services.add(ObjectFactory.class, internalServices.get(ObjectFactory.class));
+            services.add(FileSystemOperations.class, internalServices.get(FileSystemOperations.class));
+            return services;
+        }
     }
 }
