@@ -126,6 +126,7 @@ The following are the features that have been promoted in this Gradle release.
 
 * all pre 5.0 incubating APIs have been promoted
 * The [lazy configuration API](userguide/lazy_configuration.html) has been promoted
+* Enabling [strict task validation](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-) has been promoted.
 
 IDE integration types and APIs. We promoted all API elements in `ide` and `tooling-api` sub-projects that were introduced before Gradle 5.5.
 <!--
