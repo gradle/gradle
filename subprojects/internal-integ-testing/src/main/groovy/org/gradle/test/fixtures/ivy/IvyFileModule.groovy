@@ -41,7 +41,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final String module
     final String revision
     final boolean m2Compatible
-    final List dependencies = []
+    final List<Map<String, ?>> dependencies = []
     final List dependencyConstraints = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
@@ -96,7 +96,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         this.m2Compatible = m2Compatible
         configurations['runtime'] = [extendsFrom: [], transitive: true, visibility: 'public']
         configurations['compile'] = [extendsFrom: [], transitive: true, visibility: 'public']
-        configurations['default'] = [extendsFrom: ['compile,runtime'], transitive: true, visibility: 'public']
+        configurations['default'] = [extendsFrom: ['runtime'], transitive: true, visibility: 'public']
     }
 
     @Override
@@ -167,7 +167,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     Map<String, ?> toArtifact(Map<String, ?> options = [:]) {
         def type = notNullOr(options.type, 'jar')
         return [name: options.name ?: module, type: type,
-                ext: notNullOr(options.ext, type), classifier: options.classifier ?: null, conf: options.conf ?: '*']
+                ext: notNullOr(options.ext, type), classifier: options.classifier ?: null, conf: options.conf ?: null]
     }
 
     def notNullOr(def value, def defaultValue) {
@@ -477,7 +477,18 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         builder.publications {
             artifacts.each { art ->
                 if (!art.undeclared) {
-                    def attrs = [name: art.name, type: art.type, ext: art.ext, conf: art.conf]
+                    Set<String> confs = []
+                    if (art.conf) {
+                        confs = [art.conf]
+                    } else {
+                        variants.each {
+                            confs += it.name == 'api' ? 'compile' : it.name
+                        }
+                        configurations.keySet().each {
+                            confs += it
+                        }
+                    }
+                    def attrs = [name: art.name, type: art.type, ext: art.ext, conf: confs.join(',')]
                     if (art.classifier) {
                         attrs["m:classifier"] = art.classifier
                     }
@@ -487,26 +498,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
         builder.dependencies {
             dependencies.each { dep ->
-                def depAttrs = [org: dep.organisation, name: dep.module, rev: dep.revision]
                 if (dep.conf) {
-                    depAttrs.conf = dep.conf
-                }
-                if (dep.revConstraint) {
-                    depAttrs.revConstraint = dep.revConstraint
-                }
-                builder.dependency(depAttrs) {
-                    if (dep.exclusions) {
-                        for (exc in dep.exclusions) {
-                            def excludeAttrs = [:]
-                            if (exc.group) {
-                                excludeAttrs.org = exc.group
-                            }
-                            if (exc.module) {
-                                excludeAttrs.module = exc.module
-                            }
-                            builder.exclude(excludeAttrs)
-                        }
+                    addDependencyToBuilder(builder, dep, dep.conf as String)
+                } else {
+                    variants.each {
+                        String conf = it.name == 'api' ? 'compile' : it.name
+                        addDependencyToBuilder(builder, dep, "$conf->default")
                     }
+
                 }
             }
             def compileDependencies = variants.find{ it.name == 'api' }?.dependencies
@@ -518,7 +517,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 }
             }
             if (runtimeDependencies) {
-                (runtimeDependencies - compileDependencies).each { dep ->
+                runtimeDependencies.each { dep ->
                     def depAttrs = [org: dep.group, name: dep.module, rev: dep.version, conf: 'runtime->default']
                     builder.dependency(depAttrs)
                 }
@@ -526,6 +525,27 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
 
         ivyFileWriter << '</ivy-module>'
+    }
+
+    private static addDependencyToBuilder(MarkupBuilder builder, Map<String, ?> dep, String conf) {
+        def depAttrs = [org: dep.organisation, name: dep.module, rev: dep.revision, conf: conf]
+        if (dep.revConstraint) {
+            depAttrs.revConstraint = dep.revConstraint
+        }
+        builder.dependency(depAttrs) {
+            if (dep.exclusions) {
+                for (exc in dep.exclusions) {
+                    def excludeAttrs = [:]
+                    if (exc.group) {
+                        excludeAttrs.org = exc.group
+                    }
+                    if (exc.module) {
+                        excludeAttrs.module = exc.module
+                    }
+                    builder.exclude(excludeAttrs)
+                }
+            }
+        }
     }
 
     @Override
@@ -589,7 +609,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             expectedArtifacts << "${module}-${revision}.module"
         }
         assertArtifactsPublished(*expectedArtifacts)
-        parsedIvy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["compile"], null)
+        parsedIvy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["compile", "runtime"], null)
     }
 
     void assertPublishedAsWebModule() {

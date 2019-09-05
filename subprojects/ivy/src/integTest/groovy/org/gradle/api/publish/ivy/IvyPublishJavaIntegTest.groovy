@@ -58,13 +58,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         with(javaLibrary.parsedIvy) {
             configurations.keySet() == ["default", "compile", "runtime"] as Set
-            configurations["default"].extend == ["runtime", "compile"] as Set
+            configurations["default"].extend == ["runtime"] as Set
             configurations["runtime"].extend == null
 
-            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile"])
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile", "runtime"])
         }
         javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
-        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
+        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:1.4')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -122,9 +122,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
         if (ivyConfiguration == 'compile') {
             javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
-        } else {
-            javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
         }
+        javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
 
         where:
         plugin         | gradleConfiguration | ivyConfiguration | deprecatedConfiguration
@@ -1071,9 +1070,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
             publishing {
-                repositories {
-                    ivy { url "${mavenRepo.uri}" }
-                }
                 publications {
                     ivy(IvyPublication) {
                         from components.java
@@ -1100,46 +1096,59 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     @Unroll
     def "can publish feature variants (optional: #optional)"() {
-        requiresExternalDependencies = true
-
         given:
-        createBuildScripts("""
-            configurations {
-                optionalFeatureImplementation
-                optionalFeatureRuntimeElements {
-                    extendsFrom optionalFeatureImplementation
-                    canBeResolved = false
-                    canBeConsumed = true
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
-                    }
-                    outgoing.capability("org:optional-feature:\${version}")
-                }
-                compileClasspath.extendsFrom(optionalFeatureImplementation)
-            }
-            
+        createBuildScripts """
+            ${optionalFeatureSetup()}
             dependencies {
-                optionalFeatureImplementation 'org.slf4j:slf4j-api:1.7.26'
+                optionalFeatureImplementation 'org:foo:4.0'
             }
-            
-            artifacts {
-                optionalFeatureRuntimeElements file:file("\$buildDir/other-artifact.jar"), builtBy:'touchFile', classifier: 'optional-feature'
-            }
-            
-            task touchFile {
-                doLast {
-                    file("\$buildDir/other-artifact.jar") << "test"
-                }
-            }
-
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if ($optional) it.mapToOptional()
             }
-
             publishing {
-                repositories {
-                    ivy { url "${mavenRepo.uri}" }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
                 }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        with(javaLibrary.parsedIvy) {
+            configurations.keySet() == ["default", "compile", "runtime", "optionalFeatureRuntimeElements"] as Set
+            if (optional) {
+                configurations["default"].extend == ["runtime"] as Set
+            } else {
+                configurations["default"].extend == ["runtime", "optionalFeatureRuntimeElements"] as Set
+            }
+            configurations["runtime"].extend == null
+            configurations["optionalFeatureRuntimeElements"].extend == null
+
+            expectArtifact("publishTest", "jar").hasConf(["compile", "runtime"])
+            expectArtifact("publishTest", "jar", "optional-feature").hasConf(["optionalFeatureRuntimeElements"])
+            assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org:foo:4.0")
+        }
+
+        where:
+        optional << [true, false]
+    }
+
+    def "an optional feature variant can repeat a dependency from a main variant"() {
+        given:
+        createBuildScripts("""
+            ${optionalFeatureSetup()}
+            dependencies {
+                implementation 'org:foo:1.0'
+                optionalFeatureImplementation 'org:foo:1.0'
+            }
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
+                it.mapToOptional()
+            }
+            publishing {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
@@ -1153,22 +1162,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         with(javaLibrary.parsedIvy) {
-            configurations.keySet() == ["default", "compile", "runtime", "optionalFeatureRuntimeElements"] as Set
-            if (optional) {
-                configurations["default"].extend == ["runtime", "compile"] as Set
-            } else {
-                configurations["default"].extend == ["runtime", "compile", "optionalFeatureRuntimeElements"] as Set
-            }
-            configurations["runtime"].extend == null
-            configurations["optionalFeatureRuntimeElements"].extend == null
-
-            expectArtifact("publishTest", "jar").hasConf(["compile"])
-            expectArtifact("publishTest", "jar", "optional-feature").hasConf(["optionalFeatureRuntimeElements"])
-            assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org.slf4j:slf4j-api:1.7.26")
+            assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org:foo:1.0")
+            assertConfigurationDependsOn('runtime', "org:foo:1.0")
         }
-
-        where:
-        optional << [true, false]
     }
 
     private void createBuildScripts(def append) {
@@ -1192,5 +1188,31 @@ $append
             ${mavenCentralRepository()}
 
 """
+    }
+
+    private static String optionalFeatureSetup() {
+        """
+            configurations {
+                optionalFeatureImplementation
+                optionalFeatureRuntimeElements {
+                    extendsFrom optionalFeatureImplementation
+                    canBeResolved = false
+                    canBeConsumed = true
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                    }
+                    outgoing.capability("org:optional-feature:\${version}")
+                }
+                compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+            artifacts {
+                optionalFeatureRuntimeElements file:file("\$buildDir/other-artifact.jar"), builtBy: 'touchFile', classifier: 'optional-feature'
+            }
+            task touchFile {
+                doLast {
+                    file("\$buildDir/other-artifact.jar") << "test"
+                }
+            }
+        """
     }
 }

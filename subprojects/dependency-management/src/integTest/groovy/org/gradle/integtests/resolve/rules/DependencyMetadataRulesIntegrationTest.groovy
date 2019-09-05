@@ -543,10 +543,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
 
         when:
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
         buildFile << """
             class ModifyDepRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
-                    context.details.withVariant('$variantToTest') {
+                    context.details.withVariant('$transitiveSelectedVariant') {
                         with${toCamelCase(thing)} { d ->
                             add('org.test:moduleC:1.0')
                         }
@@ -626,10 +627,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         mavenGradleRepo.module("org.test", "moduleC").withModuleMetadata().variant("anotherVariantWithFormatCustom", [format: "custom"]).publish()
 
         when:
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
         buildFile << """
             class AddModuleCRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
-                    context.details.withVariant('$variantToTest') {
+                    context.details.withVariant('$transitiveSelectedVariant') {
                         withDependencies {
                             add('org.test:moduleC:1.0')
                         }

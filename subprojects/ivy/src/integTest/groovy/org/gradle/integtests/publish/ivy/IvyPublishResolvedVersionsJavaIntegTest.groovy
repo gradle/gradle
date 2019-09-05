@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.publish.ivy
 
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Unroll
 
@@ -236,8 +237,8 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         }
 
         and:
-        javaLibrary.parsedIvy.assertConfigurationDependsOn('compile', "org.test:foo:1.0")
-        javaLibrary.parsedIvy.assertConfigurationDependsOn('runtime', 'org.test:bar:1.1')
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('compile', 'org.test:foo:1.0')
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('runtime', 'org.test:foo:1.0', 'org.test:bar:1.1')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -323,13 +324,13 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
             assert it.org == 'org.test'
             assert it.module == 'foo'
             assert it.revision == '1.0'
-            assert it.conf == 'compile->default'
+            assert it.confs == ['compile->default', 'runtime->default'] as Set
         }
         dependencies.get("org.test:bar:1.1").with {
             assert it.org == 'org.test'
             assert it.module == 'bar'
             assert it.revision == '1.1'
-            assert it.conf == 'runtime->default'
+            assert it.confs == ['runtime->default'] as Set
         }
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {
@@ -546,5 +547,39 @@ $append
             dependency("com.acme", "lib", "1.45")
             noMoreDependencies()
         }
+    }
+
+    def "can publish different resolved versions for the same module"() {
+        given:
+        javaLibrary(ivyRepo.module("org", "foo", "1.0")).publish()
+        javaLibrary(ivyRepo.module("org", "foo", "1.1")).publish()
+        createBuildScripts """
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        versionMapping {
+                            usage('java-api') {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                api 'org:foo:1.0'
+                compileOnly 'org:foo:1.1'
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.assertApiDependencies("org:foo:1.1")
+        javaLibrary.assertRuntimeDependencies("org:foo:1.0")
     }
 }
