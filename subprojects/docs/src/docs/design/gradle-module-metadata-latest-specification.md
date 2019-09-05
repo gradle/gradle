@@ -6,7 +6,7 @@ Gradle publishes Gradle Module Metadata along with traditional metadata. Gradle 
 
 ## Goal
 
-This document describes version 1.0 of the Gradle module metadata file. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
+This document describes version 1.1 of the Gradle module metadata file format. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
 
 The module metadata file is a JSON file published alongside the existing repository specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunnelled" through existing repository formats, while continuing to support existing Gradle versions and tooling that does not understand the format. 
 
@@ -128,6 +128,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 - `requestedCapabilities`: optional. If set, declares the capabilities that the dependency must provide in order to be selected. See `capabilities` above for the format.
 - `inheritConstraints`: optional. If set to `true`, all `forSubgraph` version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
+- `thirdPartyCompatibility`: optional. Includes additional information to be used if the dependency points at a module that did **not** publish Gradle module metadata.
 
 #### `version` value
 
@@ -169,11 +170,18 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `sha1`: The SHA1 hash of the file content. A hex string.
 - `md5`: The MD5 hash of the file content. A hex string.
 
+### `thirdPartyCompatibility` value
+
+This value, nested in elements of the `dependencies` node, includes additional information to be used if the dependency points at a module that did **not** publish Gradle module metadata. The information is ignored if the dependency points at a module that was published with Gradle module metadata.
+
+- `artifactSelector`: Information to select a specific artifact (identified by `name`, `type`, `extension`, and `classifier`) of the dependency that is not mentioned in the dependency's metadata. These are typically artifacts published with Maven that contain a _classifier_.
+
 ### Changelog
 
 #### 1.1
 
 - Adds support for _subgraph version constraints_: `version { forSubgraph = true }`
+- Adds `thirdPartyCompatibility` features for better compatibility with maven and ivy metadata
 
 #### 1.0
 
