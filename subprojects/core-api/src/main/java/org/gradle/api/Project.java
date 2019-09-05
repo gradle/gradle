@@ -530,7 +530,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see TaskContainer#create(String, Action)
      * @since 4.10
      */
-    @Incubating
     Task task(String name, Action<? super Task> configureAction);
 
     /**
