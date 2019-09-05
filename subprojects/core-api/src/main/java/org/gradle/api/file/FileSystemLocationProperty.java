@@ -68,6 +68,8 @@ public interface FileSystemLocationProperty<T extends FileSystemLocation> extend
 
     /**
      * Returns the location of the file system element, and discards details of the task that produces its content. This allows the location, or a value derived from it, to be used as an input to some other task without implying any dependency on the producing task. This should only be used when the task does, in fact, not use the content of this file system element.
+     *
+     * @since 5.6
      */
     @Incubating
     Provider<T> getLocationOnly();
