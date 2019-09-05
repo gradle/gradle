@@ -15,9 +15,11 @@
  */
 package org.gradle.api.tasks.options;
 
-import org.gradle.api.Incubating;
-
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * <p>Marks a method on a {@link org.gradle.api.Task} as providing the possible values for a {@code String}
@@ -33,7 +35,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Inherited
-@Incubating
 public @interface OptionValues {
 
     /**

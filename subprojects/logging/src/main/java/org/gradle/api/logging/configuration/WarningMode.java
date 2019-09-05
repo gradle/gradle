@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 4.5
  */
-@Incubating
 public enum WarningMode {
     /**
      * Show all warnings.
@@ -45,6 +44,7 @@ public enum WarningMode {
      *
      * @since 5.6
      */
+    @Incubating
     Fail(true);
 
     private boolean displayMessages;
@@ -60,6 +60,7 @@ public enum WarningMode {
      *
      * @since 5.6
      */
+    @Incubating
     public boolean shouldDisplayMessages() {
         return displayMessages;
     }

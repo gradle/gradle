@@ -673,7 +673,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.6
      */
-    @Incubating
     public boolean isBuildCacheDebugLogging() {
         return buildCacheDebugLogging;
     }
@@ -683,7 +682,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.6
      */
-    @Incubating
     public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
