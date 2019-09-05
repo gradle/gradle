@@ -24,7 +24,7 @@ class DependenciesMetadataAdapterOnGradleMetadataTest extends DependenciesMetada
 
     @Override
     ModuleDependencyMetadata newDependency(ModuleComponentSelector requested) {
-        new GradleDependencyMetadata(requested, [], false, false, null, false)
+        new GradleDependencyMetadata(requested, [], false, false, null, false, [])
     }
 
 }
