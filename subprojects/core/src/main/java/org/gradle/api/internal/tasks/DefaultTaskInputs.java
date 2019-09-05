@@ -37,6 +37,7 @@ import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -155,7 +156,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public Map<String, Object> getProperties() {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.getPropertyValuesSupplier().get();
+        return Collections.unmodifiableMap(visitor.getPropertyValuesSupplier().get());
     }
 
     @Override

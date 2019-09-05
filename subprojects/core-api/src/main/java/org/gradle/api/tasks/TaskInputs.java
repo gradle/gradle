@@ -69,7 +69,10 @@ public interface TaskInputs {
     TaskInputFilePropertyBuilder dir(Object dirPath);
 
     /**
-     * Returns the set of input properties for this task.
+     * Returns a map of input properties for this task.
+     *
+     * The returned map is unmodifiable, and does not reflect further changes to the task's properties.
+     * Trying to modify the map will result in an {@link UnsupportedOperationException} being thrown.
      *
      * @return The properties.
      */
