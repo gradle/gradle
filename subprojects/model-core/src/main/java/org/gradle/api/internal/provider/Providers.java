@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
@@ -91,7 +92,7 @@ public class Providers {
         }
 
         @Override
-        public T get(@Nullable Describable owner) throws IllegalStateException {
+        public T get(DisplayName owner) throws IllegalStateException {
             return value;
         }
 
@@ -183,7 +184,7 @@ public class Providers {
         }
 
         @Override
-        public Object get(@Nullable Describable owner) throws IllegalStateException {
+        public Object get(DisplayName owner) throws IllegalStateException {
             throw nullValue(owner);
         }
 

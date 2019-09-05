@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
@@ -45,7 +45,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public T get(@Nullable Describable owner) throws IllegalStateException {
+    public T get(DisplayName owner) throws IllegalStateException {
         return get();
     }
 

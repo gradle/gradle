@@ -16,50 +16,51 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.util.DeprecationLogger;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
         ImplicitValue, ExplicitValue, Final
     }
+    private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
 
     private State state = State.ImplicitValue;
     private boolean finalizeOnNextGet;
     private boolean disallowChanges;
     private Task producer;
-    private Describable displayName;
+    private DisplayName displayName = DEFAULT_DISPLAY_NAME;
 
     @Override
-    public void attachDisplayName(Describable displayName) {
+    public void attachDisplayName(DisplayName displayName) {
         this.displayName = displayName;
     }
 
-    @Nullable
-    protected Describable getDisplayName() {
+    protected DisplayName getDisplayName() {
         return displayName;
     }
 
     @Override
     public void attachProducer(Task task) {
         if (this.producer != null && this.producer != task) {
-            throw new IllegalStateException("This property already has a producer task associated with it.");
+            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", displayName.getCapitalizedDisplayName()));
         }
         this.producer = task;
     }
 
     protected abstract ValueSupplier getSupplier();
 
+    /**
+     * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
+     */
     protected abstract String describeContents();
 
     // Final - implement describeContents() instead
     @Override
     public final String toString() {
-        if (displayName != null) {
+        if (displayName != DEFAULT_DISPLAY_NAME) {
             return displayName.toString();
         } else {
             return describeContents();
@@ -101,6 +102,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void implicitFinalizeValue() {
+        disallowChanges = true;
         finalizeOnNextGet = true;
     }
 
@@ -158,12 +160,9 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     private boolean canMutate() {
         if (state == State.Final && disallowChanges) {
-            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
         } else if (disallowChanges) {
-            throw new IllegalStateException("The value for this property cannot be changed any further.");
-        } else if (state == State.Final) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
-            return false;
+            throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
         }
         return true;
     }

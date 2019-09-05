@@ -183,7 +183,7 @@ property.set(12)
         failure.assertHasCause("The value for this property cannot be changed any further.")
     }
 
-    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task @Input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 class SomeTask extends DefaultTask {
@@ -195,7 +195,6 @@ class SomeTask extends DefaultTask {
     
     @TaskAction
     void go() {
-        prop.set("ignored")
         outputFile.get().asFile.text = prop.get()
     }
 }
@@ -203,8 +202,8 @@ class SomeTask extends DefaultTask {
 task thing(type: SomeTask) {
     prop = "value 1"
     outputFile = layout.buildDirectory.file("out.txt")
-    doLast {
-        prop.set("ignored")
+    doFirst {
+        prop.set("broken")
     }
 }
 
@@ -214,29 +213,22 @@ afterEvaluate {
 
 task before {
     doLast {
-        thing.prop = providers.provider { "final value" }
+        thing.prop = providers.provider { "value 3" }
     }
 }
 thing.dependsOn before
 
-task after {
-    dependsOn thing
-    doLast {
-        thing.prop = "ignore"
-        assert thing.prop.get() == "final value"
-    }
-}
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("after")
+        fails("thing")
 
         then:
-        file("build/out.txt").text == "final value"
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
-    def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -245,19 +237,19 @@ def prop = project.objects.property(String)
 task thing {
     inputs.property("prop", prop)
     prop.set("value 1")
-    doLast {
-        prop.set("ignored")
+    doFirst {
+        prop.set("broken")
         println "prop = " + prop.get()
     }
 }
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = value 1")
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -510,7 +502,7 @@ task wrongRuntimeType {
         failure.assertHasCause("Cannot get the value of a property of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
     }
 
-    def "emits deprecation warning when specialized factory method is not used"() {
+    def "fails when specialized factory method is not used"() {
         buildFile << """
 class SomeExtension {
     final Property<List<String>> prop1

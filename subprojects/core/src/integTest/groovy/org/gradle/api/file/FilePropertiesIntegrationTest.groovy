@@ -385,7 +385,7 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "task #annotation file property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
                 ${annotation}
@@ -393,23 +393,25 @@ task useDirProviderApi {
                 
                 @TaskAction
                 void go() {
-                    prop.set(project.file("other.txt"))
                     println "value: " + prop.get() 
                 }
             }
             
             task show(type: SomeTask) {
                 prop = file("in.txt")
+                doFirst {
+                    prop = file("other.txt") 
+                }
             }
 """
         file("in.txt").createFile()
 
         when:
-        executer.expectDeprecationWarning()
-        run("show")
+        fails("show")
 
         then:
-        outputContains("value: " + testDirectory.file("in.txt"))
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
         annotation    | _
@@ -418,7 +420,7 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "task #annotation directory property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task #annotation directory property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
                 ${annotation}
@@ -426,23 +428,25 @@ task useDirProviderApi {
                 
                 @TaskAction
                 void go() {
-                    prop.set(project.file("other.dir"))
                     println "value: " + prop.get() 
                 }
             }
             
             task show(type: SomeTask) {
                 prop = file("in.dir")
+                doFirst {
+                    prop = file("other.dir")
+                } 
             }
 """
         file("in.dir").createDir()
 
         when:
-        executer.expectDeprecationWarning()
-        run("show")
+        fails("show")
 
         then:
-        outputContains("value: " + testDirectory.file("in.dir"))
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
         annotation         | _
@@ -451,7 +455,7 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "task ad hoc file property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -469,11 +473,11 @@ task thing {
         file("file-1").createFile()
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = " + file("file-1"))
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:
         registrationMethod | _
@@ -482,7 +486,7 @@ task thing {
     }
 
     @Unroll
-    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -500,11 +504,11 @@ task thing {
         file("file-1").createDir()
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = " + file("file-1"))
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:
         registrationMethod | _

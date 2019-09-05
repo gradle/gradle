@@ -173,35 +173,35 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'No value has been specified for this property.'
 
         when:
         fileProvider.get()
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'No value has been specified for this provider.'
+        e2.message == 'No value has been specified for this property.'
 
         when:
         dir.get()
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'No value has been specified for this provider.'
+        e3.message == 'No value has been specified for this property.'
 
         when:
         file.get()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'No value has been specified for this provider.'
+        e4.message == 'No value has been specified for this property.'
 
         when:
         tree.files
 
         then:
         def e5 = thrown(IllegalStateException)
-        e5.message == 'No value has been specified for this provider.'
+        e5.message == 'No value has been specified for this property.'
     }
 
     @SuppressWarnings("GroovyAssignabilityCheck")

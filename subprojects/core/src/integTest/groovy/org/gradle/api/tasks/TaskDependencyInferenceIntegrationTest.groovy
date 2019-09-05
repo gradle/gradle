@@ -487,7 +487,7 @@ The following types/formats are supported:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
-        failure.assertHasCause("No value has been specified for this provider.")
+        failure.assertHasCause("No value has been specified for this property.")
     }
 
     def "input file collection containing task provider implies dependency on all outputs of the task"() {
