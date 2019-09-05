@@ -16,8 +16,6 @@
 
 package org.gradle.api.resources;
 
-import org.gradle.api.Incubating;
-
 /**
  * Creates {@code TextResource}s backed by sources such as strings, files, and archive entries.
  *
@@ -95,6 +93,5 @@ public interface TextResourceFactory {
      * @return a text resource backed by the given uri
      * @since 4.8
      */
-    @Incubating
     TextResource fromUri(Object uri);
 }

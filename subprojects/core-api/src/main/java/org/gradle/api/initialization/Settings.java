@@ -18,7 +18,6 @@ package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
@@ -141,7 +140,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.4
      */
-    @Incubating
     ScriptHandler getBuildscript();
 
     /**
@@ -282,6 +280,5 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.6
      */
-    @Incubating
     void enableFeaturePreview(String name);
 }

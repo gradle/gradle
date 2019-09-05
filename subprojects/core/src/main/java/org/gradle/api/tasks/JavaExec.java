@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -379,8 +378,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @return this
      * @since 4.9
      */
-    @Incubating
-    @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
+    @Option(option = "args", description = "Command line arguments passed to the main class.")
     public JavaExec setArgsString(String args) {
         return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
     }
@@ -470,7 +468,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 5.2
      */
     @Input
-    @Incubating
     public JavaVersion getJavaVersion() {
         return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
     }
