@@ -25,13 +25,15 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     private enum State {
         ImplicitValue, ExplicitValue, Final
     }
+
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
+    private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
     private State state = State.ImplicitValue;
     private boolean finalizeOnNextGet;
     private boolean disallowChanges;
     private Task producer;
-    private DisplayName displayName = DEFAULT_DISPLAY_NAME;
+    private DisplayName displayName;
 
     @Override
     public void attachDisplayName(DisplayName displayName) {
@@ -39,13 +41,23 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     protected DisplayName getDisplayName() {
+        if (displayName == null) {
+            return DEFAULT_DISPLAY_NAME;
+        }
+        return displayName;
+    }
+
+    protected DisplayName getValidationDisplayName() {
+        if (displayName == null) {
+            return DEFAULT_VALIDATION_DISPLAY_NAME;
+        }
         return displayName;
     }
 
     @Override
     public void attachProducer(Task task) {
         if (this.producer != null && this.producer != task) {
-            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", displayName.getCapitalizedDisplayName()));
+            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", getDisplayName().getCapitalizedDisplayName()));
         }
         this.producer = task;
     }
@@ -60,7 +72,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     // Final - implement describeContents() instead
     @Override
     public final String toString() {
-        if (displayName != DEFAULT_DISPLAY_NAME) {
+        if (displayName != null) {
             return displayName.toString();
         } else {
             return describeContents();
@@ -160,9 +172,9 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     private boolean canMutate() {
         if (state == State.Final && disallowChanges) {
-            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", getDisplayName().getDisplayName()));
         } else if (disallowChanges) {
-            throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
+            throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", getDisplayName().getDisplayName()));
         }
         return true;
     }
