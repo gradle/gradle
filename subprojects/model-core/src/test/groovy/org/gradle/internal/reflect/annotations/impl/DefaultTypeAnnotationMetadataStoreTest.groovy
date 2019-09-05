@@ -313,12 +313,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
-    def "overridden properties inherit interface annotations when same annotation is conflicting with super-class"() {
+    def "annotation defined on implemented interface takes precedence over superclass annotation"() {
         expect:
         assertProperties TypeWithInheritedPropertyFromSuperClassAndInterface, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "interface" }]
-        ], [
-            "Property 'overriddenProperty' has conflicting color annotations inherited: @Color, @Color; assuming @Color"
         ]
     }
 
@@ -342,7 +340,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ], [
-            "Property 'overriddenProperty' has conflicting color annotations inherited: @Color, @Color; assuming @Color"
+            "Property 'overriddenProperty' has conflicting color annotations inherited (from interface): @Color, @Color; assuming @Color"
         ]
     }
 
@@ -363,6 +361,22 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty
         {
             @Override
+            String getOverriddenProperty() { "test" }
+        }
+
+    def "subtype can resolve conflicting annotations from implemented interfaces"() {
+        expect:
+        assertProperties TypeOverridingPropertyFromConflictingInterfaces, [
+            overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "subtype" }]
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        class TypeOverridingPropertyFromConflictingInterfaces
+            implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty
+        {
+            @Override
+            @Color(declaredBy = "subtype")
             String getOverriddenProperty() { "test" }
         }
 
