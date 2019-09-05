@@ -140,6 +140,10 @@ public class VariantMetadataRules {
         variantFilesRules.addFilesAction(action);
     }
 
+    public void addVariant(String name) {
+        additionalVariants.put(name, null);
+    }
+
     public void addVariant(String name, String basedOn) {
         additionalVariants.put(name, basedOn);
     }

@@ -51,6 +51,18 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                     }
                 }
             }
+            class MissingJdk8VariantRuleWithoutBase implements ComponentMetadataRule {
+                @javax.inject.Inject
+                ObjectFactory getObjects() { }
+                void execute(ComponentMetadataContext context) {
+                    context.details.addVariant('jdk8Runtime') {
+                        attributes { attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8) }
+                        withFiles {
+                            addFile("\${context.details.id.name}-\${context.details.id.version}-jdk8.jar")
+                        }
+                    }
+                }
+            }
 
             class MissingFileRule implements ComponentMetadataRule {
                 String classifier
@@ -143,7 +155,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             dependencies {
                 conf 'org.test:moduleA:1.0'
                 components {
-                    withModule('org.test:moduleA', MissingJdk8VariantRule) { params('this-does-not-exist') } 
+                    withModule('org.test:moduleA', MissingJdk8VariantRuleWithoutBase)
                 }
             }
         """
@@ -165,6 +177,40 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                 }
             }
         }
+    }
+
+    def "using a non-existing base throws and error"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                withModule { undeclaredArtifact(classifier: 'jdk8') }
+                dependsOn 'org.test:moduleB:1.0'
+            }
+            'org.test:moduleB:1.0'()
+        }
+
+        when:
+        buildFile << """
+            configurations.conf {
+                attributes { attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8) }
+            }
+            dependencies {
+                conf 'org.test:moduleA:1.0'
+                components {
+                    withModule('org.test:moduleA', MissingJdk8VariantRule) { params('this-does-not-exist') } 
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
+
+        then:
+        def baseType = useMaven() || gradleMetadataPublished ? 'Variant' : 'Configuration'
+        fails 'checkDep'
+        failure.assertHasCause "$baseType 'this-does-not-exist' not defined in module org.test:moduleA:1.0"
     }
 
     def "file can be added to existing variant"() {

@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.MutableVariantFilesMetadata
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -171,7 +172,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Unroll
     def "new variant can be added to #metadataType metadata without base"() {
         when:
-        metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist")
+        metadata.getVariantMetadataRules().addVariant("new-variant")
         def immutableMetadata = metadata.asImmutable()
         def variants = immutableMetadata.variantsForGraphTraversal.get()
 
@@ -188,6 +189,24 @@ class VariantFilesMetadataRulesTest extends Specification {
         "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
+    }
+
+    @Unroll
+    def "throws error for non-existing base in #metadataType metadata"() {
+        when:
+        metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist")
+        def immutableMetadata = metadata.asImmutable()
+        immutableMetadata.variantsForGraphTraversal.get()
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "$baseType 'not-exist' not defined in module org.test:producer:1.0"
+
+        where:
+        metadataType | metadata                       | baseType
+        "maven"      | mavenComponentMetadata('dep')  | 'Variant'
+        "ivy"        | ivyComponentMetadata('dep')    | 'Configuration'
+        "gradle"     | gradleComponentMetadata('dep') | 'Variant'
     }
 
     @Unroll

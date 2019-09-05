@@ -74,20 +74,39 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
     void allVariants(Action<? super VariantMetadata> action);
 
     /**
-     * Add a rule for adding a new variant to the component. The new variant will be based on an existing variant
-     * of the component and initialized with the same attributes, capabilities and dependencies.
-     * These can the be modified in the given configuration action.
-     *
-     * Note: files (artifacts) are not initialized automatically and always need to be added through {@link VariantMetadata#withFiles(Action)}.
+     * Add a rule for adding a new empty variant to the component.
      *
      * @param name a name for the variant
-     * @param baseVariant name of the variant from which the new variant will be initialized
      * @param action the action to populate the variant
      *
      * @since 6.0
      */
     @Incubating
-    void addVariant(String name, String baseVariant, Action<? super VariantMetadata> action);
+    void addVariant(String name, Action<? super VariantMetadata> action);
+
+    /**
+     * Add a rule for adding a new variant to the component. The new variant will be based on an existing variant
+     * or configurations of the component and initialized with the same attributes, capabilities and dependencies.
+     * These can the be modified in the given configuration action.
+     * Whether the 'base' is already a variant (with attributes) or a plain configuration (without attributes) depends on the
+     * metadata source:
+     *
+     * <ul>
+     *     <li>Gradle Module Metadata: all variants defined in the metadata are available as base</li>
+     *     <li>POM Metadata: the 'compile' and 'runtime' variants with the Java ecosystem attributes are available as base</li>
+     *     <li>Ivy Metadata: all configurations defined in the metadata are available as base</li>
+     * </ul>
+     *
+     * Note: files (artifacts) are not initialized automatically and always need to be added through {@link VariantMetadata#withFiles(Action)}.
+     *
+     * @param name a name for the variant
+     * @param base name of the variant (pom or Gradle module metadata) or configuration (ivy.xml metadata) from which the new variant will be initialized
+     * @param action the action to populate the variant
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void addVariant(String name, String base, Action<? super VariantMetadata> action);
 
     /**
      * Declares that this component belongs to a virtual platform, which should be

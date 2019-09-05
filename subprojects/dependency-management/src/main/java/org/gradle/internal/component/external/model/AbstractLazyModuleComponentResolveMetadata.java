@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -108,17 +109,26 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (variantMetadataRules.getAdditionalVariants().isEmpty()) {
             return variants;
         }
-        Map<String, ConfigurationMetadata> byName = variants.or(ImmutableList.of()).stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
+        Map<String, ConfigurationMetadata> variantsByName = variants.or(ImmutableList.of()).stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
         ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
         if (variants.isPresent()) {
             builder.addAll(variants.get());
         }
         for (Map.Entry<String, String> variantName : variantMetadataRules.getAdditionalVariants().entrySet()) {
-            ConfigurationMetadata base;
-            if (variants.isPresent()) {
-                base = byName.get(variantName.getValue());
-            } else {
-                base = getConfiguration(variantName.getValue());
+            String baseName = variantName.getValue();
+            ConfigurationMetadata base = null;
+            if (baseName != null) {
+                if (variants.isPresent()) {
+                    base = variantsByName.get(baseName);
+                    if (base == null) {
+                        throw new InvalidUserDataException("Variant '" + baseName + "' not defined in module " + getId().getDisplayName());
+                    }
+                } else {
+                    base = getConfiguration(baseName);
+                    if (base == null) {
+                        throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + getId().getDisplayName());
+                    }
+                }
             }
             ImmutableAttributes attributes;
             ImmutableCapabilities capabilities;
