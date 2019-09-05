@@ -42,6 +42,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
@@ -280,6 +281,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(PublishedDependency.of(dependency))) {
+                    if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency)) {
+                        // We skip all self referencing dependency declarations, unless they have custom artifact information
+                        continue;
+                    }
                     if (platformSupport.isTargettingPlatform(dependency)) {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
@@ -320,6 +325,17 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
         }
         publicationWarningsCollector.complete(getDisplayName());
+    }
+
+    private boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
+        if (dependency.getArtifacts().isEmpty()) {
+            return true;
+        }
+        return dependency.getArtifacts().stream().allMatch(artifact -> Strings.nullToEmpty(artifact.getClassifier()).isEmpty());
+    }
+
+    private boolean dependencyMatchesProject(ModuleDependency dependency) {
+        return getCoordinates().getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getName()));
     }
 
     private boolean isVersionMavenIncompatible(String version) {
