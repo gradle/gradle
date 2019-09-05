@@ -36,7 +36,9 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 public static void main(String[] args) {
                     try {
                         FileWriter out = new FileWriter("out.txt");
-                        out.write(System.getenv("CLASSPATH"));
+                        if (System.getenv().containsKey("CLASSPATH")) {
+                            out.write(System.getenv("CLASSPATH"));
+                        }
                         out.write("\\n");
                         out.close();
                     } catch (IOException e) {
@@ -71,19 +73,6 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         failure.assertThatCause(containsText("A problem occurred starting process"))
     }
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "can suggest long command line failures when execution fails for long command line on Windows system"() {
-        buildFile << """
-            run.classpath += project.files('${'a' * ARG_MAX_WINDOWS}')
-        """
-
-        when:
-        def failure = fails("run")
-
-        then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-    }
-
     def "does not suggest long command line failures when execution fails for short command line"() {
         buildFile << """
             run.executable 'some-java'
@@ -105,14 +94,15 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        succeeds("run")
+        succeeds("run", "-i")
 
         then:
         executedAndNotSkipped(":run")
+        outputContains("Gradle is shortening the command line by moving the classpath to the CLASSPATH environment variable.")
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "fails when long classpath fit inside environment variable but CLASSPATH was explicitly defined (no inheritance)"() {
+    def "succeeds when long classpath fit inside environment variable but CLASSPATH was explicitly defined (no inheritance, using pathing jar)"() {
         def fileName = 'a' * (ARG_MAX_WINDOWS / 2)
         buildFile << """
             run.classpath += project.files('${fileName}')
@@ -122,15 +112,16 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         when:
         executer.withEnvironmentVars([:]) // Currently this has no effect because the gradle[w].bat script leaks a CLASSPATH environment variable, see https://github.com/gradle/gradle/issues/10463
-        def failure = fails("run", "-i")
+        succeeds("run", "-i")
 
         then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-        failure.assertOutputContains("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line")
+        executedAndNotSkipped(":run")
+        outputContains("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line using the environment variable.")
+        outputContains("Gradle is shortening the command line by moving the classpath to a pathing JAR.")
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "fails when long classpath fit inside environment variable but CLASSPATH was explicitly overwritten"() {
+    def "succeeds when long classpath fit inside environment variable but CLASSPATH was explicitly overwritten (using pathing jar)"() {
         def fileName = 'a' * (ARG_MAX_WINDOWS / 2)
         buildFile << """
             run.classpath += project.files('${fileName}')
@@ -140,15 +131,16 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         when:
         executer.withEnvironmentVars([CLASSPATH: 'some-classpath'])
-        def failure = fails("run", "-i")
+        succeeds("run", "-i")
 
         then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-        failure.assertOutputContains("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line")
+        executedAndNotSkipped(":run")
+        outputContains("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line using the environment variable.")
+        outputContains("Gradle is shortening the command line by moving the classpath to a pathing JAR.")
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "fails when long classpath fit inside environment variable but CLASSPATH was explicitly cleared"() {
+    def "succeeds when long classpath fit inside environment variable but CLASSPATH was explicitly cleared (using pathing jar)"() {
         def fileName = 'a' * (ARG_MAX_WINDOWS / 2)
         buildFile << """
             run.classpath += project.files('${fileName}')
@@ -160,11 +152,12 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         when:
         executer.withEnvironmentVars([CLASSPATH: 'some-classpath'])
-        def failure = fails("run", "-i")
+        succeeds("run", "-i")
 
         then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-        failure.assertOutputContains("CLASSPATH environment variable was explicitly cleared, Gradle cannot shorten the command line")
+        executedAndNotSkipped(":run")
+        outputContains("CLASSPATH environment variable was explicitly cleared, Gradle cannot shorten the command line using the environment variable.")
+        outputContains("Gradle is shortening the command line by moving the classpath to a pathing JAR.")
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -177,24 +170,27 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         when:
         executer.withEnvironmentVars([CLASSPATH: 'some-classpath'])
-        succeeds("run")
+        succeeds("run", "-i")
 
         then:
         executedAndNotSkipped(":run")
+        outputContains("Gradle is shortening the command line by moving the classpath to the CLASSPATH environment variable.")
         assertOutputFileIs("${file('build/classes/java/main')};${file('build/generated/sources/annotationProcessor/java/main')};${testDirectory.absolutePath}\\${fileName}\n")
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "fails when long classpath exceed environment variable value length"() {
+    def "succeeds when long classpath exceed environment variable value length"() {
         buildFile << """
             run.classpath += project.files('${'a' * ((ARG_MAX_WINDOWS / 2) * 3)}')
         """
 
         when:
-        def failure = fails("run")
+        succeeds("run", "-i")
 
         then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
+        executedAndNotSkipped(":run")
+        outputContains("Classpath size is exceeding the maximum environment variable length, Gradle cannot shorten the command line using the environment variable.")
+        outputContains("Gradle is shortening the command line by moving the classpath to a pathing JAR.")
     }
 
     private void assertOutputFileIs(String text) {

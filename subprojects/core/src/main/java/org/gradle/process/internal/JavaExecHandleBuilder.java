@@ -33,11 +33,19 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.jar.Attributes;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasEnvironmentVariableExceedMaxLength;
@@ -311,18 +319,32 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         Map<String, String> environment = getActualEnvironment();
 
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
-            if (shouldUseEnvironmentVariable(arguments, environment)) {
-                int classPathFlagIndex = arguments.indexOf("-cp");
-                environment.put("CLASSPATH", arguments.get(classPathFlagIndex + 1));
-                arguments.remove(classPathFlagIndex);
-                arguments.remove(classPathFlagIndex);
+            int classPathFlagIndex = arguments.indexOf("-cp");
+            if (shouldTryShorteningCommandLine(arguments)) {
+                if (shouldUseEnvironmentVariable(arguments, environment)) {
+                    environment.put("CLASSPATH", arguments.get(classPathFlagIndex + 1));
+                    arguments.remove(classPathFlagIndex);
+                    arguments.remove(classPathFlagIndex);
+                    LOGGER.info("Gradle is shortening the command line by moving the classpath to the CLASSPATH environment variable.");
+                } else {
+                    try {
+                        File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
+                        List<String> jvmArgs = writePathingJarFile(classpath, pathingJarFile);
+                        arguments.remove(classPathFlagIndex);
+                        arguments.remove(classPathFlagIndex);
+                        arguments.addAll(classPathFlagIndex, jvmArgs);
+                        LOGGER.info("Gradle is shortening the command line by moving the classpath to a pathing JAR.");
+                    } catch (IOException e) {
+                        LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.");
+                    }
+                }
             }
         }
 
         return new ArgsEnvironment(arguments, environment);
     }
 
-    private boolean shouldUseEnvironmentVariable(List<String> arguments, Map<String, String> environment) {
+    private boolean shouldTryShorteningCommandLine(List<String> arguments) {
         int classPathFlagIndex = arguments.indexOf("-cp");
         if (classPathFlagIndex == -1) {
             // No class path flag, so we can't use CLASSPATH
@@ -330,9 +352,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
             return false;
         }
 
+        return true;
+    }
+
+    private boolean shouldUseEnvironmentVariable(List<String> arguments, Map<String, String> environment) {
+        int classPathFlagIndex = arguments.indexOf("-cp");
         if (hasEnvironmentVariableExceedMaxLength(arguments.get(classPathFlagIndex + 1))) {
             // Class path is exceeding the maximum environment variable value length
-            LOGGER.info("Class path size is exceeding the maximum environment variable length, CLASSPATH variable cannot be used for shortening the command line");
+            LOGGER.info("Classpath size is exceeding the maximum environment variable length, Gradle cannot shorten the command line using the environment variable.");
             return false;
         }
 
@@ -342,22 +369,37 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
                 if (System.getenv().get("CLASSPATH").equals(environment.get("CLASSPATH"))) {
                     return true;
                 }
-                LOGGER.info("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line");
+                LOGGER.info("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line using the environment variable.");
                 return false;
             }
             // The CLASSPATH was explicitly cleared
-            LOGGER.info("CLASSPATH environment variable was explicitly cleared, Gradle cannot shorten the command line");
+            LOGGER.info("CLASSPATH environment variable was explicitly cleared, Gradle cannot shorten the command line using the environment variable.");
             return false;
         }
 
         if (environment.containsKey("CLASSPATH")) {
             // The CLASSPATH was explicitly defined
-            LOGGER.info("CLASSPATH environment variable was explicitly defined, Gradle cannot shorten the command line");
+            LOGGER.info("CLASSPATH environment variable was explicitly defined, Gradle cannot shorten the command line using the environment variable.");
             return false;
         }
 
         // The CLASSPATH wasn't declared or inherited
         return true;
+    }
+
+    private List<String> writePathingJarFile(FileCollection classPath, File pathingJarFile) throws IOException {
+        try (JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(pathingJarFile), toManifest(classPath))) {
+            jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
+        }
+        return Arrays.asList("-cp", pathingJarFile.getAbsolutePath());
+    }
+
+    private static Manifest toManifest(FileCollection classPath) {
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        attributes.putValue("Class-Path", classPath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
+        return manifest;
     }
 
     @Override
