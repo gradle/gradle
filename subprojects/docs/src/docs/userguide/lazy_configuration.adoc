@@ -20,13 +20,6 @@ As a build grows in complexity, knowing when and where a particular value is con
 [[sec:lazy_properties]]
 == Lazy properties
 
-[NOTE]
-====
-
-The `Property` API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-
-====
-
 Gradle provides lazy properties, which delay the calculation of a property’s value until it’s actually required. These provide three main benefits to build script and plugin authors:
 
 1. Build authors can wire together Gradle models without worrying when a particular property’s value will be known. For example, you may want to set the input source files of a task based on the source directories property of an extension but the extension property value isn't known until the build script or some other plugin configures them.
@@ -307,8 +300,6 @@ This section will introduce guidelines to be successful with the Provider API. T
 == Future development
 
 Going forward, new properties will use the Provider API. The Groovy Gradle DSL adds convenience methods to make the use of Providers mostly transparent in build scripts. Existing tasks will have their existing "raw" properties replaced by Providers as needed and in a backwards compatible way. New tasks will be designed with the Provider API.
-
-The Provider API is <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please create new issues at https://github.com/gradle/gradle/issues/new[gradle/gradle] to report bugs or to submit use cases for new features.
 
 [[sec:lazy_configuration_reference]]
 == Provider Files API Reference
