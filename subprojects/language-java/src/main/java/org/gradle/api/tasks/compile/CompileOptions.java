@@ -317,7 +317,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.5
      */
-    @Incubating
     @Internal
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
@@ -334,7 +333,6 @@ public class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Nested
-    @Incubating
     public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
         return compilerArgumentProviders;
     }
