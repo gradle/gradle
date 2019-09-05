@@ -108,6 +108,8 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
+import org.gradle.process.ExecOperations;
+import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -202,6 +204,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {
         return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory);
+    }
+
+    protected ExecOperations createExecOperations(ExecFactory execFactory) {
+        return new DefaultExecOperations(execFactory);
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
