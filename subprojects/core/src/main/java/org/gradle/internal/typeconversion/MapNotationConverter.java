@@ -17,12 +17,14 @@ package org.gradle.internal.typeconversion;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.CachedInvokable;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -48,7 +50,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     @Override
     public T parseType(Map values) throws UnsupportedNotationException {
-        Map<String, Object> mutableValues = new HashMap<String, Object>(values);
+        Map<String, Object> mutableValues = new HashMap<>(Cast.uncheckedNonnullCast(values));
         Set<String> missing = null;
         ConvertMethod convertMethod = null;
         Method method = null;
@@ -74,7 +76,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             }
             if (!optional && value == null) {
                 if (missing == null) {
-                    missing = new TreeSet<String>();
+                    missing = new TreeSet<>();
                 }
                 missing.add(keyName);
             }
@@ -89,7 +91,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
         T result;
         try {
-            result = (T) method.invoke(this, params);
+            result = Cast.uncheckedNonnullCast(method.invoke(this, params));
         } catch (IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
@@ -100,6 +102,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         return result;
     }
 
+    @Nullable
     protected String get(Map<String, Object> args, String key) {
         Object value = args.get(key);
         String str = value != null ? value.toString() : null;
