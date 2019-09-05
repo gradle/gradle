@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.ArtifactSelectorSpec
 import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.FileSpec
@@ -202,6 +203,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     MavenModule artifact(Map<String, ?> options) {
         artifacts << options
         return this
+    }
+
+    /**
+     * Same as {@link #artifact(Map)} since all additional artifacts are undeclared in maven.
+     */
+    MavenModule undeclaredArtifact(Map<String, ?> options) {
+        return artifact(options)
     }
 
     String getPackaging() {
@@ -465,14 +473,15 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
-                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, d.attributes)
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.exclusions, d.inheritConstraints, d.reason, d.attributes,
+                            d.classifier ? new ArtifactSelectorSpec(d.artifactId, 'jar', 'jar', d.classifier) : null)
                     },
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.forSubgraph, d.rejects, d.reason, d.attributes)
                     },
                     artifacts,
                     v.capabilities,
-                    v.availableAt
+                    v.availableAt,
                 )
             },
             attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
