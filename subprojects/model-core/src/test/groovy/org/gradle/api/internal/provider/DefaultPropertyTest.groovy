@@ -73,7 +73,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == "No value has been specified for ${displayName}."
     }
 
     def "toString() does not realize value"() {
@@ -99,17 +99,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
         property.getOrElse(null) == null
-    }
-
-    def "fails when get method is called when the property has no initial value"() {
-        def property = new DefaultProperty<String>(String)
-
-        when:
-        property.get()
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
     }
 
     def "fails when value is set using incompatible type"() {
@@ -214,7 +203,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def supplier = Mock(ScalarSupplier)
         def provider = provider("abc")
 
         def property = new DefaultProperty<String>(String)

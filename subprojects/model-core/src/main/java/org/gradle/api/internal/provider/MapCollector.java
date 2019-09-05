@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
+import org.gradle.internal.DisplayName;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ public interface MapCollector<K, V> extends ValueSupplier {
 
     boolean present();
 
-    void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest);
+    void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest);
 
     boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
 

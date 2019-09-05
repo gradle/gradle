@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
+import org.gradle.internal.DisplayName;
 
 public interface OwnerAware {
-    void attachDisplayName(Describable displayName);
+    void attachDisplayName(DisplayName displayName);
 }

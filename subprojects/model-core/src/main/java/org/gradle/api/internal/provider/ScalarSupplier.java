@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
@@ -31,7 +31,7 @@ public interface ScalarSupplier<T> extends ValueSupplier {
      *
      * @param owner A display name that can be used in error messages.
      */
-    T get(@Nullable Describable owner) throws IllegalStateException;
+    T get(DisplayName owner) throws IllegalStateException;
 
     @Nullable
     T getOrNull();
