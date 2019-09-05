@@ -18,12 +18,12 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ProjectDependencyFactory {
@@ -48,7 +48,10 @@ public class ProjectDependencyFactory {
             this.factory = factory;
         }
 
-        protected ProjectDependency parseMap(@MapKey("path") String path, @Optional @MapKey("configuration") String configuration) {
+        protected ProjectDependency parseMap(
+            @MapKey("path") String path,
+            @MapKey("configuration") @Nullable String configuration
+        ) {
             return factory.create(projectFinder.getProject(path), configuration);
         }
 
