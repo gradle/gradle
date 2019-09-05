@@ -16,8 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
@@ -27,7 +25,6 @@ import java.io.File;
  *
  * @since 4.2
  */
-@Incubating
 public interface FileSystemLocation {
     /**
      * Returns this location as an absolute {@link File}.

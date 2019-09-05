@@ -954,7 +954,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    @Incubating
     <T> Provider<T> provider(Callable<T> value);
 
     /**
@@ -962,7 +961,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     ProviderFactory getProviders();
 
     /**
@@ -970,7 +968,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     ObjectFactory getObjects();
 
     /**
@@ -978,7 +975,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.1
      */
-    @Incubating
     ProjectLayout getLayout();
 
     /**
