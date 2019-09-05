@@ -123,6 +123,24 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.process.ExecOperations",
+            "member": "Class org.gradle.process.ExecOperations",
+            "acceptation": "New public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ExecOperations",
+            "member": "Method org.gradle.process.ExecOperations.exec(org.gradle.api.Action)",
+            "acceptation": "New public API",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ExecOperations",
+            "member": "Method org.gradle.process.ExecOperations.javaexec(org.gradle.api.Action)",
+            "acceptation": "New public API",
+            "changes": []
         }
     ]
 }
