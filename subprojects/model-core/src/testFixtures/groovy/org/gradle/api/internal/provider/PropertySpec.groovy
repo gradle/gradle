@@ -1369,7 +1369,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         return new AbstractReadOnlyProvider<T>() {
             @Override
             Class<T> getType() {
-                return type()
+                return PropertySpec.this.type()
             }
 
             @Override

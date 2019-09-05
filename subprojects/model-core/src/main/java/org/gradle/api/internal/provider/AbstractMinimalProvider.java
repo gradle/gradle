@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
@@ -95,8 +96,23 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ScalarSupplier<T> asSupplier() {
-        return this;
+    public ScalarSupplier<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+        if (getType() != null && !targetType.isAssignableFrom(getType())) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner.getDisplayName(), targetType.getName(), getType().getName()));
+        } else if (getType() == null) {
+            return new AbstractMappingProvider<T, T>(Cast.uncheckedNonnullCast(targetType), this) {
+                @Override
+                protected T mapValue(T v) {
+                    v = Cast.uncheckedCast(sanitizer.sanitize(v));
+                    if (targetType.isInstance(v)) {
+                        return v;
+                    }
+                    throw new IllegalArgumentException(String.format("Cannot get the value of %s of type %s as the provider associated with this property returned a value of type %s.", owner.getDisplayName(), targetType.getName(), v.getClass().getName()));
+                }
+            };
+        } else {
+            return this;
+        }
     }
 
     @Override
