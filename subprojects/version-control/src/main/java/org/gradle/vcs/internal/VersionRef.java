@@ -16,15 +16,12 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents how a version of a software component is referred to in a version
  * control system.
  *
  * @since 4.4
  */
-@Incubating
 public interface VersionRef {
     /**
      * Returns a human-readable version of the software component.

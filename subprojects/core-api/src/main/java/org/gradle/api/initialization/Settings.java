@@ -266,7 +266,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.4
      */
-    @Incubating
     void sourceControl(Action<? super SourceControl> configuration);
 
     /**
@@ -274,7 +273,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.4
      */
-    @Incubating
     SourceControl getSourceControl();
 
     /**
