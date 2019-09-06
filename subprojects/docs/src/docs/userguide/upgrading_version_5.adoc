@@ -178,8 +178,7 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 
 ==== Javadoc and Groovydoc don't include timestamps by default
 
-Timestamps in the generated documentation have very limited practical use, however they mark all the files as "modified" even in case of a small changes.
-Having `notimestamp` by default enables repeatable documentation build, and it simplifies storage of the documentation.
+Timestamps in the generated documentation have very limited practical use, however they make it impossible to have repeatable documentation builds.
 Therefore, the `Javadoc` and `Groovydoc` tasks are now configured to not include timestamps by default any more.
 
 ==== Miscellaneous
