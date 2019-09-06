@@ -22,6 +22,7 @@ import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
 import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.ArtifactSelectorSpec
 import org.gradle.util.GradleVersion
 
 import javax.annotation.Nullable
@@ -163,7 +164,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], it.version?.forSubgraph, exclusions, it.inheritConstraints, it.reason, normalizeForTests(it.attributes))
+                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], it.version?.forSubgraph, exclusions, it.inheritConstraints, it.reason, it.thirdPartyCompatibility?.artifactSelector, normalizeForTests(it.attributes))
                 }
             }
             dependencies
@@ -243,18 +244,37 @@ class GradleModuleMetadata {
             final String module
             final String version
             final Set<String> checkedExcludes = []
+            final Iterator<Dependency> candidates
+
+            Dependency current
 
             DependencyView(String gid, String mid, String v) {
                 group = gid
                 module = mid
                 version = v
+                candidates = dependencies.findAll { it.group == group && it.module == module && it.version == version }.iterator()
+                next()
+            }
+
+            DependencyView isLast() {
+                assert !candidates.hasNext()
+                this
+            }
+
+            DependencyView next() {
+                if (candidates.hasNext()) {
+                    checkedExcludes.clear()
+                    current = candidates.next()
+                } else {
+                    current = null
+                }
+                return this
             }
 
             Dependency find() {
-                def dep = dependencies.find { it.group == group && it.module == module && it.version == version }
-                assert dep : "dependency ${group}:${module}:${version} not found in $dependencies"
-                checkedDependencies << dep
-                dep
+                assert current : "dependency ${group}:${module}:${version} not found in $dependencies"
+                checkedDependencies << current
+                current
             }
 
             DependencyView exists() {
@@ -311,8 +331,13 @@ class GradleModuleMetadata {
 
             DependencyView hasAttribute(String attribute, Object value) {
                 String expected = value?.toString()
-                assert find()?.attributes[attribute] == expected
+                assert find()?.attributes?.get(attribute) == expected
                 this
+            }
+
+            DependencyView noAttributes() {
+                def actualAttributes = find()?.attributes ?: [:]
+                assert actualAttributes == [:]
             }
 
             DependencyView hasAttributes(Map<String, Object> fullAttributeSet) {
@@ -320,6 +345,10 @@ class GradleModuleMetadata {
                 def actualAttributes = find()?.attributes
                 assert actualAttributes == expectedAttributes
                 this
+            }
+
+            ArtifactSelectorSpec getArtifactSelector() {
+                current.artifactSelector
             }
         }
 
@@ -442,11 +471,13 @@ class GradleModuleMetadata {
     static class Dependency extends Coords {
         final List<String> excludes
         final boolean inheritConstraints
+        final ArtifactSelectorSpec artifactSelector
 
-        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, Boolean forSubgraph, List<String> excludes, Boolean inheritConstraints, String reason, Map<String, String> attributes) {
+        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, Boolean forSubgraph, List<String> excludes, Boolean inheritConstraints, String reason, Map<String, String> artifactSelector, Map<String, String> attributes) {
             super(group, module, requires, prefers, strictly, rejectedVersions, forSubgraph, reason, attributes)
             this.excludes = excludes*.toString()
             this.inheritConstraints = inheritConstraints
+            this.artifactSelector = artifactSelector != null ? new ArtifactSelectorSpec(artifactSelector.name, artifactSelector.type, artifactSelector.extesion, artifactSelector.classifier) : null
         }
 
         String toString() {

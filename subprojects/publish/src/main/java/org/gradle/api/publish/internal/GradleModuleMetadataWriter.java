@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Named;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -391,13 +391,18 @@ public class GradleModuleMetadataWriter {
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
         VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
-            writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy);
+            if (moduleDependency.getArtifacts().isEmpty()) {
+                writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, null);
+            } else {
+                for (DependencyArtifact dependencyArtifact : moduleDependency.getArtifacts()) {
+                    writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, dependencyArtifact);
+                }
+            }
         }
         jsonWriter.endArray();
     }
 
     private VariantVersionMappingStrategyInternal findVariantVersionMappingStrategy(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) {
-        String name = variant.getName();
         VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
         if (versionMappingStrategy != null) {
             ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
@@ -406,7 +411,7 @@ public class GradleModuleMetadataWriter {
         return variantVersionMappingStrategy;
     }
 
-    private void writeDependency(Dependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy) throws IOException {
+    private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact) throws IOException {
         jsonWriter.beginObject();
         String resolvedVersion = null;
         if (dependency instanceof ProjectDependency) {
@@ -447,23 +452,46 @@ public class GradleModuleMetadataWriter {
             }
             writeVersionConstraint(vc, resolvedVersion, jsonWriter);
         }
-        if (dependency instanceof ModuleDependency) {
-            ModuleDependency moduleDependency = (ModuleDependency) dependency;
-            writeExcludes(moduleDependency, additionalExcludes, jsonWriter);
-            writeAttributes(moduleDependency.getAttributes(), jsonWriter);
-            writeCapabilities("requestedCapabilities", moduleDependency.getRequestedCapabilities(), jsonWriter);
+        writeExcludes(dependency, additionalExcludes, jsonWriter);
+        writeAttributes(dependency.getAttributes(), jsonWriter);
+        writeCapabilities("requestedCapabilities", dependency.getRequestedCapabilities(), jsonWriter);
 
-            boolean inheriting = moduleDependency.isInheriting();
-            if (inheriting) {
-                jsonWriter.name("inheritConstraints");
-                jsonWriter.value(true);
-            }
+        boolean inheriting = dependency.isInheriting();
+        if (inheriting) {
+            jsonWriter.name("inheritConstraints");
+            jsonWriter.value(true);
         }
         String reason = dependency.getReason();
         if (StringUtils.isNotEmpty(reason)) {
             jsonWriter.name("reason");
             jsonWriter.value(reason);
         }
+        if (dependencyArtifact != null) {
+            writeDependencyArtifact(dependencyArtifact, jsonWriter);
+        }
+        jsonWriter.endObject();
+    }
+
+    private void writeDependencyArtifact(DependencyArtifact dependencyArtifact, JsonWriter jsonWriter) throws IOException {
+        jsonWriter.name("thirdPartyCompatibility");
+        jsonWriter.beginObject();
+
+        jsonWriter.name("artifactSelector");
+        jsonWriter.beginObject();
+        jsonWriter.name("name");
+        jsonWriter.value(dependencyArtifact.getName());
+        jsonWriter.name("type");
+        jsonWriter.value(dependencyArtifact.getType());
+        if (!Strings.isNullOrEmpty(dependencyArtifact.getExtension())) {
+            jsonWriter.name("extension");
+            jsonWriter.value(dependencyArtifact.getExtension());
+        }
+        if (!Strings.isNullOrEmpty(dependencyArtifact.getClassifier())) {
+            jsonWriter.name("classifier");
+            jsonWriter.value(dependencyArtifact.getClassifier());
+        }
+        jsonWriter.endObject();
+
         jsonWriter.endObject();
     }
 

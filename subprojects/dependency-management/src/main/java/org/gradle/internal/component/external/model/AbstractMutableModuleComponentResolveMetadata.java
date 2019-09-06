@@ -279,8 +279,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, inheriting));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting, @Nullable IvyArtifactName artifact) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, inheriting, artifact));
         }
 
         @Override
@@ -361,8 +361,9 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final ImmutableAttributes attributes;
         private final ImmutableList<Capability> requestedCapabilities;
         private final boolean inheriting;
+        private final IvyArtifactName dependencyArtifact;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting, @Nullable IvyArtifactName dependencyArtifact) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
@@ -375,6 +376,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                     .collect(Collectors.toList())
             );
             this.inheriting = inheriting;
+            this.dependencyArtifact = dependencyArtifact;
         }
 
         @Override
@@ -415,6 +417,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         @Override
         public boolean isInheriting() {
             return inheriting;
+        }
+
+        @Override
+        @Nullable
+        public IvyArtifactName getDependencyArtifact() {
+            return dependencyArtifact;
         }
 
         @Override

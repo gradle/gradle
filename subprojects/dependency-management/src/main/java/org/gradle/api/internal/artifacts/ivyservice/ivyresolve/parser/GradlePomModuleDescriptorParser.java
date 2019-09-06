@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -221,7 +222,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private ModuleDependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
-        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), false, false, null, false);
+        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), false, false, null, false, ImmutableList.of());
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {

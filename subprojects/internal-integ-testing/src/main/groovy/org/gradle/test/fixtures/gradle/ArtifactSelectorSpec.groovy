@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.resolver
+package org.gradle.test.fixtures.gradle
 
-import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.internal.component.external.model.GradleDependencyMetadata
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata
+import groovy.transform.CompileStatic
 
-class DependenciesMetadataAdapterOnGradleMetadataTest extends DependenciesMetadataAdapterTest {
+@CompileStatic
+class ArtifactSelectorSpec {
+    String name
+    String type
+    String extension
+    String classifier
 
-    @Override
-    ModuleDependencyMetadata newDependency(ModuleComponentSelector requested) {
-        new GradleDependencyMetadata(requested, [], false, false, null, false, [])
+    ArtifactSelectorSpec(String name, String type, String extension, String classifier) {
+        this.name = name
+        this.type = type
+        this.extension = extension
+        this.classifier = classifier
     }
-
 }

@@ -54,6 +54,10 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         return getArtifact(options)
     }
 
+    HttpArtifact undeclaredArtifact(Map<String, ?> options = [:]) {
+        return artifact(options)
+    }
+
     MavenHttpModule withSourceAndJavadoc() {
         artifact(classifier: "sources")
         artifact(classifier: "javadoc")

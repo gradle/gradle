@@ -65,7 +65,7 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
             assert parsedModuleMetadata.variant('apiElements').dependencies.empty
-            assert parsedIvy.dependencies.findAll { it.value.conf == 'compile' }.isEmpty()
+            assert parsedIvy.dependencies.findAll { it.value.confs.contains('compile') }.isEmpty()
         } else {
             assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
             parsedIvy.assertConfigurationDependsOn('compile', expected)
