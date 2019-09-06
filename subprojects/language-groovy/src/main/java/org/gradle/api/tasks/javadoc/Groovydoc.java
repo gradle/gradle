@@ -74,9 +74,9 @@ public class Groovydoc extends SourceTask {
 
     private boolean use;
 
-    private boolean noTimestamp;
+    private boolean noTimestamp = true;
 
-    private boolean noVersionStamp;
+    private boolean noVersionStamp = true;
 
     private String windowTitle;
 
