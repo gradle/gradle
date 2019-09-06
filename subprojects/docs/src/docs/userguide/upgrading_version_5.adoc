@@ -208,6 +208,7 @@ Miscellaneous::
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
+* Changing the value of a task property with type `Property<T>` after the task has started execution now results in an error.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
