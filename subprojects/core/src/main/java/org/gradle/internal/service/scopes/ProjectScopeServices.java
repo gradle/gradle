@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.MutationGuards;
@@ -34,11 +35,13 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
@@ -191,6 +194,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             fileSystem,
             deleter
         );
+    }
+
+    protected FileSystemOperations createFileSystemOperations(FileOperations fileOperations) {
+        return new DefaultFileSystemOperations(fileOperations);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {

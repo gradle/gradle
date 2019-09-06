@@ -26,7 +26,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
-import org.gradle.work.InputChanges;
 import org.gradle.workers.internal.DefaultWorkResult;
 
 import java.io.File;
@@ -36,7 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
-    private final InputChanges inputChanges;
+    private final boolean incremental;
     private final Iterable<FileChange> sourceChanges;
     private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
 
@@ -44,19 +43,19 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         Deleter deleter,
         FileOperations fileOperations,
         FileTree sources,
-        InputChanges inputChanges,
+        boolean incremental,
         Iterable<FileChange> sourceChanges,
         GroovySourceFileClassNameConverter sourceFileClassNameConverter
     ) {
         super(deleter, fileOperations, sources);
-        this.inputChanges = inputChanges;
+        this.incremental = incremental;
         this.sourceChanges = sourceChanges;
         this.sourceFileClassNameConverter = sourceFileClassNameConverter;
     }
 
     @Override
     public boolean isIncremental() {
-        return inputChanges.isIncremental();
+        return incremental;
     }
 
     @Override
@@ -75,11 +74,11 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     @Override
-    public void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+    public boolean initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(Collections.emptySet());
             spec.setClasses(Collections.emptySet());
-            return;
+            return false;
         }
 
         Factory<PatternSet> patternSetFactory = fileOperations.getFileResolver().getPatternSetFactory();
@@ -92,7 +91,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
 
-        deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
+        return deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
     }
 
     @Override
@@ -124,10 +123,13 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             if (spec.isFullRebuildNeeded()) {
                 return;
             }
+            if (fileChange.getFileType() != FileType.FILE) {
+                continue;
+            }
 
             File changedFile = fileChange.getFile();
-            if (fileChange.getFileType() != FileType.DIRECTORY && !FileUtils.hasExtension(changedFile, ".groovy")) {
-                spec.setFullRebuildCause("changes to non-Groovy files are not supported by incremental compilation", changedFile);
+            if (!FileUtils.hasExtension(changedFile, ".groovy")) {
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile("non-Groovy file", fileChange), null);
                 return;
             }
 

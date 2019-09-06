@@ -1,6 +1,7 @@
 plugins {
     java
     idea
+    `ivy-publish`
 }
 
 group = "org.sample"
@@ -18,8 +19,14 @@ repositories {
     jcenter()
 }
 
-tasks.named<Upload>("uploadArchives") {
+
+publishing {
     repositories {
-        add(project.repositories["localrepo"])
+        ivy {
+            setUrl(file("../../../local-repo"))
+        }
+    }
+    publications {
+        create<IvyPublication>("ivy") { from(components["java"]) }
     }
 }

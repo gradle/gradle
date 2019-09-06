@@ -1,6 +1,8 @@
 [[declaring-dependencies]]
 = Declaring dependencies
 
+Before looking at dependency declarations themselves, the concept of _dependency configuration_ needs to be defined.
+
 [[sec:what-are-dependency-configurations]]
 == What are dependency configurations
 
@@ -169,9 +171,14 @@ Gradle provides different notations for module dependencies. There is a string n
 [NOTE]
 ====
 If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories.
-If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded.
-If no such module metadata file exists, Gradle may look, depending on the <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata sources definitions>>, for an artifact file called `hibernate-3.0.5.jar` directly.
+If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. `cglib`) are downloaded.
+If no such module metadata file exists, as of Gradle 6.0, you need to configure <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
+====
+
+[NOTE]
+====
 In Maven, a module can have one and only one artifact.
+
 In Gradle and Ivy, a module can have multiple artifacts.
 Each artifact can have a different set of dependencies.
 ====

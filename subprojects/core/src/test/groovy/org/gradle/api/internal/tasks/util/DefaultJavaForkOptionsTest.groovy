@@ -355,7 +355,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.setSystemProperties([key: 12])
         1 * target.setMinHeapSize('64m')
         1 * target.setMaxHeapSize('1g')
-        1 * target.setBootstrapClasspath(options.bootstrapClasspath)
+        1 * target.bootstrapClasspath(_)
         1 * target.setEnableAssertions(false)
         1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
 

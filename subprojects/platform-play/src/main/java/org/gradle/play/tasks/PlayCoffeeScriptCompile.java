@@ -20,8 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.file.Deleter;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.base.internal.tasks.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
 
 import javax.inject.Inject;
@@ -47,10 +46,11 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
 
     @Override
     public void doCompile() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
-        cleaner.addDirToClean(getDestinationDir());
-        cleaner.execute();
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir());
         super.doCompile();
+        if (cleanedOutputs) {
+            setDidWork(true);
+        }
     }
 
     @Inject

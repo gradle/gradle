@@ -19,10 +19,11 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -46,16 +47,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
-    private MapCollector<K, V> convention = (MapCollector<K, V>) NO_VALUE;
-    private MapCollector<K, V> defaultValue = (MapCollector<K, V>) EMPTY_MAP;
+    private MapCollector<K, V> convention = Cast.uncheckedCast(NO_VALUE);
+    private MapCollector<K, V> defaultValue = Cast.uncheckedCast(EMPTY_MAP);
     private MapCollector<K, V> value;
 
     public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
         applyDefaultValue();
         this.keyType = keyType;
         this.valueType = valueType;
-        keyCollector = new ValidatingValueCollector<K>(Set.class, keyType, ValueSanitizers.forType(keyType));
-        entryCollector = new ValidatingMapEntryCollector<K, V>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
+        keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
+        entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
     }
 
     @Override
@@ -99,7 +100,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     public Map<K, V> get() {
         beforeRead();
-        Map<K, V> entries = new LinkedHashMap<K, V>();
+        Map<K, V> entries = new LinkedHashMap<>();
         value.collectInto(getDisplayName(), entryCollector, entries);
         return ImmutableMap.copyOf(entries);
     }
@@ -113,7 +114,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Nullable
     private Map<K, V> doGetOrNull() {
-        Map<K, V> entries = new LinkedHashMap<K, V>();
+        Map<K, V> entries = new LinkedHashMap<>();
         if (!value.maybeCollectInto(entryCollector, entries)) {
             return null;
         }
@@ -122,12 +123,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public Provider<V> getting(final K key) {
-        return new DefaultProvider<V>(new Callable<V>() {
+        return new DefaultProvider<>(new Callable<V>() {
             @Override
             @Nullable
             public V call() {
                 beforeRead();
-                Map<K, V> dest = new LinkedHashMap<K, V>();
+                Map<K, V> dest = new LinkedHashMap<>();
                 if (value.maybeCollectInto(entryCollector, dest)) {
                     return dest.get(key);
                 }
@@ -169,7 +170,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             return;
         }
         if (beforeMutate()) {
-            set(new MapCollectors.EntriesFromMap<K, V>(entries));
+            set(new MapCollectors.EntriesFromMap<>(entries));
         }
     }
 
@@ -179,7 +180,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             return;
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        set(new MapCollectors.EntriesFromMapProvider<K, V>(p));
+        set(new MapCollectors.EntriesFromMapProvider<>(p));
     }
 
     @Override
@@ -205,7 +206,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new MapCollectors.SingleEntry<K, V>(key, value));
+        addCollector(new MapCollectors.SingleEntry<>(key, value));
     }
 
     @Override
@@ -220,7 +221,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
                 Map.class.getName(), valueType.getName(), p.getType().getName()));
         }
-        addCollector(new MapCollectors.EntryWithValueFromProvider<K, V>(key, p));
+        addCollector(new MapCollectors.EntryWithValueFromProvider<>(key, p));
     }
 
     @Override
@@ -228,7 +229,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         if (!beforeMutate()) {
             return;
         }
-        addCollector(new MapCollectors.EntriesFromMap<K, V>(entries));
+        addCollector(new MapCollectors.EntriesFromMap<>(entries));
     }
 
     @Override
@@ -237,7 +238,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             return;
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        addCollector(new MapCollectors.EntriesFromMapProvider<K, V>(p));
+        addCollector(new MapCollectors.EntriesFromMapProvider<>(p));
     }
 
     private void addCollector(MapCollector<K, V> collector) {
@@ -268,7 +269,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public MapProperty<K, V> convention(Map<? extends K, ? extends V> value) {
-        convention(new MapCollectors.EntriesFromMap<K, V>(value));
+        convention(new MapCollectors.EntriesFromMap<>(value));
         return this;
     }
 
@@ -297,7 +298,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
         value = defaultValue;
         for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
-            value = new PlusCollector<K, V>(value, new MapCollectors.EntriesFromMapProvider<K, V>(provider));
+            value = new PlusCollector<>(value, new MapCollectors.EntriesFromMapProvider<>(provider));
         }
     }
 
@@ -324,7 +325,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
             if (entries.isEmpty()) {
                 set((MapCollector<K, V>) EMPTY_MAP);
             } else {
-                set(new MapCollectors.EntriesFromMap<K, V>(entries));
+                set(new MapCollectors.EntriesFromMap<>(entries));
             }
         } else {
             set((MapCollector<K, V>) NO_VALUE);
@@ -361,7 +362,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         @Override
         public Set<K> get() {
             beforeRead();
-            Set<K> keys = new LinkedHashSet<K>();
+            Set<K> keys = new LinkedHashSet<>();
             value.collectKeysInto(keyCollector, keys);
             return ImmutableSet.copyOf(keys);
         }
@@ -370,7 +371,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         @Override
         public Set<K> getOrNull() {
             beforeRead();
-            Set<K> keys = new LinkedHashSet<K>();
+            Set<K> keys = new LinkedHashSet<>();
             if (!value.maybeCollectKeysInto(keyCollector, keys)) {
                 return null;
             }
@@ -393,7 +394,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             left.collectInto(owner, collector, dest);
             right.collectInto(owner, collector, dest);
         }

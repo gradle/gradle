@@ -20,24 +20,22 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.base.internal.tasks.StaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.javascript.DefaultJavaScriptCompileSpec;
 import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
@@ -64,7 +62,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     @Inject
-    protected FileResolver getFileResolver() {
+    protected FileSystemOperations getFileSystemOperations() {
         throw new UnsupportedOperationException();
     }
 
@@ -140,15 +138,14 @@ public class JavaScriptMinify extends SourceTask {
 
     @TaskAction
     void compileJavaScriptSources() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
-        cleaner.addDirToClean(getDestinationDir());
-        cleaner.execute();
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir());
 
         MinifyFileVisitor visitor = new MinifyFileVisitor();
         getSource().visit(visitor);
 
         JavaScriptCompileSpec spec = new DefaultJavaScriptCompileSpec(visitor.relativeFiles, getDestinationDir(), getForkOptions());
-        getCompiler().execute(spec);
+        WorkResult result = getCompiler().execute(spec);
+        setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
     /**
@@ -167,8 +164,7 @@ public class JavaScriptMinify extends SourceTask {
             final File outputFileDir = new File(destinationDir, fileDetails.getRelativePath().getParent().getPathString());
 
             // Copy the raw form
-            FileOperations fileOperations = ((ProjectInternal) getProject()).getFileOperations();
-            fileOperations.copy(new Action<CopySpec>() {
+            getFileSystemOperations().copy(new Action<CopySpec>() {
                 @Override
                 public void execute(CopySpec copySpec) {
                     copySpec.from(fileDetails.getFile()).into(outputFileDir);

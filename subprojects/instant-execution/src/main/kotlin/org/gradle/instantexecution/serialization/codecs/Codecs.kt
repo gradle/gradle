@@ -18,6 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
@@ -169,6 +170,7 @@ class Codecs(
         bind(ownerService<FileResolver>())
         bind(ownerService<Instantiator>())
         bind(ownerService<FileCollectionFactory>())
+        bind(ownerService<FileSystemOperations>())
         bind(ownerService<FileOperations>())
         bind(ownerService<BuildOperationExecutor>())
         bind(ownerService<ToolingModelBuilderRegistry>())

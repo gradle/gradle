@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class SimpleStaleClassCleanerTest extends Specification {
+class StaleOutputCleanerTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Deleter deleter = TestFiles.deleter()
@@ -30,98 +30,55 @@ class SimpleStaleClassCleanerTest extends Specification {
     def "deletes all previous output files"() {
         def file1 = tmpDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1, file2))
-        cleaner.addDirToClean(tmpDir.testDirectory)
 
-        when:
-        cleaner.execute()
-
-        then:
+        expect:
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1, file2), tmpDir.testDirectory)
         !file1.exists()
         !file2.exists()
-
-        and:
-        cleaner.didWork
     }
 
     def "deletes empty parent directories"() {
         def file1 = tmpDir.file('foo/bar/file1').createFile()
         tmpDir.file('foo/baz/file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1))
-        cleaner.addDirToClean(tmpDir.testDirectory)
 
-        when:
-        cleaner.execute()
-
-        then:
+        expect:
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
         !tmpDir.file('foo/bar').exists()
         tmpDir.file('foo/baz').exists()
-
-
-        and:
-        cleaner.didWork
     }
 
     def "deletes parent directories regardless of order"() {
         def file1 = tmpDir.file('foo/file1').createFile()
         def file2 = tmpDir.file('foo/bar/file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1, file2))
-        cleaner.addDirToClean(tmpDir.testDirectory)
 
-        when:
-        cleaner.execute()
-
-        then:
+        expect:
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1, file2), tmpDir.testDirectory)
         !tmpDir.file('foo').exists()
-
-
-        and:
-        cleaner.didWork
     }
 
     def "does not delete the root directory"() {
         def file1 = tmpDir.file('foo/bar/file1').createFile()
-        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1))
-        cleaner.addDirToClean(tmpDir.testDirectory)
 
-        when:
-        cleaner.execute()
-
-        then:
+        expect:
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1), tmpDir.testDirectory)
         !tmpDir.file('foo').exists()
         tmpDir.testDirectory.exists()
-
-        and:
-        cleaner.didWork
     }
 
     def "does not delete files that are not under one of the given roots"() {
         def destDir = tmpDir.file('dir')
         def file1 = destDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        def cleaner = new SimpleStaleClassCleaner(deleter, files(file1, file2))
-        cleaner.addDirToClean(destDir)
 
-        when:
-        cleaner.execute()
-
-        then:
+        expect:
+        StaleOutputCleaner.cleanOutputs(deleter, files(file1, file2), destDir)
         !file1.exists()
         file2.exists()
-
-        and:
-        cleaner.didWork
     }
 
     def "reports when no work was done"() {
-        def cleaner = new SimpleStaleClassCleaner(deleter, files())
-        cleaner.addDirToClean(tmpDir.file('dir'))
-
-        when:
-        cleaner.execute()
-
-        then:
-        !cleaner.didWork
+        expect:
+        !StaleOutputCleaner.cleanOutputs(deleter, files(), tmpDir.file('dir'))
     }
 
     Set<File> files(File... args) {

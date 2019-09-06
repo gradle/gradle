@@ -129,6 +129,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
 
         when:
+        executer.expectDeprecationWarnings(2)
         succeeds 'uploadArchives'
 
         then:
@@ -140,6 +141,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         module.snapshotMetaData.snapshotBuildNumber == '1'
 
         when:
+        executer.expectDeprecationWarning()
         succeeds 'publish'
 
         then:

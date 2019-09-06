@@ -248,6 +248,55 @@ public class AnnotationProcessingTasks {
         public void doStuff(InputChanges changes) {}
     }
 
+    public static class TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions extends DefaultTask {
+        private final Action<Object> changesAction;
+
+        public TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions(Action<Object> changesAction) {
+            this.changesAction = changesAction;
+        }
+
+        @TaskAction
+        @Deprecated
+        public void doStuff(IncrementalTaskInputs changes) {
+            changesAction.execute(changes);
+            doStuff((InputChanges) changes);
+        }
+
+        @TaskAction
+        public void doStuff(InputChanges changes) {
+            changesAction.execute(changes);
+        }
+
+        @Optional
+        @OutputDirectory
+        @Nullable
+        public File getOutputDirectory() {
+            return null;
+        }
+    }
+
+    public static class TaskOverridingDeprecatedIncrementalChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
+        public TaskOverridingDeprecatedIncrementalChangesActions(Action<Object> changesAction) {
+            super(changesAction);
+        }
+
+        @Override
+        public void doStuff(IncrementalTaskInputs changes) {
+            super.doStuff(changes);
+        }
+    }
+
+    public static class TaskOverridingInputChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
+        public TaskOverridingInputChangesActions(Action<Object> changesAction) {
+            super(changesAction);
+        }
+
+        @Override
+        public void doStuff(InputChanges changes) {
+            super.doStuff(changes);
+        }
+    }
+
     public static class TaskWithSingleParamAction extends DefaultTask {
         @TaskAction
         public void doStuff(int value1) {

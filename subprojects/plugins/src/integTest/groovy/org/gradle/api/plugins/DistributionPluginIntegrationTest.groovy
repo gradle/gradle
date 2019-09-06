@@ -80,6 +80,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             }
             """
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds("uploadArchives")
         file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
 

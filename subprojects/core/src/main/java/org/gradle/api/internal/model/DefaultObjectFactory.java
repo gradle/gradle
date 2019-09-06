@@ -22,6 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
@@ -83,6 +84,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public ConfigurableFileCollection fileCollection() {
         return fileCollectionFactory.configurableFiles();
+    }
+
+    @Override
+    public ConfigurableFileTree fileTree() {
+        return fileCollectionFactory.fileTree();
     }
 
     @Override

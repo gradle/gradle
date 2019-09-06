@@ -35,7 +35,7 @@ import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -90,9 +90,12 @@ public class Assemble extends DefaultTask {
     @TaskAction
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getDeleter(), getOutputs());
-        cleaner.addDirToClean(getObjectFileDir());
-        cleaner.execute();
+
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
+            getDeleter(),
+            getOutputs().getPreviousOutputFiles(),
+            getObjectFileDir()
+        );
 
         DefaultAssembleSpec spec = new DefaultAssembleSpec();
         spec.setTempDir(getTemporaryDir());
@@ -107,7 +110,7 @@ public class Assemble extends DefaultTask {
         NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
         Compiler<AssembleSpec> compiler = nativeToolChain.select(nativePlatform).newCompiler(AssembleSpec.class);
         WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
-        setDidWork(result.getDidWork());
+        setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -28,6 +29,7 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import java.io.File
+import java.util.concurrent.Callable
 
 
 internal
@@ -53,28 +55,16 @@ class FileCollectionCodec(
     override suspend fun ReadContext.decode(): FileCollectionInternal {
         val contents = read()
         return if (contents is Collection<*>) {
-            fileCollectionFactory.create(UnpackingFileCollection(contents))
+            fileCollectionFactory.resolving(contents.map { element ->
+                when (element) {
+                    is File -> element
+                    is TransformationNode -> Callable { element.transformedSubject.get().files }
+                    is FileTree -> element
+                    else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
+                }
+            })
         } else {
             fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
-        }
-    }
-}
-
-
-private
-class UnpackingFileCollection(private val elements: Collection<*>) : MinimalFileSet {
-    override fun getDisplayName(): String {
-        return "file collection"
-    }
-
-    override fun getFiles(): MutableSet<File> {
-        return elements.fold(mutableSetOf()) { list, element ->
-            when (element) {
-                is File -> list.add(element)
-                is TransformationNode -> list.addAll(element.transformedSubject.get().files)
-                else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
-            }
-            list
         }
     }
 }
@@ -108,7 +98,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
 
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
         // TODO - should serialize a spec for the tree instead of its current elements
-        elements.addAll(fileTree)
+        elements.add(fileTree)
     }
 
     override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {

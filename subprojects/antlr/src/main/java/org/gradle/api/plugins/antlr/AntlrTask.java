@@ -16,9 +16,11 @@
 
 package org.gradle.api.plugins.antlr;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileType;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
@@ -28,16 +30,19 @@ import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.Deleter;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
+import org.gradle.work.InputChanges;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -47,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -66,6 +72,7 @@ public class AntlrTask extends SourceTask {
     private File outputDirectory;
     private String maxHeapSize;
     private SourceDirectorySet sourceDirectorySet;
+    private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -187,34 +194,37 @@ public class AntlrTask extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Generate the parsers.
+     *
+     * @since 6.0
+     */
+    @Incubating
     @TaskAction
-    public void execute(IncrementalTaskInputs inputs) {
-        final Set<File> grammarFiles = new HashSet<>();
-        final Set<File> sourceFiles = getSource().getFiles();
-        final MutableBoolean cleanRebuild = new MutableBoolean();
-        inputs.outOfDate(
-            details -> {
-                File input = details.getFile();
-                if (sourceFiles.contains(input)) {
-                    grammarFiles.add(input);
-                } else {
-                    // classpath change?
-                    cleanRebuild.set(true);
+    public void execute(InputChanges inputChanges) {
+        Set<File> grammarFiles = new HashSet<>();
+        FileCollection stableSources = getStableSources();
+        if (inputChanges.isIncremental()) {
+            boolean rebuildRequired = false;
+            for (FileChange fileChange : inputChanges.getFileChanges(stableSources)) {
+                if (fileChange.getFileType() == FileType.FILE) {
+                    if (fileChange.getChangeType() == ChangeType.REMOVED) {
+                        rebuildRequired = true;
+                        break;
+                    }
+                    grammarFiles.add(fileChange.getFile());
                 }
             }
-        );
-        inputs.removed(details -> {
-            if (details.isRemoved()) {
-                cleanRebuild.set(true);
+            if (rebuildRequired) {
+                try {
+                    getDeleter().ensureEmptyDirectory(outputDirectory, true);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+                grammarFiles.addAll(stableSources.getFiles());
             }
-        });
-        if (cleanRebuild.get()) {
-            try {
-                getDeleter().ensureEmptyDirectory(outputDirectory, true);
-            } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
-            }
-            grammarFiles.addAll(sourceFiles);
+        } else {
+            grammarFiles.addAll(stableSources.getFiles());
         }
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
@@ -271,14 +281,25 @@ public class AntlrTask extends SourceTask {
     }
 
     /**
-     * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
-     *
-     * @return The source.
+     * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Internal
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    /**
+     * The sources for incremental change detection.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    protected FileCollection getStableSources() {
+        return stableSources;
     }
 
     @Inject

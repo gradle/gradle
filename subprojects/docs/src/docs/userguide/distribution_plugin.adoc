@@ -124,7 +124,14 @@ include::sample[dir="maven-publish/distribution/kotlin",files="build.gradle.kts[
 [[sec:publishing_distributions_upload]]
 === Using the `uploadArchives` task
 
-The Distribution Plugin adds the distribution archives as default publishing artifact candidates. With the <<maven_plugin.adoc#maven_plugin, Maven Plugin>> applied, the distribution ZIP file will be published when running `uploadArchives` if no other default artifact is configured.
+[CAUTION]
+====
+The `uploadArchives` and `maven` plugin are deprecated.
+You should use the `ivy-publish` or `maven-publish` plugin instead.
+====
+
+The Distribution Plugin adds the distribution archives as default publishing artifact candidates.
+With the <<maven_plugin.adoc#maven_plugin, Maven Plugin>> applied, the distribution ZIP file will be published when running `uploadArchives` if no other default artifact is configured.
 
 .Publishing the distribution ZIP with the Maven Plugin
 ====

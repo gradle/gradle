@@ -224,6 +224,44 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/10411")
+    def "does not leak project state across multiple builds"() {
+        executer.withBuildJvmOpts('-Xms256m', '-Xmx512m').requireIsolatedDaemons().requireDaemon()
+
+        buildFile << """
+            ${legacyWorkerTypeAndTask}
+
+            ext.memoryHog = new byte[1024*1024*150] // ~150MB
+            
+            tasks.withType(WorkerTask) { task ->
+                isolationMode = IsolationMode.PROCESS
+                displayName = "Test Work"
+
+                text = "foo"
+                arrayOfThings = ["foo", "bar", "baz"]
+                listOfThings = ["foo", "bar", "baz"]
+                outputFile = file("${OUTPUT_FILE_NAME}")
+
+                // Force a new daemon to be used
+                workerConfiguration = {
+                    forkOptions { options ->
+                        options.with {
+                            systemProperty("foobar", task.name)
+                        }
+                    }
+                }
+            }
+            task startDaemon1(type: WorkerTask)
+            task startDaemon2(type: WorkerTask)
+            task startDaemon3(type: WorkerTask)
+        """
+
+        expect:
+        succeeds("startDaemon1")
+        succeeds("startDaemon2")
+        succeeds("startDaemon3")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/10323")
     def "can use a Properties object as a parameter"() {
         buildFile << """

@@ -56,6 +56,8 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputDir
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.NamedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskOverridingDeprecatedIncrementalChangesActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskOverridingInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskUsingInputChanges
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBooleanInput
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBridgeMethod
@@ -90,6 +92,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFile
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedIncrementalAndInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenIncrementalAction
@@ -209,6 +212,46 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
+    }
+
+    def "uses IncrementalTaskInputsMethod when it is overriden"() {
+        given:
+        def changesAction = Mock(Action)
+        def task = expectTaskCreated(TaskOverridingDeprecatedIncrementalChangesActions, changesAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * changesAction.execute(_ as InputChanges)
+        1 * changesAction.execute(_ as IncrementalTaskInputs)
+        0 * _
+    }
+
+    def "uses InputChanges method when two actions are present on the same class"() {
+        given:
+        def changesAction = Mock(Action)
+        def task = expectTaskCreated(TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions, changesAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * changesAction.execute(_ as InputChanges)
+        0 * _
+    }
+
+    def "uses overridden InputChanges when two actions are present on the base class"() {
+        given:
+        def changesAction = Mock(Action)
+        def task = expectTaskCreated(TaskOverridingInputChangesActions, changesAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * changesAction.execute(_ as InputChanges)
         0 * _
     }
 

@@ -78,6 +78,7 @@ Runs the unit tests using JUnit or TestNG.
 _Depends on_: `jar`, and any other task that produces an artifact attached to the `archives` configuration
 +
 Uploads artifacts in the `archives` configuration — including the production JAR file — to the configured repositories.
+This task is _deprecated_, you should use one of the <<publishing_ivy.adoc#publishing_ivy,Ivy>> or <<publishing_maven.adoc#publishing_maven,Maven>> publishing plugins instead.
 
 `clean` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Deletes the project build directory.

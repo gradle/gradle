@@ -520,7 +520,7 @@ sourceSets {
 
     def "missing files are ignored as source roots"() {
         buildFile << """
-            compileJava {
+            ${language.compileTaskName} {
                 source([
                     fileTree('missing-tree'),
                     file('missing-file')
@@ -937,26 +937,6 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         outputs.recompiledClasses("A", "B")
     }
 
-    def "does not recompile when a resource changes"() {
-        given:
-        buildFile << """
-            compileJava.inputs.dir 'src/main/resources'
-        """
-        source("class A {}")
-        source("class B {}")
-        def resource = file("src/main/resources/foo.txt")
-        resource.text = 'foo'
-
-        outputs.snapshot { succeeds language.compileTaskName }
-
-        when:
-        resource.text = 'bar'
-
-        then:
-        succeeds language.compileTaskName
-        outputs.noneRecompiled()
-    }
-
     @Issue('https://github.com/gradle/gradle/issues/9380')
     def 'can move source sets'() {
         given:
@@ -969,13 +949,9 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
         when:
         // Remove last line
         buildFile.text = buildFile.text.readLines().findAll { !it.trim().startsWith('sourceSets') }.join('\n')
-        fails language.compileTaskName, '-i'
+        fails language.compileTaskName
 
         then:
-        if (language == CompiledLanguage.JAVA) {
-            // Full recompilation in Java incremental compiler
-            outputContains("source dirs are changed")
-        }
         failureCauseContains('Compilation failed')
     }
 }

@@ -158,4 +158,23 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
+    def "does not recompile when a resource changes"() {
+        given:
+        buildFile << """
+            ${language.compileTaskName}.source 'src/main/resources'
+        """
+        source("class A {}")
+        source("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        resource.text = 'bar'
+
+        then:
+        succeeds language.compileTaskName
+        outputs.noneRecompiled()
+    }
 }

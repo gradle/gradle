@@ -28,6 +28,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -1846,6 +1847,37 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         ops[1].details.applicationId == id2.longValue()
         ops[2].details.applicationId == id1.longValue()
         ops[3].details.applicationId == id2.longValue()
+    }
+
+    def "can add list properties to container"() {
+        containerAllowsExternalProviders()
+
+        given:
+        def property = TestUtil.objectFactory().listProperty(type)
+
+        when:
+        container.addAllLater(property)
+        property.add(a)
+        property.addAll([b, c])
+
+        then:
+        toList(container) == [a, b, c]
+    }
+
+
+    def "can add set properties to container"() {
+        containerAllowsExternalProviders()
+
+        given:
+        def property = TestUtil.objectFactory().setProperty(type)
+
+        when:
+        container.addAllLater(property)
+        property.add(a)
+        property.addAll([b, c])
+
+        then:
+        toList(container) == [a, b, c]
     }
 
     protected Map<String, Closure> getQueryMethods() {

@@ -23,6 +23,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.project.DefaultProject
@@ -476,6 +477,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
+        FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
     }
 
     @Unroll

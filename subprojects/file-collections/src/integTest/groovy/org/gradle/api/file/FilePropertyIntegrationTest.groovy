@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
+class FilePropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can attach a calculated directory to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -207,35 +207,35 @@ task useFileProviderApi {
 
         then:
         failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
 
         when:
         fails("useIntTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
 
         when:
         fails("useFileTypeDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
 
         when:
         fails("useFileProviderDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useFileProviderDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
 
         when:
         fails("useFileProviderApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useFileProviderApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
     }
 
     def "reports failure to set regular file property value using incompatible type"() {
@@ -288,35 +288,35 @@ task useDirProviderApi {
 
         then:
         failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
 
         when:
         fails("useIntTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
 
         when:
         fails("useDirTypeDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useDirTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedDirectory.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedDirectory.")
 
         when:
         fails("useDirProviderDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useDirProviderDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
 
         when:
         fails("useDirProviderApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':useDirProviderApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 
     def "can wire the output file of a task as input to another task using property"() {
@@ -385,7 +385,7 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "task #annotation file property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
                 ${annotation}
@@ -393,23 +393,25 @@ task useDirProviderApi {
                 
                 @TaskAction
                 void go() {
-                    prop.set(project.file("other.txt"))
                     println "value: " + prop.get() 
                 }
             }
             
             task show(type: SomeTask) {
                 prop = file("in.txt")
+                doFirst {
+                    prop = file("other.txt") 
+                }
             }
 """
         file("in.txt").createFile()
 
         when:
-        executer.expectDeprecationWarning()
-        run("show")
+        fails("show")
 
         then:
-        outputContains("value: " + testDirectory.file("in.txt"))
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
         annotation    | _
@@ -418,7 +420,7 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "task #annotation directory property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task #annotation directory property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
                 ${annotation}
@@ -426,23 +428,25 @@ task useDirProviderApi {
                 
                 @TaskAction
                 void go() {
-                    prop.set(project.file("other.dir"))
                     println "value: " + prop.get() 
                 }
             }
             
             task show(type: SomeTask) {
                 prop = file("in.dir")
+                doFirst {
+                    prop = file("other.dir")
+                } 
             }
 """
         file("in.dir").createDir()
 
         when:
-        executer.expectDeprecationWarning()
-        run("show")
+        fails("show")
 
         then:
-        outputContains("value: " + testDirectory.file("in.dir"))
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
         annotation         | _
@@ -451,7 +455,7 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "task ad hoc file property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -469,11 +473,11 @@ task thing {
         file("file-1").createFile()
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = " + file("file-1"))
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:
         registrationMethod | _
@@ -482,7 +486,7 @@ task thing {
     }
 
     @Unroll
-    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -500,11 +504,11 @@ task thing {
         file("file-1").createDir()
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = " + file("file-1"))
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:
         registrationMethod | _

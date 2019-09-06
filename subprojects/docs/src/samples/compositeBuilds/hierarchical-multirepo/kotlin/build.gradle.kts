@@ -25,6 +25,6 @@ repositories {
 
 // tag::publishDeps[]
 tasks.register("publishDeps") {
-    dependsOn(gradle.includedBuilds.map { it.task(":uploadArchives") })
+    dependsOn(gradle.includedBuilds.map { it.task(":publishIvyPublicationToIvyRepository") })
 }
 // end::publishDeps[]

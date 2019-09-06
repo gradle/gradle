@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Describable;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -301,7 +301,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> dest) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
             left.collectInto(owner, collector, dest);
             right.collectInto(owner, collector, dest);
         }

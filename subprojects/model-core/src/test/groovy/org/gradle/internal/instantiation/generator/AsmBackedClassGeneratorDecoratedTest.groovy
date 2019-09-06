@@ -398,6 +398,48 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         then:
         values == ["bar"]
     }
+
+    def "action methods with wide parameters are generated properly"() {
+        given:
+        def tester = create(ActionsTester)
+
+        when:
+        tester.actionWithLongParameter(1L) { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "actionWithLongParameter"
+        tester.lastArgs.size() == 2
+        tester.lastArgs.first() == 1L
+        tester.lastArgs.last() instanceof Action
+
+        when:
+        tester.actionWithDoubleParameter(3.14d) { assert it == "subject" }
+
+        then:
+        tester.lastMethod == "actionWithDoubleParameter"
+        tester.lastArgs.size() == 2
+        tester.lastArgs.first() == 3.14d
+        tester.lastArgs.last() instanceof Action
+    }
+
+    def "class with wide constructor are generated properly"() {
+        given:
+        def reference = new Object()
+
+        when:
+        def longTester = create(HasLongConstructor, 1L, reference)
+
+        then:
+        longTester.value == 1L
+        longTester.reference.is(reference)
+
+        when:
+        def doubleTester = create(HasDoubleConstructor, 3.14d, reference)
+
+        then:
+        doubleTester.value == 3.14d
+        doubleTester.reference.is(reference)
+    }
 }
 
 enum TestEnum {
@@ -536,6 +578,17 @@ class ActionsTester {
         [] as Object[]
     }
 
+    void actionWithLongParameter(long arg, Action action) {
+        lastMethod = "actionWithLongParameter"
+        lastArgs = [arg, action]
+        action.execute(subject)
+    }
+
+    void actionWithDoubleParameter(double arg, Action action) {
+        lastMethod = "actionWithDoubleParameter"
+        lastArgs = [arg, action]
+        action.execute(subject)
+    }
 }
 
 class ActionMethodWithSameNameAsProperty {
@@ -688,5 +741,25 @@ class HasToString {
     @Override
     String toString() {
         return "<bean>"
+    }
+}
+
+class HasLongConstructor {
+    long value
+    Object reference
+
+    HasLongConstructor(long value, Object reference) {
+        this.value = value
+        this.reference = reference
+    }
+}
+
+class HasDoubleConstructor {
+    double value
+    Object reference
+
+    HasDoubleConstructor(double value, Object reference) {
+        this.value = value
+        this.reference = reference
     }
 }

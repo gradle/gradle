@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.process.internal.JavaForkOptionsInternal;
 import org.gradle.util.GUtil;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ForkMode;
@@ -40,8 +40,8 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     private String displayName;
     private List<File> classpath = Lists.newArrayList();
 
-    public DefaultWorkerConfiguration(JavaForkOptionsFactory forkOptionsFactory) {
-        this.forkOptions = forkOptionsFactory.newJavaForkOptions();
+    public DefaultWorkerConfiguration(JavaForkOptionsInternal forkOptions) {
+        this.forkOptions = forkOptions;
     }
 
     @Override

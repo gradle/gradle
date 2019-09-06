@@ -38,6 +38,7 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withRepositoryMirrors()
+        executer.expectDeprecationWarning()
     }
 
     @Unroll

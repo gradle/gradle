@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
@@ -37,14 +37,14 @@ public class IncrementalCompilerDecorator<T extends JavaCompileSpec> {
     private static final Logger LOG = LoggerFactory.getLogger(IncrementalCompilerDecorator.class);
     private final ClasspathSnapshotMaker classpathSnapshotMaker;
     private final TaskScopedCompileCaches compileCaches;
-    private final CleaningJavaCompilerSupport<T> cleaningCompiler;
+    private final CleaningJavaCompiler<T> cleaningCompiler;
     private final Compiler<T> rebuildAllCompiler;
     private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
     private StringInterner interner;
 
     public IncrementalCompilerDecorator(ClasspathSnapshotMaker classpathSnapshotMaker,
                                         TaskScopedCompileCaches compileCaches,
-                                        CleaningJavaCompilerSupport<T> cleaningCompiler,
+                                        CleaningJavaCompiler<T> cleaningCompiler,
                                         Compiler<T> rebuildAllCompiler,
                                         PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer,
                                         StringInterner interner) {
@@ -58,7 +58,7 @@ public class IncrementalCompilerDecorator<T extends JavaCompileSpec> {
 
     public Compiler<T> prepareCompiler(RecompilationSpecProvider recompilationSpecProvider) {
         Compiler<T> compiler = getCompiler(recompilationSpecProvider);
-        return new IncrementalResultStoringCompiler<T>(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
+        return new IncrementalResultStoringCompiler<>(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
     }
 
     private Compiler<T> getCompiler(RecompilationSpecProvider recompilationSpecProvider) {
@@ -74,6 +74,6 @@ public class IncrementalCompilerDecorator<T extends JavaCompileSpec> {
         }
 
         PreviousCompilation previousCompilation = new PreviousCompilation(data, compileCaches.getClasspathEntrySnapshotCache(), previousCompilationOutputAnalyzer);
-        return new SelectiveCompiler<T>(previousCompilation, cleaningCompiler, rebuildAllCompiler, recompilationSpecProvider, classpathSnapshotMaker);
+        return new SelectiveCompiler<>(previousCompilation, cleaningCompiler, rebuildAllCompiler, recompilationSpecProvider, classpathSnapshotMaker);
     }
 }

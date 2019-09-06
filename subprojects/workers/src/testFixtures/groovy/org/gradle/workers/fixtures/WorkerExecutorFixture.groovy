@@ -380,8 +380,12 @@ class WorkerExecutorFixture {
             fields.each { name, type ->
                 fieldDeclarations += """
                     ${type} get${name.capitalize()}();
-                    void set${name.capitalize()}(${type} ${name.uncapitalize()});
                 """
+                if (!type.startsWith("Property<")) {
+                    fieldDeclarations += """
+                        void set${name.capitalize()}(${type} ${name.uncapitalize()});
+                    """
+                }
             }
             return fieldDeclarations
         }

@@ -20,14 +20,9 @@ Additional context information can be rendered by clicking on a specific depende
 .Dependency tree in a build scan
 image::dependency-management-dependencies-report-build-scan.png[]
 
-Every Gradle project provides the task `dependencies` to render the so-called _dependency report_ from the command line.
-By default the dependency report renders dependencies for all configurations.
-To pair down on the information provide the optional parameter `--configuration`.
-
 [[sec:listing_dependencies]]
 == Listing dependencies in a project
 
-A project can declare one or more dependencies.
 Gradle can visualize the whole dependency tree for every <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configuration>> available in the project.
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime.
@@ -36,6 +31,10 @@ The dependency report always contains declared and transitive dependencies.
 
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process.
 You can declare dependencies for any external tooling with the help of a <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,custom configuration>> so that it doesn't pollute other contexts like the compilation classpath for your production source code.
+
+Every Gradle project provides the task `dependencies` to render the so-called _dependency report_ from the command line.
+By default the dependency report renders dependencies for all configurations.
+To focus on the information about one configuration, provide the optional parameter `--configuration`.
 
 .Declaring the JGit dependency with a custom configuration
 ====
@@ -97,8 +96,5 @@ If the selected version does not match your expectation, Gradle offers a series 
 [[sec:resolving-variant-aware-errors]]
 == Resolving variant selection errors
 
-[[sub:ambiguous-variant-selection]]
-=== Ambiguous variant selection errors
-
-[[sub:no-matching-variant-errors]]
-=== No matching variants
+Sometimes a selection error will happen at the <<variant_model.adoc#,variant selection level>>.
+Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated section>> to understand these errors and how to resolve them.

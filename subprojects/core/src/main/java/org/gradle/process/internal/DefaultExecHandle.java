@@ -40,6 +40,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.String.format;
+import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
+import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLengthException;
 
 /**
  * Default implementation for the ExecHandle interface.
@@ -234,14 +236,18 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     @Nullable
     private ExecException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
         return failureCause != null
-            ? new ExecException(failureMessageFor(currentState), failureCause)
+            ? new ExecException(failureMessageFor(failureCause, currentState), failureCause)
             : null;
     }
 
-    private String failureMessageFor(ExecHandleState currentState) {
-        return currentState == ExecHandleState.STARTING
-            ? format("A problem occurred starting process '%s'", displayName)
-            : format("A problem occurred waiting for process '%s' to complete.", displayName);
+    private String failureMessageFor(Throwable failureCause, ExecHandleState currentState) {
+        if (currentState == ExecHandleState.STARTING) {
+            if (hasCommandLineExceedMaxLength(command, arguments) && hasCommandLineExceedMaxLengthException(failureCause)) {
+                return format("Process '%s' could not be started because the command line exceed operating system limits.", displayName);
+            }
+            return format("A problem occurred starting process '%s'", displayName);
+        }
+        return format("A problem occurred waiting for process '%s' to complete.", displayName);
     }
 
     @Override

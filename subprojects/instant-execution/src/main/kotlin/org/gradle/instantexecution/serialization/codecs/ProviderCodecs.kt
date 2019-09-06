@@ -16,12 +16,12 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.provider.AbstractMappingProvider
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
@@ -29,24 +29,20 @@ import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.provider.TransformBackedProvider
 import org.gradle.api.provider.Provider
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Proxy
 
 
 private
 suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
-    if (value.isValueProducedByTask && value is TransformBackedProvider<*, *>) {
+    if (value.isValueProducedByTask && value is AbstractMappingProvider<*, *>) {
         // Need to serialize the transformation and its source, as the value is not available until execution time
         writeBoolean(true)
-        writeTransformer(value.transformer)
-        writeProvider(value.provider)
+        BeanCodec().run { encode(value) }
     } else {
         // Can serialize the value and discard the provider
         writeBoolean(false)
@@ -58,39 +54,13 @@ suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
 private
 suspend fun ReadContext.readProvider(): ProviderInternal<Any> {
     return if (readBoolean()) {
-        val transformer = readTransformer()
-        val provider = readProvider()
-        TransformBackedProvider(transformer, provider)
+        BeanCodec().run { decode() } as AbstractMappingProvider<Any, Any>
     } else {
         val value = read()
         when (value) {
             is BrokenValue -> DefaultProvider<Any> { value.rethrow() }
             else -> Providers.ofNullable(value)
         }
-    }
-}
-
-
-private
-suspend fun WriteContext.writeTransformer(value: Transformer<*, *>) {
-    // TODO - should just have another codec (or codec supplier) that knows how to serialize proxies
-    if (Proxy.isProxyClass(value.javaClass)) {
-        writeBoolean(true)
-        write(Proxy.getInvocationHandler(value))
-    } else {
-        writeBoolean(false)
-        write(value)
-    }
-}
-
-
-private
-suspend fun ReadContext.readTransformer(): Transformer<Any, Any> {
-    return if (readBoolean()) {
-        val invocationHandler = read() as InvocationHandler
-        Proxy.newProxyInstance(classLoader, arrayOf(Transformer::class.java), invocationHandler) as Transformer<Any, Any>
-    } else {
-        read() as Transformer<Any, Any>
     }
 }
 
