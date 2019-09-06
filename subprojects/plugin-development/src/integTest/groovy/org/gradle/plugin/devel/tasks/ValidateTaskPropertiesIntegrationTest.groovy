@@ -901,7 +901,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent().trim()
     }
 
-    def "reports conflicting types when property is replaced but keeps old annotations"() {
+    def "reports conflicting types when property is replaced"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
             import org.gradle.api.model.*;
@@ -933,7 +933,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Type 'MyTask': property 'oldProperty' has conflicting type annotations declared: @Input, @ReplacedBy; assuming @Input.
+            Warning: Type 'MyTask': property 'oldProperty' getter 'getOldProperty()' annotated with @ReplacedBy should not be also annotated with @Input.
             """.stripIndent().trim()
     }
 }
