@@ -25,12 +25,12 @@ fun ExecutionResult.classLoadingCache(action: ClassLoadingCache.() -> Unit) =
 
 
 internal
-class ClassLoadingCache(private val result: ExecutionResult) {
+class ClassLoadingCache(private val result: ExecutionResult) : KotlinDslCacheFixture {
 
-    fun misses(vararg cachedScripts: CachedScript) =
+    override fun misses(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertClassLoads(it, 1) }
 
-    fun hits(vararg cachedScripts: CachedScript) =
+    override fun hits(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertClassLoads(it, 0) }
 
     private

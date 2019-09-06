@@ -23,6 +23,13 @@ import org.gradle.kotlin.dsl.execution.templateIdFor
 import java.io.File
 
 
+internal
+interface KotlinDslCacheFixture {
+    fun misses(vararg cachedScripts: CachedScript)
+    fun hits(vararg cachedScripts: CachedScript)
+}
+
+
 sealed class CachedScript {
 
     class WholeFile(

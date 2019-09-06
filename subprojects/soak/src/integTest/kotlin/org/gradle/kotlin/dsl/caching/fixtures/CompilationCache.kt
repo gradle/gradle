@@ -31,12 +31,12 @@ fun ExecutionResult.compilationCache(action: CompilationCache.() -> Unit) =
     action(CompilationCache(this))
 
 
-class CompilationCache(private val result: ExecutionResult) {
+class CompilationCache(private val result: ExecutionResult) : KotlinDslCacheFixture {
 
-    fun misses(vararg cachedScripts: CachedScript) =
+    override fun misses(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertCompilations(it, 1) }
 
-    fun hits(vararg cachedScripts: CachedScript) =
+    override fun hits(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertCompilations(it, 0) }
 
     private
