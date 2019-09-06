@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect.annotations.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -32,9 +33,9 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
     private final Method method;
     private final ImmutableMap<AnnotationCategory, Annotation> annotations;
     private final ImmutableSet<Class<? extends Annotation>> annotationTypes;
-    private final ImmutableMap<String, Boolean> validationProblems;
+    private final ImmutableList<String> validationProblems;
 
-    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotations, ImmutableMap<String, Boolean> validationProblems) {
+    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotations, ImmutableList<String> validationProblems) {
         this.propertyName = propertyName;
         this.method = method;
         this.annotations = annotations;
@@ -72,14 +73,7 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
 
     @Override
     public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
-        validationProblems.forEach((validationProblem, error) -> {
-                if (error) {
-                    validationContext.visitErrorStrict(ownerPath, getPropertyName(), validationProblem);
-                } else {
-                    validationContext.visitError(ownerPath, getPropertyName(), validationProblem);
-                }
-            }
-        );
+        validationProblems.forEach(validationProblem -> validationContext.visitError(ownerPath, getPropertyName(), validationProblem));
     }
 
     @Override
