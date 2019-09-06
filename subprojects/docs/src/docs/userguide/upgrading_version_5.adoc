@@ -49,6 +49,11 @@ Instead, use the `implementation`, `api`, `compileOnly` and `runtimeOnly` config
 When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
 These methods now assume the local build cache type to be `DirectoryBuildCache`.
 
+==== `IncrementalTaskInputs` has been deprecated
+
+In Gradle 5.4 we introduced a new API for implementing <<custom_tasks.adoc#incremental_tasks,incremental tasks>>: link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges].
+Its predecessor `IncrementalTaskInputs` has been deprecated.
+
 === Potential breaking changes
 
 ==== Android Gradle Plugin 3.3 and earlier is not supported anymore
