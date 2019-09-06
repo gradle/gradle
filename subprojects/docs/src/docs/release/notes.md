@@ -13,7 +13,8 @@ We would like to thank the following community contributors to this release of G
 [Robert Stupp](https://github.com/snazy),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
-and [Dan Sănduleac](https://github.com/dansanduleac).
+[Dan Sănduleac](https://github.com/dansanduleac),
+and [Vladimir Sitnikov](https://github.com/vlsi).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
