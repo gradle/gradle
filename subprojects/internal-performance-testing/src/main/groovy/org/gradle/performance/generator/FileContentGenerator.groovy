@@ -112,7 +112,9 @@ abstract class FileContentGenerator {
                 def enableFeaturePreviewSafe(String feature) {
                      try {
                         enableFeaturePreview(feature)
+                        println "Enabled feature preview " + feature
                      } catch(Exception ignored) {
+                        println "Failed to enable feature preview " + feature
                      }
                 }
 
