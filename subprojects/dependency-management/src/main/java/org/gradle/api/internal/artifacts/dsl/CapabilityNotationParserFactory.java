@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -108,7 +107,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
 
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
-                                      @MapKey("version") @Optional String version) {
+                                      @MapKey("version") @Nullable String version) {
             return new ImmutableCapability(group, name, version);
         }
     }
