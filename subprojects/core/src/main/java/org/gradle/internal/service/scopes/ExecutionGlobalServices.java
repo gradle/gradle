@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
@@ -82,35 +83,43 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.work.Incremental;
 
-import java.lang.reflect.Method;
+import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.function.Predicate;
 
+@SuppressWarnings("unused")
 public class ExecutionGlobalServices {
+    @VisibleForTesting
+    public static final ImmutableSet<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = ImmutableSet.of(
+        Console.class,
+        Destroys.class,
+        Input.class,
+        InputArtifact.class,
+        InputArtifactDependencies.class,
+        InputDirectory.class,
+        InputFile.class,
+        InputFiles.class,
+        LocalState.class,
+        Nested.class,
+        OptionValues.class,
+        OutputDirectories.class,
+        OutputDirectory.class,
+        OutputFile.class,
+        OutputFiles.class
+    );
+
+    @VisibleForTesting
+    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS = ImmutableSet.of(
+        Internal.class,
+        ReplacedBy.class
+    );
+
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
                 CacheableTransform.class
             ),
-            ModifierAnnotationCategory.asMap(
-                Console.class,
-                Destroys.class,
-                Input.class,
-                InputArtifact.class,
-                InputArtifactDependencies.class,
-                InputDirectory.class,
-                InputFile.class,
-                InputFiles.class,
-                LocalState.class,
-                Nested.class,
-                OptionValues.class,
-                OutputDirectories.class,
-                OutputDirectory.class,
-                OutputFile.class,
-                OutputFiles.class,
-                ReplacedBy.class
-            ),
+            ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             ImmutableSet.of(
                 AbstractTask.class,
                 ConventionTask.class,
@@ -133,13 +142,8 @@ public class ExecutionGlobalServices {
                 ConfigurableFileCollection.class,
                 Property.class
             ),
-            Internal.class,
-            new Predicate<Method>() {
-                @Override
-                public boolean test(Method method) {
-                    return method.isAnnotationPresent(Generated.class);
-                }
-            },
+            IGNORED_METHOD_ANNOTATIONS,
+            method -> method.isAnnotationPresent(Generated.class),
             cacheFactory);
     }
 

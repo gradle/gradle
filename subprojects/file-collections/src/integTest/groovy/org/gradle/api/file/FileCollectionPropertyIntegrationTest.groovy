@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 
-class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
+class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
-    def "task #annotation file property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
                 ${annotation}
@@ -30,23 +30,25 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
                 
                 @TaskAction
                 void go() {
-                    prop.set([project.layout.projectDir.file("other.txt")])
                     println "value: " + prop.get() 
                 }
             }
 
             task show(type: SomeTask) {
                 prop = [project.layout.projectDir.file("in.txt")]
+                doFirst {
+                    prop.set([project.layout.projectDir.file("other.txt")])
+                }
             }
 """
         file("in.txt").createFile()
 
         when:
-        executer.expectDeprecationWarning()
-        run("show")
+        fails("show")
 
         then:
-        outputContains("value: [" + testDirectory.file("in.txt") + "]")
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
         annotation     | _
@@ -54,7 +56,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         "@OutputFiles" | _
     }
 
-    def "task @OutputDirectories directory property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task @OutputDirectories directory property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
                 @OutputDirectories
@@ -62,22 +64,24 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
                 
                 @TaskAction
                 void go() {
-                    prop.set([project.layout.projectDir.dir("other.dir")])
                     println "value: " + prop.get() 
                 }
             }
 
             task show(type: SomeTask) {
                 prop = [project.layout.projectDir.dir("out.dir")]
+                doFirst {
+                    prop.set([project.layout.projectDir.dir("other.dir")])
+                }
             }
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("show")
+        fails("show")
 
         then:
-        outputContains("value: [" + testDirectory.file("out.dir") + "]")
+        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
     }
 
     def "can wire the output file of multiple tasks as input to another task using property"() {

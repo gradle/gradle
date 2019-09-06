@@ -73,7 +73,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == "No value has been specified for ${displayName}."
     }
 
     def "toString() does not realize value"() {
@@ -99,17 +99,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
         property.getOrElse(null) == null
-    }
-
-    def "fails when get method is called when the property has no initial value"() {
-        def property = new DefaultProperty<String>(String)
-
-        when:
-        property.get()
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
     }
 
     def "fails when value is set using incompatible type"() {
@@ -141,34 +130,12 @@ class DefaultPropertyTest extends PropertySpec<String> {
         !property.present
     }
 
-    def "can set value to a provider whose type is not known"() {
-        def supplier = Mock(ScalarSupplier)
-        def provider = Mock(ProviderInternal)
-
-        given:
-        provider.type >> null
-        1 * provider.map(_) >> provider
-        provider.asSupplier() >> supplier
-        supplier.get(_) >>> ["a", "b", "c"]
-
-        def property = new DefaultProperty<String>(String)
-
-        when:
-        property.set(provider)
-
-        then:
-        property.get() == "a"
-        property.get() == "b"
-        property.get() == "c"
-    }
-
     def "can set value to a provider whose type is compatible"() {
         def supplier = Mock(ScalarSupplier)
         def provider = Mock(ProviderInternal)
 
         given:
-        provider.getType() >> Integer
-        provider.asSupplier() >> supplier
+        provider.asSupplier(_, _, _) >> supplier
         supplier.get(_) >>> [1, 2, 3]
 
         def property = new DefaultProperty<Number>(Number)
@@ -183,17 +150,9 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when provider produces an incompatible value"() {
-        def supplier = Mock(ScalarSupplier)
-        def provider = Mock(ProviderInternal)
-        def transform = null
+        def provider = new DefaultProvider({ 12 })
 
         given:
-        provider.type >> null
-        1 * provider.map(_) >> { transform = it[0]; provider }
-        provider.asSupplier() >> supplier
-        supplier.get(_) >> { transform.transform(12) }
-        supplier.getOrNull() >> { transform.transform(12) }
-
         def property = new DefaultProperty<Boolean>(Boolean)
         property.set(provider)
 
@@ -212,9 +171,52 @@ class DefaultPropertyTest extends PropertySpec<String> {
         e2.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
     }
 
+    def "fails when convention is set using incompatible value"() {
+        def property = new DefaultProperty<Boolean>(Boolean)
+
+        when:
+        property.convention(12)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type java.lang.Boolean using an instance of type java.lang.Integer."
+
+        and:
+        !property.present
+    }
+
+    def "fails when convention is set using provider whose value is known to be incompatible"() {
+        def property = new DefaultProperty<Boolean>(Boolean)
+        def other = new DefaultProperty<Number>(Number)
+
+        when:
+        property.convention(other)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type java.lang.Boolean using a provider of type java.lang.Number."
+
+        and:
+        !property.present
+    }
+
+    def "fails when convention is set using provider that returns incompatible value"() {
+        def provider = new DefaultProvider({ 12 })
+
+        given:
+        def property = new DefaultProperty<Boolean>(Boolean)
+        property.convention(provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
+    }
+
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def supplier = Mock(ScalarSupplier)
         def provider = provider("abc")
 
         def property = new DefaultProperty<String>(String)

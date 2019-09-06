@@ -19,9 +19,9 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -44,7 +44,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<Object> collector, Collection<Object> dest) {
+        public void collectInto(DisplayName owner, ValueCollector<Object> collector, Collection<Object> dest) {
         }
 
         @Override
@@ -85,7 +85,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             collector.add(element, collection);
         }
 
@@ -151,7 +151,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             T value = providerOfElement.get();
             collector.add(value, collection);
         }
@@ -227,7 +227,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             collector.addAll(value, collection);
         }
 
@@ -293,7 +293,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> collection) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
             Iterable<? extends T> value = provider.get();
             collector.addAll(value, collection);
         }
@@ -367,7 +367,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<Object> collector, Collection<Object> dest) {
+        public void collectInto(DisplayName owner, ValueCollector<Object> collector, Collection<Object> dest) {
             throw Providers.nullValue(owner);
         }
 
@@ -414,7 +414,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> dest) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
             for (T t : value) {
                 collector.add(t, dest);
             }
@@ -478,7 +478,7 @@ public class Collectors {
         }
 
         @Override
-        public void collectInto(@Nullable Describable owner, ValueCollector<T> collector, Collection<T> dest) {
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
             delegate.collectInto(owner, collector, dest);
         }
 

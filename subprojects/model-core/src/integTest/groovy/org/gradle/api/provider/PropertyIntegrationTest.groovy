@@ -183,7 +183,7 @@ property.set(12)
         failure.assertHasCause("The value for this property cannot be changed any further.")
     }
 
-    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task @Input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 class SomeTask extends DefaultTask {
@@ -195,7 +195,6 @@ class SomeTask extends DefaultTask {
     
     @TaskAction
     void go() {
-        prop.set("ignored")
         outputFile.get().asFile.text = prop.get()
     }
 }
@@ -203,8 +202,8 @@ class SomeTask extends DefaultTask {
 task thing(type: SomeTask) {
     prop = "value 1"
     outputFile = layout.buildDirectory.file("out.txt")
-    doLast {
-        prop.set("ignored")
+    doFirst {
+        prop.set("broken")
     }
 }
 
@@ -214,29 +213,22 @@ afterEvaluate {
 
 task before {
     doLast {
-        thing.prop = providers.provider { "final value" }
+        thing.prop = providers.provider { "value 3" }
     }
 }
 thing.dependsOn before
 
-task after {
-    dependsOn thing
-    doLast {
-        thing.prop = "ignore"
-        assert thing.prop.get() == "final value"
-    }
-}
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("after")
+        fails("thing")
 
         then:
-        file("build/out.txt").text == "final value"
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
-    def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
 
@@ -245,19 +237,19 @@ def prop = project.objects.property(String)
 task thing {
     inputs.property("prop", prop)
     prop.set("value 1")
-    doLast {
-        prop.set("ignored")
+    doFirst {
+        prop.set("broken")
         println "prop = " + prop.get()
     }
 }
 """
 
         when:
-        executer.expectDeprecationWarning()
-        run("thing")
+        fails("thing")
 
         then:
-        output.contains("prop = value 1")
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -401,7 +393,7 @@ assert tasks.t.prop.get() == "changed"
         succeeds()
     }
 
-    def "can set String property value from DSL using a GString"() {
+    def "can set String property value using a GString"() {
         given:
         buildFile << """
 class SomeExtension {
@@ -414,14 +406,18 @@ class SomeExtension {
 }
 
 extensions.create('custom', SomeExtension)
-custom.prop = "\${'some value'.substring(5)}"
-assert custom.prop.get() == "value"
+custom.prop = "\${'some value 1'.substring(5)}"
+assert custom.prop.get() == "value 1"
 
-custom.prop = providers.provider { "\${'some new value'.substring(5)}" }
-assert custom.prop.get() == "new value"
+custom.prop = providers.provider { "\${'some value 2'.substring(5)}" }
+assert custom.prop.get() == "value 2"
 
-custom.prop.set("\${'some other value'.substring(5)}")
-assert custom.prop.get() == "other value"
+custom.prop = null
+custom.prop.convention("\${'some value 3'.substring(5)}")
+assert custom.prop.get() == "value 3"
+
+custom.prop.convention(providers.provider { "\${'some value 4'.substring(5)}" })
+assert custom.prop.get() == "value 4"
 """
 
         expect:
@@ -472,6 +468,25 @@ task wrongRuntimeType {
         custom.prop.get()
     }
 }
+
+task wrongConventionValueType {
+    doLast {
+        custom.prop.convention(123)
+    }
+}
+
+task wrongConventionPropertyType {
+    doLast {
+        custom.prop.convention(objects.property(Integer))
+    }
+}
+
+task wrongConventionRuntimeValueType {
+    doLast {
+        custom.prop.convention(providers.provider { 123 })
+        custom.prop.get()
+    }
+}
 """
 
         when:
@@ -479,38 +494,59 @@ task wrongRuntimeType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongValueTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
-        failure.assertHasCause("Cannot get the value of a property of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+
+        when:
+        fails("wrongConventionValueType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongConventionValueType'.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongConventionPropertyType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongConventionPropertyType'.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongConventionRuntimeValueType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongConventionRuntimeValueType'.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
     }
 
-    def "emits deprecation warning when specialized factory method is not used"() {
+    def "fails when specialized factory method is not used"() {
         buildFile << """
 class SomeExtension {
     final Property<List<String>> prop1

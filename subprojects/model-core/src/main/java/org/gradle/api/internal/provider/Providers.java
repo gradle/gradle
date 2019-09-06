@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 
@@ -40,11 +41,19 @@ public class Providers {
         return new FixedValueProvider<T>(value);
     }
 
+    public static <T> ScalarSupplier<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
+        value = sanitizer.sanitize(value);
+        if (!targetType.isInstance(value)) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using an instance of type %s.", owner.getDisplayName(), targetType.getName(), value.getClass().getName()));
+        }
+        return new FixedValueProvider<T>(value);
+    }
+
     public static <T> ScalarSupplier<T> nullableValue(@Nullable T value) {
         if (value == null) {
             return noValue();
         } else {
-        return fixedValue(value);
+            return fixedValue(value);
         }
     }
 
@@ -68,8 +77,8 @@ public class Providers {
         }
     }
 
-    public static IllegalStateException nullValue(@Nullable Describable owner) {
-        return new IllegalStateException(owner != null ? String.format("No value has been specified for %s.", owner.getDisplayName()) : NULL_VALUE);
+    public static IllegalStateException nullValue(Describable owner) {
+        return new IllegalStateException(String.format("No value has been specified for %s.", owner.getDisplayName()));
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> implements ScalarSupplier<T> {
@@ -91,7 +100,7 @@ public class Providers {
         }
 
         @Override
-        public T get(@Nullable Describable owner) throws IllegalStateException {
+        public T get(DisplayName owner) throws IllegalStateException {
             return value;
         }
 
@@ -183,7 +192,7 @@ public class Providers {
         }
 
         @Override
-        public Object get(@Nullable Describable owner) throws IllegalStateException {
+        public Object get(DisplayName owner) throws IllegalStateException {
             throw nullValue(owner);
         }
 
@@ -216,6 +225,11 @@ public class Providers {
         @Override
         public boolean isPresent() {
             return false;
+        }
+
+        @Override
+        public ScalarSupplier<Object> asSupplier(DisplayName owner, Class<? super Object> targetType, ValueSanitizer<? super Object> sanitizer) {
+            return this;
         }
 
         @Override

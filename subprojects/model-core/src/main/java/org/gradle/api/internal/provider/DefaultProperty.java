@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -73,11 +72,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
         }
 
         if (beforeMutate()) {
-            value = sanitizer.sanitize(value);
-            if (!type.isInstance(value)) {
-                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
-            }
-            this.value = Providers.fixedValue(value);
+            this.value = Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer);
         }
     }
 
@@ -111,38 +106,32 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
         ProviderInternal<? extends T> p = Providers.internal(provider);
-        if (p.getType() != null && !type.isAssignableFrom(p.getType())) {
-            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", type.getName(), p.getType().getName()));
-        } else if (p.getType() == null) {
-            p = p.map(new Transformer<T, T>() {
-                @Override
-                public T transform(T t) {
-                    t = sanitizer.sanitize(t);
-                    if (type.isInstance(t)) {
-                        return t;
-                    }
-                    throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s as the provider associated with this property returned a value of type %s.", type.getName(), t.getClass().getName()));
-                }
-            });
-        }
-
-        this.value = p.asSupplier();
+        this.value = p.asSupplier(getValidationDisplayName(), type, sanitizer);
     }
 
     @Override
     public Property<T> convention(T value) {
-        ProviderInternal<T> provider = Providers.of(value);
-        return convention(provider);
+        if (value == null) {
+            applyConvention(Providers.noValue());
+        } else {
+            applyConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+        }
+        return this;
     }
 
     @Override
     public Property<T> convention(Provider<? extends T> valueProvider) {
         ProviderInternal<? extends T> providerInternal = Providers.internal(valueProvider);
-        if (shouldApplyConvention()) {
-            this.value = providerInternal.asSupplier();
-        }
-        this.convention = providerInternal.asSupplier();
+        ScalarSupplier<? extends T> conventionSupplier = providerInternal.asSupplier(getValidationDisplayName(), type, sanitizer);
+        applyConvention(conventionSupplier);
         return this;
+    }
+
+    private void applyConvention(ScalarSupplier<? extends T> conventionSupplier) {
+        if (shouldApplyConvention()) {
+            this.value = conventionSupplier;
+        }
+        this.convention = conventionSupplier;
     }
 
     @Override

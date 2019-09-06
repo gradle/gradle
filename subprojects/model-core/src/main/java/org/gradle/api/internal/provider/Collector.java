@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Describable;
+import org.gradle.internal.DisplayName;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,7 +27,7 @@ import java.util.List;
 public interface Collector<T> extends ValueSupplier {
     boolean present();
 
-    void collectInto(@Nullable Describable owner,  ValueCollector<T> collector, Collection<T> dest);
+    void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest);
 
     boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
 
