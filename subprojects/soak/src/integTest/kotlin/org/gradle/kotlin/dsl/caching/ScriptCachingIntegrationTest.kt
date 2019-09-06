@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.caching.fixtures.CachedScript
+import org.gradle.kotlin.dsl.caching.fixtures.KotlinDslCacheFixture
 import org.gradle.kotlin.dsl.caching.fixtures.cachedBuildFile
 import org.gradle.kotlin.dsl.caching.fixtures.cachedGradleScript
 import org.gradle.kotlin.dsl.caching.fixtures.cachedInitializationFile
@@ -242,19 +243,27 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         val settingsFile = cachedSettingsFile(withSettings(""), false, false)
         val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
 
+        // and: kotlin-dsl cache assertions
+        fun KotlinDslCacheFixture.assertCacheHits(run: Int) {
+            if (run == 1) {
+                misses(settingsFile.stage1)
+                hits(settingsFile.stage2)
+            } else {
+                // buildSrc isn't in the settings classpath
+                hits(settingsFile)
+            }
+            misses(buildFile)
+        }
+
         // expect: memory hog released
         for (run in 1..4) {
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
             buildWithDaemonHeapSize(256, "myTask").apply {
                 compilationCache {
-                    misses(settingsFile.stage1)
-                    hits(settingsFile.stage2)
-                    misses(buildFile)
+                    assertCacheHits(run)
                 }
                 classLoadingCache {
-                    misses(settingsFile.stage1)
-                    hits(settingsFile.stage2)
-                    misses(buildFile)
+                    assertCacheHits(run)
                 }
             }
         }
