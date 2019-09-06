@@ -20,7 +20,6 @@ import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -43,7 +42,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
     }
 
     @Override
-    public void render(final ResultsStore store, Writer writer) throws IOException {
+    public void render(final ResultsStore store, Writer writer) {
         long successCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isSuccessful).count();
         long failureCount = executionDataProvider.getScenarioExecutionData().size() - successCount;
 
