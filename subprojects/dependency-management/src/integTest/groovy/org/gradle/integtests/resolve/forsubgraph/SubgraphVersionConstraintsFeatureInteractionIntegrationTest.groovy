@@ -352,7 +352,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
             import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
             
             def VERSIONED_COMPARATOR = new DefaultVersionComparator()
-            def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR)
+            def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR, new VersionParser())
             
             configurations.all {
                 resolutionStrategy {
