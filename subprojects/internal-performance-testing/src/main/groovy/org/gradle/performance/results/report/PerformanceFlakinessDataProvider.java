@@ -56,6 +56,24 @@ public interface PerformanceFlakinessDataProvider {
      */
     BigDecimal getFailureThreshold(String scenario);
 
+    ScenarioRegressionResult getScenarioRegressionResult(String scenarioName, double regressionPercentage);
+
+    enum ScenarioRegressionResult {
+        STABLE_REGRESSION(true),
+        SMALL_FLAKY_REGRESSION(false),
+        BIG_FLAKY_REGRESSION(true);
+
+        private final boolean failsBuild;
+
+        ScenarioRegressionResult(boolean failsBuild) {
+            this.failsBuild = failsBuild;
+        }
+
+        public boolean isFailsBuild() {
+            return failsBuild;
+        }
+    }
+
     enum EmptyPerformanceFlakinessDataProvider implements PerformanceFlakinessDataProvider {
         INSTANCE;
 
@@ -67,6 +85,11 @@ public interface PerformanceFlakinessDataProvider {
         @Override
         public BigDecimal getFailureThreshold(String scenario) {
             return null;
+        }
+
+        @Override
+        public ScenarioRegressionResult getScenarioRegressionResult(String scenarioName, double regressionPercentage) {
+            return ScenarioRegressionResult.STABLE_REGRESSION;
         }
     }
 }

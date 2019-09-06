@@ -21,8 +21,12 @@ import org.gradle.performance.results.AllResultsStore;
 import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
-import java.math.BigDecimal;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
+import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
 
 // See more details in https://docs.google.com/document/d/1pghuxbCR5oYWhUrIK2e4bmABQt3NEIYOOIK4iHyjWyQ/edit#heading=h.is4fzcbmxxld
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
@@ -48,12 +52,13 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
             .forEach(scenario -> {
                 if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isBuildFailed)) {
                     buildFailure.getAndIncrement();
-                } else if (isStableScenario(flakinessDataProvider, scenario.getScenarioName())) {
-                    if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
+                } else if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
+                    Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getRawData().stream()
+                        .map(rawScenario -> flakinessDataProvider.getScenarioRegressionResult(rawScenario.getScenarioName(), rawScenario.getDifferencePercentage()))
+                        .collect(Collectors.toSet());
+                    if (regressionResults.contains(STABLE_REGRESSION)) {
                         stableScenarioRegression.getAndIncrement();
-                    }
-                } else if (scenario.getRawData().stream().noneMatch(ScenarioBuildResultData::isSuccessful)) {
-                    if (scenario.getRawData().stream().anyMatch(scenarioResult -> isBigRegression(scenarioResult, flakinessDataProvider))) {
+                    } else if (regressionResults.stream().allMatch(it -> it == BIG_FLAKY_REGRESSION)) {
                         flakyScenarioBigRegression.getAndIncrement();
                     } else {
                         flakyScenarioSmallRegression.getAndIncrement();
@@ -94,15 +99,5 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
 
         sb.append('.');
         return sb.toString();
-    }
-
-    private boolean isBigRegression(ScenarioBuildResultData scenarioResult, PerformanceFlakinessDataProvider flakinessDataProvider) {
-        BigDecimal threshold = flakinessDataProvider.getFailureThreshold(scenarioResult.getScenarioName());
-        return threshold != null && scenarioResult.getDifferencePercentage() / 100 > threshold.doubleValue();
-    }
-
-    private boolean isStableScenario(PerformanceFlakinessDataProvider flakinessDataProvider, String scenario) {
-        BigDecimal flakinessRate = flakinessDataProvider.getFlakinessRate(scenario);
-        return flakinessRate == null || flakinessRate.doubleValue() < PerformanceFlakinessDataProvider.FLAKY_THRESHOLD;
     }
 }

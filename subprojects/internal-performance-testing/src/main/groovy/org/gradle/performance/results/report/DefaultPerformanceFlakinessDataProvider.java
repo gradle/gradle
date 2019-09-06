@@ -21,6 +21,10 @@ import org.gradle.performance.results.CrossVersionResultsStore;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
+import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.SMALL_FLAKY_REGRESSION;
+import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
+
 public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlakinessDataProvider {
     private final Map<String, BigDecimal> flakinessRates;
     private final Map<String, BigDecimal> failureThresholds;
@@ -38,5 +42,26 @@ public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlaki
     @Override
     public BigDecimal getFailureThreshold(String scenario) {
         return failureThresholds.get(scenario);
+    }
+
+    @Override
+    public ScenarioRegressionResult getScenarioRegressionResult(String scenarioName, double regressionPercentage) {
+        if (isStableScenario(scenarioName)) {
+            return STABLE_REGRESSION;
+        }
+        if (isBigRegression(scenarioName, regressionPercentage)) {
+            return BIG_FLAKY_REGRESSION;
+        }
+        return SMALL_FLAKY_REGRESSION;
+    }
+
+    private boolean isBigRegression(String scenarioName, double regressionPercentage) {
+        BigDecimal threshold = getFailureThreshold(scenarioName);
+        return threshold != null && regressionPercentage / 100 > threshold.doubleValue();
+    }
+
+    private boolean isStableScenario(String scenarioName) {
+        BigDecimal flakinessRate = getFlakinessRate(scenarioName);
+        return flakinessRate == null || flakinessRate.doubleValue() < PerformanceFlakinessDataProvider.FLAKY_THRESHOLD;
     }
 }
