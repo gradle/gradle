@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -152,16 +151,11 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
         }
 
-        pluginManager.withPlugin("maven-publish", new Action<AppliedPlugin>() {
-            @Override
-            public void execute(AppliedPlugin plugin) {
-                final AdhocComponentWithVariants component = findComponent();
-                if (component != null) {
-                    component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
-                    component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
-                }
-            }
-        });
+        final AdhocComponentWithVariants component = findComponent();
+        if (component != null) {
+            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
+            component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
     }
 
     private void configureTargetPlatform(Configuration configuration) {
