@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.fixtures.DeepThought
 
 import org.gradle.soak.categories.SoakTest
 
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
@@ -227,6 +228,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
     }
 
+    @Ignore("https://github.com/gradle/gradle/pull/10414#issuecomment-527292101")
     @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
