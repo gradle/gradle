@@ -36,7 +36,7 @@ import org.gradle.internal.hash.HashValue;
 import javax.annotation.Nullable;
 import java.util.List;
 
-abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
+public abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ImmutableAttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;

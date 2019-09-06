@@ -38,7 +38,7 @@ public abstract class RepositoryDescriptor {
     public final String name;
     private Map<String, ?> properties;
 
-    RepositoryDescriptor(String name) {
+     protected RepositoryDescriptor(String name) {
         this.name = name;
     }
 
@@ -50,7 +50,7 @@ public abstract class RepositoryDescriptor {
             addProperties(builder);
             properties = builder.build();
         }
-        
+
         return properties;
     }
 

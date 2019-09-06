@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":persistentCache"))
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":resources"))
     implementation(project(":platformBase"))
     implementation(project(":platformNative"))
     implementation(project(":plugins"))

@@ -48,7 +48,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
-    AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+    protected AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                   ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
                                   ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
