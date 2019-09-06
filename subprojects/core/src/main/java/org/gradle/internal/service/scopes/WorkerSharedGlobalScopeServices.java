@@ -16,8 +16,12 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -30,13 +34,19 @@ import org.gradle.initialization.DefaultLegacyTypesSupport;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.impl.DefaultDeleter;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
@@ -85,6 +95,22 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     TaskDependencyFactory createTaskDependencyFactory() {
         return DefaultTaskDependencyFactory.withNoAssociatedProject();
+    }
+
+    FilePropertyFactory createFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
+    }
+
+    StreamHasher createStreamHasher() {
+        return new DefaultStreamHasher();
+    }
+
+    TemporaryFileProvider createTemporaryFileProvider() {
+        return new TmpDirTemporaryFileProvider();
+    }
+
+    Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
+        return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {

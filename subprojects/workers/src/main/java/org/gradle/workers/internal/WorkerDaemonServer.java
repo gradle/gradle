@@ -16,11 +16,31 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
+import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultFileSystemOperations;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FilePropertyFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
@@ -106,6 +126,50 @@ public class WorkerDaemonServer implements WorkerProtocol {
                     throw new UnsupportedOperationException();
                 }
             };
+        }
+
+        ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
+            return new DefaultObjectFactory(
+                    instantiatorFactory.injectAndDecorate(services),
+                    instantiator,
+                    fileResolver,
+                    directoryFileTreeFactory,
+                    filePropertyFactory,
+                    fileCollectionFactory,
+                    domainObjectCollectionFactory);
+        }
+
+        DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
+            return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
+        }
+
+        protected FileSystemOperations createFileSystemOperations(FileOperations fileOperations) {
+            return new DefaultFileSystemOperations(fileOperations);
+        }
+
+        protected DefaultFileOperations createFileOperations(
+                FileResolver fileResolver,
+                TemporaryFileProvider temporaryFileProvider,
+                InstantiatorFactory instantiatorFactory,
+                ServiceRegistry services,
+                DirectoryFileTreeFactory directoryFileTreeFactory,
+                StreamHasher streamHasher,
+                FileCollectionFactory fileCollectionFactory,
+                FileSystem fileSystem,
+                Deleter deleter
+        ) {
+            return new DefaultFileOperations(
+                    fileResolver,
+                    temporaryFileProvider,
+                    instantiatorFactory.inject(services),
+                    directoryFileTreeFactory,
+                    streamHasher,
+                    null,
+                    null,
+                    fileCollectionFactory,
+                    fileSystem,
+                    deleter
+            );
         }
     }
 }

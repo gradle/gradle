@@ -165,10 +165,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultBuildOperationListenerManager();
     }
 
-    TemporaryFileProvider createTemporaryFileProvider() {
-        return new TmpDirTemporaryFileProvider();
-    }
-
     GradleBuildEnvironment createGradleBuildEnvironment() {
         return environment;
     }
@@ -256,10 +252,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    FilePropertyFactory createFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
-    }
-
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
             instantiatorFactory.injectAndDecorate(services),
@@ -300,10 +292,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return loggingManagerFactory.create();
     }
 
-    StreamHasher createStreamHasher() {
-        return new DefaultStreamHasher();
-    }
-
     ExecutionStateChangeDetector createExecutionStateChangeDetector() {
         return new DefaultExecutionStateChangeDetector();
     }
@@ -338,9 +326,5 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     OverlappingOutputDetector createOverlappingOutputDetector() {
         return new DefaultOverlappingOutputDetector();
-    }
-
-    Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
-        return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 }
