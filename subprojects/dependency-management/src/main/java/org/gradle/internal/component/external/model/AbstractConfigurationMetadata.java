@@ -33,7 +33,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata, VariantResolveMetadata {
+public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;

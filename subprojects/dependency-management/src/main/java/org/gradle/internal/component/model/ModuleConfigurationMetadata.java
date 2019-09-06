@@ -20,7 +20,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
 import java.util.List;
 
-public interface ModuleConfigurationMetadata extends ConfigurationMetadata {
+public interface ModuleConfigurationMetadata extends ConfigurationMetadata, VariantResolveMetadata {
 
     @Override
     List<? extends ModuleDependencyMetadata> getDependencies();

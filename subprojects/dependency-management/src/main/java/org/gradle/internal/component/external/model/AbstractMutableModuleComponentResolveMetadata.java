@@ -513,7 +513,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
     }
 
-    public static class ImmutableVariantImpl implements ComponentVariant, VariantResolveMetadata {
+    protected static class ImmutableVariantImpl implements ComponentVariant, VariantResolveMetadata {
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;

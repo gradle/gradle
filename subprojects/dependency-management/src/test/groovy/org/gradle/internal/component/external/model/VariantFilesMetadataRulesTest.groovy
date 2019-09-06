@@ -85,7 +85,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         def metadata = mavenMetadataFactory.create(componentIdentifier)
         defaultVariant = metadata.addVariant("runtime", attributes)
         deps.each { name ->
-            defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [], false)
+            defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [], false, null)
         }
         defaultVariant.addFile("producer-1.0.jar", "producer-1.0.jar")
         metadata
@@ -190,6 +190,39 @@ class VariantFilesMetadataRulesTest extends Specification {
         "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
+    }
+
+    @Unroll
+    def "base variant metadata rules are not evaluated if the new variant is not selected for #metadataType metadata"() {
+        given:
+        def rule = Mock(Action)
+
+        when:
+        metadata.variantMetadataRules.addVariant('new-variant', 'runtime')
+        metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        def newVariant =  metadata.asImmutable().variantsForGraphTraversal.get().find { it.name == 'new-variant' }
+
+        then:
+        0 * rule.execute(_)
+        when:
+        newVariant.artifacts
+
+        then:
+        2 * rule.execute(_)
+
+        when:
+        newVariant.artifacts
+        newVariant.artifacts
+        newVariant.artifacts
+
+        then:
+        0 * rule.execute(_)
+
+        where:
+        metadataType | metadata
+        "maven"      | mavenComponentMetadata()
+        "ivy"        | ivyComponentMetadata()
+        "gradle"     | gradleComponentMetadata()
     }
 
     @Unroll
