@@ -40,6 +40,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -60,21 +61,27 @@ import javax.inject.Inject
 import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
-import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.PROCESSED_PROPERTY_TYPE_ANNOTATIONS
-import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS
 
 class DefaultTypeMetadataStoreTest extends Specification {
+
+    static final PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
+        Input, InputFile, InputFiles, InputDirectory, Nested, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Destroys, LocalState
+    ]
+
+    static final UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
+        Console, Internal, ReplacedBy
+    ]
 
     @Shared GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [CustomCacheable],
-        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Class[]),
+        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Set<Class<? extends Annotation>>),
         [Object, GroovyObject, DefaultTask],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
-        Internal,
+        UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS,
         { false },
         cacheFactory
     )

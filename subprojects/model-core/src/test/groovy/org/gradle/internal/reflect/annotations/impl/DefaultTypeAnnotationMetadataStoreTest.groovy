@@ -44,7 +44,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         [Object, GroovyObject],
         [Object, GroovyObject],
         [MutableType, MutableSubType],
-        Ignored,
+        [Ignored, Ignored2],
         { Method method -> method.isAnnotationPresent(Generated) },
         new TestCrossBuildInMemoryCacheFactory())
 
@@ -254,6 +254,21 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getIgnoredProperty()
         }
 
+    def "warns when ignored property has other ignore annotations"() {
+        expect:
+        assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
+            twiceIgnoredProperty: [(TYPE): Ignored]
+        ], [
+            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2"
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations {
+            @Ignored @Ignored2
+            String getTwiceIgnoredProperty()
+        }
+
     def "superclass properties are present in subclass"() {
         expect:
         assertProperties TypeWithSuperclassProperties, [
@@ -263,13 +278,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     }
 
         @SuppressWarnings("unused")
-        interface BaseTypeWithSuperClassProperites {
+        interface BaseTypeWithSuperClassProperties {
             @Small
             String getBaseProperty()
         }
 
         @SuppressWarnings("unused")
-        interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperites {
+        interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperties {
             @Large
             String getSubclassProperty()
         }
@@ -422,7 +437,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         expect:
         assertProperties TypeHidingPropertyFromSuperType, [
             baseProperty: [(TYPE): Ignored],
-            propertyIgnoredInBase: [(TYPE): Small]
         ]
     }
 
@@ -430,8 +444,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         interface BaseTypeWithPropertyToHide {
             @Color
             String getBaseProperty()
-            @Ignored
-            String getPropertyIgnoredInBase()
         }
 
         @SuppressWarnings("unused")
@@ -439,7 +451,23 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Ignored
             @Override
             String getBaseProperty()
+        }
 
+    def "can redefine ignored supertype property"() {
+        expect:
+        assertProperties TypeRedefiningIgnoredPropertyFromSuperType, [
+            propertyIgnoredInBase: [(TYPE): Small]
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface BaseTypeWithIgnoredProperty {
+            @Ignored
+            String getPropertyIgnoredInBase()
+        }
+
+        @SuppressWarnings("unused")
+        interface TypeRedefiningIgnoredPropertyFromSuperType extends BaseTypeWithIgnoredProperty {
             @Override
             @Small
             String getPropertyIgnoredInBase()
@@ -710,4 +738,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface Ignored {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface Ignored2 {
 }
