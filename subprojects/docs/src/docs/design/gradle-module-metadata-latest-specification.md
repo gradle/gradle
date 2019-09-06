@@ -172,7 +172,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 
 ### `thirdPartyCompatibility` value
 
-This value, nested in elements of the `dependencies` node, includes additional information to be used if the dependency points at a module that did **not** publish Gradle module metadata. The information is ignored if the dependency points at a module that was published with Gradle module metadata.
+This value, nested in elements of the `dependencies` node, includes additional information to be used if the dependency points at a module that did **not** publish Gradle module metadata.
 
 - `artifactSelector`: Information to select a specific artifact (identified by `name`, `type`, `extension`, and `classifier`) of the dependency that is not mentioned in the dependency's metadata. These are typically artifacts published with Maven that contain a _classifier_.
 

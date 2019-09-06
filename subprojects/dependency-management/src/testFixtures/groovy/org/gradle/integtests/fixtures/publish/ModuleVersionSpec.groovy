@@ -40,7 +40,13 @@ class ModuleVersionSpec {
     private final Map<String, String> componentLevelAttributes = [:]
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
-    private gradleMetadata = true
+    private MetadataType metadataType = MetadataType.REPO_DEFAULT
+
+    static enum MetadataType {
+        REPO_DEFAULT,
+        GRADLE,
+        LEGACY
+    }
 
     static class ArtifactExpectation {
         final InteractionExpectation type
@@ -132,8 +138,13 @@ class ModuleVersionSpec {
     }
 
     void withoutGradleMetadata() {
-        gradleMetadata = false
+        metadataType = MetadataType.LEGACY
     }
+
+    void withGradleMetadata() {
+        metadataType = MetadataType.GRADLE
+    }
+
 
     void withModule(@DelegatesTo(HttpModule) Closure<?> spec) {
         withModule << spec
@@ -158,8 +169,8 @@ class ModuleVersionSpec {
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
         def legacyMetadataIsRequested = repository.providesMetadata != HttpRepository.MetadataType.ONLY_GRADLE
-        def gradleMetadataWasPublished = repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL && gradleMetadata
-        if (gradleMetadataWasPublished && gradleMetadata) {
+        def gradleMetadataWasPublished = metadataType == MetadataType.GRADLE || (metadataType == MetadataType.REPO_DEFAULT  && repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL)
+        if (gradleMetadataWasPublished) {
             module.withModuleMetadata()
         }
         expectGetMetadata.each {

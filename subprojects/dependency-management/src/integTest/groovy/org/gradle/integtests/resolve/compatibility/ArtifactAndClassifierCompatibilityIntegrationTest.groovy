@@ -19,7 +19,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    def "resolves a dependency with classifier"() {
+    def "resolves a dependency with classifier targeting module without GMM"() {
         given:
         repository {
             'org:foo:1.0' {
@@ -30,6 +30,55 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                     undeclaredArtifact(type: 'jar', classifier: 'classy')
                 }
                 withoutGradleMetadata()
+            }
+        }
+
+        and:
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact(classifier: 'classy')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:foo:1.0") {
+                    module("org:bar:1.0") {
+                        artifact(classifier: 'classy')
+                    }
+                }
+            }
+        }
+    }
+
+    def "resolves a dependency with classifier targeting module with GMM"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+            }
+            'org:bar:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                }
+                // The provider has GMM but we still allow classifier selection - even if the consumer has GMM as well.
+                // Although it is discouraged to use this feature with GMM alone, the behavior is helpful, if a provider
+                // starts publishing GMM but did not do so before.
+                // Then consumers that use a classifier selection, do not suddenly break with a version upgrade that brings in GMM.
+                withGradleMetadata()
             }
         }
 
