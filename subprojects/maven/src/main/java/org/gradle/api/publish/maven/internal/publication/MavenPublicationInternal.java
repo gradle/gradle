@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
@@ -38,12 +37,6 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
     void setPomGenerator(TaskProvider<? extends Task> pomGenerator);
 
     void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
-
-    /**
-     * @deprecated Kept to not break third-party plugins
-     */
-    @Deprecated
-    FileCollection getPublishableFiles();
 
     MutableMavenProjectIdentity getMavenProjectIdentity();
 

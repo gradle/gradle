@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -465,12 +464,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @Override
     public void setRevision(String revision) {
         publicationIdentity.setRevision(revision);
-    }
-
-    @Override
-    public FileCollection getPublishableFiles() {
-        populateFromComponent();
-        return getPublishableArtifacts().getFiles();
     }
 
     @Override

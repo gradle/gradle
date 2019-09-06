@@ -37,7 +37,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
@@ -502,11 +501,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public FileCollection getPublishableFiles() {
-        return getPublishableArtifacts().getFiles();
     }
 
     @Override
