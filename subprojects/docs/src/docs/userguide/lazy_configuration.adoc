@@ -159,6 +159,8 @@ include::{samplesPath}/providers/fileAndDirectoryProperty/workingWithFilesKotlin
 
 This example creates providers that represent locations in the project and build directories through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
 
+To close the loop, note that a `DirectoryProperty`, or a simple `Directory`, can be turned into a `FileTree` that allows the files and directories contained in the directory to be queried with link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()] or link:{javadocPath}/org/gradle/api/file/Directory.html#getAsFileTree--[Directory.getAsFileTree()]. Moreover, from a `DirectoryProperty`, or a `Directory`, you can also create `FileCollection` instances containing a set of the files contained in the directory with link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-[DirectoryProperty.files(Object++...++)] or link:{javadocPath}/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-[Directory.files(Object++...++)].
+
 [[sec:working_with_task_dependencies_in_lazy_properties]]
 == Working with task inputs and outputs
 
@@ -331,10 +333,12 @@ link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]:: Uns
   Factories;;
     * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(Object++[]++)]
     * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(Object++...++)]
+    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-[DirectoryProperty.files(Object++...++)]
 
 link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree]:: Hierarchy of files
   Factories;;
     * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
+    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
 
 == Property Files API Reference
 
@@ -354,7 +358,7 @@ link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[Configura
 
 link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree]:: Hierarchy of files
   Factories;;
-    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)]
+    * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()]
 
 == Lazy Collections API Reference
 

@@ -117,6 +117,22 @@ The two most important cases that are now covered are cleaning stale output file
 
 TBD - Added `fileValue()` and `fileProvider()` methods.
 
+### New `ConfigurableFileTree` and `FileCollection` factories
+
+Previously, it was only possible to create a `ConfigurableFileTree` or a fixed `FileCollection` by using the APIs provided by a `Project`.
+However, a `Project` object is not always available, for example in a project extension object or a [worker action](userguide/custom_tasks.html#worker_api).
+
+The `ObjectFactory` service now has a [fileTree()](javadoc/org/gradle/api/model/ObjectFactory.html#fileTree--) method for creating `ConfigurableFileTree` instances.
+The `Directory` and `DirectoryProperty` types now both have a `files(Object...)` method, respectively [`Directory.files(Object...)`](javadoc/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-) and [`DirectoryProperty.files(Object...)`](javadoc/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-), for creating fixed `FileCollection` instances resolving files relatively to the referenced directory.
+
+See the user manual for how to [inject services]((userguide/custom_gradle_types.html#service_injection)) and how to [work with files in lazy properties](userguide/lazy_configuration.html#sec:working_with_files_in_lazy_properties). 
+
+### Injected `FileSystemOperations` and `ExecOperations` services
+
+In the same vein, doing file system operations such as `copy()`, `sync()` and `delete()` or running external processes via `exec()` and `javaexec()` was only possible by using the APIs provided by a `Project`. Two new injectable services now allow to do all that when a `Project` is not available.
+
+See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
+
 ## Improving integrity of builds
 
 Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
