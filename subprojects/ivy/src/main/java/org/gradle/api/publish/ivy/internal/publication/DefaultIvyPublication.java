@@ -284,20 +284,25 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (artifactsOverridden) {
             return;
         }
-        Map<PublishArtifact, IvyArtifact> seenArtifacts = Maps.newHashMap();
+        Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
         for (UsageContext usageContext : component.getUsages()) {
             String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                IvyArtifact ivyArtifact = seenArtifacts.get(publishArtifact);
+                String key = artifactKey(publishArtifact);
+                IvyArtifact ivyArtifact = seenArtifacts.get(key);
                 if (ivyArtifact == null) {
                     ivyArtifact = artifact(publishArtifact);
                     ivyArtifact.setConf(conf);
-                    seenArtifacts.put(publishArtifact, ivyArtifact);
+                    seenArtifacts.put(key, ivyArtifact);
                 } else {
                     ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
                 }
             }
         }
+    }
+
+    private String artifactKey(PublishArtifact publishArtifact) {
+        return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
     private void populateDependencies(PublicationWarningsCollector publicationWarningsCollector) {
