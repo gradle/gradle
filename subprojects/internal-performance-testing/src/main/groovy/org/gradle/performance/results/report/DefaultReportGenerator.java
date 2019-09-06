@@ -60,9 +60,11 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                     }
                 }
             });
+        String resultString = formatResultString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get());
         if (buildFailure.get() + stableScenarioRegression.get() + flakyScenarioBigRegression.get() != 0) {
-            throw new GradleException(formatErrorString(buildFailure.get(), stableScenarioRegression.get(), flakyScenarioBigRegression.get(), flakyScenarioSmallRegression.get()));
+            throw new GradleException("Performance test failed" + resultString);
         }
+        System.out.println("Performance test passed" + resultString);
 
         markBuildAsSuccessfulIfFlaky(executionDataProvider);
     }
@@ -74,8 +76,8 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         }
     }
 
-    private String formatErrorString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
-        StringBuilder sb = new StringBuilder("Performance test failed");
+    private String formatResultString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
+        StringBuilder sb = new StringBuilder();
         if (buildFailure != 0) {
             sb.append(", ").append(buildFailure).append(" scenario(s) failed");
         }
