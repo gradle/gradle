@@ -23,7 +23,7 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Unroll
     def "workers cannot inject internal services using #isolationMode isolation"() {
-        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.internal.initialization.loadercache.ClassLoaderCache classLoaderCache"
+        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.internal.file.FileOperations fileOperations"
         fixture.withWorkActionClassInBuildSrc()
 
         buildFile << """
@@ -36,22 +36,85 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         fails("runInWorker")
 
         and:
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface org.gradle.api.internal.initialization.loadercache.ClassLoaderCache, or no service of type interface org.gradle.api.internal.initialization.loadercache.ClassLoaderCache")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface org.gradle.api.internal.file.FileOperations, or no service of type interface org.gradle.api.internal.file.FileOperations")
 
         where:
         isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "workers can inject public services using #isolationMode isolation"() {
-        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.model.ObjectFactory objectFactory, org.gradle.api.file.FileSystemOperations fileOperations"
-        fixture.withWorkActionClassInBuildSrc()
+    def "workers can inject FileSystemOperations service using #isolationMode isolation"() {
+        fixture.workActionThatCreatesFiles.extraFields += """
+            org.gradle.api.file.FileSystemOperations fileOperations
+        """
+        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.file.FileSystemOperations fileOperations"
+        fixture.workActionThatCreatesFiles.constructorAction = "this.fileOperations = fileOperations"
+        fixture.workActionThatCreatesFiles.action += """
+            fileOperations.copy {
+                it.from "foo"
+                it.into "bar"
+            }
+            fileOperations.sync {
+                it.from "bar"
+                it.into "baz"
+            }
+            fileOperations.delete {
+                it.delete "foo"
+            }
+        """
+        fixture.withWorkActionClassInBuildScript()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
             }
         """
+        file("foo").text = "foo"
+
+        expect:
+        succeeds("runInWorker")
+
+        and:
+        assertWorkerExecuted("runInWorker")
+
+        and:
+        file("bar/foo").text == "foo"
+        file("baz/foo").text == "foo"
+        file("foo").assertDoesNotExist()
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Unroll
+    def "workers can inject ObjectFactory service using #isolationMode isolation"() {
+        fixture.workActionThatCreatesFiles.extraFields += """
+            org.gradle.api.model.ObjectFactory objectFactory
+            
+            interface Foo extends Named { }
+        """
+        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.model.ObjectFactory objectFactory"
+        fixture.workActionThatCreatesFiles.constructorAction = "this.objectFactory = objectFactory"
+        fixture.workActionThatCreatesFiles.action += """
+            objectFactory.fileProperty()
+            objectFactory.directoryProperty()
+            objectFactory.fileCollection()
+            objectFactory.fileTree()
+            objectFactory.property(String)
+            objectFactory.listProperty(String)
+            objectFactory.setProperty(String)
+            objectFactory.mapProperty(String, String)
+            objectFactory.named(Foo, "foo")
+            objectFactory.domainObjectContainer(Foo)
+        """
+        fixture.withWorkActionClassInBuildScript()
+
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+            }
+        """
+        file("foo").text = "foo"
 
         expect:
         succeeds("runInWorker")

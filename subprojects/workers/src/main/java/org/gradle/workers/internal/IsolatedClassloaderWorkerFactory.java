@@ -49,7 +49,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
                     @Override
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                        ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isUsesInternalServices()).build();
+                        ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isInternalServicesRequired()).build();
                         ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
                         Worker worker = new IsolatedClassloaderWorker(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory);
                         return worker.execute(spec);

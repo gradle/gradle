@@ -21,9 +21,12 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -31,16 +34,20 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
@@ -51,6 +58,7 @@ import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 
 public class WorkerDaemonServer implements WorkerProtocol {
     private final ServiceRegistry internalServices;
@@ -70,6 +78,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
         return ServiceRegistryBuilder.builder()
+                .displayName("worker daemon services")
                 .parent(parent)
                 .provider(new WorkerSharedGlobalScopeServices())
                 .provider(new WorkerDaemonServices())
@@ -79,7 +88,9 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isUsesInternalServices()).build();
+            ServiceRegistry workServices = new WorkerPublicServicesBuilder(new RelativeFileWorkerServices(spec.getBaseDir(), internalServices))
+                    .withInternalServicesVisible(spec.isInternalServicesRequired())
+                    .build();
             Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
             return worker.execute(spec);
         } catch (Throwable t) {
@@ -128,19 +139,21 @@ public class WorkerDaemonServer implements WorkerProtocol {
             };
         }
 
-        ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
-            return new DefaultObjectFactory(
-                    instantiatorFactory.injectAndDecorate(services),
-                    instantiator,
-                    fileResolver,
-                    directoryFileTreeFactory,
-                    filePropertyFactory,
-                    fileCollectionFactory,
-                    domainObjectCollectionFactory);
-        }
-
         DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
             return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
+        }
+    }
+
+    static class RelativeFileWorkerServices extends DefaultServiceRegistry {
+        private final File baseDir;
+
+        public RelativeFileWorkerServices(File baseDir, ServiceRegistry... parents) {
+            super("worker file services for "+ baseDir.getAbsolutePath(), parents);
+            this.baseDir = baseDir;
+        }
+
+        protected FileResolver createFileResolver(FileLookup lookup) {
+            return lookup.getFileResolver(baseDir);
         }
 
         protected FileSystemOperations createFileSystemOperations(FileOperations fileOperations) {
@@ -161,7 +174,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new DefaultFileOperations(
                     fileResolver,
                     temporaryFileProvider,
-                    instantiatorFactory.inject(services),
+                    instantiatorFactory.injectLenient(services),
                     directoryFileTreeFactory,
                     streamHasher,
                     null,
@@ -170,6 +183,25 @@ public class WorkerDaemonServer implements WorkerProtocol {
                     fileSystem,
                     deleter
             );
+        }
+
+        protected FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+            return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
+        }
+
+        FilePropertyFactory createProjectFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+            return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
+        }
+
+        ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
+            return new DefaultObjectFactory(
+                    instantiatorFactory.injectAndDecorate(services),
+                    instantiator,
+                    fileResolver,
+                    directoryFileTreeFactory,
+                    filePropertyFactory,
+                    fileCollectionFactory,
+                    domainObjectCollectionFactory);
         }
     }
 }

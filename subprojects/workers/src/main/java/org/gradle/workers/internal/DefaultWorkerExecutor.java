@@ -77,8 +77,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final Instantiator instantiator;
+    private final File baseDir;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator, File baseDir) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -91,6 +92,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.classLoaderStructureProvider = classLoaderStructureProvider;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.instantiator = instantiator;
+        this.baseDir = baseDir;
     }
 
     @Override
@@ -195,7 +197,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         DaemonForkOptions forkOptions = getDaemonForkOptions(workActionClass, workerSpec, parameters);
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, forkOptions.getClassLoaderStructure(), false);
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, forkOptions.getClassLoaderStructure(), baseDir, false);
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }

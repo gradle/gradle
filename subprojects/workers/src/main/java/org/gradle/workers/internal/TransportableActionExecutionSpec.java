@@ -19,24 +19,20 @@ package org.gradle.workers.internal;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
-public class TransportableActionExecutionSpec<T extends WorkParameters> implements ActionExecutionSpec<T> {
-    private final String displayName;
-    private final String implementationClassName;
-    private final byte[] serializedParameters;
-    private final ClassLoaderStructure classLoaderStructure;
-    private final boolean usesInternalServices;
+import java.io.File;
 
-    public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, boolean usesInternalServices) {
-        this.displayName = displayName;
+public class TransportableActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
+    protected final String implementationClassName;
+    private final byte[] serializedParameters;
+
+    public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
-        this.classLoaderStructure = classLoaderStructure;
-        this.usesInternalServices = usesInternalServices;
     }
 
-    @Override
-    public ClassLoaderStructure getClassLoaderStructure() {
-        return classLoaderStructure;
+    public String getImplementationClassName() {
+        return implementationClassName;
     }
 
     @Override
@@ -45,22 +41,8 @@ public class TransportableActionExecutionSpec<T extends WorkParameters> implemen
     }
 
     @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
     public T getParameters() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isUsesInternalServices() {
-        return usesInternalServices;
-    }
-
-    public String getImplementationClassName() {
-        return implementationClassName;
     }
 
     public byte[] getSerializedParameters() {

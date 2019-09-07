@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
+import java.io.File;
 import java.io.Serializable;
 
 public interface ActionExecutionSpec<T extends WorkParameters> extends Serializable, Describable {
@@ -32,5 +33,7 @@ public interface ActionExecutionSpec<T extends WorkParameters> extends Serializa
 
     ClassLoaderStructure getClassLoaderStructure();
 
-    boolean isUsesInternalServices();
+    boolean isInternalServicesRequired();
+
+    File getBaseDir();
 }

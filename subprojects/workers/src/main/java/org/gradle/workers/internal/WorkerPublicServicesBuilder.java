@@ -23,22 +23,22 @@ import org.gradle.internal.service.ServiceRegistry;
 
 public class WorkerPublicServicesBuilder {
     private final ServiceRegistry internalServices;
-    private boolean canUseInternalServices;
+    private boolean internalServicesRequired;
 
     WorkerPublicServicesBuilder(ServiceRegistry internalServices) {
         this.internalServices = internalServices;
     }
 
     WorkerPublicServicesBuilder withInternalServicesVisible(boolean canUseInternalServices) {
-        this.canUseInternalServices = canUseInternalServices;
+        this.internalServicesRequired = canUseInternalServices;
         return this;
     }
 
     DefaultServiceRegistry build() {
-        if (canUseInternalServices) {
-            return new DefaultServiceRegistry(internalServices);
+        if (internalServicesRequired) {
+            return new DefaultServiceRegistry("unit of work services (internal)", internalServices);
         } else {
-            DefaultServiceRegistry services = new DefaultServiceRegistry();
+            DefaultServiceRegistry services = new DefaultServiceRegistry("unit of work services");
             services.add(ObjectFactory.class, internalServices.get(ObjectFactory.class));
             services.add(FileSystemOperations.class, internalServices.get(FileSystemOperations.class));
             return services;

@@ -20,19 +20,16 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
-public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> implements ActionExecutionSpec<T> {
-    private final String displayName;
+import java.io.File;
+
+public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
     private final Class<? extends WorkAction<T>> implementationClass;
     private final Isolatable<T> isolatedParams;
-    private final ClassLoaderStructure classLoaderStructure;
-    private final boolean usesInternalServices;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, boolean usesInternalServices) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
         this.implementationClass = implementationClass;
-        this.displayName = displayName;
         this.isolatedParams = isolatedParams;
-        this.classLoaderStructure = classLoaderStructure;
-        this.usesInternalServices = usesInternalServices;
     }
 
     @Override
@@ -41,23 +38,8 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> imp
     }
 
     @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
     public T getParameters() {
         return isolatedParams.isolate();
-    }
-
-    @Override
-    public ClassLoaderStructure getClassLoaderStructure() {
-        return classLoaderStructure;
-    }
-
-    @Override
-    public boolean isUsesInternalServices() {
-        return usesInternalServices;
     }
 
     public Isolatable<T> getIsolatedParams() {

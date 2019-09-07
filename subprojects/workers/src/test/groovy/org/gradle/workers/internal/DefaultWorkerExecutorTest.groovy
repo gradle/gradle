@@ -74,8 +74,8 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1]) }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator)
-        _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.testDirectory)
+        _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -151,7 +151,7 @@ class DefaultWorkerExecutorTest extends Specification {
         daemonForkOptions.classLoaderStructure.spec.classpath.contains(foo.toURI().toURL())
     }
 
-    def "executor executes a given runnable in a daemon"() {
+    def "executor executes a given work action in a daemon"() {
         when:
         workerExecutor.processIsolation().submit(TestExecutable.class, Actions.doNothing())
 
