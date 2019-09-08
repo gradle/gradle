@@ -153,6 +153,38 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [a, b, c]")
     }
 
+    def "can define task with abstract read-only @Nested property"() {
+        given:
+        buildFile << """
+            interface Params {
+                Property<Integer> getCount()
+            }
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract Params getParams()
+                
+                @TaskAction
+                void go() {
+                    println("count = \${params.count.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                println("params = \$params")
+                println("params.count = \$params.count")
+                params.count = 12
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("params = task ':thing' property 'params'")
+        outputContains("params.count = task ':thing' property 'params.count'")
+        outputContains("count = 12")
+    }
+
     def "cannot modify task's input properties via returned map"() {
         given:
         buildFile << """

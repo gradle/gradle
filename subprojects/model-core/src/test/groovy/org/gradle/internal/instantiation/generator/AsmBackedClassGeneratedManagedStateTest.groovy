@@ -158,12 +158,23 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     def canConstructInstanceOfInterfaceWithNestedGetter() {
         def projectDir = tmpDir.testDirectory
         def bean = create(InterfaceNestedBean)
+        def beanWithDisplayName = create(InterfaceNestedBean, Describables.of("<display-name>"))
 
         expect:
-        bean.prop.prop.toString() == "file collection"
-        bean.prop.prop.empty
-        bean.prop.prop.from("a", "b")
-        bean.prop.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.filesBean.prop.toString() == "file collection"
+        bean.filesBean.prop.empty
+        bean.filesBean.prop.from("a", "b")
+        bean.filesBean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
+
+        bean.propBean.toString() == "property 'propBean'"
+        bean.propBean.prop.toString() == "property 'propBean.prop'"
+
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.prop.toString() == "file collection"
+
+        beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
     }
 
     @Unroll
@@ -206,7 +217,6 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
     @Unroll
     def "canUnpackAndRecreateInterfaceWithGetterOfMutableType #type.simpleName"() {
-        def projectDir = tmpDir.testDirectory
         def bean = create(type)
 
         expect:

@@ -45,11 +45,11 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
@@ -193,7 +193,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     @Override
-    protected <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    protected <T> T newInstance(Constructor<T> constructor, ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
         ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
         SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName));
         try {
@@ -381,7 +381,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
-        private static final String RETURN_VOID_FROM_GENERATED_OBJECT_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, GENERATED_SUBCLASS_TYPE, OBJECT_TYPE, STRING_TYPE);
+        private static final String RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, GENERATED_SUBCLASS_TYPE, DESCRIBABLE_TYPE, STRING_TYPE, OBJECT_TYPE);
         private static final String RETURN_DYNAMIC_OBJECT = Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE);
         private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(BOOLEAN_TYPE, STRING_TYPE);
@@ -393,9 +393,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_META_CLASS = Type.getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
-        private static final String RETURN_OBJECT_FROM_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, CLASS_TYPE);
-        private static final String RETURN_OBJECT_FROM_CLASS_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, CLASS_TYPE, CLASS_TYPE);
-        private static final String RETURN_OBJECT_FROM_CLASS_CLASS_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
+        private static final String RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, GENERATED_SUBCLASS_TYPE, DESCRIBABLE_TYPE, STRING_TYPE, CLASS_TYPE);
+        private static final String RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, GENERATED_SUBCLASS_TYPE, DESCRIBABLE_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
+        private static final String RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS_CLASS_CLASS = Type.getMethodDescriptor(OBJECT_TYPE, GENERATED_SUBCLASS_TYPE, DESCRIBABLE_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -567,12 +567,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor());
             }
             for (PropertyMetadata property : propertiesToAttach) {
-                // ManagedObjectFactory.attachOwner(this, get<prop>(), <property-name>)
+                // ManagedObjectFactory.attachOwner(this, <display-name>, <property-name>, get<prop>())
                 methodVisitor.visitVarInsn(ALOAD, 0);
+                putDisplayNameOnStack(methodVisitor);
+                methodVisitor.visitLdcInsn(property.getName());
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), property.getMainGetter().getName(), Type.getMethodDescriptor(Type.getType(property.getMainGetter().getReturnType())), false);
-                methodVisitor.visitLdcInsn(property.getName());
-                methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_VOID_FROM_GENERATED_OBJECT_STRING, false);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_OBJECT, false);
             }
         }
 
@@ -1025,8 +1026,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter) {
             // GENERATE public <type> <getter>() {
             //     if (<field> == null) {
-            //         <field> = getFactory().newInstance(type, ...);
-            //         ManagedObjectFactory.attachOwner(this, <field>, <prop-name>);
+            //         <field> = getFactory().newInstance(this, <display-name>, <type>, <prop-name>);
             //     }
             //     return <field>;
             // }
@@ -1038,36 +1038,40 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, false);
 
                 // GENERATE instance = factory.newInstance(...)
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                putDisplayNameOnStack(methodVisitor);
+                methodVisitor.visitLdcInsn(property.getName());
+
                 if (property.getType().equals(Property.class) || property.getType().equals(ListProperty.class) || property.getType().equals(SetProperty.class)) {
-                    // GENERATE factory.newInstance(type, valueType)
+                    // GENERATE factory.newInstance(this, displayName, propertyName, type, valueType)
                     Type elementType = Type.getType(rawTypeParam(property, 0));
                     methodVisitor.visitLdcInsn(propType);
                     methodVisitor.visitLdcInsn(elementType);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_CLASS_CLASS, false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS_CLASS, false);
                 } else if (property.getType().equals(MapProperty.class)) {
-                    // GENERATE factory.newInstance(type, keyType, valueType)
+                    // GENERATE factory.newInstance(this, displayName, propertyName, type, keyType, valueType)
                     Type keyType = Type.getType(rawTypeParam(property, 0));
                     Type elementType = Type.getType(rawTypeParam(property, 1));
                     methodVisitor.visitLdcInsn(propType);
                     methodVisitor.visitLdcInsn(keyType);
                     methodVisitor.visitLdcInsn(elementType);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_CLASS_CLASS_CLASS, false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS_CLASS_CLASS, false);
                 } else {
-                    // GENERATE factory.newInstance(type)
+                    // GENERATE factory.newInstance(this, displayName, propertyName, type)
                     methodVisitor.visitLdcInsn(propType);
-                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_CLASS, false);
+                    methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS, false);
                 }
-                methodVisitor.visitVarInsn(ASTORE, 1);
-
-                // GENERATE ManagedObjectFactory.attachOwner(this, instance, propertyName)
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitLdcInsn(property.getName());
-                methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_VOID_FROM_GENERATED_OBJECT_STRING, false);
-
-                methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitTypeInsn(CHECKCAST, propType.getInternalName());
             });
+        }
+
+        private void putDisplayNameOnStack(MethodVisitor methodVisitor) {
+            if (requiresToString) {
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
+            } else {
+                methodVisitor.visitInsn(ACONST_NULL);
+            }
         }
 
         @Override
@@ -1298,9 +1302,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 // ManagedObjectFactory.attachOwner(this, <value>, <property-name>)
                 methodVisitor.visitVarInsn(ASTORE, 1);
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitVarInsn(ALOAD, 1);
+                putDisplayNameOnStack(methodVisitor);
                 methodVisitor.visitLdcInsn(property.getName());
-                methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_VOID_FROM_GENERATED_OBJECT_STRING, false);
+                methodVisitor.visitVarInsn(ALOAD, 1);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "attachOwner", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_OBJECT, false);
                 methodVisitor.visitVarInsn(ALOAD, 1);
             }
 
@@ -1686,12 +1691,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static class ObjectCreationDetails {
-        final Instantiator instantiator;
+        final InstanceGenerator instantiator;
         final ServiceLookup services;
         @Nullable
         final Describable displayName;
 
-        ObjectCreationDetails(Instantiator instantiator, ServiceLookup services, @Nullable Describable displayName) {
+        ObjectCreationDetails(InstanceGenerator instantiator, ServiceLookup services, @Nullable Describable displayName) {
             this.instantiator = instantiator;
             this.services = services;
             this.displayName = displayName;

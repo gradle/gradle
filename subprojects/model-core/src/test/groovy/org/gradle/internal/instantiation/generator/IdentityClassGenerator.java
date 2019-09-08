@@ -18,7 +18,7 @@ package org.gradle.internal.instantiation.generator;
 
 import org.gradle.api.Describable;
 import org.gradle.internal.instantiation.ClassGenerationException;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.service.ServiceLookup;
 
 import javax.annotation.Nullable;
@@ -55,7 +55,7 @@ class IdentityClassGenerator implements ClassGenerator {
                 for (final Constructor<?> constructor : type.getDeclaredConstructors()) {
                     constructors.add(new GeneratedConstructor<T>() {
                         @Override
-                        public T newInstance(ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                        public T newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
                             constructor.setAccessible(true);
                             return type.cast(constructor.newInstance(params));
                         }
