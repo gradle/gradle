@@ -32,12 +32,12 @@ import javax.annotation.Nullable;
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, ScalarSupplier<T>, Managed {
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<S, T>(transformer, this);
+        return new TransformBackedProvider<>(transformer, this);
     }
 
     @Override
     public <S> Provider<S> flatMap(final Transformer<? extends Provider<? extends S>, ? super T> transformer) {
-        return new FlatMapProvider<S, T>(this, transformer);
+        return new FlatMapProvider<>(this, transformer);
     }
 
     @Override
@@ -61,12 +61,12 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> orElse(T value) {
-        return new OrElseFixedValueProvider<T>(this, value);
+        return new OrElseFixedValueProvider<>(this, value);
     }
 
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
-        return new OrElseProvider<T>(this, Providers.internal(provider));
+        return new OrElseProvider<>(this, Providers.internal(provider));
     }
 
     @Override
@@ -100,16 +100,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         if (getType() != null && !targetType.isAssignableFrom(getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner.getDisplayName(), targetType.getName(), getType().getName()));
         } else if (getType() == null) {
-            return new AbstractMappingProvider<T, T>(Cast.uncheckedNonnullCast(targetType), this) {
-                @Override
-                protected T mapValue(T v) {
-                    v = Cast.uncheckedCast(sanitizer.sanitize(v));
-                    if (targetType.isInstance(v)) {
-                        return v;
-                    }
-                    throw new IllegalArgumentException(String.format("Cannot get the value of %s of type %s as the provider associated with this property returned a value of type %s.", owner.getDisplayName(), targetType.getName(), v.getClass().getName()));
-                }
-            };
+            return new TypeSanitizingProvider<>(owner, sanitizer, targetType, this);
         } else {
             return this;
         }
@@ -274,6 +265,28 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
                 value = right.getOrNull();
             }
             return value;
+        }
+    }
+
+    private static class TypeSanitizingProvider<T> extends AbstractMappingProvider<T, T> {
+        private final DisplayName owner;
+        private final ValueSanitizer<? super T> sanitizer;
+        private final Class<? super T> targetType;
+
+        public TypeSanitizingProvider(DisplayName owner, ValueSanitizer<? super T> sanitizer, Class<? super T> targetType, ProviderInternal<? extends T> delegate) {
+            super(Cast.uncheckedNonnullCast(targetType), delegate);
+            this.owner = owner;
+            this.sanitizer = sanitizer;
+            this.targetType = targetType;
+        }
+
+        @Override
+        protected T mapValue(T v) {
+            v = Cast.uncheckedCast(sanitizer.sanitize(v));
+            if (targetType.isInstance(v)) {
+                return v;
+            }
+            throw new IllegalArgumentException(String.format("Cannot get the value of %s of type %s as the provider associated with this property returned a value of type %s.", owner.getDisplayName(), targetType.getName(), v.getClass().getName()));
         }
     }
 }
