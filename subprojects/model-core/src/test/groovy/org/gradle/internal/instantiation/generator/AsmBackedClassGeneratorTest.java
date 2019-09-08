@@ -52,7 +52,6 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -128,7 +127,7 @@ public class AsmBackedClassGeneratorTest {
                     }
                 }
                 if (i == args.length) {
-                    return (T) constructor.newInstance(services, DirectInstantiator.INSTANCE, null, args);
+                    return (T) constructor.newInstance(services, null, null, args);
                 }
             }
         }
@@ -1787,7 +1786,10 @@ public class AsmBackedClassGeneratorTest {
 
     public interface InterfaceNestedBean {
         @Nested
-        InterfaceFileCollectionBean getProp();
+        InterfaceFileCollectionBean getFilesBean();
+
+        @Nested
+        InterfacePropertyBean getPropBean();
     }
 
     public interface InterfacePropertyBean {

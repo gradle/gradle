@@ -18,8 +18,8 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.Describable
 import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -63,9 +63,12 @@ abstract class AbstractClassGeneratorSpec extends Specification {
 
     protected <T> T doCreate(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Describable displayName, Object[] args) {
         def type = generator.generate(clazz)
-        def instantiator = Stub(Instantiator) {
+        def instantiator = Stub(InstanceGenerator) {
             _ * newInstance(_, _) >> { Class<Object> nested, Object[] nestedArgs ->
                 return doCreate(generator, nested, services, (Describable) null, nestedArgs)
+            }
+            _ * newInstanceWithDisplayName(_, _, _) >> { Class<Object> nested, Describable name, Object[] nestedArgs ->
+                return doCreate(generator, nested, services, name, nestedArgs)
             }
         }
         return type.constructors[0].newInstance(services, instantiator, displayName, args)

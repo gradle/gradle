@@ -50,10 +50,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -236,7 +236,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
 
-    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
     private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> generationHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
@@ -394,7 +394,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceLookup services, Instantiator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
                 return AbstractClassGenerator.this.newInstance(constructor, services, nested, displayName, params);
             }
 
