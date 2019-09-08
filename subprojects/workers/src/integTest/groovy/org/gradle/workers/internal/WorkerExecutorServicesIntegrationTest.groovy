@@ -125,4 +125,38 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         where:
         isolationMode << ISOLATION_MODES
     }
+
+    @Unroll
+    def "workers can inject ExecOperations service using #isolationMode isolation"() {
+        fixture.workActionThatCreatesFiles.extraFields += """
+            org.gradle.process.ExecOperations execOperations
+        """
+        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.process.ExecOperations execOperations"
+        fixture.workActionThatCreatesFiles.constructorAction = "this.execOperations = execOperations"
+        fixture.workActionThatCreatesFiles.action += """
+            execOperations.exec { 
+                it.executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                it.args "-h"
+            }
+        """
+        fixture.withWorkActionClassInBuildScript()
+
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+            }
+        """
+
+        expect:
+        succeeds("runInWorker")
+
+        and:
+        assertWorkerExecuted("runInWorker")
+
+        and:
+        errorOutput.contains("--version")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
 }

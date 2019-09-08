@@ -47,12 +47,16 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.process.ExecOperations;
+import org.gradle.process.internal.DefaultExecOperations;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.annotation.Nonnull;
@@ -152,6 +156,10 @@ public class WorkerDaemonServer implements WorkerProtocol {
             this.baseDir = baseDir;
         }
 
+        protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
+            return instantiatorFactory.injectAndDecorateLenient(this);
+        }
+
         protected FileResolver createFileResolver(FileLookup lookup) {
             return lookup.getFileResolver(baseDir);
         }
@@ -163,7 +171,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         protected DefaultFileOperations createFileOperations(
                 FileResolver fileResolver,
                 TemporaryFileProvider temporaryFileProvider,
-                InstantiatorFactory instantiatorFactory,
+                Instantiator instantiator,
                 ServiceRegistry services,
                 DirectoryFileTreeFactory directoryFileTreeFactory,
                 StreamHasher streamHasher,
@@ -174,7 +182,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new DefaultFileOperations(
                     fileResolver,
                     temporaryFileProvider,
-                    instantiatorFactory.injectLenient(services),
+                    instantiator,
                     directoryFileTreeFactory,
                     streamHasher,
                     null,
@@ -193,15 +201,19 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
         }
 
-        ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
+        ObjectFactory createObjectFactory(Instantiator instantiator, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
             return new DefaultObjectFactory(
-                    instantiatorFactory.injectAndDecorate(services),
                     instantiator,
+                    namedObjectInstantiator,
                     fileResolver,
                     directoryFileTreeFactory,
                     filePropertyFactory,
                     fileCollectionFactory,
                     domainObjectCollectionFactory);
+        }
+
+        protected ExecOperations createExecOperations(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ServiceRegistry services, ObjectFactory objectFactory) {
+            return new DefaultExecOperations(execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory));
         }
     }
 }
