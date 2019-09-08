@@ -182,6 +182,7 @@ class Codecs(
         bind(ownerService<WorkerExecutor>())
 
         bind(EnumCodec)
+        bind(ProxyCodec)
 
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
