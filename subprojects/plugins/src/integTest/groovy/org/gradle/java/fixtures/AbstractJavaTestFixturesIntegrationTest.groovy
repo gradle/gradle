@@ -290,6 +290,55 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         }
     }
 
+    def "can deactivate test fixture publishing"() {
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java-test-fixtures'
+
+            dependencies {
+                testFixturesImplementation 'org.apache.commons:commons-lang3:3.9'
+            }
+
+            components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { it.skip() }
+            components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { it.skip() }
+
+            publishing {
+                repositories {
+                    maven {
+                        url "\${buildDir}/repo"
+                    }
+                    publications {
+                        maven(MavenPublication) {
+                            from components.java
+                        }
+                    }
+                }
+            }
+
+            group = 'com.acme'
+            version = '1.3'
+        """
+        addPersonDomainClass()
+        addPersonTestFixtureUsingApacheCommons()
+        addPersonTestUsingTestFixtures()
+
+        when:
+        succeeds 'publish'
+
+        then: "a test fixtures jar is not published"
+        !file("build/repo/com/acme/root/1.3/root-1.3-test-fixtures.jar").exists()
+
+        and: "doe not appear as optional dependency in Maven POM"
+        MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
+        pom.scopes.isEmpty()
+
+        and: "does not appear as a variant in Gradle Module metadata"
+        GradleModuleMetadata gmm = new GradleModuleMetadata(file("build/repo/com/acme/root/1.3/root-1.3.module"))
+        !gmm.variants.any { it.name == "testFixturesApiElements" }
+        !gmm.variants.any { it.name == "testFixturesRuntimeElements" }
+        gmm.variants.size() == 2
+    }
+
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
             .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {

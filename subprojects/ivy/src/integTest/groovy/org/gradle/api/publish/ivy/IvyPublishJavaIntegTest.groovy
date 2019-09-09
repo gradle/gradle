@@ -1226,6 +1226,39 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "a component's variant can be modified before publishing"() {
+        given:
+        createBuildScripts """
+            dependencies {
+                api 'org:foo:1.0'
+                implementation 'org:bar:1.0'
+            }
+            components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
+                it.skip()
+            }
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        with(javaLibrary.parsedIvy) {
+            assert configurations.keySet() == ["compile", "default"] as Set // skipped runtime
+            assertConfigurationDependsOn('compile', "org:foo:1.0")
+        }
+        with(javaLibrary.parsedModuleMetadata) {
+            assert variants.collect { it.name } == ["apiElements"]
+            assert variants[0].dependencies.collect { it.toString() } == ["org:foo:1.0"]
+        }
+    }
+
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 

@@ -23,6 +23,5 @@ public class DefaultSoftwareComponentFactory implements SoftwareComponentFactory
     @Override
     public AdhocComponentWithVariants adhoc(String name) {
         return new DefaultAdhocSoftwareComponent(name);
-
     }
 }

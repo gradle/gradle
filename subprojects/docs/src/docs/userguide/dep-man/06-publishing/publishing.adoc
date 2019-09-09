@@ -265,9 +265,9 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
 ====
 
-The `AdhocComponentWithVariants` component declares a method called `addVariantsFromConfiguration` which accepts two parameters:
+The `AdhocComponentWithVariants` component declares two method called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
 
-- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is going to be used as a variant source
+- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
 - a configuration which allows you to _filter out_ what variants are going to be published
 
 In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
@@ -275,6 +275,7 @@ However, there are cases where a `Configuration` is associated with additional l
 Such configurations make sense in the <<modeling_features.adoc#cross-project-publications,cross-project publications>> use case, but not when publishing externally.
 This is for example the case when between projects you share a _directory of files_, but there's no way you can publish a _directory_ directly on a Maven repository (only packaged things like jars or zips).
 Look at the link:{javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class for details about how to skip publication of a particular variant.
+If `addVariantsFromConfiguration` has already been called for a configuration, further modification of the resulting variants can be performed using `withVariantsFromConfiguration`.
 
 When publishing an adhoc component like this:
 
