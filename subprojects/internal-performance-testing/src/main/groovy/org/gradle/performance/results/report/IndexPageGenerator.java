@@ -20,7 +20,6 @@ import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -43,9 +42,13 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
     }
 
     @Override
-    public void render(final ResultsStore store, Writer writer) throws IOException {
+    public void render(final ResultsStore store, Writer writer) {
         long successCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isSuccessful).count();
-        long failureCount = executionDataProvider.getScenarioExecutionData().size() - successCount;
+        long smallRegressions = executionDataProvider.getScenarioExecutionData().stream()
+            .filter(ScenarioBuildResultData::isRegressed)
+            .filter(this::failsBuild)
+            .count();
+        long failureCount = executionDataProvider.getScenarioExecutionData().size() - successCount - smallRegressions;
 
         new TableHtml(writer) {
             @Override
@@ -83,7 +86,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 if (scenario.isUnknown()) {
                     return "alert-dark";
                 } else if (!scenario.isSuccessful()) {
-                    return "alert-danger";
+                    return failsBuild(scenario) ? "alert-danger" : "alert-warning";
                 } else if (scenario.isAboutToRegress()) {
                     return "alert-warning";
                 } else if (scenario.isImproved()) {
@@ -107,7 +110,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 } else if (scenario.isBuildFailed()) {
                     result.add(FAILED);
                 } else if (scenario.isRegressed()) {
-                    result.add(REGRESSED);
+                    result.add(failsBuild(scenario) ? REGRESSED : NEARLY_FAILED);
                 } else if (scenario.isAboutToRegress()) {
                     result.add(NEARLY_FAILED);
                 } else if (scenario.isImproved()) {
@@ -152,4 +155,12 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
         };
     }
+
+    private boolean failsBuild(ScenarioBuildResultData scenario) {
+        return scenario.getRawData().stream()
+            .filter(ScenarioBuildResultData::isRegressed)
+            .map(flakinessDataProvider::getScenarioRegressionResult)
+            .allMatch(PerformanceFlakinessDataProvider.ScenarioRegressionResult::isFailsBuild);
+    }
+
 }
