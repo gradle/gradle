@@ -54,11 +54,11 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                     buildFailure.getAndIncrement();
                 } else if (scenario.getRawData().stream().allMatch(ScenarioBuildResultData::isRegressed)) {
                     Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getRawData().stream()
-                        .map(rawScenario -> flakinessDataProvider.getScenarioRegressionResult(rawScenario.getScenarioName(), rawScenario.getDifferencePercentage()))
+                        .map(flakinessDataProvider::getScenarioRegressionResult)
                         .collect(Collectors.toSet());
                     if (regressionResults.contains(STABLE_REGRESSION)) {
                         stableScenarioRegression.getAndIncrement();
-                    } else if (regressionResults.stream().allMatch(it -> it == BIG_FLAKY_REGRESSION)) {
+                    } else if (regressionResults.stream().allMatch(BIG_FLAKY_REGRESSION::equals)) {
                         flakyScenarioBigRegression.getAndIncrement();
                     } else {
                         flakyScenarioSmallRegression.getAndIncrement();

@@ -16,6 +16,8 @@
 
 package org.gradle.performance.results.report;
 
+import org.gradle.performance.results.ScenarioBuildResultData;
+
 import java.math.BigDecimal;
 
 public interface PerformanceFlakinessDataProvider {
@@ -56,7 +58,7 @@ public interface PerformanceFlakinessDataProvider {
      */
     BigDecimal getFailureThreshold(String scenario);
 
-    ScenarioRegressionResult getScenarioRegressionResult(String scenarioName, double regressionPercentage);
+    ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario);
 
     enum ScenarioRegressionResult {
         STABLE_REGRESSION(true),
@@ -88,7 +90,7 @@ public interface PerformanceFlakinessDataProvider {
         }
 
         @Override
-        public ScenarioRegressionResult getScenarioRegressionResult(String scenarioName, double regressionPercentage) {
+        public ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario) {
             return ScenarioRegressionResult.STABLE_REGRESSION;
         }
     }

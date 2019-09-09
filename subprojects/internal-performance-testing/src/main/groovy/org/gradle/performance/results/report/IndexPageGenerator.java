@@ -46,7 +46,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         long successCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isSuccessful).count();
         long smallRegressions = executionDataProvider.getScenarioExecutionData().stream()
             .filter(ScenarioBuildResultData::isRegressed)
-            .filter(this::isSmallRegression)
+            .filter(this::failsBuild)
             .count();
         long failureCount = executionDataProvider.getScenarioExecutionData().size() - successCount - smallRegressions;
 
@@ -86,7 +86,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 if (scenario.isUnknown()) {
                     return "alert-dark";
                 } else if (!scenario.isSuccessful()) {
-                    return isSmallRegression(scenario) ? "alert-warning" : "alert-danger";
+                    return failsBuild(scenario) ? "alert-danger" : "alert-warning";
                 } else if (scenario.isAboutToRegress()) {
                     return "alert-warning";
                 } else if (scenario.isImproved()) {
@@ -110,7 +110,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 } else if (scenario.isBuildFailed()) {
                     result.add(FAILED);
                 } else if (scenario.isRegressed()) {
-                    result.add(isSmallRegression(scenario) ? NEARLY_FAILED : REGRESSED);
+                    result.add(failsBuild(scenario) ? REGRESSED : NEARLY_FAILED);
                 } else if (scenario.isAboutToRegress()) {
                     result.add(NEARLY_FAILED);
                 } else if (scenario.isImproved()) {
@@ -156,11 +156,11 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         };
     }
 
-    private boolean isSmallRegression(ScenarioBuildResultData scenario) {
+    private boolean failsBuild(ScenarioBuildResultData scenario) {
         return scenario.getRawData().stream()
             .filter(ScenarioBuildResultData::isRegressed)
-            .map(it -> flakinessDataProvider.getScenarioRegressionResult(it.getScenarioName(), it.getDifferencePercentage()))
-            .anyMatch(it -> it == PerformanceFlakinessDataProvider.ScenarioRegressionResult.SMALL_FLAKY_REGRESSION);
+            .map(flakinessDataProvider::getScenarioRegressionResult)
+            .allMatch(PerformanceFlakinessDataProvider.ScenarioRegressionResult::isFailsBuild);
     }
 
 }
