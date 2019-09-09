@@ -40,13 +40,13 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -230,6 +230,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
+        DeprecationLogger.deprecateBuildInvocationFeature("Registering artifact transforms extending ArtifactTransform")
+            .withAdvice("Implement TransformAction instead.")
+            .willBeRemovedInGradle7()
+            .withUserManual("artifact_transforms")
+            .nagUser();
         transforms.registerTransform(registrationAction);
     }
 
