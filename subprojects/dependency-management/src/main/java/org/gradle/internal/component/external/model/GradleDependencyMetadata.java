@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import jdk.internal.jline.internal.Nullable;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -46,7 +47,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final boolean force;
     private final List<IvyArtifactName> artifacts;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean inheriting, String reason, boolean force, List<IvyArtifactName> artifacts) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean inheriting, String reason, boolean force, @Nullable IvyArtifactName artifact) {
+        this(selector, excludes, constraint, inheriting, reason, force, artifact == null ? ImmutableList.of() : ImmutableList.of(artifact));
+    }
+
+    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean inheriting, String reason, boolean force, List<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
@@ -59,6 +64,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     @Override
     public List<IvyArtifactName> getArtifacts() {
         return artifacts;
+    }
+
+    @Nullable
+    public IvyArtifactName getDependencyArtifact() {
+        return artifacts.isEmpty() ? null : artifacts.get(0);
     }
 
     @Override

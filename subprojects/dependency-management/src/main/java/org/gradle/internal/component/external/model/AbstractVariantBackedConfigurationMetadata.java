@@ -56,18 +56,18 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            List<IvyArtifactName> artifacts = dependency.getDependencyArtifact() == null ? ImmutableList.of() : ImmutableList.of(dependency.getDependencyArtifact());
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), forcedDependencies, artifacts));
+            IvyArtifactName dependencyArtifact = dependency.getDependencyArtifact();
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), forcedDependencies, dependencyArtifact));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of()),
-                Collections.<ExcludeMetadata>emptyList(),
+                Collections.emptyList(),
                 true,
                 false,
                 dependencyConstraint.getReason(),
                 forcedDependencies,
-                ImmutableList.of()
+                null
             ));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);

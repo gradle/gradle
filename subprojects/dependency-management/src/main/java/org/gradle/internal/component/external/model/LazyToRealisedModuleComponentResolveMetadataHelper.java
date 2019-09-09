@@ -62,21 +62,21 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
     }
 
     private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints, boolean force) {
-        List<GradleDependencyMetadata> result = new ArrayList<GradleDependencyMetadata>(dependencies.size());
+        List<GradleDependencyMetadata> result = new ArrayList<>(dependencies.size());
         for (ComponentVariant.Dependency dependency : dependencies) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), force, ImmutableList.of()));
+            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), force, dependency.getDependencyArtifact()));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
             result.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of()),
-                Collections.<ExcludeMetadata>emptyList(),
+                Collections.emptyList(),
                 true,
                 false,
                 dependencyConstraint.getReason(),
                 force,
-                ImmutableList.of()
+                null
             ));
         }
         return result;

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -121,7 +120,8 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         boolean inheriting = decoder.readBoolean();
         boolean force = decoder.readBoolean();
         String reason = decoder.readNullableString();
-        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force, ImmutableList.of());
+        IvyArtifactName artifact = readNullableArtifact(decoder);
+        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force, artifact);
     }
 
     protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
@@ -176,6 +176,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         encoder.writeBoolean(dependencyMetadata.isInheriting());
         encoder.writeBoolean(dependencyMetadata.isForce());
         encoder.writeNullableString(dependencyMetadata.getReason());
+        writeNullableArtifact(encoder,  dependencyMetadata.getDependencyArtifact());
     }
 
     protected void writeMavenExcludeRules(Encoder encoder, List<ExcludeMetadata> excludes) throws IOException {
