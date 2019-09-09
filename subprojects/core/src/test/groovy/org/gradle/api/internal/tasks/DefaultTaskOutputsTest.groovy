@@ -24,7 +24,9 @@ import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
@@ -66,8 +68,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], [ConfigurableFileCollection, Property], [], { false }, cacheFactory )
-    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [], [], typeAnnotationMetadataStore, cacheFactory))
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], [ConfigurableFileCollection, Property], [Internal], { false }, cacheFactory)
+    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
     def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, fileCollectionFactory)
 
     void hasNoOutputsByDefault() {

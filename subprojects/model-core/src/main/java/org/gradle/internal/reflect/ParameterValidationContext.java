@@ -21,41 +21,51 @@ import javax.annotation.Nullable;
 public interface ParameterValidationContext {
     ParameterValidationContext NOOP = new ParameterValidationContext() {
         @Override
+        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+        }
+
+        @Override
+        public void visitWarning(String message) {
+        }
+
+        @Override
         public void visitError(@Nullable String ownerPath, String propertyName, String message) {
         }
 
         @Override
         public void visitError(String message) {
         }
-
-        @Override
-        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-        }
-
-        @Override
-        public void visitErrorStrict(String message) {
-        }
     };
 
     /**
+     * Visits a validation warning associated with the given property.
+     */
+    void visitWarning(@Nullable String ownerPath, String propertyName, String message);
+
+    /**
+     * Visits a validation warning.
+     */
+    void visitWarning(String message);
+
+    /**
      * Visits a validation error associated with the given property.
+     * Errors are not ignored for tasks, whereas for backwards compatibility warnings are ignored at runtime.
      */
     void visitError(@Nullable String ownerPath, String propertyName, String message);
 
     /**
      * Visits a validation error.
+     * Errors are not ignored for tasks, whereas for backwards compatibility warnings are ignored at runtime.
      */
     void visitError(String message);
 
-    /**
-     * Visits a strict validation error associated with the given property.
-     * Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
-     */
-    void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message);
-
-    /**
-     * Visits a strict validation error.
-     * Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
-     */
-    void visitErrorStrict(String message);
+    static String decorateMessage(@Nullable String ownerPath, String propertyName, String message) {
+        String decoratedMessage;
+        if (ownerPath == null) {
+            decoratedMessage = "Property '" + propertyName + "' " + message + ".";
+        } else {
+            decoratedMessage = "Property '" + ownerPath + '.' + propertyName + "' " + message + ".";
+        }
+        return decoratedMessage;
+    }
 }

@@ -37,7 +37,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         Object unpacked = DeferredUtil.unpack(value.call());
         if (unpacked == null) {
             if (!optional) {
-                context.visitError(String.format("No value has been specified for property '%s'.", propertyName));
+                context.visitWarning(String.format("No value has been specified for property '%s'.", propertyName));
             }
         } else {
             validationAction.validate(propertyName, unpacked, context);

@@ -21,6 +21,8 @@ import org.gradle.internal.reflect.ParameterValidationContext;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
+import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
+
 public class DefaultParameterValidationContext implements ParameterValidationContext {
     private final Collection<String> messages;
 
@@ -28,14 +30,14 @@ public class DefaultParameterValidationContext implements ParameterValidationCon
         this.messages = messages;
     }
 
-    private static String decorateMessage(@Nullable String ownerPath, String propertyName, String message) {
-        String decoratedMessage;
-        if (ownerPath == null) {
-            decoratedMessage = "Property '" + propertyName + "' " + message + ".";
-        } else {
-            decoratedMessage = "Property '" + ownerPath + '.' + propertyName + "' " + message + ".";
-        }
-        return decoratedMessage;
+    @Override
+    public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+        visitWarning(decorateMessage(ownerPath, propertyName, message));
+    }
+
+    @Override
+    public void visitWarning(String message) {
+        messages.add(message);
     }
 
     @Override
@@ -45,16 +47,6 @@ public class DefaultParameterValidationContext implements ParameterValidationCon
 
     @Override
     public void visitError(String message) {
-        messages.add(message);
-    }
-
-    @Override
-    public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-        visitErrorStrict(decorateMessage(ownerPath, propertyName, message));
-    }
-
-    @Override
-    public void visitErrorStrict(String message) {
-        visitError(message);
+        visitWarning(message);
     }
 }

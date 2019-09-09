@@ -130,7 +130,7 @@ public class PropertyValidationAccess {
         boolean cacheable;
         boolean mapErrorsToWarnings;
         if (Task.class.isAssignableFrom(topLevelBean)) {
-            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedNonnullCast(topLevelBean)).isCacheable();
+            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.uncheckedNonnullCast(topLevelBean)).isCacheable();
             // Treat all errors as warnings, for backwards compatibility
             mapErrorsToWarnings = true;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
@@ -141,7 +141,7 @@ public class PropertyValidationAccess {
             mapErrorsToWarnings = false;
         }
 
-        Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
+        Queue<BeanTypeNode<?>> queue = new ArrayDeque<>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
         boolean stricterValidation = enableStricterValidation || cacheable;
@@ -188,10 +188,10 @@ public class PropertyValidationAccess {
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Map<?, ?>>>uncheckedNonnullCast(beanType), typeMetadata);
+                    return new MapBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.<TypeToken<Iterable<?>>>uncheckedNonnullCast(beanType), typeMetadata);
+                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);
@@ -272,22 +272,22 @@ public class PropertyValidationAccess {
             }
 
             @Override
+            public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+                visitWarning(decorateMessage(propertyName, message));
+            }
+
+            @Override
+            public void visitWarning(String message) {
+                problems.error(message, false);
+            }
+
+            @Override
             public void visitError(@Nullable String ownerPath, String propertyName, String message) {
                 visitError(decorateMessage(propertyName, message));
             }
 
             @Override
             public void visitError(String message) {
-                problems.error(message, false);
-            }
-
-            @Override
-            public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-                visitErrorStrict(decorateMessage(propertyName, message));
-            }
-
-            @Override
-            public void visitErrorStrict(String message) {
                 problems.error(message, true);
             }
         }
@@ -339,7 +339,7 @@ public class PropertyValidationAccess {
         @Override
         public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
             if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
-                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
+                validationContext.visitWarning(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
         }
     }

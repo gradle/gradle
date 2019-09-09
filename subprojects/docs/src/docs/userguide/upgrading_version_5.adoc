@@ -104,6 +104,9 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 
 - `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
 - `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
+- link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#getFailOnWarning--[ValidateTaskProperties.failOnWarning] is enabled by default.
+- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[ValidateTaskProperties]:
+  * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
 ==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`
 

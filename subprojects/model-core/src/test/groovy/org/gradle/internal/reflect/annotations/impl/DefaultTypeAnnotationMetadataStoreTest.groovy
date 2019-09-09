@@ -683,22 +683,22 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         List<String> actualErrors = []
         def visitor = new ParameterValidationContext() {
             @Override
-            void visitError(@Nullable String ownerPath, String propertyName, String message) {
+            void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
                 actualErrors.add("Property '$propertyName' $message")
             }
 
             @Override
-            void visitError(String message) {
+            void visitWarning(String message) {
                 actualErrors.add(message)
             }
 
             @Override
-            void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
+            void visitError(@Nullable String ownerPath, String propertyName, String message) {
                 actualErrors.add("Property '$propertyName' $message [STRICT]")
             }
 
             @Override
-            void visitErrorStrict(String message) {
+            void visitError(String message) {
                 actualErrors.add("$message  [STRICT]")
             }
         }
