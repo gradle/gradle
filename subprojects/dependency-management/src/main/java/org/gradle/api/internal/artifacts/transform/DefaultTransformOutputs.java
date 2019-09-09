@@ -50,7 +50,7 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
     public ImmutableList<File> getRegisteredOutputs() {
         ImmutableList<File> outputs = outputsBuilder.build();
         for (File output : outputs) {
-            TransformOutputsInternal.validateOutputExists(output);
+            TransformOutputsInternal.validateOutputExists(outputDirPrefix, output);
             if (outputFiles.contains(output) && !output.isFile()) {
                 throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
             }
