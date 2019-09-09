@@ -322,13 +322,13 @@ class DefaultClassLoaderScopeTest extends Specification {
         root.createChild("d").lock().exportClassLoader
 
         then:
-        classLoaderCache.size() == 3
+        classLoaderCache.size() == 1
 
         when:
         root.createChild("c").lock().exportClassLoader
 
         then:
-        classLoaderCache.size() == 3
+        classLoaderCache.size() == 0
     }
 
     static ClassLoader isolatedLoader(File... paths) {
