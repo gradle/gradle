@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.publisher
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
@@ -42,7 +42,7 @@ class ValidatingMavenPublisherTest extends Specification {
 
     def delegate = Mock(MavenPublisher)
     def publisher = new ValidatingMavenPublisher(delegate)
-    def repository = Mock(MavenArtifactRepository)
+    def repository = Mock(DefaultMavenArtifactRepository)
 
     @Unroll
     def "delegates when publication is valid"() {

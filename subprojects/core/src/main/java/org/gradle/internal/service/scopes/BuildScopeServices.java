@@ -64,6 +64,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
@@ -164,7 +165,9 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.DefaultTextFileResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -211,7 +214,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
-        return new ProjectFactory(instantiator, projectRegistry);
+        return new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry);
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
@@ -321,7 +324,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(DocumentationRegistry.class),
             get(ModelRuleSourceDetector.class),
             get(ProviderFactory.class),
-            get(TextResourceLoader.class),
+            get(TextFileResourceLoader.class),
+            get(TextUriResourceLoader.Factory.class),
+            get(ApiTextResourceAdapter.Factory.class),
             get(StreamHasher.class),
             get(FileHasher.class),
             get(ExecFactory.class),
@@ -366,7 +371,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
-                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor, TextResourceLoader textResourceLoader) {
+                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader textFileResourceLoader) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
                 new SettingsEvaluatedCallbackFiringSettingsProcessor(
@@ -379,7 +384,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                 scriptHandlerFactory
                             ),
                             propertiesLoader,
-                            textResourceLoader),
+                            textFileResourceLoader),
                         propertiesLoader
                     )
                 )

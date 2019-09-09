@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.resources.TextResource;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -60,6 +61,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         visitor.candidate("A Directory instance.");
         visitor.candidate("A RegularFile instance.");
         visitor.candidate("A URI or URL instance.");
+        visitor.candidate("A TextResource instance.");
     }
 
     @Override
@@ -113,6 +115,10 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                 return;
             }
             result.converted(new File(notationString));
+        }
+        if (notation instanceof TextResource) {
+            // TODO: This eagerly resolves a TextResource into a File, ignoring dependencies
+            result.converted(((TextResource) notation).asFile());
         }
     }
 

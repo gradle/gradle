@@ -55,8 +55,8 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
             return new MavenVersionRangeMapper(versionSelectorScheme);
         }
 
-        public MavenPublishers createMavenPublishers(RepositoryTransportFactory repositoryTransportFactory, BuildCommencedTimeProvider timeProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-            return new MavenPublishers(repositoryTransportFactory, timeProvider, mavenRepositoryLocator);
+        public MavenPublishers createMavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+            return new MavenPublishers(timeProvider, repositoryTransportFactory, mavenRepositoryLocator);
         }
 
         public MavenDuplicatePublicationTracker createDuplicatePublicationTracker(DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {

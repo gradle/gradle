@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource;
 
-import javax.annotation.Nullable;
-import java.io.File;
+package org.gradle.internal.verifier;
+
 import java.net.URI;
+import java.util.Collection;
 
-public interface TextResourceLoader {
-    TextResource loadFile(String description, @Nullable File sourceFile);
-
-    TextResource loadUri(String description, URI sourceUri);
+/**
+ * Use {@link HttpRedirectVerifierFactory#create} to instantiate an instance of this.
+ */
+@FunctionalInterface
+public interface HttpRedirectVerifier {
+    /**
+     * Perform verification on the URI's in an HTTP request's redirect chain.
+     */
+    void validateRedirects(Collection<URI> redirectLocations);
 }

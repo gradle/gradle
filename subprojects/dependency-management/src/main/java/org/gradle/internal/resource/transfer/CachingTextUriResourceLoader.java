@@ -17,22 +17,23 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
-import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.DownloadedUriTextResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.net.URI;
 import java.util.Set;
 
-public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
+public class CachingTextUriResourceLoader implements TextUriResourceLoader {
 
     private final ExternalResourceAccessor externalResourceAccessor;
     private final Set<String> cachedSchemes;
 
-    public DefaultUriTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes) {
+    public CachingTextUriResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes) {
         this.externalResourceAccessor = externalResourceAccessor;
         this.cachedSchemes = cachedSchemes;
     }
@@ -47,11 +48,10 @@ public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
             ExternalResourceMetaData metaData = resource.getMetaData();
             String contentType = metaData == null ? null : metaData.getContentType();
             return new DownloadedUriTextResource(description, source, contentType, resource.getFile());
-        } else {
-            // fallback to old behavior of always loading the resource
-            return super.loadUri(description, source);
         }
 
+        // fallback to old behavior of always loading the resource
+        return new UriTextResource(description, source);
     }
 
     private boolean isCacheable(URI source) {

@@ -35,7 +35,7 @@ import java.net.URI;
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#ivy(org.gradle.api.Action)} group of methods.
  */
-public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
+public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
     String IVY_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])";
 
@@ -50,6 +50,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * @return The URL.
      */
+    @Override
     URI getUrl();
 
     /**
@@ -58,6 +59,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @param url The base URL.
      * @since 4.0
      */
+    @Override
     void setUrl(URI url);
 
     /**
@@ -68,6 +70,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * @param url The base URL.
      */
+    @Override
     void setUrl(Object url);
 
     /**

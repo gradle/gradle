@@ -40,6 +40,7 @@ class CookieHeaderTest extends Specification {
     HttpSettings settings = DefaultHttpSettings.builder()
         .withAuthenticationSettings([])
         .withSslContextFactory(sslContextFactory)
+        .withRedirectVerifier({})
         .build()
     HttpClientHelper client = new HttpClientHelper(settings)
 

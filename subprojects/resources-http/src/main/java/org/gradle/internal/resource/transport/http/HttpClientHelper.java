@@ -16,22 +16,30 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -88,9 +96,9 @@ public class HttpClientHelper implements Closeable {
         try {
             return executeGetOrHead(request);
         } catch (FailureFromRedirectLocation e) {
-            throw new HttpRequestException(String.format("Could not %s '%s'.", method, e.getLastRedirectLocation()), e.getCause());
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(e.getLastRedirectLocation())), e.getCause());
         } catch (IOException e) {
-            throw new HttpRequestException(String.format("Could not %s '%s'.", method, request.getURI()), e);
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(request.getURI())), e);
         }
     }
 
@@ -127,35 +135,53 @@ public class HttpClientHelper implements Closeable {
     private HttpClientResponse performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(REDIRECT_LOCATIONS);
-        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
+        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), stripUserCredentials(request.getURI()));
+
         try {
             CloseableHttpResponse response = getClient().execute(request, httpContext);
             return toHttpClientResponse(request, httpContext, response);
         } catch (IOException e) {
-            URI lastRedirectLocation = getLastRedirectLocation(httpContext);
+            validateRedirectChain(httpContext);
+            URI lastRedirectLocation = stripUserCredentials(getLastRedirectLocation(httpContext));
             throw (lastRedirectLocation == null) ? e : new FailureFromRedirectLocation(lastRedirectLocation, e);
         }
     }
 
     private HttpClientResponse toHttpClientResponse(HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
+        validateRedirectChain(httpContext);
         URI lastRedirectLocation = getLastRedirectLocation(httpContext);
         URI effectiveUri = lastRedirectLocation == null ? request.getURI() : lastRedirectLocation;
         return new HttpClientResponse(request.getMethod(), effectiveUri, response);
     }
 
-    @SuppressWarnings("unchecked")
-    private URI getLastRedirectLocation(HttpContext httpContext) {
-        List<URI> redirectLocations = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
-        return (redirectLocations == null || redirectLocations.isEmpty()) ? null : Iterables.getLast(redirectLocations);
+    /**
+     * Validates that no redirect used an insecure protocol.
+     * Redirecting through an insecure protocol can allow for a MITM redirect to an attacker controlled HTTPS server.
+     */
+    private void validateRedirectChain(HttpContext httpContext) {
+        settings.getRedirectVerifier().validateRedirects(getRedirectLocations(httpContext));
+    }
+
+    @Nonnull
+    private static List<URI> getRedirectLocations(HttpContext httpContext) {
+        @SuppressWarnings("unchecked")
+        List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
+        return redirects == null ? Collections.emptyList() : redirects;
+    }
+
+
+    private static URI getLastRedirectLocation(HttpContext httpContext) {
+        List<URI> redirectLocations = getRedirectLocations(httpContext);
+        return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
     }
 
     private HttpClientResponse processResponse(HttpClientResponse response) {
         if (response.wasMissing()) {
-            LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), response.getEffectiveUri());
+            LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
             return null;
         }
         if (!response.wasSuccessful()) {
-            URI effectiveUri = response.getEffectiveUri();
+            URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusLine(), effectiveUri);
             throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
         }
@@ -179,6 +205,23 @@ public class HttpClientHelper implements Closeable {
             if (sharedContext != null) {
                 sharedContext.clear();
             }
+        }
+    }
+
+    /**
+     * Strips the {@link URI#getUserInfo() user info} from the {@link URI} making it
+     * safe to appear in log messages.
+     */
+    @Nullable
+    @VisibleForTesting
+    static URI stripUserCredentials(@CheckForNull URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        try {
+            return new URIBuilder(uri).setUserInfo(null).build();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e, true);
         }
     }
 

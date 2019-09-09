@@ -22,6 +22,7 @@ import com.google.common.base.Suppliers;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -36,7 +37,9 @@ public class DefaultHttpSettings implements HttpSettings {
     private final Collection<Authentication> authenticationSettings;
     private final SslContextFactory sslContextFactory;
     private final HostnameVerifier hostnameVerifier;
+    private final HttpRedirectVerifier redirectVerifier;
     private final boolean followRedirects;
+
 
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
@@ -46,15 +49,17 @@ public class DefaultHttpSettings implements HttpSettings {
         return new Builder();
     }
 
-    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects) {
+    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, HttpRedirectVerifier redirectVerifier, boolean followRedirects) {
         this.followRedirects = followRedirects;
         Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
         Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
         Preconditions.checkNotNull(hostnameVerifier, "hostnameVerifier");
+        Preconditions.checkNotNull(redirectVerifier, "redirectVerifier");
 
         this.authenticationSettings = authenticationSettings;
         this.sslContextFactory = sslContextFactory;
         this.hostnameVerifier = hostnameVerifier;
+        this.redirectVerifier = redirectVerifier;
     }
 
     @Override
@@ -87,6 +92,11 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     @Override
+    public HttpRedirectVerifier getRedirectVerifier() {
+        return redirectVerifier;
+    }
+
+    @Override
     public Collection<Authentication> getAuthenticationSettings() {
         return authenticationSettings;
     }
@@ -105,6 +115,7 @@ public class DefaultHttpSettings implements HttpSettings {
         private Collection<Authentication> authenticationSettings;
         private SslContextFactory sslContextFactory;
         private HostnameVerifier hostnameVerifier;
+        private HttpRedirectVerifier redirectVerifier;
         private boolean followRedirects = true;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
@@ -115,6 +126,11 @@ public class DefaultHttpSettings implements HttpSettings {
         public Builder withSslContextFactory(SslContextFactory sslContextFactory) {
             this.sslContextFactory = sslContextFactory;
             this.hostnameVerifier = new DefaultHostnameVerifier(null);
+            return this;
+        }
+
+        public Builder withRedirectVerifier(HttpRedirectVerifier redirectVerifier) {
+            this.redirectVerifier = redirectVerifier;
             return this;
         }
 
@@ -130,7 +146,7 @@ public class DefaultHttpSettings implements HttpSettings {
         }
 
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, followRedirects);
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, followRedirects);
         }
     }
 

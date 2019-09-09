@@ -104,7 +104,7 @@ task retrieve(type: Sync) {
                 "-Dorg.gradle.s3.endpoint=${server.uri}",
                 "-Dhttp.proxyHost=localhost",
                 "-Dhttp.proxyPort=${proxyServer.port}",
-                "-Dhttp.nonProxyHosts=localhost",
+                "-Dhttp.nonProxyHosts=127.0.0.1",
                 "-Dhttp.proxyUser=proxyUser",
                 "-Dhttp.proxyPassword=proxyPassword"
         )

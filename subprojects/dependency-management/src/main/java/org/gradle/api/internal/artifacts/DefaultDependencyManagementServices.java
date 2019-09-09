@@ -67,6 +67,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.DefaultUrlArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -420,6 +421,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformationRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 
+        DefaultUrlArtifactRepository.Factory createDefaultUrlArtifactRepositoryFactory(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+            return new DefaultUrlArtifactRepository.Factory(fileResolver, documentationRegistry);
+        }
+
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                                           FileResolver fileResolver,
                                                           FileCollectionFactory fileCollectionFactory,
@@ -439,7 +444,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           IsolatableFactory isolatableFactory,
                                                           ObjectFactory objectFactory,
                                                           CollectionCallbackActionDecorator callbackDecorator,
-                                                          NamedObjectInstantiator instantiator) {
+                                                          NamedObjectInstantiator instantiator,
+                                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -459,7 +465,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ivyMetadataFactory,
                 isolatableFactory,
                 objectFactory,
-                callbackDecorator);
+                callbackDecorator,
+                urlArtifactRepositoryFactory
+            );
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {

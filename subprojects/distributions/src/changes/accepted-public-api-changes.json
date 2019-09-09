@@ -141,6 +141,22 @@
             "member": "Method org.gradle.process.ExecOperations.javaexec(org.gradle.api.Action)",
             "acceptation": "New public API",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "acceptation": "Common methods extracted to UrlArtifactRepository",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.UrlArtifactRepository"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "acceptation": "Common methods extracted to UrlArtifactRepository",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.UrlArtifactRepository"
+            ]
         }
     ]
 }

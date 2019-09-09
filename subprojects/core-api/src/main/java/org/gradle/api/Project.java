@@ -670,6 +670,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link Provider} of any supported type. The provider's value is resolved recursively.</li>
      *
+     * <li>A {@link org.gradle.api.resources.TextResource}.</li>
+     *
      * <li>A Groovy {@link Closure} or Kotlin function that returns any supported type. The closure's return value is resolved recursively.</li>
      *
      * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
