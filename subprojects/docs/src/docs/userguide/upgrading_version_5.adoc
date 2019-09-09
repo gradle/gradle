@@ -218,6 +218,8 @@ The following breaking changes will appear as deprecation warnings with Gradle 5
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 * Changing the value of a task property with type `Property<T>` after the task has started execution now results in an error.
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
+* The map returned by `TaskInputs.getProperties()` is now unmodifiable.
+  Trying to modify it will result in an `UnsupportedOperationException` being thrown.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier

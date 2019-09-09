@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     private final String beanName;
-    private List<InputPropertySpec> inputProperties = new ArrayList<InputPropertySpec>();
+    private final List<InputPropertySpec> inputProperties = new ArrayList<>();
 
     public GetInputPropertiesVisitor(String beanName) {
         this.beanName = beanName;
@@ -40,7 +40,7 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
 
     public Supplier<Map<String, Object>> getPropertyValuesSupplier() {
         return () -> {
-            Map<String, Object> result = new HashMap<String, Object>();
+            Map<String, Object> result = new HashMap<>();
             for (InputPropertySpec inputProperty : inputProperties) {
                 String propertyName = inputProperty.getPropertyName();
                 try {
