@@ -676,7 +676,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultMavenPublication.UNSUPPORTED_FEATURE)
         outputContains('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
 

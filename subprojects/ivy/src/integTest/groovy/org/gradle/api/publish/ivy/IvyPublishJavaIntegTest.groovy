@@ -944,7 +944,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         outputContains('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
 

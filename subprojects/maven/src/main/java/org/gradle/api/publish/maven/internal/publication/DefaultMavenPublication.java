@@ -277,6 +277,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
             Set<ExcludeRule> globalExcludes = usageContext.getGlobalExcludes();
 
+            publicationWarningsCollector.newContext(usageContext.getName());
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(PublishedDependency.of(dependency))) {
@@ -319,7 +320,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
             if (!usageContext.getCapabilities().isEmpty()) {
                 for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
         }

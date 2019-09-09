@@ -239,7 +239,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         populateArtifacts();
         populateDependencies(publicationWarningsCollector);
         populateGlobalExcludes();
-        warnForUnsupportedFeatures(publicationWarningsCollector);
 
         publicationWarningsCollector.complete(getDisplayName());
     }
@@ -306,6 +305,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private void populateDependencies(PublicationWarningsCollector publicationWarningsCollector) {
         for (UsageContext usageContext : component.getUsages()) {
+            publicationWarningsCollector.newContext(usageContext.getName());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 String confMapping = confMappingFor(usageContext, dependency);
                 if (!dependency.getAttributes().isEmpty()) {
@@ -324,6 +324,18 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
                 }
             }
+
+            if (!usageContext.getDependencyConstraints().isEmpty()) {
+                for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
+                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                }
+            }
+            if (!usageContext.getCapabilities().isEmpty()) {
+                for (Capability capability : usageContext.getCapabilities()) {
+                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
+                }
+            }
+
         }
     }
 
@@ -358,21 +370,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             confMappingTarget = Dependency.DEFAULT_CONFIGURATION;
         }
         return conf + "->" + confMappingTarget;
-    }
-
-    private void warnForUnsupportedFeatures(PublicationWarningsCollector publicationWarningsCollector) {
-        for (UsageContext usageContext : component.getUsages()) {
-            if (!usageContext.getDependencyConstraints().isEmpty()) {
-                for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
-                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
-                }
-            }
-            if (!usageContext.getCapabilities().isEmpty()) {
-                for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
-                }
-            }
-        }
     }
 
     /**
