@@ -109,7 +109,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                                 deleter.delete(root);
                                 break;
                             case DIRECTORY:
-                                deleter.ensureEmptyDirectory(root, true);
+                                deleter.ensureEmptyDirectory(root);
                             break;
                             default:
                                 throw new AssertionError();

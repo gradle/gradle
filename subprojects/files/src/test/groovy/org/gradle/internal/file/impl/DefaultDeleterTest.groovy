@@ -44,7 +44,7 @@ class DefaultDeleterTest extends Specification {
         dir.file("someFile").createFile()
 
         when:
-        boolean didWork = deleteRecursively(dir)
+        boolean didWork = deleter.deleteRecursively(dir)
 
         then:
         dir.assertDoesNotExist()
@@ -58,7 +58,7 @@ class DefaultDeleterTest extends Specification {
         file.createFile()
 
         when:
-        boolean didWork = deleteRecursively(file)
+        boolean didWork = deleter.deleteRecursively(file)
 
         then:
         file.assertDoesNotExist()
@@ -71,7 +71,7 @@ class DefaultDeleterTest extends Specification {
         dir.file("someFile").createFile()
 
         when:
-        boolean didWork = ensureEmptyDirectory(dir)
+        boolean didWork = deleter.ensureEmptyDirectory(dir)
 
         then:
         dir.assertIsEmptyDir()
@@ -86,7 +86,7 @@ class DefaultDeleterTest extends Specification {
         def link = tmpDir.file("link").tap { Files.createSymbolicLink(it.toPath(), target.toPath()) }
 
         when:
-        ensureEmptyDirectory(link)
+        deleter.ensureEmptyDirectory(link)
 
         then:
         target.assertIsEmptyDir()
@@ -101,7 +101,7 @@ class DefaultDeleterTest extends Specification {
         def file = dir.file("someFile").createFile()
 
         when:
-        boolean didWork = ensureEmptyDirectory(file)
+        boolean didWork = deleter.ensureEmptyDirectory(file)
 
         then:
         file.assertIsDir()
@@ -114,7 +114,7 @@ class DefaultDeleterTest extends Specification {
         def file = dir.file("someFile")
 
         when:
-        boolean didWork = ensureEmptyDirectory(file)
+        boolean didWork = deleter.ensureEmptyDirectory(file)
 
         then:
         file.assertIsDir()
@@ -127,7 +127,7 @@ class DefaultDeleterTest extends Specification {
         dir.assertDoesNotExist()
 
         when:
-        boolean didWork = deleteRecursively(dir)
+        boolean didWork = deleter.deleteRecursively(dir)
 
         then:
         !didWork
@@ -138,7 +138,7 @@ class DefaultDeleterTest extends Specification {
         TestFile emptyDir = tmpDir.getTestDirectory()
 
         when:
-        boolean didWork = ensureEmptyDirectory(emptyDir)
+        boolean didWork = deleter.ensureEmptyDirectory(emptyDir)
 
         then:
         !didWork
@@ -161,7 +161,7 @@ class DefaultDeleterTest extends Specification {
         target = isSymlink ? tmpDir.file("link").tap { Files.createSymbolicLink(delegate.toPath(), target.toPath()) } : target
 
         when:
-        deleteRecursively(target)
+        deleter.deleteRecursively(target)
 
         then:
         def ex = thrown IOException
@@ -190,7 +190,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleteRecursively(targetDir)
+        deleter.deleteRecursively(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -223,7 +223,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleteRecursively(targetDir)
+        deleter.deleteRecursively(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -256,7 +256,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleteRecursively(targetDir)
+        deleter.deleteRecursively(targetDir)
 
         then:
         targetDir.assertIsDir()
@@ -292,7 +292,7 @@ class DefaultDeleterTest extends Specification {
         }
 
         when:
-        deleteRecursively(targetDir)
+        deleter.deleteRecursively(targetDir)
 
         then: 'nothing gets deleted'
         targetDir.assertIsDir()
@@ -359,13 +359,5 @@ class DefaultDeleterTest extends Specification {
 
     private static enum DeletionAction {
         FAILURE, CONTINUE
-    }
-
-    private boolean deleteRecursively(File target) {
-        return deleter.deleteRecursively(target, false)
-    }
-
-    private boolean ensureEmptyDirectory(File target) {
-        return deleter.ensureEmptyDirectory(target, false)
     }
 }

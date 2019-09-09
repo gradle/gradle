@@ -90,7 +90,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
                         if (file.exists()) {
                             logger.info("Deleting stale output file: {}", file.getAbsolutePath());
                             try {
-                                deleter.deleteRecursively(file, true);
+                                deleter.deleteRecursively(file);
                             } catch (IOException ex) {
                                 throw new UncheckedIOException("Couldn't delete stale output file", ex);
                             }

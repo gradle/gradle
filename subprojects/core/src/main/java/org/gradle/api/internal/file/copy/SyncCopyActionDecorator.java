@@ -117,7 +117,7 @@ public class SyncCopyActionDecorator implements CopyAction {
             if (!visited.contains(path)) {
                 if (preserveSet.isEmpty() || !preserveSpec.isSatisfiedBy(fileDetails)) {
                     try {
-                        didWork = deleter.deleteRecursively(fileDetails.getFile(), true);
+                        didWork = deleter.deleteRecursively(fileDetails.getFile());
                     } catch (IOException ex) {
                         throw new UncheckedIOException(ex);
                     }

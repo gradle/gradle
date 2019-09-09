@@ -259,7 +259,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private void unpackMissingFile(File treeRoot) throws IOException {
         if (!makeDirectory(deleter, treeRoot.getParentFile())) {
             // Make sure tree is removed if it exists already
-            deleter.deleteRecursively(treeRoot, true);
+            deleter.deleteRecursively(treeRoot);
         }
     }
 

@@ -133,7 +133,7 @@ public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction
 
     private void deleteCacheDir(File cacheDir) throws IOException {
         LOGGER.debug("Deleting version-specific cache directory at {}", cacheDir);
-        deleter.deleteRecursively(cacheDir, true);
+        deleter.deleteRecursively(cacheDir);
     }
 
     private static class CleanupCondition implements Spec<VersionSpecificCacheDirectory> {
