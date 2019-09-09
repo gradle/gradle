@@ -27,21 +27,15 @@ import org.gradle.kotlin.dsl.caching.fixtures.cachedSettingsScript
 import org.gradle.kotlin.dsl.caching.fixtures.classLoadingCache
 import org.gradle.kotlin.dsl.caching.fixtures.compilationCache
 import org.gradle.kotlin.dsl.caching.fixtures.compilationTrace
-
 import org.gradle.kotlin.dsl.execution.Program
 import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
 import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
-
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-
 import org.gradle.soak.categories.SoakTest
-
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
-
 import java.util.UUID
 
 
@@ -228,7 +222,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
     }
 
-    @Ignore("https://github.com/gradle/gradle/pull/10414#issuecomment-527292101")
     @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
