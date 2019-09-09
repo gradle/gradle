@@ -22,6 +22,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 @NotThreadSafe
@@ -49,15 +50,16 @@ public class PublicationWarningsCollector {
         currentWarnings.addIncompatible(text);
     }
 
-    public void complete(DisplayName displayName) {
+    public void complete(DisplayName displayName, Set<String> silencedVariants) {
         saveVariantWarnings();
 
         if (!variantToWarnings.isEmpty()) {
             TreeFormatter treeFormatter = new TreeFormatter();
-            treeFormatter.node(displayName + " warnings:");
+            treeFormatter.node(displayName + " warnings: (silence with 'silencePublicationWarningsFor(variant)')");
             treeFormatter.startChildren();
-            variantToWarnings.forEach((variant, warnings) -> {
-                treeFormatter.node("Variant " + variant + ":");
+            variantToWarnings.entrySet().stream().filter(entry -> !silencedVariants.contains(entry.getKey())).forEach(entry -> {
+                CollectedWarnings warnings = entry.getValue();
+                treeFormatter.node("Variant " + entry.getKey() + ":");
                 treeFormatter.startChildren();
                 if (warnings.getVariantUnsupported() != null) {
                     treeFormatter.node(warnings.getVariantUnsupported());

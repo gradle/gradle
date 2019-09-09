@@ -90,6 +90,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -140,6 +141,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final PlatformSupport platformSupport;
+    private final Set<String> silencedVariants = new HashSet<>();
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
@@ -149,6 +151,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
+    private boolean silenceAllPublicationWarnings;
 
     @Inject
     public DefaultMavenPublication(
@@ -324,7 +327,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
         }
-        publicationWarningsCollector.complete(getDisplayName());
+        if (!silenceAllPublicationWarnings) {
+            publicationWarningsCollector.complete(getDisplayName(), silencedVariants);
+        }
     }
 
     private boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
@@ -488,6 +493,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
         this.versionMappingInUse = true;
         configureAction.execute(versionMappingStrategy);
+    }
+
+    @Override
+    public void silencePublicationWarningsFor(String variantName) {
+        this.silencedVariants.add(variantName);
+    }
+
+    @Override
+    public void silenceAllPublicationWarnings() {
+        this.silenceAllPublicationWarnings = true;
     }
 
     @Override

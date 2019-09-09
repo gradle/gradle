@@ -960,6 +960,61 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "can ignore publication warnings"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        silencePublicationWarningsFor('apiElements')
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputContains('Declares capability org:foo:1.0')
+        outputContains("Variant runtimeElements")
+        outputDoesNotContain("Variant apiElements")
+        javaLibrary.assertPublished()
+    }
+
+    def "can ignore all publication warnings"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        silenceAllPublicationWarnings()
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputDoesNotContain("Ivy publication 'ivy' warnings:")
+        outputDoesNotContain('Declares capability org:foo:1.0')
+        javaLibrary.assertPublished()
+    }
+
     def "can publish java-library with dependencies/constraints with attributes"() {
         requiresExternalDependencies = true
         given:

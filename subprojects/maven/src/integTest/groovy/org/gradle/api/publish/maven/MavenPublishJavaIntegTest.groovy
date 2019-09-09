@@ -692,6 +692,61 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    def "can ignore publication warnings"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        silencePublicationWarningsFor('runtimeElements')
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputContains('Declares capability org:foo:1.0')
+        outputContains("Variant apiElements")
+        outputDoesNotContain("Variant runtimeElements")
+        javaLibrary.assertPublished()
+    }
+
+    def "can ignore all publication warnings"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        silenceAllPublicationWarnings()
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputDoesNotContain("Maven publication 'maven' warnings")
+        outputDoesNotContain('Declares capability org:foo:1.0')
+        javaLibrary.assertPublished()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
