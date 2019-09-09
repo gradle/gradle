@@ -39,4 +39,8 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
         return classLoader;
     }
+
+    @Override
+    public void remove(ClassLoaderId id) {
+    }
 }
