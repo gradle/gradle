@@ -65,6 +65,8 @@ import java.util.zip.ZipInputStream
 @CompileStatic
 @CacheableTask
 class DistributedPerformanceTest extends PerformanceTest {
+    private static final int MAX_RETRIED_SCENARIOS = 15
+
     @Input
     String buildTypeId
 
@@ -377,6 +379,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     void waitForTestsCompletion(String lastChangeId) {
         int total = scheduledBuilds.size()
+        int retriedScenarios = 0
         Set<String> completed = []
         Multiset<String> completedScenarios = HashMultiset.create()
         while (completed.size() < scheduledBuilds.size()) {
@@ -394,7 +397,8 @@ class DistributedPerformanceTest extends PerformanceTest {
                             }
                         } else {
                             def finishedBuild = finishedBuilds.get(buildId)
-                            if (!finishedBuild.isSuccessful() && completedScenarios.count(scenarioName) <= retryFailedScenarioCount) {
+                            if (!finishedBuild.isSuccessful() && completedScenarios.count(scenarioName) <= retryFailedScenarioCount && retriedScenarios < MAX_RETRIED_SCENARIOS) {
+                                retriedScenarios++
                                 scenariosToReSchedule.add(scenario)
                             }
                         }
