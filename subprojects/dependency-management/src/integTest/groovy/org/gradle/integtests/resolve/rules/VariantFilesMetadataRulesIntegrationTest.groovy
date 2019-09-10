@@ -376,7 +376,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                 ObjectFactory getObjects() { }
 
                 void execute(ComponentMetadataContext context) {
-                    context.details.addVariant('runtime', 'default') { // the way it is published, the ivy 'default' configuration is the runtime variant
+                    context.details.addVariant('runtimeElements', 'default') { // the way it is published, the ivy 'default' configuration is the runtime variant
                         attributes { 
                             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
@@ -384,7 +384,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
                         }
                     }
-                    context.details.addVariant('compile', 'compile') {
+                    context.details.addVariant('apiElements', 'compile') {
                         attributes { 
                             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
@@ -430,8 +430,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
         where:
         usageAttribute | varianName
-        'java-api'     | 'compile'
-        'java-runtime' | 'runtime'
+        'java-api'     | 'apiElements'
+        'java-runtime' | 'runtimeElements'
     }
 
     @RequiredFeatures([
@@ -470,7 +470,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
-                if (!applyFileRule && extension != 'jar' ) {
+                if (!applyFileRule && extension != 'jar') {
                     expectHeadArtifact(type: extension) // testing for the file indicated by the packaging in the pom
                 }
                 if (applyFileRule) {

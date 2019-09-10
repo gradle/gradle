@@ -101,7 +101,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         @Override
         public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
             if (computedArtifacts == null) {
-                computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRules(delegate, delegate.getArtifacts(), componentId);
+                computedArtifacts = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(delegate, delegate.getArtifacts(), componentId);
             }
             return computedArtifacts;
         }

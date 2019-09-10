@@ -313,11 +313,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
     }
 
-    protected static class FileImpl implements ComponentVariant.File {
+    public static class FileImpl implements ComponentVariant.File {
         private final String name;
         private final String uri;
 
-        FileImpl(String name, String uri) {
+        public FileImpl(String name, String uri) {
             this.name = name;
             this.uri = uri;
         }

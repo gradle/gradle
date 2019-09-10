@@ -98,11 +98,18 @@ public class VariantMetadataRules {
         return configDependencies;
     }
 
-    public <T extends ComponentArtifactMetadata> ImmutableList<T> applyVariantFilesMetadataRules(VariantResolveMetadata variant, ImmutableList<T> declaredArtifacts, ModuleComponentIdentifier componentIdentifier) {
+    public <T extends ComponentArtifactMetadata> ImmutableList<T> applyVariantFilesMetadataRulesToArtifacts(VariantResolveMetadata variant, ImmutableList<T> declaredArtifacts, ModuleComponentIdentifier componentIdentifier) {
         if (variantFilesRules != null) {
-            return variantFilesRules.execute(variant, declaredArtifacts, componentIdentifier);
+            return variantFilesRules.executeForArtifacts(variant, declaredArtifacts, componentIdentifier);
         }
         return declaredArtifacts;
+    }
+
+    public <T extends ComponentVariant.File> ImmutableList<T> applyVariantFilesMetadataRulesToFiles(VariantResolveMetadata variant, ImmutableList<T> declaredFiles, ModuleComponentIdentifier componentIdentifier) {
+        if (variantFilesRules != null) {
+            return variantFilesRules.executeForFiles(variant, declaredFiles, componentIdentifier);
+        }
+        return declaredFiles;
     }
 
     public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {

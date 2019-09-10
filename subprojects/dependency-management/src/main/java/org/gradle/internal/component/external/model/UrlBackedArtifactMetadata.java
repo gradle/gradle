@@ -31,11 +31,13 @@ import org.gradle.internal.component.model.IvyArtifactName;
  */
 public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadata {
     private final ModuleComponentIdentifier componentIdentifier;
+    private final String fileName;
     private final String relativeUrl;
     private final ModuleComponentFileArtifactIdentifier id;
 
     public UrlBackedArtifactMetadata(ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
         this.componentIdentifier = componentIdentifier;
+        this.fileName = fileName;
         this.relativeUrl = relativeUrl;
         id = new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName);
     }
@@ -48,6 +50,10 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
     @Override
     public ModuleComponentArtifactIdentifier getId() {
         return id;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     public String getRelativeUrl() {

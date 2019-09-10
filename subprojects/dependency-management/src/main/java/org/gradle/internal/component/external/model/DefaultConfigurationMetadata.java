@@ -51,7 +51,6 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     // because we need the attributes to be computes lazily too, because of component metadata rules.
     private final DependencyFilter dependencyFilter;
     private ImmutableList<ModuleDependencyMetadata> filteredConfigDependencies;
-    private boolean mavenArtifactDiscovery;
 
     public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
@@ -59,10 +58,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                         ImmutableList<ExcludeMetadata> excludes,
                                         ImmutableAttributes componentLevelAttributes,
                                         boolean mavenArtifactDiscovery) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY);
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, mavenArtifactDiscovery);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = DependencyFilter.ALL;
-        this.mavenArtifactDiscovery = mavenArtifactDiscovery;
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId,
@@ -78,10 +76,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          DependencyFilter dependencyFilter,
                                          List<Capability> capabilities,
                                          boolean mavenArtifactDiscovery) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities));
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), mavenArtifactDiscovery);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = dependencyFilter;
-        this.mavenArtifactDiscovery = mavenArtifactDiscovery;
     }
 
     @Override
@@ -126,7 +123,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     @Override
     public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifacts() {
         if (calculatedArtifacts == null) {
-            calculatedArtifacts = componentMetadataRules.applyVariantFilesMetadataRules(this, getOriginalArtifacts(), getComponentId());
+            calculatedArtifacts = componentMetadataRules.applyVariantFilesMetadataRulesToArtifacts(this, getOriginalArtifacts(), getComponentId());
         }
         return calculatedArtifacts;
     }
@@ -150,7 +147,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     @Override
     public boolean requiresMavenArtifactDiscovery() {
         // If artifacts are computed, we opt-out of artifact discovery
-        return mavenArtifactDiscovery && getArtifacts() == getOriginalArtifacts();
+        return super.requiresMavenArtifactDiscovery() && getArtifacts() == getOriginalArtifacts();
     }
 
     private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
@@ -303,7 +300,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     lazyConfigDependencies(),
                     dependencyFilter,
                     capabilities == null ? Cast.uncheckedCast(DefaultConfigurationMetadata.this.getCapabilities().getCapabilities()) : capabilities,
-                    mavenArtifactDiscovery
+                    DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery()
             );
         }
     }
