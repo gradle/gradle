@@ -28,6 +28,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.stream.Collectors;
 
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
@@ -65,7 +66,14 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
-        gradleProject.setTasks(tasks(gradleProject, (TaskContainerInternal) project.getTasks()));
+
+        // Internal system property to investigate model loading performance in IDEA/Android Studio
+        String projectOptions = System.getProperty("org.gradle.unsafe.GradleProjectBuilderOptions", "unmodified");
+        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), projectOptions);
+
+        if (!"skip_task_serialization".equals(projectOptions)) {
+            gradleProject.setTasks(tasks);
+        }
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
@@ -74,7 +82,11 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
+        if ("skip_task_graph_realization".equals(projectOptions)) {
+            return tasks.getNames().stream().map(t -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), t)).collect(Collectors.toList());
+        }
+
         tasks.realize();
         SortedSet<String> taskNames = tasks.getNames();
         List<LaunchableGradleTask> out = new ArrayList<LaunchableGradleTask>(taskNames.size());
@@ -86,5 +98,17 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         }
 
         return out;
+    }
+
+    public static <T extends LaunchableGradleTask> T buildFromTaskName(T target, DefaultProjectIdentifier projectIdentifier, String taskName) {
+        String taskPath = projectIdentifier.getProjectPath() + ":" + taskName;
+        target.setPath(taskPath)
+            .setName(taskName)
+            .setGroup("undefined")
+            .setDisplayName(taskPath)
+            .setDescription("")
+            .setPublic(true)
+            .setProjectIdentifier(projectIdentifier);
+        return target;
     }
 }
