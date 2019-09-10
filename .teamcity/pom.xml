@@ -15,7 +15,7 @@
     <repositories>
         <repository>
             <id>jetbrains-all</id>
-            <url>http://download.jetbrains.com/teamcity-repository</url>
+            <url>https://download.jetbrains.com/teamcity-repository</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -32,7 +32,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>JetBrains</id>
-            <url>http://download.jetbrains.com/teamcity-repository</url>
+            <url>https://download.jetbrains.com/teamcity-repository</url>
         </pluginRepository>
     </pluginRepositories>
 
