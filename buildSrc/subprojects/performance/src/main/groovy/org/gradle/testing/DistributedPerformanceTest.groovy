@@ -21,7 +21,6 @@ import com.google.common.base.Splitter
 import com.google.common.collect.HashMultiset
 import com.google.common.collect.Multiset
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
@@ -32,9 +31,6 @@ import groovyx.net.http.RESTClient
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.input.CloseShieldInputStream
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
-import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -42,7 +38,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.process.CommandLineArgumentProvider
 import org.openmbee.junit.JUnitMarshalling
@@ -51,7 +46,6 @@ import org.openmbee.junit.model.JUnitTestSuite
 import javax.inject.Inject
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipInputStream
 
 /**
@@ -106,9 +100,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Internal
     DefaultPerformanceReporter distributedPerformanceReporter
 
-    @Internal
-    boolean rerunable
-
     private RESTClient client
 
     protected Map<String, Scenario> scheduledBuilds = [:]
@@ -125,18 +116,12 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
-        getOutputs().doNotCacheIf("rerun build depends on first run's output", { isRerun() })
         jvmArgumentProviders.add(new CommandLineArgumentProvider() {
             @Override
             Iterable<String> asArguments() {
                 return ["-Dorg.gradle.performance.scenario.list=$scenarioList".toString()]
             }
         })
-    }
-
-    @Internal
-    boolean isRerun() {
-        return Boolean.parseBoolean(project.findProperty("onlyPreviousFailedTestClasses")?.toString())
     }
 
     @Override
@@ -163,48 +148,14 @@ class DistributedPerformanceTest extends PerformanceTest {
             e.printStackTrace()
             throw e
         } finally {
-            report()
+            distributedPerformanceReporter.report(this)
             testEventsGenerator.release()
         }
     }
 
-    private void report() {
-        if (!isRerun()) {
-            // first run, only write report when it succeeds
-            if (allWorkerBuildsAreSuccessful() || !rerunable) {
-                distributedPerformanceReporter.report(this)
-            } else {
-                writeBinaryResults()
-                generateResultsJson()
-            }
-        } else {
-            distributedPerformanceReporter.report(this)
-        }
-    }
-
-    /**
-     * This is for tagging plugin. See https://github.com/gradle/ci-health/blob/3e30ea146f594ee54a4efe4384f933534b40739c/gradle-build-tag-plugin/src/main/groovy/org/gradle/ci/tagging/plugin/TagSingleBuildPlugin.groovy
-     */
-    @VisibleForTesting
-    void writeBinaryResults() {
-        AtomicLong counter = new AtomicLong()
-        Map<String, List<ScenarioResult>> classNameToScenarioNames = finishedBuilds.values().findAll { it.testClassFullName != null }.groupBy {
-            it.testClassFullName
-        }
-        List<TestClassResult> classResults = classNameToScenarioNames.entrySet().collect { Map.Entry<String, List<ScenarioResult>> entry ->
-            TestClassResult classResult = new TestClassResult(counter.incrementAndGet(), entry.key, 0L)
-            entry.value.each { ScenarioResult scenarioResult ->
-                classResult.add(scenarioResult.toMethodResult(counter))
-            }
-            classResult
-        }
-
-        new TestResultSerializer(binResultsDir).write(classResults)
-    }
-
     @Override
     protected void generateResultsJson() {
-        List<ScenarioBuildResultData> resultData = isRerun() ? getResultsFromCurrentRun() + getResultsFromPreviousRun() : getResultsFromCurrentRun()
+        List<ScenarioBuildResultData> resultData = getResultsFromCurrentRun()
         FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
     }
 
@@ -221,14 +172,6 @@ class DistributedPerformanceTest extends PerformanceTest {
                 agentUrl: scenarioResult.buildResponse.agent.webUrl,
                 testFailure: scenarioResult.failureText)
         }
-    }
-
-    private List<ScenarioBuildResultData> getResultsFromPreviousRun() {
-        return resultsJson.isFile() ? ((List<Map>) new JsonSlurper().parseText(resultsJson.text)).collect { new ScenarioBuildResultData(it) } : []
-    }
-
-    private boolean allWorkerBuildsAreSuccessful() {
-        return finishedBuilds.values().every { it.successful }
     }
 
     private void doExecuteTests() {
@@ -522,10 +465,6 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void checkForErrors() {
-        if (isRerun()) {
-            // report generation will control the coordinator failure status
-            return
-        }
         def failedBuilds = finishedBuilds.values().findAll { it.buildResponse.status != "SUCCESS" }
         if (failedBuilds) {
             throw new GradleException("${failedBuilds.size()} performance tests failed. See $reportDir for details.")
@@ -572,16 +511,6 @@ class DistributedPerformanceTest extends PerformanceTest {
             } else {
                 return buildResponse.statusText
             }
-        }
-
-        TestMethodResult toMethodResult(AtomicLong counter) {
-            return new TestMethodResult(
-                counter.incrementAndGet(),
-                name,
-                name,
-                isSuccessful() ? TestResult.ResultType.SUCCESS : TestResult.ResultType.FAILURE,
-                0L,
-                0L)
         }
     }
 }
