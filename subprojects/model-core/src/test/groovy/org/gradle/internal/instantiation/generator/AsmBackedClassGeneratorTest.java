@@ -20,8 +20,10 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -1784,6 +1786,10 @@ public class AsmBackedClassGeneratorTest {
         ConfigurableFileCollection getProp();
     }
 
+    public interface InterfaceFileTreeBean {
+        ConfigurableFileTree getProp();
+    }
+
     public interface InterfaceNestedBean {
         @Nested
         InterfaceFileCollectionBean getFilesBean();
@@ -1839,6 +1845,15 @@ public class AsmBackedClassGeneratorTest {
 
     public interface InterfaceMapPropertyBean {
         MapProperty<String, Number> getProp();
+    }
+
+    public static abstract class NamedBean {
+        public NamedBean(String name) {
+        }
+    }
+
+    public interface InterfaceContainerPropertyBean {
+        NamedDomainObjectContainer<NamedBean> getProp();
     }
 
     public interface InterfaceWithDefaultMethods {

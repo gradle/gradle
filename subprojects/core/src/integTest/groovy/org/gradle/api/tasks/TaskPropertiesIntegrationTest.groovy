@@ -153,6 +153,69 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [a, b, c]")
     }
 
+    def "can define task with abstract read-only ConfigurableFileTree property"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileTree getSource()
+                
+                @TaskAction
+                void go() {
+                    println("files = \${source.files.name.sort()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                source.from("dir")
+            }
+        """
+        file("dir/sub/a.txt").createFile()
+        file("dir/b.txt").createFile()
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("files = [a.txt, b.txt]")
+    }
+
+    def "can define task with abstract read-only NamedDomainObjectContainer<T> property"() {
+        given:
+        buildFile << """
+            abstract class Bean {
+                final String name
+                abstract Property<String> getProp()
+                Bean(String name) {
+                    this.name = name
+                }
+            }
+            
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract NamedDomainObjectContainer<Bean> getBeans()
+                
+                @TaskAction
+                void go() {
+                    println("beans = \${beans.collect { it.prop.get() } }")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                beans.configure {
+                    one { prop.set('1') }
+                    two { prop.set('2') }
+                }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("beans = [1, 2]")
+    }
+
     def "can define task with abstract read-only @Nested property"() {
         given:
         buildFile << """

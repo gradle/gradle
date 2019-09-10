@@ -29,9 +29,11 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -95,12 +97,14 @@ import java.util.stream.Collectors;
 abstract class AbstractClassGenerator implements ClassGenerator {
     private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
         ConfigurableFileCollection.class,
+        ConfigurableFileTree.class,
         ListProperty.class,
         SetProperty.class,
         MapProperty.class,
         RegularFileProperty.class,
         DirectoryProperty.class,
-        Property.class
+        Property.class,
+        NamedDomainObjectContainer.class
     );
 
     private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
