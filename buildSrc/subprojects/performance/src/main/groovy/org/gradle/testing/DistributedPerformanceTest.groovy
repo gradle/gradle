@@ -30,7 +30,6 @@ import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.input.CloseShieldInputStream
-import org.gradle.api.GradleException
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -191,8 +190,6 @@ class DistributedPerformanceTest extends PerformanceTest {
             schedule(it, lastChangeId)
         }
         waitForTestsCompletion(lastChangeId)
-
-        checkForErrors()
     }
 
     private void fillScenarioList() {
@@ -456,14 +453,6 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
         assert parsedXmls.size() == 1
         parsedXmls[0]
-    }
-
-    @TypeChecked(TypeCheckingMode.SKIP)
-    private void checkForErrors() {
-        def failedBuilds = finishedBuilds.values().findAll { it.buildResponse.status != "SUCCESS" }
-        if (failedBuilds) {
-            throw new GradleException("${failedBuilds.size()} performance tests failed. See $reportDir for details.")
-        }
     }
 
     private RESTClient createClient() {
