@@ -87,6 +87,17 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Internal
     int repeat = 1
 
+    /**
+     * How often to retry the scenario until it passes.
+     *
+     * Has no effect if {@link #getRepeat()} is bigger than 1.
+     *
+     * The scenario will always be executed at least once.
+     * If retryFailedScenarioCount is two, then the scenario will be retried at most twice, for a maximal number of 3 executions.
+     */
+    @Internal
+    int retryFailedScenarioCount = 1
+
     @OutputFile
     File scenarioList
 
@@ -377,8 +388,15 @@ class DistributedPerformanceTest extends PerformanceTest {
                         completed << buildId
                         def scenarioName = scenario.getId()
                         completedScenarios.add(scenarioName)
-                        if (completedScenarios.count(scenarioName) < repeat) {
-                            scenariosToReSchedule.add(scenario)
+                        if (repeat > 1) {
+                            if (completedScenarios.count(scenarioName) < repeat) {
+                                scenariosToReSchedule.add(scenario)
+                            }
+                        } else {
+                            def finishedBuild = finishedBuilds.get(buildId)
+                            if (!finishedBuild.isSuccessful() && completedScenarios.count(scenarioName) <= retryFailedScenarioCount) {
+                                scenariosToReSchedule.add(scenario)
+                            }
                         }
                     } else {
                         waiting << buildId
