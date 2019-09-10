@@ -194,6 +194,24 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
+    def "can create instance of interface with read-only ConfigurableFileTree property"() {
+        buildFile << """
+            interface Thing {
+                ConfigurableFileTree getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "directory 'null'"
+            thing.value.from("dir")
+            assert thing.value.files == [file("dir/a.txt"), file("dir/sub/b.txt")] as Set
+        """
+        file("dir/a.txt").createFile()
+        file("dir/sub/b.txt").createFile()
+
+        expect:
+        succeeds()
+    }
+
     def "can create instance of interface with read-only Property<T> property"() {
         buildFile << """
             interface Thing {
@@ -302,6 +320,35 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
                 value = [a: "b"]
             }
             assert thing.value.get() == [a: "b"]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only NamedDomainObjectContainer property"() {
+        buildFile << """
+            class Bean {
+                final String name
+                Bean(String name) {
+                    this.name = name
+                }
+            }
+
+            interface Thing {
+                NamedDomainObjectContainer<Bean> getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "Bean container"
+            assert thing.value.empty
+            thing {
+                value {
+                    a { }
+                    b
+                }
+            }
+            assert thing.value.names == ["a", "b"] as Set
         """
 
         expect:
