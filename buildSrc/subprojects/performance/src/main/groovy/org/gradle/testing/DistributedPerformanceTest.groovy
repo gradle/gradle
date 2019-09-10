@@ -323,6 +323,26 @@ class DistributedPerformanceTest extends PerformanceTest {
     void waitForTestsCompletion(String lastChangeId) {
         int retriedScenarios = 0
         Set<String> completed = []
+        PerformanceScenarioRerunStrategy rerunStrategy = repeat > 1
+            ? new PerformanceScenarioRerunStrategy() {
+
+            @Override
+            boolean shouldRerun(int scenarioRunCount, boolean successful) {
+                return scenarioRunCount < repeat
+            }
+        }
+            : new PerformanceScenarioRerunStrategy() {
+            private int retriedScenarios
+
+            @Override
+            boolean shouldRerun(int scenarioRunCount, boolean successful) {
+                def shouldRerun = !successful && scenarioRunCount <= retryFailedScenarioCount && retriedScenarios < MAX_RETRIED_SCENARIOS
+                if (shouldRerun) {
+                    retriedScenarios++
+                }
+                return shouldRerun
+            }
+        }
         Multiset<String> completedScenarios = HashMultiset.create()
         while (completed.size() < scheduledBuilds.size()) {
             List<String> waiting = []
@@ -333,16 +353,9 @@ class DistributedPerformanceTest extends PerformanceTest {
                         completed << buildId
                         def scenarioName = scenario.getId()
                         completedScenarios.add(scenarioName)
-                        if (repeat > 1) {
-                            if (completedScenarios.count(scenarioName) < repeat) {
-                                scenariosToReSchedule.add(scenario)
-                            }
-                        } else {
-                            def finishedBuild = finishedBuilds.get(buildId)
-                            if (!finishedBuild.isSuccessful() && completedScenarios.count(scenarioName) <= retryFailedScenarioCount && retriedScenarios < MAX_RETRIED_SCENARIOS) {
-                                retriedScenarios++
-                                scenariosToReSchedule.add(scenario)
-                            }
+                        def finishedBuild = finishedBuilds.get(buildId)
+                        if (rerunStrategy.shouldRerun(completedScenarios.count(scenarioName), finishedBuild.isSuccessful())) {
+                            scenariosToReSchedule.add(scenario)
                         }
                     } else {
                         waiting << buildId
