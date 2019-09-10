@@ -77,24 +77,6 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
     @Internal
     String teamCityPassword
 
-    /**
-     * In FlakinessDetectionPerformanceTest, we simply repeat all scenarios several times.
-     * This field is used to control the iteration count.
-     */
-    @Internal
-    int repeat = 1
-
-    /**
-     * How often to retry the scenario until it passes.
-     *
-     * Has no effect if {@link #getRepeat()} is bigger than 1.
-     *
-     * The scenario will always be executed at least once.
-     * If retryFailedScenarioCount is two, then the scenario will be retried at most twice, for a maximal number of 3 executions.
-     */
-    @Internal
-    int retryFailedScenarioCount = 1
-
     @OutputFile
     File scenarioList
 
