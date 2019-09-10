@@ -32,7 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 @CompileStatic
 abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    static final String AGP_VERSION = "3.6.0-20190901022914+0200"
+    static final String AGP_VERSION = "3.6.0-20190908022903+0200"
 
     static final String AGP_NIGHTLY_REPOSITORY_DECLARATION = '''
         maven {
