@@ -113,6 +113,17 @@ The two most important cases that are now covered are cleaning stale output file
 
 ## Features for plugin authors
 
+### ConfigurableFileTree managed property methods
+
+Gradle 5.5 introduced the concept of a _managed property_ for tasks and other types. A managed property is a property whose getters and setters are abstract, and for these properties
+Gradle provides an implementation of the getters and setters. This simplifies plugin implementation by removing a bunch of boilerplate.
+
+In this release, it is possible for a task or other custom types to have an abstract read-only property of type `ConfigurableFileTree`.  
+
+### NamedDomainObjectContainer<T> managed property methods
+
+In this release, it is also possible for a task or other custom types to have an abstract read-only property of type `NamedDomainObjectContainer<T>`. 
+
 ### File and directory property methods
 
 TBD - Added `fileValue()` and `fileProvider()` methods.
