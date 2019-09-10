@@ -50,7 +50,7 @@ class PerformanceTestBuildTypeTest {
         assertEquals(listOf(
                 "GRADLE_RUNNER",
                 "CHECK_CLEAN_M2",
-                "GRADLE_RERUNNER"
+                "TAG_BUILD"
         ), performanceTest.steps.items.map(BuildStep::name))
 
         val expectedRunnerParams = listOf(
@@ -90,18 +90,6 @@ class PerformanceTestBuildTypeTest {
                 performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)
-
-        assertEquals(
-                (listOf("distributedPerformanceTests") +
-                        expectedRunnerParams +
-                        "-PteamCityBuildId=%teamcity.build.id%" +
-                        "-PonlyPreviousFailedTestClasses=true" +
-                        "-PignoreTagging=true" +
-                        "-Dscan.tag.RERUN_TESTS"
-                        ).joinToString(" "),
-                performanceTest.getGradleStep("GRADLE_RERUNNER").gradleParams
-        )
-        assertEquals(BuildStep.ExecutionMode.RUN_ON_FAILURE, performanceTest.getGradleStep("GRADLE_RERUNNER").executionMode)
     }
 
     private
