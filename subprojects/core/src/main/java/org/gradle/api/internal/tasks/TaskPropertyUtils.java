@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -30,6 +30,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -82,41 +84,37 @@ public class TaskPropertyUtils {
                 return;
             }
             String message;
+            Class<?> taskType = task instanceof GeneratedSubclass ? ((GeneratedSubclass) task).publicType() : task.getClass();
             if (problems.size() == 1) {
-                message = String.format("A problem was found with the configuration of %s.", task);
+                message = String.format("A problem was found with the configuration of %s of type '%s'.", task, taskType.getName());
             } else {
                 Collections.sort(problems);
-                message = String.format("Some problems were found with the configuration of %s.", task);
+                message = String.format("Some problems were found with the configuration of %s of type '%s'.", task, taskType.getName());
             }
-            throw new TaskValidationException(message, CollectionUtils.collect(problems, new Transformer<InvalidUserDataException, String>() {
-                @Override
-                public InvalidUserDataException transform(String message) {
-                    return new InvalidUserDataException(message);
-                }
-            }));
+            throw new TaskValidationException(message, CollectionUtils.collect(problems, InvalidUserDataException::new));
         }
 
         @Override
-        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+            // Ignore for now
+        }
+
+        @Override
+        public void visitWarning(String message) {
             // Ignore for now
         }
 
         @Override
         public void visitError(String message) {
-            // Ignore for now
-        }
-
-        @Override
-        public void visitErrorStrict(String message) {
             if (problems == null) {
-                problems = new ArrayList<String>();
+                problems = new ArrayList<>();
             }
             problems.add(message);
         }
 
         @Override
-        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
-            visitErrorStrict(message);
+        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+            visitError(decorateMessage(ownerPath, propertyName, message));
         }
     }
 }

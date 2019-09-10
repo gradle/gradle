@@ -88,6 +88,7 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
@@ -108,15 +109,17 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
+import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
-import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
+import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -243,11 +246,21 @@ class DependencyManagementBuildScopeServices {
         return new ExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal);
     }
 
-    TextResourceLoader createTextResourceLoader(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
-        HashSet<String> schemas = Sets.newHashSet("https", "http");
-        RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "http auth", Collections.<Authentication>emptyList());
-        ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
-        return new DefaultUriTextResourceLoader(externalResourceAccessor, schemas);
+    TextFileResourceLoader createTextFileResourceLoader() {
+        return new DefaultTextFileResourceLoader();
+    }
+
+    TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
+        final HashSet<String> schemas = Sets.newHashSet("https", "http");
+        return redirectVerifier -> {
+            RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.<Authentication>emptyList(), redirectVerifier);
+            ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(resourceFileStore, transport.getResourceAccessor());
+            return new CachingTextUriResourceLoader(externalResourceAccessor, schemas);
+        };
+    }
+
+    protected ApiTextResourceAdapter.Factory createTextResourceAdapterFactory(TextUriResourceLoader.Factory textUriResourceLoaderFactory, TemporaryFileProvider tempFileProvider) {
+        return new ApiTextResourceAdapter.Factory(textUriResourceLoaderFactory, tempFileProvider);
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

@@ -15,14 +15,11 @@
  */
 package org.gradle.scripts;
 
-import org.gradle.api.Incubating;
-
 /**
  * Scripting language provider metadata.
  *
  * @since 4.0
  */
-@Incubating
 public interface ScriptingLanguage {
 
     /**

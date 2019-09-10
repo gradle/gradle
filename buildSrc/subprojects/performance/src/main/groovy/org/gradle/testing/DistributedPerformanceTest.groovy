@@ -491,7 +491,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void checkForErrors() {
-        if(isRerun()) {
+        if (isRerun()) {
             // report generation will control the coordinator failure status
             return
         }

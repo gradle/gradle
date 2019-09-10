@@ -41,7 +41,6 @@ public enum JavaVersion {
      *
      * @since 5.0
      */
-    @Incubating
     VERSION_12,
 
     /**
@@ -56,7 +55,6 @@ public enum JavaVersion {
      * Higher version of Java.
      * @since 4.7
      */
-    @Incubating
     VERSION_HIGHER;
     // Since Java 9, version should be X instead of 1.X
     // However, to keep backward compatibility, we change from 11

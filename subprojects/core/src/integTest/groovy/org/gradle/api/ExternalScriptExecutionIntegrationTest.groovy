@@ -151,11 +151,11 @@ class ListenerImpl extends BuildAdapter {
         script << """
             task doStuff
             assert buildscript.sourceFile == null
-            assert "http://localhost:$server.port/external.gradle" == buildscript.sourceURI as String
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
 """
 
         testFile('build.gradle') << """
-            apply from: 'http://localhost:$server.port/external.gradle'
+            apply from: '${server.uri}/external.gradle'
             defaultTasks 'doStuff'
 """
 

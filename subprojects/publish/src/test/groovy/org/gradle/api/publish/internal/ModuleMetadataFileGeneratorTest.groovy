@@ -27,6 +27,7 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
@@ -244,6 +245,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d4.versionConstraint >> requires('')
         d4.transitive >> true
         d4.attributes >> ImmutableAttributes.EMPTY
+        d4.artifacts >> [new DefaultDependencyArtifact("foo", "bar", "baz", "claz", null)]
 
         def d5 = Stub(ExternalDependency)
         d5.group >> "g5"
@@ -381,7 +383,15 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         },
         {
           "group": "g4",
-          "module": "m4"
+          "module": "m4",
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "foo",
+              "type": "bar",
+              "extension": "baz",
+              "classifier": "claz"
+            }
+          }
         },
         {
           "group": "g5",

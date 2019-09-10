@@ -119,6 +119,16 @@ class GradleFileModuleAdapter {
                                     }
                                 })
                             }
+                            if (d.artifactSelector) {
+                                thirdPartyCompatibility {
+                                    artifactSelector {
+                                        name d.artifactSelector.name
+                                        type d.artifactSelector.type
+                                        if (d.artifactSelector.extension) { extension d.artifactSelector.extension }
+                                        if (d.artifactSelector.classifier) { classifier d.artifactSelector.classifier }
+                                    }
+                                }
+                            }
                         }
                     })
                     dependencyConstraints(v.dependencyConstraints.collect { dc ->

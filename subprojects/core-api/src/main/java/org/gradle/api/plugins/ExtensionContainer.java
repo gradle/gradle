@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
@@ -144,7 +143,6 @@ public interface ExtensionContainer {
      *
      * @since 4.5
      */
-    @Incubating
     ExtensionsSchema getExtensionsSchema();
 
     /**
@@ -230,7 +228,6 @@ public interface ExtensionContainer {
      * @throws UnknownDomainObjectException if no extension is found.
      * @since 4.0
      */
-    @Incubating
     <T> void configure(String name, Action<? super T> action);
 
     /**

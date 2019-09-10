@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -30,7 +29,6 @@ import java.io.File;
  *
  * @since 4.1
  */
-@Incubating
 public interface ProjectLayout {
     /**
      * Returns the project directory.

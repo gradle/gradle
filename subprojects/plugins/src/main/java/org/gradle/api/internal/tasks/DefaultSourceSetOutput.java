@@ -26,7 +26,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -52,17 +51,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         classesDirs.builtBy(this);
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
-        outputDirectories.from(new Callable() {
-            @Override
-            public Object call() {
-                return classesDirs;
-            }
-        }, new Callable() {
-            @Override
-            public Object call() {
-                return getResourcesDir();
-            }
-        });
+        outputDirectories.from(classesDirs, (Callable) this::getResourcesDir);
 
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
@@ -95,12 +84,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     @Override
-    public boolean isLegacyLayout() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("legacyLayout", "The method always returns false.");
-        return false;
-    }
-
-    @Override
     @Nullable
     public File getResourcesDir() {
         if (resourcesDir == null) {
@@ -125,7 +108,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     @Override
     public void dir(Object dir) {
-        this.dir(Collections.<String, Object>emptyMap(), dir);
+        this.dir(Collections.emptyMap(), dir);
     }
 
     @Override

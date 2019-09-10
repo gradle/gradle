@@ -16,7 +16,6 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -76,7 +75,6 @@ public class JacocoMerge extends JacocoBase {
      * @param destinationFile Destination file provider
      * @since 4.0
      */
-    @Incubating
     public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile.set(destinationFile);
     }

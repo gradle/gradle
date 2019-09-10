@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.caching
+package org.gradle.kotlin.dsl.caching.fixtures
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
-import org.gradle.kotlin.dsl.execution.ProgramKind
 import org.gradle.kotlin.dsl.execution.ProgramKind.ScriptPlugin
 import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
-import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.execution.ProgramTarget.Gradle
 import org.gradle.kotlin.dsl.execution.ProgramTarget.Project
 import org.gradle.kotlin.dsl.execution.ProgramTarget.Settings
-import org.gradle.kotlin.dsl.execution.templateIdFor
 
 import java.io.File
 
@@ -34,47 +31,24 @@ fun ExecutionResult.compilationCache(action: CompilationCache.() -> Unit) =
     action(CompilationCache(this))
 
 
-class CompilationCache(val result: ExecutionResult) {
+class CompilationCache(private val result: ExecutionResult) : KotlinDslCacheFixture {
 
-    fun misses(vararg cachedScripts: CachedScript) =
+    override fun misses(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertCompilations(it, 1) }
 
-    fun hits(vararg cachedScripts: CachedScript) =
+    override fun hits(vararg cachedScripts: CachedScript) =
         cachedScripts.forEach { assertCompilations(it, 0) }
 
+    private
     fun assertCompilations(cachedScript: CachedScript, count: Int) =
         when (cachedScript) {
             is CachedScript.WholeFile -> cachedScript.stages.forEach { assertCompilations(it, count) }
             is CachedScript.CompilationStage -> assertCompilations(cachedScript, count)
         }
 
+    private
     fun assertCompilations(stage: CachedScript.CompilationStage, count: Int) =
         result.assertOccurrenceCountOf("compiling", stage, count)
-}
-
-
-sealed class CachedScript {
-
-    class WholeFile(
-        val stage1: CompilationStage,
-        val stage2: CompilationStage
-    ) : CachedScript() {
-
-        val stages = listOf(stage1, stage2)
-    }
-
-    class CompilationStage(
-        programTarget: ProgramTarget,
-        programKind: ProgramKind,
-        val stage: String,
-        sourceDescription: String,
-        val file: File,
-        val enabled: Boolean = true
-    ) : CachedScript() {
-
-        val source = "$sourceDescription '$file'"
-        val templateId = templateIdFor(programTarget, programKind, stage)
-    }
 }
 
 

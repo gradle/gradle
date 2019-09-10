@@ -16,22 +16,26 @@
 
 package org.gradle.kotlin.dsl.caching
 
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-
+import org.gradle.kotlin.dsl.caching.fixtures.CachedScript
+import org.gradle.kotlin.dsl.caching.fixtures.KotlinDslCacheFixture
+import org.gradle.kotlin.dsl.caching.fixtures.cachedBuildFile
+import org.gradle.kotlin.dsl.caching.fixtures.cachedGradleScript
+import org.gradle.kotlin.dsl.caching.fixtures.cachedInitializationFile
+import org.gradle.kotlin.dsl.caching.fixtures.cachedProjectScript
+import org.gradle.kotlin.dsl.caching.fixtures.cachedSettingsFile
+import org.gradle.kotlin.dsl.caching.fixtures.cachedSettingsScript
+import org.gradle.kotlin.dsl.caching.fixtures.classLoadingCache
+import org.gradle.kotlin.dsl.caching.fixtures.compilationCache
+import org.gradle.kotlin.dsl.caching.fixtures.compilationTrace
 import org.gradle.kotlin.dsl.execution.Program
 import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
 import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
-
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-
 import org.gradle.soak.categories.SoakTest
-
 import org.junit.Test
 import org.junit.experimental.categories.Category
-
-import java.io.File
 import java.util.UUID
 
 
@@ -234,19 +238,27 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         val settingsFile = cachedSettingsFile(withSettings(""), false, false)
         val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
 
+        // and: kotlin-dsl cache assertions
+        fun KotlinDslCacheFixture.assertCacheHits(run: Int) {
+            if (run == 1) {
+                misses(settingsFile.stage1)
+                hits(settingsFile.stage2)
+            } else {
+                // buildSrc isn't in the settings classpath
+                hits(settingsFile)
+            }
+            misses(buildFile)
+        }
+
         // expect: memory hog released
         for (run in 1..4) {
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
             buildWithDaemonHeapSize(256, "myTask").apply {
                 compilationCache {
-                    misses(settingsFile.stage1)
-                    hits(settingsFile.stage2)
-                    misses(buildFile)
+                    assertCacheHits(run)
                 }
                 classLoadingCache {
-                    misses(settingsFile.stage1)
-                    hits(settingsFile.stage2)
-                    misses(buildFile)
+                    assertCacheHits(run)
                 }
             }
         }
@@ -298,80 +310,3 @@ data class MultiProjectCachedScripts(
     val leftBuildFile: CachedScript.WholeFile,
     val rightBuildFile: CachedScript.WholeFile
 )
-
-
-private
-fun ExecutionResult.classLoadingCache(action: ClassLoadingCache.() -> Unit) =
-    action(ClassLoadingCache(this))
-
-
-private
-class ClassLoadingCache(val result: ExecutionResult) {
-
-    fun misses(vararg cachedScripts: CachedScript) =
-        cachedScripts.forEach { assertClassLoads(it, 1) }
-
-    fun hits(vararg cachedScripts: CachedScript) =
-        cachedScripts.forEach { assertClassLoads(it, 0) }
-
-    fun assertClassLoads(cachedScript: CachedScript, count: Int) =
-        when (cachedScript) {
-            is CachedScript.WholeFile -> cachedScript.stages.forEach { assertClassLoads(it, count) }
-            is CachedScript.CompilationStage -> assertClassLoads(cachedScript, count)
-        }
-
-    fun assertClassLoads(stage: CachedScript.CompilationStage, count: Int) =
-        result.assertOccurrenceCountOf("loading", stage, count)
-}
-
-
-internal
-fun ExecutionResult.assertOccurrenceCountOf(actionDisplayName: String, stage: CachedScript.CompilationStage, count: Int) {
-    val expectedCount = if (stage.enabled) count else 0
-    val logStatement = "${actionDisplayName.capitalize()} ${stage.templateId} from ${stage.source}"
-    val observedCount = output.occurrenceCountOf(logStatement)
-    require(observedCount == expectedCount) {
-        "Expected $expectedCount but got $observedCount\n" +
-            "  Looking for statement: $logStatement\n" +
-            "  Build output was:\n" + output.prependIndent("    ")
-    }
-}
-
-
-internal
-fun String.occurrenceCountOf(string: String) =
-    split(string).size - 1
-
-
-internal
-fun compilationTrace(projectRoot: File, action: CompileTrace.() -> Unit) {
-    val file = File(projectRoot, "operation-trace-log.txt")
-    action(CompileTrace(file.readLines()))
-}
-
-
-internal
-class CompileTrace(private val operations: List<String>) {
-
-    fun assertScriptCompile(stage: CachedScript.CompilationStage) {
-        val description = operationDescription(stage)
-        require(operations.any { it.contains(description) }) {
-            "Expecting operation `$description`!"
-        }
-    }
-
-    fun assertNoScriptCompile(stage: CachedScript.CompilationStage) {
-        val description = operationDescription(stage)
-        require(!operations.any { it.contains(description) }) {
-            "Unexpected operation `$description`!"
-        }
-    }
-
-    private
-    fun operationDescription(stage: CachedScript.CompilationStage) =
-        "Compile script ${stage.file.name} (${descriptionOf(stage)})"
-
-    private
-    fun descriptionOf(stage: CachedScript.CompilationStage) =
-        if (stage.stage == "stage1") "CLASSPATH" else "BODY"
-}

@@ -71,11 +71,16 @@ class DefaultPerformanceReporter implements PerformanceReporter {
             }
         })
 
-        // SLF4J: Class path contains multiple SLF4J bindings.
-        String message = output.toString().readLines().findAll { !it.contains("WARNING: ") && !it.contains("SLF4J") }.join("\n")
+        String message = output.toString().readLines().findAll { line ->
+            ! [
+                // WARNING: All illegal access operations will be denied in a future release
+                "WARNING",
+                // SLF4J: Class path contains multiple SLF4J bindings.
+                "SLF4J"
+            ].any { line.contains(it) }
+        }.join("\n")
 
         if (result.exitValue != 0) {
-            // WARNING: All illegal access operations will be denied in a future release
             throw new GradleException("Performance test failed: " + message)
         } else {
             println(message)

@@ -32,7 +32,7 @@ public class CacheableTaskTypeAnnotationHandler implements TypeAnnotationHandler
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, ParameterValidationContext visitor) {
         if (!Task.class.isAssignableFrom(classWithAnnotationAttached)) {
-            visitor.visitErrorStrict(String.format("Cannot use @%s with type %s. This annotation can only be used with %s types.", getAnnotationType().getSimpleName(), ModelType.of(classWithAnnotationAttached).getDisplayName(), Task.class.getSimpleName()));
+            visitor.visitError(String.format("Cannot use @%s with type %s. This annotation can only be used with %s types.", getAnnotationType().getSimpleName(), ModelType.of(classWithAnnotationAttached).getDisplayName(), Task.class.getSimpleName()));
         }
     }
 }

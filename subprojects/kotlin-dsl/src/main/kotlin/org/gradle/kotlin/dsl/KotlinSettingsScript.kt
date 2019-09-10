@@ -30,8 +30,6 @@ import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -39,12 +37,6 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.file.Deleter
-import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.StreamHasher
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -439,15 +431,9 @@ fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations
     val fileLookup = services.get<FileLookup>()
     val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
     val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
-    return DefaultFileOperations(
+    return DefaultFileOperations.createSimple(
         fileResolver,
-        services.get<TemporaryFileProvider>(),
-        services.get<Instantiator>(),
-        services.get<DirectoryFileTreeFactory>(),
-        services.get<StreamHasher>(),
-        services.get<FileHasher>(),
-        services.get<TextResourceLoader>(),
         fileCollectionFactory,
-        services.get<FileSystem>(),
-        services.get<Deleter>())
+        services
+    )
 }

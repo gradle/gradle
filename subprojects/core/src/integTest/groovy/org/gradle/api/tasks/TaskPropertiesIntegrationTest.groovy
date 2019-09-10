@@ -153,4 +153,18 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [a, b, c]")
     }
 
+    def "cannot modify task's input properties via returned map"() {
+        given:
+        buildFile << """
+            tasks.create("thing") {
+                inputs.properties.put("Won't", "happen")
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        errorOutput.contains("java.lang.UnsupportedOperationException")
+    }
 }

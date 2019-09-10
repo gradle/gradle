@@ -23,7 +23,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 
 import java.io.File;
 import java.util.List;
@@ -49,7 +49,7 @@ public class InitScriptHandler {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                BasicTextResourceLoader resourceLoader = new BasicTextResourceLoader();
+                DefaultTextFileResourceLoader resourceLoader = new DefaultTextFileResourceLoader();
                 for (File script : initScripts) {
                     TextResource resource = resourceLoader.loadFile("initialization script", script);
                     processor.process(new TextResourceScriptSource(resource), gradle);

@@ -34,7 +34,6 @@ import java.io.File;
  *
  * @since 4.3
  */
-@Incubating
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
@@ -45,7 +44,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * {@inheritDoc}
      */
     @Override
-    DirectoryProperty value(Directory value);
+    DirectoryProperty value(@Nullable Directory value);
 
     /**
      * {@inheritDoc}
@@ -120,5 +119,6 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * @return The file collection.
      * @since 6.0
      */
+    @Incubating
     FileCollection files(Object... paths);
 }

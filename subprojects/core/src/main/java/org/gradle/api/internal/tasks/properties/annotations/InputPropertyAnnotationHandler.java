@@ -63,11 +63,11 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            visitor.visitError(null, propertyMetadata.getPropertyName(),
+            visitor.visitWarning(null, propertyMetadata.getPropertyName(),
                 String.format("has @Input annotation used on property of type %s", valueType.getName()));
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
-            visitor.visitError(null, propertyMetadata.getPropertyName(),
+            visitor.visitWarning(null, propertyMetadata.getPropertyName(),
                 String.format("@Input properties with primitive type '%s' cannot be @Optional", valueType.getName()));
         }
     }

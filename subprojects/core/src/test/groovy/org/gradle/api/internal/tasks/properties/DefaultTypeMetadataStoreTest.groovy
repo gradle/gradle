@@ -124,7 +124,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
-            context.visitError(null, metadata.propertyName, "is broken")
+            context.visitWarning(null, metadata.propertyName, "is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -145,7 +145,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
-            context.visitError(null, metadata.propertyName, "is broken")
+            context.visitWarning(null, metadata.propertyName, "is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -163,7 +163,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, ParameterValidationContext context ->
-            context.visitError("type is broken")
+            context.visitWarning("type is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)

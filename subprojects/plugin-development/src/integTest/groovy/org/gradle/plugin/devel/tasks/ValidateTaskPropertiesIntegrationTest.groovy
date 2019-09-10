@@ -54,10 +54,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation gradleApi()
             }
-
-            validateTaskProperties {
-                failOnWarning = true
-            }
         """
     }
 
@@ -220,12 +216,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails("validateTaskProperties")
         failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
         failure.assertHasCause("Task property validation failed. See")
-        failure.assertHasCause("Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
-        failure.assertHasCause("Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
+        failure.assertHasCause("Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
+        failure.assertHasCause("Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
 
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
-            Warning: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
+            Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
+            Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
             """.stripIndent().trim()
 
         where:

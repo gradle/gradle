@@ -16,8 +16,6 @@
 
 package org.gradle.api.resources;
 
-import org.gradle.api.Incubating;
-
 /**
  * Creates {@code TextResource}s backed by sources such as strings, files, and archive entries.
  *
@@ -95,6 +93,20 @@ public interface TextResourceFactory {
      * @return a text resource backed by the given uri
      * @since 4.8
      */
-    @Incubating
     TextResource fromUri(Object uri);
+
+    /**
+     * Creates a text resource backed by the given uri.
+     *
+     * <b>NOTE:</b> This method allows insecure protocols (like HTTP) to be used. Only use this method if you're comfortable with the dangers.
+     *
+     * @param uri a URI as evaluated by {@link org.gradle.api.Project#uri(Object)}
+     *
+     * @return a text resource backed by the given uri
+     * @since 6.0
+     * @see #fromUri(Object)
+     */
+    @Incubating
+    TextResource fromInsecureUri(Object uri);
+
 }

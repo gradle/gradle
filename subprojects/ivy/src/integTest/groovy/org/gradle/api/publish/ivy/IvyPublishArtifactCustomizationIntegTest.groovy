@@ -433,4 +433,74 @@ The following types/formats are supported:
             $append
         """
     }
+
+    def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
+        def repoModule = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
+
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: "java-library"
+            apply plugin: "ivy-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                implementation "org:foo:1.0"
+                implementation("org:foo:1.0:classy") {
+                    artifact {
+                        name = "tarified"
+                        type = "tarfile"
+                        extension = "tar"
+                        classifier = "ctar"
+                        url = "http://new.home/tar"
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    maven(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublished()
+        repoModule.assertApiDependencies()
+        repoModule.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org:foo:1.0") {
+                // first dependency
+                exists()
+                noAttributes()
+                // second dependency
+                next()
+                exists()
+                noAttributes()
+                artifactSelector.name == 'foo'
+                artifactSelector.type == 'jar'
+                artifactSelector.extension == 'jar'
+                artifactSelector.classifier == 'classy'
+                // third dependency
+                next()
+                exists()
+                noAttributes()
+                artifactSelector.name == 'foo'
+                artifactSelector.type == 'jar'
+                artifactSelector.extension == 'jar'
+                artifactSelector.classifier == 'ctar'
+                isLast()
+            }
+        }
+    }
+
 }

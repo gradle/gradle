@@ -822,7 +822,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails('broken')
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task ':broken'.")
-        failure.assertHasCause("A problem was found with the configuration of task ':broken'.")
+        failure.assertHasCause("A problem was found with the configuration of task ':broken' of type 'MyTask'.")
         failure.assertHasCause("Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
     }
 
@@ -847,7 +847,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         // Probably should be eager
         fails('broken')
         failure.assertHasDescription("Could not determine the dependencies of task ':broken'.")
-        failure.assertHasCause("Some problems were found with the configuration of task ':broken'.")
+        failure.assertHasCause("Some problems were found with the configuration of task ':broken' of type 'MyTask'.")
         failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation can only be used with Task types.")
         failure.assertHasCause("Cannot use @CacheableTransform with type Options. This annotation can only be used with TransformAction types.")
     }

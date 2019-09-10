@@ -93,15 +93,6 @@ public interface SourceSetOutput extends FileCollection {
     FileCollection getClassesDirs();
 
     /**
-     * Source set uses the legacy layout (single classes directory for the entire source set).
-     * @return true if the source set has a single classes directory
-     * @since 4.0
-     * @deprecated This method always returns false starting from Gradle 5.0.
-     */
-    @Deprecated
-    boolean isLegacyLayout();
-
-    /**
      * Returns the output directory for resources
      * <p>
      * See example at {@link SourceSetOutput}

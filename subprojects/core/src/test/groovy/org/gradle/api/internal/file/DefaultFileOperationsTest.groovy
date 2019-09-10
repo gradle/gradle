@@ -24,10 +24,10 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.internal.resources.DefaultResourceHandler
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -45,7 +45,7 @@ class DefaultFileOperationsTest extends Specification {
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
-    private final TextResourceLoader textResourceLoader = Mock()
+    private final DefaultResourceHandler.Factory resourceHandlerFactory = Mock()
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
     @Rule
@@ -60,7 +60,7 @@ class DefaultFileOperationsTest extends Specification {
             directoryFileTreeFactory,
             streamHasher,
             fileHasher,
-            textResourceLoader,
+            resourceHandlerFactory,
             fileCollectionFactory,
             TestFiles.fileSystem(),
             TestFiles.deleter()

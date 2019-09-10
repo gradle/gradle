@@ -61,6 +61,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.SetSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
@@ -174,12 +175,14 @@ class Codecs(
         bind(ownerService<FileOperations>())
         bind(ownerService<BuildOperationExecutor>())
         bind(ownerService<ToolingModelBuilderRegistry>())
+        bind(ownerService<ExecOperations>())
         bind(ownerService<ExecActionFactory>())
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
 
         bind(EnumCodec)
+        bind(ProxyCodec)
 
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())

@@ -109,6 +109,9 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 
 - `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
 - `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
+- link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#getFailOnWarning--[ValidateTaskProperties.failOnWarning] is enabled by default.
+- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[ValidateTaskProperties]:
+  * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
 ==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`
 
@@ -181,9 +184,14 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
 
-The following breaking changes will appear as deprecation warnings with Gradle 5.6:
+==== Javadoc and Groovydoc don't include timestamps by default
 
-Miscellaneous::
+Timestamps in the generated documentation have very limited practical use, however they make it impossible to have repeatable documentation builds.
+Therefore, the `Javadoc` and `Groovydoc` tasks are now configured to not include timestamps by default any more.
+
+==== Miscellaneous
+
+The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
@@ -214,6 +222,9 @@ Miscellaneous::
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 * Changing the value of a task property with type `Property<T>` after the task has started execution now results in an error.
+* The `isLegacyLayout()` method is removed from `SourceSetOutput`.
+* The map returned by `TaskInputs.getProperties()` is now unmodifiable.
+  Trying to modify it will result in an `UnsupportedOperationException` being thrown.
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier

@@ -13,7 +13,8 @@ We would like to thank the following community contributors to this release of G
 [Robert Stupp](https://github.com/snazy),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
-and [Dan Sănduleac](https://github.com/dansanduleac).
+[Dan Sănduleac](https://github.com/dansanduleac),
+and [Vladimir Sitnikov](https://github.com/vlsi).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -116,18 +117,48 @@ The two most important cases that are now covered are cleaning stale output file
 
 TBD - Added `fileValue()` and `fileProvider()` methods.
 
+### New `ConfigurableFileTree` and `FileCollection` factories
+
+Previously, it was only possible to create a `ConfigurableFileTree` or a fixed `FileCollection` by using the APIs provided by a `Project`.
+However, a `Project` object is not always available, for example in a project extension object or a [worker action](userguide/custom_tasks.html#worker_api).
+
+The `ObjectFactory` service now has a [fileTree()](javadoc/org/gradle/api/model/ObjectFactory.html#fileTree--) method for creating `ConfigurableFileTree` instances.
+The `Directory` and `DirectoryProperty` types now both have a `files(Object...)` method, respectively [`Directory.files(Object...)`](javadoc/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-) and [`DirectoryProperty.files(Object...)`](javadoc/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-), for creating fixed `FileCollection` instances resolving files relatively to the referenced directory.
+
+See the user manual for how to [inject services]((userguide/custom_gradle_types.html#service_injection)) and how to [work with files in lazy properties](userguide/lazy_configuration.html#sec:working_with_files_in_lazy_properties). 
+
+### Injected `FileSystemOperations` and `ExecOperations` services
+
+In the same vein, doing file system operations such as `copy()`, `sync()` and `delete()` or running external processes via `exec()` and `javaexec()` was only possible by using the APIs provided by a `Project`. Two new injectable services now allow to do all that when a `Project` is not available.
+
+See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
+
+## Improving integrity of builds
+
+Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
+
+TBD
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
-* IDE integration types and APIs. We promoted all API elements in `ide` and `tooling-api` sub-projects that were introduced before Gradle 5.5.
-
 ### New incremental tasks API
 
 The new [`InputChanges`](dsl/org.gradle.work.InputChanges.html) API for implementing incremental tasks has been promoted.
 See the [user manual](userguide/custom_tasks.html#incremental_tasks) for more information.
+
+### IDE integration types and APIs.
+ 
+We promoted all API elements in `ide` and `tooling-api` sub-projects that were introduced before Gradle 5.5.
+
+### Some long existing incubating features have been promoted
+
+* all pre 5.0 incubating APIs have been promoted
+* The [lazy configuration API](userguide/lazy_configuration.html) has been promoted
+* Enabling [strict task validation](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-) has been promoted.
 
 <!--
 ### Example promoted

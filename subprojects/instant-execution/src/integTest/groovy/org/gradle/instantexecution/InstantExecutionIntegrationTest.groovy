@@ -35,6 +35,7 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.invocation.DefaultGradle
+import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
@@ -478,6 +479,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
+        ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
     }
 
     @Unroll

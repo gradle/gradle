@@ -26,8 +26,6 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
-import java.util.Collection;
-
 /**
  * This plugin collection is optimized based on the knowledge we have about how plugins
  * are applied. The plugin manager already keeps track of all plugins and ensures they
@@ -52,26 +50,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
 
     @Override
     public boolean add(Plugin toAdd) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends Plugin> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
         throw new UnsupportedOperationException();
     }
 

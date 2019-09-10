@@ -27,7 +27,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -53,7 +52,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -198,10 +196,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private void inheritMethods(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
-        visitSuperTypes(type, superType -> {
-            for (PropertyAnnotationMetadata superProperty : superType.getPropertiesAnnotationMetadata()) {
-                getOrCreateBuilder(superProperty.getPropertyName(), superProperty.getMethod(), methodBuilders)
-                    .inheritAnnotations(superProperty);
+        visitSuperTypes(type, (superType, metadata) -> {
+            for (PropertyAnnotationMetadata property : metadata.getPropertiesAnnotationMetadata()) {
+                getOrCreateBuilder(property.getPropertyName(), property.getMethod(), methodBuilders)
+                    .inheritAnnotations(superType.isInterface(), property);
             }
         });
     }
@@ -388,14 +386,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             .anyMatch(prohibited -> prohibited.isAssignableFrom(setter));
     }
 
-    private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {
+    private void visitSuperTypes(Class<?> type, TypeAnnotationMetadataVisitor visitor) {
         Arrays.stream(type.getInterfaces())
-            .map(this::getTypeAnnotationMetadata)
-            .forEach(visitor);
+            .forEach(superInterface -> visitor.visitType(superInterface, getTypeAnnotationMetadata(superInterface)));
         Class<?> superclass = type.getSuperclass();
         if (superclass != null) {
-            visitor.accept(getTypeAnnotationMetadata(superclass));
+            visitor.visitType(superclass, getTypeAnnotationMetadata(superclass));
         }
+    }
+
+    @FunctionalInterface
+    private interface TypeAnnotationMetadataVisitor {
+        void visitType(Class<?> type, TypeAnnotationMetadata metadata);
     }
 
     private static void validateNotAnnotated(String methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, ValidationErrorsBuilder errorsBuilder) {
@@ -431,7 +433,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         private final String propertyName;
         private Method method;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedAnnotations = HashMultimap.create();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = HashMultimap.create();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = HashMultimap.create();
         private final ImmutableList.Builder<String> problems = ImmutableList.builder();
 
         public PropertyAnnotationMetadataBuilder(String propertyName, Method method) {
@@ -456,9 +459,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             declaredAnnotations.put(category, annotation);
         }
 
-        public void inheritAnnotations(PropertyAnnotationMetadata superProperty) {
+        public void inheritAnnotations(boolean fromInterface, PropertyAnnotationMetadata superProperty) {
             superProperty.getAnnotations()
-                .forEach(inheritedAnnotations::put);
+                .forEach((fromInterface
+                    ? inheritedInterfaceAnnotations
+                    : inheritedSuperclassAnnotations)::put);
         }
 
         public void recordError(String problem) {
@@ -466,10 +471,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public PropertyAnnotationMetadata build() {
-            return new DefaultPropertyAnnotationMetadata(propertyName, method, mergeAnnotations(), problems.build());
+            return new DefaultPropertyAnnotationMetadata(propertyName, method, resolveAnnotations(), problems.build());
         }
 
-        private ImmutableMap<AnnotationCategory, Annotation> mergeAnnotations() {
+        private ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
+            // If method should be ignored, then ignore all other annotations
             List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
             for (Annotation declaredType : declaredTypes) {
                 if (ignoredMethodAnnotations.contains(declaredType.annotationType())) {
@@ -478,20 +484,34 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             }
 
             ImmutableMap.Builder<AnnotationCategory, Annotation> builder = ImmutableMap.builder();
-            for (AnnotationCategory category : Sets.union(declaredAnnotations.keySet(), inheritedAnnotations.keySet())) {
+            for (AnnotationCategory category : allAnnotationCategories()) {
+                Annotation resolvedAnnotation;
                 Collection<Annotation> declaredAnnotationsForCategory = declaredAnnotations.get(category);
-                Annotation firstAnnotation;
                 if (!declaredAnnotationsForCategory.isEmpty()) {
-                    firstAnnotation = getFirstAnnotation("declared", category, declaredAnnotationsForCategory);
+                    resolvedAnnotation = resolveAnnotation("declared", category, declaredAnnotationsForCategory);
                 } else {
-                    firstAnnotation = getFirstAnnotation("inherited", category, inheritedAnnotations.get(category));
+                    Collection<Annotation> interfaceAnnotations = inheritedInterfaceAnnotations.get(category);
+                    if (!interfaceAnnotations.isEmpty()) {
+                        resolvedAnnotation = resolveAnnotation("inherited (from interface)", category, interfaceAnnotations);
+                    } else {
+                        Collection<Annotation> superclassAnnotations = inheritedSuperclassAnnotations.get(category);
+                        resolvedAnnotation = resolveAnnotation("inherited (from superclass)", category, superclassAnnotations);
+                    }
                 }
-                builder.put(category, firstAnnotation);
+                builder.put(category, resolvedAnnotation);
             }
             return builder.build();
         }
 
-        private Annotation getFirstAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
+        private ImmutableSet<AnnotationCategory> allAnnotationCategories() {
+            return ImmutableSet.<AnnotationCategory>builder()
+                .addAll(declaredAnnotations.keySet())
+                .addAll(inheritedInterfaceAnnotations.keySet())
+                .addAll(inheritedSuperclassAnnotations.keySet())
+                .build();
+        }
+
+        private Annotation resolveAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
             Iterator<Annotation> iDeclaredAnnotationForCategory = annotationsForCategory.iterator();
             // Ignore all but the first recorded annotation
             Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
@@ -508,7 +528,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
-            for (Annotation annotation : Iterables.concat(declaredAnnotations.values(), inheritedAnnotations.values())) {
+            Iterable<Annotation> allAnnotations = Iterables.concat(
+                declaredAnnotations.values(),
+                inheritedInterfaceAnnotations.values(),
+                inheritedSuperclassAnnotations.values()
+            );
+            for (Annotation annotation : allAnnotations) {
                 if (annotation.annotationType().equals(annotationType)) {
                     return true;
                 }

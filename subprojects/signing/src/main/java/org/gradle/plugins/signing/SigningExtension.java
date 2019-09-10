@@ -230,7 +230,6 @@ public class SigningExtension {
      * Use GnuPG agent to perform signing work.
      * @since 4.5
      */
-    @Incubating
     public void useGpgCmd() {
         setSignatories(new GnupgSignatoryProvider());
     }
@@ -354,7 +353,6 @@ public class SigningExtension {
      * @return the created tasks.
      * @since 4.8
      */
-    @Incubating
     public List<Sign> sign(Publication... publications) {
         List<Sign> result = new ArrayList<Sign>(publications.length);
         for (final Publication publication : publications) {
@@ -375,7 +373,6 @@ public class SigningExtension {
      * @return the created tasks.
      * @since 4.8
      */
-    @Incubating
     public List<Sign> sign(DomainObjectCollection<Publication> publications) {
         final List<Sign> result = new ArrayList<Sign>();
         publications.all(new Action<Publication>() {

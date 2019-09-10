@@ -29,7 +29,6 @@ import java.io.File;
  *
  * @since 4.1
  */
-@Incubating
 public interface Directory extends FileSystemLocation {
     /**
      * Returns the location of this directory, as an absolute {@link File}.
@@ -91,5 +90,6 @@ public interface Directory extends FileSystemLocation {
      * @return The file collection.
      * @since 6.0
      */
+    @Incubating
     FileCollection files(Object... paths);
 }

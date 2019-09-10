@@ -273,7 +273,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
         pom.scope("compile") {
             assertOptionalDependencies(
-                "com.acme:root:1.3",
                 "org.apache.commons:commons-lang3:3.9"
             )
         }

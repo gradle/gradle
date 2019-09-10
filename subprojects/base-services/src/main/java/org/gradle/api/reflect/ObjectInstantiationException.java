@@ -16,7 +16,6 @@
 
 package org.gradle.api.reflect;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
@@ -24,7 +23,7 @@ import org.gradle.internal.exceptions.Contextual;
  *
  * @since 4.2
  */
-@Contextual @Incubating
+@Contextual
 public class ObjectInstantiationException extends RuntimeException {
     public ObjectInstantiationException(Class<?> targetType, Throwable throwable) {
         super(String.format("Could not create an instance of type %s.", targetType.getName()), throwable);

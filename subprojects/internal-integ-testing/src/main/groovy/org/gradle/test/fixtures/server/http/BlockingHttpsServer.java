@@ -39,7 +39,7 @@ import java.security.KeyStore;
  */
 public class BlockingHttpsServer extends BlockingHttpServer {
     public BlockingHttpsServer() throws IOException {
-        super(HttpsServer.create(new InetSocketAddress(0), 10), 120000, "https");
+        super(HttpsServer.create(new InetSocketAddress(0), 10), 120000, Scheme.HTTPS);
     }
 
     public void configure(TestKeyStore testKeyStore) {

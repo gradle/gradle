@@ -41,7 +41,22 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         expectationSpec()
 
         expectation.validate()
+    }
 
+    void resolveApiArtifacts(IvyModule module, @DelegatesTo(value = IvyArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
+        resolveArtifacts(module) {
+            variant = 'JAVA_API'
+            expectationSpec.delegate = delegate
+            expectationSpec()
+        }
+    }
+
+    void resolveRuntimeArtifacts(IvyModule module, @DelegatesTo(value = IvyArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
+        resolveArtifacts(module) {
+            variant = 'JAVA_RUNTIME'
+            expectationSpec.delegate = delegate
+            expectationSpec()
+        }
     }
 
     private def doResolveArtifacts(ResolveParams params) {
@@ -80,7 +95,9 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         }
 
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
-
+        def optional = params.optionalFeatureCapabilities.collect {
+            "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
+        }.join('\n')
         buildFile.text = """
             apply plugin: 'java-base'
 
@@ -100,6 +117,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
             }
             dependencies {
                 resolve($dependencyNotation) $extraArtifacts
+                $optional
             }
 
             task resolveArtifacts(type: Sync) {
@@ -136,6 +154,8 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         String variant
         boolean resolveModuleMetadata
         boolean expectFailure
+
+        List<String> optionalFeatureCapabilities = []
     }
 
     class IvyArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec<IvyModule> {
@@ -165,7 +185,8 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 status: status,
                 variant: variant,
                 resolveModuleMetadata: withModuleMetadata,
-                expectFailure: !expectationSpec.expectSuccess
+                expectFailure: !expectationSpec.expectSuccess,
+                optionalFeatureCapabilities: optionalFeatureCapabilities,
             )
             println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
             def resolutionResult = doResolveArtifacts(params)

@@ -55,6 +55,7 @@ tasks.withType(JavaCompile) {
 }
 tasks.withType(Javadoc) {
     executable = "$javadoc"
+    options.noTimestamp = false
 }
 tasks.withType(Test) {
     executable = "$java"

@@ -152,6 +152,7 @@ public class ModuleMetadataSerializer {
                 encoder.writeNullableString(dependency.getReason());
                 writeVariantDependencyExcludes(dependency.getExcludes());
                 encoder.writeBoolean(dependency.isInheriting());
+                writeNullableArtifact(dependency.getDependencyArtifact());
             }
         }
 
@@ -460,7 +461,8 @@ public class ModuleMetadataSerializer {
                 String reason = decoder.readNullableString();
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
                 boolean inheriting = decoder.readBoolean();
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getRequestedCapabilities(), inheriting);
+                IvyArtifactName dependencyArtifact = readNullableArtifact();
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getRequestedCapabilities(), inheriting, dependencyArtifact);
             }
         }
 

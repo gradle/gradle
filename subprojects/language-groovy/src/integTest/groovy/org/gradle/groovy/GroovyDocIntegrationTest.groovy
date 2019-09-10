@@ -48,6 +48,12 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             class Thing {}
         """
 
+        buildFile << """
+            groovydoc {
+                noVersionStamp = false
+            }
+        """
+
         then:
         succeeds "groovydoc"
 

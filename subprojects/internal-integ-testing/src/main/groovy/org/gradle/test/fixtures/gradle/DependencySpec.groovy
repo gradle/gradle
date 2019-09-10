@@ -34,8 +34,9 @@ class DependencySpec {
     String reason
     Map<String, Object> attributes
     List<CapabilitySpec> requestedCapabilities = []
+    ArtifactSelectorSpec artifactSelector
 
-    DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, Boolean forSubgraph, List<String> rejects, Collection<Map> excludes, Boolean inheritConstraints, String reason, Map<String, Object> attributes) {
+    DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, Boolean forSubgraph, List<String> rejects, Collection<Map> excludes, Boolean inheritConstraints, String reason, Map<String, Object> attributes, ArtifactSelectorSpec artifactSelector) {
         group = g
         module = m
         version = v
@@ -53,6 +54,7 @@ class DependencySpec {
         this.inheritConstraints = inheritConstraints
         this.reason = reason
         this.attributes = attributes
+        this.artifactSelector = artifactSelector
     }
 
     DependencySpec attribute(String name, Object value) {
