@@ -25,18 +25,16 @@ class DependencyConstraintSpec {
     String version
     String preferredVersion
     String strictVersion
-    boolean forSubgraph
     List<String> rejects
     String reason
     Map<String, ?> attributes
 
-    DependencyConstraintSpec(String g, String m, String v, String preferredVersion, String strictVersion, Boolean forSubgraph, List<String> r, String desc, Map<String, ?> attrs) {
+    DependencyConstraintSpec(String g, String m, String v, String preferredVersion, String strictVersion, List<String> r, String desc, Map<String, ?> attrs) {
         group = g
         module = m
         version = v
         this.preferredVersion = preferredVersion
         this.strictVersion = strictVersion
-        this.forSubgraph = forSubgraph
         rejects = r?:Collections.<String>emptyList()
         reason = desc
         attributes = attrs

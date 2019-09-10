@@ -75,8 +75,7 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
                 projectDependency.getVersion(),
                 "",
                 Collections.emptyList(),
-                "",
-                false
+                ""
         );
     }
 

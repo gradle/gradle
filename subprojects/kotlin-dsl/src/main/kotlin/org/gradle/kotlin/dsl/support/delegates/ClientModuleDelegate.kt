@@ -144,11 +144,11 @@ abstract class ClientModuleDelegate : ClientModule {
     override fun getReason(): String? =
         delegate.reason
 
-    override fun inheritConstraints() =
-        delegate.inheritConstraints()
+    override fun inheritStrictConstraints() =
+        delegate.inheritStrictConstraints()
 
-    override fun notInheritConstraints() =
-        delegate.notInheritConstraints()
+    override fun notInheritStrictConstraints() =
+        delegate.notInheritStrictConstraints()
 
     override fun isInheriting() =
         delegate.isInheriting

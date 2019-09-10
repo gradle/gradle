@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -744,7 +745,7 @@ public class NodeState implements DependencyGraphNode {
     private Set<ModuleIdentifier> maybeCollectSubgraphConstraint(Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
         if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
-            if (selector.getVersionConstraint().isForSubgraph()) {
+            if (((ImmutableVersionConstraint)selector.getVersionConstraint()).isForSubgraph()) {
                 if (constraintsSet == null) {
                     constraintsSet = Sets.newHashSet();
                 }

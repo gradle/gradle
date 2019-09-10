@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -137,11 +136,4 @@ public interface VersionConstraint extends Describable {
      */
     List<String> getRejectedVersions();
 
-    /**
-     * Returns true if the version constraint wins over other transitively brought in constraints on the same component.
-     *
-     * @since 6.0
-     */
-    @Incubating
-    boolean isForSubgraph();
 }

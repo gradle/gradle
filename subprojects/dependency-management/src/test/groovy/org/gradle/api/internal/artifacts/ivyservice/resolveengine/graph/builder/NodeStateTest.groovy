@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.subgraphconstraints.SubgraphConstraints
 import org.gradle.api.specs.Spec
@@ -201,7 +201,7 @@ class NodeStateTest extends Specification {
         DependencyState dependencyState = Mock()
         DependencyMetadata dependencyMetadata = Mock()
         ModuleComponentSelector selector = Mock()
-        VersionConstraint versionConstraint = Mock()
+        ImmutableVersionConstraint versionConstraint = Mock()
         ComponentState componentState = Mock()
         edgeState.from >> from
         edgeState.getTargetComponent() >> componentState

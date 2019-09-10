@@ -132,24 +132,20 @@ class GradleModuleMetadataParserTest extends Specification {
         DefaultImmutableVersionConstraint.of(version)
     }
 
-    VersionConstraint requiresForSubgraph(String version) {
-        DefaultImmutableVersionConstraint.of('', version, '', [], true)
-    }
-
     VersionConstraint prefers(String version) {
-        DefaultImmutableVersionConstraint.of(version, '', '', [], false)
+        DefaultImmutableVersionConstraint.of(version, '', '', [])
     }
 
     VersionConstraint strictly(String version) {
-        DefaultImmutableVersionConstraint.of('', '', version, [], false)
+        DefaultImmutableVersionConstraint.of('', '', version, [])
     }
 
     VersionConstraint prefersAndStrictly(String prefers, String strictly) {
-        DefaultImmutableVersionConstraint.of(prefers, '', strictly, [], false)
+        DefaultImmutableVersionConstraint.of(prefers, '', strictly, [])
     }
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
-        DefaultImmutableVersionConstraint.of(version, version, "", rejects, false)
+        DefaultImmutableVersionConstraint.of(version, version, "", rejects)
     }
 
     List<Exclude> excludes(String... input) {
@@ -321,7 +317,7 @@ class GradleModuleMetadataParserTest extends Specification {
                     { 
                         "group": "g3", 
                         "module": "m3", 
-                        "version": { "requires": "v3", "forSubgraph": true },
+                        "version": { "requires": "v3"},
                         "excludes": [
                             {"group": "gx", "module": "mx" },
                             {"group": "*", "module": "*" }
@@ -334,7 +330,7 @@ class GradleModuleMetadataParserTest extends Specification {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "dependencies": [ 
                     { "module": "m3", "group": "g3", "version": { "prefers": "v3" }, "requestedCapabilities":[{"group":"org", "name":"foo", "version":"1.0"}]},
-                    { "module": "m4", "inheritConstraints": true, "version": { "strictly": "v5" }, "group": "g4"},
+                    { "module": "m4", "inheritStrictConstraints": true, "version": { "strictly": "v5" }, "group": "g4"},
                     { "module": "m5", "version": { "prefers": "v5", "requires": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
                     { "module": "m6", "group": "g6", "version": { "strictly": "v6" }, "reason": "v5 is buggy"}
                 ],
@@ -349,7 +345,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant1.addDependency("g0", "m0", emptyConstraint(), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * variant1.addDependency("g1", "m1", requires("v1"), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, ImmutableAttributes.EMPTY, [], false, null)
-        1 * variant1.addDependency("g3", "m3", requiresForSubgraph("v3"), excludes("gx:mx", "*:*"), null, ImmutableAttributes.EMPTY, [], false, null)
+        1 * variant1.addDependency("g3", "m3", requires("v3"), excludes("gx:mx", "*:*"), null, ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name == 'foo' && it[0].version == '1.0' }, false, null)
         1 * variant2.addDependency("g4", "m4", strictly("v5"), [], null, ImmutableAttributes.EMPTY, [], true, null)
@@ -377,7 +373,7 @@ class GradleModuleMetadataParserTest extends Specification {
                     { 
                         "group": "g3", 
                         "module": "m3", 
-                        "version": { "requires": "v3", "forSubgraph": true }
+                        "version": { "requires": "v3" }
                     }
                 ],
                 "attributes": { "usage": "compile" }
@@ -400,7 +396,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
         1 * variant1.addDependencyConstraint("g1", "m1", requires("v1"), null, ImmutableAttributes.EMPTY)
         1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"), null, ImmutableAttributes.EMPTY)
-        1 * variant1.addDependencyConstraint("g3", "m3", requiresForSubgraph("v3"), null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependencyConstraint("g3", "m3", requires("v3"), null, ImmutableAttributes.EMPTY)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"), null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]), null, ImmutableAttributes.EMPTY)
@@ -431,7 +427,7 @@ class GradleModuleMetadataParserTest extends Specification {
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "dependencyConstraints": [ 
-                    { "inheritConstraints": true, "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
+                    { "inheritStrictConstraints": true, "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
                     { "version": { "requires": "v2" }, "group": "g2", "module": "m2", "attributes": {"custom": "foo", "other": "bar"} }
                 ],
                 "name": "runtime"

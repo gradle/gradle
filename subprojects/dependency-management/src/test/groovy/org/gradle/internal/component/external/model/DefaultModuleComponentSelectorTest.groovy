@@ -34,11 +34,11 @@ class DefaultModuleComponentSelectorTest extends Specification {
     }
 
     private static ImmutableVersionConstraint v(String version, String branch) {
-        return new DefaultImmutableVersionConstraint("", version, "", [], branch, false)
+        return new DefaultImmutableVersionConstraint("", version, "", [], branch)
     }
 
     private static ImmutableVersionConstraint b(String branch) {
-        return new DefaultImmutableVersionConstraint("", "", "", [], branch, false)
+        return new DefaultImmutableVersionConstraint("", "", "", [], branch)
     }
 
     def "is instantiated with non-null constructor parameter values"() {

@@ -1017,7 +1017,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byAncestor()
                     }
                 }
             }

@@ -54,8 +54,8 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
-        return new ForcedDependencyMetadataWrapper(delegate.withInheritConstraints(inheriting));
+    public ModuleDependencyMetadata withInheritStrictConstraints(boolean inheriting) {
+        return new ForcedDependencyMetadataWrapper(delegate.withInheritStrictConstraints(inheriting));
     }
 
     @Override

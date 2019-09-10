@@ -392,7 +392,7 @@ class DefaultDependencyHandlerTest extends Specification {
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
-        dependencyHandler.platform("org:platform") { it.notInheritConstraints() }
+        dependencyHandler.platform("org:platform") { it.notInheritStrictConstraints() }
 
         then:
         1 * dependencyFactory.createDependency("org:platform") >> dep1
@@ -405,7 +405,7 @@ class DefaultDependencyHandlerTest extends Specification {
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
-        dependencyHandler.platform(dep1) { it.notInheritConstraints() }
+        dependencyHandler.platform(dep1) { it.notInheritStrictConstraints() }
 
         then:
         1 * dependencyFactory.createDependency(dep1) >> dep1
