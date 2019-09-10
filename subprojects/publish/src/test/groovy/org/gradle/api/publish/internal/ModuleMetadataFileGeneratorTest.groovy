@@ -856,7 +856,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         {
           "group": "com.acme",
           "module": "api",
-          "version": {},
           "excludes": [
             {
               "group": "org.example.api",
@@ -877,7 +876,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         {
           "group": "com.acme",
           "module": "runtime",
-          "version": {},
           "excludes": [
             {
               "group": "org.example.runtime",
@@ -892,7 +890,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         {
           "group": "com.acme",
           "module": "intransitive",
-          "version": {},
           "excludes": [
             {
               "group": "*",
