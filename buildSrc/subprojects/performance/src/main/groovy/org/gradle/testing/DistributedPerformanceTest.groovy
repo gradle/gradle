@@ -321,28 +321,10 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     void waitForTestsCompletion(String lastChangeId) {
-        int retriedScenarios = 0
         Set<String> completed = []
         PerformanceScenarioRerunStrategy rerunStrategy = repeat > 1
-            ? new PerformanceScenarioRerunStrategy() {
-
-            @Override
-            boolean shouldRerun(int scenarioRunCount, boolean successful) {
-                return scenarioRunCount < repeat
-            }
-        }
-            : new PerformanceScenarioRerunStrategy() {
-            private int retriedScenarios
-
-            @Override
-            boolean shouldRerun(int scenarioRunCount, boolean successful) {
-                def shouldRerun = !successful && scenarioRunCount <= retryFailedScenarioCount && retriedScenarios < MAX_RETRIED_SCENARIOS
-                if (shouldRerun) {
-                    retriedScenarios++
-                }
-                return shouldRerun
-            }
-        }
+            ? new RepeatRerunStrategy(repeat)
+            : new RetryFailedRerunStrategy(retryFailedScenarioCount)
         Multiset<String> completedScenarios = HashMultiset.create()
         while (completed.size() < scheduledBuilds.size()) {
             List<String> waiting = []
