@@ -24,7 +24,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
@@ -40,8 +39,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private final VariantMetadataRules componentMetadataRules;
 
     private List<ModuleDependencyMetadata> calculatedDependencies;
-
-    private final ImmutableAttributes componentLevelAttributes;
+    private ImmutableList<? extends ModuleComponentArtifactMetadata> calculatedArtifacts;
 
     // Could be precomputed, but we avoid doing so if attributes are never requested
     private ImmutableAttributes computedAttributes;
@@ -58,34 +56,11 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                         VariantMetadataRules componentMetadataRules,
                                         ImmutableList<ExcludeMetadata> excludes,
-                                        ImmutableAttributes componentLevelAttributes) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, DependencyFilter.ALL);
-    }
-
-    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                         VariantMetadataRules componentMetadataRules,
-                                         ImmutableList<ExcludeMetadata> excludes,
-                                         ImmutableAttributes attributes,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies,
-                                         DependencyFilter dependencyFilter) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, ImmutableCapabilities.EMPTY);
+                                        ImmutableAttributes componentLevelAttributes,
+                                        boolean mavenArtifactDiscovery) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, mavenArtifactDiscovery);
         this.componentMetadataRules = componentMetadataRules;
-        this.componentLevelAttributes = attributes;
-        this.dependencyFilter = dependencyFilter;
-    }
-
-    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                         VariantMetadataRules componentMetadataRules,
-                                         ImmutableList<ExcludeMetadata> excludes,
-                                         ImmutableAttributes attributes,
-                                         Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-                                         DependencyFilter dependencyFilter) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.EMPTY);
-        this.componentMetadataRules = componentMetadataRules;
-        this.componentLevelAttributes = attributes;
-        this.dependencyFilter = dependencyFilter;
+        this.dependencyFilter = DependencyFilter.ALL;
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId,
@@ -99,10 +74,10 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          ImmutableAttributes attributes,
                                          Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
                                          DependencyFilter dependencyFilter,
-                                         List<Capability> capabilities) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities));
+                                         List<Capability> capabilities,
+                                         boolean mavenArtifactDiscovery) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), mavenArtifactDiscovery);
         this.componentMetadataRules = componentMetadataRules;
-        this.componentLevelAttributes = attributes;
         this.dependencyFilter = dependencyFilter;
     }
 
@@ -141,8 +116,20 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return filteredConfigDependencies;
     }
 
+    private ImmutableList<? extends ModuleComponentArtifactMetadata> getOriginalArtifacts() {
+        return super.getArtifacts();
+    }
+
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
+    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifacts() {
+        if (calculatedArtifacts == null) {
+            calculatedArtifacts = componentMetadataRules.applyVariantFilesMetadataRulesToArtifacts(this, getOriginalArtifacts(), getComponentId());
+        }
+        return calculatedArtifacts;
+    }
+
+    @Override
+    public List<? extends ModuleDependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
             calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(this, getConfigDependencies());
         }
@@ -157,8 +144,10 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return computedCapabilities;
     }
 
-    public DefaultConfigurationMetadata withoutConstraints() {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter.dependenciesOnly());
+    @Override
+    public boolean requiresMavenArtifactDiscovery() {
+        // If artifacts are computed, we opt-out of artifact discovery
+        return super.requiresMavenArtifactDiscovery() && getArtifacts() == getOriginalArtifacts();
     }
 
     private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
@@ -205,7 +194,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return filtered == null ? ImmutableList.<ModuleDependencyMetadata>of() : filtered.build();
     }
 
-    Builder mutate() {
+    public Builder mutate() {
         return new Builder();
     }
 
@@ -254,7 +243,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         }
     }
 
-    class Builder {
+    public class Builder {
         private String name = DefaultConfigurationMetadata.this.getName();
         private DependencyFilter dependencyFilter = DefaultConfigurationMetadata.this.dependencyFilter;
         private List<Capability> capabilities;
@@ -266,12 +255,17 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             return this;
         }
 
+        public Builder withArtifacts(ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
+            this.artifacts = artifacts;
+            return this;
+        }
+
         Builder withAttributes(ImmutableAttributes attributes) {
             this.attributes = attributes;
             return this;
         }
 
-        Builder withoutConstraints() {
+        public Builder withoutConstraints() {
             dependencyFilter = dependencyFilter.dependenciesOnly();
             return this;
         }
@@ -292,20 +286,21 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             return this;
         }
 
-        DefaultConfigurationMetadata build() {
+        public DefaultConfigurationMetadata build() {
             return new DefaultConfigurationMetadata(
                     getComponentId(),
                     name,
                     isTransitive(),
                     isVisible(),
                     getHierarchy(),
-                    artifacts == null ? DefaultConfigurationMetadata.this.getArtifacts() : artifacts,
+                    artifacts == null ? DefaultConfigurationMetadata.this.getOriginalArtifacts() : artifacts,
                     componentMetadataRules,
                     getExcludes(),
                     attributes == null ? DefaultConfigurationMetadata.super.getAttributes() : attributes,
                     lazyConfigDependencies(),
                     dependencyFilter,
-                    capabilities == null ? Cast.uncheckedCast(DefaultConfigurationMetadata.this.getCapabilities().getCapabilities()) : capabilities
+                    capabilities == null ? Cast.uncheckedCast(DefaultConfigurationMetadata.this.getCapabilities().getCapabilities()) : capabilities,
+                    DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery()
             );
         }
     }

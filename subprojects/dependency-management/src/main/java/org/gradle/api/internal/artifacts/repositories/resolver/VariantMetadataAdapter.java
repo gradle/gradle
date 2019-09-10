@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
@@ -68,6 +69,11 @@ public class VariantMetadataAdapter implements VariantMetadata {
     @Override
     public void withCapabilities(Action<? super MutableCapabilitiesMetadata> action) {
         metadata.getVariantMetadataRules().addCapabilitiesAction(new VariantMetadataRules.VariantAction<MutableCapabilitiesMetadata>(spec, action));
+    }
+
+    @Override
+    public void withFiles(Action<? super MutableVariantFilesMetadata> action) {
+        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<>(spec, action));
     }
 
     @Override
