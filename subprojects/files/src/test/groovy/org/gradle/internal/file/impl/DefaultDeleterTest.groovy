@@ -34,7 +34,7 @@ class DefaultDeleterTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     DefaultDeleter deleter = new DefaultDeleter(
         { System.currentTimeMillis() },
-        { Files.isSymbolicLink(it.toPath()) },
+        { File file -> Files.isSymbolicLink(file.toPath()) },
         false
     )
 
@@ -78,21 +78,36 @@ class DefaultDeleterTest extends Specification {
         didWork
     }
 
-
     @Requires(TestPrecondition.SYMLINKS)
     def "cleans symlinked target directory"() {
-        def target = tmpDir.createDir("target")
-        def content = target.createFile("content.txt")
-        def link = tmpDir.file("link").tap { Files.createSymbolicLink(it.toPath(), target.toPath()) }
+        def linked = tmpDir.createDir("linked")
+        def content = linked.createFile("content.txt")
+        def target = tmpDir.file("target").tap { Files.createSymbolicLink(it.toPath(), linked.toPath()) }
 
         when:
-        deleter.ensureEmptyDirectory(link)
+        deleter.ensureEmptyDirectory(target, true)
 
         then:
         target.assertIsEmptyDir()
-        link.assertIsEmptyDir()
-        Files.readSymbolicLink(link.toPath()) == target.toPath()
+        linked.assertIsEmptyDir()
+        Files.readSymbolicLink(target.toPath()) == linked.toPath()
         content.assertDoesNotExist()
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "recreates target directory when symlink is found, leaving linked content untouched"() {
+        def linked = tmpDir.createDir("linked")
+        def content = linked.createFile("content.txt")
+        def target = tmpDir.file("target").tap { Files.createSymbolicLink(it.toPath(), linked.toPath()) }
+
+        when:
+        deleter.ensureEmptyDirectory(target, false)
+
+        then:
+        target.assertIsEmptyDir()
+        !Files.isSymbolicLink(target.toPath())
+        linked.assertHasDescendants(content.getName())
+        content.assertIsFile()
     }
 
     def "creates directory in place of file"() {
@@ -326,7 +341,11 @@ class DefaultDeleterTest extends Specification {
         static long newTime = startTime + 2000
 
         static DefaultDeleter deleterWithDeletionAction(Function<File, DeletionAction> deletionAction) {
-            new DefaultDeleter({ startTime }, { Files.isSymbolicLink(it.toPath()) }, false) {
+            new DefaultDeleter(
+                { startTime },
+                { File file -> Files.isSymbolicLink(file.toPath()) },
+                false
+            ) {
                 @Override
                 protected boolean deleteFile(File file) {
                     switch (deletionAction.apply(file)) {

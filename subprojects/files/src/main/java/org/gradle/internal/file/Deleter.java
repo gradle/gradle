@@ -58,8 +58,7 @@ public interface Deleter {
      *
      * <ul>
      *     <li>a directory, then its contents are removed recursively,</li>
-     *     <li>a symlink pointing to an existing directory, then the linked directory's contents are removed recursively,</li>
-     *     <li>a file, or a symlink to an existing file, it is deleted and a directory is created in its place,</li>
+     *     <li>a file or a symlink, then it is deleted and a directory is created in its place,</li>
      *     <li>non-existent, then a directory is created in its place.</li>
      * </ul>
      *
@@ -80,7 +79,10 @@ public interface Deleter {
      *
      * <ul>
      *     <li>a directory, then its contents are removed recursively,</li>
-     *     <li>a symlink pointing to an existing directory, then the linked directory's contents are removed recursively,</li>
+     *     <li>a symlink pointing to an existing directory, then either the linked directory's
+     *     contents are removed recursively (if {@code followSymlinks} is {@code true}),
+     *     or the link is removed and a new directory is created (if {@code followSymlinks}
+     *     is {@code false}),</li>
      *     <li>a file, or a symlink to an existing file, it is deleted and a directory is created in its place,</li>
      *     <li>non-existent, then a directory is created in its place.</li>
      * </ul>
