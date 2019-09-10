@@ -16,12 +16,20 @@
 
 package org.gradle.testing;
 
+/**
+ * Rerun failed scenarios.
+ *
+ * The scenarios are only retried if fewer than {@link #MAX_RETRIED_SCENARIOS} failed in total.
+ */
 class RetryFailedRerunStrategy implements PerformanceScenarioRerunStrategy {
     private static final int MAX_RETRIED_SCENARIOS = 15;
 
     private int totalRetries;
     private final int maxRetryCount;
 
+    /**
+     * @param maxRetryCount maximum number of retries for a scenario.
+     */
     public RetryFailedRerunStrategy(int maxRetryCount) {
         this.maxRetryCount = maxRetryCount;
     }

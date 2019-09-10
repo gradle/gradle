@@ -105,6 +105,12 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
 
     protected Map<String, Scenario> scheduledBuilds = [:]
 
+    /**
+     * The rerun strategy to use.
+     *
+     * Use {@link #repeatScenarios(int)} or {@link #retryFailedScenarios(int)} to set a strategy.
+     * By default, no reruns happen.
+     */
     @Nested
     @PackageScope
     abstract Property<PerformanceScenarioRerunStrategy> getRerunStrategy()
@@ -144,10 +150,22 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
         this.scenarioList = scenarioList
     }
 
+    /**
+     * Repeat scenarios.
+     *
+     * The scenario is repeated regardless of its outcome.
+     *
+     * @param times number of times a scenario should be retried.
+     */
     void repeatScenarios(int times) {
         rerunStrategy.set(new RepeatRerunStrategy(times))
     }
 
+    /**
+     * Retry failed scenarios.
+     *
+     * @param maxRetryCount maximum number of retries for a scenario
+     */
     void retryFailedScenarios(int maxRetryCount = 1) {
         rerunStrategy.set(new RetryFailedRerunStrategy(maxRetryCount))
     }

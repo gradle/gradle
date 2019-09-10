@@ -18,6 +18,9 @@ package org.gradle.testing;
 
 import org.gradle.api.tasks.Input;
 
+/**
+ * Repeat each scenario {@link #times} times.
+ */
 class RepeatRerunStrategy implements PerformanceScenarioRerunStrategy {
     private final int times;
 
