@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 import static org.gradle.language.VariantContext.dimensions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -253,6 +254,88 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         result.assertHasCause("No tool chain is available to build C++")
+    }
+
+    @Unroll
+    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard]"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.binaries.configureEach {
+                compileTask.get().compilerArgs.add('${compilerFlag}')
+            }
+        """
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+
+        and:
+        projectFile.projectConfigurations.size() == 2
+        projectFile.projectConfigurations.values().each {
+            it.languageStandard == expectedLanguageStandard
+        }
+
+        where:
+        compilerFlag     | expectedLanguageStandard
+        '/std:cpp14'     | 'stdcpp14'
+        '-std:cpp14'     | 'stdcpp14'
+        '/std:cpp17'     | 'stdcpp17'
+        '-std:cpp17'     | 'stdcpp17'
+        '/std:cpplatest' | 'stdcpplatest'
+        '-std:cpplatest' | 'stdcpplatest'
+    }
+
+    def "can detect different language standard per component for Visual Studio IntelliSense"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.binaries.configureEach {
+                if (optimized) {
+                    compileTask.get().compilerArgs.add('/std:cpp17')
+                } else {
+                    compileTask.get().compilerArgs.add('/std:cpp14')
+                }
+            }
+        """
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+
+        and:
+        projectFile.projectConfigurations.size() == 2
+        projectFile.projectConfigurations['debug'].languageStandard == 'stdcpp14'
+        projectFile.projectConfigurations['release'].languageStandard == 'stdcpp17'
+    }
+
+    def "does not configure language standard when compiler flag is absent for Visual Studio Intellisense"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+
+        and:
+        projectFile.projectConfigurations.size() == 2
+        projectFile.projectConfigurations['debug'].languageStandard == null
+        projectFile.projectConfigurations['release'].languageStandard == null
     }
 
     String getRootProjectName() {
