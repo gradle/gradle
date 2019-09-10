@@ -18,6 +18,8 @@ package org.gradle.testing
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
+import com.google.common.collect.HashMultiset
+import com.google.common.collect.Multiset
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
@@ -228,12 +230,11 @@ class DistributedPerformanceTest extends PerformanceTest {
         def coordinatorBuild = resolveCoordinatorBuild()
         testEventsGenerator.coordinatorBuild = coordinatorBuild
 
-        repeat.times {
-            scenarios.each {
-                schedule(it, coordinatorBuild?.lastChangeId)
-            }
-            waitForTestsCompletion()
+        def lastChangeId = coordinatorBuild?.lastChangeId
+        scenarios.each {
+            schedule(it, lastChangeId)
         }
+        waitForTestsCompletion(lastChangeId)
 
         checkForErrors()
     }
@@ -363,21 +364,29 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
     }
 
-    void waitForTestsCompletion() {
+    void waitForTestsCompletion(String lastChangeId) {
         int total = scheduledBuilds.size()
         Set<String> completed = []
-        while (completed.size() < total) {
+        Multiset<String> completedScenarios = HashMultiset.create()
+        while (completed.size() < scheduledBuilds.size()) {
             List<String> waiting = []
-            scheduledBuilds.keySet().each { buildId ->
+            List<Scenario> scenariosToReSchedule = []
+            scheduledBuilds.each { buildId, scenario ->
                 if (!completed.contains(buildId)) {
                     if (checkResult(buildId)) {
                         completed << buildId
+                        def scenarioName = scenario.getId()
+                        completedScenarios.add(scenarioName)
+                        if (completedScenarios.count(scenarioName) < repeat) {
+                            scenariosToReSchedule.add(scenario)
+                        }
                     } else {
                         waiting << buildId
                     }
                 }
             }
-            if (completed.size() < total) {
+            scenariosToReSchedule.each { schedule(it, lastChangeId) }
+            if (completed.size() < scheduledBuilds.size()) {
                 int pc = (100 * (((double) completed.size()) / (double) total)) as int
                 println "Waiting for scenarios $waiting to complete"
                 println "Completed ${completed.size()} tests of $total ($pc%)"
