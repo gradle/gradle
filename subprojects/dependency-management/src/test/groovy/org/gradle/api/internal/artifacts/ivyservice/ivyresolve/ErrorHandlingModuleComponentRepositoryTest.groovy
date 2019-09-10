@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -195,20 +196,21 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         given:
         def component = Mock(ComponentResolveMetadata)
+        def variant = Mock(ConfigurationMetadata)
         def componentId = Mock(ComponentIdentifier)
         def result = Mock(BuildableComponentArtifactsResolveResult)
         component.getId() >> componentId
 
         when: 'repo is not blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        access.resolveArtifacts(component, result)
+        access.resolveArtifacts(component, variant, result)
 
         then: 'work is delegated'
-        1 * delegate.resolveArtifacts(component, result)
+        1 * delegate.resolveArtifacts(component, variant, result)
 
         when: 'exception is thrown in resolution'
-        effectiveRetries * delegate.resolveArtifacts(component, result) >> { throw exception }
-        access.resolveArtifacts(component, result)
+        effectiveRetries * delegate.resolveArtifacts(component, variant, result) >> { throw exception }
+        access.resolveArtifacts(component, variant, result)
 
         then: 'resolution fails and repo is blacklisted'
         1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, { hasCause(it, exception) })
@@ -216,7 +218,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         when: 'repo is already blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
-        access.resolveArtifacts(component, result)
+        access.resolveArtifacts(component, variant, result)
 
         then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)

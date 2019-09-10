@@ -44,6 +44,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -248,11 +249,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+        public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.getLocalAccess().resolveArtifacts(component.withSource(cachedModuleSource.getDelegate()), result);
+            delegate.getLocalAccess().resolveArtifacts(component.withSource(cachedModuleSource.getDelegate()), variant, result);
             if (result.hasResult()) {
                 return;
             }
@@ -404,9 +405,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+        public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
-            delegate.getRemoteAccess().resolveArtifacts(component.withSource(moduleSource.getDelegate()), result);
+            delegate.getRemoteAccess().resolveArtifacts(component.withSource(moduleSource.getDelegate()), variant, result);
 
             if (result.getFailure() == null) {
                 FixedComponentArtifacts artifacts = (FixedComponentArtifacts) result.getResult();

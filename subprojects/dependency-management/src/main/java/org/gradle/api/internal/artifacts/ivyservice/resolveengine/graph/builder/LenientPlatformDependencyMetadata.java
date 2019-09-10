@@ -155,14 +155,14 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
         private final ComponentIdentifier platformId;
 
         public LenientPlatformConfigurationMetadata(VirtualPlatformState platform, ComponentIdentifier platformId) {
-            super(componentId, "default", true, false, ImmutableSet.of("default"), ImmutableList.<ModuleComponentArtifactMetadata>of(), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY);
+            super(componentId, "default", true, false, ImmutableSet.of("default"), ImmutableList.<ModuleComponentArtifactMetadata>of(), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, false);
             this.platformState = platform;
             this.platformId = platformId;
         }
 
         @Override
-        public List<? extends DependencyMetadata> getDependencies() {
-            List<DependencyMetadata> result = null;
+        public List<? extends ModuleDependencyMetadata> getDependencies() {
+            List<ModuleDependencyMetadata> result = null;
             List<String> candidateVersions = platformState.getCandidateVersions();
             Set<ModuleResolveState> modules = platformState.getParticipatingModules();
             for (ModuleResolveState module : modules) {
@@ -193,10 +193,10 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
                     platformState.attachOrphanEdges();
                 }
             }
-            return result == null ? Collections.<DependencyMetadata>emptyList() : result;
+            return result == null ? Collections.emptyList() : result;
         }
 
-        private List<DependencyMetadata> registerPlatformEdge(List<DependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector, ComponentIdentifier platformId, boolean force) {
+        private List<ModuleDependencyMetadata> registerPlatformEdge(List<ModuleDependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector, ComponentIdentifier platformId, boolean force) {
             if (result == null) {
                 result = Lists.newArrayListWithExpectedSize(modules.size());
             }

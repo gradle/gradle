@@ -113,7 +113,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableSet.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build()
+                ImmutableSet.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");
