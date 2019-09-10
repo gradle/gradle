@@ -562,7 +562,7 @@ class TestCapability implements Capability {
 
             dependencies {
                 implementation("org:platform:1.0") {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
                 implementation("org:foo") {
                     version {
@@ -601,7 +601,7 @@ class TestCapability implements Capability {
         variant.dependencies.size() == 2
         variant.dependencyConstraints.size() == 1
 
-        variant.dependencies[0].inheritStrictConstraints
+        variant.dependencies[0].inheritStrictVersions
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'platform'
         variant.dependencies[0].version == '1.0'
@@ -609,7 +609,7 @@ class TestCapability implements Capability {
         variant.dependencies[0].strictly == null
         variant.dependencies[0].rejectsVersion == []
 
-        !variant.dependencies[1].inheritStrictConstraints
+        !variant.dependencies[1].inheritStrictVersions
         variant.dependencies[1].group == 'org'
         variant.dependencies[1].module == 'foo'
         variant.dependencies[1].version == '1.0'

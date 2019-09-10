@@ -57,9 +57,22 @@ Earlier AGP versions are not supported.
 * Kotlin versions between 1.3.21 and 1.3.50 are tested.
 Earlier Kotlin versions are not supported.
 
-## Introducing inherited strict constraints
+## Inherited strict versions with platforms
 
-TODO
+When depending on a platform component, Gradle will automatically inherit strict version constraints from the platform.
+This means that all _strict_ constraints defined in the platform will automatically be added to your dependency graph _as if they were first level constraints_.
+This behavior can be opted out by calling the `doNotInheritStrictVersions()` method:
+
+```
+dependencies {
+    implementation(platform(project(':platform'))) {
+       doNotInheritStrictVersions()
+    }
+    ...
+}
+```
+
+More information about [strict constraints](userguide/rich_versions.adoc#rich-version-constraints) can be found in the documentation.
 
 ## Support for Java 13 EA
 

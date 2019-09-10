@@ -242,7 +242,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         Dependency dependency = create(notation);
         if (dependency instanceof ModuleDependency) {
             ModuleDependency moduleDependency = (ModuleDependency) dependency;
-            moduleDependency.inheritStrictConstraints();
+            moduleDependency.inheritStrictVersions();
             platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
         } else if (dependency instanceof HasConfigurableAttributes) {
             platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, toCategory(Category.REGULAR_PLATFORM));

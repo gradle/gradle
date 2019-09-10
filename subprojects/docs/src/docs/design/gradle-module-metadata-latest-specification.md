@@ -127,7 +127,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `reason`: optional. A explanation why the dependency is used. Can typically be used to explain why a specific version is requested.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 - `requestedCapabilities`: optional. If set, declares the capabilities that the dependency must provide in order to be selected. See `capabilities` above for the format.
-- `inheritStrictConstraints`: optional. If set to `true`, all strict version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
+- `inheritStrictVersions`: optional. If set to `true`, all strict version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
 - `inheritConstraints`: optional. If set to `true`, all `forSubgraph` version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
 - `thirdPartyCompatibility`: optional. Includes additional information to be used if the dependency points at a module that did **not** publish Gradle module metadata.
 
@@ -180,7 +180,7 @@ This value, nested in elements of the `dependencies` node, includes additional i
 
 #### 1.1
 
-- Adds support for _inherited strict version constraints_: `{ "group": "some.group", "module": "other-lib", "version": { "requires": "3.4" }, "inheritStrictConstraints": "true"`
+- Adds support for _inherited strict version constraints_: `{ "group": "some.group", "module": "other-lib", "version": { "requires": "3.4" }, "inheritStrictVersions": "true"`
 - Adds `thirdPartyCompatibility` features for better compatibility with maven and ivy metadata
 
 #### 1.0

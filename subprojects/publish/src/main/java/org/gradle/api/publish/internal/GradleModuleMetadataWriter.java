@@ -454,7 +454,7 @@ public class GradleModuleMetadataWriter {
 
         boolean inheriting = dependency.isInheriting();
         if (inheriting) {
-            jsonWriter.name("inheritStrictConstraints");
+            jsonWriter.name("inheritStrictVersions");
             jsonWriter.value(true);
         }
         String reason = dependency.getReason();

@@ -205,7 +205,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 6.0
      */
     @Incubating
-    void inheritStrictConstraints();
+    void inheritStrictVersions();
 
     /**
      * Resets the {@link #isInheriting()} state of this dependency.
@@ -213,7 +213,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 6.0
      */
     @Incubating
-    void notInheritStrictConstraints();
+    void doNotInheritStrictVersions();
 
     /**
      * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module inherited?

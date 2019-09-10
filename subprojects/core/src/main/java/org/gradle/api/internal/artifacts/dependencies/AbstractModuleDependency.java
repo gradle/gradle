@@ -229,12 +229,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public void inheritStrictConstraints() {
+    public void inheritStrictVersions() {
         this.inheriting = true;
     }
 
     @Override
-    public void notInheritStrictConstraints() {
+    public void doNotInheritStrictVersions() {
         this.inheriting = false;
     }
 
