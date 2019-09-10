@@ -304,6 +304,23 @@ include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/groovy/build
 ----
 ====
 
+For each container property, Gradle automatically adds a block to the Groovy and Kotlin DSL that you can use to configure the
+contents of the container:
+
+.Configure block
+====
+[source.multi-language-sample,kotlin]
+.build.gradle.kts
+----
+include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/kotlin/build.gradle.kts[]
+----
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/plugins/namedDomainObjectContainer/groovy/build.gradle[]
+----
+====
+
 === DomainObjectSet
 
 A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[DomainObjectSet] simply holds a set of objects.

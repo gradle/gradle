@@ -1,7 +1,11 @@
-apply plugin: DownloadPlugin
+plugins {
+    id("org.gradle.sample.download")
+}
 
 download {
-    servers.create("gradle") {
-        uri = uri('https://gradle.org')
+    servers {
+        gradle {
+            uri = uri('https://gradle.org')
+        }
     }
 }
