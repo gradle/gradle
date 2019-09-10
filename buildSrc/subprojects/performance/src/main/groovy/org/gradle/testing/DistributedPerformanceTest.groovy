@@ -321,7 +321,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     void waitForTestsCompletion(String lastChangeId) {
-        int total = scheduledBuilds.size()
         int retriedScenarios = 0
         Set<String> completed = []
         Multiset<String> completedScenarios = HashMultiset.create()
@@ -352,6 +351,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             }
             scenariosToReSchedule.each { schedule(it, lastChangeId) }
             if (completed.size() < scheduledBuilds.size()) {
+                int total = scheduledBuilds.size()
                 int pc = (100 * (((double) completed.size()) / (double) total)) as int
                 println "Waiting for scenarios $waiting to complete"
                 println "Completed ${completed.size()} tests of $total ($pc%)"
