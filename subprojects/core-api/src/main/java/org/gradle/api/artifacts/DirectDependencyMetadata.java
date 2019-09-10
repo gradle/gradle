@@ -34,7 +34,7 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      * @since 6.0
      */
     @Incubating
-    void inheritStrictConstraints();
+    void inheritStrictVersions();
 
     /**
      * Resets the {@link #isInheriting()} state of this dependency.
@@ -42,7 +42,7 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      * @since 6.0
      */
     @Incubating
-    void notInheritStrictConstraints();
+    void doNotInheritStrictVersions();
 
     /**
      * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module inherited?

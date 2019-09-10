@@ -23,7 +23,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 @RequiredFeatures([
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
 )
-class InheritStrictConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
+class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         resolve.withStrictReasonsCheck()
@@ -46,7 +46,7 @@ class InheritStrictConstraintsIntegrationTest extends AbstractModuleDependencyRe
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:bar')
             }           
@@ -105,7 +105,7 @@ class InheritStrictConstraintsIntegrationTest extends AbstractModuleDependencyRe
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:bar')
             }           
@@ -162,10 +162,10 @@ class InheritStrictConstraintsIntegrationTest extends AbstractModuleDependencyRe
         buildFile << """
             dependencies {
                 conf('org:platform-a:1.0') {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:platform-b:1.0') {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:foo')
             }           
@@ -214,10 +214,10 @@ class InheritStrictConstraintsIntegrationTest extends AbstractModuleDependencyRe
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:baz:1.0') {
-                    inheritStrictConstraints()
+                    inheritStrictVersions()
                 }
             }           
         """
@@ -271,7 +271,7 @@ class InheritStrictConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 dependsOn 'org:foo:2.0'
             }
             'org:baz:1.0' {
-                dependsOn(group: 'org', artifact: 'platform', version: '1.0', inheritStrictConstraints: true)
+                dependsOn(group: 'org', artifact: 'platform', version: '1.0', inheritStrictVersions: true)
                 dependsOn(group: 'org', artifact: 'bar')
             }
         }

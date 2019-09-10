@@ -86,8 +86,8 @@ class GradleFileModuleAdapter {
                                 }
                                 rejects d.rejects
                             }
-                            if (d.inheritStrictConstraints) {
-                                inheritStrictConstraints d.inheritStrictConstraints
+                            if (d.inheritStrictVersions) {
+                                inheritStrictVersions d.inheritStrictVersions
                             }
                             if (d.reason) {
                                 reason d.reason

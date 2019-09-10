@@ -27,12 +27,12 @@ public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectD
     }
 
     @Override
-    public void inheritStrictConstraints() {
+    public void inheritStrictVersions() {
         inheriting = true;
     }
 
     @Override
-    public void notInheritStrictConstraints() {
+    public void doNotInheritStrictVersions() {
         inheriting = false;
     }
 

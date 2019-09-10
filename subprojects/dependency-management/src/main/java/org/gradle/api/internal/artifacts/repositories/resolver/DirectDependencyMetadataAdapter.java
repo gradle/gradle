@@ -29,13 +29,13 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
     }
 
     @Override
-    public void inheritStrictConstraints() {
-        updateMetadata(getOriginalMetadata().withInheritStrictConstraints(true));
+    public void inheritStrictVersions() {
+        updateMetadata(getOriginalMetadata().withInheritStrictVersions(true));
     }
 
     @Override
-    public void notInheritStrictConstraints() {
-        updateMetadata(getOriginalMetadata().withInheritStrictConstraints(false));
+    public void doNotInheritStrictVersions() {
+        updateMetadata(getOriginalMetadata().withInheritStrictVersions(false));
     }
 
     @Override

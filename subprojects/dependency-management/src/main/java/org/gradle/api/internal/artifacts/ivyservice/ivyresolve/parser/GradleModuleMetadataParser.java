@@ -306,7 +306,7 @@ public class GradleModuleMetadataParser {
                     case "requestedCapabilities":
                         requestedCapabilities = consumeCapabilities(reader);
                         break;
-                    case "inheritStrictConstraints":
+                    case "inheritStrictVersions":
                         inheriting = reader.nextBoolean();
                         break;
                     case "thirdPartyCompatibility":

@@ -40,7 +40,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
         // The discouraged way of dealing with existing platforms
         ENFORCED_PLATFORM, // constraints in platform are published without strict constraints, consumer uses 'enforcedPlatform()' dependencies (to be deprecated)
         // Using a normal module as "platform" (i.e. inheriting it's constraints) also works
-        MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'inheritStrictConstraints()'
+        MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'inheritStrictVersions()'
     }
 
     def setup() {
@@ -55,7 +55,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             case ENFORCED_PLATFORM:
                 return "conf(enforcedPlatform('$dependency'))"
             case MODULE:
-                return "conf('$dependency') { inheritStrictConstraints() }"
+                return "conf('$dependency') { inheritStrictVersions() }"
         }
         ""
     }
