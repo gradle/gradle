@@ -5,8 +5,8 @@ plugins {
 download {
     // Can use a block to configure the container contents
     servers {
-        gradle {
-            uri = uri('https://gradle.org')
+        register("gradle") {
+            uri = uri("https://gradle.org")
         }
     }
 }
