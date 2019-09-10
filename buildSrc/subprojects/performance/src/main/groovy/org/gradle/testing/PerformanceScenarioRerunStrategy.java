@@ -16,6 +16,15 @@
 
 package org.gradle.testing;
 
-public interface PerformanceScenarioRerunStrategy {
+interface PerformanceScenarioRerunStrategy {
     boolean shouldRerun(int scenarioRunCount, boolean successful);
+
+    // Not using a lambda since we can't track the implementation of it
+    @SuppressWarnings("Convert2Lambda")
+    PerformanceScenarioRerunStrategy NEVER = new PerformanceScenarioRerunStrategy() {
+        @Override
+        public boolean shouldRerun(int scenarioRunCount, boolean successful) {
+            return false;
+        }
+    };
 }

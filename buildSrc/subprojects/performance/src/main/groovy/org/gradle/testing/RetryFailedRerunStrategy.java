@@ -16,21 +16,21 @@
 
 package org.gradle.testing;
 
-public class RetryFailedRerunStrategy implements PerformanceScenarioRerunStrategy {
+class RetryFailedRerunStrategy implements PerformanceScenarioRerunStrategy {
     private static final int MAX_RETRIED_SCENARIOS = 15;
 
-    private int retriedScenarios;
-    private final int retryFailedScenarioCount;
+    private int totalRetries;
+    private final int maxRetryCount;
 
-    public RetryFailedRerunStrategy(int retryFailedScenarioCount) {
-        this.retryFailedScenarioCount = retryFailedScenarioCount;
+    public RetryFailedRerunStrategy(int maxRetryCount) {
+        this.maxRetryCount = maxRetryCount;
     }
 
     @Override
     public boolean shouldRerun(int scenarioRunCount, boolean successful) {
-        boolean shouldRerun = !successful && scenarioRunCount <= retryFailedScenarioCount && retriedScenarios < MAX_RETRIED_SCENARIOS;
+        boolean shouldRerun = !successful && scenarioRunCount <= maxRetryCount && totalRetries < MAX_RETRIED_SCENARIOS;
         if (shouldRerun) {
-            retriedScenarios++;
+            totalRetries++;
         }
         return shouldRerun;
     }

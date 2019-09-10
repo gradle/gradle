@@ -16,15 +16,22 @@
 
 package org.gradle.testing;
 
-public class RepeatRerunStrategy implements PerformanceScenarioRerunStrategy {
-    private final int repeat;
+import org.gradle.api.tasks.Input;
 
-    public RepeatRerunStrategy(int repeat) {
-        this.repeat = repeat;
+class RepeatRerunStrategy implements PerformanceScenarioRerunStrategy {
+    private final int times;
+
+    public RepeatRerunStrategy(int times) {
+        this.times = times;
     }
 
     @Override
     public boolean shouldRerun(int scenarioRunCount, boolean successful) {
-        return scenarioRunCount < repeat;
+        return scenarioRunCount < times;
+    }
+
+    @Input
+    public int getTimes() {
+        return times;
     }
 }

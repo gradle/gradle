@@ -22,6 +22,7 @@ import com.google.common.collect.HashMultiset
 import com.google.common.collect.Multiset
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import groovyx.net.http.ContentType
@@ -30,9 +31,11 @@ import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.input.CloseShieldInputStream
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.TestListener
@@ -57,8 +60,7 @@ import java.util.zip.ZipInputStream
  */
 @CompileStatic
 @CacheableTask
-class DistributedPerformanceTest extends PerformanceTest {
-    private static final int MAX_RETRIED_SCENARIOS = 15
+abstract class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
@@ -103,6 +105,10 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     protected Map<String, Scenario> scheduledBuilds = [:]
 
+    @Nested
+    @PackageScope
+    abstract Property<PerformanceScenarioRerunStrategy> getRerunStrategy()
+
     @Internal
     @VisibleForTesting
     Map<String, ScenarioResult> finishedBuilds = [:]
@@ -121,6 +127,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                 return ["-Dorg.gradle.performance.scenario.list=$scenarioList".toString()]
             }
         })
+        rerunStrategy.convention(PerformanceScenarioRerunStrategy.NEVER)
     }
 
     @Override
@@ -135,6 +142,14 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     void setScenarioList(File scenarioList) {
         this.scenarioList = scenarioList
+    }
+
+    void repeatScenarios(int times) {
+        rerunStrategy.set(new RepeatRerunStrategy(times))
+    }
+
+    void retryFailedScenarios(int maxRetryCount = 1) {
+        rerunStrategy.set(new RetryFailedRerunStrategy(maxRetryCount))
     }
 
     @TaskAction
@@ -319,9 +334,6 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     void waitForTestsCompletion(String lastChangeId) {
         Set<String> completed = []
-        PerformanceScenarioRerunStrategy rerunStrategy = repeat > 1
-            ? new RepeatRerunStrategy(repeat)
-            : new RetryFailedRerunStrategy(retryFailedScenarioCount)
         Multiset<String> completedScenarios = HashMultiset.create()
         while (completed.size() < scheduledBuilds.size()) {
             List<String> waiting = []
@@ -333,7 +345,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                         def scenarioName = scenario.getId()
                         completedScenarios.add(scenarioName)
                         def finishedBuild = finishedBuilds.get(buildId)
-                        if (rerunStrategy.shouldRerun(completedScenarios.count(scenarioName), finishedBuild.isSuccessful())) {
+                        if (rerunStrategy.get().shouldRerun(completedScenarios.count(scenarioName), finishedBuild.isSuccessful())) {
                             scenariosToReSchedule.add(scenario)
                         }
                     } else {
