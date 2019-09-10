@@ -34,7 +34,6 @@ import javax.annotation.Nullable;
  * @param <T> Type of value represented by the property
  * @since 4.3
  */
-@Incubating
 public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property the given value, replacing whatever value the property already had.
@@ -66,6 +65,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @return this
      * @since 5.0
      */
+    @Incubating
     Property<T> value(@Nullable T value);
 
     /**
@@ -77,6 +77,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @return this
      * @since 5.6
      */
+    @Incubating
     Property<T> value(Provider<? extends T> provider);
 
     /**
@@ -86,6 +87,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @return this
      * @since 5.1
      */
+    @Incubating
     Property<T> convention(T value);
 
     /**
@@ -95,6 +97,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @return this
      * @since 5.1
      */
+    @Incubating
     Property<T> convention(Provider<? extends T> valueProvider);
 
     /**
@@ -106,5 +109,6 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      *
      * @since 5.0
      */
+    @Incubating
     void finalizeValue();
 }

@@ -36,7 +36,6 @@ public interface EclipseRuntime {
     /**
      * The eclipse workspace
      */
-    @Incubating
     void setWorkspace(EclipseWorkspace eclipseWorkspace);
 
 }

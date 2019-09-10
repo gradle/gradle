@@ -530,7 +530,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see TaskContainer#create(String, Action)
      * @since 4.10
      */
-    @Incubating
     Task task(String name, Action<? super Task> configureAction);
 
     /**
@@ -956,7 +955,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    @Incubating
     <T> Provider<T> provider(Callable<T> value);
 
     /**
@@ -964,7 +962,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     ProviderFactory getProviders();
 
     /**
@@ -972,7 +969,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     ObjectFactory getObjects();
 
     /**
@@ -980,7 +976,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.1
      */
-    @Incubating
     ProjectLayout getLayout();
 
     /**
@@ -1747,7 +1742,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.8
      */
-    @Incubating
     void dependencyLocking(Action<? super DependencyLockingHandler> configuration);
 
     /**
@@ -1755,6 +1749,5 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.8
      */
-    @Incubating
     DependencyLockingHandler getDependencyLocking();
 }

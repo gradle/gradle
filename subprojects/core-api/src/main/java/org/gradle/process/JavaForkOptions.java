@@ -163,7 +163,6 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @since 4.6
      */
-    @Incubating
     @Nested
     List<CommandLineArgumentProvider> getJvmArgumentProviders();
 

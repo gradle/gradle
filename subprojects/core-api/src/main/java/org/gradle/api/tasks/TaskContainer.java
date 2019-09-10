@@ -17,7 +17,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.PolymorphicDomainObjectContainer;
@@ -179,7 +178,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @since 4.7
      */
-    @Incubating
     <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**

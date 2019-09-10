@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -279,7 +278,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      *
      * @since 5.1
      */
-    @Incubating
     @Input
     public boolean getEnableStricterValidation() {
         return enableStricterValidation;
@@ -290,7 +288,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      *
      * @since 5.1
      */
-    @Incubating
     public void setEnableStricterValidation(boolean enableStricterValidation) {
         this.enableStricterValidation = enableStricterValidation;
     }

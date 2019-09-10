@@ -19,5 +19,4 @@
  *
  * @since 4.6
  */
-@org.gradle.api.Incubating
 package org.gradle.api.tasks.options;

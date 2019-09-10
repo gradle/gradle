@@ -16,8 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
-
 import java.util.concurrent.Callable;
 
 /**
@@ -28,7 +26,6 @@ import java.util.concurrent.Callable;
  *
  * @since 4.0
  */
-@Incubating
 public interface ProviderFactory {
 
     /**

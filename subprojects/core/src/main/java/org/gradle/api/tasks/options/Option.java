@@ -15,9 +15,11 @@
  */
 package org.gradle.api.tasks.options;
 
-import org.gradle.api.Incubating;
-
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * <p>Marks a property of a {@link org.gradle.api.Task} as being configurable from the command-line.</p>
@@ -43,7 +45,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Inherited
-@Incubating
 public @interface Option {
 
     /**

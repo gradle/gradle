@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing.junitplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
@@ -30,7 +29,6 @@ import java.util.Set;
  * @see <a href="https://junit.org/junit5/docs/current/user-guide">JUnit 5 User Guide</a>
  * @since 4.6
  */
-@Incubating
 public class JUnitPlatformOptions extends TestFrameworkOptions {
     private Set<String> includeEngines = new LinkedHashSet<String>();
 

@@ -43,7 +43,6 @@ import java.util.Set;
  *
  * @since 4.0
  */
-@Incubating
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.
@@ -92,6 +91,7 @@ public interface ObjectFactory {
      * @param displayName A human consumable display name for the set.
      * @since 5.0
      */
+    @Incubating
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
 
     /**
@@ -99,6 +99,7 @@ public interface ObjectFactory {
      *
      * @since 5.3
      */
+    @Incubating
     ConfigurableFileCollection fileCollection();
 
     /**
@@ -106,6 +107,7 @@ public interface ObjectFactory {
      *
      * @since 6.0
      */
+    @Incubating
     ConfigurableFileTree fileTree();
 
     /**
@@ -118,6 +120,7 @@ public interface ObjectFactory {
      * @return The container. Never returns null.
      * @since 5.5
      */
+    @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType);
 
     /**
@@ -131,6 +134,7 @@ public interface ObjectFactory {
      * @return The container. Never returns null.
      * @since 5.5
      */
+    @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
@@ -141,6 +145,7 @@ public interface ObjectFactory {
      * @return The domain object set. Never returns null.
      * @since 5.5
      */
+    @Incubating
     <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType);
 
     /**
@@ -197,6 +202,7 @@ public interface ObjectFactory {
      * @return the property. Never returns null.
      * @since 5.1
      */
+    @Incubating
     <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**
@@ -204,6 +210,7 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
+    @Incubating
     DirectoryProperty directoryProperty();
 
     /**
@@ -211,5 +218,6 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
+    @Incubating
     RegularFileProperty fileProperty();
 }

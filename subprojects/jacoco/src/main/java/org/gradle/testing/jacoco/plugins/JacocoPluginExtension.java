@@ -17,7 +17,6 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -98,7 +97,6 @@ public class JacocoPluginExtension {
      * @param reportsDir Reports directory provider
      * @since 4.0
      */
-    @Incubating
     public void setReportsDir(Provider<File> reportsDir) {
         this.reportsDir.set(reportsDir);
     }

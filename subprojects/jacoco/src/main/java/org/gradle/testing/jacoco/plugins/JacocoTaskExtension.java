@@ -18,7 +18,6 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
@@ -67,9 +66,9 @@ public class JacocoTaskExtension {
     private boolean enabled = true;
     private final Property<File> destinationFile;
     private boolean append = true;
-    private List<String> includes = new ArrayList<String>();
-    private List<String> excludes = new ArrayList<String>();
-    private List<String> excludeClassLoaders = new ArrayList<String>();
+    private List<String> includes = new ArrayList<>();
+    private List<String> excludes = new ArrayList<>();
+    private List<String> excludeClassLoaders = new ArrayList<>();
     private boolean includeNoLocationClasses;
     private String sessionId;
     private boolean dumpOnExit = true;
@@ -120,7 +119,6 @@ public class JacocoTaskExtension {
      * @param destinationFile Destination file provider
      * @since 4.0
      */
-    @Incubating
     public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile.set(destinationFile);
     }
@@ -291,7 +289,6 @@ public class JacocoTaskExtension {
      *
      * @since 4.6
      */
-    @Incubating
     @Classpath
     public FileCollection getAgentClasspath() {
         return agent.getAgentConf();
