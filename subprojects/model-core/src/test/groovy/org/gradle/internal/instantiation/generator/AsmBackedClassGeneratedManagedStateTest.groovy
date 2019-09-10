@@ -25,6 +25,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
@@ -34,6 +35,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileTreeBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceListPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceMapPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceNestedBean
@@ -155,6 +157,27 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
     }
 
+    def canConstructInstanceOfInterfaceWithFileTreeGetter() {
+        def projectDir = tmpDir.testDirectory
+        def a = projectDir.file("dir/a").createFile()
+        def b = projectDir.file("dir/sub/a").createFile()
+        def bean = create(InterfaceFileTreeBean)
+
+        expect:
+        bean.prop.from("dir")
+        bean.prop.files == [a, b] as Set
+    }
+
+    def canConstructInstanceOfInterfaceWithNamedDomainObjectCollectionGetter() {
+        def bean = create(InterfaceContainerPropertyBean)
+
+        expect:
+        bean.prop.toString() == "NamedBean container"
+        bean.prop.empty
+        bean.prop.register("one")
+        bean.prop.names == ["one"] as Set
+    }
+
     def canConstructInstanceOfInterfaceWithNestedGetter() {
         def projectDir = tmpDir.testDirectory
         def bean = create(InterfaceNestedBean)
@@ -233,6 +256,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         where:
         type                           | _
         InterfaceFileCollectionBean    | _
+        InterfaceFileTreeBean          | _
         InterfacePropertyBean          | _
         InterfaceFilePropertyBean      | _
         InterfaceDirectoryPropertyBean | _

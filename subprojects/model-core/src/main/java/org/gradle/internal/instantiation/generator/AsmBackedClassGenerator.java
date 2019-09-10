@@ -35,10 +35,6 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
@@ -1042,13 +1038,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 putDisplayNameOnStack(methodVisitor);
                 methodVisitor.visitLdcInsn(property.getName());
 
-                if (property.getType().equals(Property.class) || property.getType().equals(ListProperty.class) || property.getType().equals(SetProperty.class)) {
+                int typeParamCount = property.getType().getTypeParameters().length;
+                if (typeParamCount == 1) {
                     // GENERATE factory.newInstance(this, displayName, propertyName, type, valueType)
                     Type elementType = Type.getType(rawTypeParam(property, 0));
                     methodVisitor.visitLdcInsn(propType);
                     methodVisitor.visitLdcInsn(elementType);
                     methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS_CLASS, false);
-                } else if (property.getType().equals(MapProperty.class)) {
+                } else if (typeParamCount == 2) {
                     // GENERATE factory.newInstance(this, displayName, propertyName, type, keyType, valueType)
                     Type keyType = Type.getType(rawTypeParam(property, 0));
                     Type elementType = Type.getType(rawTypeParam(property, 1));
@@ -1061,6 +1058,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     methodVisitor.visitLdcInsn(propType);
                     methodVisitor.visitMethodInsn(INVOKEVIRTUAL, MANAGED_OBJECT_FACTORY_TYPE.getInternalName(), "newInstance", RETURN_OBJECT_FROM_GENERATED_DESCRIBABLE_STRING_CLASS, false);
                 }
+
                 methodVisitor.visitTypeInsn(CHECKCAST, propType.getInternalName());
             });
         }

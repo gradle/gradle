@@ -18,7 +18,9 @@ package org.gradle.internal.instantiation.generator;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Describable;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.GeneratedSubclass;
@@ -60,6 +62,9 @@ public class ManagedObjectFactory {
         if (type.isAssignableFrom(ConfigurableFileCollection.class)) {
             return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().fileCollection());
         }
+        if (type.isAssignableFrom(ConfigurableFileTree.class)) {
+            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().fileTree());
+        }
         if (type.isAssignableFrom(DirectoryProperty.class)) {
             return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().directoryProperty());
         }
@@ -79,6 +84,9 @@ public class ManagedObjectFactory {
         }
         if (type.isAssignableFrom(SetProperty.class)) {
             return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().setProperty(paramType));
+        }
+        if (type.isAssignableFrom(NamedDomainObjectContainer.class)) {
+            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().domainObjectContainer(paramType));
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
     }
