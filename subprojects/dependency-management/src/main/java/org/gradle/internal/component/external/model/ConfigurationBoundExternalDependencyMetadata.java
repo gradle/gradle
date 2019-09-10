@@ -149,7 +149,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+    public ModuleDependencyMetadata withInheritStrictConstraints(boolean inheriting) {
         if (this.isInheriting == inheriting) {
             return this;
         }

@@ -88,7 +88,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+    public ModuleDependencyMetadata withInheritStrictConstraints(boolean inheriting) {
         if (inheriting == this.inheriting) {
             return this;
         }

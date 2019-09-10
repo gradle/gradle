@@ -57,9 +57,9 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritConstraints(boolean inheriting) {
+    public ModuleDependencyMetadata withInheritStrictConstraints(boolean inheriting) {
         if (delegate instanceof ModuleDependencyMetadata) {
-            return new ModuleDependencyMetadataWrapper(((ModuleDependencyMetadata) delegate).withInheritConstraints(inheriting));
+            return new ModuleDependencyMetadataWrapper(((ModuleDependencyMetadata) delegate).withInheritStrictConstraints(inheriting));
         }
         return this;
     }

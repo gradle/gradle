@@ -34,31 +34,29 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "can create an immutable version constraint with rejects"() {
         given:
-        def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'], false)
+        def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'])
 
         expect:
         v.requiredVersion == '1.0'
         v.preferredVersion == '1.1'
         v.strictVersion == '1.1.1'
         v.rejectedVersions == ['1.2','2.0']
-        !v.forSubgraph
     }
 
     def "can create an immutable version constraint that applies for the subgraph"() {
         given:
-        def v = new DefaultImmutableVersionConstraint('', '1.0', '', [], true)
+        def v = new DefaultImmutableVersionConstraint('', '1.0', '', [])
 
         expect:
         v.requiredVersion == '1.0'
         v.preferredVersion == ''
         v.strictVersion == ''
         v.rejectedVersions == []
-        v.forSubgraph
     }
 
     def "cannot mutate rejection list"() {
         given:
-        def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'], false)
+        def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'])
 
         when:
         v.rejectedVersions.add('3.0')
@@ -69,21 +67,21 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "cannot use null as any version"() {
         when:
-        new DefaultImmutableVersionConstraint('1.1', null, '1.1', ['1.2', '2.0'], false)
+        new DefaultImmutableVersionConstraint('1.1', null, '1.1', ['1.2', '2.0'])
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Required version must not be null'
 
         when:
-        new DefaultImmutableVersionConstraint(null, '1.0', '1.0', ['1.2', '2.0'], false)
+        new DefaultImmutableVersionConstraint(null, '1.0', '1.0', ['1.2', '2.0'])
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == 'Preferred version must not be null'
 
         when:
-        new DefaultImmutableVersionConstraint('1.0', '1.0', null, ['1.2', '2.0'], false)
+        new DefaultImmutableVersionConstraint('1.0', '1.0', null, ['1.2', '2.0'])
 
         then:
         e = thrown(IllegalArgumentException)
@@ -93,14 +91,14 @@ class DefaultImmutableVersionConstraintTest extends Specification {
     def "cannot use empty or null as rejected version"() {
 
         when:
-        new DefaultImmutableVersionConstraint('', '', '', [null], false)
+        new DefaultImmutableVersionConstraint('', '', '', [null])
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Rejected version must not be empty'
 
         when:
-        new DefaultImmutableVersionConstraint('', '', '', [''], false)
+        new DefaultImmutableVersionConstraint('', '', '', [''])
 
         then:
         e = thrown(IllegalArgumentException)
@@ -117,7 +115,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         v.rejectedVersions.empty
 
         when:
-        v = new DefaultImmutableVersionConstraint('', '', '', ['1.1', '2.0'], false)
+        v = new DefaultImmutableVersionConstraint('', '', '', ['1.1', '2.0'])
 
         then:
         v.preferredVersion == ''
@@ -127,7 +125,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "cannot use null as rejected versions"() {
         when:
-        def v = new DefaultImmutableVersionConstraint('', '1.0', '', null, false)
+        def v = new DefaultImmutableVersionConstraint('', '1.0', '', null)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -148,7 +146,6 @@ class DefaultImmutableVersionConstraintTest extends Specification {
     def "can convert mutable version constraint to immutable version constraint"() {
         given:
         def v = new DefaultMutableVersionConstraint('1.0', '2.0', '3.0', ['1.1', '2.0'])
-        v.forSubgraph()
 
         when:
         def c = DefaultImmutableVersionConstraint.of(v)
@@ -160,7 +157,6 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         c.preferredVersion == v.preferredVersion
         c.strictVersion == v.strictVersion
         c.rejectedVersions == v.rejectedVersions
-        c.forSubgraph == v.forSubgraph
     }
 
 
@@ -174,7 +170,6 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
         displayNameFor('1.0', '2.0', '3.0', ['1.0', '2.0']) == "{strictly 3.0; require 2.0; prefer 1.0; reject 1.0 & 2.0}"
         displayNameFor('1.0', '', '', [], 'br') == "{prefer 1.0; branch br}"
-        displayNameFor('1.0', '', '', [], null, true) == "{prefer 1.0; subgraph}"
 
         displayNameFor('1.0', '1.0', '', []) == "1.0" // prefer == require
         displayNameFor('', '1.0', '1.0', []) == "{strictly 1.0}" // strictly == require
@@ -182,8 +177,8 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         displayNameFor('1.0', '1.0', '1.0', []) == "{strictly 1.0}" // strictly == prefer == require
     }
 
-    private String displayNameFor(String preferred, String required, String strict, List<String> rejects, branch = null, forSubgraph = false) {
-        new DefaultImmutableVersionConstraint(preferred, required, strict, rejects, branch, forSubgraph).displayName
+    private String displayNameFor(String preferred, String required, String strict, List<String> rejects, branch = null) {
+        new DefaultImmutableVersionConstraint(preferred, required, strict, rejects, branch).displayName
     }
 
 }

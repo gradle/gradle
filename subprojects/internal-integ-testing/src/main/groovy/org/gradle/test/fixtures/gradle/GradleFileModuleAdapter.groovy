@@ -84,13 +84,10 @@ class GradleFileModuleAdapter {
                                 } else if (d.preferredVersion) {
                                     prefers d.preferredVersion
                                 }
-                                if (d.forSubgraph) {
-                                    forSubgraph d.forSubgraph
-                                }
                                 rejects d.rejects
                             }
-                            if (d.inheritConstraints) {
-                                inheritConstraints d.inheritConstraints
+                            if (d.inheritStrictConstraints) {
+                                inheritStrictConstraints d.inheritStrictConstraints
                             }
                             if (d.reason) {
                                 reason d.reason
@@ -145,9 +142,6 @@ class GradleFileModuleAdapter {
                                 }
                                 if (dc.rejects) {
                                     rejects dc.rejects
-                                }
-                                if (dc.forSubgraph) {
-                                    forSubgraph dc.forSubgraph
                                 }
                             }
                             if (dc.reason) {

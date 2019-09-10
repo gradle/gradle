@@ -56,49 +56,9 @@ Earlier AGP versions are not supported.
 * Kotlin versions between 1.3.21 and 1.3.50 are tested.
 Earlier Kotlin versions are not supported.
 
-## Introducing subgraph constraints for dependency versions
+## Introducing inherited strict constraints
 
-When you declare a dependency to a module that is already on your dependency graph, due to a transitive dependency, you sometimes need to change the version of that module according to your needs.
-So far, this was limited to cases where the existing constraint should be limited further (e.g. choosing a specific version from a range).
-Version constraints can now made into [subgraph constraints](userguide/declaring_dependency_versions.html#sec:declaring_for_subgraph) by using `forSubgraph()`, which will prompt Gradle to ignore the corresponding version constraints defined further down the graph.
-This can, for example, be used to downgrade a version. Subgraph constraints are published to [Gradle Module Metadata](userguide/publishing.html#understanding-gradle-module-md).
-
-```groovy
-dependencies {
-    implementation('org.apache.hadoop:hadoop-common')
-    implementation('commons-io:commons-io')
-    constraints {
-        // 'hadoop-common:3.2.0' brings in 'commons-io:2.5'
-        implementation('org.apache.hadoop:hadoop-common:3.2.0') 
-        implementation('commons-io:commons-io:2.4') {
-            version { forSubgraph() } // '2.4' takes precedence
-        }
-    }
-}
-```
-
-Subgraph constraints can also be defined in a platform.
-Theses constraints will be _inherited_ when depending on the platform and treated as if they were defined directly.
-
-```groovy
-project(':platform') {
-    dependencies {
-        constraints {
-            api('org.apache.hadoop:hadoop-common:3.2.0') 
-            api('commons-io:commons-io:2.4') {
-                version { forSubgraph() } 
-            }
-        }
-    }
-}
-
-dependencies {
-    // 'commons-io:commons-io:2.4' win over '2.5' because the platform defines the constraint as 'forSubgraph()'
-    implementation(platform(project(':platform')))
-    implementation('org.apache.hadoop:hadoop-common')
-    implementation('commons-io:commons-io')
-}
-```
+TODO
 
 ## Support for Java 13 EA
 

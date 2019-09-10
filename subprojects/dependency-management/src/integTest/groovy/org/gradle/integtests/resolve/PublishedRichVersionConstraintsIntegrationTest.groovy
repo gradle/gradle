@@ -108,7 +108,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
             root(":", ":test:") {
                 edge("org:foo:{strictly [1.0,1.2]}", "org:foo:1.2")
                 edge('org:bar:1.0', 'org:bar:1.0') {
-                    edge("org:foo:{strictly [1.1,1.3]}", "org:foo:1.2")
+                    edge("org:foo:{strictly [1.1,1.3]}", "org:foo:1.2") {
+                        byAncestor()
+                    }
                 }
             }
         }
@@ -174,7 +176,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         }
     }
 
-    def "should fail if 2 strict versions disagree (external)"() {
+    def "direct strict dependency should win over published transitive strict dependency"() {
         given:
         repository {
             'org:foo:15'()
@@ -198,19 +200,24 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         when:
         repositoryInteractions {
             'org:foo:17' {
-                expectGetMetadata()
+                expectResolve()
             }
             'org:bar:1.0' {
-                expectGetMetadata()
+                expectResolve()
             }
         }
 
-        fails ':checkDeps'
+        succeeds ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo:{strictly 17}'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{strictly 15}'""")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:foo:{strictly 17}', 'org:foo:17')
+                module('org:bar:1.0') {
+                    edge("org:foo:{strictly 15}", "org:foo:17")
+                }
+            }
+        }
 
     }
 

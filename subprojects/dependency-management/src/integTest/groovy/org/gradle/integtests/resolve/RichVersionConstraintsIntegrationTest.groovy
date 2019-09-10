@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.IgnoreIf
@@ -204,7 +207,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
+    void "a strict dependency version takes precedence over a higher transitive version"() {
         given:
         repository {
             'org:foo' {
@@ -231,22 +234,26 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         repositoryInteractions {
             'org:foo' {
                 '1.0' {
-                    expectGetMetadata()
-                }
-                '1.1' {
-                    expectGetMetadata()
+                    expectResolve()
                 }
             }
             'org:bar:1.0' {
-                expectGetMetadata()
+                expectResolve()
             }
         }
-        fails ':checkDeps'
+        succeeds ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo:{strictly 1.0}'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.1'""")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:foo:{strictly 1.0}', 'org:foo:1.0')
+                module('org:bar:1.0') {
+                    edge('org:foo:1.1', 'org:foo:1.0') {
+                        byAncestor()
+                    }
+                }
+            }
+        }
 
     }
 
@@ -335,7 +342,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             root(":", ":test:") {
                 edge "org:foo:{strictly 1.1}", "org:foo:1.1"
                 edge("org:bar:1.0", "org:bar:1.0") {
-                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                    edge("org:foo:1.0", "org:foo:1.1").byAncestor()
                 }
             }
         }
@@ -374,14 +381,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                 if (listVersions) {
                     expectVersionListing()
                 }
-                '1.2' {
-                    expectGetMetadata()
-                    expectGetArtifact()
-                }
-                if (resolve13) {
-                    '1.3' {
-                        expectGetMetadata()
-                    }
+                "$resolvedVersion" {
+                    expectResolve()
                 }
             }
             'org:bar:1.0' {
@@ -396,19 +397,23 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:{strictly $directDependencyVersion}", "org:foo:1.2")
+                edge("org:foo:{strictly $directDependencyVersion}", "org:foo:$resolvedVersion")
                 edge("org:bar:1.0", "org:bar:1.0") {
-                    edge("org:foo:$transitiveDependencyVersion", "org:foo:1.2")
+                    edge("org:foo:$transitiveDependencyVersion", "org:foo:$resolvedVersion") {
+                        if (transitiveDependencyVersion != resolvedVersion) {
+                            byAncestor()
+                        }
+                    }
                 }
             }
         }
 
         where:
-        directDependencyVersion | transitiveDependencyVersion | listVersions | resolve13
-        '[1.0,1.3]'             | '1.2'                       | true         | true
-        '1.2'                   | '[1.0,1.3]'                 | false        | false
-        '[1.0,1.2]'             | '[1.0, 1.3]'                | true         | false
-        '[1.0,1.3]'             | '[1.0,1.2]'                 | true         | true
+        directDependencyVersion | transitiveDependencyVersion | listVersions | resolvedVersion
+        '[1.0,1.3]'             | '1.2'                       | true         | '1.3' // should probably choose 1.2 instead
+        '1.2'                   | '[1.0,1.3]'                 | false        | '1.2'
+        '[1.0,1.2]'             | '[1.0, 1.3]'                | true         | '1.2'
+        '[1.0,1.3]'             | '[1.0,1.2]'                 | true         | '1.3' // should probably choose 1.2 instead
     }
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
@@ -458,7 +463,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
     }
 
-    def "should fail if 2 strict versions disagree"() {
+    def "should fail if 2 1st-level strict versions disagree"() {
         given:
         repository {
             'org:foo:15'()
@@ -472,22 +477,12 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                         strictly '17'
                     }
                 }
-                conf project(path: 'other', configuration: 'conf')
-            }                       
-        """
-        file("other/build.gradle") << """
-            $repositoryDeclaration
-
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:foo:15') {
+                conf('org:foo') {
                     version {
                         strictly '15'
                     }
                 }
-            }       
+            }                       
         """
         settingsFile << "\ninclude 'other'"
 
@@ -507,11 +502,55 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:foo:{strictly 17}'
-   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly 15}'""")
+   Dependency path ':test:unspecified' --> 'org:foo:{strictly 15}'""")
 
     }
 
-    def "should fail if 2 non overlapping strict versions ranges disagree"() {
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "should fail if 1st-level version disagrees with transitive strict version"() {
+        given:
+        repository {
+            'org:foo:15'()
+            'org:foo:17'()
+            'org:bar:1' {
+                dependsOn(group: 'org', artifact: 'foo', strictly: '15')
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:17')
+                conf('org:bar:1')
+            }                       
+        """
+        settingsFile << "\ninclude 'other'"
+
+        when:
+        repositoryInteractions {
+            'org:bar:1' {
+                expectGetMetadata()
+            }
+            'org:foo' {
+                '15' {
+                    maybeGetMetadata()
+                }
+                '17' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo:17'
+   Dependency path ':test:unspecified' --> 'org:bar:1' --> 'org:foo:{strictly 15}'""")
+
+    }
+
+    def "strict range defined as 1st level dependency wins over transitive one"() {
         given:
         repository {
             'org:foo:15'()
@@ -551,19 +590,25 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             'org:foo' {
                 expectVersionListing()
                 '16' {
-                    expectGetMetadata()
-                }
-                '18' {
-                    expectGetMetadata()
+                    expectResolve()
                 }
             }
         }
-        fails ':checkDeps'
+        succeeds ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo:{strictly [15,16]}'
-   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly [17,18]}'""")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:foo:{strictly [15,16]}', 'org:foo:16')
+                project(':other', 'test:other:') {
+                    configuration 'conf'
+                    edge('org:foo:{strictly [17,18]}', 'org:foo:16') {
+                        byAncestor()
+                    }
+                    noArtifacts()
+                }
+            }
+        }
 
     }
 
@@ -600,70 +645,6 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
    Dependency path ':test:unspecified' --> 'org:foo:15'
    Dependency path ':test:unspecified' --> 'org:foo:{strictly [0,1]}'""")
     }
-
-    void    "should pass if strict version ranges overlap"() {
-        given:
-        repository {
-            'org:foo' {
-                '1.0'()
-                '1.1'()
-                '1.2'()
-                '1.3'()
-            }
-        }
-
-        buildFile << """
-            dependencies {
-                conf('org:foo') {
-                    version {
-                        strictly '[1.0,1.2]'
-                    }
-                }
-                conf project(path:'other', configuration: 'conf')
-            }
-                                  
-        """
-        file("other/build.gradle") << """
-            $repositoryDeclaration
-
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:foo:[1.1,1.3]') {
-                    version {
-                        strictly '[1.1,1.3]'
-                    }
-                }
-            }       
-        """
-        settingsFile << "\ninclude 'other'"
-
-        when:
-        repositoryInteractions {
-            'org:foo' {
-                expectVersionListing()
-                '1.2' {
-                    expectGetMetadata()
-                    expectGetArtifact()
-                }
-            }
-        }
-        run ':checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org:foo:{strictly [1.0,1.2]}", "org:foo:1.2")
-                project(':other', 'test:other:') {
-                    configuration = 'conf'
-                    noArtifacts()
-                    edge("org:foo:{strictly [1.1,1.3]}", "org:foo:1.2")
-                }
-            }
-        }
-    }
-
 
     void "can reject dependency versions of an external component"() {
         given:
@@ -883,7 +864,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             }
         }
 
-        def rejectString = rejects.collect({"'${it}'"}).join(', ')
+        def rejectString = rejects.collect({ "'${it}'" }).join(', ')
         buildFile << """
             dependencies {
                 conf('org:foo:$notation') {
@@ -915,7 +896,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                String rejectedVersions = (selected+1..5).collect { "1.${it}" }.reverse().join(", ")
+                String rejectedVersions = (selected + 1..5).collect { "1.${it}" }.reverse().join(", ")
                 edge("org:foo:{require $notation; reject ${rejects.join(' & ')}}", "org:foo:1.$selected").byReason("rejected versions ${rejectedVersions}")
             }
         }
@@ -963,13 +944,6 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         failure.assertHasCause("Module 'org:foo' has been rejected")
     }
 
-    /**
-     * Test demonstrates incorrect behaviour where we are incorrectly upgrading a constraint with
-     *  `version { strictly 'x'}`  during conflict resolution.
-     *
-     * When 2 different constraints choose the same version, only one of these constraints is considered when conflict resolution
-     * applies with a 3rd constraint.
-     */
     @Issue("gradle/gradle#4608")
     def "conflict resolution should consider all constraints for each candidate"() {
         repository {
@@ -997,24 +971,30 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         repositoryInteractions {
             'org:bar' {
                 '1' {
-                    expectGetMetadata()
-                }
-                '2' {
-                    expectGetMetadata()
+                    expectResolve()
                 }
             }
             'org:foo:2' {
-                expectGetMetadata()
+                expectResolve()
             }
         }
 
-        fails ":checkDeps"
+        succeeds ":checkDeps"
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:bar' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:bar:1'
-   Constraint path ':test:unspecified' --> 'org:bar:{strictly 1}'
-   Dependency path ':test:unspecified' --> 'org:foo:2' --> 'org:bar:2'""")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint('org:bar:{strictly 1}', 'org:bar:1')
+                module('org:bar:1') {
+                    byConstraint()
+                }
+                module('org:foo:2') {
+                    edge('org:bar:2', 'org:bar:1') {
+                        byAncestor()
+                    }
+                }
+            }
+        }
     }
 
 }

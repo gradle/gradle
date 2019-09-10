@@ -170,10 +170,6 @@ public class GradleModuleMetadataWriter {
             }
             jsonWriter.endArray();
         }
-        if (versionConstraint.isForSubgraph()) {
-            jsonWriter.name("forSubgraph");
-            jsonWriter.value(true);
-        }
         jsonWriter.endObject();
     }
 
@@ -458,7 +454,7 @@ public class GradleModuleMetadataWriter {
 
         boolean inheriting = dependency.isInheriting();
         if (inheriting) {
-            jsonWriter.name("inheritConstraints");
+            jsonWriter.name("inheritStrictConstraints");
             jsonWriter.value(true);
         }
         String reason = dependency.getReason();
