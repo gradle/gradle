@@ -58,6 +58,19 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         failure.assertThatCause(containsText("A problem occurred starting process"))
     }
 
+    @Requires(TestPrecondition.WINDOWS)
+    def "can suggest long command line failures when execution fails for long command line on Windows system"() {
+        buildFile << """
+            run.classpath += project.files('${'a' * ARG_MAX_WINDOWS}')
+        """
+
+        when:
+        def failure = fails("run")
+
+        then:
+        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "does not suggest long command line failures when execution fails on non-Windows system"() {
         buildFile << """
