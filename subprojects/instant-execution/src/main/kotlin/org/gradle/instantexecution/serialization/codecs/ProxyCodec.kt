@@ -18,21 +18,18 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readClassArray
+import org.gradle.instantexecution.serialization.writeClassArray
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 
 
 object ProxyCodec : EncodingProducer, Decoding {
-    override fun encodingForType(type: Class<*>): Encoding? {
-        return if (Proxy.isProxyClass(type)) {
-            ProxyEncoding
-        } else {
-            null
-        }
-    }
+    override fun encodingForType(type: Class<*>): Encoding? =
+        ProxyEncoding.takeIf { Proxy.isProxyClass(type) }
 
     override suspend fun ReadContext.decode(): Any {
-        val interfaces = read() as Array<Class<*>>
+        val interfaces = readClassArray()
         val handler = read() as InvocationHandler
         return Proxy.newProxyInstance(interfaces.first().classLoader, interfaces, handler)
     }
@@ -42,7 +39,7 @@ object ProxyCodec : EncodingProducer, Decoding {
 private
 object ProxyEncoding : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
-        write(value.javaClass.interfaces)
+        writeClassArray(value.javaClass.interfaces)
         write(Proxy.getInvocationHandler(value))
     }
 }
